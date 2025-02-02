@@ -43,6 +43,4 @@ public final class AnimationCachePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         PlayerDataController.Instance.getPlayerData(player).animationData.cacheAnimation(in.readInt());
     }
-
-
 }

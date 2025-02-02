@@ -1,8 +1,6 @@
 package noppes.npcs.constants;
 
-import net.minecraft.client.gui.Gui;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.client.gui.custom.components.CustomGuiButton;
 
 public enum EnumPacketServer {
 	NPCDelete(CustomNpcsPermissions.NPC_DELETE, true),
@@ -69,7 +67,7 @@ public enum EnumPacketServer {
 
     QuestGet, QuestCategoryGet,
 	SaveTileEntity, MailOpenSetup,
-	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen, CacheAnimation,
+	DimensionTeleport, GetTileEntity, IsGuiOpen, CacheAnimation,
 
 	SavePartyData, CreateParty, GetPartyData, DisbandParty, KickPlayer, LeavePlayer, PartyInvite, GetPartyInviteList, AcceptInvite,
 	IgnoreInvite, SetPartyLeader, SetPartyQuest,

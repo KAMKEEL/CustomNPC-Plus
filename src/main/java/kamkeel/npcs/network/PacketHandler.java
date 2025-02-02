@@ -13,6 +13,7 @@ import kamkeel.npcs.network.packets.data.gui.*;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
+import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
 import kamkeel.npcs.network.packets.request.GuiRequestPacket;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
@@ -197,6 +198,7 @@ public class PacketHandler {
 
         // Other
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
+        REQUEST_PACKET.registerPacket(new DimensionsGetPacket());
     }
 
     public void registerDataPackets(){
