@@ -63,8 +63,6 @@ public class BankPacket extends AbstractPacket {
     @Override
     @SideOnly(Side.CLIENT)
     public void sendData(ByteBuf out) throws IOException {
-        if (type == null)
-            return;
         out.writeInt(type.ordinal());
 
         if (type == Action.OpenSlot) {
