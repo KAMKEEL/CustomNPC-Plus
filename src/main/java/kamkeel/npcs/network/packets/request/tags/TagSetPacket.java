@@ -24,7 +24,12 @@ import java.io.IOException;
 public final class TagSetPacket extends AbstractPacket {
     public static String packetName = "Request|TagSet";
 
-    public TagSetPacket() {
+    private NBTTagCompound compound;
+
+    public TagSetPacket() {}
+
+    public TagSetPacket(NBTTagCompound compound) {
+        this.compound = compound;
     }
 
     @Override
@@ -50,13 +55,16 @@ public final class TagSetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Fix Tag Set
+        ByteBufUtils.writeNBT(out, this.compound);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.CLONER))
+            return;
+
         this.setTags(npc, in);
     }
 

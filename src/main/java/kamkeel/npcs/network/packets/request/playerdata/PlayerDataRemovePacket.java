@@ -9,17 +9,36 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.constants.EnumPlayerData;
 
 import java.io.IOException;
 
 public final class PlayerDataRemovePacket extends AbstractPacket {
     public static String packetName = "Request|PlayerDataRemove";
 
-    public PlayerDataRemovePacket() {
+    private EnumPlayerData playerData;
+    private String name;
+
+    private int type;
+    private String selected;
+
+    public PlayerDataRemovePacket() {}
+
+    public PlayerDataRemovePacket(EnumPlayerData playerData, String name, String selected) {
+        this.playerData = playerData;
+        this.name = name;
+        this.selected = selected;
+    }
+
+    public PlayerDataRemovePacket(EnumPlayerData playerData, String name, int selectedType) {
+        this.playerData = playerData;
+        this.name = name;
+        this.type = selectedType;
     }
 
     @Override
@@ -40,13 +59,23 @@ public final class PlayerDataRemovePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Fix Send
+       out.writeInt(playerData.ordinal());
+       ByteBufUtils.writeString(out, this.name);
+       if(playerData == EnumPlayerData.Players){
+           ByteBufUtils.writeString(out, this.selected);
+       } else {
+           out.writeInt(this.type);
+       }
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         NoppesUtilServer.removePlayerData(in, (EntityPlayerMP) player);
     }
 }

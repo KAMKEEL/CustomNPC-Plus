@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
@@ -146,7 +148,7 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
 
         GuiNpcMobSpawnerAdd.tagsCompound = UUIDTagList;
         tagCompound.setTag("TagNames",tagList);
-        Client.sendData(EnumPacketServer.TagSet, tagCompound);
+        PacketClient.sendClient(new TagSetPacket(tagCompound));
     }
 
     public void keyTyped(char c, int i)

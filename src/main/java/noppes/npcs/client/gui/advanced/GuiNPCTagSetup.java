@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -120,7 +122,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 			tagList.appendTag(new NBTTagString(string));
 		}
 		tagCompound.setTag("TagNames",tagList);
-		Client.sendData(EnumPacketServer.TagSet, tagCompound);
+        PacketClient.sendClient(new TagSetPacket(tagCompound));
 	}
 
 	public void keyTyped(char c, int i)

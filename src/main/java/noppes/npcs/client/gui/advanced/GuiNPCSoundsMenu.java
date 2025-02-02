@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.advanced;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -77,7 +79,7 @@ public class GuiNPCSoundsMenu extends GuiNPCInterface2 implements  ITextfieldLis
 
 	@Override
 	public void save() {
-		Client.sendData(EnumPacketServer.MainmenuAdvancedSave, npc.advanced.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new MainmenuAdvancedSavePacket(npc.advanced.writeToNBT(new NBTTagCompound())));
 	}
 
 }

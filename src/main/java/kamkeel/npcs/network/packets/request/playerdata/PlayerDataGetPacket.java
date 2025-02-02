@@ -20,7 +20,14 @@ import java.io.IOException;
 public final class PlayerDataGetPacket extends AbstractPacket {
     public static String packetName = "Request|PlayerDataGet";
 
-    public PlayerDataGetPacket() {
+    private EnumPlayerData playerData;
+    private String name;
+
+    public PlayerDataGetPacket() {}
+
+    public PlayerDataGetPacket(EnumPlayerData playerData, String name) {
+        this.playerData = playerData;
+        this.name = name;
     }
 
     @Override
@@ -36,19 +43,28 @@ public final class PlayerDataGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // TODO: Fix PlayerData
+        out.writeInt(playerData.ordinal());
+        if(playerData != EnumPlayerData.Players)
+            ByteBufUtils.writeString(out, this.name);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int id = in.readInt();
-        if (EnumPlayerData.values().length <= id) return;
+        if (EnumPlayerData.values().length <= id)
+            return;
+
         String name = null;
         EnumPlayerData datatype = EnumPlayerData.values()[id];
         if (datatype != EnumPlayerData.Players)
             name = ByteBufUtils.readString(in);
+
         NoppesUtilServer.sendPlayerData(datatype, (EntityPlayerMP) player, name);
     }
 }

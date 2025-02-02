@@ -546,7 +546,6 @@ public class NoppesUtilServer {
             	playerdata.setNBT(new NBTTagCompound());
                 sendPlayerData(type, player, name);
                 playerdata.save();
-
                 return;
             }
         }

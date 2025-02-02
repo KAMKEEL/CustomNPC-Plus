@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.transport.TransportCategoriesGetPacket;
+import kamkeel.npcs.network.packets.request.transport.TransportCategorySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.Client;
@@ -30,7 +33,7 @@ public class GuiNPCTransportCategoryEdit extends GuiNPCInterface
         super.initGui();
     	this.addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, width / 2 - 40, 100, 140, 20, name));
         addLabel(new GuiNpcLabel(1,"Title:", width / 2 - 100+4, 105, 0xffffff));
-        
+
     	this.addButton(new GuiNpcButton(2, width / 2 - 100, 210,98, 20, "gui.back"));
     	this.addButton(new GuiNpcButton(3, width / 2 +2, 210,98, 20, "Save"));
     }
@@ -47,25 +50,20 @@ public class GuiNPCTransportCategoryEdit extends GuiNPCInterface
         if(id == 2)
         {
         	NoppesUtil.openGUI(player, parent);
-    		Client.sendData(EnumPacketServer.TransportCategoriesGet);
+            PacketClient.sendClient(new TransportCategoriesGetPacket());
         }
         if(id == 3)
         {
         	save();
         	NoppesUtil.openGUI(player, parent);
-        	Client.sendData(EnumPacketServer.TransportCategoriesGet);
+            PacketClient.sendClient(new TransportCategoriesGetPacket());
         }
     }
 	public void save() {
 		String name = getTextField(1).getText();
 		if(name.trim().isEmpty())
 			return;
-		Client.sendData(EnumPacketServer.TransportCategorySave,name,id);
-	}
-//	@Override
-//    public void drawDefaultBackground()
-//    {
-//		drawBackground(0);
-//    }
 
+        PacketClient.sendClient(new TransportCategorySavePacket(name, id));
+	}
 }

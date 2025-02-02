@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
+import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -104,11 +107,11 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
-			Client.sendData(EnumPacketServer.TagSave, compound);
+            PacketClient.sendClient(new TagSavePacket(compound));
         }
         if(button.id == 1){
         	if(data.containsKey(scrollTags.getSelected())) {
-        		Client.sendData(EnumPacketServer.TagRemove, data.get(selected));
+                PacketClient.sendClient(new TagRemovePacket(data.get(selected)));
         		scrollTags.clear();
         		tag = new Tag();
         		initGui();
@@ -163,7 +166,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
 
-			Client.sendData(EnumPacketServer.TagSave, compound);
+            PacketClient.sendClient(new TagSavePacket(compound));
 		}
 	}
 

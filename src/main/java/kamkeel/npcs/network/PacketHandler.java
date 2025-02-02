@@ -19,20 +19,31 @@ import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
+import kamkeel.npcs.network.packets.request.faction.FactionRemovePacket;
+import kamkeel.npcs.network.packets.request.faction.FactionSavePacket;
+import kamkeel.npcs.network.packets.request.faction.FactionSetPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.*;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetAllPacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnRemovePacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket;
 import kamkeel.npcs.network.packets.request.npc.*;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
 import kamkeel.npcs.network.packets.request.quest.*;
 import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeSavePacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
+import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
+import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
+import kamkeel.npcs.network.packets.request.transport.*;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -121,6 +132,48 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new QuestSavePacket());
         REQUEST_PACKET.registerPacket(new QuestRemovePacket());
         REQUEST_PACKET.registerPacket(new QuestDialogGetTitlePacket());
+
+        // Faction Packets
+        REQUEST_PACKET.registerPacket(new FactionSavePacket());
+        REQUEST_PACKET.registerPacket(new FactionRemovePacket());
+        REQUEST_PACKET.registerPacket(new FactionSetPacket());
+
+        // Tag Packets
+        REQUEST_PACKET.registerPacket(new TagSetPacket());
+        REQUEST_PACKET.registerPacket(new TagSavePacket());
+        REQUEST_PACKET.registerPacket(new TagRemovePacket());
+
+        // PlayerData Packets
+        REQUEST_PACKET.registerPacket(new PlayerDataGetPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataMapRegenPacket());
+
+        // Main Menu Packets
+        REQUEST_PACKET.registerPacket(new MainmenuDisplayGetPacket());
+        REQUEST_PACKET.registerPacket(new MainmenuDisplaySavePacket());
+
+        REQUEST_PACKET.registerPacket(new MainmenuStatsGetPacket());
+        REQUEST_PACKET.registerPacket(new MainmenuStatsSavePacket());
+
+        REQUEST_PACKET.registerPacket(new MainmenuAIGetPacket());
+        REQUEST_PACKET.registerPacket(new MainmenuAISavePacket());
+
+        REQUEST_PACKET.registerPacket(new MainmenuAdvancedGetPacket());
+        REQUEST_PACKET.registerPacket(new MainmenuAdvancedSavePacket());
+        REQUEST_PACKET.registerPacket(new MainmenuAdvancedMarkDataPacket());
+
+        REQUEST_PACKET.registerPacket(new MainmenuInvGetPacket());
+        REQUEST_PACKET.registerPacket(new MainmenuInvSavePacket());
+
+        // Transport Packets
+        REQUEST_PACKET.registerPacket(new TransportCategoriesGetPacket());
+        REQUEST_PACKET.registerPacket(new TransportCategorySavePacket());
+        REQUEST_PACKET.registerPacket(new TransportCategoryRemovePacket());
+
+        REQUEST_PACKET.registerPacket(new TransportRemovePacket());
+        REQUEST_PACKET.registerPacket(new TransportsGetPacket());
+        REQUEST_PACKET.registerPacket(new TransportSavePacket());
+        REQUEST_PACKET.registerPacket(new TransportGetLocationPacket());
 
         // Remote Packets
         REQUEST_PACKET.registerPacket(new RemoteMainMenuPacket());

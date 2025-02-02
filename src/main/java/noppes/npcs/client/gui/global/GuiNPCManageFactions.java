@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.faction.FactionRemovePacket;
+import kamkeel.npcs.network.packets.request.faction.FactionSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -106,7 +109,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
-			Client.sendData(EnumPacketServer.FactionSave, compound);
+            PacketClient.sendClient(new FactionSavePacket(compound));
         }
         if(button.id == 1){
         	if(data.containsKey(scrollFactions.getSelected())) {
@@ -205,7 +208,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 			NBTTagCompound compound = new NBTTagCompound();
 			faction.writeNBT(compound);
 
-			Client.sendData(EnumPacketServer.FactionSave, compound);
+            PacketClient.sendClient(new FactionSavePacket(compound));
 		}
 	}
 
@@ -253,7 +256,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
             return;
         if(id == 1) {
             if(data.containsKey(scrollFactions.getSelected())) {
-                Client.sendData(EnumPacketServer.FactionRemove, data.get(selected));
+                PacketClient.sendClient(new FactionRemovePacket(data.get(selected)));
                 scrollFactions.clear();
                 faction = new Faction();
                 initGui();

@@ -61,8 +61,11 @@ public final class FactionRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int id = in.readInt();
         FactionController.getInstance().delete(id);
         NoppesUtilServer.sendFactionDataAll((EntityPlayerMP) player);

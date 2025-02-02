@@ -18,7 +18,12 @@ import java.io.IOException;
 public final class TransportsGetPacket extends AbstractPacket {
     public static String packetName = "Request|TransportsGet";
 
-    public TransportsGetPacket() {
+    private int id;
+
+    public TransportsGetPacket() {}
+
+    public TransportsGetPacket(int id) {
+        this.id = id;
     }
 
     @Override
@@ -34,12 +39,17 @@ public final class TransportsGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.id);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int id = in.readInt();
         NoppesUtilServer.sendTransportData((EntityPlayerMP) player, id);
     }

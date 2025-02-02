@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuInvGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuInvSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -30,7 +33,7 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
         this.container = container;
         ySize = 200;
         slot = getResource("slot.png");
-        Client.sendData(EnumPacketServer.MainmenuInvGet);
+        PacketClient.sendClient(new MainmenuInvGetPacket());
     }
 
     public void initGui()
@@ -178,8 +181,8 @@ public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, IT
         npc.inventory.dropchance = chances;
     	npc.inventory.minExp = getTextField(0).getInteger();
     	npc.inventory.maxExp = getTextField(1).getInteger();
-    	Client.sendData(EnumPacketServer.MainmenuInvSave, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
-	}
+        PacketClient.sendClient(new MainmenuInvSavePacket(npc.inventory.writeEntityToNBT(new NBTTagCompound())));
+    }
 
 	@Override
 	public void setGuiData(NBTTagCompound compound) {

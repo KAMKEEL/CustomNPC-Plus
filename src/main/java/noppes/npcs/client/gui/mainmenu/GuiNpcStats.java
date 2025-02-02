@@ -1,6 +1,9 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuStatsGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuStatsSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.nbt.NBTTagCompound;
@@ -16,7 +19,8 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
 	public GuiNpcStats(EntityNPCInterface npc) {
 		super(npc,2);
 		stats = npc.stats;
-    	Client.sendData(EnumPacketServer.MainmenuStatsGet);
+
+        PacketClient.sendClient(new MainmenuStatsGetPacket());
 	}
 
 	@Override
@@ -150,7 +154,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
     }
 	@Override
 	public void save() {
-		Client.sendData(EnumPacketServer.MainmenuStatsSave, stats.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new MainmenuStatsSavePacket(stats.writeToNBT(new NBTTagCompound())));
 	}
 
 	@Override

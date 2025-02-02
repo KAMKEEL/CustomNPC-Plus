@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAISavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataAI;
@@ -173,7 +175,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 
 	@Override
 	public void save() {
-		Client.sendData(EnumPacketServer.MainmenuAISave, ai.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new MainmenuAISavePacket(ai.writeToNBT(new NBTTagCompound())));
 	}
 
 	@Override

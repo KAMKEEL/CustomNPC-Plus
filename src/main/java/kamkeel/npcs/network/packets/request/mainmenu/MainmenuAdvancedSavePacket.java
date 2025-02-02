@@ -12,14 +12,21 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 
 import java.io.IOException;
 
 public final class MainmenuAdvancedSavePacket extends AbstractPacket {
-    public static String packetName = "Request|MainmenuAdvancedSave";
+    public static String packetName = "Request|MainmenuInvSave";
 
-    public MainmenuAdvancedSavePacket() { }
+    private NBTTagCompound compound;
+
+    public MainmenuAdvancedSavePacket() {}
+
+    public MainmenuAdvancedSavePacket(NBTTagCompound compound) {
+        this.compound = compound;
+    }
 
     @Override
     public Enum getType() {
@@ -43,12 +50,18 @@ public final class MainmenuAdvancedSavePacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+        ByteBufUtils.writeNBT(out, this.compound);
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         npc.advanced.readToNBT(ByteBufUtils.readNBT(in));
         npc.updateAI = true;
         npc.updateClient = true;

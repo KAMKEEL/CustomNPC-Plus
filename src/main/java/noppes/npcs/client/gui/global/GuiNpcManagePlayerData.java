@@ -1,5 +1,9 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -26,7 +30,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
     public GuiNpcManagePlayerData(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.PlayerDataGet,selection);
+        PacketClient.sendClient(new PlayerDataGetPacket(selection, ""));
     }
 
     public void initGui()
@@ -115,9 +119,9 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 			{
 				if(selected != null){
 					if(selection == EnumPlayerData.Players)
-						Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,selected);
+                        PacketClient.sendClient(new PlayerDataRemovePacket(selection, selectedPlayer, selected));
 					else
-						Client.sendData(EnumPacketServer.PlayerDataRemove, selection,selectedPlayer,data.get(selected));
+                        PacketClient.sendClient(new PlayerDataRemovePacket(selection, selectedPlayer, data.get(selected)));
 					data.clear();
 				}
 				selected = null;
@@ -130,8 +134,9 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 				initButtons();
 				scroll.clear();
 				data.clear();
-				Client.sendData(EnumPacketServer.PlayerDataGet, selection, selectedPlayer);
-				selected = null;
+
+                PacketClient.sendClient(new PlayerDataGetPacket(selection, selectedPlayer));
+                selected = null;
 			}
 		}
 		if(id == 7){
@@ -169,7 +174,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements IScrollD
 	@Override
 	public void confirmClicked(boolean confirm, int id){
 		if(confirm){
-			Client.sendData(EnumPacketServer.PlayerDataMapRegen);
+            PacketClient.sendClient(new PlayerDataMapRegenPacket());
 			close();
 		}
 		else

@@ -18,8 +18,7 @@ import java.io.IOException;
 public final class TransportCategoriesGetPacket extends AbstractPacket {
     public static String packetName = "Request|TransportCategoriesGet";
 
-    public TransportCategoriesGetPacket() {
-    }
+    public TransportCategoriesGetPacket() {}
 
     @Override
     public Enum getType() {
@@ -38,8 +37,12 @@ public final class TransportCategoriesGetPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         NoppesUtilServer.sendTransportCategoryData((EntityPlayerMP) player);
     }
 }

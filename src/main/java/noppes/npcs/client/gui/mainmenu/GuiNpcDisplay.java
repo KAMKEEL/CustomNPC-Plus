@@ -2,6 +2,9 @@ package noppes.npcs.client.gui.mainmenu;
 
 import com.mojang.authlib.GameProfile;
 import kamkeel.npcs.addon.client.GeckoAddonClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuDisplayGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuDisplaySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataDisplay;
@@ -25,7 +28,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     public GuiNpcDisplay(EntityNPCInterface npc) {
         super(npc,1);
         display = npc.display;
-        Client.sendData(EnumPacketServer.MainmenuDisplayGet);
+        PacketClient.sendClient(new MainmenuDisplayGetPacket());
     }
 
     public void initGui(){
@@ -209,11 +212,11 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     public void save() {
         if(display.skinType == 1)
             display.loadProfile();
+
         npc.textureLocation = null;
         mc.renderGlobal.onEntityDestroy(npc);
         mc.renderGlobal.onEntityCreate(npc);
-        Client.sendData(EnumPacketServer.MainmenuDisplaySave, display.writeToNBT(new NBTTagCompound()));
-
+        PacketClient.sendClient(new MainmenuDisplaySavePacket(display.writeToNBT(new NBTTagCompound())));
     }
 
     @Override

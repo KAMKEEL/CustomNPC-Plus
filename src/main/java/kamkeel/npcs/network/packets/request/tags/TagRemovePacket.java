@@ -29,8 +29,7 @@ public final class TagRemovePacket extends AbstractPacket {
         this.tagId = tagId;
     }
 
-    public TagRemovePacket() {
-    }
+    public TagRemovePacket() {}
 
     @Override
     public Enum getType() {
@@ -60,14 +59,17 @@ public final class TagRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
 
         int id = in.readInt();
         TagController.getInstance().delete(id);
         NoppesUtilServer.sendTagDataAll((EntityPlayerMP) player);
         NBTTagCompound comp = new NBTTagCompound();
-        new Tag().writeNBT(comp);
+        (new Tag()).writeNBT(comp);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, comp);
     }
 }

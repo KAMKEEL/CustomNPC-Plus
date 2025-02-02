@@ -16,10 +16,12 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.roles.JobSpawner;
+import noppes.npcs.roles.RoleTransporter;
 
 import java.io.IOException;
 
@@ -34,8 +36,7 @@ public final class TransportSavePacket extends AbstractPacket {
         this.compound = compound;
     }
 
-    public TransportSavePacket() {
-    }
+    public TransportSavePacket() {}
 
     @Override
     public Enum getType() {
@@ -62,28 +63,23 @@ public final class TransportSavePacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(categoryId);
         ByteBufUtils.writeNBT(out, compound);
-
-        // TODO: FIX TRANSPORT SAVE
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int cat = in.readInt();
-        NBTTagCompound nbt = ByteBufUtils.readNBT(in);
-        TransportLocation location = TransportController.getInstance().saveLocation(cat, nbt, npc);
-        if (location != null) {
-            if (npc.advanced.job != EnumJobType.Spawner) return;
-            JobSpawner job = (JobSpawner) npc.jobInterface;
-            boolean useServerClone = in.readBoolean();
-            if (useServerClone) {
-                NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(in), in.readInt());
-                job.setJobCompound(in.readInt(), compound);
-            } else {
-                job.setJobCompound(in.readInt(), ByteBufUtils.readNBT(in));
-            }
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, job.getTitles());
+        TransportLocation location = TransportController.getInstance().saveLocation(cat, ByteBufUtils.readNBT(in), npc);
+        if(location != null){
+            if(npc.advanced.role != EnumRoleType.Transporter)
+                return;
+            RoleTransporter role = (RoleTransporter) npc.roleInterface;
+            role.setTransport(location);
         }
     }
 }

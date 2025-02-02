@@ -26,8 +26,7 @@ public final class TransportCategoryRemovePacket extends AbstractPacket {
         this.categoryId = categoryId;
     }
 
-    public TransportCategoryRemovePacket() {
-    }
+    public TransportCategoryRemovePacket() {}
 
     @Override
     public Enum getType() {
@@ -52,8 +51,12 @@ public final class TransportCategoryRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int id = in.readInt();
         TransportController.getInstance().removeCategory(id);
         NoppesUtilServer.sendTransportCategoryData((EntityPlayerMP) player);

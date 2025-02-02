@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -22,7 +25,8 @@ public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData, ISubG
     {
     	super(npc);
     	this.lines = lines;
-    	Client.sendData(EnumPacketServer.MainmenuAdvancedGet);
+
+        PacketClient.sendClient(new MainmenuAdvancedGetPacket());
     }
 
     public void initGui()
@@ -73,7 +77,8 @@ public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData, ISubG
 
 	public void save() {
 		saveLines();
-		Client.sendData(EnumPacketServer.MainmenuAdvancedSave, npc.advanced.writeToNBT(new NBTTagCompound()));
+
+        PacketClient.sendClient(new MainmenuAdvancedSavePacket(npc.advanced.writeToNBT(new NBTTagCompound())));
 	}
 
     @Override

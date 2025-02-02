@@ -34,11 +34,6 @@ public final class MainmenuDisplayGetPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_DISPLAY;
-    }
-
-    @Override
     public boolean needsNPC() {
         return true;
     }
@@ -50,8 +45,12 @@ public final class MainmenuDisplayGetPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.display.writeToNBT(new NBTTagCompound()));
     }
 }

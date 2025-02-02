@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.transport.TransportCategoriesGetPacket;
+import kamkeel.npcs.network.packets.request.transport.TransportCategoryRemovePacket;
+import kamkeel.npcs.network.packets.request.transport.TransportRemovePacket;
+import kamkeel.npcs.network.packets.request.transport.TransportsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
@@ -24,7 +29,7 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
     public GuiNPCManageTransporters(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.TransportCategoriesGet);
+        PacketClient.sendClient(new TransportCategoriesGetPacket());
     	drawDefaultBackground = false;
 		title = "Transport Categories";
 		data = new HashMap<String, Integer>();
@@ -36,7 +41,7 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
         Vector<String> list = new Vector<String>();
         slot = new GuiNPCStringSlot(list,this,false,18);
         slot.registerScrollButtons(4, 5);
-        
+
 
     	this.addButton(new GuiNpcButton(0,width / 2 - 100, height - 52, 65, 20, "gui.add"));
     	this.addButton(new GuiNpcButton(1,width / 2 - 33 , height - 52, 65, 20, "selectServer.edit"));
@@ -63,7 +68,7 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
     		if(selectCategory){
     			NoppesUtil.openGUI(player, new GuiNPCTransportCategoryEdit(npc, this, "", -1));
     		}else{
-    			
+
     		}
         }
         if(id == 1)
@@ -73,7 +78,7 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
     		if(selectCategory){
     			NoppesUtil.openGUI(player, new GuiNPCTransportCategoryEdit(npc, this,slot.selected, data.get(slot.selected)));
     		}else{
-    			
+
     		}
         }
         if(id == 4)
@@ -84,7 +89,7 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
         	}else{
     			title = "Transport Categories";
         		selectCategory = true;
-        		Client.sendData(EnumPacketServer.TransportCategoriesGet);
+                PacketClient.sendClient(new TransportCategoriesGetPacket());
         		initGui();
         	}
         }
@@ -94,10 +99,10 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
         		return;
         	save();
         	if(selectCategory){
-        		Client.sendData(EnumPacketServer.TransportCategoryRemove,data.get(slot.selected));
+                PacketClient.sendClient(new TransportCategoryRemovePacket(data.get(slot.selected)));
         	}
         	else{
-        		Client.sendData(EnumPacketServer.TransportRemove,data.get(slot.selected));
+                PacketClient.sendClient(new TransportRemovePacket(data.get(slot.selected)));
         	}
         	initGui();
         }
@@ -112,10 +117,10 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
 		if(selectCategory){
 			selectCategory = false;
 			title = "TransportLocations";
-    		Client.sendData(EnumPacketServer.TransportsGet,data.get(slot.selected));
+            PacketClient.sendClient(new TransportsGetPacket(data.get(slot.selected)));
     		initGui();
 		}
-		
+
 	}
 	public void save() {
 	}
@@ -129,7 +134,7 @@ public class GuiNPCManageTransporters extends GuiNPCInterface implements IScroll
 	@Override
 	public void setSelected(String selected) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 

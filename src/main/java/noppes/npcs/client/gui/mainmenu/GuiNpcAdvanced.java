@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
@@ -22,8 +25,9 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
     public GuiNpcAdvanced(EntityNPCInterface npc)
     {
     	super(npc, 4);
-    	Client.sendData(EnumPacketServer.MainmenuAdvancedGet);
+        PacketClient.sendClient(new MainmenuAdvancedGetPacket());
     }
+
     @Override
     public void initGui(){
     	super.initGui();
@@ -152,7 +156,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
 	@Override
 	public void save() {
 		if(hasChanges){
-			Client.sendData(EnumPacketServer.MainmenuAdvancedSave, npc.advanced.writeToNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new MainmenuAdvancedSavePacket(npc.advanced.writeToNBT(new NBTTagCompound())));
 			hasChanges = false;
 		}
 	}
