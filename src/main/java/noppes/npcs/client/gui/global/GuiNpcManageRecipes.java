@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
+import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
+import kamkeel.npcs.network.packets.request.recipe.RecipeSavePacket;
+import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
@@ -30,7 +35,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
     	super(npc,container);
     	this.container = container;
     	drawDefaultBackground = false;
-    	Client.sendData(EnumPacketServer.RecipesGet,container.width);
+        PacketClient.sendClient(new RecipesGetPacket(container.width));
         setBackground("inventorymenu.png");
         slot = getResource("slot.png");
         ySize = 200;
@@ -94,11 +99,11 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         		name += "_";
         	RecipeCarpentry recipe = new RecipeCarpentry(name);
         	recipe.isGlobal = container.width == 3;
-        	Client.sendData(EnumPacketServer.RecipeSave,recipe.writeNBT());
+            PacketClient.sendClient(new RecipeSavePacket(recipe.writeNBT()));
         }
         if(button.id == 4){
         	if(data.containsKey(scroll.getSelected())){
-        		Client.sendData(EnumPacketServer.RecipeRemove, data.get(scroll.getSelected()));
+                PacketClient.sendClient(new RecipeRemovePacket(data.get(scroll.getSelected())));
         		scroll.clear();
         	}
         }
@@ -186,7 +191,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		save();
 		selected = scroll.getSelected();
-		Client.sendData(EnumPacketServer.RecipeGet, data.get(selected));
+        PacketClient.sendClient(new RecipeGetPacket(data.get(selected)));
 	}
 
 	@Override
@@ -194,7 +199,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 		GuiNpcTextField.unfocus();
 		if(selected != null && data.containsKey(selected)){
 			container.saveRecipe();
-			Client.sendData(EnumPacketServer.RecipeSave, container.recipe.writeNBT());
+            PacketClient.sendClient(new RecipeSavePacket(container.recipe.writeNBT()));
 		}
 	}
 

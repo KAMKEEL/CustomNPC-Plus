@@ -9,16 +9,23 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
 public final class RemoteResetPacket extends AbstractPacket {
     public static String packetName = "Request|RemoteReset";
 
-    public RemoteResetPacket() {
+    private int entityID;
+
+    public RemoteResetPacket() {}
+
+    public RemoteResetPacket(int entityID) {
+        this.entityID = entityID;
     }
 
     @Override
@@ -44,6 +51,7 @@ public final class RemoteResetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.entityID);
     }
 
     @Override
@@ -52,6 +60,11 @@ public final class RemoteResetPacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
+
+        Entity entity = player.worldObj.getEntityByID(in.readInt());
+        if(!(entity instanceof EntityNPCInterface))
+            return;
+        npc = (EntityNPCInterface) entity;
         npc.reset();
     }
 }

@@ -9,16 +9,22 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
 public final class RemoteTpToNpcPacket extends AbstractPacket {
     public static String packetName = "Request|RemoteTpToNpc";
 
-    public RemoteTpToNpcPacket() {
+    private int entityID;
+    public RemoteTpToNpcPacket() {}
+
+    public RemoteTpToNpcPacket(int entityID) {
+        this.entityID = entityID;
     }
 
     @Override
@@ -44,6 +50,7 @@ public final class RemoteTpToNpcPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.entityID);
     }
 
     @Override
@@ -52,6 +59,10 @@ public final class RemoteTpToNpcPacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
+        Entity entity = player.worldObj.getEntityByID(in.readInt());
+        if(!(entity instanceof EntityNPCInterface))
+            return;
+        npc = (EntityNPCInterface) entity;
         ((EntityPlayerMP) player).playerNetServerHandler.setPlayerLocation(npc.posX, npc.posY, npc.posZ, 0, 0);
     }
 }

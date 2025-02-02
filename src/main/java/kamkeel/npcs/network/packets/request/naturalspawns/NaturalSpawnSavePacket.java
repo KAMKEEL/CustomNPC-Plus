@@ -29,8 +29,7 @@ public final class NaturalSpawnSavePacket extends AbstractPacket {
         this.spawnNBT = spawnNBT;
     }
 
-    public NaturalSpawnSavePacket() {
-    }
+    public NaturalSpawnSavePacket() {}
 
     @Override
     public Enum getType() {

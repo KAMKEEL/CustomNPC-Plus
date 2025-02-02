@@ -30,8 +30,7 @@ public final class RemoteDeletePacket extends AbstractPacket {
         this.entityId = entityId;
     }
 
-    public RemoteDeletePacket() {
-    }
+    public RemoteDeletePacket() {}
 
     @Override
     public Enum getType() {

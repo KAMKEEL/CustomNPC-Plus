@@ -52,8 +52,11 @@ public final class DialogCategoryRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
         int id = in.readInt();
         DialogController.Instance.removeCategory(id);
         ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll());

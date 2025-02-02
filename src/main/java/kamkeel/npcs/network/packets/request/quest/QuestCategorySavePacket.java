@@ -55,8 +55,12 @@ public final class QuestCategorySavePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
         QuestCategory category = new QuestCategory();
         category.readNBT(compound);

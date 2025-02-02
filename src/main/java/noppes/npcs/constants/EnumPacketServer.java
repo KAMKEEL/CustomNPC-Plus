@@ -1,16 +1,10 @@
 package noppes.npcs.constants;
 
-import net.minecraft.client.gui.Gui;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.client.gui.custom.components.CustomGuiButton;
 
 public enum EnumPacketServer {
 	NPCDelete(CustomNpcsPermissions.NPC_DELETE, true),
-	RemoteMainMenu(CustomNpcsPermissions.NPC_GUI),
-    RemoteGlobalMenu(CustomNpcsPermissions.GLOBAL_REMOTE),
 	NpcMenuClose(CustomNpcsPermissions.NPC_GUI, true),
-	RemoteDelete(CustomNpcsPermissions.NPC_DELETE, true),
-	RemoteFreeze(CustomNpcsPermissions.NPC_FREEZE), RemoteFreezeGet,
 	RemoteReset(CustomNpcsPermissions.NPC_RESET),
 	SpawnMob(CustomNpcsPermissions.SPAWNER_MOB),
 	MobSpawner(CustomNpcsPermissions.SPAWNER_CREATE),
@@ -23,8 +17,6 @@ public enum EnumPacketServer {
 	ModelDataSave(CustomNpcsPermissions.NPC_DISPLAY, true),
 
 	MainmenuAdvancedSave(CustomNpcsPermissions.NPC_ADVANCED,true), MainmenuAdvancedGet(true), MainmenuAdvancedMarkData(CustomNpcsPermissions.NPC_ADVANCED,true),
-	DialogNpcSet(CustomNpcsPermissions.NPC_ADVANCED),
-	DialogNpcRemove(CustomNpcsPermissions.NPC_ADVANCED, true),
 	FactionSet(CustomNpcsPermissions.NPC_ADVANCED, true),
 	TagSet(CustomNpcsPermissions.NPC_ADVANCED, true),
 	TransportSave(CustomNpcsPermissions.NPC_ADVANCED, true),
@@ -62,12 +54,8 @@ public enum EnumPacketServer {
     PlayerDataRemove(CustomNpcsPermissions.GLOBAL_PLAYERDATA),
     PlayerDataMapRegen(CustomNpcsPermissions.GLOBAL_PLAYERDATA),
 
-    BankSave(CustomNpcsPermissions.GLOBAL_BANK), BanksGet, BankGet,
-    BankRemove(CustomNpcsPermissions.GLOBAL_BANK),
-
-    DialogCategorySave(CustomNpcsPermissions.GLOBAL_DIALOG), DialogCategoriesGet, DialogsGetFromDialog,
-	DialogCategoryRemove(CustomNpcsPermissions.GLOBAL_DIALOG),  DialogCategoryGet,
-	DialogSave(CustomNpcsPermissions.GLOBAL_DIALOG),  DialogsGet, DialogGet,
+    DialogCategoriesGet, DialogsGetFromDialog,
+	DialogsGet, DialogGet,
 	DialogRemove(CustomNpcsPermissions.GLOBAL_DIALOG),
 
     TransportCategoryRemove(CustomNpcsPermissions.GLOBAL_TRANSPORT), TransportGetLocation(true),
@@ -77,32 +65,23 @@ public enum EnumPacketServer {
 	FactionSave(CustomNpcsPermissions.GLOBAL_FACTION), FactionsGet, FactionGet,
 	TagRemove(CustomNpcsPermissions.GLOBAL_TAG),
 	TagSave(CustomNpcsPermissions.GLOBAL_TAG), TagsGet, TagGet, NpcTagsGet,
-	QuestCategorySave(CustomNpcsPermissions.GLOBAL_QUEST), QuestCategoriesGet,
+	QuestCategoriesGet,
 	QuestRemove(CustomNpcsPermissions.GLOBAL_QUEST),
-	QuestCategoryRemove(CustomNpcsPermissions.GLOBAL_QUEST),
 	QuestRewardSave(CustomNpcsPermissions.GLOBAL_QUEST),
 	QuestSave(CustomNpcsPermissions.GLOBAL_QUEST), QuestsGetFromQuest, QuestsGet,
-	QuestDialogGetTitle(CustomNpcsPermissions.GLOBAL_QUEST),
-	RecipeSave(CustomNpcsPermissions.GLOBAL_RECIPE),
-	RecipeRemove(CustomNpcsPermissions.GLOBAL_RECIPE),
-	NaturalSpawnSave(CustomNpcsPermissions.GLOBAL_NATURALSPAWN), NaturalSpawnGet,
-	NaturalSpawnRemove(CustomNpcsPermissions.GLOBAL_NATURALSPAWN),
 	MerchantUpdate(CustomNpcsPermissions.EDIT_VILLAGER),
 	PlayerRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true), MovingPathGet(true),
-	DialogNpcGet,
 
 	AnimationsGet, AnimationGet,
     AnimationRemove(CustomNpcsPermissions.GLOBAL_ANIMATION), AnimationSave(CustomNpcsPermissions.GLOBAL_ANIMATION),
 
-    RecipesGet, RecipeGet, QuestOpenGui, PlayerDataGet, QuestLogToServer, PartyLogToServer, UntrackQuest,
+    QuestOpenGui, PlayerDataGet, QuestLogToServer, PartyLogToServer, UntrackQuest,
 
-	RemoteNpcsGet(CustomNpcsPermissions.NPC_GUI),
 	RemoteTpToNpc(CustomNpcsPermissions.NPC_TELEPORT),
     QuestGet, QuestCategoryGet,
-	SaveTileEntity,
-	NaturalSpawnGetAll, MailOpenSetup,
+	SaveTileEntity, MailOpenSetup,
 	DimensionsGet, DimensionTeleport, GetTileEntity, Gui, IsGuiOpen, CacheAnimation,
 
 	CustomGuiButton,CustomGuiScrollClick,CustomGuiClose,CustomGuiUnfocused,

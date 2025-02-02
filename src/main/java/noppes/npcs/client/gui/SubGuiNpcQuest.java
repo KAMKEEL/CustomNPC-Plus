@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.quest.QuestSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -218,10 +220,10 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		quest.nextQuestTitle = name;
 		parent.nextQuestName = name;
 		initGui();
-		Client.sendData(EnumPacketServer.QuestSave, this.questCategoryID, quest.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new QuestSavePacket(this.questCategoryID, quest.writeToNBT(new NBTTagCompound()), false));
 	}
 
 	public void save(){
-		Client.sendData(EnumPacketServer.QuestSave, this.questCategoryID, quest.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new QuestSavePacket(this.questCategoryID, quest.writeToNBT(new NBTTagCompound()), false));
 	}
 }

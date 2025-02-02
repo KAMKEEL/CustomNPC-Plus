@@ -21,7 +21,12 @@ import java.io.IOException;
 public final class DialogCategoryGetPacket extends AbstractPacket {
     public static String packetName = "Request|DialogCategoryGet";
 
-    public DialogCategoryGetPacket() {
+    private int categoryID;
+
+    public DialogCategoryGetPacket() {}
+
+    public DialogCategoryGetPacket(int categoryID) {
+        this.categoryID = categoryID;
     }
 
     @Override
@@ -34,10 +39,10 @@ public final class DialogCategoryGetPacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
-    // No permission override
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.categoryID);
     }
 
     @Override

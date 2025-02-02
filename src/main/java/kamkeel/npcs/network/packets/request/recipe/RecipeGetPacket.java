@@ -26,8 +26,7 @@ public final class RecipeGetPacket extends AbstractPacket {
         this.recipeId = recipeId;
     }
 
-    public RecipeGetPacket() {
-    }
+    public RecipeGetPacket() {}
 
     @Override
     public Enum getType() {

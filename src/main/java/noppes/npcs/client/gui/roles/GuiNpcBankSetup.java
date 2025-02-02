@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
+import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -25,7 +28,7 @@ public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICu
     public GuiNpcBankSetup(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.BanksGet);
+        PacketClient.sendClient(new BanksGetPacket());
     	role = (RoleBank) npc.roleInterface;
     }
 
@@ -43,9 +46,9 @@ public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICu
 	protected void actionPerformed(GuiButton guibutton)
     {
     }
-	
+
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) 
+	public void setData(Vector<String> list, HashMap<String, Integer> data)
 	{
 		String name = null;
 		Bank bank = role.getBank();
@@ -53,23 +56,23 @@ public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICu
 			name = bank.name;
 		this.data = data;
 		scroll.setList(list);
-		
+
 		if(name != null)
 			setSelected(name);
 	}
-	
+
     public void mouseClicked(int i, int j, int k)
     {
     	super.mouseClicked(i, j, k);
     	if(k == 0 && scroll != null)
     		scroll.mouseClicked(i, j, k);
     }
-    
+
 	@Override
 	public void setSelected(String selected) {
 		scroll.setSelected(selected);
 	}
-	
+
 	@Override
 	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
 		if(guiCustomScroll.id == 0)
@@ -78,7 +81,7 @@ public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICu
 			save();
 		}
 	}
-	
+
 	public void save() {
 		Client.sendData(EnumPacketServer.RoleSave, role.writeToNBT(new NBTTagCompound()));
 	}

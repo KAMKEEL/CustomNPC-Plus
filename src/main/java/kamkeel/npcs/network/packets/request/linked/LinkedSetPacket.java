@@ -60,6 +60,7 @@ public final class LinkedSetPacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
+
         npc.linkedName = ByteBufUtils.readString(in);
         LinkedNpcController.Instance.loadNpcData(npc);
     }

@@ -56,17 +56,20 @@ public final class DialogRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
-        int id = in.readInt();
+        if (!(player instanceof EntityPlayerMP))
+            return;
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+        int diagId = in.readInt();
         boolean sendGroup = in.readBoolean();
-        Dialog dialog = DialogController.Instance.dialogs.get(id);
-        if (dialog != null && dialog.category != null) {
+        Dialog dialog = DialogController.Instance.dialogs.get(diagId);
+        if(dialog != null && dialog.category != null){
             DialogController.Instance.removeDialog(dialog);
-            if (sendGroup) {
-                NoppesUtilServer.sendDialogGroup((EntityPlayerMP) player, dialog.category);
-            } else {
-                NoppesUtilServer.sendDialogData((EntityPlayerMP) player, dialog.category);
+            if(sendGroup){
+                NoppesUtilServer.sendDialogGroup((EntityPlayerMP) player,dialog.category);
+            }
+            else {
+                NoppesUtilServer.sendDialogData((EntityPlayerMP) player,dialog.category);
             }
         }
     }

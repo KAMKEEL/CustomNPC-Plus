@@ -29,8 +29,7 @@ public final class RecipeSavePacket extends AbstractPacket {
         this.recipeNBT = recipeNBT;
     }
 
-    public RecipeSavePacket() {
-    }
+    public RecipeSavePacket() {}
 
     @Override
     public Enum getType() {

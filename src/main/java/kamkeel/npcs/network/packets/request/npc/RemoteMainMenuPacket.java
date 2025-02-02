@@ -10,6 +10,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
@@ -17,13 +18,19 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
 public final class RemoteMainMenuPacket extends AbstractPacket {
     public static String packetName = "Request|RemoteMainMenu";
 
-    public RemoteMainMenuPacket() {
+    private int entityID;
+
+    public RemoteMainMenuPacket() {}
+
+    public RemoteMainMenuPacket(int entityID) {
+        this.entityID = entityID;
     }
 
     @Override
@@ -49,7 +56,7 @@ public final class RemoteMainMenuPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        // No extra data since npc is provided externally.
+        out.writeInt(this.entityID);
     }
 
     @Override
@@ -58,12 +65,14 @@ public final class RemoteMainMenuPacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
-        NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, npc);
-        if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
-            LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]",
-                "WAND", player.getCommandSenderName(), npc.display.getName(),
-                (int) npc.posX, (int) npc.posY, (int) npc.posZ,
-                npc.worldObj.getWorldInfo().getWorldName()));
+
+        Entity entity = player.worldObj.getEntityByID(in.readInt());
+        if(!(entity instanceof EntityNPCInterface))
+            return;
+
+        NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) entity);
+        if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+            LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
         }
     }
 }

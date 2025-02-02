@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetAllPacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnRemovePacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -25,7 +30,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 
 	public GuiNpcNaturalSpawns(EntityNPCInterface npc) {
 		super(npc);
-    	Client.sendData(EnumPacketServer.NaturalSpawnGetAll);
+        PacketClient.sendClient(new NaturalSpawnGetAllPacket());
 	}
 
 	@Override
@@ -129,12 +134,12 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 
         	SpawnData spawn = new SpawnData();
         	spawn.name = name;
-        	Client.sendData(EnumPacketServer.NaturalSpawnSave, spawn.writeNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new NaturalSpawnSavePacket(spawn.writeNBT(new NBTTagCompound())));
 			this.spawnEntryScroll.selected = -1;
         }
         if(id == 2){
         	if(data.containsKey(scrollNaturalSpawns.getSelected())) {
-				Client.sendData(EnumPacketServer.NaturalSpawnRemove, spawn.id);
+                PacketClient.sendClient(new NaturalSpawnRemovePacket(spawn.id));
 				spawn = new SpawnData();
         		scrollNaturalSpawns.clear();
 				this.spawnEntryScroll.selected = -1;
@@ -224,7 +229,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 			save();
 			String selected = scrollNaturalSpawns.getSelected();
 			spawn = new SpawnData();
-			Client.sendData(EnumPacketServer.NaturalSpawnGet, data.get(selected));
+            PacketClient.sendClient(new NaturalSpawnGetPacket(data.get(selected)));
 		}
 		if (guiCustomScroll.id == 20) {
 			initGui();
@@ -235,7 +240,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	public void save() {
     	GuiNpcTextField.unfocus();
 		if(spawn.id >= 0)
-			Client.sendData(EnumPacketServer.NaturalSpawnSave, spawn.writeNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new NaturalSpawnSavePacket(spawn.writeNBT(new NBTTagCompound())));
 	}
 
 	@Override

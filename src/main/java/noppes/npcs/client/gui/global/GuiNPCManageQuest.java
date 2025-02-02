@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.quest.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiYesNo;
@@ -186,7 +188,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 			}
 			QuestCategory category = new QuestCategory();
 			category.title = name;
-			Client.sendData(EnumPacketServer.QuestCategorySave, category.writeNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new QuestCategorySavePacket(category.writeNBT(new NBTTagCompound())));
 		}
 		// Remove Cat
 		if(id == 5){
@@ -207,8 +209,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 				}
 				Quest quest = new Quest();
 				quest.title = name;
-				Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()), true);
-			}
+                PacketClient.sendClient(new QuestSavePacket(category.id, quest.writeToNBT(new NBTTagCompound()), true));
+            }
 			// Remove Quest
 			if(id == 2) {
 				if (questData.containsKey(questScroll.getSelected())) {
@@ -236,8 +238,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 					Quest quest = new Quest();
 					quest.readNBTPartial(this.quest.writeToNBT(new NBTTagCompound()));
 					quest.title = name;
-					Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()), true);
-				}
+                    PacketClient.sendClient(new QuestSavePacket(category.id, quest.writeToNBT(new NBTTagCompound()), true));
+                }
 			}
 		}
 		updateButtons();
@@ -346,7 +348,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
                 quest = null;
                 getTextField(66).setText("");
 
-				Client.sendData(EnumPacketServer.QuestCategoryGet, catData.get(selected));
+                PacketClient.sendClient(new QuestCategoryGetPacket(catData.get(selected)));
 				setPrevCatName(selected);
 			}
 		}
@@ -376,13 +378,13 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		if(saveQuest){
 			if(questScroll.selected != -1 && quest.id >= 0){
 				if(catScroll.selected != -1 && category.id >= 0){
-					Client.sendData(EnumPacketServer.QuestSave, category.id, quest.writeToNBT(new NBTTagCompound()), true);
+                    PacketClient.sendClient(new QuestSavePacket(category.id, quest.writeToNBT(new NBTTagCompound()), true));
 				}
 			}
 		}
 		else{
 			if(catScroll.selected != -1 && category.id >= 0)
-				Client.sendData(EnumPacketServer.QuestCategorySave, category.writeNBT(new NBTTagCompound()));
+                PacketClient.sendClient(new QuestCategorySavePacket(category.writeNBT(new NBTTagCompound())));
 		}
 	}
 
@@ -431,12 +433,12 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
             return;
         if(id == 5) {
             if(catData.containsKey(catScroll.getSelected())) {
-                Client.sendData(EnumPacketServer.QuestCategoryRemove, category.id);
+                PacketClient.sendClient(new QuestCategoryRemovePacket(category.id));
                 clearCategory();
             }
         }
         if(id == 2) {
-            Client.sendData(EnumPacketServer.QuestRemove, quest.id, true);
+            PacketClient.sendClient(new QuestRemovePacket(quest.id, true));
             quest = new Quest();
             questData.clear();
         }

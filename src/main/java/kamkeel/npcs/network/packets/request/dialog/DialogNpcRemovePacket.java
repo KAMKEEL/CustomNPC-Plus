@@ -24,8 +24,7 @@ public final class DialogNpcRemovePacket extends AbstractPacket {
         this.index = index;
     }
 
-    public DialogNpcRemovePacket() {
-    }
+    public DialogNpcRemovePacket() {}
 
     @Override
     public Enum getType() {
@@ -55,8 +54,12 @@ public final class DialogNpcRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int idx = in.readInt();
         npc.dialogs.remove(idx);
     }

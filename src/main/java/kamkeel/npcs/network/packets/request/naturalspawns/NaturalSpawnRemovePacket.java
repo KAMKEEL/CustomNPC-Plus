@@ -26,8 +26,7 @@ public final class NaturalSpawnRemovePacket extends AbstractPacket {
         this.spawnId = spawnId;
     }
 
-    public NaturalSpawnRemovePacket() {
-    }
+    public NaturalSpawnRemovePacket() {}
 
     @Override
     public Enum getType() {

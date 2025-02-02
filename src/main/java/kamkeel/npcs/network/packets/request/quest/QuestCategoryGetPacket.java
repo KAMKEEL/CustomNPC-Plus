@@ -21,7 +21,12 @@ import java.io.IOException;
 public final class QuestCategoryGetPacket extends AbstractPacket {
     public static String packetName = "Request|QuestCategoryGet";
 
-    public QuestCategoryGetPacket() {
+    private int categoryID;
+
+    public QuestCategoryGetPacket() {}
+
+    public QuestCategoryGetPacket(int categoryID) {
+        this.categoryID = categoryID;
     }
 
     @Override
@@ -37,12 +42,17 @@ public final class QuestCategoryGetPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.categoryID);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int id = in.readInt();
         QuestCategory category = QuestController.Instance.categories.get(id);
         if (category != null) {

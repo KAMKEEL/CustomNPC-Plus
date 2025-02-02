@@ -18,8 +18,7 @@ import java.io.IOException;
 public final class DialogNpcGetPacket extends AbstractPacket {
     public static String packetName = "Request|DialogNpcGet";
 
-    public DialogNpcGetPacket() {
-    }
+    public DialogNpcGetPacket() {}
 
     @Override
     public Enum getType() {
@@ -31,17 +30,18 @@ public final class DialogNpcGetPacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
-    // No permission override
     @SideOnly(Side.CLIENT)
-
     @Override
-    public void sendData(ByteBuf out) throws IOException {
-    }
+    public void sendData(ByteBuf out) throws IOException {}
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         NoppesUtilServer.sendNpcDialogs(player);
     }
 }

@@ -8,16 +8,31 @@ import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.*;
 import kamkeel.npcs.network.packets.data.gui.*;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
+import kamkeel.npcs.network.packets.request.GuiRequestPacket;
+import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
+import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
+import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
+import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
+import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.linked.LinkedAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetAllPacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnRemovePacket;
+import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket;
+import kamkeel.npcs.network.packets.request.npc.*;
+import kamkeel.npcs.network.packets.request.quest.*;
+import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
+import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
+import kamkeel.npcs.network.packets.request.recipe.RecipeSavePacket;
+import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -56,6 +71,7 @@ public class PacketHandler {
 
         this.registerChannels();
         this.registerDataPackets();
+        this.registerRequestPackets();
     }
 
     public void registerRequestPackets(){
@@ -64,6 +80,64 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new LinkedRemovePacket());
         REQUEST_PACKET.registerPacket(new LinkedSetPacket());
         REQUEST_PACKET.registerPacket(new LinkedAddPacket());
+
+        // Bank Packets
+        REQUEST_PACKET.registerPacket(new BanksGetPacket());
+        REQUEST_PACKET.registerPacket(new BankGetPacket());
+        REQUEST_PACKET.registerPacket(new BankRemovePacket());
+        REQUEST_PACKET.registerPacket(new BankSavePacket());
+
+        // Recipe Packets
+        REQUEST_PACKET.registerPacket(new RecipesGetPacket());
+        REQUEST_PACKET.registerPacket(new RecipeGetPacket());
+        REQUEST_PACKET.registerPacket(new RecipeRemovePacket());
+        REQUEST_PACKET.registerPacket(new RecipeSavePacket());
+
+        // Natural Spawn Packets
+        REQUEST_PACKET.registerPacket(new NaturalSpawnGetAllPacket());
+        REQUEST_PACKET.registerPacket(new NaturalSpawnGetPacket());
+        REQUEST_PACKET.registerPacket(new NaturalSpawnSavePacket());
+        REQUEST_PACKET.registerPacket(new NaturalSpawnRemovePacket());
+
+        // Dialog Category Packets
+        REQUEST_PACKET.registerPacket(new DialogCategorySavePacket());
+        REQUEST_PACKET.registerPacket(new DialogCategoryRemovePacket());
+        REQUEST_PACKET.registerPacket(new DialogCategoryGetPacket());
+
+        // Dialog Packets
+        REQUEST_PACKET.registerPacket(new DialogSavePacket());
+        REQUEST_PACKET.registerPacket(new DialogRemovePacket());
+
+        REQUEST_PACKET.registerPacket(new DialogNpcGetPacket());
+        REQUEST_PACKET.registerPacket(new DialogNpcSetPacket());
+        REQUEST_PACKET.registerPacket(new DialogNpcRemovePacket());
+
+        // Quest Category Packets
+        REQUEST_PACKET.registerPacket(new QuestCategorySavePacket());
+        REQUEST_PACKET.registerPacket(new QuestCategoryRemovePacket());
+        REQUEST_PACKET.registerPacket(new QuestCategoryGetPacket());
+
+        // Quest Packets
+        REQUEST_PACKET.registerPacket(new QuestSavePacket());
+        REQUEST_PACKET.registerPacket(new QuestRemovePacket());
+        REQUEST_PACKET.registerPacket(new QuestDialogGetTitlePacket());
+
+        // Remote Packets
+        REQUEST_PACKET.registerPacket(new RemoteMainMenuPacket());
+        REQUEST_PACKET.registerPacket(new RemoteGlobalMenuPacket());
+        REQUEST_PACKET.registerPacket(new RemoteDeletePacket());
+        REQUEST_PACKET.registerPacket(new RemoteNpcsGetPacket());
+        REQUEST_PACKET.registerPacket(new RemoteFreezeGetPacket());
+        REQUEST_PACKET.registerPacket(new RemoteFreezePacket());
+        REQUEST_PACKET.registerPacket(new RemoteResetPacket());
+        REQUEST_PACKET.registerPacket(new RemoteTpToNpcPacket());
+
+
+
+        //
+
+        // Other
+        REQUEST_PACKET.registerPacket(new GuiRequestPacket());
     }
 
     public void registerDataPackets(){

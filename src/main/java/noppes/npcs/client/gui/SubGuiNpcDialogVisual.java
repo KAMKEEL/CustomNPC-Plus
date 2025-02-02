@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.dialog.DialogSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -419,7 +421,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     public void save() {
         GuiNpcTextField.unfocus();
         if(dialog.id >= 0)
-            Client.sendData(EnumPacketServer.DialogSave, ((SubGuiNpcDialog)parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new DialogSavePacket(((SubGuiNpcDialog)parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
     }
 
     private DialogImage getSelectedImage() {

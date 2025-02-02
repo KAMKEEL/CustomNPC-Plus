@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.npc.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -22,8 +24,8 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
 		super();
         xSize = 256;
         setBackground("menubg.png");
-        Client.sendData(EnumPacketServer.RemoteNpcsGet);
-        Client.sendData(EnumPacketServer.RemoteFreezeGet);
+        PacketClient.sendClient(new RemoteNpcsGetPacket());
+        PacketClient.sendClient(new RemoteFreezeGetPacket());
 	}
     public void initGui()
     {
@@ -53,7 +55,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     @Override
     public void confirmClicked(boolean flag, int i){
 		if(flag){
-			Client.sendData(EnumPacketServer.RemoteDelete,data.get(scroll.getSelected()));
+            PacketClient.sendClient(new RemoteDeletePacket(data.get(scroll.getSelected())));
 		}
 		NoppesUtil.openGUI(player, this);
     }
@@ -61,11 +63,11 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     {
 		int id = guibutton.id;
     	if(id == 3){
-    		Client.sendData(EnumPacketServer.RemoteFreeze);
+            PacketClient.sendClient(new RemoteFreezePacket());
     	}
     	if(id == 5){
     		for(int ids : data.values()){
-    			Client.sendData(EnumPacketServer.RemoteReset, ids);
+                PacketClient.sendClient(new RemoteResetPacket(ids));
 	    		Entity entity  = player.worldObj.getEntityByID(ids);
 	    		if(entity != null && entity instanceof EntityNPCInterface)
 	    			((EntityNPCInterface)entity).reset();
@@ -73,27 +75,28 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     	}
 		if(id == 6){
 			NoppesUtil.setLastNpc(null);
-            Client.sendData(EnumPacketServer.RemoteGlobalMenu);
+            PacketClient.sendClient(new RemoteGlobalMenuPacket());
 		}
 
     	if(!data.containsKey(scroll.getSelected()))
     		return;
 
     	if(id == 0){
-    		Client.sendData(EnumPacketServer.RemoteMainMenu,data.get(scroll.getSelected()));
+            PacketClient.sendClient(new RemoteMainMenuPacket(data.get(scroll.getSelected())));
     	}
     	if(id == 1){
             GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("gui.delete"), 0);
             displayGuiScreen(guiyesno);
     	}
     	if(id == 2){
-    		Client.sendData(EnumPacketServer.RemoteReset,data.get(scroll.getSelected()));
-    		Entity entity  = player.worldObj.getEntityByID(data.get(scroll.getSelected()));
+            int selected = data.get(scroll.getSelected());
+            PacketClient.sendClient(new RemoteResetPacket(selected));
+    		Entity entity  = player.worldObj.getEntityByID(selected);
     		if(entity != null && entity instanceof EntityNPCInterface)
     			((EntityNPCInterface)entity).reset();
     	}
     	if(id == 4){
-    		Client.sendData(EnumPacketServer.RemoteTpToNpc,data.get(scroll.getSelected()));
+            PacketClient.sendClient(new RemoteTpToNpcPacket(data.get(scroll.getSelected())));
     		close();
     	}
     }

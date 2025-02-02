@@ -1,6 +1,8 @@
 package noppes.npcs.client;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.GuiRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
@@ -39,7 +41,7 @@ public class NoppesUtil {
 	}
 
 	public static void requestOpenGUI(EnumGuiType gui, int i, int j, int k) {
-		Client.sendData(EnumPacketServer.Gui, gui.ordinal(), i, j, k);
+        PacketClient.sendClient(new GuiRequestPacket(gui.ordinal(), i, j, k));
 	}
 
     public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {

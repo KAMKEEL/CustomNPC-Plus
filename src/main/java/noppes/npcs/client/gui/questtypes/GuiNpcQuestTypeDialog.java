@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.questtypes;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.quest.QuestDialogGetTitlePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
@@ -34,10 +36,12 @@ public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelecti
 		xSize = 256;
 		ySize = 216;
 		closeOnEsc = true;
-		Client.sendData(EnumPacketServer.QuestDialogGetTitle,
-				quest.dialogs.containsKey(0)?quest.dialogs.get(0):-1,
-				quest.dialogs.containsKey(1)?quest.dialogs.get(1):-1,
-				quest.dialogs.containsKey(2)?quest.dialogs.get(2):-1);
+
+        PacketClient.sendClient(new QuestDialogGetTitlePacket(
+                quest.dialogs.getOrDefault(0, -1),
+                quest.dialogs.getOrDefault(1, -1),
+                quest.dialogs.getOrDefault(2, -1))
+        );
 	}
 
 	public void initGui() {

@@ -16,20 +16,19 @@ import noppes.npcs.constants.EnumGuiType;
 
 import java.io.IOException;
 
-public final class GuiPacket extends AbstractPacket {
+public final class GuiRequestPacket extends AbstractPacket {
     public static String packetName = "Request|Gui";
 
     private int guiIndex, posX, posY, posZ;
 
-    public GuiPacket(int guiIndex, int posX, int posY, int posZ) {
+    public GuiRequestPacket(int guiIndex, int posX, int posY, int posZ) {
         this.guiIndex = guiIndex;
         this.posX = posX;
         this.posY = posY;
         this.posZ = posZ;
     }
 
-    public GuiPacket() {
-    }
+    public GuiRequestPacket() {}
 
     @Override
     public Enum getType() {

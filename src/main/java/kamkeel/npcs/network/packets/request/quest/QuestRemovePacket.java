@@ -13,24 +13,29 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.Quest;
 
 import java.io.IOException;
 
-public final class QuestCategoryRemovePacket extends AbstractPacket {
-    public static String packetName = "Request|QuestCategoryRemove";
+public final class QuestRemovePacket extends AbstractPacket {
+    public static String packetName = "Request|DialogRemove";
 
-    private int categoryId;
+    private int questID;
+    private boolean sendGroup;
 
-    public QuestCategoryRemovePacket(int categoryId) {
-        this.categoryId = categoryId;
+    public QuestRemovePacket(int questID, boolean sendGroup) {
+        this.questID = questID;
+        this.sendGroup = sendGroup;
     }
 
-    public QuestCategoryRemovePacket() {}
+    public QuestRemovePacket() {}
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.QuestCategoryRemove;
+        return EnumRequestPacket.QuestRemove;
     }
 
     @Override
@@ -40,25 +45,33 @@ public final class QuestCategoryRemovePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.GLOBAL_QUEST;
+        return CustomNpcsPermissions.GLOBAL_DIALOG;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(categoryId);
+        out.writeInt(questID);
+        out.writeBoolean(sendGroup);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        int id = in.readInt();
-        QuestController.Instance.removeCategory(id);
-        NoppesUtilServer.sendQuestCategoryData((EntityPlayerMP) player);
+        Quest quest = QuestController.Instance.quests.get(in.readInt());
+        boolean sendGroup = in.readBoolean();
+        if(quest != null){
+            QuestController.Instance.removeQuest(quest);
+            if(sendGroup){
+                NoppesUtilServer.sendQuestGroup((EntityPlayerMP) player,quest.category);
+            }
+            else {
+                NoppesUtilServer.sendQuestData((EntityPlayerMP) player,quest.category);
+            }
+        }
     }
 }

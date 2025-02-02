@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.dialog.DialogSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.Client;
@@ -196,10 +198,10 @@ public class SubGuiNpcDialog extends SubGuiInterface implements ISubGuiListener,
 		dialog.quest = ob;
 		parent.dialogQuestName = name;
 		initGui();
-		Client.sendData(EnumPacketServer.DialogSave, this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new DialogSavePacket(this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
 	}
 
 	public void save(){
-		Client.sendData(EnumPacketServer.DialogSave, this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new DialogSavePacket(this.dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
 	}
 }

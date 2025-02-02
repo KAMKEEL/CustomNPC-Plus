@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.dialog.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -181,7 +183,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 			}
 			DialogCategory category = new DialogCategory();
 			category.title = name;
-			Client.sendData(EnumPacketServer.DialogCategorySave, category.writeNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new DialogCategorySavePacket(category.writeNBT(new NBTTagCompound())));
 		}
 		// Remove Cat
 		if(id == 5){
@@ -202,7 +204,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 				}
 				Dialog dialog = new Dialog();
 				dialog.title = name;
-				Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()), true);
+                PacketClient.sendClient(new DialogSavePacket(category.id, dialog.writeToNBT(new NBTTagCompound()), true));
 			}
 			// Remove Dialog
 			if(id == 2) {
@@ -231,7 +233,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 					Dialog dialog = new Dialog();
 					dialog.readNBTPartial(this.dialog.writeToNBT(new NBTTagCompound()));
 					dialog.title = name;
-					Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()), true);
+                    PacketClient.sendClient(new DialogSavePacket(category.id, dialog.writeToNBT(new NBTTagCompound()), true));
 				}
 			}
         }
@@ -341,7 +343,7 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
                 dialog = null;
                 getTextField(66).setText("");
 
-				Client.sendData(EnumPacketServer.DialogCategoryGet, catData.get(selected));
+                PacketClient.sendClient(new DialogCategoryGetPacket(catData.get(selected)));
 				setPrevCatName(selected);
 			}
 		}
@@ -371,13 +373,13 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 		if(saveDiag){
 			if(dialogScroll.selected != -1 && dialog.id >= 0){
 				if(catScroll.selected != -1 && category.id >= 0){
-					Client.sendData(EnumPacketServer.DialogSave, category.id, dialog.writeToNBT(new NBTTagCompound()), true);
+                    PacketClient.sendClient(new DialogSavePacket(category.id, dialog.writeToNBT(new NBTTagCompound()), true));
 				}
 			}
 		}
 		else{
 			if(catScroll.selected != -1 && category.id >= 0)
-				Client.sendData(EnumPacketServer.DialogCategorySave, category.writeNBT(new NBTTagCompound()));
+                PacketClient.sendClient(new DialogCategorySavePacket(category.writeNBT(new NBTTagCompound())));
 		}
 	}
 
@@ -426,13 +428,13 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
             return;
         if(id == 5) {
             if(catData.containsKey(catScroll.getSelected())) {
-                Client.sendData(EnumPacketServer.DialogCategoryRemove, category.id);
+                PacketClient.sendClient(new DialogCategoryRemovePacket(category.id));
                 clearCategory();
             }
         }
         if(id == 2) {
             if (dialogData.containsKey(dialogScroll.getSelected())) {
-                Client.sendData(EnumPacketServer.DialogRemove, dialog.id, true);
+                PacketClient.sendClient(new DialogRemovePacket(dialog.id, true));
                 dialog = new Dialog();
                 dialogData.clear();
             }

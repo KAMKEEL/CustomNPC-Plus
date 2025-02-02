@@ -27,8 +27,7 @@ public final class BankRemovePacket extends AbstractPacket {
         this.bankId = bankId;
     }
 
-    public BankRemovePacket() {
-    }
+    public BankRemovePacket() {}
 
     @Override
     public Enum getType() {
