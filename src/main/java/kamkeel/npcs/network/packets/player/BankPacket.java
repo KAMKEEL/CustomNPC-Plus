@@ -19,7 +19,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.io.IOException;
 
 public class BankPacket extends AbstractPacket {
-    public static final String packetName = "Player|Follower";
+    public static final String packetName = "Player|Bank";
 
     private Action type;
     private int slotID;
