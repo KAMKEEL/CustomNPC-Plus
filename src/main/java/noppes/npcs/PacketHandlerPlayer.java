@@ -158,27 +158,27 @@ public class PacketHandlerPlayer{
 				return;
 			NoppesUtilPlayer.transport(player, npc, ByteBufUtils.readString(buffer));
 		}
-		else if(type == EnumPlayerPacket.BankUpgrade){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Bank)
-				return;
-			NoppesUtilPlayer.bankUpgrade(player, npc);
-		}
-		else if(type == EnumPlayerPacket.BankUnlock){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Bank)
-				return;
-			NoppesUtilPlayer.bankUnlock(player, npc);
-		}
-		else if(type == EnumPlayerPacket.BankSlotOpen){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Bank)
-				return;
-			int slot = buffer.readInt();
-			int bankId = buffer.readInt();
-			BankData data = PlayerDataController.Instance.getBankData(player,bankId).getBankOrDefault(bankId);
-			data.openBankGui(player, npc, bankId, slot);
-		}
+//		else if(type == EnumPlayerPacket.BankUpgrade){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Bank)
+//				return;
+//			NoppesUtilPlayer.bankUpgrade(player, npc);
+//		}
+//		else if(type == EnumPlayerPacket.BankUnlock){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Bank)
+//				return;
+//			NoppesUtilPlayer.bankUnlock(player, npc);
+//		}
+//		else if(type == EnumPlayerPacket.BankSlotOpen){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Bank)
+//				return;
+//			int slot = buffer.readInt();
+//			int bankId = buffer.readInt();
+//			BankData data = PlayerDataController.Instance.getBankData(player,bankId).getBankOrDefault(bankId);
+//			data.openBankGui(player, npc, bankId, slot);
+//		}
 		else if(type == EnumPlayerPacket.Dialog){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null)
