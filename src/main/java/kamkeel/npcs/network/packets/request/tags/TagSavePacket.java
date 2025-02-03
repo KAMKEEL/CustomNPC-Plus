@@ -50,7 +50,7 @@ public final class TagSavePacket extends AbstractPacket {
 
     @Override
     public boolean needsNPC() {
-        return true;
+        return false;
     }
 
     @SideOnly(Side.CLIENT)
