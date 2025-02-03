@@ -37,6 +37,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
     protected HashMap<Integer, GuiScreen> extra = new HashMap<Integer, GuiScreen>();
     protected HashMap<Integer, GuiScrollWindow> scrollWindows = new HashMap<>();
 
+    public static boolean resizingActive = false;
+
     public String title;
     private ResourceLocation background = null;
     public boolean closeOnEsc = false;

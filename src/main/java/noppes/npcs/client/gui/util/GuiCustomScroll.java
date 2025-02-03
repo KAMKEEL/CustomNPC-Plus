@@ -4,10 +4,13 @@ import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.*;
+
+import static noppes.npcs.client.gui.util.GuiNPCInterface.resizingActive;
 
 public class GuiCustomScroll extends GuiScreen
 {
@@ -127,7 +130,7 @@ public class GuiCustomScroll extends GuiScreen
         if(scrollHeight < ySize - 8){
         	i -= guiLeft;
         	j -= guiTop;
-            if(Mouse.isButtonDown(0)){
+            if(Mouse.isButtonDown(0) && !resizingActive){
                 if(i >= xSize-9 && i < xSize-4 && j >= 4 && j < ySize){
                     isScrolling = true;
                 }
@@ -263,6 +266,9 @@ public class GuiCustomScroll extends GuiScreen
 
     public void mouseClicked(int i, int j, int k)
     {
+        if(resizingActive)
+            return;
+
     	if(k != 0 || hover < 0)
     		return;
     	if(multipleSelection) {

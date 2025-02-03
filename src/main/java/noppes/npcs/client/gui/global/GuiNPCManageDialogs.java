@@ -40,6 +40,16 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 	private String catSearch = "";
 	private String diagSearch = "";
 
+    private boolean isResizing = false;
+    private int initialDragX = 0;
+    private int dividerOffset = 143;
+
+    private final int dividerWidth = 5;
+    private final int minScrollWidth = 50;
+
+    private int dividerLineHeight = 20;
+    private int dividerLineYOffset = 0;
+
     public GuiNPCManageDialogs(EntityNPCInterface npc)
     {
     	super(npc);
@@ -50,31 +60,40 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
     {
         super.initGui();
 
-		if(catScroll == null){
-			catScroll = new GuiCustomScroll(this,0, 0);
-			catScroll.setSize(143, 185);
-		}
-		catScroll.guiLeft = guiLeft + 64;
-		catScroll.guiTop = guiTop + 4;
-		this.addScroll(catScroll);
+        // Define overall horizontal region.
+        int regionLeft = guiLeft + 64;
+        int regionRight = guiLeft + 355;
 
-		if(dialogScroll == null){
-			dialogScroll = new GuiCustomScroll(this,1, 0);
-			dialogScroll.setSize(143, 185);
-		}
-		dialogScroll.guiLeft = guiLeft + 212;
-		dialogScroll.guiTop = guiTop + 4;
-		this.addScroll(dialogScroll);
+        // Recalculate dividerX using the stored offset:
+        int dividerX = regionLeft + dividerOffset;
 
-		addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 64, guiTop + 4 + 3 + 185, 143, 20, catSearch));
+        // Left scroll (catScroll)
+        if (catScroll == null) {
+            catScroll = new GuiCustomScroll(this, 0, 0);
+        }
+        catScroll.guiLeft = regionLeft;
+        catScroll.guiTop = guiTop + 4;
+        catScroll.setSize(dividerX - regionLeft, 185);
+        this.addScroll(catScroll);
 
-		this.addButton(new GuiNpcButton(44,guiLeft + 3, guiTop + 8, 58, 20, "gui.categories"));
+        // Right scroll (dialogScroll)
+        if (dialogScroll == null) {
+            dialogScroll = new GuiCustomScroll(this, 1, 0);
+        }
+        dialogScroll.guiLeft = dividerX + dividerWidth;
+        dialogScroll.guiTop = guiTop + 4;
+        dialogScroll.setSize(regionRight - (dividerX + dividerWidth), 185);
+        this.addScroll(dialogScroll);
+
+        // Adjust text fields:
+        addTextField(new GuiNpcTextField(55, this, fontRendererObj, regionLeft, guiTop + 4 + 3 + 185, dividerX - regionLeft, 20, catSearch));
+        addTextField(new GuiNpcTextField(66, this, fontRendererObj, dividerX + dividerWidth, guiTop + 4 + 3 + 185, regionRight - (dividerX + dividerWidth), 20, diagSearch));
+
+        this.addButton(new GuiNpcButton(44,guiLeft + 3, guiTop + 8, 58, 20, "gui.categories"));
 		getButton(44).setEnabled(false);
 		this.addButton(new GuiNpcButton(4,guiLeft + 3, guiTop + 38, 58, 20, "gui.add"));
 		this.addButton(new GuiNpcButton(5,guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
 		this.addButton(new GuiNpcButton(6,guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
-
-		addTextField(new GuiNpcTextField(66, this, fontRendererObj, guiLeft + 212, guiTop + 4 + 3 + 185, 143, 20, diagSearch));
 
 		this.addButton(new GuiNpcButton(33,guiLeft + 358, guiTop + 8, 58, 20, "dialog.dialogs"));
 		getButton(33).setEnabled(false);
@@ -92,6 +111,86 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 
 		updateButtons();
 	}
+
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
+        if(!hasSubGui()){
+            int regionLeft = guiLeft + 64;
+            int dividerX = regionLeft + dividerOffset;  // dividerOffset remains your left-scroll width
+            int regionTop = guiTop + 4;
+            int regionHeight = 185;
+            // Calculate the vertical position for the handle (centered by default)
+            int handleTop = regionTop + (regionHeight - dividerLineHeight) / 2 + dividerLineYOffset;
+            drawRect(dividerX + 1, handleTop, dividerX + dividerWidth - 1, handleTop + dividerLineHeight, 0xFF707070);
+        }
+    }
+
+    @Override
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        if(!hasSubGui()){
+            int regionLeft = guiLeft + 64;
+            int dividerX = regionLeft + dividerOffset;
+            int regionTop = guiTop + 4;
+            int regionHeight = 185;
+            int handleTop = regionTop + (regionHeight - dividerLineHeight) / 2 + dividerLineYOffset;
+            int handleBottom = handleTop + dividerLineHeight;
+            if (mouseX >= dividerX && mouseX <= dividerX + dividerWidth &&
+                mouseY >= handleTop && mouseY <= handleBottom) {
+                isResizing = true;
+                resizingActive = true;
+                initialDragX = mouseX;
+                return;
+            }
+        }
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        if (isResizing) {
+            int dx = mouseX - initialDragX;
+            initialDragX = mouseX;
+            dividerOffset += dx;
+            int regionLeft = guiLeft + 64;
+            int regionRight = guiLeft + 355;
+            // Clamp dividerOffset so each scroll remains at least minScrollWidth:
+            int minOffset = minScrollWidth;
+            int maxOffset = (regionRight - regionLeft) - dividerWidth - minScrollWidth;
+            if (dividerOffset < minOffset) {
+                dividerOffset = minOffset;
+            }
+            if (dividerOffset > maxOffset) {
+                dividerOffset = maxOffset;
+            }
+            int dividerX = regionLeft + dividerOffset;
+            // Update left scroll:
+            catScroll.setSize(dividerX - regionLeft, 185);
+            // Update right scroll:
+            dialogScroll.guiLeft = dividerX + dividerWidth;
+            dialogScroll.setSize(regionRight - (dividerX + dividerWidth), 185);
+            // Update text fields:
+            if (getTextField(55) != null) {
+                getTextField(55).width = dividerX - regionLeft;
+            }
+            if (getTextField(66) != null) {
+                getTextField(66).width = regionRight - (dividerX + dividerWidth);
+                getTextField(66).xPosition = dividerX + dividerWidth;
+            }
+            return;
+        }
+        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+    }
+
+    @Override
+    protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+        if (isResizing) {
+            isResizing = false;
+            resizingActive = false;
+            return;
+        }
+        super.mouseMovedOrUp(mouseX, mouseY, state);
+    }
 
 	@Override
 	public void keyTyped(char c, int i)
