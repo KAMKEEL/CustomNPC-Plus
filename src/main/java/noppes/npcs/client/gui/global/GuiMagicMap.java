@@ -17,10 +17,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-/**
- * Implementation of GuiNPCDiagram for displaying Magic nodes and their connections.
- * Magic objects are wrapped as DiagramIcons, and each Magic's weaknesses generate connections.
- */
 public class GuiMagicMap extends GuiNPCDiagram {
 
     private GuiScreen parent;
@@ -35,6 +31,7 @@ public class GuiMagicMap extends GuiNPCDiagram {
         for (Magic magic : MagicController.getInstance().magics.values()) {
             magics.add(magic);
         }
+        setLayout(DiagramLayout.CIRCULAR);
     }
 
     @Override
