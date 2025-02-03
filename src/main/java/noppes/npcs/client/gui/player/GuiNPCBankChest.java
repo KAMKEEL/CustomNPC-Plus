@@ -1,20 +1,17 @@
 package noppes.npcs.client.gui.player;
 
-import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.player.BankPacket;
+import kamkeel.npcs.network.packets.player.BankActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
@@ -72,13 +69,13 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
     	int id = guibutton.id;
     	if(id < 6){
     		close();
-            BankPacket.Open(container.bankid, id);
+            BankActionPacket.Open(container.bankid, id);
     	}
     	if(id == 8){
-            BankPacket.Unlock();
+            BankActionPacket.Unlock();
     	}
     	if(id == 9){
-            BankPacket.Upgrade();
+            BankActionPacket.Upgrade();
     	}
 
 

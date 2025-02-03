@@ -17,18 +17,18 @@ import noppes.npcs.controllers.data.BankData;
 
 import java.io.IOException;
 
-public class BankPacket extends AbstractPacket {
+public class BankActionPacket extends AbstractPacket {
     public static final String packetName = "Player|Bank";
 
     private Action type;
     private int slotID;
     private int bankID;
 
-    public BankPacket() {
+    public BankActionPacket() {
 
     }
 
-    private BankPacket(Action action, int bankID, int slotID) {
+    private BankActionPacket(Action action, int bankID, int slotID) {
         this.type = action;
         this.bankID = bankID;
         this.slotID = slotID;
@@ -40,13 +40,13 @@ public class BankPacket extends AbstractPacket {
     }
 
     public static void Open(int bankID, int slotID) {
-        PacketClient.sendClient(new BankPacket(Action.OpenSlot, bankID, slotID));
+        PacketClient.sendClient(new BankActionPacket(Action.OpenSlot, bankID, slotID));
     }
     public static void Upgrade() {
-        PacketClient.sendClient(new BankPacket(Action.Upgrade, -1, -1));
+        PacketClient.sendClient(new BankActionPacket(Action.Upgrade, -1, -1));
     }
     public static void Unlock() {
-        PacketClient.sendClient(new BankPacket(Action.Unlock, -1, -1));
+        PacketClient.sendClient(new BankActionPacket(Action.Unlock, -1, -1));
     }
 
     @Override
