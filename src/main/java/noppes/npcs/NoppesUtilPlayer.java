@@ -259,16 +259,6 @@ public class NoppesUtilPlayer {
 
 		bankData.openBankGui(player, npc, bank.id, container.slot);
 	}
-	public static void sendData(EnumPlayerPacket enu, Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
-		try {
-			if(!Server.fillBuffer(buffer, enu, obs))
-				return;
-			CustomNpcs.ChannelPlayer.sendToServer(new FMLProxyPacket(buffer,"CustomNPCsPlayer"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	public static void dialogSelected(int dialogId, int optionId, EntityPlayerMP player, EntityNPCInterface npc) {
 		Dialog dialog = DialogController.Instance.dialogs.get(dialogId);

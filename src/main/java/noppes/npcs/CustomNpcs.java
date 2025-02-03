@@ -55,9 +55,6 @@ public class CustomNpcs {
 
     public static boolean FreezeNPCs = false;
 
-    public static FMLEventChannel Channel;
-    public static FMLEventChannel ChannelPlayer;
-
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
 
     public static boolean InitIgnore = false;
@@ -87,9 +84,6 @@ public class CustomNpcs {
 
     @EventHandler
     public void load(FMLPreInitializationEvent ev) {
-        Channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCs");
-        ChannelPlayer = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCsPlayer");
-
         PacketHandler.Instance = new PacketHandler();
 
         MinecraftServer server = MinecraftServer.getServer();

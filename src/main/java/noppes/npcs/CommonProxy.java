@@ -22,10 +22,7 @@ public class CommonProxy implements IGuiHandler {
 	public boolean newVersionAvailable = false;
 	public int revision = 1;
 
-	public void load() {
-		CustomNpcs.Channel.register(new PacketHandlerServer());
-		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
-	}
+	public void load() {}
 
 	public PlayerData getPlayerData(EntityPlayer player) {
 		return null;
