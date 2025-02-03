@@ -43,8 +43,6 @@ public final class RemoteResetPacket extends AbstractPacket {
         return CustomNpcsPermissions.NPC_RESET;
     }
 
-    @Override
-
 
     @SideOnly(Side.CLIENT)
     @Override
