@@ -26,7 +26,7 @@ public class GuiNPCManageMagic extends GuiNPCInterface2 {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
         if (magicMap != null) {
-            magicMap.drawMap(mouseX, mouseY);
+            magicMap.drawDiagram(mouseX, mouseY);
         }
     }
 

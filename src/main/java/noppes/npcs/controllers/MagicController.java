@@ -4,6 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.IMagic;
@@ -64,16 +65,23 @@ public class MagicController {
             Magic dark   = new Magic(4, "Dark", 0xDD0000);
             Magic holy   = new Magic(5, "Holy", 0xDD0000);
 
+            nature.setIconItem(new ItemStack(CustomItems.spellNature));
+            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
+            ice.setIconItem(new ItemStack(CustomItems.spellIce));
+            fire.setIconItem(new ItemStack(CustomItems.spellFire));
+            dark.setIconItem(new ItemStack(CustomItems.spellDark));
+            holy.setIconItem(new ItemStack(CustomItems.spellHoly));
+
             // Define weaknesses (extra damage percentages as fractions)
             // Cycle: Nature -> Arcane -> Fire -> Ice -> Nature
-            nature.weaknesses.put(1, 0.20f); // Nature is weak to Arcane (20% extra damage)
-            arcane.weaknesses.put(3, 0.25f); // Arcane is weak to Fire (25%)
+            nature.weaknesses.put(1, 0.10f); // Nature is weak to Arcane (20% extra damage)
+            arcane.weaknesses.put(3, 0.55f); // Arcane is weak to Fire (25%)
             fire.weaknesses.put(2, 0.30f);   // Fire is weak to Ice (30%)
             ice.weaknesses.put(0, 0.20f);    // Ice is weak to Nature (20%)
 
             // Dark and Holy are opposites
-            dark.weaknesses.put(5, 0.40f);   // Dark is weak to Holy (40%)
-            holy.weaknesses.put(4, 0.40f);   // Holy is weak to Dark (40%)
+            dark.weaknesses.put(5, 0.70f);   // Dark is weak to Holy (40%)
+            holy.weaknesses.put(4, 0.70f);   // Holy is weak to Dark (40%)
 
             // Add them to the registry
             magics.put(nature.id, nature);
