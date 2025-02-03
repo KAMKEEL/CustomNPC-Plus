@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.request.clone.CloneAllTagsShortPacket;
+import kamkeel.npcs.network.packets.request.clone.ClonePreSavePacket;
+import kamkeel.npcs.network.packets.request.clone.CloneSavePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
@@ -58,7 +63,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
             addTagUUIDs = new HashSet<>();
         }
 		if(isNPC){
-			Client.sendData(EnumPacketServer.CloneAllTagsShort);
+            PacketClient.sendClient(new CloneAllTagsShortPacket());
 		}
 	}
 
@@ -102,7 +107,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
 					confirmClicked(true, 0);
 			}
 			else
-				Client.sendData(EnumPacketServer.ClonePreSave, name, tab);
+                PacketClient.sendClient(new ClonePreSavePacket(name, tab));
 		}
 		if(id == 1){
 			close();
@@ -145,7 +150,7 @@ public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCall
                 if(isNPC){
                     compounder.setTag("TagUUIDs", tagsCompound);
                 }
-				Client.sendData(EnumPacketServer.CloneSave, name, tab, extraTags, compounder);
+                PacketClient.sendClient(new CloneSavePacket(name, tab, extraTags, compounder));
 			}
 
 			close();

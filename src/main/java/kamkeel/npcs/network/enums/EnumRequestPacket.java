@@ -151,5 +151,6 @@ public enum EnumRequestPacket {
 
     TraderMarketSave,
 
-    CloneList, ServerUpdateSkinOverlays
+    CloneList,
+    CloneSave, CloneRemove, CloneTagList, CloneAllTags, CloneAllTagsShort, ClonePreSave
 }
