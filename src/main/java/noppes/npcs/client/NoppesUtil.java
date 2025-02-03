@@ -191,18 +191,6 @@ public class NoppesUtil {
 		group = new HashMap<String,Integer>();
 	}
 
-	public static void addScrollData(ByteBuf buffer) {
-		try {
-			int size = buffer.readInt();
-			for(int i = 0; i < size; i++){
-				int id = buffer.readInt();
-				String name = ByteBufUtils.readString(buffer);
-				data.put(name, id);
-			}
-		} catch (Exception e) {
-		}
-	}
-
 	public static void setScrollData(ByteBuf buffer) {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 		if(gui == null)

@@ -91,6 +91,7 @@ public class DialogController implements IDialogHandler {
 			}
 		}
 	}
+
 	private DialogCategory loadCategoryDir(File dir) {
 		DialogCategory category = new DialogCategory();
 		category.title = dir.getName();
@@ -103,6 +104,11 @@ public class DialogController implements IDialogHandler {
 				dialog.readNBTPartial(NBTJsonUtil.LoadFile(file));
 				category.dialogs.put(dialog.id, dialog);
 				dialog.category = category;
+
+                if (dialog.text != null && dialog.text.length() > 15000) {
+                    LogWriter.error("Extremely big dialog loaded: [ID: " + dialog.id + "] Title: "
+                        + dialog.title + " (Length: " + dialog.text.length() + " chars)");
+                }
 			}
 			catch(Exception e){
 				LogWriter.error("Error loading: " + file.getAbsolutePath(), e);

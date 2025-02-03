@@ -14,6 +14,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 
 import java.io.IOException;
 
@@ -81,10 +82,14 @@ public final class SyncPacket extends LargeAbstractPacket {
 
         EnumSyncType type = EnumSyncType.values()[syncTypeOrdinal];
         EnumSyncAction action = EnumSyncAction.values()[syncActionOrdinal];
-        NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
-
-        // Now do your client-side logic (similar to your old clientSync() or clientSyncUpdate() approach)
-        handleSyncPacketClient(type, action, categoryID, tag);
+        try {
+            NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
+            // Now do your client-side logic (similar to your old clientSync() or clientSyncUpdate() approach)
+            handleSyncPacketClient(type, action, categoryID, tag);
+        }
+        catch (RuntimeException e){
+            LogWriter.error(String.format("Attempted to Sync %s but it was too big", type.toString()));
+        }
     }
 
     private void handleSyncPacketClient(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int id, NBTTagCompound data) {

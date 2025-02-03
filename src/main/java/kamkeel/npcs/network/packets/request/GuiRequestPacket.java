@@ -42,7 +42,7 @@ public final class GuiRequestPacket extends AbstractPacket {
 
     @Override
     public boolean needsNPC() {
-        return true;
+        return false;
     }
 
     @SideOnly(Side.CLIENT)

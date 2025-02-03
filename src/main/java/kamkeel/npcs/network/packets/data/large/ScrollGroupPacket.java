@@ -56,6 +56,6 @@ public final class ScrollGroupPacket extends LargeAbstractPacket {
 
     @Override
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
-        NoppesUtil.setScrollData(data);
+        NoppesUtil.setScrollGroup(data);
     }
 }
