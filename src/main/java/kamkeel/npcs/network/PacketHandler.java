@@ -16,6 +16,7 @@ import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
 import kamkeel.npcs.network.packets.player.BankPacket;
 import kamkeel.npcs.network.packets.player.FollowerPacket;
+import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.TransportPacket;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.animation.*;
@@ -341,6 +342,8 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new TransportPacket());
 
         PLAYER_PACKET.registerPacket(new BankPacket());
+
+        PLAYER_PACKET.registerPacket(new InputDevicePacket());
     }
 
     private void registerChannels() {

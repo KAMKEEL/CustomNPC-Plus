@@ -14,8 +14,7 @@ public enum EnumPlayerPacket {
     SaveBook, // TODO
     Companion, // TODO: OpenInv, TalentExp
     RoleGet, // TODO
-    KeyPressed, // TODO
-    MouseClicked, // TODO
+    InputDevice,
     ScreenSize; // TODO
 
 

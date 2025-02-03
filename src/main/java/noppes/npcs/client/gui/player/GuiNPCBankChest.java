@@ -72,13 +72,13 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
     	int id = guibutton.id;
     	if(id < 6){
     		close();
-            PacketClient.sendClient(BankPacket.Open(container.bankid, id));
+            BankPacket.Open(container.bankid, id);
     	}
     	if(id == 8){
-            PacketClient.sendClient(BankPacket.Unlock());
+            BankPacket.Unlock();
     	}
     	if(id == 9){
-            PacketClient.sendClient(BankPacket.Upgrade());
+            BankPacket.Upgrade();
     	}
 
 

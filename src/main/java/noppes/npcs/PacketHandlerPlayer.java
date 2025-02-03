@@ -62,70 +62,70 @@ public class PacketHandlerPlayer{
 				return;
 			NoppesUtilServer.sendOpenGui(player, EnumGuiType.CompanionInv, npc);
 		}
-		else if(type == EnumPlayerPacket.KeyPressed) {
-			if(ScriptController.Instance.languages.isEmpty()) {
-				return;
-			}
-
-			int button = buffer.readInt();
-			boolean isCtrlPressed = buffer.readBoolean();
-			boolean isShiftPressed = buffer.readBoolean();
-			boolean isAltPressed = buffer.readBoolean();
-			boolean isMetaPressed = buffer.readBoolean();
-			boolean buttonDown = buffer.readBoolean();
-
-			String ints = ByteBufUtils.readString(buffer);
-			String[] split = ints.split(",");
-			int[] keysDown;
-
-			if(ints.length() > 0) {
-				keysDown = new int[split.length];
-				try {
-					for (int i = 0; i < split.length; i++) {
-						keysDown[i] = Integer.parseInt(split[i]);
-					}
-				}
-				catch (NumberFormatException ignored){
-				}
-			} else {
-				keysDown = new int[0];
-			}
-
-			EventHooks.onPlayerKeyPressed(player, button, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, buttonDown, keysDown);
-		}
-		else if(type == EnumPlayerPacket.MouseClicked) {
-			if(ScriptController.Instance.languages.isEmpty()) {
-				return;
-			}
-
-			int button = buffer.readInt();
-			int mouseWheel = buffer.readInt();
-			boolean buttonDown = buffer.readBoolean();
-
-			boolean isCtrlPressed = buffer.readBoolean();
-			boolean isShiftPressed = buffer.readBoolean();
-			boolean isAltPressed = buffer.readBoolean();
-			boolean isMetaPressed = buffer.readBoolean();
-
-			String ints = ByteBufUtils.readString(buffer);
-			String[] split = ints.split(",");
-			int[] keysDown;
-
-			if(ints.length() > 0) {
-				keysDown = new int[split.length];
-				try {
-					for (int i = 0; i < split.length; i++) {
-						keysDown[i] = Integer.parseInt(split[i]);
-					}
-				}
-				catch (NumberFormatException ignored){
-				}
-			} else {
-				keysDown = new int[0];
-			}
-
-			EventHooks.onPlayerMouseClicked(player, button, mouseWheel, buttonDown, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDown);
-		}
+//		else if(type == EnumPlayerPacket.KeyPressed) {
+//			if(ScriptController.Instance.languages.isEmpty()) {
+//				return;
+//			}
+//
+//			int button = buffer.readInt();
+//			boolean isCtrlPressed = buffer.readBoolean();
+//			boolean isShiftPressed = buffer.readBoolean();
+//			boolean isAltPressed = buffer.readBoolean();
+//			boolean isMetaPressed = buffer.readBoolean();
+//			boolean buttonDown = buffer.readBoolean();
+//
+//			String ints = ByteBufUtils.readString(buffer);
+//			String[] split = ints.split(",");
+//			int[] keysDown;
+//
+//			if(ints.length() > 0) {
+//				keysDown = new int[split.length];
+//				try {
+//					for (int i = 0; i < split.length; i++) {
+//						keysDown[i] = Integer.parseInt(split[i]);
+//					}
+//				}
+//				catch (NumberFormatException ignored){
+//				}
+//			} else {
+//				keysDown = new int[0];
+//			}
+//
+//			EventHooks.onPlayerKeyPressed(player, button, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, buttonDown, keysDown);
+//		}
+//		else if(type == EnumPlayerPacket.MouseClicked) {
+//			if(ScriptController.Instance.languages.isEmpty()) {
+//				return;
+//			}
+//
+//			int button = buffer.readInt();
+//			int mouseWheel = buffer.readInt();
+//			boolean buttonDown = buffer.readBoolean();
+//
+//			boolean isCtrlPressed = buffer.readBoolean();
+//			boolean isShiftPressed = buffer.readBoolean();
+//			boolean isAltPressed = buffer.readBoolean();
+//			boolean isMetaPressed = buffer.readBoolean();
+//
+//			String ints = ByteBufUtils.readString(buffer);
+//			String[] split = ints.split(",");
+//			int[] keysDown;
+//
+//			if(ints.length() > 0) {
+//				keysDown = new int[split.length];
+//				try {
+//					for (int i = 0; i < split.length; i++) {
+//						keysDown[i] = Integer.parseInt(split[i]);
+//					}
+//				}
+//				catch (NumberFormatException ignored){
+//				}
+//			} else {
+//				keysDown = new int[0];
+//			}
+//
+//			EventHooks.onPlayerMouseClicked(player, button, mouseWheel, buttonDown, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDown);
+//		}
 //		else if(type == EnumPlayerPacket.FollowerHire){
 //			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 //			if(npc == null || npc.advanced.role != EnumRoleType.Follower)

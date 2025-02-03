@@ -5,6 +5,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
+import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import net.minecraft.entity.player.EntityPlayer;
@@ -38,14 +39,14 @@ public class BankPacket extends AbstractPacket {
         return true;
     }
 
-    public static BankPacket Open(int bankID, int slotID) {
-        return new BankPacket(Action.OpenSlot, bankID, slotID);
+    public static void Open(int bankID, int slotID) {
+        PacketClient.sendClient(new BankPacket(Action.OpenSlot, bankID, slotID));
     }
-    public static BankPacket Upgrade() {
-        return new BankPacket(Action.Upgrade, -1, -1);
+    public static void Upgrade() {
+        PacketClient.sendClient(new BankPacket(Action.Upgrade, -1, -1));
     }
-    public static BankPacket Unlock() {
-        return new BankPacket(Action.Unlock, -1, -1);
+    public static void Unlock() {
+        PacketClient.sendClient(new BankPacket(Action.Unlock, -1, -1));
     }
 
     @Override
