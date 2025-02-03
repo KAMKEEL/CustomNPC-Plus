@@ -360,6 +360,9 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new MailActionPacket());
         PLAYER_PACKET.registerPacket(new MailActionPacket.MailSendPacket());
 
+        PLAYER_PACKET.registerPacket(new SaveSignPacket());
+        PLAYER_PACKET.registerPacket(new SaveBookPacket());
+
         PLAYER_PACKET.registerPacket(new CompanionActionPacket());
 
         PLAYER_PACKET.registerPacket(new GetNPCRole());
