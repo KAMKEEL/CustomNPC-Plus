@@ -276,7 +276,6 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new PartyDisbandPacket());
         REQUEST_PACKET.registerPacket(new PartySetLeaderPacket());
         REQUEST_PACKET.registerPacket(new PartyKickPacket());
-        REQUEST_PACKET.registerPacket(new PartyDisbandPacket());
         REQUEST_PACKET.registerPacket(new PartyLeavePacket());
         REQUEST_PACKET.registerPacket(new PartySetQuestPacket());
         REQUEST_PACKET.registerPacket(new PartyInvitePacket());
