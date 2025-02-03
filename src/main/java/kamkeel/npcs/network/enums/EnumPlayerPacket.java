@@ -8,10 +8,10 @@ public enum EnumPlayerPacket {
     GetPlayerValue,
     MailBoxAction,
     MailSend,
-    SaveSign, // TODO
-    SaveBook, // TODO
-    CompanionAction, // TODO: OpenInv, TalentExp
-    GetRole, // TODO
+    SaveSign,
+    SaveBook,
+    CompanionAction,
+    GetRole,
     InputDevice,
     ScreenSize
 }

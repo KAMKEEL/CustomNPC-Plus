@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.player;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.FollowerPacket;
+import kamkeel.npcs.network.packets.player.GetNPCRole;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
@@ -31,7 +32,7 @@ public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiDat
         role = (RoleFollower) npc.roleInterface;
         closeOnEsc = true;
 
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.RoleGet);
+        PacketClient.sendClient(new GetNPCRole());
     }
     @Override
     public void initGui(){
