@@ -5,7 +5,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketServer;
+
 
 import java.io.IOException;
 

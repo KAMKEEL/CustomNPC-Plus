@@ -12,10 +12,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;

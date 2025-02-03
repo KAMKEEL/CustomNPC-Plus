@@ -17,7 +17,7 @@ import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
 import noppes.npcs.client.*;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.util.ValueUtil;

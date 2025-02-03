@@ -6,12 +6,12 @@ import kamkeel.npcs.network.packets.request.transform.TransformLoadPacket;
 import kamkeel.npcs.network.packets.request.transform.TransformSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.DataTransform;
 import noppes.npcs.entity.EntityNPCInterface;
 

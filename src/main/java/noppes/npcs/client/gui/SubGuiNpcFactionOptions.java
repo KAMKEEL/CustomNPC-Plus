@@ -4,9 +4,9 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.FactionOptions;
 
 import java.util.HashMap;

@@ -5,7 +5,7 @@ import kamkeel.npcs.network.packets.request.quest.QuestOpenGuiPacket;
 import kamkeel.npcs.network.packets.request.quest.QuestSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;

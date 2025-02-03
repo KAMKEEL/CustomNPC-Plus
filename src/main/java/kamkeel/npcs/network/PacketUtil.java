@@ -196,7 +196,7 @@ public class PacketUtil {
         }
     }
 
-    public static void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws IOException {
+    public static void saveScripts(IScriptHandler data, ByteBuf buffer) throws IOException {
         int tab = buffer.readInt();
         int totalScripts = buffer.readInt();
         if (totalScripts == 0) {

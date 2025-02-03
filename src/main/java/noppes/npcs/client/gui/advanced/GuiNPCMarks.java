@@ -4,11 +4,11 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedMarkDataPacket;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.entity.EntityNPCInterface;

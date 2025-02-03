@@ -1,10 +1,11 @@
 package noppes.npcs.client.gui.script;
 
+import kamkeel.npcs.network.packets.request.script.ItemScriptPacket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
-import noppes.npcs.client.Client;
-import noppes.npcs.constants.EnumPacketServer;
+
+
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 public class GuiScriptItem extends GuiScriptInterface {
@@ -25,7 +26,7 @@ public class GuiScriptItem extends GuiScriptInterface {
         hookList.add("finishItem");
 
         this.handler = this.item = new ScriptCustomItem(new ItemStack(CustomItems.scripted_item));
-        Client.sendData(EnumPacketServer.ScriptItemDataGet, new Object[0]);
+        ItemScriptPacket.Get();
     }
 
     public void setGuiData(NBTTagCompound compound) {
@@ -36,6 +37,6 @@ public class GuiScriptItem extends GuiScriptInterface {
 
     public void save() {
         super.save();
-        Client.sendData(EnumPacketServer.ScriptItemDataSave, new Object[]{this.item.getMCNbt()});
+        ItemScriptPacket.Save(this.item.getMCNbt());
     }
 }

@@ -1,9 +1,10 @@
 package noppes.npcs.client.gui.script;
 
+import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
-import noppes.npcs.client.Client;
-import noppes.npcs.constants.EnumPacketServer;
+
+
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
 
@@ -32,7 +33,7 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
         hookList.add("projectileImpact");
 
         this.handler = this.script;
-        Client.sendData(EnumPacketServer.ScriptGlobalNPCGet);
+        GlobalNPCScriptPacket.Get();
     }
 
     public void setGuiData(NBTTagCompound compound) {
@@ -59,12 +60,12 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
         List<ScriptContainer> containers = this.script.getScripts();
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
-            Client.sendData(EnumPacketServer.ScriptGlobalNPCSave, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            GlobalNPCScriptPacket.Save(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
         }
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", this.script.getLanguage());
         scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
         scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
-        Client.sendData(EnumPacketServer.ScriptGlobalNPCSave, -1, containers.size(), scriptData);
+        GlobalNPCScriptPacket.Save(-1, containers.size(), scriptData);
     }
 }

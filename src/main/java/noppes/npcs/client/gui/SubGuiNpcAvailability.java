@@ -3,12 +3,12 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.packets.request.faction.FactionGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAvailabilityFactionType;
 import noppes.npcs.constants.EnumDayTime;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Faction;
 

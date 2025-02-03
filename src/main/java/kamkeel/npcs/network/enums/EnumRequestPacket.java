@@ -159,5 +159,5 @@ public enum EnumRequestPacket {
     CloneAllTagsShort,
     ClonePreSave,
 
-    EventScript, DimensionTeleport
+    EventScript, PlayerScript, ForgeScript, GlobalNPCScript, ItemScript, BlockScript, NPCScript, ScriptInfo, DimensionTeleport
 }

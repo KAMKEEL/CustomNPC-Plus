@@ -18,10 +18,10 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.village.MerchantRecipe;
 import net.minecraft.village.MerchantRecipeList;
 import noppes.npcs.ServerEventsHandler;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.containers.ContainerMerchantAdd;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;

@@ -57,6 +57,7 @@ import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
 import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
+import kamkeel.npcs.network.packets.request.script.*;
 import kamkeel.npcs.network.packets.request.tags.*;
 import kamkeel.npcs.network.packets.request.transform.TransformGetPacket;
 import kamkeel.npcs.network.packets.request.transform.TransformLoadPacket;
@@ -108,6 +109,16 @@ public class PacketHandler {
         // NPC Packets
         REQUEST_PACKET.registerPacket(new NpcClosePacket());
         REQUEST_PACKET.registerPacket(new NpcDeletePacket());
+
+        // Script Packets
+        REQUEST_PACKET.registerPacket(new BlockScriptPacket());
+        REQUEST_PACKET.registerPacket(new EventScriptPacket());
+        REQUEST_PACKET.registerPacket(new ForgeScriptPacket());
+        REQUEST_PACKET.registerPacket(new GlobalNPCScriptPacket());
+        REQUEST_PACKET.registerPacket(new ItemScriptPacket());
+        REQUEST_PACKET.registerPacket(new NPCScriptPacket());
+        REQUEST_PACKET.registerPacket(new PlayerScriptPacket());
+        REQUEST_PACKET.registerPacket(new ScriptInfoPacket());
 
         // Cloner Packets
         REQUEST_PACKET.registerPacket(new CloneListPacket());

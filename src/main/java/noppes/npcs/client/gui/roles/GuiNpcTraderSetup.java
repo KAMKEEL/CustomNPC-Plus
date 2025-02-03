@@ -7,10 +7,10 @@ import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.containers.ContainerNPCTraderSetup;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;

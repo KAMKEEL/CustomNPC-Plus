@@ -5,10 +5,10 @@ import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.controllers.data.Lines;
 import noppes.npcs.entity.EntityNPCInterface;

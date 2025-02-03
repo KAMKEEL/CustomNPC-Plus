@@ -8,10 +8,10 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataStats;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener, IGuiData{

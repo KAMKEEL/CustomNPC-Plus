@@ -7,10 +7,10 @@ import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.entity.EntityNPCInterface;

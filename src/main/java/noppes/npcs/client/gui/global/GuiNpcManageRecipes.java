@@ -8,11 +8,11 @@ import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.entity.EntityNPCInterface;

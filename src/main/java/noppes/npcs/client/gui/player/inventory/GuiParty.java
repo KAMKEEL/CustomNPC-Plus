@@ -14,11 +14,11 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;

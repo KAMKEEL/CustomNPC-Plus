@@ -14,10 +14,10 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;

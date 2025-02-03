@@ -3,9 +3,9 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.SpawnData;
 
 import java.util.*;

@@ -2,11 +2,11 @@ package noppes.npcs.client.gui.roles;
 
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobHealer;
 

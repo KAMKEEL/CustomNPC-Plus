@@ -7,9 +7,9 @@ import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 

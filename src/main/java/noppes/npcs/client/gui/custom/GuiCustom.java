@@ -25,7 +25,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.custom.components.*;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.gui.custom.interfaces.IDataHolder;
@@ -33,7 +33,7 @@ import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.gui.*;
 import org.lwjgl.input.Keyboard;
