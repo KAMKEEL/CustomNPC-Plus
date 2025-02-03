@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.player.companion;
 
+import kamkeel.npcs.network.packets.player.CompanionActionPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
@@ -29,7 +30,7 @@ import java.util.Map;
 
 public class GuiNpcCompanionTalents extends GuiNPCInterface{
 	private RoleCompanion role;
-	private Map<Integer,GuiTalent> talents = new HashMap<Integer,GuiTalent>();	
+	private Map<Integer,GuiTalent> talents = new HashMap<Integer,GuiTalent>();
 	private GuiNpcButton selected;
 
 	public GuiNpcCompanionTalents(EntityNPCInterface npc) {
@@ -46,7 +47,7 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 		super.initGui();
     	talents.clear();
 		int y = guiTop + 12;
-		
+
 		addLabel(new GuiNpcLabel(0, NoppesStringUtils.translate("quest.exp", ": "), guiLeft + 4, guiTop + 10));
 
 		GuiNpcCompanionStats.addTopMenu(role, this, 2);
@@ -55,7 +56,7 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 			addTalent(i++, e);
 		}
 	}
-	
+
 	private void addTalent(int i, EnumCompanionTalent talent){
 		int y = guiTop + 28 + i/2 * 26;
 		int x = guiLeft + 4 + i % 2 * 84;
@@ -75,7 +76,7 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 			CustomNpcs.proxy.openGui(npc, EnumGuiType.Companion);
 		}
 		if(id == 3){
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.CompanionOpenInv);
+            CompanionActionPacket.OpenInventory();
 		}
 		if(id >= 10){
 			selected = (GuiNpcButton) guibutton;
@@ -83,19 +84,19 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 			addExperience(1);
 		}
 	}
-	
+
 	private void addExperience(int exp){
 		EnumCompanionTalent talent = talents.get(selected.id - 10).talent;
 		if(!role.canAddExp(-exp) && role.currentExp <= 0)
 			return;
 		if(exp > role.currentExp)
 			exp = role.currentExp;
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.CompanionTalentExp, talent.ordinal(), exp);
+		CompanionActionPacket.TalentExp(talent, exp);
 		role.talents.put(talent, role.talents.get(talent) + exp);
 		role.addExp(-exp);
 		getLabel(selected.id - 10).label = role.talents.get(talent) + "/" + role.getNextLevel(talent);
 	}
-	
+
 	private long lastPressedTime = 0;
 	private long startPressedTime = 0;
 	@Override
@@ -122,7 +123,7 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 				selected = null;
 			}
 		}
-		
+
         mc.getTextureManager().bindTexture(Gui.icons);
         this.drawTexturedModalRect(guiLeft + 4, guiTop + 20, 10, 64, 162, 5);
 
@@ -142,9 +143,9 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 
 	@Override
 	public void save() {
-		
+
 	}
-	
+
 	public static class GuiTalent extends GuiScreen{
 		private EnumCompanionTalent talent;
 		private int x, y;
@@ -156,12 +157,12 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 			this.y = y;
 			this.role = role;
 		}
-		
+
 		@Override
 		public void drawScreen(int i, int j, float f) {
 	        Minecraft mc = Minecraft.getMinecraft();
 	        mc.getTextureManager().bindTexture(resource);
-	        
+
 			ItemStack item = talent.item;
 			if(item.getItem() == null)
 				item = new ItemStack(Blocks.dirt);
@@ -177,7 +178,7 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface{
 	        RenderHelper.enableGUIStandardItemLighting();
 	        itemRender.renderItemAndEffectIntoGUI(mc.fontRenderer, mc.getTextureManager(), item, x + 4, y + 4);
 	        itemRender.renderItemOverlayIntoGUI(mc.fontRenderer, mc.getTextureManager(), item, x + 4, y + 4);
-	        RenderHelper.disableStandardItemLighting(); 
+	        RenderHelper.disableStandardItemLighting();
 	        GL11.glDisable(GL11.GL_LIGHTING);
 	        GL11.glTranslatef(0, 0, 200);
             this.drawCenteredString(mc.fontRenderer, role.getTalentLevel(talent) + "", x + 20, y + 16, 0xFFFFFF);

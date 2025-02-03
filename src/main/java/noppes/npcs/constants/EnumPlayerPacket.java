@@ -20,10 +20,10 @@ public enum EnumPlayerPacket {
 //    MailboxOpenMail,
     SignSave,
     SaveBook,
-    CompanionOpenInv,
+//    CompanionOpenInv,
     RoleGet,
 //    KeyPressed,
 //    MouseClicked,
-    CompanionTalentExp,
+//    CompanionTalentExp,
 //    ScreenSize
 }

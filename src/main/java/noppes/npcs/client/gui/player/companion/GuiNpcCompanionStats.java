@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.player.companion;
 
+import kamkeel.npcs.network.packets.player.CompanionActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
@@ -41,11 +42,11 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 		addLabel(new GuiNpcLabel(3, NoppesStringUtils.translate("companion.strength", ": ", npc.stats.getAttackStrength()), guiLeft + 4, y+=12));
 		addLabel(new GuiNpcLabel(4, NoppesStringUtils.translate("companion.level", ": ", role.getTotalLevel()), guiLeft + 4, y+=12));
 		addLabel(new GuiNpcLabel(5, NoppesStringUtils.translate("job.name", ": ", "gui.none"), guiLeft + 4, y+=12));
-		
+
 		addTopMenu(role, this, 1);
-	
+
 	}
-	
+
 	public static void addTopMenu(RoleCompanion role, GuiScreen screen, int active){
 		if(screen instanceof GuiNPCInterface){
 			GuiNPCInterface gui = (GuiNPCInterface) screen;
@@ -79,7 +80,7 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 			CustomNpcs.proxy.openGui(npc, EnumGuiType.CompanionTalent);
 		}
 		if(id == 3){
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.CompanionOpenInv);
+            CompanionActionPacket.OpenInventory();
 		}
 	}
 
@@ -89,12 +90,12 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 		if(isEating && !role.isEating()){
 			NoppesUtilPlayer.sendData(EnumPlayerPacket.RoleGet);
 		}
-		
+
 		isEating = role.isEating();
 		super.drawNpc(34, 150);
 		int y = drawHealth(guiTop + 88);
 	}
-	
+
 	private int drawHealth(int y){
 		this.mc.getTextureManager().bindTexture(icons);
 
@@ -102,23 +103,23 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 		if(role.talents.containsKey(EnumCompanionTalent.ARMOR) || max > 0){
 	        for (int i = 0; i < 10; ++i){
 	            int x = guiLeft + 66 + i * 10;
-	
+
 	            if (i * 2 + 1 < max){
 	                this.drawTexturedModalRect(x, y, 34, 9, 9, 9);
 	            }
-	
+
 	            if (i * 2 + 1 == max){
 	                this.drawTexturedModalRect(x, y, 25, 9, 9, 9);
 	            }
-	
+
 	            if (i * 2 + 1 > max){
 	                this.drawTexturedModalRect(x, y, 16, 9, 9, 9);
 	            }
-	            
+
 	        }
 	        y += 10;
 		}
-		
+
 		max = MathHelper.ceiling_float_int(npc.getMaxHealth());
         int k = (int)npc.getHealth();
         float scale = 1;
@@ -134,12 +135,12 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
             if(k > i)
                 this.drawTexturedModalRect(x, y + offset, 52 + i % 2 * 5, 0, i % 2 == 1?4:5, 9);
         }
-        
+
         k = role.foodstats.getFoodLevel();
         y += 10;
         if(max > 20)
             y += 10;
-        
+
         for(int i = 0; i < 20; i++){
         	int x = guiLeft + 66 + i % 20 * 5;
             this.drawTexturedModalRect(x, y, 16 + i % 2 * 5, 27, i % 2 == 1?4:5, 9);
@@ -151,7 +152,7 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 
 	@Override
 	public void save() {
-		
+
 	}
 
 	@Override

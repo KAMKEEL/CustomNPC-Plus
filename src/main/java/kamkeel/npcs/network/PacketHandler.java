@@ -355,6 +355,8 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new MailActionPacket());
         PLAYER_PACKET.registerPacket(new MailActionPacket.MailSendPacket());
 
+        PLAYER_PACKET.registerPacket(new CompanionActionPacket());
+
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
 
         PLAYER_PACKET.registerPacket(new ScreenSizePacket());

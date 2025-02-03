@@ -10,7 +10,7 @@ public enum EnumPlayerPacket {
     MailSend,
     SaveSign, // TODO
     SaveBook, // TODO
-    Companion, // TODO: OpenInv, TalentExp
+    CompanionAction, // TODO: OpenInv, TalentExp
     GetRole, // TODO
     InputDevice,
     ScreenSize

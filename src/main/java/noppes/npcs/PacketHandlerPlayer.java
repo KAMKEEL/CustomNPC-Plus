@@ -43,25 +43,25 @@ public class PacketHandlerPlayer{
 	}
 
 	private void player(ByteBuf buffer, EntityPlayerMP player, EnumPlayerPacket type) throws IOException {
-        if(type == EnumPlayerPacket.CompanionTalentExp){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
-				return;
-			int id = buffer.readInt();
-			int exp = buffer.readInt();
-			RoleCompanion role = (RoleCompanion) npc.roleInterface;
-			if(exp <= 0 || !role.canAddExp(-exp) || id < 0 || id >= EnumCompanionTalent.values().length) //should never happen unless hacking
-				return;
-			EnumCompanionTalent talent = EnumCompanionTalent.values()[id];
-			role.addExp(-exp);
-			role.addTalentExp(talent, exp);
-		}
-		else if(type == EnumPlayerPacket.CompanionOpenInv){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
-				return;
-			NoppesUtilServer.sendOpenGui(player, EnumGuiType.CompanionInv, npc);
-		}
+//        if(type == EnumPlayerPacket.CompanionTalentExp){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
+//				return;
+//			int id = buffer.readInt();
+//			int exp = buffer.readInt();
+//			RoleCompanion role = (RoleCompanion) npc.roleInterface;
+//			if(exp <= 0 || !role.canAddExp(-exp) || id < 0 || id >= EnumCompanionTalent.values().length) //should never happen unless hacking
+//				return;
+//			EnumCompanionTalent talent = EnumCompanionTalent.values()[id];
+//			role.addExp(-exp);
+//			role.addTalentExp(talent, exp);
+//		}
+//		else if(type == EnumPlayerPacket.CompanionOpenInv){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
+//				return;
+//			NoppesUtilServer.sendOpenGui(player, EnumGuiType.CompanionInv, npc);
+//		}
 //		else if(type == EnumPlayerPacket.KeyPressed) {
 //			if(ScriptController.Instance.languages.isEmpty()) {
 //				return;
@@ -146,7 +146,7 @@ public class PacketHandlerPlayer{
 //			NoppesUtilPlayer.changeFollowerState(player,npc);
 //			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 //		}
-		else if(type == EnumPlayerPacket.RoleGet){
+		if(type == EnumPlayerPacket.RoleGet){
 			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 			if(npc == null || npc.advanced.role == EnumRoleType.None)
 				return;
