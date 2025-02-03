@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui.player.companion;
 
+import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
+import kamkeel.npcs.network.packets.player.GetNPCRole;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.item.ItemStack;
@@ -29,7 +31,7 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 		setBackground("companion.png");
 		xSize = 171;
 		ySize = 166;
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.RoleGet);
+        PacketClient.sendClient(new GetNPCRole());
 	}
 
 	@Override
@@ -88,7 +90,7 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
 	public void drawScreen(int i, int j, float f) {
 		super.drawScreen(i, j, f);
 		if(isEating && !role.isEating()){
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.RoleGet);
+            PacketClient.sendClient(new GetNPCRole());
 		}
 
 		isEating = role.isEating();

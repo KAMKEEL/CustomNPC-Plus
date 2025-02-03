@@ -21,7 +21,7 @@ public enum EnumPlayerPacket {
     SignSave,
     SaveBook,
 //    CompanionOpenInv,
-    RoleGet,
+//    RoleGet,
 //    KeyPressed,
 //    MouseClicked,
 //    CompanionTalentExp,

@@ -146,12 +146,12 @@ public class PacketHandlerPlayer{
 //			NoppesUtilPlayer.changeFollowerState(player,npc);
 //			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
 //		}
-		if(type == EnumPlayerPacket.RoleGet){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null || npc.advanced.role == EnumRoleType.None)
-				return;
-			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
-		}
+//		if(type == EnumPlayerPacket.RoleGet){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null || npc.advanced.role == EnumRoleType.None)
+//				return;
+//			GuiDataPacket.sendGuiData(player, npc.roleInterface.writeToNBT(new NBTTagCompound()));
+//		}
 //		else if(type == EnumPlayerPacket.Transport){
 //			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
 //			if(npc == null || npc.advanced.role != EnumRoleType.Transporter)
@@ -281,7 +281,7 @@ public class PacketHandlerPlayer{
 //				}
 //			}
 //		}
-		else if(type == EnumPlayerPacket.SignSave) {
+        if(type == EnumPlayerPacket.SignSave) {
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
 			if (player.worldObj.blockExists(x, y, z)) {
 				TileEntity tile = player.worldObj.getTileEntity(x, y, z);
