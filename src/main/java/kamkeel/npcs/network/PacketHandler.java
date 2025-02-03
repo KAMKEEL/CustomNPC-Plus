@@ -44,6 +44,8 @@ import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnRemovePack
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket;
 import kamkeel.npcs.network.packets.request.npc.*;
 import kamkeel.npcs.network.packets.request.party.*;
+import kamkeel.npcs.network.packets.request.pather.MovingPathGetPacket;
+import kamkeel.npcs.network.packets.request.pather.MovingPathSavePacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
@@ -264,17 +266,22 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AnimationGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
         REQUEST_PACKET.registerPacket(new AnimationSavePacket());
+        REQUEST_PACKET.registerPacket(new AnimationCachePacket());
+
+        // Moving Path
+        REQUEST_PACKET.registerPacket(new MovingPathSavePacket());
+        REQUEST_PACKET.registerPacket(new MovingPathGetPacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
         REQUEST_PACKET.registerPacket(new DimensionsGetPacket());
-        REQUEST_PACKET.registerPacket(new AnimationCachePacket());
         REQUEST_PACKET.registerPacket(new MerchantUpdatePacket());
         REQUEST_PACKET.registerPacket(new ModelDataSavePacket());
         REQUEST_PACKET.registerPacket(new MailOpenSetupPacket());
         REQUEST_PACKET.registerPacket(new TileEntityGetPacket());
         REQUEST_PACKET.registerPacket(new TileEntitySavePacket());
+        REQUEST_PACKET.registerPacket(new MountPacket());
     }
 
     public void registerDataPackets(){

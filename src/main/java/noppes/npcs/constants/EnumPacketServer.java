@@ -37,13 +37,6 @@ public enum EnumPacketServer {
 	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
     EventScriptDataGet(true),
 
-	FactionsGet,
-    FactionGet,
-	PlayerRider(CustomNpcsPermissions.TOOL_MOUNTER),
-	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
-	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true),
-    MovingPathGet(true),
-
 	DimensionTeleport;
 
 	public CustomNpcsPermissions.Permission permission = null;

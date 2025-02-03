@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.packets.request.MountPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -20,19 +21,19 @@ import java.util.List;
 import java.util.Map;
 
 public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData{
-    
+
     private GuiCustomScroll scroll;
-    
+
     private int posX,posY,posZ;
-    
+
     private List<String> list;
-    
+
     private static int showingClones = 0;
 
 	private static String search = "";
-	
+
 	private int activeTab =  1;
-    
+
 	public GuiNpcMobSpawnerMounter(int i, int j, int k) {
 		super();
         xSize = 256;
@@ -40,16 +41,16 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
         posX = i;
         posY = j;
         posZ = k;
-        
+
         this.closeOnEsc = true;
-        
+
         setBackground("menubg.png");
 	}
     public void initGui()
     {
         super.initGui();
         guiTop += 10;
-        
+
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0);
 	        scroll.setSize(165, 188);
@@ -59,7 +60,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 26;
         addScroll(scroll);
-        
+
     	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 165, 20, search));
 
         GuiMenuTopButton button;
@@ -90,7 +91,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
 			addSideButton(new GuiMenuSideButton(33,guiLeft - 90, this.guiTop + 170, 45,22, "13"));
 			addSideButton(new GuiMenuSideButton(34,guiLeft - 45, this.guiTop + 191, 45,22, "14"));
 			addSideButton(new GuiMenuSideButton(35,guiLeft - 90, this.guiTop + 191, 45,22, "15"));
-        	
+
         	getSideButton(20 + activeTab).active = true;
         	showClones();
         }
@@ -109,7 +110,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
 				e.printStackTrace();
 			} catch (NoSuchMethodException e) {
 			}
-        }  
+        }
         this.list = list;
         scroll.setList(getSearchList());
 	}
@@ -119,7 +120,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
 			Client.sendData(EnumPacketServer.CloneList, activeTab);
 			return;
 		}
-        
+
         ArrayList<String> list = new ArrayList<String>();
         this.list = ClientCloneController.Instance.getClones(activeTab);
         scroll.setList(getSearchList());
@@ -127,7 +128,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
     public void keyTyped(char c, int i)
     {
     	super.keyTyped(c, i);
-    	
+
     	if(search.equals(getTextField(1).getText()))
     		return;
     	search = getTextField(1).getText().toLowerCase();
@@ -147,7 +148,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
     	String sel = scroll.getSelected();
     	if(sel == null)
     		return null;
-    	
+
     	if(showingClones == 0){
     		return ClientCloneController.Instance.getCloneData(player, sel, activeTab);
     	}
@@ -159,9 +160,9 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
     		entity.writeToNBTOptional(compound);
     		return compound;
     	}
-		
+
 	}
-	
+
 	protected void actionPerformed(GuiButton guibutton)
     {
 		int id = guibutton.id;
@@ -172,12 +173,12 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
     		NBTTagCompound compound = getCompound();
     		if(compound != null){
     			compound.setTag("Pos", this.newDoubleNBTList(new double[] {this.posX + 0.5, this.posY + 1, this.posZ + 0.5}));
-    			Client.sendData(EnumPacketServer.SpawnRider, compound);
+                MountPacket.Spawn(compound);
 	    		close();
     		}
     	}
     	if(id == 2){
-			Client.sendData(EnumPacketServer.PlayerRider);
+            MountPacket.Player();
     		close();
     	}
     	if(id == 3){
@@ -211,11 +212,11 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
 
         return nbttaglist;
     }
-	
+
 	@Override
 	public void save() {
 		// TODO Auto-generated method stub
-		
+
 	}
 	@Override
 	public void setGuiData(NBTTagCompound compound) {

@@ -84,8 +84,7 @@ public enum EnumRequestPacket {
     NaturalSpawnGetAll,
 
     MerchantUpdate,
-    PlayerRider,
-    SpawnRider,
+    MountPacket,
     MovingPathSave,
     MovingPathGet,
 

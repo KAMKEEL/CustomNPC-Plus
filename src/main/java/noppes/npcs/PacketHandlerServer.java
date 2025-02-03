@@ -72,9 +72,7 @@ public class PacketHandlerServer{
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
-					if (item.getItem() == CustomItems.moving)
-						movingPackets(type, in, player, npc);
-					else if (item.getItem() == CustomItems.mount)
+					if (item.getItem() == CustomItems.mount)
 						mountPackets(type, in, player);
 					else if (item.getItem() == CustomItems.cloner)
 						clonePackets(type, in, player);
@@ -351,25 +349,8 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void movingPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player, EntityNPCInterface npc) throws IOException {
-		if(type == EnumPacketServer.MovingPathGet){
-			GuiDataPacket.sendGuiData(player, npc.ai.writeToNBT(new NBTTagCompound()));
-		}
-		else if(type == EnumPacketServer.MovingPathSave){
-			npc.ai.setMovingPath(NBTTags.getIntegerArraySet(ByteBufUtils.readNBT(buffer).getTagList("MovingPathNew",10)));
-		}
-	}
-
 	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
-		if(type == EnumPacketServer.SpawnRider){
-			Entity entity = EntityList.createEntityFromNBT(ByteBufUtils.readNBT(buffer), player.worldObj);
-			player.worldObj.spawnEntityInWorld(entity);
-			entity.mountEntity(ServerEventsHandler.mounted);
-		}
-		else if(type == EnumPacketServer.PlayerRider){
-			player.mountEntity(ServerEventsHandler.mounted);
-		}
-		else if(type == EnumPacketServer.CloneList){
+		if(type == EnumPacketServer.CloneList){
 			NBTTagList list = new NBTTagList();
 			int tab = buffer.readInt();
 			for(String name : ServerCloneController.Instance.getClones(tab))
