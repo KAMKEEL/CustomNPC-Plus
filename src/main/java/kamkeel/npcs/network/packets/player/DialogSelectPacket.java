@@ -26,6 +26,11 @@ public class DialogSelectPacket extends AbstractPacket {
     }
 
     @Override
+    public boolean needsNPC() {
+        return true;
+    }
+
+    @Override
     public Enum getType() {
         return EnumPlayerPacket.DialogSelect;
     }
@@ -46,9 +51,6 @@ public class DialogSelectPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
-        EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(playerMP);
-        if(npc == null)
-            return;
         NoppesUtilPlayer.dialogSelected(in.readInt(), in.readInt(), playerMP, npc);
     }
 }
