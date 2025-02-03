@@ -47,11 +47,6 @@ public final class RemoteDeletePacket extends AbstractPacket {
         return CustomNpcsPermissions.NPC_DELETE;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return true;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {

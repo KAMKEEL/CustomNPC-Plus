@@ -44,9 +44,7 @@ public final class RemoteResetPacket extends AbstractPacket {
     }
 
     @Override
-    public boolean needsNPC() {
-        return true;
-    }
+
 
     @SideOnly(Side.CLIENT)
     @Override

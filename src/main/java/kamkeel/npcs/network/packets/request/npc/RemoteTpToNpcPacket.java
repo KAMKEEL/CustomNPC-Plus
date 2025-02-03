@@ -42,11 +42,6 @@ public final class RemoteTpToNpcPacket extends AbstractPacket {
         return CustomNpcsPermissions.NPC_TELEPORT;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return true;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {

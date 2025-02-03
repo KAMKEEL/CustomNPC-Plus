@@ -40,11 +40,6 @@ public final class GuiRequestPacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {

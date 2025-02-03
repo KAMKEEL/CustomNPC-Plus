@@ -48,10 +48,7 @@ public final class RemoteMainMenuPacket extends AbstractPacket {
         return CustomNpcsPermissions.NPC_GUI;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return true;
-    }
+
 
     @SideOnly(Side.CLIENT)
     @Override
