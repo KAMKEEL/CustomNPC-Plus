@@ -7,7 +7,7 @@ public enum EnumPlayerPacket {
 //    Transport,
 //    BankUnlock,
 //    BankUpgrade,
-    Dialog,
+//    Dialog,
 //    QuestLog,
 //    TrackedQuest,
 //    CheckQuestCompletion,
@@ -20,10 +20,10 @@ public enum EnumPlayerPacket {
 //    MailboxOpenMail,
     SignSave,
     SaveBook,
-    CompanionOpenInv,
+//    CompanionOpenInv,
     RoleGet,
 //    KeyPressed,
 //    MouseClicked,
-    CompanionTalentExp,
+//    CompanionTalentExp,
 //    ScreenSize
 }
