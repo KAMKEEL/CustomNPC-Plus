@@ -1,9 +1,7 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
-import kamkeel.npcs.network.packets.request.clone.MobSpawnerPacket;
-import kamkeel.npcs.network.packets.request.clone.SpawnMobPacket;
+import kamkeel.npcs.network.packets.request.clone.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -66,7 +64,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		this.closeOnEsc = true;
 
 		setBackground("menubg.png");
-		Client.sendData(EnumPacketServer.CloneAllTags, activeTab);
+        PacketClient.sendClient(new CloneAllTagsPacket());
 	}
 	public void initGui()
 	{
@@ -191,7 +189,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	}
 	private void showClones() {
 		if(showingClones == 2){
-			Client.sendData(EnumPacketServer.CloneTagList, activeTab);
+            PacketClient.sendClient(new CloneTagListPacket(activeTab));
             PacketClient.sendClient(new CloneListPacket(activeTab));
 			return;
 		}
@@ -431,7 +429,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		if(id == 6){
 			if(scroll.getSelected() != null){
 				if(showingClones == 2){
-					Client.sendData(EnumPacketServer.CloneRemove, activeTab, scroll.getSelected());
+                    PacketClient.sendClient(new CloneRemovePacket(activeTab, scroll.getSelected()));
 					return;
 				}
 				ClientCloneController.Instance.removeClone(scroll.getSelected(), activeTab);

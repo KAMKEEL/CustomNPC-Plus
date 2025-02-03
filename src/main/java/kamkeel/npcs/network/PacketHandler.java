@@ -21,9 +21,7 @@ import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
-import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
-import kamkeel.npcs.network.packets.request.clone.MobSpawnerPacket;
-import kamkeel.npcs.network.packets.request.clone.SpawnMobPacket;
+import kamkeel.npcs.network.packets.request.clone.*;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiButtonPacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
@@ -114,6 +112,13 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new CloneListPacket());
         REQUEST_PACKET.registerPacket(new SpawnMobPacket());
         REQUEST_PACKET.registerPacket(new MobSpawnerPacket());
+        REQUEST_PACKET.registerPacket(new ClonePreSavePacket());
+        REQUEST_PACKET.registerPacket(new CloneSavePacket());
+        REQUEST_PACKET.registerPacket(new CloneRemovePacket());
+        REQUEST_PACKET.registerPacket(new CloneTagListPacket());
+        REQUEST_PACKET.registerPacket(new CloneAllTagsPacket());
+        REQUEST_PACKET.registerPacket(new CloneAllTagsShortPacket());
+
 
         // Linked Packets
         REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());
