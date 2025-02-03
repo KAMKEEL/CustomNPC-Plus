@@ -204,83 +204,83 @@ public class PacketHandlerPlayer{
 			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 			GuiDataPacket.sendGuiData(player, data.getPlayerGuiData());
 		}
-		else if(type == EnumPlayerPacket.MailGet){
-			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-			GuiDataPacket.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));
-		}
-		else if(type == EnumPlayerPacket.MailDelete){
-			long time = buffer.readLong();
-			String username = ByteBufUtils.readString(buffer);
-			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-
-			Iterator<PlayerMail> it = data.playermail.iterator();
-			while(it.hasNext()){
-				PlayerMail mail = it.next();
-				if(mail.time == time && mail.sender.equals(username)){
-					it.remove();
-				}
-			}
-			GuiDataPacket.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));
-		}
-		else if(type == EnumPlayerPacket.MailSend){
-			if(!(player.openContainer instanceof ContainerMail))
-				return;
-			String username = PlayerDataController.Instance.hasPlayer(ByteBufUtils.readString(buffer));
-			if(username.isEmpty()){
-				NoppesUtilServer.sendGuiError(player, 0);
-				return;
-			}
-
-			PlayerMail mail = new PlayerMail();
-            //String s = player.func_145748_c_().getFormattedText();
-            String s = player.getDisplayName();
-            if(!s.equals(player.getCommandSenderName()))
-            	s += "(" + player.getCommandSenderName() + ")";
-			mail.readNBT(ByteBufUtils.readNBT(buffer));
-			mail.sender = s;
-			mail.items = ((ContainerMail)player.openContainer).mail.items;
-
-			if(mail.subject.isEmpty()){
-				NoppesUtilServer.sendGuiError(player, 1);
-				return;
-			}
-			PlayerDataController.Instance.addPlayerMessage(username, mail);
-
-			NBTTagCompound comp = new NBTTagCompound();
-			comp.setString("username", username);
-			NoppesUtilServer.sendGuiClose(player, 1,comp);
-		}
-		else if(type == EnumPlayerPacket.MailboxOpenMail){
-			long time = buffer.readLong();
-			String username = ByteBufUtils.readString(buffer);
-			player.closeContainer();
-			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-
-			Iterator<PlayerMail> it = data.playermail.iterator();
-			while(it.hasNext()){
-				PlayerMail mail = it.next();
-				if(mail.time == time && mail.sender.equals(username)){
-					ContainerMail.staticmail = mail;
-					player.openGui(CustomNpcs.instance, EnumGuiType.PlayerMailman.ordinal(), player.worldObj, 0, 0, 0);
-					break;
-				}
-			}
-		}
-		else if(type == EnumPlayerPacket.MailRead){
-			long time = buffer.readLong();
-			String username = ByteBufUtils.readString(buffer);
-			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
-
-			Iterator<PlayerMail> it = data.playermail.iterator();
-			while(it.hasNext()){
-				PlayerMail mail = it.next();
-				if(mail.time == time && mail.sender.equals(username)){
-					mail.beenRead = true;
-					if(mail.hasQuest())
-						PlayerQuestController.addActiveQuest(new QuestData(mail.getQuest()), player);
-				}
-			}
-		}
+//		else if(type == EnumPlayerPacket.MailGet){
+//			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
+//			GuiDataPacket.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));
+//		}
+//		else if(type == EnumPlayerPacket.MailDelete){
+//			long time = buffer.readLong();
+//			String username = ByteBufUtils.readString(buffer);
+//			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
+//
+//			Iterator<PlayerMail> it = data.playermail.iterator();
+//			while(it.hasNext()){
+//				PlayerMail mail = it.next();
+//				if(mail.time == time && mail.sender.equals(username)){
+//					it.remove();
+//				}
+//			}
+//			GuiDataPacket.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));
+//		}
+//		else if(type == EnumPlayerPacket.MailSend){
+//			if(!(player.openContainer instanceof ContainerMail))
+//				return;
+//			String username = PlayerDataController.Instance.hasPlayer(ByteBufUtils.readString(buffer));
+//			if(username.isEmpty()){
+//				NoppesUtilServer.sendGuiError(player, 0);
+//				return;
+//			}
+//
+//			PlayerMail mail = new PlayerMail();
+//            //String s = player.func_145748_c_().getFormattedText();
+//            String s = player.getDisplayName();
+//            if(!s.equals(player.getCommandSenderName()))
+//            	s += "(" + player.getCommandSenderName() + ")";
+//			mail.readNBT(ByteBufUtils.readNBT(buffer));
+//			mail.sender = s;
+//			mail.items = ((ContainerMail)player.openContainer).mail.items;
+//
+//			if(mail.subject.isEmpty()){
+//				NoppesUtilServer.sendGuiError(player, 1);
+//				return;
+//			}
+//			PlayerDataController.Instance.addPlayerMessage(username, mail);
+//
+//			NBTTagCompound comp = new NBTTagCompound();
+//			comp.setString("username", username);
+//			NoppesUtilServer.sendGuiClose(player, 1,comp);
+//		}
+//		else if(type == EnumPlayerPacket.MailboxOpenMail){
+//			long time = buffer.readLong();
+//			String username = ByteBufUtils.readString(buffer);
+//			player.closeContainer();
+//			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
+//
+//			Iterator<PlayerMail> it = data.playermail.iterator();
+//			while(it.hasNext()){
+//				PlayerMail mail = it.next();
+//				if(mail.time == time && mail.sender.equals(username)){
+//					ContainerMail.staticmail = mail;
+//					player.openGui(CustomNpcs.instance, EnumGuiType.PlayerMailman.ordinal(), player.worldObj, 0, 0, 0);
+//					break;
+//				}
+//			}
+//		}
+//		else if(type == EnumPlayerPacket.MailRead){
+//			long time = buffer.readLong();
+//			String username = ByteBufUtils.readString(buffer);
+//			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
+//
+//			Iterator<PlayerMail> it = data.playermail.iterator();
+//			while(it.hasNext()){
+//				PlayerMail mail = it.next();
+//				if(mail.time == time && mail.sender.equals(username)){
+//					mail.beenRead = true;
+//					if(mail.hasQuest())
+//						PlayerQuestController.addActiveQuest(new QuestData(mail.getQuest()), player);
+//				}
+//			}
+//		}
 		else if(type == EnumPlayerPacket.SignSave) {
 			int x = buffer.readInt(), y = buffer.readInt(), z = buffer.readInt();
 			if (player.worldObj.blockExists(x, y, z)) {

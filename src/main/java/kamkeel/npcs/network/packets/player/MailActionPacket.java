@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 public class MailActionPacket extends AbstractPacket {
-    public static final String packetName = "Player|Mail";
+    public static final String packetName = "Player|MailAction";
 
     private Action action;
     private long time;

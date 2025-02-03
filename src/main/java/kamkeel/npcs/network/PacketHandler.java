@@ -14,10 +14,7 @@ import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
 import kamkeel.npcs.network.packets.data.script.*;
-import kamkeel.npcs.network.packets.player.BankActionPacket;
-import kamkeel.npcs.network.packets.player.FollowerPacket;
-import kamkeel.npcs.network.packets.player.InputDevicePacket;
-import kamkeel.npcs.network.packets.player.TransportPacket;
+import kamkeel.npcs.network.packets.player.*;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.animation.*;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
@@ -350,6 +347,9 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new TransportPacket());
 
         PLAYER_PACKET.registerPacket(new BankActionPacket());
+
+        PLAYER_PACKET.registerPacket(new MailActionPacket());
+        PLAYER_PACKET.registerPacket(new MailActionPacket.MailSendPacket());
 
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
     }
