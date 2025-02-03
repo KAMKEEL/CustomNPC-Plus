@@ -1,5 +1,6 @@
 package noppes.npcs.controllers;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -9,193 +10,409 @@ import noppes.npcs.api.handler.data.IMagic;
 import noppes.npcs.controllers.data.Magic;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public class MagicController {
-    public HashMap<Integer, Magic> magicSync = new HashMap<Integer,Magic>();
-	public HashMap<Integer,Magic> magics;
+    public HashMap<Integer, Magic> magicSync = new HashMap<Integer, Magic>();
+    public HashMap<Integer, Magic> magics;
 
-	private static MagicController instance = new MagicController();
+    private static MagicController instance;
 
-	private int lastUsedID = 0;
+    private int lastUsedID = 0;
 
-	public MagicController(){
-		instance = this;
-		magics = new HashMap<Integer, Magic>();
-	}
+    public MagicController() {
+        instance = this;
+        magics = new HashMap<Integer, Magic>();
+    }
 
-	public static MagicController getInstance(){
-		return instance;
-	}
+    public static MagicController getInstance() {
+        return instance;
+    }
 
-	public Magic getMagic(int magic) {
-		return magics.get(magic);
-	}
+    public Magic getMagic(int magic) {
+        return magics.get(magic);
+    }
 
-	public void load(){
+    public void load() {
         magics = new HashMap<Integer, Magic>();
         lastUsedID = 0;
-		File saveDir = CustomNpcs.getWorldSaveDirectory();
-		if(saveDir == null){
-			return;
-		}
-		try {
-			File file = new File(saveDir, "magic.dat");
-			if(file.exists()){
-				loadMagicFile(file);
-			}
-		} catch (Exception e) {
-			try {
-				File file = new File(saveDir, "magic.dat_old");
-				if(file.exists()){
-					loadMagicFile(file);
-				}
-
-			} catch (Exception ee) {
-			}
-		}
-
-        if(magics.isEmpty()){
-            magics.put(0,new Magic(0,"Nature", 0x00DD00));
-            magics.put(1,new Magic(1,"Arcane", 0xF2DD00));
-            magics.put(2,new Magic(2,"Ice", 0xDD0000));
-            magics.put(3,new Magic(3,"Fire", 0xDD0000));
-            magics.put(4,new Magic(4,"Dark", 0xDD0000));
-            magics.put(5,new Magic(5,"Holy", 0xDD0000));
+        File saveDir = CustomNpcs.getWorldSaveDirectory();
+        if (saveDir == null) {
+            return;
         }
-	}
+        try {
+            File file = new File(saveDir, "magic.dat");
+            if (file.exists()) {
+                loadMagicFile(file);
+            }
+        } catch (Exception e) {
+            try {
+                File file = new File(saveDir, "magic.dat_old");
+                if (file.exists()) {
+                    loadMagicFile(file);
+                }
+            } catch (Exception ee) { }
+        }
 
-	private void loadMagicFile(File file) throws IOException{
-		DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
-		loadMagic(var1);
-		var1.close();
-	}
+        if (magics.isEmpty()) {
+            // Create default magics
+            Magic nature = new Magic(0, "Nature", 0x00DD00);
+            Magic arcane = new Magic(1, "Arcane", 0xF2DD00);
+            Magic ice    = new Magic(2, "Ice", 0xDD0000);
+            Magic fire   = new Magic(3, "Fire", 0xDD0000);
+            Magic dark   = new Magic(4, "Dark", 0xDD0000);
+            Magic holy   = new Magic(5, "Holy", 0xDD0000);
 
-	public void loadMagic(DataInputStream stream) throws IOException{
-		HashMap<Integer,Magic> magic = new HashMap<Integer,Magic>();
-		NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
-		lastUsedID = nbttagcompound1.getInteger("lastID");
-		NBTTagList list = nbttagcompound1.getTagList("NPCMagic", 10);
+            // Define weaknesses (extra damage percentages as fractions)
+            // Cycle: Nature -> Arcane -> Fire -> Ice -> Nature
+            nature.weaknesses.put(1, 0.20f); // Nature is weak to Arcane (20% extra damage)
+            arcane.weaknesses.put(3, 0.25f); // Arcane is weak to Fire (25%)
+            fire.weaknesses.put(2, 0.30f);   // Fire is weak to Ice (30%)
+            ice.weaknesses.put(0, 0.20f);    // Ice is weak to Nature (20%)
 
-		if(list != null){
-			for(int i = 0; i < list.tagCount(); i++)
-			{
-				NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
-				Magic loadMagic = new Magic();
-				loadMagic.readNBT(nbttagcompound);
-				magic.put(loadMagic.id,loadMagic);
-			}
-		}
-		this.magics = magic;
-	}
-	public NBTTagCompound getNBT(){
-		NBTTagList list = new NBTTagList();
-		for(int slot : magics.keySet()){
-			Magic mag = magics.get(slot);
-			NBTTagCompound nbtfactions = new NBTTagCompound();
-			mag.writeNBT(nbtfactions);
-			list.appendTag(nbtfactions);
-		}
-		NBTTagCompound nbttagcompound = new NBTTagCompound();
-		nbttagcompound.setInteger("lastID", lastUsedID);
-		nbttagcompound.setTag("NPCFactions", list);
-		return nbttagcompound;
-	}
-	public void saveFactions(){
-		try {
-			File saveDir = CustomNpcs.getWorldSaveDirectory();
-			File file = new File(saveDir, "magic.dat_new");
-			File file1 = new File(saveDir, "magic.dat_old");
-			File file2 = new File(saveDir, "magic.dat");
-			CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
-			if(file1.exists())
-			{
-				file1.delete();
-			}
-			file2.renameTo(file1);
-			if(file2.exists())
-			{
-				file2.delete();
-			}
-			file.renameTo(file2);
-			if(file.exists())
-			{
-				file.delete();
-			}
-		} catch (Exception e) {
-			LogWriter.except(e);
-		}
-	}
+            // Dark and Holy are opposites
+            dark.weaknesses.put(5, 0.40f);   // Dark is weak to Holy (40%)
+            holy.weaknesses.put(4, 0.40f);   // Holy is weak to Dark (40%)
 
-	public Magic get(int magicID) {
-		return magics.get(magicID);
-	}
+            // Add them to the registry
+            magics.put(nature.id, nature);
+            magics.put(arcane.id, arcane);
+            magics.put(ice.id, ice);
+            magics.put(fire.id, fire);
+            magics.put(dark.id, dark);
+            magics.put(holy.id, holy);
+        }
+        printAllMagicInteractions();
+    }
 
-	public List<IMagic> list() {
-		return new ArrayList(this.magics.values());
-	}
+    private void loadMagicFile(File file) throws IOException {
+        DataInputStream stream = new DataInputStream(
+            new BufferedInputStream(new GZIPInputStream(new FileInputStream(file)))
+        );
+        loadMagic(stream);
+        stream.close();
+    }
 
-	public void saveMagic(Magic mag) {
+    public void loadMagic(DataInputStream stream) throws IOException {
+        HashMap<Integer, Magic> magic = new HashMap<Integer, Magic>();
+        NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
+        lastUsedID = nbttagcompound1.getInteger("lastID");
+        NBTTagList list = nbttagcompound1.getTagList("NPCMagic", 10); // using "NPCMagic" as tag
 
-		if(mag.id < 0){
-			mag.id = getUnusedId();
-			while(hasName(mag.name))
-				mag.name += "_";
-		}
-		else{
-			Magic existing = magics.get(mag.id);
-			if(existing != null && !existing.name.equals(mag.name))
-				while(hasName(mag.name))
-					mag.name += "_";
-		}
-		magics.remove(mag.id);
-		magics.put(mag.id, mag);
+        if (list != null) {
+            for (int i = 0; i < list.tagCount(); i++) {
+                NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
+                Magic loadMagic = new Magic();
+                loadMagic.readNBT(nbttagcompound);
+                magic.put(loadMagic.id, loadMagic);
+            }
+        }
+        this.magics = magic;
+    }
+
+    public NBTTagCompound getNBT() {
+        NBTTagList list = new NBTTagList();
+        for (int slot : magics.keySet()) {
+            Magic mag = magics.get(slot);
+            NBTTagCompound nbtMagic = new NBTTagCompound();
+            mag.writeNBT(nbtMagic);
+            list.appendTag(nbtMagic);
+        }
+        NBTTagCompound nbttagcompound = new NBTTagCompound();
+        nbttagcompound.setInteger("lastID", lastUsedID);
+        nbttagcompound.setTag("NPCMagic", list); // use same tag as loadMagic
+        return nbttagcompound;
+    }
+
+    public void saveFactions() {
+        try {
+            File saveDir = CustomNpcs.getWorldSaveDirectory();
+            File file = new File(saveDir, "magic.dat_new");
+            File file1 = new File(saveDir, "magic.dat_old");
+            File file2 = new File(saveDir, "magic.dat");
+            CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
+            if (file1.exists()) {
+                file1.delete();
+            }
+            file2.renameTo(file1);
+            if (file2.exists()) {
+                file2.delete();
+            }
+            file.renameTo(file2);
+            if (file.exists()) {
+                file.delete();
+            }
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    public Magic get(int magicID) {
+        return magics.get(magicID);
+    }
+
+    public List<IMagic> list() {
+        return new ArrayList<IMagic>(this.magics.values());
+    }
+
+    public void saveMagic(Magic mag) {
+        if (mag.id < 0) {
+            mag.id = getUnusedId();
+            while (hasName(mag.name))
+                mag.name += "_";
+        } else {
+            Magic existing = magics.get(mag.id);
+            if (existing != null && !existing.name.equals(mag.name))
+                while (hasName(mag.name))
+                    mag.name += "_";
+        }
+        magics.remove(mag.id);
+        magics.put(mag.id, mag);
 
         NBTTagCompound facCompound = new NBTTagCompound();
         mag.writeNBT(facCompound);
         // Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.MAGIC, facCompound);
-		saveFactions();
-	}
+        saveFactions();
+    }
 
-	public int getUnusedId(){
-		if(lastUsedID == 0){
-			for(int catid : magics.keySet())
-				if(catid > lastUsedID)
-					lastUsedID = catid;
-		}
-		lastUsedID++;
-		return lastUsedID;
-	}
+    public int getUnusedId() {
+        if (lastUsedID == 0) {
+            for (int catid : magics.keySet())
+                if (catid > lastUsedID)
+                    lastUsedID = catid;
+        }
+        lastUsedID++;
+        return lastUsedID;
+    }
 
-	public boolean hasName(String newName) {
-		if(newName.trim().isEmpty())
-			return true;
-		for(Magic mag : magics.values())
-			if(mag.name.equals(newName))
-				return true;
-		return false;
-	}
+    public boolean hasName(String newName) {
+        if (newName.trim().isEmpty())
+            return true;
+        for (Magic mag : magics.values())
+            if (mag.name.equals(newName))
+                return true;
+        return false;
+    }
 
-	public Magic getMagicFromName(String magicName){
-		for (Map.Entry<Integer,Magic> entryMag: MagicController.getInstance().magics.entrySet()){
-			if (entryMag.getValue().name.equalsIgnoreCase(magicName)){
-				return entryMag.getValue();
-			}
-		}
-		return null;
-	}
+    public Magic getMagicFromName(String magicName) {
+        for (Map.Entry<Integer, Magic> entryMag : MagicController.getInstance().magics.entrySet()) {
+            if (entryMag.getValue().name.equalsIgnoreCase(magicName)) {
+                return entryMag.getValue();
+            }
+        }
+        return null;
+    }
 
-	public String[] getNames() {
-		String[] names = new String[magics.size()];
-		int i = 0;
-		for(Magic mag : magics.values()){
-			names[i] = mag.name.toLowerCase();
-			i++;
-		}
-		return names;
-	}
+    public String[] getNames() {
+        String[] names = new String[magics.size()];
+        int i = 0;
+        for (Magic mag : magics.values()) {
+            names[i] = mag.name.toLowerCase();
+            i++;
+        }
+        return names;
+    }
+
+    // --- New functions for applying magic NBT stats and calculating damage ---
+
+    /**
+     * Applies magic-type damage to an item. A weapon/item can have multiple magic damage values.
+     * The damage is stored under a compound tag "MagicDamage" where each key is the magic ID.
+     */
+    public static void addMagicDamageToItem(ItemStack item, int magicId, float damage) {
+        if (item == null) return;
+        if (item.stackTagCompound == null)
+            item.stackTagCompound = new NBTTagCompound();
+        NBTTagCompound compound = item.stackTagCompound;
+        NBTTagCompound magicDamage;
+        if (compound.hasKey("MagicDamage")) {
+            magicDamage = compound.getCompoundTag("MagicDamage");
+        } else {
+            magicDamage = new NBTTagCompound();
+        }
+        magicDamage.setFloat(String.valueOf(magicId), damage);
+        compound.setTag("MagicDamage", magicDamage);
+    }
+
+    /**
+     * Applies magic resistance to an armor piece.
+     * The resistance is stored under a compound tag "MagicResistances" with the magic ID as key.
+     */
+    public static void addMagicResistanceToArmor(ItemStack armor, int magicId, float resistance) {
+        if (armor == null) return;
+        if (armor.stackTagCompound == null)
+            armor.stackTagCompound = new NBTTagCompound();
+        NBTTagCompound compound = armor.stackTagCompound;
+        NBTTagCompound magicResist;
+        if (compound.hasKey("MagicResistances")) {
+            magicResist = compound.getCompoundTag("MagicResistances");
+        } else {
+            magicResist = new NBTTagCompound();
+        }
+        magicResist.setFloat(String.valueOf(magicId), resistance);
+        compound.setTag("MagicResistances", magicResist);
+    }
+
+    /**
+     * Given a collection of armor pieces, sums the resistance value for the specified magic ID.
+     */
+    public static float calculateTotalMagicResistance(int magicId, Iterable<ItemStack> armors) {
+        float totalResistance = 0.0F;
+        for (ItemStack armor : armors) {
+            if (armor != null && armor.hasTagCompound() && armor.stackTagCompound.hasKey("MagicResistances")) {
+                NBTTagCompound magicResist = armor.stackTagCompound.getCompoundTag("MagicResistances");
+                if (magicResist.hasKey(String.valueOf(magicId))) {
+                    totalResistance += magicResist.getFloat(String.valueOf(magicId));
+                }
+            }
+        }
+        return totalResistance;
+    }
+
+    /**
+     * Calculates the final magic damage after applying armor resistances.
+     * For a given magic type, the resistance is applied.
+     *
+     * @param magicId    the magic type
+     * @param baseDamage the base damage value
+     * @param armors     an Iterable collection of armor ItemStacks
+     * @return the final damage after reduction
+     */
+    public static float calculateFinalMagicDamage(int magicId, float baseDamage, Iterable<ItemStack> armors) {
+        if (getInstance().getMagic(magicId) == null) {
+            // If the magic type is not defined, treat it as non-magical.
+            return baseDamage;
+        }
+        float resistance = calculateTotalMagicResistance(magicId, armors);
+        // Resistance is assumed to be a fractional reduction (e.g., 0.2 = 20% reduction).
+        return baseDamage * (1.0F - resistance);
+    }
+
+    /**
+     * Extracts magic damage values from a weapon ItemStack.
+     * It looks for a compound tag "CNPCMagic" first; if not found, it falls back to "MagicDamage".
+     * Returns a mapping of magic ID to its damage value.
+     */
+    public static Map<Integer, Float> getMagicDamageFromItem(ItemStack item) {
+        Map<Integer, Float> damageMap = new HashMap<Integer, Float>();
+        if (item == null || item.stackTagCompound == null) return damageMap;
+        NBTTagCompound compound = item.stackTagCompound;
+        NBTTagCompound damageCompound = null;
+        if (compound.hasKey("CNPCMagic")) {
+            NBTTagCompound magicCompound = compound.getCompoundTag("CNPCMagic");
+            if (magicCompound.hasKey("MagicDamage")) {
+                damageCompound = magicCompound.getCompoundTag("MagicDamage");
+            }
+        } else if (compound.hasKey("MagicDamage")) {
+            damageCompound = compound.getCompoundTag("MagicDamage");
+        }
+        if (damageCompound != null) {
+            Set<String> keys = damageCompound.func_150296_c();
+            for (String key : keys) {
+                try {
+                    int magicId = Integer.parseInt(key);
+                    float dmg = damageCompound.getFloat(key);
+                    damageMap.put(magicId, dmg);
+                } catch (NumberFormatException e) {
+                    // Ignore non-integer keys.
+                }
+            }
+        }
+        return damageMap;
+    }
+
+    /**
+     * Extracts magic resistances from an armor ItemStack.
+     * It checks for a "CNPCMagic" container first; if not present, it falls back to "MagicResistances".
+     * Returns a mapping of magic ID to its resistance value.
+     */
+    public static Map<Integer, Float> getMagicResistancesFromItem(ItemStack item) {
+        Map<Integer, Float> resistMap = new HashMap<Integer, Float>();
+        if (item == null || item.stackTagCompound == null) return resistMap;
+        NBTTagCompound compound = item.stackTagCompound;
+        NBTTagCompound resistCompound = null;
+        if (compound.hasKey("CNPCMagic")) {
+            NBTTagCompound magicCompound = compound.getCompoundTag("CNPCMagic");
+            if (magicCompound.hasKey("MagicResistances")) {
+                resistCompound = magicCompound.getCompoundTag("MagicResistances");
+            }
+        } else if (compound.hasKey("MagicResistances")) {
+            resistCompound = compound.getCompoundTag("MagicResistances");
+        }
+        if (resistCompound != null) {
+            Set<String> keys = resistCompound.func_150296_c();
+            for (String key : keys) {
+                try {
+                    int magicId = Integer.parseInt(key);
+                    float res = resistCompound.getFloat(key);
+                    resistMap.put(magicId, res);
+                } catch (NumberFormatException e) {
+                    // Ignore non-integer keys.
+                }
+            }
+        }
+        return resistMap;
+    }
+
+    /**
+     * Validates whether an item (weapon or armor) contains any magic-related NBT.
+     */
+    public static boolean hasMagicStats(ItemStack item) {
+        if (item == null || item.stackTagCompound == null) return false;
+        NBTTagCompound compound = item.stackTagCompound;
+        return compound.hasKey("CNPCMagic") || compound.hasKey("MagicDamage") || compound.hasKey("MagicResistances");
+    }
+
+    /**
+     * Calculates a damage breakdown for each magic type from a weapon when applied against a set of armors.
+     * This function will ignore any magic with ID 0 (neutral), so only magic damage is returned.
+     * Returns a map where keys are magic IDs (non-zero) and values are the final damage for that type.
+     */
+    public static Map<Integer, Float> calculateDamageBreakdown(ItemStack weapon, Iterable<ItemStack> armors) {
+        Map<Integer, Float> breakdown = new HashMap<Integer, Float>();
+        Map<Integer, Float> weaponDamage = getMagicDamageFromItem(weapon);
+        for (Map.Entry<Integer, Float> entry : weaponDamage.entrySet()) {
+            int magicId = entry.getKey();
+            // Skip magic ID 0 (neutral)
+            if (magicId == 0) continue;
+            float dmg = entry.getValue();
+            float finalDmg = calculateFinalMagicDamage(magicId, dmg, armors);
+            breakdown.put(magicId, finalDmg);
+        }
+        return breakdown;
+    }
+
+    /**
+     * Calculates the total final magic damage of a weapon after applying the resistances of a set of armor pieces.
+     * This sums only the magic interactions (magic IDs other than 0).
+     */
+    public static float calculateTotalDamage(ItemStack weapon, Iterable<ItemStack> armors) {
+        float totalDamage = 0.0F;
+        Map<Integer, Float> breakdown = calculateDamageBreakdown(weapon, armors);
+        for (Float dmg : breakdown.values()) {
+            totalDamage += dmg;
+        }
+        return totalDamage;
+    }
+
+    /**
+     * Prints all magic interactions (weaknesses) in the registry.
+     * For each magic (defender) that has weaknesses, prints the corresponding attacker and the extra damage percentage.
+     * Format: "Magic ID: [attacker id], Name: "[attacker name]" does [percentage*100]% extra damage to Magic ID: [defender id], Name: "[defender name]".
+     */
+    public static void printAllMagicInteractions() {
+        MagicController mc = getInstance();
+        for (Magic defender : mc.magics.values()) {
+            for (Map.Entry<Integer, Float> entry : defender.weaknesses.entrySet()) {
+                int attackerId = entry.getKey();
+                float percentage = entry.getValue();
+                Magic attacker = mc.getMagic(attackerId);
+                if (attacker != null) {
+                    System.out.println("Magic ID: " + attacker.id + ", Name: \"" + attacker.name + "\" does "
+                        + (percentage * 100) + "% extra damage to Magic ID: " + defender.id + ", Name: \"" + defender.name + "\"");
+                }
+            }
+        }
+    }
 }

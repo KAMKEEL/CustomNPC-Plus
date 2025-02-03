@@ -199,6 +199,8 @@ public class CustomNpcs {
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
         // VisibilityController.instance = new VisibilityController();
+        new MagicController();
+        MagicController.getInstance().load();
         new PlayerDataController();
         new TagController();
         new TransportController();

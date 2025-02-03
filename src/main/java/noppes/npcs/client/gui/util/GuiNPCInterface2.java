@@ -1,8 +1,11 @@
 package noppes.npcs.client.gui.util;
 
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
+
+import java.util.List;
 
 public abstract class GuiNPCInterface2 extends GuiNPCInterface
 {
@@ -60,6 +63,10 @@ public abstract class GuiNPCInterface2 extends GuiNPCInterface
         mc.renderEngine.bindTexture(background);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 200, 220);
         drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 230, 220);
+    }
+
+    public void renderHoveringText(List textLines, int x, int y, FontRenderer font) {
+        this.drawHoveringText(textLines, x, y, font);
     }
 
     protected GuiNpcMenu getMenu(){
