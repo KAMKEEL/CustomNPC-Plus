@@ -9,7 +9,8 @@ public enum EnumPlayerPacket {
     TrackedQuest, // TODO
     CheckQuestCompletion, // TODO
     FactionsGet, // TODO
-    MailAction, // TODO: Get, Delete, Send, Read, OpenMail
+    MailBoxAction, // TODO: Get, Delete, Send, Read, OpenMail
+    MailSend,
     SaveSign, // TODO
     SaveBook, // TODO
     Companion, // TODO: OpenInv, TalentExp
