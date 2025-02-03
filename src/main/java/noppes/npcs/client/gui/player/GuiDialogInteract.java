@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.player;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
+import kamkeel.npcs.network.packets.player.DialogSelectPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
@@ -595,7 +596,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
         	handleDialogSelection();
     	}
         if (closeOnEsc && (i == 1 || isInventoryKey(i))){
-        	NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog, dialog.id, -1);
+            PacketClient.sendClient(new DialogSelectPacket(dialog.id, -1));
         	closed();
             close();
         }
@@ -615,7 +616,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     		optionId = selected;
     	else if(!options.isEmpty())
     		optionId = options.get(selected);
-    	NoppesUtilPlayer.sendData(EnumPlayerPacket.Dialog, dialog.id, optionId);
+        PacketClient.sendClient(new DialogSelectPacket(dialog.id, optionId));
     	if(dialog == null || !dialog.hasOtherOptions() || options.isEmpty()){
     		closed();
     		close();

@@ -7,7 +7,7 @@ public enum EnumPlayerPacket {
 //    Transport,
 //    BankUnlock,
 //    BankUpgrade,
-    Dialog,
+//    Dialog,
 //    QuestLog,
 //    TrackedQuest,
 //    CheckQuestCompletion,

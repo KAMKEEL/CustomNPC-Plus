@@ -4,7 +4,7 @@ public enum EnumPlayerPacket {
     FollowerAction,
     Transport,
     BankAction,
-    Dialog, // TODO
+    DialogSelect,
     GetPlayerValue,
     MailBoxAction,
     MailSend,

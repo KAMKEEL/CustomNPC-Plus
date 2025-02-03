@@ -179,12 +179,12 @@ public class PacketHandlerPlayer{
 //			BankData data = PlayerDataController.Instance.getBankData(player,bankId).getBankOrDefault(bankId);
 //			data.openBankGui(player, npc, bankId, slot);
 //		}
-		else if(type == EnumPlayerPacket.Dialog){
-			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-			if(npc == null)
-				return;
-			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
-		}
+//		else if(type == EnumPlayerPacket.Dialog){
+//			EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
+//			if(npc == null)
+//				return;
+//			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
+//		}
 //		else if(type == EnumPlayerPacket.CheckQuestCompletion){
 //			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 //			PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;

@@ -348,6 +348,8 @@ public class PacketHandler {
 
         PLAYER_PACKET.registerPacket(new BankActionPacket());
 
+        PLAYER_PACKET.registerPacket(new DialogSelectPacket());
+
         PLAYER_PACKET.registerPacket(new CheckPlayerValue());
 
         PLAYER_PACKET.registerPacket(new MailActionPacket());
