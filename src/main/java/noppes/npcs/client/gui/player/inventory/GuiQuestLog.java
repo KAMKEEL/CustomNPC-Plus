@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.request.party.PartyLogToServerPacket;
 import kamkeel.npcs.network.packets.request.party.PartySetQuestPacket;
 import kamkeel.npcs.network.packets.request.quest.QuestLogToServerPacket;
@@ -51,7 +52,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.QuestLog);
+        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.QuestLog));
     }
     public void initGui(){
         super.initGui();

@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.FontRenderer;
@@ -644,7 +646,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
     }
     private void closed(){
     	grabMouse(false);
-    	NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);
+        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
     }
 
 	public void save() {

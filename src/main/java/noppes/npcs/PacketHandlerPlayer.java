@@ -185,25 +185,25 @@ public class PacketHandlerPlayer{
 				return;
 			NoppesUtilPlayer.dialogSelected(buffer.readInt(), buffer.readInt(), player, npc);
 		}
-		else if(type == EnumPlayerPacket.CheckQuestCompletion){
-			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-			PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
-            Party playerParty = playerData.getPlayerParty();
-            if(playerParty != null)
-                PartyController.Instance().checkQuestCompletion(playerParty, null);
-
-			questData.checkQuestCompletion(playerData, null);
-		}
-		else if(type == EnumPlayerPacket.QuestLog){
-			NoppesUtilPlayer.sendQuestLogData(player);
-		}
-        else if(type == EnumPlayerPacket.TrackedQuest){
-            NoppesUtilPlayer.sendTrackedQuest(player);
-        }
-		else if(type == EnumPlayerPacket.FactionsGet){
-			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
-			GuiDataPacket.sendGuiData(player, data.getPlayerGuiData());
-		}
+//		else if(type == EnumPlayerPacket.CheckQuestCompletion){
+//			PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+//			PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
+//            Party playerParty = playerData.getPlayerParty();
+//            if(playerParty != null)
+//                PartyController.Instance().checkQuestCompletion(playerParty, null);
+//
+//			questData.checkQuestCompletion(playerData, null);
+//		}
+//		else if(type == EnumPlayerPacket.QuestLog){
+//			NoppesUtilPlayer.sendQuestLogData(player);
+//		}
+//        else if(type == EnumPlayerPacket.TrackedQuest){
+//            NoppesUtilPlayer.sendTrackedQuest(player);
+//        }
+//		else if(type == EnumPlayerPacket.FactionsGet){
+//			PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+//			GuiDataPacket.sendGuiData(player, data.getPlayerGuiData());
+//		}
 //		else if(type == EnumPlayerPacket.MailGet){
 //			PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
 //			GuiDataPacket.sendGuiData(player, data.saveNBTData(new NBTTagCompound()));

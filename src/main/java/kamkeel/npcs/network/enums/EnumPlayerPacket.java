@@ -5,16 +5,13 @@ public enum EnumPlayerPacket {
     Transport,
     BankAction,
     Dialog, // TODO
-    QuestLog, // TODO
-    TrackedQuest, // TODO
-    CheckQuestCompletion, // TODO
-    FactionsGet, // TODO
+    GetPlayerValue,
     MailBoxAction,
     MailSend,
     SaveSign, // TODO
     SaveBook, // TODO
     Companion, // TODO: OpenInv, TalentExp
-    RoleGet, // TODO
+    GetRole, // TODO
     InputDevice,
     ScreenSize
 }

@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -35,7 +37,7 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData {
 		ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.FactionsGet);
+        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.Faction));
 	}
 
 	@Override

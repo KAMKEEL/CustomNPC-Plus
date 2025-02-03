@@ -7,6 +7,7 @@ import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.addon.client.DBCClient;
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
@@ -49,7 +50,7 @@ public class ClientTickHandler{
 		}
 		if(mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer){
 			if(otherContainer){
-		    	NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);
+                PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
 				otherContainer = false;
 			}
 		}

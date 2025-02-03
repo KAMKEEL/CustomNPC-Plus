@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.request.party.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
@@ -54,7 +55,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.TrackedQuest);
+        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.TrackedQuest));
         PacketClient.sendClient(new PartyInfoPacket());
     }
 
