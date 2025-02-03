@@ -1,12 +1,22 @@
 package kamkeel.npcs.network;
 
+import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NBTTags;
+import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.IScriptHandler;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -165,6 +175,55 @@ public class PacketUtil {
                 return "valid Block";
             default:
                 return type.toString();
+        }
+    }
+
+    public static void getScripts(IScriptHandler data, EntityPlayerMP player) {
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setBoolean("ScriptEnabled", data.getEnabled());
+        compound.setString("ScriptLanguage", data.getLanguage());
+        compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
+        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(data.getConsoleText()));
+        GuiDataPacket.sendGuiData(player, compound);
+        List<ScriptContainer> containers = data.getScripts();
+        for (int i = 0; i < containers.size(); i++) {
+            ScriptContainer container = containers.get(i);
+            NBTTagCompound tabCompound = new NBTTagCompound();
+            tabCompound.setInteger("Tab",i);
+            tabCompound.setTag("Script",container.writeToNBT(new NBTTagCompound()));
+            tabCompound.setInteger("TotalScripts",containers.size());
+            GuiDataPacket.sendGuiData(player, tabCompound);
+        }
+    }
+
+    public static void saveScripts(IScriptHandler data, ByteBuf buffer, EntityPlayerMP player) throws IOException {
+        int tab = buffer.readInt();
+        int totalScripts = buffer.readInt();
+        if (totalScripts == 0) {
+            data.getScripts().clear();
+        }
+
+        if (tab >= 0) {
+            if (data.getScripts().size() > totalScripts) {
+                data.setScripts(data.getScripts().subList(0,totalScripts));
+            } else while (data.getScripts().size() < totalScripts) {
+                data.getScripts().add(new ScriptContainer(data));
+            }
+            NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
+            ScriptContainer script = new ScriptContainer(data);
+            script.readFromNBT(tabCompound);
+            data.getScripts().set(tab,script);
+        } else {
+            NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
+            data.setLanguage(compound.getString("ScriptLanguage"));
+            if (!ScriptController.Instance.languages.containsKey(data.getLanguage())) {
+                if (!ScriptController.Instance.languages.isEmpty()) {
+                    data.setLanguage((String) ScriptController.Instance.languages.keySet().toArray()[0]);
+                } else {
+                    data.setLanguage("ECMAScript");
+                }
+            }
+            data.setEnabled(compound.getBoolean("ScriptEnabled"));
         }
     }
 }

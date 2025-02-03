@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAIGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAISavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -18,7 +19,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 	public GuiNpcAI(EntityNPCInterface npc) {
 		super(npc,6);
 		ai = npc.ai;
-    	Client.sendData(EnumPacketServer.MainmenuAIGet);
+    	PacketClient.sendClient(new MainmenuAIGetPacket());
 	}
 
     public void initGui()

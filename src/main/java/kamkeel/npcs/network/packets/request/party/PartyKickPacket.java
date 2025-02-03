@@ -23,7 +23,7 @@ import noppes.npcs.scripted.event.PartyEvent;
 import java.io.IOException;
 import java.util.UUID;
 
-import static noppes.npcs.PacketHandlerServer.sendInviteData;
+import static kamkeel.npcs.network.packets.request.party.PartyInvitePacket.sendInviteData;
 
 public final class PartyKickPacket extends AbstractPacket {
     public static final String packetName = "Request|PartyKick";

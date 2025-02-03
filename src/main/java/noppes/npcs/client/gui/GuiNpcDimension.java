@@ -2,6 +2,7 @@ package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
+import kamkeel.npcs.network.packets.request.feather.DimensionTeleportPacket;
 import kamkeel.npcs.network.packets.request.npc.RemoteDeletePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
@@ -58,7 +59,7 @@ public class GuiNpcDimension extends GuiNPCInterface implements IScrollData{
     		return;
 
     	if(id == 4){
-    		Client.sendData(EnumPacketServer.DimensionTeleport, data.get(scroll.getSelected()));
+            PacketClient.sendClient(new DimensionTeleportPacket(data.get(scroll.getSelected())));
     		close();
     	}
     }

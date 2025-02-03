@@ -23,10 +23,9 @@ public enum EnumPacketServer {
 
     ScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
     ScriptDataGet(true),
-	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
-    EventScriptDataGet(true),
 
-	DimensionTeleport;
+	EventScriptDataSave(CustomNpcsPermissions.SCRIPT_NPC, true),
+    EventScriptDataGet(true);
 
 	public CustomNpcsPermissions.Permission permission = null;
 	public boolean needsNpc = false;

@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.request.party.PartyInvitePacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -12,7 +13,6 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.PacketHandlerServer;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
 import noppes.npcs.config.ConfigMain;
@@ -274,7 +274,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public void ignoreInvite(UUID uuid) {
 		if (uuid != null) {
 			this.partyInvites.remove(uuid);
-			PacketHandlerServer.sendInviteData((EntityPlayerMP) player);
+			PartyInvitePacket.sendInviteData((EntityPlayerMP) player);
 		}
 	}
 

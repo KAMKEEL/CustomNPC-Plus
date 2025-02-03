@@ -7,9 +7,12 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
@@ -21,8 +24,8 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.PartyEvent;
 
 import java.io.IOException;
-
-import static noppes.npcs.PacketHandlerServer.sendInviteData;
+import java.util.HashSet;
+import java.util.UUID;
 
 public final class PartyInvitePacket extends AbstractPacket {
     public static final String packetName = "Request|PartyInvite";
@@ -70,6 +73,24 @@ public final class PartyInvitePacket extends AbstractPacket {
                     }
                 }
             }
+        }
+    }
+
+    public static void sendInviteData(EntityPlayerMP player) {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        if (playerData.partyUUID == null) {
+            NBTTagCompound compound = new NBTTagCompound();
+            NBTTagList list = new NBTTagList();
+            HashSet<UUID> partyInvites = playerData.getPartyInvites();
+            for (UUID uuid : partyInvites) {
+                Party party = PartyController.Instance().getParty(uuid);
+                NBTTagCompound partyCompound = new NBTTagCompound();
+                partyCompound.setString("PartyLeader", party.getPartyLeaderName());
+                partyCompound.setString("PartyUUID", party.getPartyUUID().toString());
+                list.appendTag(partyCompound);
+            }
+            compound.setTag("PartyInvites", list);
+            PartyDataPacket.sendPartyData(player, compound);
         }
     }
 }

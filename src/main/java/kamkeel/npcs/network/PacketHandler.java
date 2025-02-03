@@ -28,6 +28,7 @@ import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.faction.*;
+import kamkeel.npcs.network.packets.request.feather.DimensionTeleportPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
@@ -293,6 +294,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TileEntityGetPacket());
         REQUEST_PACKET.registerPacket(new TileEntitySavePacket());
         REQUEST_PACKET.registerPacket(new MountPacket());
+        REQUEST_PACKET.registerPacket(new DimensionTeleportPacket());
     }
 
     public void registerDataPackets(){

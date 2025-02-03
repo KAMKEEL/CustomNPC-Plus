@@ -152,5 +152,12 @@ public enum EnumRequestPacket {
     TraderMarketSave,
 
     CloneList,
-    CloneSave, CloneRemove, CloneTagList, CloneAllTags, CloneAllTagsShort, ClonePreSave
+    CloneSave,
+    CloneRemove,
+    CloneTagList,
+    CloneAllTags,
+    CloneAllTagsShort,
+    ClonePreSave,
+
+    EventScript, DimensionTeleport
 }

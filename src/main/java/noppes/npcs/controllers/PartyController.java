@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.Vector;
 
-import static noppes.npcs.PacketHandlerServer.sendInviteData;
+import static kamkeel.npcs.network.packets.request.party.PartyInvitePacket.sendInviteData;
 
 public class PartyController {
     private static PartyController Instance;
