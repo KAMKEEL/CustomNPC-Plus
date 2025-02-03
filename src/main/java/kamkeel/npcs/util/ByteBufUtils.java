@@ -102,7 +102,7 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
         int length = buffer.readInt();
         byte[] bytes = new byte[length];
         buffer.readBytes(bytes);
-        return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(10485760L));
+        return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(31457280L));
     }
 
     public static void writeString(ByteBuf buffer, String s){
