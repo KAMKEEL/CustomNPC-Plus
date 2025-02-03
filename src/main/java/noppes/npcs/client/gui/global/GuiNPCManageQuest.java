@@ -49,7 +49,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		super(npc);
 		Instance = this;
 		quest = new Quest();
-		Client.sendData(EnumPacketServer.QuestCategoriesGet);
+        PacketClient.sendClient(new QuestCategoriesGetPacket());
 	}
 
 	public void initGui()
@@ -283,7 +283,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollGroup,
 		else {
 			category.readNBT(compound);
 			setPrevCatName(category.title);
-			Client.sendData(EnumPacketServer.QuestsGet, category.id, true);
+            PacketClient.sendClient(new QuestsGetPacket(category.id, true));
 			resetQuestList();
 		}
 		initGui();

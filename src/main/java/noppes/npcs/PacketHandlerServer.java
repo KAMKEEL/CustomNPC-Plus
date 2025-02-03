@@ -80,8 +80,6 @@ public class PacketHandlerServer{
 						clonePackets(type, in, player);
 					else if (item.getItem() == CustomItems.teleporter)
 						featherPackets(type, in, player);
-					else if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint) || item.getItem() == Item.getItemFromBlock(CustomItems.border) || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock))
-						blockPackets(type, in, player);
 					else if (ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
 						if (type == EnumPacketServer.EventScriptDataGet || type == EnumPacketServer.EventScriptDataSave)
 							npcEventScriptPackets(type, in, player, npc);
@@ -359,37 +357,6 @@ public class PacketHandlerServer{
 		}
 		else if(type == EnumPacketServer.MovingPathSave){
 			npc.ai.setMovingPath(NBTTags.getIntegerArraySet(ByteBufUtils.readNBT(buffer).getTagList("MovingPathNew",10)));
-		}
-	}
-
-	private void blockPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		if(type == EnumPacketServer.QuestsGetFromQuest){
-			Quest quest = QuestController.Instance.quests.get(buffer.readInt());
-			if(quest == null)
-				return;
-			NoppesUtilServer.sendQuestData(player,quest.category);
-		}
-		else if(type == EnumPacketServer.QuestCategoriesGet){
-			NoppesUtilServer.sendQuestCategoryData(player);
-		}
-		else if(type == EnumPacketServer.QuestsGet){
-			QuestCategory category = QuestController.Instance.categories.get(buffer.readInt());
-			boolean sendGroup = buffer.readBoolean();
-			if(sendGroup){
-				NoppesUtilServer.sendQuestGroup(player,category);
-			}
-			else {
-				NoppesUtilServer.sendQuestData(player,category);
-			}
-		}
-		else if(type == EnumPacketServer.FactionsGet){
-			NoppesUtilServer.sendFactionDataAll(player);
-		}
-		else if(type == EnumPacketServer.FactionGet){
-			NBTTagCompound compound = new NBTTagCompound();
-			Faction faction = FactionController.getInstance().get(buffer.readInt());
-			faction.writeNBT(compound);
-			GuiDataPacket.sendGuiData(player, compound);
 		}
 	}
 

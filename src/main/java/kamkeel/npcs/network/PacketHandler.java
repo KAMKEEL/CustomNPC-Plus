@@ -28,9 +28,7 @@ import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
-import kamkeel.npcs.network.packets.request.faction.FactionRemovePacket;
-import kamkeel.npcs.network.packets.request.faction.FactionSavePacket;
-import kamkeel.npcs.network.packets.request.faction.FactionSetPacket;
+import kamkeel.npcs.network.packets.request.faction.*;
 import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
@@ -153,6 +151,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new QuestCategorySavePacket());
         REQUEST_PACKET.registerPacket(new QuestCategoryRemovePacket());
         REQUEST_PACKET.registerPacket(new QuestCategoryGetPacket());
+        REQUEST_PACKET.registerPacket(new QuestCategoriesGetPacket());
 
         // Quest Packets
         REQUEST_PACKET.registerPacket(new QuestOpenGuiPacket());
@@ -162,11 +161,14 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new QuestLogToServerPacket());
         REQUEST_PACKET.registerPacket(new QuestUntrackPacket());
         REQUEST_PACKET.registerPacket(new QuestGetPacket());
+        REQUEST_PACKET.registerPacket(new QuestsGetPacket());
 
         // Faction Packets
         REQUEST_PACKET.registerPacket(new FactionSavePacket());
         REQUEST_PACKET.registerPacket(new FactionRemovePacket());
         REQUEST_PACKET.registerPacket(new FactionSetPacket());
+        REQUEST_PACKET.registerPacket(new FactionGetPacket());
+        REQUEST_PACKET.registerPacket(new FactionsGetPacket());
 
         // Tag Packets
         REQUEST_PACKET.registerPacket(new TagsGetPacket());

@@ -1,8 +1,10 @@
 package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.faction.FactionGetPacket;
 import kamkeel.npcs.network.packets.request.faction.FactionRemovePacket;
 import kamkeel.npcs.network.packets.request.faction.FactionSavePacket;
+import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -31,7 +33,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
     public GuiNPCManageFactions(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.FactionsGet);
+        PacketClient.sendClient(new FactionsGetPacket());
     }
 
     public void initGui()
@@ -189,7 +191,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 		{
 			save();
 			selected = scrollFactions.getSelected();
-			Client.sendData(EnumPacketServer.FactionGet, data.get(selected));
+            FactionGetPacket.getFaction(data.get(selected));
 		}
 		else if(guiCustomScroll.id == 1)
 		{

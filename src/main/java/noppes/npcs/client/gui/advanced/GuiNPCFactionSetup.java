@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.faction.FactionSetPacket;
+import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -22,7 +23,7 @@ public class GuiNPCFactionSetup extends GuiNPCInterface2 implements IScrollData,
     public GuiNPCFactionSetup(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.FactionsGet);
+        PacketClient.sendClient(new FactionsGetPacket());
     }
 
     public void initGui()

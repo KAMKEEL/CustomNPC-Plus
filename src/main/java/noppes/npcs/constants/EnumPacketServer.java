@@ -39,9 +39,6 @@ public enum EnumPacketServer {
 
 	FactionsGet,
     FactionGet,
-	QuestCategoriesGet,
-	QuestsGetFromQuest,
-    QuestsGet,
 	PlayerRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	SpawnRider(CustomNpcsPermissions.TOOL_MOUNTER),
 	MovingPathSave(CustomNpcsPermissions.TOOL_PATHER,true),
