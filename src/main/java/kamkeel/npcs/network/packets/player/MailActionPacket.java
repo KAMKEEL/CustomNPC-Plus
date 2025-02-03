@@ -69,6 +69,7 @@ public class MailActionPacket extends AbstractPacket {
     }
 
     @Override
+    @SideOnly(Side.CLIENT)
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(action.ordinal());
 
