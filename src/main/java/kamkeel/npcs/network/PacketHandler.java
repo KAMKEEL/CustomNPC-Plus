@@ -24,6 +24,9 @@ import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
+import kamkeel.npcs.network.packets.request.clone.MobSpawnerPacket;
+import kamkeel.npcs.network.packets.request.clone.SpawnMobPacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiButtonPacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
@@ -109,6 +112,11 @@ public class PacketHandler {
         // NPC Packets
         REQUEST_PACKET.registerPacket(new NpcClosePacket());
         REQUEST_PACKET.registerPacket(new NpcDeletePacket());
+
+        // Cloner Packets
+        REQUEST_PACKET.registerPacket(new CloneListPacket());
+        REQUEST_PACKET.registerPacket(new SpawnMobPacket());
+        REQUEST_PACKET.registerPacket(new MobSpawnerPacket());
 
         // Linked Packets
         REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());

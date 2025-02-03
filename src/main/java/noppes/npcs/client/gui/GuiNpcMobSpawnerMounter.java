@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.MountPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -117,7 +119,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
 	private void showClones() {
 
 		if(showingClones == 2){
-			Client.sendData(EnumPacketServer.CloneList, activeTab);
+            PacketClient.sendClient(new CloneListPacket(activeTab));
 			return;
 		}
 

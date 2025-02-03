@@ -3,7 +3,6 @@ package noppes.npcs.constants;
 import noppes.npcs.CustomNpcsPermissions;
 
 public enum EnumPacketServer {
-	SpawnMob(CustomNpcsPermissions.SPAWNER_MOB),
 	MobSpawner(CustomNpcsPermissions.SPAWNER_CREATE),
 
 	ClonePreSave(CustomNpcsPermissions.NPC_CLONE),

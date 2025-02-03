@@ -1,5 +1,9 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
+import kamkeel.npcs.network.packets.request.clone.MobSpawnerPacket;
+import kamkeel.npcs.network.packets.request.clone.SpawnMobPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -188,7 +192,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	private void showClones() {
 		if(showingClones == 2){
 			Client.sendData(EnumPacketServer.CloneTagList, activeTab);
-			Client.sendData(EnumPacketServer.CloneList, activeTab);
+            PacketClient.sendClient(new CloneListPacket(activeTab));
 			return;
 		}
 
@@ -377,14 +381,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 				String sel = scroll.getSelected();
 				if(sel == null)
 					return;
-				Client.sendData(EnumPacketServer.SpawnMob, true, posX, posY, posZ, sel, activeTab);
+                SpawnMobPacket.Server(posX, posY, posZ, sel, activeTab);
 				close();
 			}
 			else{
 				NBTTagCompound compound = getCompound();
 				if(compound == null)
 					return;
-				Client.sendData(EnumPacketServer.SpawnMob, false, posX, posY, posZ, compound);
+                SpawnMobPacket.Client(posX, posY, posZ, compound);
 				close();
 			}
 		}
@@ -393,14 +397,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 				String sel = scroll.getSelected();
 				if(sel == null)
 					return;
-				Client.sendData(EnumPacketServer.MobSpawner, true, posX, posY, posZ, sel, activeTab);
+                MobSpawnerPacket.Server(posX, posY, posZ, sel, activeTab);
 				close();
 			}
 			else{
 				NBTTagCompound compound = getCompound();
 				if(compound == null)
 					return;
-				Client.sendData(EnumPacketServer.MobSpawner, false, posX, posY, posZ, compound);
+                MobSpawnerPacket.Client(posX, posY, posZ, compound);
 				close();
 
 			}

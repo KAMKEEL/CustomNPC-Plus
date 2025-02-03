@@ -72,9 +72,7 @@ public class PacketHandlerServer{
 				warn(player, "tried to use custom npcs without a tool in hand, probably a hacker");
 			else {
 				if (item != null) {
-					if (item.getItem() == CustomItems.mount)
-						mountPackets(type, in, player);
-					else if (item.getItem() == CustomItems.cloner)
+					if (item.getItem() == CustomItems.cloner)
 						clonePackets(type, in, player);
 					else if (item.getItem() == CustomItems.teleporter)
 						featherPackets(type, in, player);
@@ -143,10 +141,6 @@ public class PacketHandlerServer{
 			compound.setTag("PartyInvites", list);
             PartyDataPacket.sendPartyData(player, compound);
         }
-	}
-
-	private void isGuiOpenPacket(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		NoppesUtilServer.isGUIOpen(buffer, player);
 	}
 
 	private void getScriptsEnabled(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -349,74 +343,8 @@ public class PacketHandlerServer{
 		}
 	}
 
-	private void mountPackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException{
-		if(type == EnumPacketServer.CloneList){
-			NBTTagList list = new NBTTagList();
-			int tab = buffer.readInt();
-			for(String name : ServerCloneController.Instance.getClones(tab))
-				list.appendTag(new NBTTagString(name));
-
-			NBTTagList listDate = new NBTTagList();
-			for(String name : ServerCloneController.Instance.getClonesDate(tab))
-				listDate.appendTag(new NBTTagString(name));
-
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setTag("List", list);
-			compound.setTag("ListDate", listDate);
-
-			GuiDataPacket.sendGuiData(player, compound);
-		}
-		else
-			warn(player,"WE 1 tried todo something with the wrong tool, probably a hacker");
-	}
-
 	private void clonePackets(EnumPacketServer type, ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		if(type == EnumPacketServer.SpawnMob){
-			boolean server = buffer.readBoolean();
-			int x = buffer.readInt();
-			int y = buffer.readInt();
-			int z = buffer.readInt();
-			NBTTagCompound compound;
-			if(server)
-				compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(buffer), buffer.readInt());
-			else
-				compound = ByteBufUtils.readNBT(buffer);
-			if(compound == null)
-				return;
-			Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, player.worldObj);
-			if(entity == null){
-				player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
-				return;
-			}
-
-            if (entity instanceof EntityNPCInterface && !ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
-                EntityNPCInterface npc = (EntityNPCInterface) entity;
-                npc.script.setEnabled(false);
-            }
-
-			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] (Player) %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
-			}
-		}
-		else if(type == EnumPacketServer.MobSpawner){
-			boolean server = buffer.readBoolean();
-			int x = buffer.readInt();
-			int y = buffer.readInt();
-			int z = buffer.readInt();
-			NBTTagCompound compound;
-			if(server)
-				compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(buffer), buffer.readInt());
-			else
-				compound = ByteBufUtils.readNBT(buffer);
-
-            if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT)) {
-                return;
-            }
-
-			if(compound != null)
-				NoppesUtilServer.createMobSpawner(x, y, z, compound, player);
-		}
-		else if(type == EnumPacketServer.ClonePreSave){
+		if(type == EnumPacketServer.ClonePreSave){
 			boolean bo = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(buffer), buffer.readInt()) != null;
 			NBTTagCompound compound = new NBTTagCompound();
 			compound.setBoolean("NameExists", bo);
@@ -441,22 +369,6 @@ public class PacketHandlerServer{
 
 			NBTTagList list = new NBTTagList();
 
-			for(String name : ServerCloneController.Instance.getClones(tab))
-				list.appendTag(new NBTTagString(name));
-
-			NBTTagList listDate = new NBTTagList();
-			for(String name : ServerCloneController.Instance.getClonesDate(tab))
-				listDate.appendTag(new NBTTagString(name));
-
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setTag("List", list);
-			compound.setTag("ListDate", listDate);
-
-			GuiDataPacket.sendGuiData(player, compound);
-		}
-		else if(type == EnumPacketServer.CloneList){
-			NBTTagList list = new NBTTagList();
-			int tab = buffer.readInt();
 			for(String name : ServerCloneController.Instance.getClones(tab))
 				list.appendTag(new NBTTagString(name));
 
