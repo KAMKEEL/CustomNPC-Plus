@@ -6,7 +6,9 @@ import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
+import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.inventory.ContainerPlayer;
@@ -72,7 +74,7 @@ public class ClientTickHandler{
 		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
 			prevWidth = mc.displayWidth;
 			prevHeight = mc.displayHeight;
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.ScreenSize,mc.displayWidth,mc.displayHeight);
+            PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth,mc.displayHeight));
 		}
 	}
 

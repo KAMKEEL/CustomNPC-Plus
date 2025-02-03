@@ -9,15 +9,12 @@ public enum EnumPlayerPacket {
     TrackedQuest, // TODO
     CheckQuestCompletion, // TODO
     FactionsGet, // TODO
-    MailBoxAction, // TODO: Get, Delete, Send, Read, OpenMail
+    MailBoxAction,
     MailSend,
     SaveSign, // TODO
     SaveBook, // TODO
     Companion, // TODO: OpenInv, TalentExp
     RoleGet, // TODO
     InputDevice,
-    ScreenSize; // TODO
-
-
-
+    ScreenSize
 }

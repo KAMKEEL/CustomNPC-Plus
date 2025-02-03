@@ -14,7 +14,7 @@ public enum EnumPlayerPacket {
 //    BankSlotOpen,
     FactionsGet,
 //    MailGet,
-    MailDelete,
+//    MailDelete,
 //    MailSend,
 //    MailRead,
 //    MailboxOpenMail,
@@ -25,5 +25,5 @@ public enum EnumPlayerPacket {
 //    KeyPressed,
 //    MouseClicked,
     CompanionTalentExp,
-    ScreenSize
+//    ScreenSize
 }
