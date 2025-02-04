@@ -7,6 +7,7 @@ import kamkeel.npcs.network.packets.request.mainmenu.MainmenuDisplayGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuDisplaySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.DataDisplay;
 
 import noppes.npcs.client.NoppesUtil;
@@ -41,6 +42,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         this.addButton(new GuiNpcButton(0, guiLeft + 253+52, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
 
         this.addButton(new GuiNpcButton(14, guiLeft + 259, y , 20, 20, Character.toString('\u21bb')));
+        getButton(14).setIconTexture(new ResourceLocation("customnpcs", "textures/gui/slot.png"));
+
         this.addButton(new GuiNpcButton(15, guiLeft + 259 + 22, y , 20, 20, Character.toString('\u22EE')));
 
         y+=23;
