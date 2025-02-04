@@ -31,7 +31,9 @@ public class GuiMagicMap extends GuiDiagram {
         for (Magic magic : MagicController.getInstance().magics.values()) {
             magics.add(magic);
         }
-        setLayout(DiagramLayout.GENERATED);
+        setLayout(DiagramLayout.CIRCULAR_MANUAL);
+        this.setCurvedArrows(true);
+        this.setCurveAngle(25);
     }
 
     @Override
@@ -121,7 +123,7 @@ public class GuiMagicMap extends GuiDiagram {
     private class MagicIcon extends DiagramIcon {
         public Magic magic;
         public MagicIcon(Magic magic) {
-            super(magic.id);
+            super(magic.id, magic.index, magic.priority);
             this.magic = magic;
         }
     }

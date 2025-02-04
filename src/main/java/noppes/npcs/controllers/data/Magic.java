@@ -14,6 +14,9 @@ public class Magic implements IMagic {
     public int color = Integer.parseInt("FF00", 16);
     public int id = -1;
 
+    public int index;
+    public int priority;
+
     // Icon as an ItemStack or as a texture file
     public ItemStack iconItem = null;
     public String iconTexture = "";
@@ -30,6 +33,14 @@ public class Magic implements IMagic {
         this.id = id;
     }
 
+    public Magic(int id, String name, int color, int index, int priority) {
+        this.name = name;
+        this.color = color;
+        this.id = id;
+        this.index = index;
+        this.priority = priority;
+    }
+
     public static String formatName(String name) {
         name = name.toLowerCase().trim();
         return name.substring(0, 1).toUpperCase() + name.substring(1);
@@ -39,6 +50,8 @@ public class Magic implements IMagic {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
+        index = compound.getInteger("Index");
+        priority = compound.getInteger("Priority");
 
         if(compound.hasKey("IconItem")){
             NBTTagCompound itemTag = compound.getCompoundTag("IconItem");
@@ -63,6 +76,8 @@ public class Magic implements IMagic {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
         compound.setInteger("Color", color);
+        compound.setInteger("Index", index);
+        compound.setInteger("Priority", priority);
 
         if(iconItem != null) {
             NBTTagCompound itemTag = new NBTTagCompound();
@@ -94,6 +109,22 @@ public class Magic implements IMagic {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 
     public void setColor(int color) {
