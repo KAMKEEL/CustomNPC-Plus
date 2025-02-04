@@ -57,7 +57,7 @@ public class MagicController {
             } catch (Exception ee) { }
         }
         magics.clear();
-        if (false) {
+        if (true) {
             // Create default Pokémon types
             Magic normal   = new Magic(0, "Normal", 0xA8A878);
             normal.setIconItem(new ItemStack(net.minecraft.init.Items.paper));  // using paper for Normal
@@ -205,30 +205,30 @@ public class MagicController {
             magics.put(fairy.id, fairy);
         }
 
-        if (true || magics.isEmpty()) {
+        if (false) {
             // Create default magics
-            Magic earth = new Magic(0, "Earth", 0x00DD00, 0, 0);
+            Magic earth = new Magic(0, "Earth", 0x00DD00, 1, 1);
             earth.setIconItem(new ItemStack(CustomItems.earthElement));
 
-            Magic water = new Magic(1, "Water", 0xF2DD00, 0, 1);
+            Magic water = new Magic(1, "Water", 0xF2DD00, 1, 2);
             water.setIconItem(new ItemStack(CustomItems.waterElement));
 
-            Magic fire    = new Magic(2, "Fire", 0xDD0000, 0, 2);
+            Magic fire    = new Magic(2, "Fire", 0xDD0000, 1, 3);
             fire.setIconItem(new ItemStack(CustomItems.spellFire));
 
-            Magic air   = new Magic(3, "Air", 0xDD0000, 0, 3);
+            Magic air   = new Magic(3, "Air", 0xDD0000, 1, 0);
             air.setIconItem(new ItemStack(CustomItems.airElement));
 
-            Magic dark   = new Magic(4, "Dark", 0xDD0000, 1, 3);
+            Magic dark   = new Magic(4, "Dark", 0xDD0000, 0, 3);
             dark.setIconItem(new ItemStack(CustomItems.spellDark));
 
-            Magic holy   = new Magic(5, "Holy", 0xDD0000, 1, 1);
+            Magic holy   = new Magic(5, "Holy", 0xDD0000, 0, 1);
             holy.setIconItem(new ItemStack(CustomItems.spellHoly));
 
-            Magic nature   = new Magic(6, "Nature", 0xDD0000, 1, 0);
+            Magic nature   = new Magic(6, "Nature", 0xDD0000, 0, 0);
             nature.setIconItem(new ItemStack(CustomItems.spellNature));
 
-            Magic arcane   = new Magic(7, "Arcane", 0xDD0000, 1, 2);
+            Magic arcane   = new Magic(7, "Arcane", 0xDD0000, 0, 2);
             arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
 
             // Insiders
