@@ -19,7 +19,7 @@ import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-public class BlockCampfireRenderer extends BlockRendererInterface{
+public class BlockCampfireRenderer extends BlockRendererInterface {
 
     // Legacy
 	private final ModelCampfire legacy_model = new ModelCampfire();

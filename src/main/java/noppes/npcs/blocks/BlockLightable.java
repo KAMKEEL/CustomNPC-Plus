@@ -6,33 +6,49 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import java.util.Random;
 
-public abstract class BlockLightable extends BlockRotated{
+public abstract class BlockLightable extends BlockRotated {
 
 	protected BlockLightable(Block block, boolean lit) {
 		super(block);
-		
+
         if (lit)
             this.setLightLevel(1.0F);
 	}
 
 	public abstract Block unlitBlock();
 	public abstract Block litBlock();
-	
+
 
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9){
-        TileEntity tile = world.getTileEntity(x, y, z);
-    	if(litBlock() == this)
-        	world.setBlock(x, y, z, unlitBlock(), world.getBlockMetadata(x, y, z), 2);
-        else
-        	world.setBlock(x, y, z, litBlock(), world.getBlockMetadata(x, y, z), 2);
-    	tile.validate();
-    	world.setTileEntity(x, y, z, tile);
+        // Get the current tile entity and store its NBT
+        TileEntity oldTile = world.getTileEntity(x, y, z);
+        NBTTagCompound compound = new NBTTagCompound();
+        oldTile.writeToNBT(compound);
+
+        // Determine which block to set (lit/unlit) based on the current one
+        Block newBlock = (litBlock() == this ? unlitBlock() : litBlock());
+        int meta = world.getBlockMetadata(x, y, z);
+
+        // Change the block; this creates a new tile entity instance
+        world.setBlock(x, y, z, newBlock, meta, 2);
+
+        // Get the new tile and load the stored NBT
+        TileEntity newTile = world.getTileEntity(x, y, z);
+        if(newTile != null){
+            newTile.readFromNBT(compound);
+            newTile.markDirty();
+        }
+
+        world.markBlockForUpdate(x, y, z);
+        world.notifyBlockOfNeighborChange(x, y, z, newBlock);
+
         return true;
     }
 
