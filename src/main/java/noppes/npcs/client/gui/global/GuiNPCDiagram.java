@@ -103,7 +103,7 @@ public abstract class GuiNPCDiagram extends Gui {
     // ---------------
     protected abstract List<DiagramIcon> getIcons();
     protected abstract List<DiagramConnection> getConnections();
-    protected abstract void renderIcon(DiagramIcon icon, int posX, int posY, boolean highlighted);
+    protected abstract void renderIcon(DiagramIcon icon, int posX, int posY, IconRenderState state);
     protected List<String> getIconTooltip(DiagramIcon icon) { return null; }
     protected List<String> getConnectionTooltip(DiagramConnection conn) {
         List<String> tooltip = new ArrayList<>();
@@ -331,28 +331,35 @@ public abstract class GuiNPCDiagram extends Gui {
     // Main Draw Method
     // ---------------
     public void drawDiagram(int mouseX, int mouseY) {
+        // Update zoom based on mouse scroll.
         handleMouseScroll(Mouse.getDWheel());
 
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int factor = sr.getScaleFactor();
 
+        // Retrieve (cached) positions.
         Map<Integer, Point> positions = calculatePositions();
-        int centerX = x + width / 2, centerY = y + height / 2;
-        int tMouseX = centerX + (int)((mouseX - centerX) / zoom);
-        int tMouseY = centerY + (int)((mouseY - centerY) / zoom);
+        int centerX = x + width / 2;
+        int centerY = y + height / 2;
 
+        // Calculate effective mouse coordinates (in diagram coordinate space)
+        int effectiveMouseX = (int)(((float)mouseX - (centerX + panX)) / zoom + centerX);
+        int effectiveMouseY = (int)(((float)mouseY - (centerY + panY)) / zoom + centerY);
+
+        // Hit testing & selection:
         Integer hoveredIconId = null;
         int hoveredConnFrom = -1, hoveredConnTo = -1;
         HashSet<Integer> selectedIconIds = new HashSet<>();
 
+        // Check for icon hover using effective coordinates.
         for (DiagramIcon icon : getIcons()) {
             Point pos = positions.get(icon.id);
             if (pos == null) continue;
-            int slotX = pos.x + (int)panX - slotSize / 2;
-            int slotY = pos.y + (int)panY - slotSize / 2;
-            if (tMouseX >= slotX && tMouseX < slotX + slotSize &&
-                tMouseY >= slotY && tMouseY < slotY + slotSize) {
+            int slotX = pos.x - slotSize / 2;
+            int slotY = pos.y - slotSize / 2;
+            if (effectiveMouseX >= slotX && effectiveMouseX < slotX + slotSize &&
+                effectiveMouseY >= slotY && effectiveMouseY < slotY + slotSize) {
                 hoveredIconId = icon.id;
                 selectedIconIds.add(icon.id);
                 break;
@@ -366,14 +373,14 @@ public abstract class GuiNPCDiagram extends Gui {
                 }
             }
         } else {
+            // If no icon is hovered, check for connection hover.
             final double threshold = 5.0;
             outer:
             for (DiagramConnection conn : getConnections()) {
                 Point pFrom = positions.get(conn.idFrom);
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
-                double dist = pointLineDistance(tMouseX, tMouseY,
-                    pFrom.x + panX, pFrom.y + panY, pTo.x + panX, pTo.y + panY);
+                double dist = pointLineDistance(effectiveMouseX, effectiveMouseY, pFrom.x, pFrom.y, pTo.x, pTo.y);
                 if (dist < threshold) {
                     hoveredConnFrom = conn.idFrom;
                     hoveredConnTo = conn.idTo;
@@ -388,48 +395,53 @@ public abstract class GuiNPCDiagram extends Gui {
         GL11.glScissor(x * factor, (sr.getScaledHeight() - (y + height)) * factor, width * factor, height * factor);
         drawRect(x, y, x + width, y + height, 0xFF333333);
 
+        // Apply the same pan and zoom transformation for both arrows and icons.
         GL11.glPushMatrix();
-        GL11.glTranslatef(centerX, centerY, 0);
+        GL11.glTranslatef(centerX + panX, centerY + panY, 0);
         GL11.glScalef(zoom, zoom, 1.0f);
         GL11.glTranslatef(-centerX, -centerY, 0);
 
+        // Draw connections (arrows).
         for (DiagramConnection conn : getConnections()) {
             Point pFrom = positions.get(conn.idFrom);
             Point pTo = positions.get(conn.idTo);
             if (pFrom == null || pTo == null) continue;
-            int ax = pFrom.x + (int)panX;
-            int ay = pFrom.y + (int)panY;
-            int bx = pTo.x + (int)panX;
-            int by = pTo.y + (int)panY;
+            int ax = pFrom.x;
+            int ay = pFrom.y;
+            int bx = pTo.x;
+            int by = pTo.y;
             boolean dim = !selectedIconIds.isEmpty() &&
                 !(selectedIconIds.contains(conn.idFrom) && selectedIconIds.contains(conn.idTo));
             drawConnectionLine(ax, ay, bx, by, conn, dim);
         }
 
+        // Draw icons.
         for (DiagramIcon icon : getIcons()) {
             Point pos = positions.get(icon.id);
             if (pos == null) continue;
-            int slotX = pos.x + (int)panX - slotSize / 2;
-            int slotY = pos.y + (int)panY - slotSize / 2;
-            boolean highlighted = !selectedIconIds.isEmpty() && selectedIconIds.contains(icon.id);
+            int slotX = pos.x - slotSize / 2;
+            int slotY = pos.y - slotSize / 2;
+            boolean highlighted = selectedIconIds.isEmpty() || selectedIconIds.contains(icon.id);
             drawIconBox(slotX, slotY, slotSize, highlighted);
-            renderIcon(icon, pos.x + (int)panX, pos.y + (int)panY, highlighted);
+            IconRenderState state = highlighted ? IconRenderState.HIGHLIGHTED : IconRenderState.NOT_HIGHLIGHTED;
+            renderIcon(icon, pos.x, pos.y, state);
         }
         GL11.glPopMatrix();
 
+        // Draw arrow heads.
         if (showArrowHeads) {
             GL11.glPushMatrix();
-            GL11.glTranslatef(centerX, centerY, 0);
+            GL11.glTranslatef(centerX + panX, centerY + panY, 0);
             GL11.glScalef(zoom, zoom, 1.0f);
             GL11.glTranslatef(-centerX, -centerY, 0);
             for (DiagramConnection conn : getConnections()) {
                 Point pFrom = positions.get(conn.idFrom);
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
-                int ax = pFrom.x + (int)panX;
-                int ay = pFrom.y + (int)panY;
-                int bx = pTo.x + (int)panX;
-                int by = pTo.y + (int)panY;
+                int ax = pFrom.x;
+                int ay = pFrom.y;
+                int bx = pTo.x;
+                int by = pTo.y;
                 boolean dim = !selectedIconIds.isEmpty() &&
                     !(selectedIconIds.contains(conn.idFrom) && selectedIconIds.contains(conn.idTo));
                 drawArrowHead(ax, ay, bx, by, conn, dim);
@@ -438,6 +450,7 @@ public abstract class GuiNPCDiagram extends Gui {
         }
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
+        // Use original mouseX and mouseY (screen coordinates) for tooltips.
         if (hoveredIconId != null) {
             DiagramIcon icon = getIconById(hoveredIconId);
             List<String> tooltip = getIconTooltip(icon);
@@ -452,6 +465,7 @@ public abstract class GuiNPCDiagram extends Gui {
             }
         }
     }
+
 
     protected DiagramIcon getIconById(int id) {
         for (DiagramIcon icon : getIcons()) {
@@ -608,6 +622,12 @@ public abstract class GuiNPCDiagram extends Gui {
 
     public void setUseColorScaling(boolean useColorScaling) {
         this.useColorScaling = useColorScaling;
+    }
+
+    public enum IconRenderState {
+        DEFAULT,
+        HIGHLIGHTED,
+        NOT_HIGHLIGHTED;
     }
 
     // ---------------

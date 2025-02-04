@@ -60,35 +60,35 @@ public class GuiMagicMap extends GuiNPCDiagram {
     }
 
     @Override
-    protected void renderIcon(DiagramIcon icon, int posX, int posY, boolean highlighted) {
-        // Cast to our custom wrapper class.
+    protected void renderIcon(DiagramIcon icon, int posX, int posY, IconRenderState state) {
         Magic magic = ((MagicIcon) icon).magic;
         Minecraft mc = Minecraft.getMinecraft();
         FontRenderer fontRenderer = mc.fontRenderer;
-        int iconSize = this.iconSize;
-        int iconX = posX - iconSize / 2;
-        int iconY = posY - iconSize / 2;
+        int size = this.iconSize;
+        int iconX = posX - size / 2;
+        int iconY = posY - size / 2;
 
-        if (!highlighted) {
-            GL11.glColor4f(0.4f, 0.4f, 0.4f, 1f);
-        }
-
-        // Use standard item lighting.
         RenderHelper.enableGUIStandardItemLighting();
+
+        // Render the icon.
         if (magic.iconItem != null) {
             renderItem.renderItemAndEffectIntoGUI(fontRenderer, mc.getTextureManager(), magic.iconItem, iconX, iconY);
         } else if (magic.iconTexture != null && !magic.iconTexture.isEmpty()) {
             mc.getTextureManager().bindTexture(new ResourceLocation(magic.iconTexture));
-            this.drawTexturedModalRect(iconX, iconY, 0, 0, iconSize, iconSize);
+            this.drawTexturedModalRect(iconX, iconY, 0, 0, size, size);
         } else {
             ItemStack sword = new ItemStack(Items.iron_sword);
             renderItem.renderItemAndEffectIntoGUI(fontRenderer, mc.getTextureManager(), sword, iconX, iconY);
         }
         RenderHelper.disableStandardItemLighting();
 
-        if (!highlighted) {
-            GL11.glColor4f(1f, 1f, 1f, 1f);
+        // If not highlighted, overlay a translucent black rectangle to simulate dimming.
+        if (state == IconRenderState.NOT_HIGHLIGHTED) {
+            drawRect(iconX, iconY, iconX + size, iconY + size, 0x80202020);
         }
+
+        // Reset color.
+        GL11.glColor4f(1f, 1f, 1f, 1f);
     }
 
     @Override
