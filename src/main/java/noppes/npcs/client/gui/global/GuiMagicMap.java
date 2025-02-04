@@ -31,7 +31,7 @@ public class GuiMagicMap extends GuiDiagram {
         for (Magic magic : MagicController.getInstance().magics.values()) {
             magics.add(magic);
         }
-        setLayout(DiagramLayout.CIRCULAR);
+        setLayout(DiagramLayout.GENERATED);
     }
 
     @Override

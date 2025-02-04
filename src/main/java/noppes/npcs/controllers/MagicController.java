@@ -58,38 +58,61 @@ public class MagicController {
 
         if (magics.isEmpty()) {
             // Create default magics
-            Magic nature = new Magic(0, "Nature", 0x00DD00);
-            Magic arcane = new Magic(1, "Arcane", 0xF2DD00);
-            Magic ice    = new Magic(2, "Ice", 0xDD0000);
-            Magic fire   = new Magic(3, "Fire", 0xDD0000);
-            Magic dark   = new Magic(4, "Dark", 0xDD0000);
-            Magic holy   = new Magic(5, "Holy", 0xDD0000);
+            Magic earth = new Magic(0, "Earth", 0x00DD00);
+            earth.setIconItem(new ItemStack(CustomItems.earthElement));
 
-            nature.setIconItem(new ItemStack(CustomItems.spellNature));
-            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
-            ice.setIconItem(new ItemStack(CustomItems.spellIce));
+            Magic water = new Magic(1, "Water", 0xF2DD00);
+            water.setIconItem(new ItemStack(CustomItems.waterElement));
+
+            Magic fire    = new Magic(2, "Fire", 0xDD0000);
             fire.setIconItem(new ItemStack(CustomItems.spellFire));
+
+            Magic air   = new Magic(3, "Air", 0xDD0000);
+            air.setIconItem(new ItemStack(CustomItems.airElement));
+
+            Magic dark   = new Magic(4, "Dark", 0xDD0000);
             dark.setIconItem(new ItemStack(CustomItems.spellDark));
+
+            Magic holy   = new Magic(5, "Holy", 0xDD0000);
             holy.setIconItem(new ItemStack(CustomItems.spellHoly));
 
-            // Define weaknesses (extra damage percentages as fractions)
-            // Cycle: Nature -> Arcane -> Fire -> Ice -> Nature
-            nature.weaknesses.put(1, 0.10f); // Nature is weak to Arcane (20% extra damage)
-            arcane.weaknesses.put(3, 0.55f); // Arcane is weak to Fire (25%)
-            fire.weaknesses.put(2, 0.30f);   // Fire is weak to Ice (30%)
-            ice.weaknesses.put(0, 0.20f);    // Ice is weak to Nature (20%)
+            Magic nature   = new Magic(6, "Nature", 0xDD0000);
+            nature.setIconItem(new ItemStack(CustomItems.spellNature));
 
-            // Dark and Holy are opposites
-            dark.weaknesses.put(5, 0.70f);   // Dark is weak to Holy (40%)
-            holy.weaknesses.put(4, 0.70f);   // Holy is weak to Dark (40%)
+            Magic arcane   = new Magic(7, "Arcane", 0xDD0000);
+            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
+
+            // Insiders
+            earth.weaknesses.put(air.id, 0.60f);
+            water.weaknesses.put(earth.id, 0.60f);
+            fire.weaknesses.put(water.id, 0.60f);
+            air.weaknesses.put(fire.id, 0.60f);
+
+            // Outsiders
+            dark.weaknesses.put(nature.id, 0.60f);
+            nature.weaknesses.put(holy.id, 0.60f);
+            holy.weaknesses.put(arcane.id, 0.60f);
+            arcane.weaknesses.put(dark.id, 0.60f);
+
+            // Cross Interactions
+            earth.weaknesses.put(nature.id, 0.30f);
+            water.weaknesses.put(holy.id, 0.30f);
+            fire.weaknesses.put(arcane.id, 0.30f);
+            air.weaknesses.put(dark.id, 0.30f);
+            dark.weaknesses.put(fire.id, 0.30f);
+            nature.weaknesses.put(air.id, 0.30f);
+            holy.weaknesses.put(earth.id, 0.30f);
+            arcane.weaknesses.put(water.id, 0.30f);
 
             // Add them to the registry
-            magics.put(nature.id, nature);
-            magics.put(arcane.id, arcane);
-            magics.put(ice.id, ice);
+            magics.put(earth.id, earth);
+            magics.put(water.id, water);
             magics.put(fire.id, fire);
+            magics.put(air.id, air);
             magics.put(dark.id, dark);
             magics.put(holy.id, holy);
+            magics.put(nature.id, nature);
+            magics.put(arcane.id, arcane);
         }
         printAllMagicInteractions();
     }

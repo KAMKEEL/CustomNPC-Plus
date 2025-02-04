@@ -123,6 +123,11 @@ public class CustomItems {
 	public static Item spellDark;
 	public static Item spellHoly;
 
+    public static Item earthElement;
+    public static Item fireElement;
+    public static Item waterElement;
+    public static Item airElement;
+
 	public static Item staffWood;
 	public static Item staffStone;
 	public static Item staffIron;
@@ -743,10 +748,10 @@ public class CustomItems {
 
 			quest = new ItemNpcArmor(26957,ArmorMaterial.IRON,0,"mask").setMaxStackSize(64).setUnlocalizedName("npcBanditMask").setCreativeTab(CustomItems.tabArmor).setTextureName("customnpcs:npcBanditMask");
 			quest = new ItemNpcInterface(26958).setUnlocalizedName("npcBrokenArrow").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBrokenArrow");
-			quest = new ItemNpcInterface(26959).setUnlocalizedName("npcEarthElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcEarthElement");
-			quest = new ItemNpcInterface(26960).setUnlocalizedName("npcWaterElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcWaterElement");
-			quest = new ItemNpcInterface(26961).setUnlocalizedName("npcFireElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcFireElement");
-			quest = new ItemNpcInterface(26962).setUnlocalizedName("npcAirElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAirElement");
+			earthElement = new ItemNpcInterface(26959).setUnlocalizedName("npcEarthElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcEarthElement");
+			waterElement = new ItemNpcInterface(26960).setUnlocalizedName("npcWaterElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcWaterElement");
+            fireElement = new ItemNpcInterface(26961).setUnlocalizedName("npcFireElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcFireElement");
+			airElement = new ItemNpcInterface(26962).setUnlocalizedName("npcAirElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAirElement");
 
 			quest = new ItemNpcInterface(26963).setUnlocalizedName("npcCarKey").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCarKey");
 			quest = new ItemNpcInterface(26964).setUnlocalizedName("npcKey").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcKey");

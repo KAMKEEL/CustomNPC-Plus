@@ -1,13 +1,7 @@
 package noppes.npcs.client.gui.global;
 
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import net.minecraft.client.Minecraft;
@@ -266,47 +260,280 @@ public abstract class GuiDiagram extends Gui {
      */
     protected Map<Integer, Point> calculateGeneratedPositions() {
         List<DiagramIcon> icons = getIcons();
-        Map<Integer, Point> positions = new HashMap<>();
-        int count = icons.size();
-        int margin = 20; // margin inside diagram area
+        List<DiagramConnection> connections = getConnections();
 
-        // Fixed seed for deterministic initial placement.
-        Random rand = new Random(100);
-        for (DiagramIcon icon : icons) {
-            int posX = x + margin + rand.nextInt(Math.max(1, width - 2 * margin));
-            int posY = y + margin + rand.nextInt(Math.max(1, height - 2 * margin));
-            positions.put(icon.id, new Point(posX, posY));
+        // Build a complete undirected graph from icons & connections.
+        Map<Integer, List<Integer>> graph = buildGraph(icons, connections);
+
+        // Partition the graph into clusters (connected components).
+        List<Set<Integer>> clusters = getConnectedComponents(graph);
+
+        // Arrange clusters into a global layout. We’ll place each cluster
+        // in its own bounding box on a grid.
+        int clusterCount = clusters.size();
+        int gridCols = (int) Math.ceil(Math.sqrt(clusterCount));
+        int gridRows = (int) Math.ceil((double) clusterCount / gridCols);
+        int clusterMargin = 20;
+        int compWidth = (width - (gridCols + 1) * clusterMargin) / gridCols;
+        int compHeight = (height - (gridRows + 1) * clusterMargin) / gridRows;
+
+        Map<Integer, Point> globalPositions = new HashMap<>();
+        int clusterIndex = 0;
+        for (Set<Integer> cluster : clusters) {
+            int col = clusterIndex % gridCols;
+            int row = clusterIndex / gridCols;
+            int compX = x + clusterMargin + col * (compWidth + clusterMargin);
+            int compY = y + clusterMargin + row * (compHeight + clusterMargin);
+
+            // Look for a pattern in the cluster.
+            Map<Integer, Point> compPositions;
+            if (isCycle(cluster, graph)) {
+                // Layout nodes evenly on a circle.
+                compPositions = layoutCycle(cluster, compX, compY, compWidth, compHeight);
+            } else if (isTree(cluster, graph)) {
+                // Layout nodes in a tree, minimizing edge crossings.
+                compPositions = layoutTree(cluster, compX, compY, compWidth, compHeight, graph);
+            } else if (isSquare(cluster)) {
+                // If the number of nodes is a perfect square (or near enough)
+                // you might try a grid layout.
+                compPositions = layoutSquare(cluster, compX, compY, compWidth, compHeight);
+            } else {
+                // Otherwise, use a force-directed layout optimized for minimal overlap.
+                compPositions = layoutForceDirected(cluster, compX, compY, compWidth, compHeight, connections);
+            }
+            globalPositions.putAll(compPositions);
+            clusterIndex++;
         }
 
-        double area = width * height;
-        double k = Math.sqrt(area / (double) count);
+        return globalPositions;
+    }
+
+    // Build an undirected graph from icons and connections.
+    private Map<Integer, List<Integer>> buildGraph(List<DiagramIcon> icons, List<DiagramConnection> connections) {
+        Map<Integer, List<Integer>> graph = new HashMap<>();
+        for (DiagramIcon icon : icons) {
+            graph.put(icon.id, new ArrayList<>());
+        }
+        for (DiagramConnection conn : connections) {
+            if (graph.containsKey(conn.idFrom) && graph.containsKey(conn.idTo)) {
+                graph.get(conn.idFrom).add(conn.idTo);
+                graph.get(conn.idTo).add(conn.idFrom);
+            }
+        }
+        return graph;
+    }
+
+    // Extract connected components using DFS.
+    private List<Set<Integer>> getConnectedComponents(Map<Integer, List<Integer>> graph) {
+        Set<Integer> visited = new HashSet<>();
+        List<Set<Integer>> components = new ArrayList<>();
+        for (Integer node : graph.keySet()) {
+            if (!visited.contains(node)) {
+                Set<Integer> comp = new HashSet<>();
+                dfsComponent(node, graph, visited, comp);
+                components.add(comp);
+            }
+        }
+        return components;
+    }
+
+    private void dfsComponent(Integer current, Map<Integer, List<Integer>> graph,
+                              Set<Integer> visited, Set<Integer> comp) {
+        visited.add(current);
+        comp.add(current);
+        for (Integer neighbor : graph.get(current)) {
+            if (!visited.contains(neighbor)) {
+                dfsComponent(neighbor, graph, visited, comp);
+            }
+        }
+    }
+
+    // Pattern detection helpers:
+
+    // A cluster is considered a cycle if each node has exactly 2 neighbors (within the cluster)
+    // and there are at least 3 nodes.
+    private boolean isCycle(Set<Integer> cluster, Map<Integer, List<Integer>> graph) {
+        if (cluster.size() < 3) return false;
+        for (Integer node : cluster) {
+            int degree = 0;
+            for (Integer neighbor : graph.get(node)) {
+                if (cluster.contains(neighbor)) degree++;
+            }
+            if (degree != 2) return false;
+        }
+        return true;
+    }
+
+    // A cluster is considered a tree if the number of edges equals nodes-1.
+    private boolean isTree(Set<Integer> cluster, Map<Integer, List<Integer>> graph) {
+        int edgeCount = 0;
+        for (Integer node : cluster) {
+            for (Integer neighbor : graph.get(node)) {
+                if (cluster.contains(neighbor)) edgeCount++;
+            }
+        }
+        edgeCount /= 2; // each edge counted twice.
+        return edgeCount == cluster.size() - 1;
+    }
+
+    // A simple heuristic: if the cluster size is a perfect square or nearly so, treat it as a square.
+    private boolean isSquare(Set<Integer> cluster) {
+        int n = cluster.size();
+        int sqrt = (int) Math.round(Math.sqrt(n));
+        return sqrt * sqrt == n;
+    }
+
+// Layout algorithms:
+
+    // Circular layout for cycles.
+    private Map<Integer, Point> layoutCycle(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight) {
+        Map<Integer, Point> positions = new HashMap<>();
+        int centerX = compX + compWidth / 2;
+        int centerY = compY + compHeight / 2;
+        int radius = Math.min(compWidth, compHeight) / 3;
+        int i = 0;
+        for (Integer id : cluster) {
+            double angle = 2 * Math.PI * i / cluster.size();
+            int posX = centerX + (int)(radius * Math.cos(angle));
+            int posY = centerY + (int)(radius * Math.sin(angle));
+            positions.put(id, new Point(posX, posY));
+            i++;
+        }
+        return positions;
+    }
+
+    // A simple top-down tree layout using BFS.
+    private Map<Integer, Point> layoutTree(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight,
+                                           Map<Integer, List<Integer>> fullGraph) {
+        Map<Integer, Point> positions = new HashMap<>();
+
+        // Build subgraph for the cluster.
+        Map<Integer, List<Integer>> subgraph = new HashMap<>();
+        for (Integer id : cluster) {
+            List<Integer> neighbors = new ArrayList<>();
+            for (Integer neighbor : fullGraph.get(id)) {
+                if (cluster.contains(neighbor))
+                    neighbors.add(neighbor);
+            }
+            subgraph.put(id, neighbors);
+        }
+
+        // Choose a root (for example, the node with the smallest id).
+        Integer root = cluster.iterator().next();
+        for (Integer id : cluster) {
+            if (id < root)
+                root = id;
+        }
+
+        // BFS to determine levels.
+        Map<Integer, Integer> levelMap = new HashMap<>();
+        Map<Integer, List<Integer>> levels = new HashMap<>();
+        Queue<Integer> queue = new LinkedList<>();
+        Set<Integer> visited = new HashSet<>();
+        queue.add(root);
+        visited.add(root);
+        levelMap.put(root, 0);
+
+        while (!queue.isEmpty()) {
+            Integer curr = queue.poll();
+            int lvl = levelMap.get(curr);
+            levels.computeIfAbsent(lvl, k -> new ArrayList<>()).add(curr);
+            for (Integer neighbor : subgraph.get(curr)) {
+                if (!visited.contains(neighbor)) {
+                    visited.add(neighbor);
+                    levelMap.put(neighbor, lvl + 1);
+                    queue.add(neighbor);
+                }
+            }
+        }
+
+        // Calculate vertical spacing.
+        int maxLevel = levels.keySet().stream().max(Integer::compare).orElse(0);
+        double levelHeight = compHeight / (maxLevel + 1.0);
+
+        // For each level, assign horizontal positions evenly.
+        for (Map.Entry<Integer, List<Integer>> entry : levels.entrySet()) {
+            int lvl = entry.getKey();
+            List<Integer> nodesAtLevel = entry.getValue();
+            double horizontalSpacing = compWidth / (nodesAtLevel.size() + 1.0);
+            for (int i = 0; i < nodesAtLevel.size(); i++) {
+                int id = nodesAtLevel.get(i);
+                int posX = compX + (int)((i + 1) * horizontalSpacing);
+                int posY = compY + (int)(lvl * levelHeight + levelHeight / 2);
+                positions.put(id, new Point(posX, posY));
+            }
+        }
+
+        return positions;
+    }
+
+    // Grid layout for square-like clusters.
+    private Map<Integer, Point> layoutSquare(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight) {
+        Map<Integer, Point> positions = new HashMap<>();
+        int n = (int) Math.round(Math.sqrt(cluster.size()));
+        int gridCellWidth = compWidth / n;
+        int gridCellHeight = compHeight / n;
+        int index = 0;
+        List<Integer> nodes = new ArrayList<>(cluster);
+        for (int row = 0; row < n; row++) {
+            for (int col = 0; col < n; col++) {
+                if (index >= nodes.size()) break;
+                int posX = compX + col * gridCellWidth + gridCellWidth / 2;
+                int posY = compY + row * gridCellHeight + gridCellHeight / 2;
+                positions.put(nodes.get(index), new Point(posX, posY));
+                index++;
+            }
+        }
+        return positions;
+    }
+
+    // Force-directed layout for generic clusters.
+    private Map<Integer, Point> layoutForceDirected(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight,
+                                                    List<DiagramConnection> connections) {
+        Map<Integer, Point> positions = new HashMap<>();
+        Random rand = new Random(100);
+        for (Integer id : cluster) {
+            int posX = compX + rand.nextInt(compWidth);
+            int posY = compY + rand.nextInt(compHeight);
+            positions.put(id, new Point(posX, posY));
+        }
+
+        double area = compWidth * compHeight;
+        double k = Math.sqrt(area / cluster.size());
         int iterations = 100;
-        double temperature = width / 10.0;
+        double temperature = compWidth / 10.0;
         double cooling = temperature / (iterations + 1);
         double minDistance = iconSize + slotPadding;
 
-        List<DiagramConnection> connections = getConnections();
+        // Consider only connections within the cluster.
+        List<DiagramConnection> compConnections = new ArrayList<>();
+        for (DiagramConnection conn : connections) {
+            if (cluster.contains(conn.idFrom) && cluster.contains(conn.idTo)) {
+                compConnections.add(conn);
+            }
+        }
 
         for (int iter = 0; iter < iterations; iter++) {
             Map<Integer, double[]> disp = new HashMap<>();
-            for (DiagramIcon v : icons) {
-                disp.put(v.id, new double[] {0.0, 0.0});
+            for (Integer id : cluster) {
+                disp.put(id, new double[] {0.0, 0.0});
             }
 
             // Repulsive forces.
-            for (int i = 0; i < icons.size(); i++) {
-                DiagramIcon v = icons.get(i);
-                Point posV = positions.get(v.id);
-                for (int j = i + 1; j < icons.size(); j++) {
-                    DiagramIcon u = icons.get(j);
-                    Point posU = positions.get(u.id);
+            List<Integer> nodes = new ArrayList<>(cluster);
+            for (int i = 0; i < nodes.size(); i++) {
+                Integer v = nodes.get(i);
+                Point posV = positions.get(v);
+                for (int j = i + 1; j < nodes.size(); j++) {
+                    Integer u = nodes.get(j);
+                    Point posU = positions.get(u);
                     double dx = posV.x - posU.x;
                     double dy = posV.y - posU.y;
                     double distance = Math.sqrt(dx * dx + dy * dy);
                     if (distance < minDistance) distance = minDistance;
                     double repForce = (k * k) / distance;
-                    double[] dispV = disp.get(v.id);
-                    double[] dispU = disp.get(u.id);
+                    double[] dispV = disp.get(v);
+                    double[] dispU = disp.get(u);
                     dispV[0] += (dx / distance) * repForce;
                     dispV[1] += (dy / distance) * repForce;
                     dispU[0] -= (dx / distance) * repForce;
@@ -315,7 +542,7 @@ public abstract class GuiDiagram extends Gui {
             }
 
             // Attractive forces.
-            for (DiagramConnection conn : connections) {
+            for (DiagramConnection conn : compConnections) {
                 Point posV = positions.get(conn.idFrom);
                 Point posU = positions.get(conn.idTo);
                 double dx = posV.x - posU.x;
@@ -332,21 +559,24 @@ public abstract class GuiDiagram extends Gui {
             }
 
             // Update positions.
-            for (DiagramIcon v : icons) {
-                double[] d = disp.get(v.id);
+            for (Integer id : cluster) {
+                double[] d = disp.get(id);
                 double dispLength = Math.sqrt(d[0] * d[0] + d[1] * d[1]);
                 if (dispLength < 0.01) dispLength = 0.01;
-                int newX = positions.get(v.id).x + (int)((d[0] / dispLength) * Math.min(dispLength, temperature));
-                int newY = positions.get(v.id).y + (int)((d[1] / dispLength) * Math.min(dispLength, temperature));
-                newX = Math.max(x + margin, Math.min(x + width - margin, newX));
-                newY = Math.max(y + margin, Math.min(y + height - margin, newY));
-                positions.get(v.id).x = newX;
-                positions.get(v.id).y = newY;
+                int newX = positions.get(id).x + (int)((d[0] / dispLength) * Math.min(dispLength, temperature));
+                int newY = positions.get(id).y + (int)((d[1] / dispLength) * Math.min(dispLength, temperature));
+                newX = Math.max(compX, Math.min(compX + compWidth, newX));
+                newY = Math.max(compY, Math.min(compY + compHeight, newY));
+                positions.get(id).x = newX;
+                positions.get(id).y = newY;
             }
+
             temperature -= cooling;
         }
+
         return positions;
     }
+
 
     // ---------------
     // Standard Icon Box Drawing (Background + Border)
