@@ -332,7 +332,8 @@ public abstract class GuiNPCDiagram extends Gui {
     // ---------------
     public void drawDiagram(int mouseX, int mouseY) {
         // Update zoom based on mouse scroll.
-        handleMouseScroll(Mouse.getDWheel());
+        if(isWithin(mouseX, mouseY))
+            handleMouseScroll(Mouse.getDWheel());
 
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
