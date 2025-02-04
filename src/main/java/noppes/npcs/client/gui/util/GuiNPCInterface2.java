@@ -65,10 +65,6 @@ public abstract class GuiNPCInterface2 extends GuiNPCInterface
         drawTexturedModalRect(guiLeft + xSize-230, guiTop, 26, 0, 230, 220);
     }
 
-    public void renderHoveringText(List textLines, int x, int y, FontRenderer font) {
-        this.drawHoveringText(textLines, x, y, font);
-    }
-
     protected GuiNpcMenu getMenu(){
         return this.menu;
     }

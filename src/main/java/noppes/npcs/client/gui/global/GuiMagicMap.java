@@ -4,12 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import noppes.npcs.client.gui.util.GuiNPCInterface2;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.init.Items;
@@ -17,17 +16,18 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import org.lwjgl.opengl.GL11;
 
-public class GuiMagicMap extends GuiNPCDiagram {
+public class GuiMagicMap extends GuiDiagram {
 
-    private GuiScreen parent;
     private List<Magic> magics;
-    // Keep one RenderItem instance.
+
+    // Single RenderItem instance for efficiency.
     private RenderItem renderItem = new RenderItem();
 
-    public GuiMagicMap(GuiScreen parent, int x, int y, int width, int height) {
-        super(x, y, width, height);
-        this.parent = parent;
+    public GuiMagicMap(GuiNPCInterface parent, int x, int y, int width, int height) {
+        super(parent, x, y, width, height);
         magics = new ArrayList<>();
+
+        // Cache all magics from the MagicController.
         for (Magic magic : MagicController.getInstance().magics.values()) {
             magics.add(magic);
         }
@@ -35,20 +35,25 @@ public class GuiMagicMap extends GuiNPCDiagram {
     }
 
     @Override
-    protected List<DiagramIcon> getIcons() {
+    protected List<DiagramIcon> createIcons() {
         List<DiagramIcon> icons = new ArrayList<>();
         for (Magic magic : magics) {
-            icons.add(new MagicIcon(magic));
+            MagicIcon icon = new MagicIcon(magic);
+            // Set your desired flags (for example, enabled and pressable).
+            icon.enabled = true;
+            icon.pressable = true;
+            icons.add(icon);
         }
         return icons;
     }
 
     @Override
-    protected List<DiagramConnection> getConnections() {
+    protected List<DiagramConnection> createConnections() {
         List<DiagramConnection> conns = new ArrayList<>();
         // For each Magic, generate connections from each weakness (attacker) to this magic.
         for (Magic magic : magics) {
-            if (magic.weaknesses == null) continue;
+            if (magic.weaknesses == null)
+                continue;
             for (Map.Entry<Integer, Float> entry : magic.weaknesses.entrySet()) {
                 int attackerId = entry.getKey();
                 float percent = entry.getValue();
@@ -70,7 +75,6 @@ public class GuiMagicMap extends GuiNPCDiagram {
 
         RenderHelper.enableGUIStandardItemLighting();
 
-        // Render the icon.
         if (magic.iconItem != null) {
             renderItem.renderItemAndEffectIntoGUI(fontRenderer, mc.getTextureManager(), magic.iconItem, iconX, iconY);
         } else if (magic.iconTexture != null && !magic.iconTexture.isEmpty()) {
@@ -82,7 +86,7 @@ public class GuiMagicMap extends GuiNPCDiagram {
         }
         RenderHelper.disableStandardItemLighting();
 
-        // If not highlighted, overlay a translucent black rectangle to simulate dimming.
+        // If the icon is not highlighted, draw a translucent overlay.
         if (state == IconRenderState.NOT_HIGHLIGHTED) {
             drawRect(iconX, iconY, iconX + size, iconY + size, 0x80202020);
         }
@@ -101,9 +105,7 @@ public class GuiMagicMap extends GuiNPCDiagram {
 
     @Override
     protected void drawHoveringText(List<String> text, int mouseX, int mouseY, FontRenderer fontRenderer) {
-        if (parent instanceof GuiNPCInterface2) {
-            ((GuiNPCInterface2) parent).renderHoveringText(text, mouseX, mouseY, fontRenderer);
-        }
+        parent.renderHoveringText(text, mouseX, mouseY, fontRenderer);
     }
 
     /**

@@ -13,6 +13,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
+import noppes.npcs.client.gui.global.GuiDiagram;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -22,6 +23,7 @@ import org.lwjgl.opengl.GL12;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -36,6 +38,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     protected HashMap<Integer, GuiNpcSlider> sliders = new HashMap<Integer, GuiNpcSlider>();
     protected HashMap<Integer, GuiScreen> extra = new HashMap<Integer, GuiScreen>();
     protected HashMap<Integer, GuiScrollWindow> scrollWindows = new HashMap<>();
+    protected HashMap<Integer, GuiDiagram> diagrams = new HashMap<>();
 
     public static boolean resizingActive = false;
 
@@ -90,6 +93,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         scrolls.clear();
         sliders.clear();
         scrollWindows.clear();
+        diagrams.clear();
         Keyboard.enableRepeatEvents(true);
     }
 
@@ -106,7 +110,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
     }
 
-
     public void addExtra(GuiHoverText gui) {
         gui.setWorldAndResolution(mc, 350, 250);
         extra.put(gui.id, gui);
@@ -116,6 +119,19 @@ public abstract class GuiNPCInterface extends GuiScreen {
         gui.setWorldAndResolution(mc, width, height);
         gui.initGui();
         scrollWindows.put(id, gui);
+    }
+
+    /**
+     * Adds a GuiDiagram to the interface.
+     * The diagram is initialized with the current resolution and cached.
+     */
+    public void addDiagram(int id, GuiDiagram diagram) {
+        diagram.invalidateCache();
+        diagrams.put(id, diagram);
+    }
+
+    public GuiDiagram getDiagram(int id) {
+        return diagrams.get(id);
     }
 
     public void mouseClicked(int i, int j, int k) {
@@ -134,6 +150,13 @@ public abstract class GuiNPCInterface extends GuiScreen {
             if (k == 0) {
                 for (GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())) {
                     scroll.mouseClicked(i, j, k);
+                }
+            }
+            // Process diagram mouse clicks
+            for (GuiDiagram diagram : diagrams.values()) {
+                if (diagram.isWithin(i, j)) {
+                    if (diagram.mouseClicked(i, j, k))
+                        return;
                 }
             }
             mouseEvent(i, j, k);
@@ -165,7 +188,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
             guiScrollableComponent.keyTyped(c, i);
         }
 
-        //Fixes closing sub with escape closes all of it's parents
+        // Fixes closing sub with escape closes all of its parents
         boolean enoughTimeSinceSubClosed = Minecraft.getSystemTime() - timeClosedSubGui > 50;
 
         if (closeOnEsc && enoughTimeSinceSubClosed && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
@@ -275,6 +298,13 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);
+        // Draw scrollable windows.
+        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+        }
+        for (GuiDiagram diagram : diagrams.values()) {
+            diagram.drawDiagram(i, j, subGui);
+        }
         super.drawScreen(i, j, f);
         for (GuiCustomScroll scroll : scrolls.values())
             if (scroll.hoverableText) {
@@ -285,9 +315,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
             if (!button.hoverableText.isEmpty()) {
                 button.drawHover(i, j, subGui);
             }
-        }
-        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
         }
 
         if (subgui != null) {
@@ -335,7 +362,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     }
 
     public boolean isInventoryKey(int i) {
-        return i == mc.gameSettings.keyBindInventory.getKeyCode(); //inventory key
+        return i == mc.gameSettings.keyBindInventory.getKeyCode(); // inventory key
     }
 
     @Override
@@ -430,6 +457,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+    }
+
+    public void renderHoveringText(List textLines, int x, int y, FontRenderer font) {
+        this.drawHoveringText(textLines, x, y, font);
     }
 
     public void openLink(String link) {

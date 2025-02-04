@@ -19,23 +19,9 @@ public class GuiNPCManageMagic extends GuiNPCInterface2 {
         int mapY = guiTop + 10;
         int mapWidth = 210;
         int mapHeight = 200;
+
         magicMap = new GuiMagicMap(this, mapX, mapY, mapWidth, mapHeight);
-    }
-
-    @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
-        if (magicMap != null) {
-            magicMap.drawDiagram(mouseX, mouseY);
-        }
-    }
-
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if (magicMap != null && magicMap.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return;
-        }
-        super.mouseClicked(mouseX, mouseY, mouseButton);
+        addDiagram(0, magicMap);
     }
 
     @Override
@@ -57,11 +43,6 @@ public class GuiNPCManageMagic extends GuiNPCInterface2 {
     @Override
     protected void actionPerformed(net.minecraft.client.gui.GuiButton button) {
         // your existing action handling
-    }
-
-    @Override
-    public void keyTyped(char c, int i) {
-        super.keyTyped(c, i);
     }
 
     @Override

@@ -2,12 +2,14 @@ package noppes.npcs.client.gui.global;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Random;
+import java.util.Set;
 
+import noppes.npcs.client.gui.util.GuiNPCInterface;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -17,19 +19,17 @@ import org.lwjgl.opengl.GL11;
 
 /**
  * Abstract GUI class for drawing diagrams that consist of icons (nodes) and connections (arrows).
- *
- * This class provides:
- *  - Multiple layout algorithms for positioning nodes (Circular, Square, Tree, Generated).
- *  - Panning and zooming functionality.
- *  - Standard drawing of a node's "box": a background and border that can be customized.
- *  - Connection drawing (including arrow heads).
- *  - Highlighting logic: when hovering over an icon, its connections and related icons are highlighted.
- *  - Tooltip support for nodes and connections.
- *
- * IMPORTANT: Child classes must implement the data provider methods to supply the list of icons and connections,
- * and implement how an icon’s image is rendered (renderIcon).
+ * <p>
+ * This version adds:
+ *  - A parent GuiNPCInterface (passed in the constructor) so that if the parent has a subgui, no
+ *    mouse interactions are processed.
+ *  - Caching for icons and connections. The abstract methods createIcons() and createConnections() are
+ *    called only once (or when cache is invalidated).
+ *  - DiagramIcon now has fields for enabled and pressable. Disabled icons are not rendered or used in
+ *    connection validation.
+ *  - Basic mouse-event callbacks for pressable icons: click, held and released.
  */
-public abstract class GuiNPCDiagram extends Gui {
+public abstract class GuiDiagram extends Gui {
 
     // ---------------
     // Diagram Area & Controls
@@ -68,7 +68,7 @@ public abstract class GuiNPCDiagram extends Gui {
 
     /**
      * Allows setting the desired layout type.
-     * This will invalidate the cached positions.
+     * This will invalidate the cached positions and cached icons/connections.
      */
     public void setLayout(DiagramLayout layout) {
         this.layout = layout;
@@ -80,18 +80,29 @@ public abstract class GuiNPCDiagram extends Gui {
     // ---------------
     // Cache for positions (computed once for any given icon set & layout).
     protected Map<Integer, Point> cachedPositions = null;
+    // Cache for icons and connections.
+    protected List<DiagramIcon> iconsCache = null;
+    protected List<DiagramConnection> connectionsCache = null;
 
     /**
-     * Clears the cached positions.
+     * Clears all caches: positions, icons, and connections.
      */
     public void invalidateCache() {
         cachedPositions = null;
+        iconsCache = null;
+        connectionsCache = null;
     }
+
+    // ---------------
+    // Parent Reference
+    // ---------------
+    protected GuiNPCInterface parent;
 
     // ---------------
     // Constructor
     // ---------------
-    public GuiNPCDiagram(int x, int y, int width, int height) {
+    public GuiDiagram(GuiNPCInterface parent, int x, int y, int width, int height) {
+        this.parent = parent;
         this.x = x;
         this.y = y;
         this.width = width;
@@ -99,12 +110,50 @@ public abstract class GuiNPCDiagram extends Gui {
     }
 
     // ---------------
-    // Data Providers (abstract methods to be implemented by child classes)
+    // Data Providers (subclasses must implement the creation methods)
     // ---------------
-    protected abstract List<DiagramIcon> getIcons();
-    protected abstract List<DiagramConnection> getConnections();
+    /**
+     * Subclasses should override this method to create and return the list of DiagramIcons.
+     * Note: the returned icons will be cached.
+     */
+    protected abstract List<DiagramIcon> createIcons();
+
+    /**
+     * Subclasses should override this method to create and return the list of DiagramConnections.
+     * Note: the returned connections will be cached.
+     */
+    protected abstract List<DiagramConnection> createConnections();
+
+    /**
+     * Returns the cached icons.
+     */
+    protected final List<DiagramIcon> getIcons() {
+        if (iconsCache == null) {
+            iconsCache = createIcons();
+        }
+        return iconsCache;
+    }
+
+    /**
+     * Returns the cached connections.
+     */
+    protected final List<DiagramConnection> getConnections() {
+        if (connectionsCache == null) {
+            connectionsCache = createConnections();
+        }
+        return connectionsCache;
+    }
+
+    /**
+     * Subclasses must implement how an icon’s image is rendered.
+     */
     protected abstract void renderIcon(DiagramIcon icon, int posX, int posY, IconRenderState state);
+
+    /**
+     * Return a tooltip for an icon.
+     */
     protected List<String> getIconTooltip(DiagramIcon icon) { return null; }
+
     protected List<String> getConnectionTooltip(DiagramConnection conn) {
         List<String> tooltip = new ArrayList<>();
         DiagramIcon iconFrom = getIconById(conn.idFrom);
@@ -120,6 +169,7 @@ public abstract class GuiNPCDiagram extends Gui {
         }
         return tooltip;
     }
+
     protected String getIconName(DiagramIcon icon) { return "Icon " + icon.id; }
 
     // ---------------
@@ -222,33 +272,28 @@ public abstract class GuiNPCDiagram extends Gui {
 
         // Fixed seed for deterministic initial placement.
         Random rand = new Random(100);
-        // Initialize nodes at random positions (with margin).
         for (DiagramIcon icon : icons) {
             int posX = x + margin + rand.nextInt(Math.max(1, width - 2 * margin));
             int posY = y + margin + rand.nextInt(Math.max(1, height - 2 * margin));
             positions.put(icon.id, new Point(posX, posY));
         }
 
-        // Fruchterman–Reingold parameters.
         double area = width * height;
-        // Ideal distance between nodes.
         double k = Math.sqrt(area / (double) count);
         int iterations = 100;
-        double temperature = width / 10.0; // initial max displacement
+        double temperature = width / 10.0;
         double cooling = temperature / (iterations + 1);
-        double minDistance = iconSize + slotPadding; // enforce minimal separation
+        double minDistance = iconSize + slotPadding;
 
-        // Get the list of connections (only actual edges).
         List<DiagramConnection> connections = getConnections();
 
         for (int iter = 0; iter < iterations; iter++) {
-            // Initialize displacement for each node.
             Map<Integer, double[]> disp = new HashMap<>();
             for (DiagramIcon v : icons) {
                 disp.put(v.id, new double[] {0.0, 0.0});
             }
 
-            // Repulsive forces: for every pair of nodes.
+            // Repulsive forces.
             for (int i = 0; i < icons.size(); i++) {
                 DiagramIcon v = icons.get(i);
                 Point posV = positions.get(v.id);
@@ -269,7 +314,7 @@ public abstract class GuiNPCDiagram extends Gui {
                 }
             }
 
-            // Attractive forces: only for nodes that are connected.
+            // Attractive forces.
             for (DiagramConnection conn : connections) {
                 Point posV = positions.get(conn.idFrom);
                 Point posU = positions.get(conn.idTo);
@@ -286,7 +331,7 @@ public abstract class GuiNPCDiagram extends Gui {
                 dispU[1] += (dy / distance) * attrForce;
             }
 
-            // Update positions based on displacement vectors.
+            // Update positions.
             for (DiagramIcon v : icons) {
                 double[] d = disp.get(v.id);
                 double dispLength = Math.sqrt(d[0] * d[0] + d[1] * d[1]);
@@ -330,31 +375,32 @@ public abstract class GuiNPCDiagram extends Gui {
     // ---------------
     // Main Draw Method
     // ---------------
-    public void drawDiagram(int mouseX, int mouseY) {
-        // Update zoom based on mouse scroll.
-        if(isWithin(mouseX, mouseY))
+    public void drawDiagram(int mouseX, int mouseY, boolean subGui) {
+        // Only allow mouse interaction if parent's not showing a subgui.
+        boolean allowInput = (parent == null || !parent.hasSubGui());
+        // Update zoom based on mouse scroll if allowed.
+        if (allowInput && isWithin(mouseX, mouseY) && !subGui) {
             handleMouseScroll(Mouse.getDWheel());
+        }
 
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int factor = sr.getScaleFactor();
 
-        // Retrieve (cached) positions.
         Map<Integer, Point> positions = calculatePositions();
         int centerX = x + width / 2;
         int centerY = y + height / 2;
 
-        // Calculate effective mouse coordinates (in diagram coordinate space)
         int effectiveMouseX = (int)(((float)mouseX - (centerX + panX)) / zoom + centerX);
         int effectiveMouseY = (int)(((float)mouseY - (centerY + panY)) / zoom + centerY);
 
-        // Hit testing & selection:
         Integer hoveredIconId = null;
         int hoveredConnFrom = -1, hoveredConnTo = -1;
-        HashSet<Integer> selectedIconIds = new HashSet<>();
+        Set<Integer> selectedIconIds = new HashSet<>();
 
-        // Check for icon hover using effective coordinates.
+        // Hit testing for icons (only consider enabled icons)
         for (DiagramIcon icon : getIcons()) {
+            if (!icon.enabled) continue;
             Point pos = positions.get(icon.id);
             if (pos == null) continue;
             int slotX = pos.x - slotSize / 2;
@@ -368,16 +414,24 @@ public abstract class GuiNPCDiagram extends Gui {
         }
         if (hoveredIconId != null) {
             for (DiagramConnection conn : getConnections()) {
+                // Validate connection: both endpoints must exist and be enabled.
+                DiagramIcon iconFrom = getIconById(conn.idFrom);
+                DiagramIcon iconTo = getIconById(conn.idTo);
+                if (iconFrom == null || iconTo == null || !iconFrom.enabled || !iconTo.enabled)
+                    continue;
                 if (conn.idFrom == hoveredIconId || conn.idTo == hoveredIconId) {
                     selectedIconIds.add(conn.idFrom);
                     selectedIconIds.add(conn.idTo);
                 }
             }
         } else {
-            // If no icon is hovered, check for connection hover.
             final double threshold = 5.0;
             outer:
             for (DiagramConnection conn : getConnections()) {
+                DiagramIcon iconFrom = getIconById(conn.idFrom);
+                DiagramIcon iconTo = getIconById(conn.idTo);
+                if (iconFrom == null || iconTo == null || !iconFrom.enabled || !iconTo.enabled)
+                    continue;
                 Point pFrom = positions.get(conn.idFrom);
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
@@ -396,14 +450,17 @@ public abstract class GuiNPCDiagram extends Gui {
         GL11.glScissor(x * factor, (sr.getScaledHeight() - (y + height)) * factor, width * factor, height * factor);
         drawRect(x, y, x + width, y + height, 0xFF333333);
 
-        // Apply the same pan and zoom transformation for both arrows and icons.
         GL11.glPushMatrix();
         GL11.glTranslatef(centerX + panX, centerY + panY, 0);
         GL11.glScalef(zoom, zoom, 1.0f);
         GL11.glTranslatef(-centerX, -centerY, 0);
 
-        // Draw connections (arrows).
+        // Draw connections (only for endpoints that are enabled).
         for (DiagramConnection conn : getConnections()) {
+            DiagramIcon iconFrom = getIconById(conn.idFrom);
+            DiagramIcon iconTo = getIconById(conn.idTo);
+            if (iconFrom == null || iconTo == null || !iconFrom.enabled || !iconTo.enabled)
+                continue;
             Point pFrom = positions.get(conn.idFrom);
             Point pTo = positions.get(conn.idTo);
             if (pFrom == null || pTo == null) continue;
@@ -418,6 +475,7 @@ public abstract class GuiNPCDiagram extends Gui {
 
         // Draw icons.
         for (DiagramIcon icon : getIcons()) {
+            if (!icon.enabled) continue;
             Point pos = positions.get(icon.id);
             if (pos == null) continue;
             int slotX = pos.x - slotSize / 2;
@@ -436,6 +494,10 @@ public abstract class GuiNPCDiagram extends Gui {
             GL11.glScalef(zoom, zoom, 1.0f);
             GL11.glTranslatef(-centerX, -centerY, 0);
             for (DiagramConnection conn : getConnections()) {
+                DiagramIcon iconFrom = getIconById(conn.idFrom);
+                DiagramIcon iconTo = getIconById(conn.idTo);
+                if (iconFrom == null || iconTo == null || !iconFrom.enabled || !iconTo.enabled)
+                    continue;
                 Point pFrom = positions.get(conn.idFrom);
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
@@ -451,7 +513,7 @@ public abstract class GuiNPCDiagram extends Gui {
         }
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
-        // Use original mouseX and mouseY (screen coordinates) for tooltips.
+        // Tooltips.
         if (hoveredIconId != null) {
             DiagramIcon icon = getIconById(hoveredIconId);
             List<String> tooltip = getIconTooltip(icon);
@@ -466,7 +528,6 @@ public abstract class GuiNPCDiagram extends Gui {
             }
         }
     }
-
 
     protected DiagramIcon getIconById(int id) {
         for (DiagramIcon icon : getIcons()) {
@@ -570,31 +631,71 @@ public abstract class GuiNPCDiagram extends Gui {
     // Mouse Handling
     // ---------------
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if (mouseButton==0 && isWithin(mouseX, mouseY)) {
-            dragging = true;
-            lastDragX = mouseX;
-            lastDragY = mouseY;
-            return true;
+        // Do not process if parent's subgui is active.
+        if (parent != null && parent.hasSubGui()) return false;
+        // If left mouse button:
+        if (mouseButton == 0) {
+            // First, try to dispatch icon events for pressable icons.
+            for (DiagramIcon icon : getIcons()) {
+                if (!icon.enabled || !icon.pressable)
+                    continue;
+                Point pos = calculatePositions().get(icon.id);
+                if (pos == null) continue;
+                int centerX = x + width / 2;
+                int centerY = y + height / 2;
+                int effectiveX = (int)(((float)mouseX - (centerX + panX)) / zoom + centerX);
+                int effectiveY = (int)(((float)mouseY - (centerY + panY)) / zoom + centerY);
+                int slotX = pos.x - slotSize / 2;
+                int slotY = pos.y - slotSize / 2;
+                if (effectiveX >= slotX && effectiveX < slotX + slotSize &&
+                    effectiveY >= slotY && effectiveY < slotY + slotSize) {
+                    onIconClick(icon);
+                    // Mark as pressed for held/release events.
+                    currentlyPressedIcon = icon;
+                    return true;
+                }
+            }
+            // Otherwise, start dragging for panning.
+            if (isWithin(mouseX, mouseY)) {
+                dragging = true;
+                lastDragX = mouseX;
+                lastDragY = mouseY;
+                return true;
+            }
         }
         return false;
     }
 
+    protected DiagramIcon currentlyPressedIcon = null;
+
     public void mouseClickMove(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick) {
-        if(dragging){
-            int dx = mouseX-lastDragX;
-            int dy = mouseY-lastDragY;
-            panX += dx/zoom*0.7f;
-            panY += dy/zoom*0.7f;
+        if (parent != null && parent.hasSubGui()) return;
+        if (dragging) {
+            int dx = mouseX - lastDragX;
+            int dy = mouseY - lastDragY;
+            panX += dx / zoom * 0.7f;
+            panY += dy / zoom * 0.7f;
             lastDragX = mouseX;
             lastDragY = mouseY;
+        }
+        // If an icon is pressed, dispatch held event.
+        if (currentlyPressedIcon != null) {
+            onIconHeld(currentlyPressedIcon);
         }
     }
 
     public void mouseReleased(int mouseX, int mouseY, int state) {
+        if (parent != null && parent.hasSubGui()) return;
+        if (currentlyPressedIcon != null) {
+            onIconRelease(currentlyPressedIcon);
+            currentlyPressedIcon = null;
+        }
         dragging = false;
     }
 
-    protected boolean isWithin(int mouseX, int mouseY) {
+    public boolean isWithin(int mouseX, int mouseY) {
+        if(parent.hasSubGui())
+            return false;
         return mouseX >= x && mouseX <= x+width && mouseY >= y && mouseY <= y+height;
     }
 
@@ -603,8 +704,8 @@ public abstract class GuiNPCDiagram extends Gui {
      */
     public void handleMouseScroll(int scrollDelta) {
         zoom += scrollDelta * 0.0009f;
-        if(zoom<0.5f) zoom = 0.5f;
-        if(zoom>2.0f) zoom = 2.0f;
+        if(zoom < 0.5f) zoom = 0.5f;
+        if(zoom > 2.0f) zoom = 2.0f;
     }
 
     /**
@@ -636,7 +737,11 @@ public abstract class GuiNPCDiagram extends Gui {
     // ---------------
     public static class DiagramIcon {
         public int id;
-        public DiagramIcon(int id) { this.id = id; }
+        public boolean enabled = true;    // If false, the icon is not rendered.
+        public boolean pressable = false; // If true, it will receive mouse events.
+        public DiagramIcon(int id) {
+            this.id = id;
+        }
     }
 
     public static class DiagramConnection {
@@ -649,5 +754,25 @@ public abstract class GuiNPCDiagram extends Gui {
             this.percent = percent;
             this.hoverText = hoverText;
         }
+    }
+
+    // ---------------
+    // Icon Event Callbacks (override these in subclasses as needed)
+    // ---------------
+    protected void onIconClick(DiagramIcon icon) {
+        // Called when a pressable icon is clicked.
+        System.out.println("Icon " + icon.id + " clicked.");
+    }
+
+    protected void onIconHeld(DiagramIcon icon) {
+        // Called repeatedly if an icon remains pressed.
+        // (You can add timing logic to fire this only after a threshold.)
+        // For now, we simply print once.
+        System.out.println("Icon " + icon.id + " held.");
+    }
+
+    protected void onIconRelease(DiagramIcon icon) {
+        // Called when a pressable icon is released.
+        System.out.println("Icon " + icon.id + " released.");
     }
 }
