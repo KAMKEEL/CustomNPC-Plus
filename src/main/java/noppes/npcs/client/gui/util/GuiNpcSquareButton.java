@@ -46,7 +46,7 @@ public class GuiNpcSquareButton extends GuiNpcButton {
     public void updatePositionAndSize(int x, int y, int newSize) {
         this.xPosition = x;
         this.yPosition = y;
-        this.size = newSize;
+        this.size = newSize - 1;
         this.width = newSize;
         this.height = newSize;
         this.iconAreaHeight = newSize - TEXT_BUTTON_HEIGHT;

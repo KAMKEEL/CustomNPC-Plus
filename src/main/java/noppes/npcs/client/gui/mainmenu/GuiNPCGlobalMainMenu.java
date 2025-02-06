@@ -154,7 +154,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         int total = buttons.size();
         if (total == 0)
             return;
-        int padding = 5;
+        int padding = 2;
         int[] optimal = computeOptimalLayout(total, padding);
         int rows = optimal[0];
         int buttonSize = optimal[1]; // composite button is square with side "buttonSize"
