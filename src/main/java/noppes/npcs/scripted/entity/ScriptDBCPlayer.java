@@ -272,21 +272,21 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 break;
             case "set": {
                 String noNBTText;
-                int startIndex = -1;
+                int num = -1;
                 boolean number = false;
                 boolean run = false;
 
                 try {
-                    startIndex = Integer.parseInt(bonusID);
+                    num = Integer.parseInt(bonusID);
                     number = true;
                 } catch (Exception var34) {
                     number = false;
                 }
 
-                for (startIndex = 0; startIndex < bonuses.length; ++startIndex) {
+                for (int startIndex = 0; startIndex < bonuses.length; ++startIndex) {
                     String[] bonusValue = bonuses[startIndex].split("\\;");
                     bonusValues[startIndex][0] = bonusValue[0];
-                    if (number && startIndex == startIndex || !number && bonusValues[startIndex][0].equals(bonusID)) {
+                    if (number && startIndex == num || !number && bonusValues[startIndex][0].equals(bonusID)) {
                         noNBTText = bonusValues[startIndex][0] + ";" + bonusValueString;
                         bonuses[startIndex] = "";
                         run = true;
