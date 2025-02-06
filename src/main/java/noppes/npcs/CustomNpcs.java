@@ -191,6 +191,7 @@ public class CustomNpcs {
         MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
         MARKOV_GENERATOR[9] = new MarkovSpanish(3);
 
+        PacketHandler.Instance.registerChannels();
     }
 
     @EventHandler

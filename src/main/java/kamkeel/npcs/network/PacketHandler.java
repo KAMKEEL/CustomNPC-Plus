@@ -91,7 +91,7 @@ public class PacketHandler {
     // Server to Client
     public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumChannelType.DATA);
 
-    private static final List<PacketChannel> packetChannels = new ArrayList<>();
+    public static final List<PacketChannel> packetChannels = new ArrayList<>();
 
     public PacketHandler() {
         // Register Channels
@@ -99,7 +99,6 @@ public class PacketHandler {
         packetChannels.add(PLAYER_PACKET);
         packetChannels.add(DATA_PACKET);
 
-        this.registerChannels();
         this.registerDataPackets();
         this.registerRequestPackets();
         this.registerPlayerPackets();
@@ -384,13 +383,12 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new ScreenSizePacket());
     }
 
-    private void registerChannels() {
+    public void registerChannels() {
         for (PacketChannel channel : packetChannels) {
             FMLEventChannel eventChannel =
                 NetworkRegistry.INSTANCE.newEventDrivenChannel(channel.getChannelName());
             eventChannel.register(this);
             channels.put(channel.getChannelType(), eventChannel);
-            System.out.println("Registered channel: " + channel.getChannelName());
         }
     }
 
