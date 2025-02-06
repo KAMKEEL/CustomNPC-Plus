@@ -349,7 +349,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 	private void updateTexture(){
 		try{
 			EntityLivingBase entity = playerdata.getEntity(npc);
-			if (entity.equals(npc.modelData.entity)) {
+			if (entity != null && entity.equals(npc.modelData.entity)) {
 				return;
 			}
 
