@@ -521,7 +521,7 @@ global.banks=Banks
 global.transport=Transport
 global.playerdata=PlayerData
 global.recipes=Recipes
-global.naturalspawn=Natural Spawns
+global.naturalspawn=Spawns
 global.linked=Linked
 
 bank.slot=Slot

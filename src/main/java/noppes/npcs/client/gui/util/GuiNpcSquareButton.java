@@ -70,14 +70,18 @@ public class GuiNpcSquareButton extends GuiNpcButton {
             GL11.glPushMatrix();
             // Disable lighting so the icon is drawn at full brightness.
             RenderHelper.disableStandardItemLighting();
+            // Reset color to white.
             GL11.glColor4f(1F, 1F, 1F, 1F);
             // Compute center of icon area.
             float centerX = xPosition + size / 2.0F;
             float centerY = yPosition + iconAreaHeight / 2.0F;
             GL11.glTranslatef(centerX, centerY, 0F);
-            // Scale so that original icon height maps to the icon area height.
-            float scale = (float) iconAreaHeight / (float) iconHeight; // iconHeight should be 24 now.
+            // Use an internal padding so the icon doesn't touch the borders.
+            int iconPadding = 2;  // adjust as needed
+            // Compute scale: available space is (iconAreaHeight - 2 * iconPadding)
+            float scale = (float) (iconAreaHeight - 2 * iconPadding) / (float) iconHeight;
             GL11.glScalef(scale, scale, 1F);
+            // Center the icon (assuming iconWidth and iconHeight are the texture's dimensions)
             GL11.glTranslatef(-iconWidth / 2.0F, -iconHeight / 2.0F, 0F);
             this.drawTexturedModalRect(0, 0, iconPosX, iconPosY, iconWidth, iconHeight);
             GL11.glPopMatrix();
@@ -86,6 +90,7 @@ public class GuiNpcSquareButton extends GuiNpcButton {
         // --- Draw the child text button ---
         textButton.drawButton(mc, mouseX, mouseY);
     }
+
 
     @Override
     public boolean mousePressed(Minecraft mc, int mouseX, int mouseY) {

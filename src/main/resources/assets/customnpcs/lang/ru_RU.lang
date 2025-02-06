@@ -362,7 +362,7 @@ global.banks=Сберегатели
 global.transport=Транспортёры
 global.playerdata=Данные игроков
 global.recipes=Рецепты
-global.naturalspawn=Естественные спауны 
+global.naturalspawn=Спавнится
 global.linked=Связи
 
 bank.slot=Слот
