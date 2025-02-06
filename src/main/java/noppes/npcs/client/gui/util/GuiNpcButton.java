@@ -24,9 +24,12 @@ public class GuiNpcButton extends GuiButton {
     boolean hasSubGUI = false;
 
     // Fields for icon texture and its dimensions.
-    private ResourceLocation iconTexture = null;
-    private int iconWidth = 16;
-    private int iconHeight = 16;
+    protected ResourceLocation iconTexture = null;
+    protected int iconWidth = 16;
+    protected int iconHeight = 16;
+
+    protected int iconPosX = 0;
+    protected int iconPosY = 0;
 
     public GuiNpcButton(int i, int j, int k, String s) {
         super(i, j, k, StatCollector.translateToLocal(s));
@@ -97,16 +100,17 @@ public class GuiNpcButton extends GuiButton {
      * Sets the icon texture for this button.
      * The texture should be 16x16 by default, unless you adjust the icon dimensions.
      */
-    public void setIconTexture(ResourceLocation texture) {
+    public GuiNpcButton setIconTexture(ResourceLocation texture) {
         this.iconTexture = texture;
+        return this;
     }
 
-    /**
-     * Sets the icon dimensions.
-     */
-    public void setIconSize(int width, int height) {
+    public GuiNpcButton setIconPos(int width, int height, int x, int y) {
         this.iconWidth = width;
         this.iconHeight = height;
+        this.iconPosX = x;
+        this.iconPosY = y;
+        return this;
     }
 
     @Override
@@ -139,7 +143,7 @@ public class GuiNpcButton extends GuiButton {
             int iconX = this.xPosition + (this.width - iconWidth) / 2;
             int iconY = this.yPosition + (this.height - iconHeight) / 2;
             // Draw the texture; we assume texture coordinates start at (0,0) with the desired size.
-            this.drawTexturedModalRect(iconX, iconY, 0, 0, iconWidth, iconHeight);
+            this.drawTexturedModalRect(iconX, iconY, iconPosX, iconPosY, iconWidth, iconHeight);
             RenderHelper.disableStandardItemLighting();
             GL11.glPopMatrix();
         }

@@ -13,7 +13,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
-import noppes.npcs.client.gui.global.GuiDiagram;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;

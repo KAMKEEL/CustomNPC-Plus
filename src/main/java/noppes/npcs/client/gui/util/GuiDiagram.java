@@ -1,9 +1,8 @@
-package noppes.npcs.client.gui.global;
+package noppes.npcs.client.gui.util;
 
 import java.awt.Point;
 import java.util.*;
 
-import noppes.npcs.client.gui.util.GuiNPCInterface;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;

@@ -1,9 +1,10 @@
-package noppes.npcs.client.gui.global;
+package noppes.npcs.client.gui;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import noppes.npcs.client.gui.util.GuiDiagram;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;

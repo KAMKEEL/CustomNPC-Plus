@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.global;
 
+import noppes.npcs.client.gui.GuiMagicMap;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.entity.EntityNPCInterface;
 
