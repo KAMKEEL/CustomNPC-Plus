@@ -97,29 +97,26 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
     /**
      * Compute the optimal layout by iterating over candidate row counts from 1 to total.
      * For each candidate:
-     *   - cols = ceil(total / r)
-     *   - candidateHoriz = (availWidth - (cols+1)*padding) / cols
+     *   - Let c = ceil(total / r)
+     *   - candidateHoriz = (availWidth - (c+1)*padding) / c
      *   - candidateVert  = (availHeight - (r+1)*padding) / r
      *   - candidate = min(candidateHoriz, candidateVert)
-     *   - usedWidth = cols * candidate + (cols+1)*padding
-     *   - usedHeight = r * candidate + (r+1)*padding
-     *   - horizontalWaste = availWidth - usedWidth
-     *   - verticalWaste = availHeight - usedHeight
-     * Then define a score = candidate - (horizontalWaste + verticalWaste) * wasteWeight,
-     * where wasteWeight is a constant (try 0.1 or 0.2). We choose the candidate with the highest score.
+     *   - usedWidth = candidate * c + (c+1)*padding
+     *   - usedHeight = candidate * r + (r+1)*padding
+     *   - ratio = (usedWidth * usedHeight) / (availWidth * availHeight)
+     *
+     * We choose the candidate (r, candidate) that maximizes this ratio.
      *
      * @param total   Total number of buttons.
      * @param padding Padding in pixels.
-     * @return An array with {optimalRows, candidateSize}.
+     * @return An array {optimalRows, candidateSize}.
      */
     private int[] computeOptimalLayout(int total, int padding) {
         int availWidth = xSize - 2 * padding;
         int availHeight = ySize - 2 * padding;
+        double bestRatio = -1;
         int bestRows = 1;
         int bestCandidate = 0;
-        double bestScore = -Double.MAX_VALUE;
-        double wasteWeight = 0.2;  // adjust as needed
-
         for (int r = 1; r <= total; r++) {
             int cols = (int) Math.ceil(total / (double) r);
             int candidateHoriz = (availWidth - (cols + 1) * padding) / cols;
@@ -127,13 +124,11 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
             int candidate = Math.min(candidateHoriz, candidateVert);
             if (candidate <= 0)
                 continue;
-            int usedWidth = cols * candidate + (cols + 1) * padding;
-            int usedHeight = r * candidate + (r + 1) * padding;
-            int horizontalWaste = availWidth - usedWidth;
-            int verticalWaste = availHeight - usedHeight;
-            double score = candidate - wasteWeight * (horizontalWaste + verticalWaste);
-            if (score > bestScore) {
-                bestScore = score;
+            int usedWidth = candidate * cols + (cols + 1) * padding;
+            int usedHeight = candidate * r + (r + 1) * padding;
+            double ratio = (double)(usedWidth * usedHeight) / (availWidth * availHeight);
+            if (ratio > bestRatio || (Math.abs(ratio - bestRatio) < 0.0001 && candidate > bestCandidate)) {
+                bestRatio = ratio;
                 bestCandidate = candidate;
                 bestRows = r;
             }
@@ -145,7 +140,9 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         return new int[]{bestRows, bestCandidate};
     }
 
-
+    /**
+     * Layout composite buttons using the optimal configuration.
+     */
     private void layoutButtons() {
         List<GuiNpcSquareButton> buttons = new ArrayList<>(buttonMap.values());
         Collections.sort(buttons, new Comparator<GuiNpcSquareButton>() {
@@ -160,7 +157,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         int padding = 5;
         int[] optimal = computeOptimalLayout(total, padding);
         int rows = optimal[0];
-        int buttonSize = optimal[1]; // composite button size (square)
+        int buttonSize = optimal[1]; // composite button is square with side "buttonSize"
 
         // Distribute buttons evenly among the rows.
         int base = total / rows;
