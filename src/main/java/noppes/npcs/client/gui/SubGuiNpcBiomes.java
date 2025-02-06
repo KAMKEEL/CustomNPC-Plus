@@ -16,7 +16,7 @@ public class SubGuiNpcBiomes extends SubGuiInterface
 	private SpawnData data;
 	private GuiCustomScroll scroll1;
 	private GuiCustomScroll scroll2;
-	
+
     public SubGuiNpcBiomes(SpawnData data){
     	this.data = data;
 		setBackground("menubg.png");
@@ -35,7 +35,7 @@ public class SubGuiNpcBiomes extends SubGuiInterface
         scroll1.guiTop = guiTop + 14;
         this.addScroll(scroll1);
         addLabel(new GuiNpcLabel(1, "spawning.availableBiomes", guiLeft + 4, guiTop + 4));
-        
+
         if(scroll2 == null){
         	scroll2 = new GuiCustomScroll(this,1);
         	scroll2.setSize(140, 180);
@@ -44,7 +44,7 @@ public class SubGuiNpcBiomes extends SubGuiInterface
         scroll2.guiTop = guiTop + 14;
         this.addScroll(scroll2);
         addLabel(new GuiNpcLabel(2, "spawning.spawningBiomes", guiLeft + 200, guiTop + 4));
-        
+
         List<String> biomes = new ArrayList<String>();
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
             if (base != null && base.biomeName != null && !data.biomes.contains(base.biomeName)) {
@@ -59,8 +59,8 @@ public class SubGuiNpcBiomes extends SubGuiInterface
 
     	addButton(new GuiNpcButton(3, guiLeft + 145, guiTop + 90, 55, 20, ">>"));
     	addButton(new GuiNpcButton(4, guiLeft + 145, guiTop + 112, 55, 20, "<<"));
-        
-        
+
+
     	addButton(new GuiNpcButton(66, guiLeft + 260, guiTop + 194, 60, 20, "gui.done"));
     }
 
@@ -72,14 +72,14 @@ public class SubGuiNpcBiomes extends SubGuiInterface
 				scroll1.selected = -1;
 				scroll1.selected = -1;
 				initGui();
-			}				
+			}
 		}
 		if(button.id == 2){
 			if(scroll2.hasSelected()){
 				data.biomes.remove(scroll2.getSelected());
 				scroll2.selected = -1;
 				initGui();
-			}				
+			}
 		}
 		if(button.id == 3){
 			data.biomes.clear();
@@ -89,13 +89,13 @@ public class SubGuiNpcBiomes extends SubGuiInterface
 	            }
 	        }
 			scroll1.selected = -1;
-			scroll1.selected = -1;
+			scroll2.selected = -1;
 			initGui();
 		}
 		if(button.id == 4){
 			data.biomes.clear();
 			scroll1.selected = -1;
-			scroll1.selected = -1;
+			scroll2.selected = -1;
 			initGui();
 		}
 		if(button.id == 66){
