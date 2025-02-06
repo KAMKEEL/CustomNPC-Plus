@@ -16,13 +16,13 @@ import noppes.npcs.roles.JobGuard;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuiNpcGuard extends GuiNPCInterface2{	
+public class GuiNpcGuard extends GuiNPCInterface2{
 	private JobGuard role;
 	private GuiCustomScroll scroll1;
 	private GuiCustomScroll scroll2;
-	
+
     public GuiNpcGuard(EntityNPCInterface npc){
-    	super(npc);    	
+    	super(npc);
     	role = (JobGuard) npc.jobInterface;
     }
 
@@ -37,10 +37,10 @@ public class GuiNpcGuard extends GuiNPCInterface2{
     	this.addLabel(new GuiNpcLabel(2, "guard.creepers", guiLeft + 275, guiTop + 9));
     	this.addButton(new GuiNpcButton(2, guiLeft + 360, guiTop + 4, 50, 20, new String[]{"gui.no", "gui.yes"},role.attackCreepers?1:0));
     	getButton(2).enabled = role.attackHostileMobs;
-    	
+
     	this.addLabel(new GuiNpcLabel(3, "guard.specifictargets", guiLeft + 10, guiTop + 31));
-    	this.addButton(new GuiNpcButton(3, guiLeft + 85, guiTop + 26, 50, 20, new String[]{"gui.no", "gui.yes"},role.specific?1:0));   
-    	
+    	this.addButton(new GuiNpcButton(3, guiLeft + 85, guiTop + 26, 50, 20, new String[]{"gui.no", "gui.yes"},role.specific?1:0));
+
     	if(role.specific){
 	        if(scroll1 == null){
 	        	scroll1 = new GuiCustomScroll(this,0);
@@ -50,7 +50,7 @@ public class GuiNpcGuard extends GuiNPCInterface2{
 	        scroll1.guiTop = guiTop + 58;
 	        this.addScroll(scroll1);
 	        addLabel(new GuiNpcLabel(11, "guard.availableTargets", guiLeft + 4, guiTop + 48));
-	        
+
 	        if(scroll2 == null){
 	        	scroll2 = new GuiCustomScroll(this,1);
 	        	scroll2.setSize(175, 154);
@@ -59,7 +59,7 @@ public class GuiNpcGuard extends GuiNPCInterface2{
 	        scroll2.guiTop = guiTop + 58;
 	        this.addScroll(scroll2);
 	        addLabel(new GuiNpcLabel(12, "guard.currentTargets", guiLeft + 235, guiTop + 48));
-	        
+
 	        List<String> all = new ArrayList<String>();
 	        for(Object entity : EntityList.stringToClassMapping.keySet()){
 	        	String name = "entity." + entity + ".name";
@@ -71,11 +71,11 @@ public class GuiNpcGuard extends GuiNPCInterface2{
 	        }
 	        scroll1.setList(all);
 	        scroll2.setList(role.targets);
-	        
-	
+
+
 	    	addButton(new GuiNpcButton(11, guiLeft + 180, guiTop + 80, 55, 20, ">"));
 	    	addButton(new GuiNpcButton(12, guiLeft + 180, guiTop + 102, 55, 20, "<"));
-	
+
 	    	addButton(new GuiNpcButton(13, guiLeft + 180, guiTop + 130, 55, 20, ">>"));
 	    	addButton(new GuiNpcButton(14, guiLeft + 180, guiTop + 152, 55, 20, "<<"));
     	}
@@ -92,11 +92,11 @@ public class GuiNpcGuard extends GuiNPCInterface2{
         }
         if(button.id == 2){
         	role.attackCreepers = button.getValue()==1;
-        }     
+        }
         if(button.id == 3){
         	role.specific = button.getValue()==1;
         	initGui();
-        }   
+        }
 
 		if(button.id == 11){
 			if(scroll1.hasSelected()){
@@ -104,14 +104,14 @@ public class GuiNpcGuard extends GuiNPCInterface2{
 				scroll1.selected = -1;
 				scroll1.selected = -1;
 				initGui();
-			}				
+			}
 		}
 		if(button.id == 12){
 			if(scroll2.hasSelected()){
 				role.targets.remove(scroll2.getSelected());
 				scroll2.selected = -1;
 				initGui();
-			}				
+			}
 		}
 		if(button.id == 13){
 			role.targets.clear();
@@ -124,13 +124,13 @@ public class GuiNpcGuard extends GuiNPCInterface2{
 	        }
 	        role.targets = all;
 			scroll1.selected = -1;
-			scroll1.selected = -1;
+			scroll2.selected = -1;
 			initGui();
 		}
 		if(button.id == 14){
 			role.targets.clear();
 			scroll1.selected = -1;
-			scroll1.selected = -1;
+			scroll2.selected = -1;
 			initGui();
 		}
     }
