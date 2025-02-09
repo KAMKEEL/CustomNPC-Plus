@@ -120,6 +120,9 @@ public class PacketUtil {
     }
 
     private static boolean isValidItemForType(ItemStack item, EnumItemPacketType type) {
+        if(item == null || item.getItem() == null)
+            return false;
+
         switch (type) {
             case WAND:
                 return item.getItem() == CustomItems.wand;
