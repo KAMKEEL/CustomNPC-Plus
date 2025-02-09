@@ -272,7 +272,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNPCManageAnimations(animNpc, save);
 		}
 		else if (gui == EnumGuiType.ManageLinked)
-			return new GuiNPCManageLinkedNpc(npc);
+			return new GuiNPCManageLinked(npc);
 
 		else if (gui == EnumGuiType.ManageTransport)
 			return new GuiNPCManageTransporters(npc);

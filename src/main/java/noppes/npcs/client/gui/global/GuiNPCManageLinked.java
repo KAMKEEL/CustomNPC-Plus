@@ -17,14 +17,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageLinkedNpc extends GuiNPCInterface2 implements IScrollData, ISubGuiListener{
+public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData, ISubGuiListener{
 	private GuiCustomScroll scroll;
 	private List<String> data = new ArrayList<String>();
 	private String search = "";
 
 	public static GuiScreen Instance;
 
-    public GuiNPCManageLinkedNpc(EntityNPCInterface npc){
+    public GuiNPCManageLinked(EntityNPCInterface npc){
     	super(npc);
     	Instance = this;
         PacketClient.sendClient(new LinkedGetAllPacket());
