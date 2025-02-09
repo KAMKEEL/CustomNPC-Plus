@@ -58,6 +58,8 @@ import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
 import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import kamkeel.npcs.network.packets.request.script.*;
+import kamkeel.npcs.network.packets.request.script.item.ItemScriptErrorPacket;
+import kamkeel.npcs.network.packets.request.script.item.ItemScriptPacket;
 import kamkeel.npcs.network.packets.request.tags.*;
 import kamkeel.npcs.network.packets.request.transform.TransformGetPacket;
 import kamkeel.npcs.network.packets.request.transform.TransformLoadPacket;
@@ -115,6 +117,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ForgeScriptPacket());
         REQUEST_PACKET.registerPacket(new GlobalNPCScriptPacket());
         REQUEST_PACKET.registerPacket(new ItemScriptPacket());
+        REQUEST_PACKET.registerPacket(new ItemScriptErrorPacket());
         REQUEST_PACKET.registerPacket(new NPCScriptPacket());
         REQUEST_PACKET.registerPacket(new PlayerScriptPacket());
         REQUEST_PACKET.registerPacket(new ScriptInfoPacket());
