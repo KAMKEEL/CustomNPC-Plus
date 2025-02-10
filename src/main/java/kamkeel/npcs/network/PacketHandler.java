@@ -27,6 +27,10 @@ import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
 import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
+import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
+import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectsGetPacket;
 import kamkeel.npcs.network.packets.request.faction.*;
 import kamkeel.npcs.network.packets.request.feather.DimensionTeleportPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
@@ -296,6 +300,12 @@ public class PacketHandler {
         // Moving Path
         REQUEST_PACKET.registerPacket(new MovingPathSavePacket());
         REQUEST_PACKET.registerPacket(new MovingPathGetPacket());
+
+        // Custom Effect Packets
+        REQUEST_PACKET.registerPacket(new EffectGetPacket());
+        REQUEST_PACKET.registerPacket(new EffectsGetPacket());
+        REQUEST_PACKET.registerPacket(new EffectSavePacket());
+        REQUEST_PACKET.registerPacket(new EffectRemovePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

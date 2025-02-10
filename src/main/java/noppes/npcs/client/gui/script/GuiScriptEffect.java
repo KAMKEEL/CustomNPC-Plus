@@ -1,7 +1,5 @@
 package noppes.npcs.client.gui.script;
 
-import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.effects.EffectScriptGetPacket;
 import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
