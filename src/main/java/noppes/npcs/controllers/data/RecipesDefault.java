@@ -19,10 +19,10 @@ public class RecipesDefault {
 		else
 			item = (ItemStack) ob;
 
-		RecipeCarpentry recipeAnvil = new RecipeCarpentry(name);
-		recipeAnvil.isGlobal = isGlobal;
-		recipeAnvil = RecipeCarpentry.saveRecipe(recipeAnvil, item, recipe);
-		RecipeController.Instance.addRecipe(recipeAnvil);
+		RecipeCarpentry recipeCarpentry = new RecipeCarpentry(name);
+		recipeCarpentry.isGlobal = isGlobal;
+		recipeCarpentry = RecipeCarpentry.saveRecipe(recipeCarpentry, item, recipe);
+		RecipeController.Instance.addRecipe(recipeCarpentry);
 	}
 	public static void loadDefaultRecipes(int i) {
 		if(i < 0){

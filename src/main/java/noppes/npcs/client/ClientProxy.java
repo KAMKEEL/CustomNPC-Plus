@@ -316,8 +316,11 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ScriptItem)
 			return new GuiScriptItem();
 
-		else if (gui == EnumGuiType.PlayerAnvil)
+		else if (gui == EnumGuiType.PlayerCarpentryBench)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
+
+        else if (gui == EnumGuiType.PlayerAnvil)
+            return new GuiNpcAnvil((ContainerAnvilRepair) container);
 
 		else if (gui == EnumGuiType.SetupFollower)
 			return new GuiNpcFollowerSetup(npc, (ContainerNPCFollowerSetup) container);

@@ -64,8 +64,11 @@ public class CommonProxy implements IGuiHandler {
 		if(gui == EnumGuiType.PlayerTrader)
 			return  new ContainerNPCTrader(npc, player);
 
-		if(gui == EnumGuiType.PlayerAnvil)
+		if(gui == EnumGuiType.PlayerCarpentryBench)
 			return new ContainerCarpentryBench(player.inventory, player.worldObj, x, y, z);
+
+        if(gui == EnumGuiType.PlayerAnvil)
+            return new ContainerAnvilRepair(player.inventory, player.worldObj, x, y, z);
 
 		if(gui == EnumGuiType.SetupItemGiver)
 			return new ContainerNpcItemGiver(npc, player);

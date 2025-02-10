@@ -2,9 +2,9 @@ package noppes.npcs.blocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -32,9 +32,14 @@ public class BlockCarpentryBench extends BlockContainer
 
     @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9)
-    {//onBlockActivated
+    {
     	if(!par1World.isRemote){
-    		player.openGui(CustomNpcs.instance, EnumGuiType.PlayerAnvil.ordinal(), par1World, i, j, k);
+            int meta = par1World.getBlockMetadata(i, j, k);
+            if(meta >= 4){
+                player.openGui(CustomNpcs.instance, EnumGuiType.PlayerAnvil.ordinal(), par1World, i, j, k);
+            } else {
+                player.openGui(CustomNpcs.instance, EnumGuiType.PlayerCarpentryBench.ordinal(), par1World, i, j, k);
+            }
     	}
 		return true;
     }

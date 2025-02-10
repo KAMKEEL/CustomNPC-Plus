@@ -57,7 +57,7 @@ public class MagicController {
             } catch (Exception ee) { }
         }
         magics.clear();
-        if (true) {
+        if (false) {
             // Create default Pokémon types
             Magic normal   = new Magic(0, "Normal", 0xA8A878);
             normal.setIconItem(new ItemStack(net.minecraft.init.Items.paper));  // using paper for Normal
@@ -205,7 +205,7 @@ public class MagicController {
             magics.put(fairy.id, fairy);
         }
 
-        if (false) {
+        if (true) {
             // Create default magics
             Magic earth = new Magic(0, "Earth", 0x00DD00, 1, 1);
             earth.setIconItem(new ItemStack(CustomItems.earthElement));
