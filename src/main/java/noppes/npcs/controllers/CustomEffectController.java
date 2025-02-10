@@ -214,36 +214,12 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     public Map<EffectKey, PlayerEffect> getPlayerEffects(EntityPlayer player) {
         UUID playerId = NoppesUtilServer.getUUID(player);
-        playerEffects.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>());
-        return playerEffects.get(playerId);
-    }
-
-    public void applyEffect(EntityPlayer player, int id) {
-        CustomEffect parent = get(id);
-        if (parent != null) {
-            PlayerEffect playerEffect = new PlayerEffect(id, parent.length, (byte) 1);
-            applyEffect(player, playerEffect);
+        Map<EffectKey, PlayerEffect> effects = playerEffects.get(playerId);
+        if (effects == null) {
+            effects = new ConcurrentHashMap<>();
+            playerEffects.put(playerId, effects);
         }
-    }
-
-    public void applyEffect(EntityPlayer player, int id, int duration) {
-        CustomEffect parent = get(id);
-        if (parent != null) {
-            PlayerEffect playerEffect = new PlayerEffect(id, duration, (byte) 1);
-            applyEffect(player, playerEffect);
-        }
-    }
-
-    public void applyEffect(EntityPlayer player, PlayerEffect effect) {
-        if (effect == null)
-            return;
-
-        CustomEffect parent = get(effect.id);
-        if (parent != null) {
-            Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
-            currentEffects.put(new EffectKey(effect.id, effect.index), effect);
-            parent.onAdded(player, effect);
-        }
+        return effects;
     }
 
     public void removeEffect(EntityPlayer player, PlayerEffect effect, ExpirationType type) {
@@ -253,7 +229,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
         EffectKey key = new EffectKey(effect.id, effect.index);
         if (currentEffects.containsKey(key)) {
-            CustomEffect parent = get(effect.id);
+            CustomEffect parent = get(effect.id, effect.index);
             if (parent != null) {
                 parent.onRemoved(player, effect, type);
             }
@@ -313,7 +289,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     public void clearEffects(IPlayer player) {
         if (player == null || player.getMCEntity() == null)
             return;
-        clearEffects(player.getMCEntity());
+        clearEffects((EntityPlayer) player);
     }
 
     @Override
@@ -355,12 +331,24 @@ public class CustomEffectController implements ICustomEffectHandler {
         return customEffects.get(customEffect.getID());
     }
 
-    public void clearEffects(Entity player) {
-        Map<EffectKey, PlayerEffect> effects = playerEffects.get(NoppesUtilServer.getUUID(player));
+    public void clearEffects(EntityPlayer player) {
+        Map<EffectKey, PlayerEffect> effects = getPlayerEffects(player);
         if (effects != null) {
             effects.clear();
         }
     }
+
+    public void clearEffect(EntityPlayer player, int id) {
+        clearEffect(player, id, 0);
+    }
+
+    public void clearEffect(EntityPlayer player, int id, int index) {
+        Map<EffectKey, PlayerEffect> effects = getPlayerEffects(player);
+        if (effects != null) {
+            effects.remove(new EffectKey(id, index));
+        }
+    }
+
 
     public boolean hasEffect(EntityPlayer player, int id) {
         return hasEffect(player, id, 0);
@@ -384,10 +372,9 @@ public class CustomEffectController implements ICustomEffectHandler {
     }
 
     public void applyEffect(EntityPlayer player, int id, int duration, byte level, int index) {
-        if (player == null || id <= 0)
-            return;
+        if (player == null || id <= 0) return;
         Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
-        CustomEffect parent = get(id);
+        CustomEffect parent = get(id, index);
         if (parent != null) {
             PlayerEffect playerEffect = new PlayerEffect(id, duration, level);
             playerEffect.index = index;
@@ -396,13 +383,20 @@ public class CustomEffectController implements ICustomEffectHandler {
         }
     }
 
+    public void removeEffect(EntityPlayer player, int id) {
+        removeEffect(player, id, 0, ExpirationType.REMOVED);
+    }
+
     public void removeEffect(EntityPlayer player, int id, ExpirationType type) {
         removeEffect(player, id, 0, type);
     }
 
+    public void removeEffect(EntityPlayer player, int id, int index) {
+        removeEffect(player, id, index, ExpirationType.REMOVED);
+    }
+
     public void removeEffect(EntityPlayer player, int id, int index, ExpirationType type) {
-        if (player == null || id <= 0)
-            return;
+        if (player == null || id <= 0) return;
         Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
         EffectKey key = new EffectKey(id, index);
         PlayerEffect effect = currentEffects.get(key);
