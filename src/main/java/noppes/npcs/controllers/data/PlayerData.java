@@ -43,7 +43,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
 	public AnimationData animationData = new AnimationData(this);
-
+    public PlayerEffectData effectData = new PlayerEffectData(this);
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
 
@@ -96,6 +96,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		timers.readFromNBT(data);
 		skinOverlays.readFromNBT(data);
 		animationData.readFromNBT(data);
+        effectData.readFromNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -135,6 +136,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         timers.writeToNBT(compound);
         skinOverlays.writeToNBT(compound);
         animationData.writeToNBT(compound);
+        effectData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
@@ -162,6 +164,16 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.loadNBTData(data);
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
+    }
+
+    public NBTTagCompound getPlayerEffects(){
+        NBTTagCompound compound = new NBTTagCompound();
+        effectData.writeToNBT(compound);
+        return compound;
+    }
+
+    public void setPlayerEffects(NBTTagCompound data){
+        effectData.readFromNBT(data);
     }
 
     public NBTTagCompound getSyncNBTFull() {

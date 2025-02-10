@@ -23,6 +23,7 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
@@ -71,6 +72,13 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
+                // TODO: Fix Config
+                // player.ticksExisted % ConfigDBCGameplay.CheckEffectsTick == 0
+                if (player.ticksExisted % 10 == 0)
+                    CustomEffectController.Instance.runEffects(player);
+
+                if (player.ticksExisted % 20 == 0)
+                    CustomEffectController.Instance.decrementEffects(player);
 
                 Party party = playerData.getPlayerParty();
                 boolean trackingPartyQuest = playerData.questData.getTrackedQuest() != null && party != null && party.getQuest() != null && party.getQuest().getId() == playerData.questData.getTrackedQuest().getId();
@@ -422,6 +430,8 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 try {
+                    CustomEffectController.getInstance().killEffects((EntityPlayer) event.entityLiving);
+
                     IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
                     EventHooks.onPlayerDeath(handler,scriptPlayer, event.source, source);
                 } catch (Exception ignored) {}

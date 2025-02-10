@@ -92,14 +92,6 @@ public class CustomEffectController implements ICustomEffectHandler {
         }
     }
 
-    public boolean has(String name) {
-        return get(name) != null;
-    }
-
-    public boolean has(int id) {
-        return get(id) != null;
-    }
-
     @Override
     public ICustomEffect createEffect(String name) {
         if (has(name))
@@ -176,17 +168,47 @@ public class CustomEffectController implements ICustomEffectHandler {
         return lastUsedID;
     }
 
-    public CustomEffect get(String name) {
-        for (CustomEffect effect : customEffects.values()) {
-            if (effect.getName().equalsIgnoreCase(name)) {
-                return effect;
+
+    public CustomEffect get(int id, int index) {
+        HashMap<Integer, CustomEffect> effectMap = indexMapper.get(index);
+        return effectMap != null ? effectMap.get(id) : null;
+    }
+
+    public CustomEffect get(int id) {
+        return get(id, 0);
+    }
+
+    public boolean has(int id, int index) {
+        HashMap<Integer, CustomEffect> effectMap = indexMapper.get(index);
+        return effectMap != null && effectMap.containsKey(id);
+    }
+
+    public boolean has(int id) {
+        return has(id, 0);
+    }
+
+    public CustomEffect get(String name, int index) {
+        HashMap<Integer, CustomEffect> effectMap = indexMapper.get(index);
+        if (effectMap != null) {
+            for (CustomEffect effect : effectMap.values()) {
+                if (effect.getName().equalsIgnoreCase(name)) {
+                    return effect;
+                }
             }
         }
         return null;
     }
 
-    public CustomEffect get(int id) {
-        return customEffects.get(id);
+    public CustomEffect get(String name) {
+        return get(name, 0);
+    }
+
+    public boolean has(String name, int index) {
+        return get(name, index) != null;
+    }
+
+    public boolean has(String name) {
+        return has(name, 0);
     }
 
     public Map<EffectKey, PlayerEffect> getPlayerEffects(EntityPlayer player) {
