@@ -49,8 +49,9 @@ public class CustomEffectController implements ICustomEffectHandler {
         return Instance;
     }
 
-    public void registerEffectMap(int index, HashMap<Integer, CustomEffect> effectHashMap){
-        indexMapper.put(index, effectHashMap);
+    public <T extends CustomEffect> void registerEffectMap(int index, HashMap<Integer, T> effectHashMap) {
+        HashMap<Integer, CustomEffect> map = new HashMap<>(effectHashMap);
+        indexMapper.put(index, map);
     }
 
     public void load() {
