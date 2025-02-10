@@ -143,6 +143,7 @@ gui.loading=Loading
 gui.off=Off
 gui.on=On
 gui.sure=Are you sure?
+gui.available=Requirements Met
 
 party.accept=Accept
 party.allowParty=Allow Partying
@@ -325,6 +326,13 @@ availability.name=Availability
 availability.areaNotAvailble=You can't go this way
 availability.permission=You don't have permission to do this
 availability.editIcon=For the next 10 seconds you can set any item icon by right clicking
+
+availability.error.day=Only During Day
+availability.error.night=Only During Night
+availability.error.dialog=%s Dialog %d
+availability.error.quest=%s Quest %d
+availability.error.faction=%s %s Faction %d
+availability.error.xp=Exp Level %d
 
 spawning.availableBiomes=Available Biomes
 spawning.spawningBiomes=Spawning Biomes

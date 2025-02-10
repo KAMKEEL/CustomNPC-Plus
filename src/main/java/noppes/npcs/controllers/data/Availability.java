@@ -1,8 +1,11 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.ICompatibilty;
 import noppes.npcs.VersionCompatibility;
 import noppes.npcs.api.entity.IPlayer;
@@ -12,6 +15,9 @@ import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.scripted.CustomNPCsException;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Availability implements ICompatibilty, IAvailability {
 	public int version = VersionCompatibility.ModRev;
@@ -124,6 +130,31 @@ public class Availability implements ICompatibilty, IAvailability {
 		compound.setInteger("AvailabilityMinPlayerLevel", minPlayerLevel);
 		return compound;
     }
+
+    public boolean isDefault() {
+        return dialogAvailable == EnumAvailabilityDialog.Always &&
+            dialog2Available == EnumAvailabilityDialog.Always &&
+            dialog3Available == EnumAvailabilityDialog.Always &&
+            dialog4Available == EnumAvailabilityDialog.Always &&
+            dialogId == -1 &&
+
+            questAvailable == EnumAvailabilityQuest.Always &&
+            quest2Available == EnumAvailabilityQuest.Always &&
+            quest3Available == EnumAvailabilityQuest.Always &&
+            quest4Available == EnumAvailabilityQuest.Always &&
+            questId == -1 &&
+
+            factionAvailable == EnumAvailabilityFactionType.Always &&
+            faction2Available == EnumAvailabilityFactionType.Always &&
+            factionId == -1 &&
+            faction2Id == -1 &&
+            factionStance == EnumAvailabilityFaction.Friendly &&
+            faction2Stance == EnumAvailabilityFaction.Friendly &&
+
+            daytime == EnumDayTime.Always &&
+            minPlayerLevel == 0;
+    }
+
 	public void setFactionAvailability(int value) {
     	factionAvailable =  EnumAvailabilityFactionType.values()[value];
 	}
@@ -176,6 +207,64 @@ public class Availability implements ICompatibilty, IAvailability {
 
 		return true;
 	}
+
+    @SideOnly(Side.CLIENT)
+    public List<String> isAvailableText(EntityPlayer player) {
+        List<String> errors = new ArrayList<String>();
+
+        // Check daytime conditions.
+        if (daytime == EnumDayTime.Day) {
+            long time = player.worldObj.getWorldTime() % 24000;
+            if (time > 12000) {
+                errors.add(StatCollector.translateToLocal("availability.error.day"));
+            }
+        } else if (daytime == EnumDayTime.Night) {
+            long time = player.worldObj.getWorldTime() % 24000;
+            if (time < 12000) {
+                errors.add(StatCollector.translateToLocal("availability.error.night"));
+            }
+        }
+
+        // Check dialog conditions.
+        if (!dialogAvailable(dialogId, dialogAvailable, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.dialog", dialogAvailable.toString(), dialogId));
+        }
+        if (!dialogAvailable(dialog2Id, dialog2Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.dialog", dialog2Available.toString(), dialog2Id));
+        }
+        if (!dialogAvailable(dialog3Id, dialog3Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.dialog", dialog3Available.toString(), dialog3Id));
+        }
+        if (!dialogAvailable(dialog4Id, dialog4Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.dialog", dialog4Available.toString(), dialog4Id));
+        }
+
+        // Check quest conditions.
+        if (!questAvailable(questId, questAvailable, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.quest", questAvailable.toString(), questId));
+        }
+        if (!questAvailable(quest2Id, quest2Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.quest", quest2Available.toString(), quest2Id));
+        }
+        if (!questAvailable(quest3Id, quest3Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.quest", quest3Available.toString(), quest3Id));
+        }
+        if (!questAvailable(quest4Id, quest4Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.quest", quest4Available.toString(), quest4Id));
+        }
+
+        // Check faction conditions.
+        if (!factionAvailable(factionId, factionStance, factionAvailable, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.faction", factionAvailable.toString(), factionStance.toString(), factionId));
+        }
+        if (!factionAvailable(faction2Id, faction2Stance, faction2Available, player)) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.faction", faction2Available.toString(), faction2Stance.toString(), faction2Id));
+        }
+        if (player.experienceLevel < minPlayerLevel) {
+            errors.add(StatCollector.translateToLocalFormatted("availability.error.xp", minPlayerLevel));
+        }
+        return errors;
+    }
 
 	private boolean factionAvailable(int id, EnumAvailabilityFaction stance, EnumAvailabilityFactionType available, EntityPlayer player) {
 		if(available == EnumAvailabilityFactionType.Always)

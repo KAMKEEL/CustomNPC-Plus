@@ -12,6 +12,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.SubGuiNpcAvailability;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
 
@@ -43,7 +44,14 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         setBackground("inventorymenu.png");
         slot = getResource("slot.png");
         ySize = 200;
-        tab = 1;
+
+        if(container.width == 1){
+            tab = 2;
+        } else if (container.width == 3){
+            tab = 0;
+        } else {
+            tab = 1;
+        }
     }
 
 	@Override
@@ -73,8 +81,13 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             this.addButton(new GuiNpcButtonYesNo(5, guiLeft + 235, buttonPos - 5, 40, 20, container.recipe.ignoreDamage));
             this.addLabel(new GuiNpcLabel(1, "gui.ignoreNBT", guiLeft + 131, buttonPos += 22));
             this.addButton(new GuiNpcButtonYesNo(6, guiLeft + 235, buttonPos - 5, 40, 20, container.recipe.ignoreNBT));
+
+            buttonPos += 22;
+            this.addButton(new GuiNpcButton(15, guiLeft + 172, buttonPos - 5, 103, 20, "availability.options"));
+
             this.getButton(5).setEnabled(false);
             this.getButton(6).setEnabled(false);
+            this.getButton(15).setEnabled(false);
 
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipe.name));
             this.getTextField(0).enabled = false;
@@ -102,9 +115,13 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             this.getTextField(2).setMinMaxDefault(0, Integer.MAX_VALUE, container.recipeAnvil.getXpCost());
             this.getTextField(2).enabled = false;
 
+            buttonPos += 22;
+            this.addButton(new GuiNpcButton(15, guiLeft + 172, buttonPos - 5, 103, 20, "availability.options"));
+
             this.getButton(7).setEnabled(false);
             this.getButton(8).setEnabled(false);
             this.getButton(9).setEnabled(false);
+            this.getButton(15).setEnabled(false);
 
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipeAnvil.name));
             this.getTextField(0).enabled = false;
@@ -177,6 +194,14 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         if (button.id == 9) {
             container.recipeAnvil.ignoreRepairItemNBT = button.getValue() == 1;
         }
+        if(button.id == 15){
+            save();
+            if(container.width == 1){
+                setSubGui(new SubGuiNpcAvailability(container.recipeAnvil.availability));
+            } else {
+                setSubGui(new SubGuiNpcAvailability(container.recipe.availability));
+            }
+        }
     }
 
 	@Override
@@ -210,43 +235,62 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
     public void setGuiData(NBTTagCompound compound) {
         if (compound.hasKey("IsAnvil")) {
             RecipeAnvil recipe = RecipeAnvil.read(compound);
-            getTextField(0).setText(recipe.name);
-            getTextField(1).setText(recipe.getRepairPercentage() + "");
-            getTextField(2).setText(recipe.getXpCost() + "");
             container.setRecipe(recipe);
+            container.width = 1;
+            tab = 2;
+            fixButtons();
+        } else {
+            RecipeCarpentry recipe = RecipeCarpentry.read(compound);
+            container.setRecipe(recipe);
+            fixButtons();
+        }
+    }
 
-            setSelected(recipe.name);
+    private void fixButtons(){
+        if(tab == 2){
+            getTextField(0).setText(container.recipeAnvil.name);
+            getTextField(1).setText(container.recipeAnvil.getRepairPercentage() + "");
+            getTextField(2).setText(container.recipeAnvil.getXpCost() + "");
+
+            setSelected(container.recipeAnvil.name);
             getTextField(0).enabled = true;
             getTextField(1).enabled = true;
             getTextField(2).enabled = true;
-
-            container.width = 1;
 
             GuiNpcButtonYesNo btnMatDamage = (GuiNpcButtonYesNo)this.getButton(7);
             GuiNpcButtonYesNo btnMatNBT = (GuiNpcButtonYesNo)this.getButton(8);
             GuiNpcButtonYesNo btnItemNBT = (GuiNpcButtonYesNo)this.getButton(9);
             if (btnMatDamage != null) {
-                btnMatDamage.setDisplay(recipe.ignoreRepairMaterialDamage ? 1 : 0);
+                btnMatDamage.setDisplay(container.recipeAnvil.ignoreRepairMaterialDamage ? 1 : 0);
                 btnMatDamage.setEnabled(true);
             }
             if (btnMatNBT != null) {
-                btnMatNBT.setDisplay(recipe.ignoreRepairMaterialNBT ? 1 : 0);
+                btnMatNBT.setDisplay(container.recipeAnvil.ignoreRepairMaterialNBT ? 1 : 0);
                 btnMatNBT.setEnabled(true);
             }
             if (btnItemNBT != null) {
-                btnItemNBT.setDisplay(recipe.ignoreRepairItemNBT ? 1 : 0);
+                btnItemNBT.setDisplay(container.recipeAnvil.ignoreRepairItemNBT ? 1 : 0);
                 btnItemNBT.setEnabled(true);
             }
+
+            GuiNpcButton avail = this.getButton(15);
+            if(avail != null)
+                avail.setEnabled(true);
         } else {
-            RecipeCarpentry recipe = RecipeCarpentry.read(compound);
-            getTextField(0).setText(recipe.name);
-            container.setRecipe(recipe);
+            getTextField(0).setText(container.recipe.name);
+
             this.getTextField(0).enabled = true;
             this.getButton(5).setEnabled(true);
-            this.getButton(5).setDisplay(recipe.ignoreDamage ? 1 : 0);
+            this.getButton(5).setDisplay(container.recipe.ignoreDamage ? 1 : 0);
             this.getButton(6).setEnabled(true);
-            this.getButton(6).setDisplay(recipe.ignoreNBT ? 1 : 0);
-            setSelected(recipe.name);
+            this.getButton(6).setDisplay(container.recipe.ignoreNBT ? 1 : 0);
+            setSelected(container.recipe.name);
+
+            if(!container.recipe.isGlobal){
+                GuiNpcButton avail = this.getButton(15);
+                if(avail != null)
+                    avail.setEnabled(true);
+            }
         }
     }
 
@@ -357,6 +401,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui){
-
+        if(subgui instanceof SubGuiNpcAvailability)
+            fixButtons();
     }
 }

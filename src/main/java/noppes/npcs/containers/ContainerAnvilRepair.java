@@ -3,7 +3,6 @@ package noppes.npcs.containers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.InventoryCrafting;
@@ -11,7 +10,6 @@ import net.minecraft.inventory.InventoryCraftResult;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.world.World;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.controllers.RecipeController;
@@ -27,10 +25,7 @@ public class ContainerAnvilRepair extends Container {
     private World worldObj;
     private int posX, posY, posZ;
 
-    // These fields are used for syncing the repair cost message.
-    public String repairStatus = "";
     public int repairCost = 0;
-    // How many repair material items are used during the repair calculation.
     public int repairMaterialConsumed = 0;
 
     public ContainerAnvilRepair(InventoryPlayer playerInv, World world, int x, int y, int z) {
@@ -70,63 +65,6 @@ public class ContainerAnvilRepair extends Container {
         }
 
         updateRepairResult();
-
-        // For testing: clear recipes and add a test recipe.
-        RecipeController.Instance.anvilRecipes.clear();
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "Test",
-            new ItemStack(Items.iron_pickaxe),
-            new ItemStack(Items.paper),
-            50,
-            23));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "Okay",
-            new ItemStack(Items.diamond_pickaxe),
-            new ItemStack(Items.paper),
-            21,
-            10));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "Bob",
-            new ItemStack(Items.golden_pickaxe),
-            new ItemStack(Items.paper),
-            1200,
-            40));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "Dude",
-            new ItemStack(Items.iron_chestplate),
-            new ItemStack(Items.paper),
-            40000,
-            23));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "Oas",
-            new ItemStack(Items.golden_pickaxe),
-            new ItemStack(Items.diamond),
-            12,
-            1));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "awd",
-            new ItemStack(Items.golden_sword),
-            new ItemStack(Items.gold_ingot),
-            80,
-            14));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "fawd",
-            new ItemStack(Items.bow),
-            new ItemStack(Items.string),
-            4,
-            3));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "cxzs",
-            new ItemStack(Items.bow),
-            new ItemStack(Items.diamond),
-            4,
-            3));
-        RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
-            "awdawdwa",
-            new ItemStack(Items.iron_sword),
-            new ItemStack(Items.blaze_rod),
-            4,
-            3));
     }
 
     @Override
@@ -176,6 +114,10 @@ public class ContainerAnvilRepair extends Container {
 
             ItemStack output = null;
             if (matchingRecipe != null) {
+                if(!matchingRecipe.availability.isAvailable(player)){
+                    return;
+                }
+
                 int baseXpCost = matchingRecipe.getXpCost();
                 // Assume repairPercentage is given as a percent (e.g. 20 for 20% per material)
                 float repairPercentage = matchingRecipe.getRepairPercentage() / 100.0f;

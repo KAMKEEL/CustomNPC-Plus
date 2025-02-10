@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.RecipeController;
@@ -122,13 +123,18 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
     private static class TextOverlayData {
         public final int x, y, width, height;
-        public final String text;
+        public final List<String> textLines;
+
         public TextOverlayData(int x, int y, int width, int height, String text) {
+            this(x, y, width, height, Arrays.asList(text));
+        }
+
+        public TextOverlayData(int x, int y, int width, int height, List<String> textLines) {
             this.x = x;
             this.y = y;
             this.width = width;
             this.height = height;
-            this.text = text;
+            this.textLines = textLines;
         }
     }
 
@@ -156,6 +162,9 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
         for (int i = startIndex; i < endIndex; i++) {
             RecipeAnvil recipe = recipes.get(i);
+            if(!recipe.isValid())
+                continue;
+
             int localIndex = i - startIndex; // 0 to 7
             int col = localIndex / 4;         // 0 for left column, 1 for right column
             int row = localIndex % 4;         // rows 0..3
@@ -222,6 +231,51 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
                 textOverlays.add(new TextOverlayData(percentTextX, percentTextY, percentWidth, fontRendererObj.FONT_HEIGHT, String.valueOf(recipe.getRepairPercentage())));
             }
 
+            if(!recipe.availability.isDefault()){
+                if(!recipe.availability.isAvailable(this.player)){
+                    String helpChar = "?";
+                    float scale = 1F;  // Adjust for a very small size
+                    int questionWidth = (int)(fontRendererObj.getStringWidth(helpChar) * scale);
+                    int questionHeight = (int)(fontRendererObj.FONT_HEIGHT * scale);
+                    // Center the "?" under the percentage text.
+                    int questionX = percentCenterX - (questionWidth / 2) - 1 - row;
+                    int questionY = percentTextY + fontRendererObj.FONT_HEIGHT; // You can tweak the vertical offset if needed
+
+                    GL11.glPushMatrix();
+                    GL11.glTranslatef(questionX, questionY, 0);
+                    GL11.glScalef(scale, scale, 1.0F);
+
+                    fontRendererObj.drawString(helpChar, 0, 0, 0xbd3e35);
+                    GL11.glPopMatrix();
+
+                    if (func_146978_c(questionX - guiLeft, questionY - guiTop, questionWidth, questionHeight, mouseX, mouseY)) {
+                        List<String> availableText = recipe.availability.isAvailableText(this.player);
+                        textOverlays.add(new TextOverlayData(questionX, questionY, questionWidth, questionHeight, availableText));
+                    }
+                } else {
+                    // Draw a very small "?" under the percentage text.
+                    String helpChar = "!";
+                    float scale = 1F;  // Adjust for a very small size
+                    int questionWidth = (int)(fontRendererObj.getStringWidth(helpChar) * scale);
+                    int questionHeight = (int)(fontRendererObj.FONT_HEIGHT * scale);
+                    // Center the "?" under the percentage text.
+                    int questionX = percentCenterX - (questionWidth / 2) - 1 - row;
+                    int questionY = percentTextY + fontRendererObj.FONT_HEIGHT; // You can tweak the vertical offset if needed
+
+                    GL11.glPushMatrix();
+                    GL11.glTranslatef(questionX, questionY, 0);
+                    GL11.glScalef(scale, scale, 1.0F);
+
+                    fontRendererObj.drawString(helpChar, 0, 0, CustomNpcResourceListener.DefaultTextColor);
+                    GL11.glPopMatrix();
+
+                    // When the "!" is hovered, add its tooltip overlay.
+                    if (func_146978_c(questionX - guiLeft, questionY - guiTop, questionWidth, questionHeight, mouseX, mouseY)) {
+                        textOverlays.add(new TextOverlayData(questionX, questionY, questionWidth, questionHeight, StatCollector.translateToLocal("gui.available")));
+                    }
+                }
+            }
+
             // Draw XP cost with scaling.
             String xpCostStr = formatXpCost(recipe.getXpCost());
             int digitCount = xpCostStr.length();
@@ -249,7 +303,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
         }
 
         for (TextOverlayData tod : textOverlays) {
-            this.drawHoveringText(java.util.Arrays.asList(tod.text), mouseX, mouseY, this.fontRendererObj);
+            this.drawHoveringText(tod.textLines, mouseX, mouseY, this.fontRendererObj);
         }
     }
     protected boolean func_146978_c(int p_146978_1_, int p_146978_2_, int p_146978_3_, int p_146978_4_, int p_146978_5_, int p_146978_6_) {
