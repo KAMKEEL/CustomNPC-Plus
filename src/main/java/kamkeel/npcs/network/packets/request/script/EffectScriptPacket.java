@@ -62,7 +62,7 @@ public final class EffectScriptPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
-        out.writeInt(type.ordinal());
+        out.writeInt(id);
 
         if(type == Action.SAVE){
             out.writeInt(this.page);
