@@ -68,7 +68,8 @@ public class CustomEffectController implements ICustomEffectHandler {
         Map<EffectKey, PlayerEffect> current = getPlayerEffects(player);
         for (Map.Entry<EffectKey, PlayerEffect> entry : current.entrySet()) {
             int id = entry.getKey().getId();
-            CustomEffect effect = get(id);
+            int index = entry.getKey().getIndex();
+            CustomEffect effect = get(id, index);
             if (effect != null) {
                 effect.runEffect(player, entry.getValue());
             }
@@ -81,7 +82,8 @@ public class CustomEffectController implements ICustomEffectHandler {
         while (iterator.hasNext()) {
             Map.Entry<EffectKey, PlayerEffect> entry = iterator.next();
             int id = entry.getKey().getId();
-            CustomEffect effect = get(id);
+            int index = entry.getKey().getIndex();
+            CustomEffect effect = get(id, index);
             if (effect != null) {
                 if (effect.lossOnDeath) {
                     effect.onRemoved(player, entry.getValue(), ExpirationType.DEATH);

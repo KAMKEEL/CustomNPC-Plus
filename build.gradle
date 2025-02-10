@@ -5,7 +5,7 @@ plugins {
     id 'idea'
 }
 
-version = "1.9.4-beta2.5"
+version = "1.9.4-beta2.6"
 group= "kamkeel.customnpc-plus"
 archivesBaseName = "CustomNPC-Plus"
 
