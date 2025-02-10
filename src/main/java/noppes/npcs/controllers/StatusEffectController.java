@@ -15,6 +15,7 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IStatusEffectHandler;
 import noppes.npcs.api.handler.data.ICustomEffect;
 import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.EffectKey;
 import noppes.npcs.controllers.data.EffectScriptHandler;
 import noppes.npcs.controllers.data.PlayerEffect;
 import noppes.npcs.scripted.event.PlayerEvent;
@@ -42,13 +43,16 @@ public class StatusEffectController implements IStatusEffectHandler {
     private HashMap<Integer, String> bootOrder;
 
     private int lastUsedID = 0;
-
-    public ConcurrentHashMap<UUID, Map<Integer, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<UUID, Map<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
     public StatusEffectController() {}
 
     public static StatusEffectController getInstance() {
         return Instance;
+    }
+
+    public void registerEffectMap(int index, HashMap<Integer, CustomEffect> effectHashMap){
+        indexMapper.put(index, effectHashMap);
     }
 
     public void load() {
@@ -61,30 +65,31 @@ public class StatusEffectController implements IStatusEffectHandler {
         LogWriter.info("Done loading custom effects.");
     }
 
-
     public void runEffects(EntityPlayer player) {
-        Map<Integer, PlayerEffect> current = getPlayerEffects(player);
-        for (int active : current.keySet()) {
-            CustomEffect effect = get(active);
+        Map<EffectKey, PlayerEffect> current = getPlayerEffects(player);
+        for (Map.Entry<EffectKey, PlayerEffect> entry : current.entrySet()) {
+            int id = entry.getKey().getId();
+            CustomEffect effect = get(id);
             if (effect != null) {
-                effect.runEffect(player, current.get(active));
+                effect.runEffect(player, entry.getValue());
             }
         }
     }
 
     public void killEffects(EntityPlayer player) {
-        Map<Integer, PlayerEffect> current = getPlayerEffects(player);
-        Iterator<Map.Entry<Integer, PlayerEffect>> iterator = current.entrySet().iterator();
+        Map<EffectKey, PlayerEffect> current = getPlayerEffects(player);
+        Iterator<Map.Entry<EffectKey, PlayerEffect>> iterator = current.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<Integer, PlayerEffect> entry = iterator.next();
-            CustomEffect effect = get(entry.getKey());
+            Map.Entry<EffectKey, PlayerEffect> entry = iterator.next();
+            int id = entry.getKey().getId();
+            CustomEffect effect = get(id);
             if (effect != null) {
                 if (effect.lossOnDeath) {
-                    effect.onRemoved(player, entry.getValue(), PlayerEvent.EffectEvent.ExpirationType.DEATH);
+                    effect.onRemoved(player, entry.getValue(), ExpirationType.DEATH);
                     iterator.remove();
                 }
             } else {
-                iterator.remove(); // Use iterator to remove the current element
+                iterator.remove();
             }
         }
     }
@@ -106,7 +111,7 @@ public class StatusEffectController implements IStatusEffectHandler {
         effect.name = name;
 
         if (effect.id == -1) {
-            int  id = getUnusedId();
+            int id = getUnusedId();
             while (customEffects.containsKey(id)) {
                 id = getUnusedId();
             }
@@ -134,7 +139,6 @@ public class StatusEffectController implements IStatusEffectHandler {
                         continue;
                     if (file.getName().equals(foundEffect.name + ".json")) {
                         file.delete();
-
                         SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
                         break;
                     }
@@ -165,7 +169,6 @@ public class StatusEffectController implements IStatusEffectHandler {
         }
     }
 
-
     public int getUnusedId() {
         for (int catid : customEffects.keySet()) {
             if (catid > lastUsedID)
@@ -185,16 +188,13 @@ public class StatusEffectController implements IStatusEffectHandler {
     }
 
     public CustomEffect get(int id) {
-        CustomEffect statusEffect;
-        statusEffect = customEffects.get(id);
-        return statusEffect;
+        return customEffects.get(id);
     }
 
-    public Map<Integer, PlayerEffect> getPlayerEffects(EntityPlayer player) {
+    public Map<EffectKey, PlayerEffect> getPlayerEffects(EntityPlayer player) {
         UUID playerId = NoppesUtilServer.getUUID(player);
-        if (!playerEffects.containsKey(playerId))
-            playerEffects.put(playerId, new ConcurrentHashMap<>());
-        return playerEffects.get(NoppesUtilServer.getUUID(player));
+        playerEffects.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>());
+        return playerEffects.get(playerId);
     }
 
     public void applyEffect(EntityPlayer player, int id) {
@@ -219,14 +219,8 @@ public class StatusEffectController implements IStatusEffectHandler {
 
         CustomEffect parent = get(effect.id);
         if (parent != null) {
-            Map<Integer, PlayerEffect> currentEffects = new ConcurrentHashMap<>();
-            UUID uuid = NoppesUtilServer.getUUID(player);
-            if (playerEffects.containsKey(uuid))
-                currentEffects = playerEffects.get(NoppesUtilServer.getUUID(player));
-            else
-                playerEffects.put(uuid, currentEffects);
-
-            currentEffects.put(effect.id, effect);
+            Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
+            currentEffects.put(new EffectKey(effect.id, effect.index), effect);
             parent.onAdded(player, effect);
         }
     }
@@ -235,19 +229,14 @@ public class StatusEffectController implements IStatusEffectHandler {
         if (effect == null)
             return;
 
-        Map<Integer, PlayerEffect> currentEffects = new ConcurrentHashMap<>();
-        UUID uuid = NoppesUtilServer.getUUID(player);
-        if (playerEffects.containsKey(uuid))
-            currentEffects = playerEffects.get(NoppesUtilServer.getUUID(player));
-        else
-            playerEffects.put(uuid, currentEffects);
-
-        if (currentEffects.containsKey(effect.id)) {
+        Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
+        EffectKey key = new EffectKey(effect.id, effect.index);
+        if (currentEffects.containsKey(key)) {
             CustomEffect parent = get(effect.id);
             if (parent != null) {
                 parent.onRemoved(player, effect, type);
             }
-            currentEffects.remove(effect.id);
+            currentEffects.remove(key);
         }
     }
 
@@ -260,7 +249,7 @@ public class StatusEffectController implements IStatusEffectHandler {
 
     @Override
     public boolean hasEffect(IPlayer player, ICustomEffect effect) {
-        return hasEffect(player, effect.getID());
+        return hasEffect((EntityPlayer) player, effect.getID(), effect.getIndex());
     }
 
     @Override
@@ -346,89 +335,72 @@ public class StatusEffectController implements IStatusEffectHandler {
     }
 
     public void clearEffects(Entity player) {
-        Map<Integer, PlayerEffect> effects = playerEffects.get(NoppesUtilServer.getUUID(player));
+        Map<EffectKey, PlayerEffect> effects = playerEffects.get(NoppesUtilServer.getUUID(player));
         if (effects != null) {
             effects.clear();
         }
     }
 
     public boolean hasEffect(EntityPlayer player, int id) {
-        Map<Integer, PlayerEffect> currentEffects;
-        UUID uuid = NoppesUtilServer.getUUID(player);
-        if (playerEffects.containsKey(uuid))
-            currentEffects = playerEffects.get(uuid);
-        else
-            return false;
+        return hasEffect(player, id, 0);
+    }
 
-        return currentEffects.containsKey(id);
+    public boolean hasEffect(EntityPlayer player, int id, int index) {
+        return getPlayerEffects(player).containsKey(new EffectKey(id, index));
     }
 
     public int getEffectDuration(EntityPlayer player, int id) {
-        Map<Integer, PlayerEffect> currentEffects = new ConcurrentHashMap<>();
-        UUID uuid = NoppesUtilServer.getUUID(player);
-        if (playerEffects.containsKey(uuid))
-            currentEffects = playerEffects.get(uuid);
-        else
-            playerEffects.put(uuid, currentEffects);
+        return getEffectDuration(player, id, 0);
+    }
 
-        if (currentEffects.containsKey(id))
-            return currentEffects.get(id).duration;
-
-        return -1;
+    public int getEffectDuration(EntityPlayer player, int id, int index) {
+        PlayerEffect effect = getPlayerEffects(player).get(new EffectKey(id, index));
+        return effect != null ? effect.duration : -1;
     }
 
     public void applyEffect(EntityPlayer player, int id, int duration, byte level) {
+        applyEffect(player, id, duration, level, 0);
+    }
+
+    public void applyEffect(EntityPlayer player, int id, int duration, byte level, int index) {
         if (player == null || id <= 0)
             return;
-
-        Map<Integer, PlayerEffect> currentEffects = new ConcurrentHashMap<>();
-        UUID uuid = NoppesUtilServer.getUUID(player);
-        if (playerEffects.containsKey(uuid))
-            currentEffects = playerEffects.get(NoppesUtilServer.getUUID(player));
-        else
-            playerEffects.put(uuid, currentEffects);
-
+        Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
         CustomEffect parent = get(id);
         if (parent != null) {
             PlayerEffect playerEffect = new PlayerEffect(id, duration, level);
-            currentEffects.put(id, playerEffect);
+            playerEffect.index = index;
+            currentEffects.put(new EffectKey(id, index), playerEffect);
             parent.onAdded(player, playerEffect);
         }
     }
 
     public void removeEffect(EntityPlayer player, int id, ExpirationType type) {
+        removeEffect(player, id, 0, type);
+    }
+
+    public void removeEffect(EntityPlayer player, int id, int index, ExpirationType type) {
         if (player == null || id <= 0)
             return;
-
-        Map<Integer, PlayerEffect> currentEffects = new ConcurrentHashMap<>();
-        UUID uuid = NoppesUtilServer.getUUID(player);
-        if (playerEffects.containsKey(uuid))
-            currentEffects = playerEffects.get(NoppesUtilServer.getUUID(player));
-        else
-            playerEffects.put(uuid, currentEffects);
-
-        if (currentEffects.containsKey(id)) {
-            PlayerEffect current = currentEffects.get(id);
-            this.removeEffect(player, current, type);
+        Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
+        EffectKey key = new EffectKey(id, index);
+        PlayerEffect effect = currentEffects.get(key);
+        if (effect != null) {
+            this.removeEffect(player, effect, type);
         }
     }
 
     public void decrementEffects(EntityPlayer player) {
-
         Iterator<PlayerEffect> iterator = getPlayerEffects(player).values().iterator();
-
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
         while (iterator.hasNext()) {
             PlayerEffect effect = iterator.next();
-
             if (effect == null) {
                 iterator.remove();
                 continue;
             }
-
             if (effect.duration == -100)
                 continue;
-
             if (effect.duration <= 0) {
                 CustomEffect parent = StatusEffectController.Instance.get(effect.id);
                 if (parent != null) {
@@ -462,35 +434,29 @@ public class StatusEffectController implements IStatusEffectHandler {
                     CustomEffect effect = new CustomEffect();
                     effect.readFromNBT(NBTJsonUtil.LoadFile(file));
                     effect.name = file.getName().substring(0, file.getName().length() - 5);
-
                     if (effect.id == -1) {
                         effect.id = getUnusedId();
                     }
-
                     int originalID = effect.id;
                     int setID = effect.id;
                     while (bootOrder.containsKey(setID) || customEffects.containsKey(setID)) {
                         if (bootOrder.containsKey(setID))
                             if (bootOrder.get(setID).equals(effect.name))
                                 break;
-
                         setID++;
                     }
-
                     effect.id = setID;
                     if (originalID != setID) {
                         LogWriter.info("Found Custom Effect ID Mismatch: " + effect.name + ", New ID: " + setID);
                         effect.save();
                     }
-
                     customEffects.put(effect.id, effect);
                 } catch (Exception e) {
                     LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
                 }
             }
         }
-
-        indexMapper.put(0, customEffects);
+        registerEffectMap(0, customEffects);
         saveEffectLoadMap();
     }
 
@@ -530,25 +496,23 @@ public class StatusEffectController implements IStatusEffectHandler {
 
     private NBTTagCompound writeMapNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
-        NBTTagList customEffects = new NBTTagList();
+        NBTTagList customEffectsList = new NBTTagList();
         for (Integer key : this.customEffects.keySet()) {
             CustomEffect customEffect = this.customEffects.get(key);
             if (!customEffect.getName().isEmpty()) {
                 NBTTagCompound effectCompound = new NBTTagCompound();
                 effectCompound.setString("Name", customEffect.getName());
                 effectCompound.setInteger("ID", key);
-
-                customEffects.appendTag(effectCompound);
+                customEffectsList.appendTag(effectCompound);
             }
         }
-        nbt.setTag("CustomEffects", customEffects);
+        nbt.setTag("CustomEffects", customEffectsList);
         nbt.setInteger("lastID", lastUsedID);
         return nbt;
     }
 
     private void readCustomEffectMap() {
         bootOrder.clear();
-
         try {
             File file = new File(getMapDir(), "customeffects.dat");
             if (file.exists()) {
@@ -560,15 +524,14 @@ public class StatusEffectController implements IStatusEffectHandler {
                 if (file.exists()) {
                     loadCustomEffectMap(file);
                 }
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
         }
     }
 
     private void loadCustomEffectMap(File file) throws IOException {
-        DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
-        readCustomEffectMap(var1);
-        var1.close();
+        DataInputStream dis = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
+        readCustomEffectMap(dis);
+        dis.close();
     }
 
     private void readCustomEffectMap(DataInputStream stream) throws IOException {

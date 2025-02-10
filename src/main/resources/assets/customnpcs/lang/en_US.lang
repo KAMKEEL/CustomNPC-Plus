@@ -537,6 +537,7 @@ global.playerdata=PlayerData
 global.recipes=Recipes
 global.naturalspawn=Spawns
 global.linked=Linked
+global.customeffects=Effects
 
 bank.slot=Slot
 bank.unlock=Unlock
@@ -1256,3 +1257,17 @@ tint.hurt=Hurt Tint
 hitbox.hitbox=Hitbox
 hitbox.width=Width Scale
 hitbox.height=Height Scale
+
+general.menuName=Menu Name
+
+effect.runsEveryX=Runs every X tick
+effect.defaultLength=Default length
+
+# These are supposed to be shorter
+effect.editor.runsEveryX=Every X tick
+effect.editor.defaultLength=Length
+effect.editor.height=Height
+effect.editor.width=Width
+effect.editor.xPos=X Pos
+effect.editor.yPos=Y Pos
+effect.editor.lossOnDeath=Loss on Death
