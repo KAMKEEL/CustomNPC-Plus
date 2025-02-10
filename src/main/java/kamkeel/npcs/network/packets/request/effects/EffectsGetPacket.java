@@ -10,7 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public final class EffectsGetPacket extends AbstractPacket {
         this.effectID = in.readInt();
 
         if (effectID != -1) {
-            CustomEffect effect = (CustomEffect) StatusEffectController.getInstance().get(effectID);
+            CustomEffect effect = (CustomEffect) CustomEffectController.getInstance().get(effectID);
             if (effect != null) {
                 NBTTagCompound compound = effect.writeToNBT(false);
                 compound.setString("PACKETTYPE", "Effect");

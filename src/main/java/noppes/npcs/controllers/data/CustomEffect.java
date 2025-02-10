@@ -5,9 +5,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.data.ICustomEffect;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.scripted.event.PlayerEvent;
 
 import java.util.function.Consumer;
@@ -154,7 +153,7 @@ public class CustomEffect implements ICustomEffect {
 
     @Override
     public ICustomEffect save() {
-        return StatusEffectController.getInstance().saveEffect(this);
+        return CustomEffectController.getInstance().saveEffect(this);
     }
 
     @Override
@@ -256,7 +255,7 @@ public class CustomEffect implements ICustomEffect {
         if (compound.hasKey("ID"))
             id = compound.getInteger("ID");
         else
-            id = StatusEffectController.Instance.getUnusedId();
+            id = CustomEffectController.Instance.getUnusedId();
         name = compound.getString("name");
 
         if (compound.hasKey("menuName", Constants.NBT.TAG_STRING))
@@ -298,10 +297,10 @@ public class CustomEffect implements ICustomEffect {
     }
 
     public EffectScriptHandler getScriptHandler() {
-        return StatusEffectController.getInstance().customEffectScriptHandlers.get(this.id);
+        return CustomEffectController.getInstance().customEffectScriptHandlers.get(this.id);
     }
     public void setScriptHandler(EffectScriptHandler handler) {
-        StatusEffectController.getInstance().customEffectScriptHandlers.put(this.id, handler);
+        CustomEffectController.getInstance().customEffectScriptHandlers.put(this.id, handler);
     }
 
     public EffectScriptHandler getOrCreateScriptHandler() {

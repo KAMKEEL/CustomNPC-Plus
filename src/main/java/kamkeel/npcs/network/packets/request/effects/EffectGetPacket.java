@@ -9,7 +9,7 @@ import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 
 import java.io.IOException;
@@ -44,8 +44,8 @@ public final class EffectGetPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         effectID = in.readInt();
         NBTTagCompound compound = new NBTTagCompound();
-        if (effectID != -1 && StatusEffectController.getInstance().has(effectID)) {
-            CustomEffect Effect = (CustomEffect) StatusEffectController.getInstance().get(effectID);
+        if (effectID != -1 && CustomEffectController.getInstance().has(effectID)) {
+            CustomEffect Effect = (CustomEffect) CustomEffectController.getInstance().get(effectID);
             if (Effect != null) {
                 compound = Effect.writeToNBT(false);
                 compound.setString("Type", "ViewEffect");

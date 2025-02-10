@@ -4,7 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IPlayerEffect;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 
 public class PlayerEffect implements IPlayerEffect {
     public int id;
@@ -22,7 +22,7 @@ public class PlayerEffect implements IPlayerEffect {
         int id = nbt.getInteger("Id");
         int index = nbt.getInteger("Index");
         if (id > 0) {
-            StatusEffectController controller = StatusEffectController.getInstance();
+            CustomEffectController controller = CustomEffectController.getInstance();
             boolean found = controller.has(id);
 //                StatusEffectController.getInstance().customEffects.containsKey(id);
             if (found) {
@@ -74,7 +74,7 @@ public class PlayerEffect implements IPlayerEffect {
 
     @Override
     public String getName() {
-        CustomEffect effect = StatusEffectController.getInstance().get(this.id);
+        CustomEffect effect = CustomEffectController.getInstance().get(this.id);
         if(effect != null)
             return effect.getName();
 
@@ -84,7 +84,7 @@ public class PlayerEffect implements IPlayerEffect {
     @Override
     public void performEffect(IPlayer player) {
         if (player != null && player.getMCEntity() != null && player.getMCEntity() instanceof EntityPlayer) {
-            CustomEffect effect = StatusEffectController.getInstance().get(this.id);
+            CustomEffect effect = CustomEffectController.getInstance().get(this.id);
             if(effect != null)
                 effect.onTick((EntityPlayer) player.getMCEntity(), this);
         }

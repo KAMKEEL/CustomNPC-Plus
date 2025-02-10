@@ -10,7 +10,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 
 import java.io.IOException;
@@ -44,7 +44,7 @@ public class EffectRemovePacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         effectID = in.readInt();
-        StatusEffectController.getInstance().delete(effectID);
+        CustomEffectController.getInstance().delete(effectID);
         NoppesUtilServer.sendCustomEffectDataAll((EntityPlayerMP) player);
         NBTTagCompound compound = (new CustomEffect()).writeToNBT(false);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);

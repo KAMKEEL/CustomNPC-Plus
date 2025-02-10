@@ -1,7 +1,6 @@
 package noppes.npcs.controllers;
 
 import kamkeel.npcs.controllers.SyncController;
-import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,13 +11,12 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.IStatusEffectHandler;
+import noppes.npcs.api.handler.ICustomEffectHandler;
 import noppes.npcs.api.handler.data.ICustomEffect;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectKey;
 import noppes.npcs.controllers.data.EffectScriptHandler;
 import noppes.npcs.controllers.data.PlayerEffect;
-import noppes.npcs.scripted.event.PlayerEvent;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -31,9 +29,9 @@ import java.util.zip.GZIPInputStream;
 
 import static noppes.npcs.scripted.event.PlayerEvent.EffectEvent.ExpirationType;
 
-public class StatusEffectController implements IStatusEffectHandler {
+public class CustomEffectController implements ICustomEffectHandler {
 
-    public static StatusEffectController Instance = new StatusEffectController();
+    public static CustomEffectController Instance = new CustomEffectController();
     public HashMap<Integer, HashMap<Integer, CustomEffect>> indexMapper = new HashMap<>();
 
     public HashMap<Integer, CustomEffect> customEffectsSync = new HashMap<>();
@@ -45,9 +43,9 @@ public class StatusEffectController implements IStatusEffectHandler {
     private int lastUsedID = 0;
     public ConcurrentHashMap<UUID, Map<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
-    public StatusEffectController() {}
+    public CustomEffectController() {}
 
-    public static StatusEffectController getInstance() {
+    public static CustomEffectController getInstance() {
         return Instance;
     }
 
@@ -402,7 +400,7 @@ public class StatusEffectController implements IStatusEffectHandler {
             if (effect.duration == -100)
                 continue;
             if (effect.duration <= 0) {
-                CustomEffect parent = StatusEffectController.Instance.get(effect.id);
+                CustomEffect parent = CustomEffectController.Instance.get(effect.id);
                 if (parent != null) {
                     parent.onRemoved(player, effect, ExpirationType.RUN_OUT);
                 }

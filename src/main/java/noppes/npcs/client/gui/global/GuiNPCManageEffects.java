@@ -18,7 +18,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEffectGeneral;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.client.renderer.ImageData;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
@@ -112,7 +112,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
         effect.readFromNBT(compound);
         setSelected(effect.name);
         if (effect.id != -1) {
-            StatusEffectController.getInstance().customEffects.replace(effect.id, effect);
+            CustomEffectController.getInstance().customEffects.replace(effect.id, effect);
         }
         initGui();
     }

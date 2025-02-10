@@ -5,7 +5,6 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.*;
-import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,12 +14,10 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.StatusEffectController;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectScriptHandler;
 import noppes.npcs.controllers.data.IScriptHandler;
-import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.io.IOException;
 
@@ -80,7 +77,7 @@ public final class EffectScriptPacket extends AbstractPacket {
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
-        CustomEffect effect = StatusEffectController.getInstance().get(in.readInt());
+        CustomEffect effect = CustomEffectController.getInstance().get(in.readInt());
         if(effect == null)
             return;
 

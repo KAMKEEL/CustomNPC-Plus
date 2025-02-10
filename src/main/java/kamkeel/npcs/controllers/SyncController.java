@@ -161,7 +161,7 @@ public class SyncController {
     public static NBTTagCompound customEffectsNBT(){
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for (CustomEffect effect : StatusEffectController.getInstance().customEffects.values()) {
+        for (CustomEffect effect : CustomEffectController.getInstance().customEffects.values()) {
             list.appendTag(effect.writeToNBT(false));
         }
         compound.setTag("Data", list);
@@ -395,11 +395,12 @@ public class SyncController {
                 for (int i = 0; i < list.tagCount(); i++) {
                     CustomEffect effect = new CustomEffect();
                     effect.readFromNBT(list.getCompoundTagAt(i));
-                    StatusEffectController.getInstance().customEffectsSync.put(effect.id, effect);
+                    ClientCacheHandler.getImageData(effect.icon);
+                    CustomEffectController.getInstance().customEffectsSync.put(effect.id, effect);
                 }
 
-                StatusEffectController.getInstance().customEffects = StatusEffectController.getInstance().customEffectsSync;
-                StatusEffectController.getInstance().customEffectsSync = new HashMap<>();
+                CustomEffectController.getInstance().customEffects = CustomEffectController.getInstance().customEffectsSync;
+                CustomEffectController.getInstance().customEffectsSync = new HashMap<>();
                 break;
             }
         }
@@ -480,7 +481,7 @@ public class SyncController {
                 effect.readFromNBT(compound);
                 ClientCacheHandler.getImageData(effect.icon);
 
-                StatusEffectController.Instance.customEffects.put(effect.id, effect);
+                CustomEffectController.Instance.customEffects.put(effect.id, effect);
                 break;
             }
         }
@@ -553,7 +554,7 @@ public class SyncController {
             case MAGIC:
                 break;
             case CUSTOM_EFFECTS:
-                StatusEffectController.Instance.customEffects.remove(id);
+                CustomEffectController.Instance.customEffects.remove(id);
                 break;
         }
     }
