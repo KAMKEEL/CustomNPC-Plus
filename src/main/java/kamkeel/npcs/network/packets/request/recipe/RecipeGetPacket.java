@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
 import java.io.IOException;
@@ -21,9 +22,11 @@ public final class RecipeGetPacket extends AbstractPacket {
     public static String packetName = "Request|RecipeGet";
 
     private int recipeId;
+    private boolean isAnvil = false;
 
-    public RecipeGetPacket(int recipeId) {
+    public RecipeGetPacket(int recipeId, boolean anvil) {
         this.recipeId = recipeId;
+        this.isAnvil = anvil;
     }
 
     public RecipeGetPacket() {}
@@ -43,6 +46,7 @@ public final class RecipeGetPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(recipeId);
+        out.writeBoolean(this.isAnvil);
     }
 
     @Override
@@ -52,7 +56,13 @@ public final class RecipeGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
         int id = in.readInt();
-        RecipeCarpentry recipe = RecipeController.Instance.getRecipe(id);
-        NoppesUtilServer.setRecipeGui((EntityPlayerMP) player, recipe);
+        boolean anvil = in.readBoolean();
+        if(anvil){
+            RecipeAnvil recipe = RecipeController.Instance.getAnvilRecipe(id);
+            NoppesUtilServer.setRecipeAnvilGui((EntityPlayerMP) player, recipe);
+        } else {
+            RecipeCarpentry recipe = RecipeController.Instance.getRecipe(id);
+            NoppesUtilServer.setRecipeGui((EntityPlayerMP) player, recipe);
+        }
     }
 }

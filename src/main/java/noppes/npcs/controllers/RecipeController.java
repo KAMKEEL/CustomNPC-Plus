@@ -219,13 +219,13 @@ public class RecipeController implements IRecipeHandler {
 
         RecipeAnvil current = getAnvilRecipe(recipe.id);
         if(current != null && !current.name.equals(recipe.name)){
-            while(containsRecipeName(recipe.name))
+            while(containsAnvilRecipeName(recipe.name))
                 recipe.name += "_";
         }
 
         if(recipe.id == -1){
             recipe.id = getUniqueAnvilId();
-            while(containsRecipeName(recipe.name))
+            while(containsAnvilRecipeName(recipe.name))
                 recipe.name += "_";
         }
 
@@ -288,7 +288,7 @@ public class RecipeController implements IRecipeHandler {
 
         RecipeAnvil anvilRecipe = anvilRecipes.remove(recipe.id);
         if(anvilRecipe != null)
-            // SyncController.syncAllWorkbenchRecipes();
+            SyncController.syncAllAnvilRecipes();
 
         saveCategories();
         return recipe;

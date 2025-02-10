@@ -77,38 +77,38 @@ public class ContainerAnvilRepair extends Container {
             "Test",
             new ItemStack(Items.iron_pickaxe),
             new ItemStack(Items.paper),
-            4,
-            3));
+            50,
+            23));
         RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
             "Okay",
             new ItemStack(Items.diamond_pickaxe),
             new ItemStack(Items.paper),
-            4,
-            3));
+            21,
+            10));
         RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
             "Bob",
             new ItemStack(Items.golden_pickaxe),
             new ItemStack(Items.paper),
-            4,
-            3));
+            1200,
+            40));
         RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
             "Dude",
             new ItemStack(Items.iron_chestplate),
             new ItemStack(Items.paper),
-            4,
-            3));
+            40000,
+            23));
         RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
             "Oas",
             new ItemStack(Items.golden_pickaxe),
             new ItemStack(Items.diamond),
-            4,
-            3));
+            12,
+            1));
         RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
             "awd",
             new ItemStack(Items.golden_sword),
             new ItemStack(Items.gold_ingot),
-            4,
-            3));
+            80,
+            14));
         RecipeController.Instance.addAnvilRecipe(new RecipeAnvil(
             "fawd",
             new ItemStack(Items.bow),

@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
 import java.io.IOException;
@@ -58,9 +59,16 @@ public final class RecipeSavePacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
+
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
-        RecipeCarpentry recipe = RecipeController.Instance.saveRecipe(compound);
-        NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, recipe.isGlobal ? 3 : 4);
-        NoppesUtilServer.setRecipeGui((EntityPlayerMP) player, recipe);
+        if(compound.hasKey("IsAnvil")){
+            RecipeAnvil recipe = RecipeController.Instance.saveAnvilRecipe(compound);
+            NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, 1);
+            NoppesUtilServer.setRecipeAnvilGui((EntityPlayerMP) player, recipe);
+        } else {
+            RecipeCarpentry recipe = RecipeController.Instance.saveRecipe(compound);
+            NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, recipe.isGlobal ? 3 : 4);
+            NoppesUtilServer.setRecipeGui((EntityPlayerMP) player, recipe);
+        }
     }
 }

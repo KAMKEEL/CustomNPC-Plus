@@ -592,11 +592,15 @@ public class NoppesUtilServer {
 			for(RecipeCarpentry recipe : RecipeController.Instance.globalRecipes.values()){
 				map.put(recipe.name, recipe.id);
 			}
-		}
+		} else if (size == 4){
+            for(RecipeCarpentry recipe : RecipeController.Instance.carpentryRecipes.values()){
+                map.put(recipe.name, recipe.id);
+            }
+        }
 		else{
-			for(RecipeCarpentry recipe : RecipeController.Instance.carpentryRecipes.values()){
-				map.put(recipe.name, recipe.id);
-			}
+            for(RecipeAnvil recipe : RecipeController.Instance.anvilRecipes.values()){
+                map.put(recipe.name, recipe.id);
+            }
 		}
 		sendScrollData(player, map);
 	}
@@ -729,6 +733,17 @@ public class NoppesUtilServer {
 		container.setRecipe(recipe);
         GuiDataPacket.sendGuiData((EntityPlayerMP)player, recipe.writeNBT());
 	}
+
+    public static void setRecipeAnvilGui(EntityPlayerMP player, RecipeAnvil recipe){
+        if(recipe == null)
+            return;
+        if(!(player.openContainer instanceof ContainerManageRecipes))
+            return;
+
+        ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
+        container.setRecipe(recipe);
+        GuiDataPacket.sendGuiData((EntityPlayerMP)player, recipe.writeNBT());
+    }
 
 	public static void sendBank(EntityPlayerMP player,Bank bank) {
 		NBTTagCompound compound = new NBTTagCompound();

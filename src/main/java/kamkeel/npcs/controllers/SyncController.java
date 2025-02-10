@@ -62,6 +62,13 @@ public class SyncController {
             carpentryNBT()
         ), player);
 
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
+            EnumSyncType.ANVIL_RECIPES,
+            EnumSyncAction.RELOAD,
+            -1,
+            anvilNBT()
+        ), player);
+
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
     }
@@ -82,6 +89,17 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for(RecipeCarpentry recipe : controller.carpentryRecipes.values()){
+            list.appendTag(recipe.writeNBT());
+        }
+        compound.setTag("recipes", list);
+        return compound;
+    }
+
+    public static NBTTagCompound anvilNBT(){
+        RecipeController controller = RecipeController.Instance;
+        NBTTagList list = new NBTTagList();
+        NBTTagCompound compound = new NBTTagCompound();
+        for(RecipeAnvil recipe : controller.anvilRecipes.values()){
             list.appendTag(recipe.writeNBT());
         }
         compound.setTag("recipes", list);
@@ -198,6 +216,15 @@ public class SyncController {
             EnumSyncAction.RELOAD,
             -1,
             carpentryNBT()
+        ));
+    }
+
+    public static void syncAllAnvilRecipes() {
+        PacketHandler.Instance.sendToAll(new SyncPacket(
+            EnumSyncType.ANVIL_RECIPES,
+            EnumSyncAction.RELOAD,
+            -1,
+            anvilNBT()
         ));
     }
 
@@ -323,6 +350,21 @@ public class SyncController {
 
                 RecipeController.Instance.carpentryRecipes = RecipeController.syncRecipes;
                 RecipeController.syncRecipes = new HashMap<Integer, RecipeCarpentry>();
+                break;
+            }
+            case ANVIL_RECIPES: {
+                NBTTagList list = fullCompound.getTagList("recipes", 10);
+                if(list == null)
+                    return;
+
+                for(int i = 0; i < list.tagCount(); i++)
+                {
+                    RecipeAnvil recipe = RecipeAnvil.read(list.getCompoundTagAt(i));
+                    RecipeController.syncAnvilRecipes.put(recipe.id, recipe);
+                }
+
+                RecipeController.Instance.anvilRecipes = RecipeController.syncAnvilRecipes;
+                RecipeController.syncAnvilRecipes = new HashMap<Integer, RecipeAnvil>();
                 break;
             }
         }

@@ -9,5 +9,6 @@ public enum EnumSyncType {
     PLAYERDATA,
     MAGIC,
     WORKBENCH_RECIPES,
-    CARPENTRY_RECIPES
+    CARPENTRY_RECIPES,
+    ANVIL_RECIPES,
 }

@@ -14,6 +14,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
 import java.io.IOException;
@@ -22,13 +23,14 @@ public final class RecipeRemovePacket extends AbstractPacket {
     public static String packetName = "Request|RecipeRemove";
 
     private int recipeId;
+    private boolean isAnvil;
 
-    public RecipeRemovePacket(int recipeId) {
+    public RecipeRemovePacket(int recipeId, boolean isAnvil) {
         this.recipeId = recipeId;
+        this.isAnvil = isAnvil;
     }
 
-    public RecipeRemovePacket() {
-    }
+    public RecipeRemovePacket() {}
 
     @Override
     public Enum getType() {
@@ -49,6 +51,7 @@ public final class RecipeRemovePacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(recipeId);
+        out.writeBoolean(isAnvil);
     }
 
     @Override
@@ -58,8 +61,15 @@ public final class RecipeRemovePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
         int id = in.readInt();
-        RecipeCarpentry recipe = RecipeController.Instance.delete(id);
-        NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, recipe.isGlobal ? 3 : 4);
-        NoppesUtilServer.setRecipeGui((EntityPlayerMP) player, new RecipeCarpentry(""));
+        boolean anvil = in.readBoolean();
+        if(anvil){
+            RecipeAnvil recipe = RecipeController.Instance.deleteAnvil(id);
+            NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, 1);
+            NoppesUtilServer.setRecipeAnvilGui((EntityPlayerMP) player, new RecipeAnvil());
+        } else {
+            RecipeCarpentry recipe = RecipeController.Instance.delete(id);
+            NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, recipe.isGlobal ? 3 : 4);
+            NoppesUtilServer.setRecipeGui((EntityPlayerMP) player, new RecipeCarpentry(""));
+        }
     }
 }

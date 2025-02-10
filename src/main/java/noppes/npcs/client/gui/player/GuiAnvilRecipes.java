@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.player;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import noppes.npcs.client.CustomNpcResourceListener;
@@ -109,6 +110,28 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
         updateButton();
     }
 
+    private static class ItemOverlayData {
+        public final int x, y;
+        public final ItemStack item;
+        public ItemOverlayData(int x, int y, ItemStack item) {
+            this.x = x;
+            this.y = y;
+            this.item = item;
+        }
+    }
+
+    private static class TextOverlayData {
+        public final int x, y, width, height;
+        public final String text;
+        public TextOverlayData(int x, int y, int width, int height, String text) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.text = text;
+        }
+    }
+
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -117,22 +140,25 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
         lblPage.label = (page + 1) + "/" + MathHelper.ceiling_float_int(recipes.size() / 8.0F);
         lblPage.x = guiLeft + (xSize - Minecraft.getMinecraft().fontRenderer.getStringWidth(lblPage.label)) / 2;
 
-        // Determine which recipes to show.
         int recipesPerPage = 8;
         int startIndex = page * recipesPerPage;
         int endIndex = Math.min(recipes.size(), startIndex + recipesPerPage);
 
-        // Set base positions: first column X and first row Y.
+        // Base positions relative to guiLeft and guiTop.
         int baseX = guiLeft + 4;
-        int baseY = guiTop + 28;   // first row Y = 28
+        int baseY = guiTop + 28;   // first row = guiTop + 28
         int colSpacing = 124;      // horizontal spacing between columns
-        int rowSpacing = 35;       // vertical spacing so row1 becomes 28+35 = 63
+        int rowSpacing = 35;       // vertical spacing so row1 = guiTop + 28 + 35
+
+        // Create lists to collect overlay data.
+        List<ItemOverlayData> itemOverlays = new ArrayList<ItemOverlayData>();
+        List<TextOverlayData> textOverlays = new ArrayList<TextOverlayData>();
 
         for (int i = startIndex; i < endIndex; i++) {
             RecipeAnvil recipe = recipes.get(i);
             int localIndex = i - startIndex; // 0 to 7
-            int col = localIndex / 4; // 0 for left column, 1 for right column
-            int row = localIndex % 4; // 0 to 3
+            int col = localIndex / 4;         // 0 for left column, 1 for right column
+            int row = localIndex % 4;         // rows 0..3
 
             int slotX = baseX + col * colSpacing;
             int slotY = baseY + row * rowSpacing;
@@ -147,59 +173,91 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
             // Draw the item-to-repair at 50% durability.
             ItemStack toRepair = recipe.itemToRepair;
+            ItemStack halfItem = null;
             if (toRepair != null) {
-                ItemStack halfItem = toRepair.copy();
+                halfItem = toRepair.copy();
                 if (halfItem.isItemStackDamageable()) {
                     int halfDamage = halfItem.getMaxDamage() / 2;
                     halfItem.setItemDamage(halfDamage);
                 }
                 drawItem(halfItem, slotX + 1, slotY + 1, mouseX, mouseY);
+                // Instead of drawing overlay immediately, add to list.
+                if (func_146978_c((slotX+1) - guiLeft, (slotY+1) - guiTop, 16, 16, mouseX, mouseY)) {
+                    itemOverlays.add(new ItemOverlayData(slotX+1, slotY+1, halfItem));
+                }
             }
+
             // Draw the repair material.
             ItemStack material = recipe.repairMaterial;
             if (material != null) {
                 drawItem(material, slotX + 23, slotY + 1, mouseX, mouseY);
+                if (func_146978_c((slotX+23) - guiLeft, (slotY+1) - guiTop, 16, 16, mouseX, mouseY)) {
+                    itemOverlays.add(new ItemOverlayData(slotX+23, slotY+1, material));
+                }
             }
 
             // Draw the output item fully repaired (damage = 0).
-            // For first column, output X = guiLeft+103; second column, output X = guiLeft+229.
             int outputX = (col == 0) ? (guiLeft + 103) : (guiLeft + 229);
+            ItemStack fullOutput = null;
             if (recipe.itemToRepair != null) {
-                ItemStack fullOutput = recipe.itemToRepair.copy();
+                fullOutput = recipe.itemToRepair.copy();
                 if (fullOutput.isItemStackDamageable()) {
                     fullOutput.setItemDamage(0);
                 }
                 drawItem(fullOutput, outputX, slotY, mouseX, mouseY);
+                if (func_146978_c(outputX - guiLeft, slotY - guiTop, 16, 16, mouseX, mouseY)) {
+                    itemOverlays.add(new ItemOverlayData(outputX, slotY, fullOutput));
+                }
             }
 
             // Draw the percentage text.
-            // We want the "middle right" for the first column to be at 68.
-            // So for column 0, centerX is fixed at 68; for column 1, centerX is 68 + colSpacing.
+            int percentCenterX = (col == 0) ? (guiLeft + 57) : (guiLeft + 57 + colSpacing);
             String percentText = Math.round(recipe.getRepairPercentage()) + "%";
-            int textWidth = fontRendererObj.getStringWidth(percentText);
-            int centerX = (col == 0) ? guiLeft + 57 : (guiLeft + 57 + colSpacing);
-            int textX = centerX - (textWidth / 2);
-            int textY = slotY + 4 + row;
-            fontRendererObj.drawString(percentText, textX, textY, CustomNpcResourceListener.DefaultTextColor);
+            int percentWidth = fontRendererObj.getStringWidth(percentText);
+            int percentTextX = percentCenterX - (percentWidth / 2);
+            int percentTextY = slotY + 4 + row;
+            fontRendererObj.drawString(percentText, percentTextX, percentTextY, CustomNpcResourceListener.DefaultTextColor);
+            // Add text overlay for percentage with the full unrounded value.
+            if (func_146978_c(percentTextX - guiLeft, percentTextY - guiTop, percentWidth, fontRendererObj.FONT_HEIGHT, mouseX, mouseY)) {
+                textOverlays.add(new TextOverlayData(percentTextX, percentTextY, percentWidth, fontRendererObj.FONT_HEIGHT, String.valueOf(recipe.getRepairPercentage())));
+            }
 
             // Draw XP cost with scaling.
             String xpCostStr = formatXpCost(recipe.getXpCost());
             int digitCount = xpCostStr.length();
-            // Scale factor: for 1 digit = 1.0, for 2 digits = 0.9, for 3 digits = 0.8.
             float xpScale = 1.0F - 0.1F * (digitCount - 1);
-            // Get raw text width.
             int rawTextWidth = fontRendererObj.getStringWidth(xpCostStr);
             int scaledTextWidth = (int)(rawTextWidth * xpScale);
-            int xpCenterX = (col == 0) ? (guiLeft + 76) : (guiLeft + 78 + colSpacing);
-            int xpTextX = xpCenterX - (scaledTextWidth / 2);
-            int xpTextY = slotY - 4 + row;  // adjust as needed
-
+            int xpCenterX = (col == 0) ? (guiLeft + 76) : (guiLeft + 76 + colSpacing);
+            int xpTextX = xpCenterX - (scaledTextWidth / 2) + col;
+            int xpTextY = slotY - 4 + row;
             GL11.glPushMatrix();
             GL11.glTranslatef(xpTextX, xpTextY, 0);
             GL11.glScalef(xpScale, xpScale, 1.0F);
             fontRendererObj.drawString(xpCostStr, 0, 0, 0x4ac26a);
             GL11.glPopMatrix();
+            // Add text overlay for XP cost with the full (unformatted) number.
+            int xpBoxWidth = scaledTextWidth;
+            int xpBoxHeight = fontRendererObj.FONT_HEIGHT;
+            if (func_146978_c(xpTextX - guiLeft, xpTextY - guiTop, xpBoxWidth, xpBoxHeight, mouseX, mouseY)) {
+                textOverlays.add(new TextOverlayData(xpTextX, xpTextY, xpBoxWidth, xpBoxHeight, String.valueOf(recipe.getXpCost())));
+            }
         }
+
+        for (ItemOverlayData iod : itemOverlays) {
+            this.renderToolTip(iod.item, mouseX, mouseY);
+        }
+
+        for (TextOverlayData tod : textOverlays) {
+            this.drawHoveringText(java.util.Arrays.asList(tod.text), mouseX, mouseY, this.fontRendererObj);
+        }
+    }
+    protected boolean func_146978_c(int p_146978_1_, int p_146978_2_, int p_146978_3_, int p_146978_4_, int p_146978_5_, int p_146978_6_) {
+        int k1 = this.guiLeft;
+        int l1 = this.guiTop;
+        p_146978_5_ -= k1;
+        p_146978_6_ -= l1;
+        return p_146978_5_ >= p_146978_1_ - 1 && p_146978_5_ < p_146978_1_ + p_146978_3_ + 1 && p_146978_6_ >= p_146978_2_ - 1 && p_146978_6_ < p_146978_2_ + p_146978_4_ + 1;
     }
 
     private String formatXpCost(int xp) {
