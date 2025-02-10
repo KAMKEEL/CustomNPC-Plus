@@ -23,9 +23,9 @@ public class PlayerMail implements IInventory, IPlayerMail {
 	public int questId = -1;
 	public String questTitle = "";
 	public ItemStack[] items = new ItemStack[4];
-	
+
 	public long timePast;
-	
+
 	public void readNBT(NBTTagCompound compound) {
 		subject = compound.getString("Subject");
 		sender = compound.getString("Sender");
@@ -81,7 +81,7 @@ public class PlayerMail implements IInventory, IPlayerMail {
         compound.setTag("MailItems", nbttaglist);
 		return compound;
 	}
-	
+
 	public boolean isValid(){
 		return !subject.isEmpty() && !message.hasNoTags() && !sender.isEmpty();
 	}
@@ -168,20 +168,20 @@ public class PlayerMail implements IInventory, IPlayerMail {
 
 	@Override
 	public String getInventoryName() {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
 	@Override
 	public boolean hasCustomInventoryName() {
-		// TODO Auto-generated method stub
+
 		return false;
 	}
 
 	@Override
 	public void markDirty() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class PlayerMail implements IInventory, IPlayerMail {
 
 	@Override
 	public void openInventory() {
-		
+
 	}
 
 	@Override

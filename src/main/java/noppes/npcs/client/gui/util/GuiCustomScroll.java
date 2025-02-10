@@ -308,7 +308,7 @@ public class GuiCustomScroll extends GuiScreen
         drawTexturedModalRect(i, k, xSize, 11, 5, 1);
     }
 	public boolean hasSelected() {
-		// TODO Auto-generated method stub
+
 		return selected >= 0;
 	}
 

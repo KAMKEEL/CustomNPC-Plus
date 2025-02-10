@@ -114,13 +114,13 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
 
 	@Override
 	public void mousePressed(GuiNpcSlider slider) {
-		// TODO Auto-generated method stub
+
 
 	}
 
 	@Override
 	public void mouseReleased(GuiNpcSlider slider) {
-		// TODO Auto-generated method stub
+
 
 	}
 

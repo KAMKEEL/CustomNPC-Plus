@@ -65,6 +65,14 @@ import static kamkeel.npcs.network.packets.data.large.ScrollGroupPacket.sendScro
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
 
+    public static IPlayer getIPlayer(EntityPlayer p) {
+        return (IPlayer) NpcAPI.Instance().getIEntity(p);
+    }
+
+    public static UUID getUUID(Entity entity) {
+        return entity instanceof EntityPlayer ? ((EntityPlayer) entity).getGameProfile().getId() : entity.getUniqueID();
+    }
+
     public static void setEditingNpc(EntityPlayer player, EntityNPCInterface npc){
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         data.editingNpc = npc;

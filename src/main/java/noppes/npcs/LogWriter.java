@@ -81,10 +81,10 @@ public class LogWriter {
 			logger.setLevel(Level.ALL);
 			info(new Date().toString());
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
+
 			e.printStackTrace();
 		}
 	}

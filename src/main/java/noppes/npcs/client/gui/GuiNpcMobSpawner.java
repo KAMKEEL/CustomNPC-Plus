@@ -466,7 +466,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 
 	@Override
 	public void save() {
-		// TODO Auto-generated method stub
+
 	}
 
 	@Override

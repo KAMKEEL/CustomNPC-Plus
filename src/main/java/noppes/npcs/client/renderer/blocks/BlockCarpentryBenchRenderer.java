@@ -92,7 +92,7 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 	@Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
 			Block block, int modelId, RenderBlocks renderer) {
-		// TODO Auto-generated method stub
+
 		return false;
 	}
 

@@ -268,7 +268,7 @@ public class JobItemGiver extends JobInterface{
 
 	@Override
 	public void killed() {
-		// TODO Auto-generated method stub
+
 
 	}
 
@@ -280,7 +280,7 @@ public class JobItemGiver extends JobInterface{
 
 	@Override
 	public void delete() {
-		// TODO Auto-generated method stub
+
 
 	}
 }
