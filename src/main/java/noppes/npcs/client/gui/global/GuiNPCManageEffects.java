@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
+import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
+import kamkeel.npcs.network.packets.request.effects.EffectsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -35,8 +40,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
     public GuiNPCManageEffects(EntityNPCInterface npc) {
         super(npc);
 
-        // TODO: Fix Packet
-        // DBCPacketHandler.Instance.sendToServer(new DBCRequestEffect(-1));
+        PacketClient.sendClient(new EffectsGetPacket(-1));
     }
 
     public void initGui() {
@@ -77,9 +81,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
             while (data.containsKey(name))
                 name += "_";
             CustomEffect effect = new CustomEffect(-1, name);
-
-            // TODO: Fix Packet
-            // DBCPacketHandler.Instance.sendToServer(new DBCSaveEffect(effect.writeToNBT(false), ""));
+            PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), ""));
         } else if (button.id == 1) {
             if (data.containsKey(scrollEffects.getSelected())) {
                 GuiYesNo guiyesno = new GuiYesNo(this, scrollEffects.getSelected(), StatCollector.translateToLocal("gui.delete"), 1);
@@ -89,8 +91,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
             CustomEffect effect = this.effect.cloneEffect();
             while (data.containsKey(effect.name))
                 effect.name += "_";
-            // TODO: Fix Packet
-            // DBCPacketHandler.Instance.sendToServer(new DBCSaveEffect(effect.writeToNBT(false), ""));
+            PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), ""));
         }
 
         if (effect == null)
@@ -110,13 +111,9 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
         this.effect = new CustomEffect();
         effect.readFromNBT(compound);
         setSelected(effect.name);
-
         if (effect.id != -1) {
             StatusEffectController.getInstance().customEffects.replace(effect.id, effect);
         }
-
-
-
         initGui();
     }
 
@@ -248,8 +245,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
             selected = scrollEffects.getSelected();
             originalName = scrollEffects.getSelected();
             if (selected != null && !selected.isEmpty()) {
-                // TODO: Fix Packet
-                // DBCPacketHandler.Instance.sendToServer(new DBCGetEffect(data.get(selected)));
+                PacketClient.sendClient(new EffectGetPacket(data.get(selected)));
             }
         }
     }
@@ -262,9 +258,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
     @Override
     public void save() {
         if (this.selected != null && this.data.containsKey(this.selected) && this.effect != null) {
-
-            // TODO: Fix Packet
-            // DBCPacketHandler.Instance.sendToServer(new DBCSaveEffect(effect.writeToNBT(false), originalName));
+            PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), originalName));
         }
     }
 
@@ -281,9 +275,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
             return;
         if (id == 1) {
             if (data.containsKey(scrollEffects.getSelected())) {
-
-                // TODO: Fix Packet
-                // DBCPacketHandler.Instance.sendToServer(new DBCRemoveEffect(data.get(scrollEffects.getSelected())));
+                PacketClient.sendClient(new EffectRemovePacket(data.get(scrollEffects.getSelected())));
                 scrollEffects.clear();
                 effect = new CustomEffect();
                 initGui();

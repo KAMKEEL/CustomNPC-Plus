@@ -168,6 +168,13 @@ public enum EnumRequestPacket {
     BlockScript,
     NPCScript,
     ScriptInfo,
+    EffectScript,
 
-    DimensionTeleport
+    DimensionTeleport,
+
+    EffectList,
+    EffectGet,
+    EffectScriptGet,
+    EffectRemove,
+    EffectSave,
 }

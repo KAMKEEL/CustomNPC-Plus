@@ -37,6 +37,7 @@ public enum EnumGuiType {
     PlayerAnvil,
 	QuestReward,
 	ManageRecipes,
+    ManageEffects,
 	QuestItem,
 	NpcRemote,
     GlobalRemote,

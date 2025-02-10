@@ -121,6 +121,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new NPCScriptPacket());
         REQUEST_PACKET.registerPacket(new PlayerScriptPacket());
         REQUEST_PACKET.registerPacket(new ScriptInfoPacket());
+        REQUEST_PACKET.registerPacket(new EffectScriptPacket());
 
         // Cloner Packets
         REQUEST_PACKET.registerPacket(new CloneListPacket());

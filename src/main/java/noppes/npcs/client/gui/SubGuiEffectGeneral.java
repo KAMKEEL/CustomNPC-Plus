@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
@@ -193,8 +195,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
             return;
         }
         if (id == -2) {
-            // TODO: FIX PACKET
-            // DBCPacketHandler.Instance.sendToServer(new DBCSaveEffect(effect.writeToNBT(false), originalName));
+            PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), originalName));
             GuiScriptEffect scriptGUI = new GuiScriptEffect(parent, effect);
             scriptGUI.setWorldAndResolution(mc, width, height);
             scriptGUI.initGui();
@@ -249,7 +250,6 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
     @Override
     public void close() {
         super.close();
-        // TODO: FIX Packet
-        // DBCPacketHandler.Instance.sendToServer(new DBCSaveEffect(effect.writeToNBT(false), originalName));
+        PacketClient.sendClient(new EffectSavePacket(effect.writeToNBT(false), originalName));
     }
 }

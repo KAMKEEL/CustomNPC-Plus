@@ -1,5 +1,8 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -132,8 +135,7 @@ public class StatusEffectController implements IStatusEffectHandler {
                     if (file.getName().equals(foundEffect.name + ".json")) {
                         file.delete();
 
-                        // TODO: Fix Packets
-                        // DBCPacketHandler.Instance.sendToAll(new DBCInfoSyncPacket(DBCSyncType.CUSTOM_EFFECT, EnumSyncAction.REMOVE, foundEffect.getID(), new NBTTagCompound()));
+                        SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
                         break;
                     }
                 }
@@ -154,9 +156,7 @@ public class StatusEffectController implements IStatusEffectHandler {
                         continue;
                     if (file.getName().equals(foundEffect.name + ".json")) {
                         file.delete();
-
-                        // TODO: Fix Packets
-                        // DBCPacketHandler.Instance.sendToAll(new DBCInfoSyncPacket(DBCSyncType.CUSTOM_EFFECT, EnumSyncAction.REMOVE, foundEffect.getID(), new NBTTagCompound()));
+                        SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
                         break;
                     }
                 }
@@ -338,8 +338,7 @@ public class StatusEffectController implements IStatusEffectHandler {
                 file2.delete();
             file.renameTo(file2);
             nbtTagCompound.removeTag("ScriptData");
-            // TODO: Add Packets
-            // DBCPacketHandler.Instance.sendToAll(new DBCInfoSyncPacket(DBCSyncType.CUSTOM_EFFECT, EnumSyncAction.UPDATE, -1, nbtTagCompound));
+            SyncController.syncUpdate(EnumSyncType.CUSTOM_EFFECTS, -1, nbtTagCompound);
         } catch (Exception e) {
             LogWriter.except(e);
         }

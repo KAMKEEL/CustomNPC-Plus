@@ -11,4 +11,5 @@ public enum EnumSyncType {
     WORKBENCH_RECIPES,
     CARPENTRY_RECIPES,
     ANVIL_RECIPES,
+    CUSTOM_EFFECTS
 }

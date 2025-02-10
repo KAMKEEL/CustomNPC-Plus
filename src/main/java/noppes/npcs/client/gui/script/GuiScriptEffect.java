@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.script;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.effects.EffectScriptGetPacket;
+import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
 import net.minecraft.client.gui.GuiYesNo;
@@ -46,8 +49,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
             this.hookList.add(type.function);
         }
 
-        // TODO: FIX PACKET
-        // DBCPacketClient.sendClient(new DBCRequestEffectScript(effect.id));
+        EffectScriptPacket.Get(effect.id);
     }
 
     public void initGui() {
@@ -365,16 +367,14 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
         List<ScriptContainer> containers = this.scriptHandler.getScripts();
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
-            // TODO: FIX PACKET
-            // DBCSaveEffectScript.Save(effect.id, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            EffectScriptPacket.Save(effect.id, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
         }
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", this.scriptHandler.getLanguage());
         scriptData.setBoolean("ScriptEnabled", this.scriptHandler.getEnabled());
         scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.scriptHandler.getConsoleText()));
 
-        // TODO: FIX PACKET
-        // DBCSaveEffectScript.Save(effect.id, -1, containers.size(), scriptData);
+        EffectScriptPacket.Save(effect.id, -1, containers.size(), scriptData);
     }
 
     public void textUpdate(String text) {

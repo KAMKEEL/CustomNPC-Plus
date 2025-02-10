@@ -7,6 +7,7 @@ import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
 import kamkeel.npcs.network.packets.data.gui.GuiErrorPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
 import kamkeel.npcs.network.packets.data.npc.DialogPacket;
 import kamkeel.npcs.network.packets.data.ParticlePacket;
@@ -654,6 +655,14 @@ public class NoppesUtilServer {
 
 		sendScrollGroup(player, map);
 	}
+
+    public static void sendCustomEffectDataAll(EntityPlayerMP player) {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        for (CustomEffect effect : StatusEffectController.getInstance().customEffects.values()) {
+            map.put(effect.name, effect.id);
+        }
+        ScrollDataPacket.sendScrollData(player, map);
+    }
 
 	public static void sendTransportCategoryData(EntityPlayerMP player) {
 		HashMap<String,Integer> map = new HashMap<String,Integer>();

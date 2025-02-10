@@ -289,6 +289,9 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ManageBanks)
 			return new GuiNPCManageBanks(npc, (ContainerManageBanks) container);
 
+        else if (gui == EnumGuiType.ManageEffects)
+            return new GuiNPCManageEffects(npc);
+
 		else if (gui == EnumGuiType.MainMenuGlobal)
 			return new GuiNPCGlobalMainMenu(npc);
 
