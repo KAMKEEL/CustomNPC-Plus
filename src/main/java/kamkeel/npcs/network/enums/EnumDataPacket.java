@@ -4,6 +4,7 @@ package kamkeel.npcs.network.enums;
 public enum EnumDataPacket {
     // Synchronization
     SYNC,
+    SYNC_EFFECTS,
     CONFIG_COMMAND,
 
     // Messages

@@ -41,7 +41,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     private HashMap<Integer, String> bootOrder;
 
     private int lastUsedID = 0;
-    public ConcurrentHashMap<UUID, Map<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
     public CustomEffectController() {}
 
@@ -214,9 +214,9 @@ public class CustomEffectController implements ICustomEffectHandler {
         return has(name, 0);
     }
 
-    public Map<EffectKey, PlayerEffect> getPlayerEffects(EntityPlayer player) {
+    public ConcurrentHashMap<EffectKey, PlayerEffect> getPlayerEffects(EntityPlayer player) {
         UUID playerId = NoppesUtilServer.getUUID(player);
-        Map<EffectKey, PlayerEffect> effects = playerEffects.get(playerId);
+        ConcurrentHashMap<EffectKey, PlayerEffect> effects = playerEffects.get(playerId);
         if (effects == null) {
             effects = new ConcurrentHashMap<>();
             playerEffects.put(playerId, effects);

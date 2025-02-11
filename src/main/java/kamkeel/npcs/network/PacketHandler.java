@@ -367,6 +367,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new ScrollDataPacket());
         DATA_PACKET.registerPacket(new ScrollListPacket());
         DATA_PACKET.registerPacket(new SyncPacket());
+        DATA_PACKET.registerPacket(new SyncEffectPacket());
         DATA_PACKET.registerPacket(new GuiDataPacket());
         DATA_PACKET.registerPacket(new PartyDataPacket());
     }

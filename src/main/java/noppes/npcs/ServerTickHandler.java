@@ -53,6 +53,7 @@ public class ServerTickHandler {
 		}
 
         SyncController.syncPlayer(player);
+        SyncController.syncEffects(player);
         ProfileController.login(player);
 	}
 

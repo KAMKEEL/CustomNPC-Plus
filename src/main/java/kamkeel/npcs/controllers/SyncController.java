@@ -4,9 +4,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -15,6 +17,8 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.*;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncController {
 
@@ -556,6 +560,23 @@ public class SyncController {
             case CUSTOM_EFFECTS:
                 CustomEffectController.Instance.customEffects.remove(id);
                 break;
+        }
+    }
+
+    public static void syncEffects(EntityPlayerMP playerMP){
+        ConcurrentHashMap<EffectKey, PlayerEffect> playerEffects = CustomEffectController.getInstance().getPlayerEffects(playerMP);
+        PlayerData playerData = PlayerData.get(playerMP);
+        playerData.effectData.setEffects(playerEffects);
+
+        NBTTagCompound compound = playerData.getPlayerEffects();
+        PacketHandler.Instance.sendToPlayer(new SyncEffectPacket(compound), playerMP);
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static void clientSyncEffects(NBTTagCompound compound) {
+        PlayerData playerData = PlayerData.get(Minecraft.getMinecraft().thePlayer);
+        if(playerData != null){
+            playerData.setPlayerEffects(compound);
         }
     }
 }

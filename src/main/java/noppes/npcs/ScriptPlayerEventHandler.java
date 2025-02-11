@@ -72,6 +72,9 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
+                if(player.ticksExisted % 10 == 0)
+                    SyncController.syncEffects((EntityPlayerMP) player);
+
                 // TODO: Fix Config
                 // player.ticksExisted % ConfigDBCGameplay.CheckEffectsTick == 0
                 if (player.ticksExisted % 10 == 0)
