@@ -75,19 +75,18 @@ public final class UpdateAnimationsPacket extends AbstractPacket {
         }
 
         if (animationData != null) {
-            int animationId;
-            if (nbt.hasKey("AnimationID")) {
-                animationId = nbt.getInteger("AnimationID");
-            } else {
+            if (nbt.hasKey("Animation")) {
                 Animation animation = new Animation();
                 animation.readFromNBT(nbt.getCompoundTag("Animation"));
-                ClientCacheHandler.animationCache.put(animation.getID(), animation);
-                animationId = animation.getID();
+                animationData.setAnimation(animation);
+            } else {
+                animationData.setAnimation(null);
             }
-
-            animationData.setAnimation(ClientCacheHandler.animationCache.get(animationId));
             animationData.readFromNBT(nbt);
-            PacketClient.sendClient(new AnimationCachePacket(animationId));
+            if (nbt.hasKey("Frame")) {
+                animationData.animation.jumpToFrameAtTime(
+                    nbt.getInteger("Frame"), nbt.getInteger("Time"));
+            }
         }
     }
 }

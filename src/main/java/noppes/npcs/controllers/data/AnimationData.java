@@ -221,6 +221,8 @@ public class AnimationData implements IAnimationData {
 
         if (animationNBT != null) {
             data.setTag("Animation", animationNBT);
+        } else if (animation != null) {
+            data.setTag("Animation", animation.writeToNBT());
         }
 
         IAnimatable animatable = animationData.getEntity();
