@@ -33,10 +33,7 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
     public int enchantability;
 
-
-    // TODO: Move to ItemDisplay
     public Display itemDisplay = new Display();
-    // END_TODO
 
     public long lastInited = -1;
 
