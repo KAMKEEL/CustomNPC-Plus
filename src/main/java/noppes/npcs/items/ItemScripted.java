@@ -89,7 +89,7 @@ public class ItemScripted extends Item implements ItemRenderInterface {
 
     public boolean showDurabilityBar(ItemStack stack) {
         IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
-        return istack instanceof ScriptCustomItem && (new ScriptCustomItem(stack)).durabilityShow;
+        return istack instanceof ScriptCustomItem && (new ScriptCustomItem(stack)).itemDisplay.durabilityShow;
     }
 
     public double getDurabilityForDisplay(ItemStack stack) {
@@ -160,6 +160,6 @@ public class ItemScripted extends Item implements ItemRenderInterface {
     public void renderSpecial() {}
 
     public void renderOffset(ScriptCustomItem scriptCustomItem) {
-        GL11.glTranslatef(0.135F * scriptCustomItem.scaleX, 0.2F * scriptCustomItem.scaleY, 0.07F * scriptCustomItem.scaleZ);
+        GL11.glTranslatef(0.135F * scriptCustomItem.itemDisplay.scaleX, 0.2F * scriptCustomItem.itemDisplay.scaleY, 0.07F * scriptCustomItem.itemDisplay.scaleZ);
     }
 }
