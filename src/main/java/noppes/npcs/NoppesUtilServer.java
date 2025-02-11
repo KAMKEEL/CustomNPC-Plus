@@ -812,7 +812,7 @@ public class NoppesUtilServer {
 		entity.setPosition((double) x + 0.5, (double) y, (double) z + 0.5);
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
-			npc.ai.startPos = new int[]{MathHelper.floor_double(npc.posX),MathHelper.floor_double(npc.posY),MathHelper.floor_double(npc.posZ)};
+			npc.ais.startPos = new int[]{MathHelper.floor_double(npc.posX),MathHelper.floor_double(npc.posY),MathHelper.floor_double(npc.posZ)};
 			npc.ticksExisted = 0;
 			npc.totalTicksAlive = 0;
 		}
@@ -831,7 +831,7 @@ public class NoppesUtilServer {
 		}
 		if(entity instanceof EntityNPCInterface){
 			EntityNPCInterface npc = (EntityNPCInterface) entity;
-			npc.ai.startPos = new int[]{MathHelper.floor_double(npc.posX),MathHelper.floor_double(npc.posY),MathHelper.floor_double(npc.posZ)};
+			npc.ais.startPos = new int[]{MathHelper.floor_double(npc.posX),MathHelper.floor_double(npc.posY),MathHelper.floor_double(npc.posZ)};
 			npc.ticksExisted = 0;
 			npc.totalTicksAlive = 0;
 		}

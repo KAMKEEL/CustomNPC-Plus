@@ -31,7 +31,7 @@ public class GuiNpcPather extends GuiNPCInterface implements IGuiData{
         xSize = 176;
         title = "Npc Pather";
         setBackground("smallbg.png");
-        ai = npc.ai;
+        ai = npc.ais;
         PacketClient.sendClient(new MovingPathGetPacket());
 	}
 	@Override

@@ -62,7 +62,7 @@ public final class MainmenuAISavePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        npc.ai.readToNBT(ByteBufUtils.readNBT(in));
+        npc.ais.readToNBT(ByteBufUtils.readNBT(in));
         npc.setHealth(npc.getMaxHealth());
         npc.updateAI = true;
         npc.updateClient = true;

@@ -15,7 +15,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.handler.data.IDialogImage;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.NoppesUtil;
@@ -25,7 +24,6 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogImage;
 import noppes.npcs.controllers.data.DialogOption;
@@ -137,8 +135,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	        float f7 = npc.rotationYawHead;
 	        float f5 = (float)(l) - i;
 	        float f6 = (float)(i1 - 50) - j;
-	        int rotation = npc.ai.orientation;
-	        npc.ai.orientation = 0;
+	        int rotation = npc.ais.orientation;
+	        npc.ais.orientation = 0;
 	        GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
 	        RenderHelper.enableStandardItemLighting();
 	        GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
@@ -155,7 +153,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose
 	            RenderManager.instance.renderEntityWithPosYaw(npc, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
 	        } catch(Exception ignored){}
 
-	        npc.ai.orientation = rotation;
+	        npc.ais.orientation = rotation;
 	        npc.renderYawOffset = f2;
 	        npc.rotationYaw = f3;
 	        npc.rotationPitch = f4;

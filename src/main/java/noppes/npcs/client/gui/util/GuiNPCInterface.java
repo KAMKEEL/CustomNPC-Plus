@@ -426,8 +426,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         float f6 = (float) ((guiTop + y) - 50 * scale * zoomed) - mouseY;
         int orientation = 0;
         if (npc != null) {
-            orientation = npc.ai.orientation;
-            npc.ai.orientation = rotation;
+            orientation = npc.ais.orientation;
+            npc.ais.orientation = rotation;
         }
 
         GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
@@ -446,7 +446,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         entity.prevRotationPitch = entity.rotationPitch = f4;
         entity.prevRotationYawHead = entity.rotationYawHead = f7;
         if (npc != null) {
-            npc.ai.orientation = orientation;
+            npc.ais.orientation = orientation;
         }
         GL11.glPopMatrix();
         RenderHelper.disableStandardItemLighting();

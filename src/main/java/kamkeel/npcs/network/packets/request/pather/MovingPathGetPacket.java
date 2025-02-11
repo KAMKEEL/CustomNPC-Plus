@@ -10,12 +10,9 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NBTTags;
 
 import java.io.IOException;
 
@@ -51,6 +48,6 @@ public final class MovingPathGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.PATHER, player))
             return;
 
-        GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.ai.writeToNBT(new NBTTagCompound()));
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.ais.writeToNBT(new NBTTagCompound()));
     }
 }

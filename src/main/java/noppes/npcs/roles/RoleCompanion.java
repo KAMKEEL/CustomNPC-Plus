@@ -36,23 +36,23 @@ public class RoleCompanion extends RoleInterface {
 	public boolean canAge = true;
 	public long ticksActive = 0;
 	public EnumCompanionStage stage = EnumCompanionStage.FULLGROWN;
-	
+
 	public EntityPlayer owner = null;
 	public int companionID;
-	
+
 	public EnumCompanionJobs job = EnumCompanionJobs.NONE;
 	public CompanionJobInterface jobInterface = null;
-	
-	public boolean hasInv = true;	
+
+	public boolean hasInv = true;
 	public boolean defendOwner = true;
-	
+
 	public CompanionFoodStats foodstats = new CompanionFoodStats();
 	private int eatingTicks = 20;
 	private ItemStack eating = null;
 	private int eatingDelay = 00;
-	
+
 	public int currentExp = 0;
-	
+
 	public RoleCompanion(EntityNPCInterface npc) {
 		super(npc);
 		inventory = new NpcMiscInventory(12);
@@ -91,29 +91,29 @@ public class RoleCompanion extends RoleInterface {
     			eatingDelay--;
     			return;
     		}
-    		
+
 			ItemStack prev = eating;
 			eating = getFood();
-			
+
 			if(prev != null && eating == null)
 				npc.setRoleDataWatcher("");
-    		
+
 			if(prev == null && eating != null){
 				npc.setRoleDataWatcher("eating");
 				eatingTicks = 20;
 			}
-			
+
 			if(isEating()){
 				doEating();
 			}
-			
+
 		}
 		else if(eating != null && !isSitting()){
 			eating = null;
 			eatingDelay = 20;
 			npc.setRoleDataWatcher("");
 		}
-		
+
 		ticksActive++;
 		if(canAge && stage != EnumCompanionStage.FULLGROWN){
 			if(stage == EnumCompanionStage.BABY && ticksActive > EnumCompanionStage.CHILD.matureAge){
@@ -134,7 +134,7 @@ public class RoleCompanion extends RoleInterface {
 	public void clientUpdate() {
 		if(npc.getRoleDataWatcher().equals("eating")){
 			eating = getFood();
-			
+
 			if(isEating()){
 				doEating();
 			}
@@ -142,7 +142,7 @@ public class RoleCompanion extends RoleInterface {
 		else if(eating != null){
 			eating = null;
 		}
-		
+
 	}
 	private void doEating(){
     	if(npc.worldObj.isRemote){
@@ -164,9 +164,9 @@ public class RoleCompanion extends RoleInterface {
                 npc.worldObj.spawnParticle(s, vec31.xCoord, vec31.yCoord, vec31.zCoord, vec3.xCoord, vec3.yCoord + 0.0D, vec3.zCoord);
             }
     	}
-    	else{    		
+    	else{
 			eatingTicks--;
-	
+
 			if(eatingTicks <= 0){
 				if(inventory.decrStackSize(eating, 1)){
 					ItemFood food = (ItemFood) eating.getItem();
@@ -183,19 +183,19 @@ public class RoleCompanion extends RoleInterface {
 			}
     	}
 	}
-	
+
 	public void matureTo(EnumCompanionStage stage){
 		this.stage = stage;
 		EntityCustomNpc npc = (EntityCustomNpc) this.npc;
-		npc.ai.animationType = stage.animation;
+		npc.ais.animationType = stage.animation;
 		if(stage == EnumCompanionStage.BABY){
 			npc.modelData.modelScale.arms.setScale(0.5f, 0.5f, 0.5f);
 			npc.modelData.modelScale.legs.setScale(0.5f, 0.5f, 0.5f);
 			npc.modelData.modelScale.body.setScale(0.5f, 0.5f, 0.5f);
 			npc.modelData.modelScale.head.setScale(0.7f, 0.7f, 0.7f);
-			
-			npc.ai.onAttack = 1;
-			npc.ai.setWalkingSpeed(3);
+
+			npc.ais.onAttack = 1;
+			npc.ais.setWalkingSpeed(3);
 			if(!talents.containsKey(EnumCompanionTalent.INVENTORY))
 				talents.put(EnumCompanionTalent.INVENTORY, 0);
 		}
@@ -205,8 +205,8 @@ public class RoleCompanion extends RoleInterface {
 			npc.modelData.modelScale.body.setScale(0.6f, 0.6f, 0.6f);
 			npc.modelData.modelScale.head.setScale(0.8f, 0.8f, 0.8f);
 
-			npc.ai.onAttack = 0;
-			npc.ai.setWalkingSpeed(4);
+			npc.ais.onAttack = 0;
+			npc.ais.setWalkingSpeed(4);
 			if(!talents.containsKey(EnumCompanionTalent.SWORD))
 				talents.put(EnumCompanionTalent.SWORD, 0);
 		}
@@ -216,10 +216,10 @@ public class RoleCompanion extends RoleInterface {
 			npc.modelData.modelScale.body.setScale(0.8f, 0.8f, 0.8f);
 			npc.modelData.modelScale.head.setScale(0.9f, 0.9f, 0.9f);
 
-			npc.ai.onAttack = 0;
-			npc.ai.setWalkingSpeed(5);
+			npc.ais.onAttack = 0;
+			npc.ais.setWalkingSpeed(5);
 			if(!talents.containsKey(EnumCompanionTalent.ARMOR))
-				talents.put(EnumCompanionTalent.ARMOR, 0);			
+				talents.put(EnumCompanionTalent.ARMOR, 0);
 		}
 		if(stage == EnumCompanionStage.ADULT || stage == EnumCompanionStage.FULLGROWN){
 			npc.modelData.modelScale.arms.setScale(1f, 1f, 1f);
@@ -227,8 +227,8 @@ public class RoleCompanion extends RoleInterface {
 			npc.modelData.modelScale.body.setScale(1f, 1f, 1f);
 			npc.modelData.modelScale.head.setScale(1f, 1f, 1f);
 
-			npc.ai.onAttack = 0;
-			npc.ai.setWalkingSpeed(5);
+			npc.ais.onAttack = 0;
+			npc.ais.setWalkingSpeed(5);
 		}
 	}
 
@@ -246,13 +246,13 @@ public class RoleCompanion extends RoleInterface {
 
 		compound.setBoolean("CompanionHasInv", hasInv);
 		compound.setBoolean("CompanionDefendOwner", defendOwner);
-		
+
 		foodstats.writeNBT(compound);
-		
+
 		compound.setInteger("CompanionJob", job.ordinal());
 		if(jobInterface != null)
 			compound.setTag("CompanionJobData", jobInterface.getNBT());
-		
+
 		NBTTagList list = new NBTTagList();
 		for(EnumCompanionTalent talent : talents.keySet()){
 			NBTTagCompound c = new NBTTagCompound();
@@ -275,12 +275,12 @@ public class RoleCompanion extends RoleInterface {
 		currentExp = compound.getInteger("CompanionExp");
 		canAge = compound.getBoolean("CompanionCanAge");
 		ticksActive = compound.getLong("CompanionAge");
-		
+
 		hasInv = compound.getBoolean("CompanionHasInv");
 		defendOwner = compound.getBoolean("CompanionDefendOwner");
-		
+
 		foodstats.readNBT(compound);
-		
+
 		NBTTagList list = compound.getTagList("CompanionTalents", 10);
 		Map<EnumCompanionTalent, Integer> talents = new TreeMap<EnumCompanionTalent, Integer>();
 		for(int i = 0; i < list.tagCount(); i++){
@@ -289,7 +289,7 @@ public class RoleCompanion extends RoleInterface {
 			talents.put(talent, c.getInteger("Exp"));
 		}
 		this.talents = talents;
-		
+
 		setJob(compound.getInteger("CompanionJob"));
 		if(jobInterface != null)
 			jobInterface.setNBT(compound.getCompoundTag("CompanionJobData"));
@@ -306,7 +306,7 @@ public class RoleCompanion extends RoleInterface {
 			jobInterface = new CompanionGuard();
 		else
 			jobInterface = null;
-		
+
 		if(jobInterface != null)
 			jobInterface.npc = npc;
 	}
@@ -324,37 +324,37 @@ public class RoleCompanion extends RoleInterface {
 			setSitting(!isSitting());
 		}
 	}
-	
+
 	public int getTotalLevel(){
 		int level = 0;
 		for(EnumCompanionTalent talent : talents.keySet())
 			level += this.getTalentLevel(talent);
 		return level;
 	}
-	
+
 	public int getMaxExp(){
 		return 500 + getTotalLevel() * 200;
 	}
-	
+
 	public void addExp(int exp){
 		if(canAddExp(exp))
 			this.currentExp += exp;
 	}
-	
+
 	public boolean canAddExp(int exp){
 		int newExp = this.currentExp + exp;
 		return newExp >= 0 && newExp < getMaxExp();
 	}
-	
+
 	public void gainExp(int chance){
 		if(npc.getRNG().nextInt(chance) == 0)
 			addExp(1);
 	}
-	
+
 	private void openGui(EntityPlayer player){
 		NoppesUtilServer.sendOpenGui(player, EnumGuiType.Companion, npc);
 	}
-	
+
 	public EntityPlayer getOwner(){
 		if(uuid == null || uuid.isEmpty())
 			return null;
@@ -365,7 +365,7 @@ public class RoleCompanion extends RoleInterface {
 	        }
 		}
 		catch(IllegalArgumentException ex){
-			
+
 		}
     	return null;
 	}
@@ -379,11 +379,11 @@ public class RoleCompanion extends RoleInterface {
 	public boolean hasTalent(EnumCompanionTalent talent) {
 		return getTalentLevel(talent) > 0;
 	}
-	
+
 	public int getTalentLevel(EnumCompanionTalent talent){
 		if(!talents.containsKey(talent))
 			return 0;
-		
+
 		int exp = talents.get(talent);
 		if(exp >= 5000)
 			return 5;
@@ -409,10 +409,10 @@ public class RoleCompanion extends RoleInterface {
 		if(exp < 1700)
 			return 1700;
 		if(exp < 3000)
-			return 3000;		
+			return 3000;
 		return 5000;
 	}
-	
+
 	public void levelSword(){
 		if(!talents.containsKey(EnumCompanionTalent.SWORD))
 			return;
@@ -432,11 +432,11 @@ public class RoleCompanion extends RoleInterface {
 	public void setExp(EnumCompanionTalent talent, int exp) {
 		talents.put(talent, exp);
 	}
-	
+
 	private boolean isWeapon(ItemStack item) {
 		if(item == null || item.getItem() == null)
 			return false;
-		return item.getItem() instanceof ItemSword || 
+		return item.getItem() instanceof ItemSword ||
 				item.getItem() instanceof ItemBow ||
 				item.getItem() == Item.getItemFromBlock(Blocks.cobblestone);
 	}
@@ -450,21 +450,21 @@ public class RoleCompanion extends RoleInterface {
 
 		if(item.getItem() instanceof ItemBow)
 			return this.getTalentLevel(EnumCompanionTalent.RANGED) > 2;
-			
+
 		if(item.getItem() == Item.getItemFromBlock(Blocks.cobblestone))
 			return this.getTalentLevel(EnumCompanionTalent.RANGED) > 1;
-			
+
 		return false;
 	}
-	
+
 	public boolean canWearArmor(ItemStack item){
 		int level = getTalentLevel(EnumCompanionTalent.ARMOR);
 		if(item == null || !(item.getItem() instanceof ItemArmor) || level <= 0)
 			return false;
-			
+
 		if(level >= 5)
 			return true;
-		
+
 		ItemArmor armor = (ItemArmor) item.getItem();
 		int reduction = ObfuscationReflectionHelper.getPrivateValue(ArmorMaterial.class, armor.getArmorMaterial(), 5);
 		if(reduction <= 5 && level >= 1)
@@ -476,7 +476,7 @@ public class RoleCompanion extends RoleInterface {
 		if(reduction <= 33 && level >= 4)
 			return true;
 		return false;
-	}	
+	}
 	public boolean canWearSword(ItemStack item){
 		int level = getTalentLevel(EnumCompanionTalent.SWORD);
 		if(item == null || !(item.getItem() instanceof ItemSword) || level <= 0)
@@ -485,7 +485,7 @@ public class RoleCompanion extends RoleInterface {
 			return true;
 		return getSwordDamage(item) - level < 4;
 	}
-	
+
 	private double getSwordDamage(ItemStack item){
 		if(item == null || !(item.getItem() instanceof ItemSword))
 			return 0;
@@ -501,8 +501,8 @@ public class RoleCompanion extends RoleInterface {
         }
 		return 0;
 	}
-	
-	public void setStats(){		
+
+	public void setStats(){
 		ItemStack weapon = npc.inventory.getWeapon();
 		npc.stats.setAttackStrength((float) (1 + getSwordDamage(weapon)));
 		npc.stats.healthRegen = 0;
@@ -516,10 +516,10 @@ public class RoleCompanion extends RoleInterface {
 				npc.inventory.setProjectile(new ItemStack(Items.arrow));
 			}
 		}
-		
+
 		inventory.setSize(2 + getTalentLevel(EnumCompanionTalent.INVENTORY) * 2);
 	}
-	
+
 	public void setSelfsuficient(boolean bo){
 		if(owner == null || jobInterface != null && bo == jobInterface.isSelfSufficient())
 			return;
@@ -531,27 +531,27 @@ public class RoleCompanion extends RoleInterface {
 			((CompanionGuard)jobInterface).isStanding = bo;
 		else if(job == EnumCompanionJobs.FARMER)
 			((CompanionFarmer)jobInterface).isStanding = bo;
-		
+
 	}
-	
+
 	public void setSitting(boolean sit){
 		if(sit){
-			npc.ai.animationType = EnumAnimation.SITTING;
-			npc.ai.onAttack = 3;
-			npc.ai.startPos = new int[]{MathHelper.floor_double(npc.posX), 
+			npc.ais.animationType = EnumAnimation.SITTING;
+			npc.ais.onAttack = 3;
+			npc.ais.startPos = new int[]{MathHelper.floor_double(npc.posX),
 					MathHelper.floor_double(npc.posY), MathHelper.floor_double(npc.posZ)};
 			npc.getNavigator().clearPathEntity();
-			npc.setPositionAndUpdate(npc.ai.startPos[0] + 0.5, npc.posY, npc.ai.startPos[2] + 0.5);
+			npc.setPositionAndUpdate(npc.ais.startPos[0] + 0.5, npc.posY, npc.ais.startPos[2] + 0.5);
 		}
 		else{
-			npc.ai.animationType = stage.animation;
-			npc.ai.onAttack = 0;
+			npc.ais.animationType = stage.animation;
+			npc.ais.onAttack = 0;
 		}
 		npc.setResponse();
 	}
-	
+
 	public boolean isSitting(){
-		return npc.ai.animationType == EnumAnimation.SITTING;
+		return npc.ais.animationType == EnumAnimation.SITTING;
 	}
 
 	public float applyArmorCalculations(DamageSource source, float damage) {
@@ -565,7 +565,7 @@ public class RoleCompanion extends RoleInterface {
         }
 		return damage;
 	}
-	
+
     private void damageArmor(float damage){
         damage /= 4.0F;
 
@@ -586,7 +586,7 @@ public class RoleCompanion extends RoleInterface {
         }
         this.gainExp(hasArmor?4:8);
     }
-	
+
 	public int getTotalArmorValue(){
     	int armorValue = 0;
     	for(ItemStack armor : npc.inventory.getArmor().values()){
@@ -601,7 +601,7 @@ public class RoleCompanion extends RoleInterface {
 			return false;
 		return owner != null && !isSitting();
 	}
-	
+
 	@Override
 	public boolean defendOwner() {
 		if(!defendOwner || owner == null || stage == EnumCompanionStage.BABY || jobInterface != null && jobInterface.isSelfSufficient())
@@ -611,7 +611,7 @@ public class RoleCompanion extends RoleInterface {
 
 	public int followRange() {
 		return 9 + 12 * stage.ordinal();
-		
+
 	}
 
 	public boolean hasOwner() {

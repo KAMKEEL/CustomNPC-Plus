@@ -14,7 +14,7 @@ public class NPCInteractSelector implements IEntitySelector {
 		if(entity == npc || !(entity instanceof EntityNPCInterface) || !npc.isEntityAlive())
 			return false;
 		EntityNPCInterface selected = (EntityNPCInterface) entity;
-		if(selected.isAttacking() || npc.getFaction().isAggressiveToNpc(selected) || !npc.ai.stopAndInteract)
+		if(selected.isAttacking() || npc.getFaction().isAggressiveToNpc(selected) || !npc.ais.stopAndInteract)
 			return false;
 		return true;
 	}

@@ -68,7 +68,7 @@ public class DataTransform {
     	isActive = compound.getBoolean("TransformIsActive");
     	readOptions(compound);
     	display = hasDisplay?compound.getCompoundTag("TransformDisplay"): getDisplay();
-    	ai = hasAi?compound.getCompoundTag("TransformAI"): npc.ai.writeToNBT(new NBTTagCompound());
+    	ai = hasAi?compound.getCompoundTag("TransformAI"): npc.ais.writeToNBT(new NBTTagCompound());
     	advanced = hasAdvanced?compound.getCompoundTag("TransformAdvanced"): getAdvanced();
     	inv = hasInv?compound.getCompoundTag("TransformInv"): npc.inventory.writeEntityToNBT(new NBTTagCompound());
     	stats = hasStats?compound.getCompoundTag("TransformStats"): npc.stats.writeToNBT(new NBTTagCompound());
@@ -146,7 +146,7 @@ public class DataTransform {
     		display = getDisplay();
     	}
     	if(hasAi && !hadAI)
-    		ai = npc.ai.writeToNBT(new NBTTagCompound());
+    		ai = npc.ais.writeToNBT(new NBTTagCompound());
     	if(hasStats && !hadStats)
     		stats = npc.stats.writeToNBT(new NBTTagCompound());
     	if(hasInv && !hadInv)
@@ -221,8 +221,8 @@ public class DataTransform {
 				job = compoundJob;
     	}
     	if(hasAi){
-			NBTTagCompound compound = npc.ai.writeToNBT(new NBTTagCompound());
-			npc.ai.readToNBT(NBTTags.NBTMerge(compound, ai));
+			NBTTagCompound compound = npc.ais.writeToNBT(new NBTTagCompound());
+			npc.ais.readToNBT(NBTTags.NBTMerge(compound, ai));
 			ai = compound;
 	    	npc.setCurrentAnimation(EnumAnimation.NONE);
     	}

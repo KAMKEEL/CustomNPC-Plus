@@ -26,9 +26,9 @@ public class EntityAIFollow extends EntityAIBase
     		return false;
     	return distance > npc.followRange();
     }
-    
+
     public boolean excute(){
-    	if(!npc.isEntityAlive() || !npc.isFollower() || npc.isAttacking() || (owner = npc.getOwner()) == null || npc.ai.animationType == EnumAnimation.SITTING)
+    	if(!npc.isEntityAlive() || !npc.isFollower() || npc.isAttacking() || (owner = npc.getOwner()) == null || npc.ais.animationType == EnumAnimation.SITTING)
     		return false;
     	distance = npc.getDistanceSqToEntity(owner);
     	return true;
@@ -62,7 +62,7 @@ public class EntityAIFollow extends EntityAIBase
 			speed = 3;
         if (this.npc.getNavigator().tryMoveToEntityLiving(owner, speed) || distance < 225.0D)
         	return;
-        
+
         int i = MathHelper.floor_double(this.owner.posX) - 2;
         int j = MathHelper.floor_double(this.owner.posZ) - 2;
         int k = MathHelper.floor_double(this.owner.boundingBox.minY);

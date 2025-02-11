@@ -31,20 +31,20 @@ public class NPCAttackSelector implements IEntitySelector
     public boolean isEntityApplicable(Entity entity){
     	if(!entity.isEntityAlive() || entity == npc || npc.getDistanceToEntity(entity) > npc.stats.aggroRange || !(entity instanceof EntityLivingBase) || ((EntityLivingBase)entity).getHealth() < 1)
     		return false;
-        if (this.npc.ai.directLOS && !this.npc.getEntitySenses().canSee(entity))
+        if (this.npc.ais.directLOS && !this.npc.getEntitySenses().canSee(entity))
         	return false;
 
         if(!npc.stats.attackInvisible &&((EntityLivingBase)entity).isPotionActive(Potion.invisibility) && npc.getDistanceSqToEntity(entity) < 9)
         	return false;
 
     	//prevent the npc from going on an endless killing spree
-    	if(!npc.isFollower() && npc.ai.returnToStart){
+    	if(!npc.isFollower() && npc.ais.returnToStart){
 	    	int allowedDistance = npc.stats.aggroRange * 2;
-	    	if(npc.ai.movingType == EnumMovingType.Wandering)
-	    		allowedDistance += npc.ai.walkingRange;
+	    	if(npc.ais.movingType == EnumMovingType.Wandering)
+	    		allowedDistance += npc.ais.walkingRange;
 	    	double distance = entity.getDistanceSq(npc.getStartXPos(), npc.getStartYPos(), npc.getStartZPos());
-	    	if(npc.ai.movingType == EnumMovingType.MovingPath){
-	    		int[] arr = npc.ai.getCurrentMovingPath();
+	    	if(npc.ais.movingType == EnumMovingType.MovingPath){
+	    		int[] arr = npc.ais.getCurrentMovingPath();
 		    	distance = entity.getDistanceSq(arr[0], arr[1], arr[2]);
 	    	}
 

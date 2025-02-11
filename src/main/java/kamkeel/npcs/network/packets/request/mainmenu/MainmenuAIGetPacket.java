@@ -48,6 +48,6 @@ public final class MainmenuAIGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.ai.writeToNBT(new NBTTagCompound()));
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.ais.writeToNBT(new NBTTagCompound()));
     }
 }

@@ -15,7 +15,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
     @Override
     public boolean canFly(){
-        return ai.movementType == 1;
+        return ais.movementType == 1;
     }
 
     @Override
@@ -46,15 +46,15 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
         if (heightOffGround < 0) {
             Vec3 pos = Vec3.createVectorHelper(this.posX,this.posY,this.posZ);
-            Vec3 posLimit = Vec3.createVectorHelper(this.posX,this.posY - this.ai.flyHeightLimit,this.posZ);
+            Vec3 posLimit = Vec3.createVectorHelper(this.posX,this.posY - this.ais.flyHeightLimit,this.posZ);
             MovingObjectPosition mob = this.worldObj.rayTraceBlocks(pos,posLimit,true);
             if (mob == null || mob.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) {
                 aboveLimit = true;
             }
-        } else if (heightOffGround > this.ai.flyHeightLimit) {
+        } else if (heightOffGround > this.ais.flyHeightLimit) {
             aboveLimit = true;
         }
-        if (aboveLimit && this.ai.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
+        if (aboveLimit && this.ais.hasFlyLimit || (heightOffGround < Math.ceil(this.height) && this.motionY == 0)) {
             this.flyLimitAllow = false;
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;
@@ -70,7 +70,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         this.motionY = d3;
 
         if (this.getNavigator().noPath()) {
-            this.motionY = -Math.abs(this.ai.flyGravity);
+            this.motionY = -Math.abs(this.ais.flyGravity);
         }
 
         this.updateLimbSwing();

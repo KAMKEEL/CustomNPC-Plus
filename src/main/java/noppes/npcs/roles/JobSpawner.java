@@ -388,7 +388,7 @@ public class JobSpawner extends JobInterface{
 			if (living instanceof EntityNPCInterface) {
 				EntityNPCInterface snpc = (EntityNPCInterface) living;
 				snpc.stats.spawnCycle = 3;
-				snpc.ai.returnToStart = false;
+				snpc.ais.returnToStart = false;
 				snpc.stats.canDespawn = true;
 				snpc.stats.playerSetCanDespawn = true;
 			}

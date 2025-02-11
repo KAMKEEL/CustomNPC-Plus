@@ -92,7 +92,7 @@ public class FlyPathFinder extends PathFinder
     {
         int i;
 
-        if (((EntityNPCInterface)theEntity).ai.canSwim && this.theEntity.isInWater())
+        if (((EntityNPCInterface)theEntity).ais.canSwim && this.theEntity.isInWater())
         {
             i = (int)this.theEntity.boundingBox.minY;
             BlockPos.MutableBlockPos muteBlock = new BlockPos.MutableBlockPos(MathHelper.floor_double(this.theEntity.posX), i, MathHelper.floor_double(this.theEntity.posZ));
@@ -132,7 +132,7 @@ public class FlyPathFinder extends PathFinder
 
         return openPoint(blockpos1.getX(), i, blockpos1.getZ());
     }
-    
+
 
     public NPCPathPoint getPathPointToCoords(Entity entityIn, double x, double y, double z)
     {
@@ -661,7 +661,7 @@ public class FlyPathFinder extends PathFinder
         int entitySizeX = MathHelper.floor_double(this.theEntity.width + 1.0F);
         int entitySizeY = MathHelper.floor_double(this.theEntity.height + 1.0F);
         int entitySizeZ = MathHelper.floor_double(this.theEntity.width + 1.0F);
-        return this.getPathNodeType(this.worldMap, p_192558_2_, p_192558_3_, p_192558_4_, p_192558_1_, entitySizeX, entitySizeY, entitySizeZ, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ai.doorInteract == 1);
+        return this.getPathNodeType(this.worldMap, p_192558_2_, p_192558_3_, p_192558_4_, p_192558_1_, entitySizeX, entitySizeY, entitySizeZ, ((EntityCustomNpc)this.theEntity).ais.doorInteract == 0, ((EntityCustomNpc)this.theEntity).ais.doorInteract == 1);
     }
 
     public PathNodeType checkNeighborBlocks(IBlockAccess worldmap, int x, int y, int z, PathNodeType type)
@@ -735,7 +735,7 @@ public class FlyPathFinder extends PathFinder
             {
                 if (material == Material.water)
                 {
-                    return ((EntityNPCInterface)this.theEntity).ai.canSwim ? PathNodeType.OPEN :  PathNodeType.WATER;
+                    return ((EntityNPCInterface)this.theEntity).ais.canSwim ? PathNodeType.OPEN :  PathNodeType.WATER;
                 }
                 else if (material == Material.lava)
                 {
