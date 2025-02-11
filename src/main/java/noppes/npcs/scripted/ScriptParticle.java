@@ -146,8 +146,20 @@ public class ScriptParticle implements IParticle {
     }
 
     public void spawn(IWorld world, double x, double y, double z){
+        double prevX = this.x;
+        double prevY = this.y;
+        double prevZ = this.z;
+
+        this.x = x;
+        this.y = y;
+        this.z = z;
+
         NBTTagCompound compound = this.writeToNBT();
         NoppesUtilServer.spawnScriptedParticle(compound, world.getDimensionID());
+
+        this.x = prevX;
+        this.y = prevY;
+        this.z = prevZ;
     }
 
     public void spawnOnEntity(IEntity entity) {
