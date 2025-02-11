@@ -155,8 +155,8 @@ public class GuiModelInterface2 extends GuiNPCInterface2{
 
 	@Override
 	public void save() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 
     public void setSave(boolean saveNPC){

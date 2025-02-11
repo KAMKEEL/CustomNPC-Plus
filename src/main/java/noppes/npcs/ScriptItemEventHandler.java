@@ -22,6 +22,7 @@ import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ItemEvent;
+import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.util.HashMap;
 
@@ -60,8 +61,9 @@ public class ScriptItemEventHandler {
         if(event.player.worldObj instanceof WorldServer) {
             try {
                 if (event.entityItem.getEntityItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                    IItemCustom isw = ItemScripted.GetWrapper(event.entityItem.getEntityItem());
-                    event.setCanceled(EventHooks.onScriptItemTossed(isw, event.player, event.entityItem));
+                    IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityItem.getEntityItem());
+                    if(isw instanceof IItemCustom)
+                        event.setCanceled(EventHooks.onScriptItemTossed((IItemCustom) isw, event.player, event.entityItem));
                 }
             } catch (Exception e) {}
         }
@@ -75,8 +77,9 @@ public class ScriptItemEventHandler {
         if(event.player.worldObj instanceof WorldServer) {
             try {
                 if (event.player.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                    IItemCustom isw = ItemScripted.GetWrapper(event.player.getHeldItem());
-                    EventHooks.onScriptItemPickedUp(isw, event.player);
+                    IItemStack isw = NpcAPI.Instance().getIItemStack(event.player.getHeldItem());
+                    if(isw instanceof IItemCustom)
+                        EventHooks.onScriptItemPickedUp((IItemCustom) isw, event.player);
                 }
             } catch(Exception e) {}
         }
@@ -89,8 +92,13 @@ public class ScriptItemEventHandler {
             ItemStack stack = entity.getEntityItem();
 
             try {
-                if (stack.stackSize > 0 && stack.getItem() == CustomItems.scripted_item && EventHooks.onScriptItemSpawn(ItemScripted.GetWrapper(stack), entity)) {
-                    event.setCanceled(true);
+                if (stack.stackSize > 0 && stack.getItem() == CustomItems.scripted_item) {
+                    IItemStack isw = NpcAPI.Instance().getIItemStack(stack);
+                    if(isw instanceof IItemCustom){
+                        if(EventHooks.onScriptItemSpawn((IItemCustom) isw, entity)){
+                            event.setCanceled(true);
+                        }
+                    }
                 }
             } catch(Exception e) {}
         }
@@ -104,12 +112,14 @@ public class ScriptItemEventHandler {
         if(!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
             try {
                 if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                    IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                    ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIEntity(event.target));
-                    event.setCanceled(EventHooks.onScriptItemInteract(isw, eve));
+                    IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
+                    if(isw instanceof IItemCustom){
+                        ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent((IItemCustom) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIEntity(event.target));
+                        event.setCanceled(EventHooks.onScriptItemInteract((IItemCustom) isw, eve));
 
-                    ItemEvent.RightClickEvent rightClickEvent = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 1,  NpcAPI.Instance().getIEntity(event.target));
-                    event.setCanceled(EventHooks.onScriptItemRightClick(isw, rightClickEvent));
+                        ItemEvent.RightClickEvent rightClickEvent = new ItemEvent.RightClickEvent((IItemCustom) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 1,  NpcAPI.Instance().getIEntity(event.target));
+                        event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustom) isw, rightClickEvent));
+                    }
                 }
             } catch(Exception e) {}
         }
@@ -135,9 +145,11 @@ public class ScriptItemEventHandler {
                 }
                 try {
                     if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                        IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                        ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 0, null);
-                        event.setCanceled(EventHooks.onScriptItemRightClick(isw, eve));
+                        IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
+                        if(isw instanceof IItemCustom){
+                            ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent((IItemCustom) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 0, null);
+                            event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustom) isw, eve));
+                        }
                     }
                 } catch(Exception e) {}
             }
@@ -149,9 +161,11 @@ public class ScriptItemEventHandler {
                 handler.hadInteract = true;
                 try {
                     if (event.entityPlayer.getHeldItem().getItem() == CustomItems.scripted_item && !event.isCanceled()) {
-                        IItemCustom isw = ItemScripted.GetWrapper(event.entityPlayer.getHeldItem());
-                        ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent(isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock((IWorld) NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
-                        event.setCanceled(EventHooks.onScriptItemRightClick(isw, eve));
+                        IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
+                        if(isw instanceof IItemCustom){
+                            ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent((IItemCustom) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock((IWorld) NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
+                            event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustom) isw, eve));
+                        }
                     }
                 } catch(Exception e) {}
             }
@@ -164,9 +178,12 @@ public class ScriptItemEventHandler {
             return;
 
         if(event.entityPlayer.worldObj instanceof WorldServer) {
-            IItemCustom handler = ItemScripted.GetWrapper(event.item);
-            IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            event.setCanceled(EventHooks.onStartUsingCustomItem(handler, IPlayer, event.duration));
+
+            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
+            if(isw instanceof IItemCustom){
+                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
+                event.setCanceled(EventHooks.onStartUsingCustomItem((IItemCustom) isw, IPlayer, event.duration));
+            }
         }
     }
     @SubscribeEvent
@@ -175,9 +192,12 @@ public class ScriptItemEventHandler {
             return;
 
         if(event.entityPlayer.worldObj instanceof WorldServer && event.item.getItem() == CustomItems.scripted_item) {
-            IItemCustom handler = ItemScripted.GetWrapper(event.item);
-            IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            event.setCanceled(EventHooks.onUsingCustomItem(handler, IPlayer, event.duration));
+
+            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
+            if(isw instanceof IItemCustom){
+                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
+                event.setCanceled(EventHooks.onUsingCustomItem((IItemCustom) isw, IPlayer, event.duration));
+            }
         }
     }
     @SubscribeEvent
@@ -186,9 +206,11 @@ public class ScriptItemEventHandler {
             return;
 
         if(event.entityPlayer.worldObj instanceof WorldServer && event.item.getItem() == CustomItems.scripted_item) {
-            IItemCustom handler = ItemScripted.GetWrapper(event.item);
-            IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            event.setCanceled(EventHooks.onStopUsingCustomItem(handler, IPlayer, event.duration));
+            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
+            if(isw instanceof IItemCustom){
+                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
+                event.setCanceled(EventHooks.onStopUsingCustomItem((IItemCustom) isw, IPlayer, event.duration));
+            }
         }
     }
     @SubscribeEvent
@@ -197,9 +219,11 @@ public class ScriptItemEventHandler {
             return;
 
         if(event.entityPlayer.worldObj instanceof WorldServer && event.item.getItem() == CustomItems.scripted_item) {
-            IItemCustom handler = ItemScripted.GetWrapper(event.item);
-            IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            EventHooks.onFinishUsingCustomItem(handler, IPlayer, event.duration);
+            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
+            if(isw instanceof IItemCustom){
+                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
+                EventHooks.onFinishUsingCustomItem((IItemCustom) isw, IPlayer, event.duration);
+            }
         }
     }
 }

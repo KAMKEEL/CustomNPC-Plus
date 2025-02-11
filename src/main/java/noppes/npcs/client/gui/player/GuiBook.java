@@ -2,6 +2,8 @@ package noppes.npcs.client.gui.player;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.SaveBookPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -178,7 +180,7 @@ public class GuiBook extends GuiScreen
                     this.bookObj.func_150996_a(Items.written_book);
                 }
 
-                NoppesUtilPlayer.sendData(EnumPlayerPacket.SaveBook, x, y, z, sign, bookObj.writeToNBT(new NBTTagCompound()));
+                PacketClient.sendClient(new SaveBookPacket(x, y, z, sign, bookObj.writeToNBT(new NBTTagCompound())));
 
             }
         }

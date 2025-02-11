@@ -1,5 +1,10 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -27,7 +32,6 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -45,7 +49,6 @@ import noppes.npcs.util.ValueUtil;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -263,8 +266,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         	return;
         QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+
+        AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", quest.title);
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", quest.title);
         data.updateClient = true;
 	}
 
@@ -756,7 +760,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void closeGui() {
 		((EntityPlayerMP)this.entity).closeContainer();
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, -1, new NBTTagCompound());
+        GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public void showCustomOverlay(ICustomOverlay overlay) {
@@ -764,8 +768,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void closeOverlay(int id) {
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.SCRIPT_OVERLAY_CLOSE, id, new NBTTagCompound());
-	}
+        PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(id), (EntityPlayerMP)this.entity);
+    }
 
 	public IOverlayHandler getOverlays() {
 		return this.getData().skinOverlays;

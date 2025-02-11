@@ -8,24 +8,32 @@ import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCouchWool;
 import noppes.npcs.blocks.tiles.TileCouchWool;
-import noppes.npcs.client.model.blocks.*;
+import noppes.npcs.client.model.blocks.couch.*;
+import noppes.npcs.client.model.blocks.legacy.couch.*;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class BlockCouchWoolRenderer extends BlockRendererInterface{
 
-	private final ModelBase model = new ModelCouchMiddle();
-	private final ModelBase model2 = new ModelCouchMiddleWool();
+    private final ModelBase modelCouchLeft = new ModelCouchLeft();
+    private final ModelBase modelCouchRight = new ModelCouchRight();
+    private final ModelBase modelCouchCorner = new ModelCouchCorner();
+    private final ModelBase modelCouch = new ModelCouch();
+    private final ModelBase modelCouchSingle = new ModelCouchSingle();
 
-	private final ModelBase modelLeft = new ModelCouchLeft();
-	private final ModelBase modelLeft2 = new ModelCouchLeftWool();
+	private final ModelBase modelLegacyCouchMiddle = new ModelLegacyCouchMiddle();
+	private final ModelBase modelLegacyCouchMiddleWool = new ModelLegacyCouchMiddleWool();
 
-	private final ModelBase modelRight = new ModelCouchRight();
-	private final ModelBase modelRight2 = new ModelCouchRightWool();
+	private final ModelBase modelLegacyCouchLeft = new ModelLegacyCouchLeft();
+	private final ModelBase modelLegacyCouchLeftWool = new ModelLegacyCouchLeftWool();
 
-	private final ModelBase modelCorner = new ModelCouchCorner();
-	private final ModelBase modelCorner2 = new ModelCouchCornerWool();
-	
+	private final ModelBase modelLegacyCouchRight = new ModelLegacyCouchRight();
+	private final ModelBase modelLegacyCouchRightWool = new ModelLegacyCouchRightWool();
+
+	private final ModelBase modelLegacyCouchCorner = new ModelLegacyCouchCorner();
+	private final ModelBase modelLegacyCouchCornerWool = new ModelLegacyCouchCornerWool();
+
     public BlockCouchWoolRenderer(){
 		((BlockCouchWool)CustomItems.couchWool).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -37,41 +45,59 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
-        //GL11.glScalef(0.95f, 0.95f, 0.95f);
+        //GL11.glS calef(0.95f, 0.95f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-        
-        setWoodTexture(var1.getBlockMetadata());
-        if(tile.hasCornerLeft)
-        	modelCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else if(tile.hasCornerRight){
-            GL11.glRotatef(90, 0, 1, 0);
-        	modelCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+
+        if(false){
+            setWoodTexture(var1.getBlockMetadata());
+            if(tile.hasCornerLeft)
+                modelLegacyCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasCornerRight){
+                GL11.glRotatef(90, 0, 1, 0);
+                modelLegacyCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
+            else if(tile.hasLeft && tile.hasRight)
+                modelLegacyCouchMiddle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasLeft)
+                modelLegacyCouchLeft.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasRight)
+                modelLegacyCouchRight.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else
+                modelLegacyCouchMiddle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+
+            this.bindTexture(BlockTallLampRenderer.resourceTop);
+            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            GL11.glColor3f(color[0], color[1], color[2]);
+
+            if(tile.hasCornerLeft || tile.hasCornerRight)
+                modelLegacyCouchCornerWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasLeft && tile.hasRight)
+                modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasLeft)
+                modelLegacyCouchLeftWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasRight)
+                modelLegacyCouchRightWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else
+                modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        } else {
+            setWoodTexture(var1.getBlockMetadata());
+            if(tile.hasCornerLeft)
+                modelCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasCornerRight){
+                GL11.glRotatef(90, 0, 1, 0);
+                modelCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
+            else if(tile.hasLeft && tile.hasRight)
+                modelCouch.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasLeft)
+                modelCouchLeft.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else if(tile.hasRight)
+                modelCouchRight.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            else
+                modelCouchSingle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
-        else if(tile.hasLeft && tile.hasRight)
-        	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else if(tile.hasLeft)
-        	modelLeft.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else if(tile.hasRight)
-        	modelRight.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else
-        	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-        this.bindTexture(BlockTallLampRenderer.resourceTop);
-        float[] color = BlockBannerRenderer.colorTable[tile.color];
-        GL11.glColor3f(color[0], color[1], color[2]);
-
-        if(tile.hasCornerLeft || tile.hasCornerRight)
-        	modelCorner2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else if(tile.hasLeft && tile.hasRight)
-        	model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else if(tile.hasLeft)
-        	modelLeft2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else if(tile.hasRight)
-        	modelRight2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        else
-        	model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
 		GL11.glPopMatrix();
 	}
@@ -87,12 +113,12 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
 
         setWoodTexture(metadata);
         GL11.glColor3f(1, 1, 1);
-        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        modelLegacyCouchMiddle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
         this.bindTexture(BlockTallLampRenderer.resourceTop);
         float[] color = BlockBannerRenderer.colorTable[15 - metadata];
         GL11.glColor3f(color[0], color[1], color[2]);
-        model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 		GL11.glPopMatrix();
 	}
 

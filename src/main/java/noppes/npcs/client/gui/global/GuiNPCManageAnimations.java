@@ -1,14 +1,19 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -33,7 +38,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         this.setSave(save);
         this.xOffset = -148 + 70;
         this.yOffset = -170 + 137;
-        Client.sendData(EnumPacketServer.AnimationsGet);
+        PacketClient.sendClient(new AnimationsGetPacket());
 
         AnimationData data = npc.display.animationData;
         data.setEnabled(true);
@@ -155,12 +160,12 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         GuiNpcButton button = (GuiNpcButton) guibutton;
 
         if(button.id == 0){
-            save();
-            String name = "New";
-            while(data.containsKey(name))
-                name += "_";
-            Animation animation = new Animation(-1, name);
-            Client.sendData(EnumPacketServer.AnimationSave, animation.writeToNBT());
+        	save();
+        	String name = "New";
+        	while(data.containsKey(name))
+        		name += "_";
+        	Animation animation = new Animation(-1, name);
+            PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
         }
         if(button.id == 1){
             if(data.containsKey(scrollAnimations.getSelected())) {
@@ -225,20 +230,20 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         scrollAnimations.setSelected(selected);
     }
 
-    @Override
-    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-        if(guiCustomScroll.id == 0)
-        {
-            selected = scrollAnimations.getSelected();
-            Client.sendData(EnumPacketServer.AnimationGet, data.get(selected));
-        }
-    }
+	@Override
+	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+		if(guiCustomScroll.id == 0)
+		{
+			selected = scrollAnimations.getSelected();
+            PacketClient.sendClient(new AnimationGetPacket(data.get(selected)));
+		}
+	}
 
-    public void save() {
-        if(selected != null && data.containsKey(selected) && animation != null){
-            Client.sendData(EnumPacketServer.AnimationSave, animation.writeToNBT());
-        }
-    }
+	public void save() {
+		if(selected != null && data.containsKey(selected) && animation != null){
+            PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
+		}
+	}
 
     @Override
     public void unFocused(GuiNpcTextField guiNpcTextField) {
@@ -268,7 +273,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
             return;
         if(id == 1) {
             if(data.containsKey(scrollAnimations.getSelected())) {
-                Client.sendData(EnumPacketServer.AnimationRemove, data.get(selected));
+                PacketClient.sendClient(new AnimationRemovePacket(data.get(selected)));
                 scrollAnimations.clear();
                 animation = new Animation();
                 initGui();

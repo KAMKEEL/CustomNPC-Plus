@@ -1,5 +1,7 @@
 package noppes.npcs.blocks;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.gui.GuiWaypointPacket;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.EntityLivingBase;
@@ -12,10 +14,8 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.Server;
 import noppes.npcs.blocks.tiles.TileWaypoint;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
 
 public class BlockWaypoint extends BlockContainer{
 
@@ -34,7 +34,7 @@ public class BlockWaypoint extends BlockContainer{
 			TileEntity tile = par1World.getTileEntity(i, j, k);
 			NBTTagCompound compound = new NBTTagCompound();
 			tile.writeToNBT(compound);
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.GUI_WAYPOINT, compound);
+            PacketHandler.Instance.sendToPlayer(new GuiWaypointPacket(compound), (EntityPlayerMP)player);
         	return true;
 		}
 		return false;

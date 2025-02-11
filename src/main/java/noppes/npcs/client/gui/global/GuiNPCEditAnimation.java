@@ -1,14 +1,16 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
@@ -591,7 +593,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     public void close() {
         if (!this.hasSubGui()) {
             if (animation != null) {
-                Client.sendData(EnumPacketServer.AnimationSave, animation.writeToNBT());
+                PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
             }
             displayGuiScreen(parent);
         } else {

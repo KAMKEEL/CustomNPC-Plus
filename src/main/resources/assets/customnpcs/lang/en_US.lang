@@ -88,8 +88,14 @@ gui.sunlight=Sunlight
 gui.always=Always
 gui.untilclose=UntilClose
 gui.whenavailable=OnTheMove
-gui.ignoreDamage=Ignore damage
+gui.ignoreDamage=Ignore Damage
 gui.ignoreNBT=Ignore NBT
+gui.ignoreMatDamage=Ignore Material DMG
+gui.ignoreMatNBT=Ignore Material NBT
+gui.ignoreItemNBT=Ignore Item NBT
+gui.repairPercent=Repair %
+gui.material=Material
+gui.xpCost=XP Cost
 gui.recordHistory=Record History
 gui.minrange=MinimumRange
 gui.engagedistance=EngageDistance
@@ -137,6 +143,7 @@ gui.loading=Loading
 gui.off=Off
 gui.on=On
 gui.sure=Are you sure?
+gui.available=Requirements Met
 
 party.accept=Accept
 party.allowParty=Allow Partying
@@ -319,6 +326,13 @@ availability.name=Availability
 availability.areaNotAvailble=You can't go this way
 availability.permission=You don't have permission to do this
 availability.editIcon=For the next 10 seconds you can set any item icon by right clicking
+
+availability.error.day=Only During Day
+availability.error.night=Only During Night
+availability.error.dialog=%s Dialog %d
+availability.error.quest=%s Quest %d
+availability.error.faction=%s %s Faction %d
+availability.error.xp=Exp Level %d
 
 spawning.availableBiomes=Available Biomes
 spawning.spawningBiomes=Spawning Biomes
@@ -521,8 +535,9 @@ global.banks=Banks
 global.transport=Transport
 global.playerdata=PlayerData
 global.recipes=Recipes
-global.naturalspawn=Natural Spawns
+global.naturalspawn=Spawns
 global.linked=Linked
+global.customeffects=Effects
 
 bank.slot=Slot
 bank.unlock=Unlock
@@ -1242,3 +1257,17 @@ tint.hurt=Hurt Tint
 hitbox.hitbox=Hitbox
 hitbox.width=Width Scale
 hitbox.height=Height Scale
+
+general.menuName=Menu Name
+
+effect.runsEveryX=Runs every X tick
+effect.defaultLength=Default length
+
+# These are supposed to be shorter
+effect.editor.runsEveryX=Every X tick
+effect.editor.defaultLength=Length
+effect.editor.height=Height
+effect.editor.width=Width
+effect.editor.xPos=X Pos
+effect.editor.yPos=Y Pos
+effect.editor.lossOnDeath=Loss on Death

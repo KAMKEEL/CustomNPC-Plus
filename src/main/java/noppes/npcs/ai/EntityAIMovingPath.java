@@ -21,16 +21,16 @@ public class EntityAIMovingPath extends EntityAIBase
      */
     @Override
     public boolean shouldExecute(){
-        if (npc.isAttacking() || npc.isInteracting() || npc.getRNG().nextInt(40) != 0 && npc.ai.movingPause || !npc.getNavigator().noPath() || npc.isInteracting())
+        if (npc.isAttacking() || npc.isInteracting() || npc.getRNG().nextInt(40) != 0 && npc.ais.movingPause || !npc.getNavigator().noPath() || npc.isInteracting())
             return false;
-        
-        List<int[]> list = npc.ai.getMovingPath();
+
+        List<int[]> list = npc.ais.getMovingPath();
         if(list.size() < 2)
         	return false;
-        
-        npc.ai.incrementMovingPath();
-    	pos = npc.ai.getCurrentMovingPath();
-        
+
+        npc.ais.incrementMovingPath();
+    	pos = npc.ais.getCurrentMovingPath();
+
         return true;
     }
 
@@ -40,7 +40,7 @@ public class EntityAIMovingPath extends EntityAIBase
     @Override
     public boolean continueExecuting(){
     	if(npc.isAttacking() || npc.isInteracting()){
-    		npc.ai.decreaseMovingPath();
+    		npc.ais.decreaseMovingPath();
     		return false;
     	}
         return !this.npc.getNavigator().noPath();

@@ -1,11 +1,13 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -28,7 +30,7 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
     	this.parent = parent;
     	this.factionId = dialog;
 
-    	Client.sendData(EnumPacketServer.FactionsGet);
+        PacketClient.sendClient(new FactionsGetPacket());
 
     	if(parent instanceof GuiSelectionListener){
     		listener = (GuiSelectionListener) parent;

@@ -1,5 +1,10 @@
 package noppes.npcs.client.gui.custom;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.customgui.CustomGuiButtonPacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
+import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -20,7 +25,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.api.gui.ICustomGuiComponent;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.custom.components.*;
 import noppes.npcs.client.gui.custom.interfaces.IClickListener;
 import noppes.npcs.client.gui.custom.interfaces.IDataHolder;
@@ -28,7 +33,7 @@ import noppes.npcs.client.gui.custom.interfaces.IGuiComponent;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.gui.*;
 import org.lwjgl.input.Keyboard;
@@ -449,25 +454,25 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
 
     protected void actionPerformed(GuiButton button) {
         super.actionPerformed(button);
-        Client.sendData(EnumPacketServer.CustomGuiButton, new Object[]{this.updateGui().toNBT(), button.id});
+        PacketClient.sendClient(new CustomGuiButtonPacket(button.id, this.updateGui().toNBT()));
     }
 
     public void buttonClick(CustomGuiButton button) {
-        Client.sendData(EnumPacketServer.CustomGuiButton, new Object[]{this.updateGui().toNBT(), button.id});
+        PacketClient.sendClient(new CustomGuiButtonPacket(button.id, this.updateGui().toNBT()));
     }
 
     public String prevScrollClicked = null;
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
-        Client.sendData(EnumPacketServer.CustomGuiScrollClick, new Object[]{this.updateGui().toNBT(), scroll.id, scroll.selected, this.getScrollSelection((CustomGuiScrollComponent)scroll), false});
+        PacketClient.sendClient(new CustomScrollClickPacket(this.updateGui().toNBT(), scroll.id, scroll.selected, this.getScrollSelection((CustomGuiScrollComponent)scroll), false));
         if(Integer.toString(scroll.selected).equals(prevScrollClicked)){
-            Client.sendData(EnumPacketServer.CustomGuiScrollClick, new Object[]{this.updateGui().toNBT(), scroll.id, scroll.selected, this.getScrollSelection((CustomGuiScrollComponent)scroll), true});
+            PacketClient.sendClient(new CustomScrollClickPacket(this.updateGui().toNBT(), scroll.id, scroll.selected, this.getScrollSelection((CustomGuiScrollComponent)scroll), true));
         }
         prevScrollClicked = Integer.toString(scroll.selected);
     }
 
     public void onGuiClosed() {
         if (this.gui != null) {
-            Client.sendData(EnumPacketServer.CustomGuiClose, new Object[]{this.updateGui().toNBT()});
+            PacketClient.sendClient(new CustomGuiClosePacket(this.updateGui().toNBT()));
         }
 
         if (this.mc.thePlayer != null)
@@ -477,10 +482,10 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     }
 
     public void onTextFieldUnfocused(CustomGuiTextField textField){
-        Client.sendData(EnumPacketServer.CustomGuiUnfocused, new Object[]{this.updateGui().toNBT(), textField.getID()});
+        PacketClient.sendClient(new CustomGuiUnfocusedPacket(textField.getID(), this.updateGui().toNBT()));
     }
 
-    ScriptGui updateGui() {
+    public ScriptGui updateGui() {
         Iterator var1 = this.dataHolders.iterator();
 
         while(var1.hasNext()) {
@@ -491,7 +496,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         return this.gui;
     }
 
-    NBTTagCompound getScrollSelection(CustomGuiScrollComponent scroll) {
+    public NBTTagCompound getScrollSelection(CustomGuiScrollComponent scroll) {
         NBTTagList list = new NBTTagList();
         if (scroll.multiSelect) {
             Iterator var3 = scroll.getSelectedList().iterator();

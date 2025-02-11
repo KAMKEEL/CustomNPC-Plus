@@ -1,14 +1,15 @@
 package noppes.npcs.client.gui.script;
 
+import kamkeel.npcs.network.packets.request.script.ScriptInfoPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPacketServer;
+
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;
@@ -35,7 +36,7 @@ public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
         GuiNpcButton npcButton = new GuiNpcButton(2, this.guiLeft + 38, this.guiTop + 80, 100, 20, "All NPCs");
         npcButton.setEnabled(false);
         this.addButton(npcButton);
-        Client.sendData(EnumPacketServer.ScriptGlobalGuiDataGet, new Object[0]);
+        ScriptInfoPacket.Get();
     }
 
     public void setGuiData(NBTTagCompound compound) {

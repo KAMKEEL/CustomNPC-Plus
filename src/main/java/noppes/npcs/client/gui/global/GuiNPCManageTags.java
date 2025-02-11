@@ -1,11 +1,16 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
+import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -25,7 +30,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
     public GuiNPCManageTags(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.TagsGet);
+        PacketClient.sendClient(new TagsGetPacket());
     }
 
     public void initGui()
@@ -104,11 +109,11 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
-			Client.sendData(EnumPacketServer.TagSave, compound);
+            PacketClient.sendClient(new TagSavePacket(compound));
         }
         if(button.id == 1){
         	if(data.containsKey(scrollTags.getSelected())) {
-        		Client.sendData(EnumPacketServer.TagRemove, data.get(selected));
+                PacketClient.sendClient(new TagRemovePacket(data.get(selected)));
         		scrollTags.clear();
         		tag = new Tag();
         		initGui();
@@ -154,7 +159,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 		{
 			save();
 			selected = scrollTags.getSelected();
-			Client.sendData(EnumPacketServer.TagGet, data.get(selected));
+            PacketClient.sendClient(new TagGetPacket(data.get(selected)));
 		}
 	}
 
@@ -163,7 +168,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 			NBTTagCompound compound = new NBTTagCompound();
 			tag.writeNBT(compound);
 
-			Client.sendData(EnumPacketServer.TagSave, compound);
+            PacketClient.sendClient(new TagSavePacket(compound));
 		}
 	}
 

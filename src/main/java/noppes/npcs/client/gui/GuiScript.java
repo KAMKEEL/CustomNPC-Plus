@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.packets.request.script.NPCScriptPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiConfirmOpenLink;
 import net.minecraft.client.gui.GuiYesNo;
@@ -9,11 +10,11 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiNPCEventScripts;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
@@ -38,7 +39,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 		xSize = 420;
 
 		setBackground("menubg.png");
-		Client.sendData(EnumPacketServer.ScriptDataGet);
+        NPCScriptPacket.Get();
 	}
 
 	public void initGui() {
@@ -267,7 +268,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 	@Override
 	public void save() {
 		setScript();
-		Client.sendData(EnumPacketServer.ScriptDataSave, script.writeToNBT(new NBTTagCompound()));
+        NPCScriptPacket.Save(script.writeToNBT(new NBTTagCompound()));
 	}
 
 	@Override

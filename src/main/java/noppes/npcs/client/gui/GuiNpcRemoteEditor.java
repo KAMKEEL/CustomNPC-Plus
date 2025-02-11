@@ -1,36 +1,42 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.npc.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Vector;
 
 public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, GuiYesNoCallback{
 
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> data = new HashMap<String, Integer>();
+    private String search = "";
+
 	public GuiNpcRemoteEditor() {
 		super();
         xSize = 256;
         setBackground("menubg.png");
-        Client.sendData(EnumPacketServer.RemoteNpcsGet);
-        Client.sendData(EnumPacketServer.RemoteFreezeGet);
+        PacketClient.sendClient(new RemoteNpcsGetPacket());
+        PacketClient.sendClient(new RemoteFreezeGetPacket());
 	}
     public void initGui()
     {
         super.initGui();
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0, 0);
-	        scroll.setSize(165, 208);
+	        scroll.setSize(165, 188);
         }
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 4;
@@ -38,6 +44,8 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
 
         String title = StatCollector.translateToLocal("remote.title");
         int x = (xSize - this.fontRendererObj.getStringWidth(title)) / 2;
+
+        addTextField(new GuiNpcTextField(66, this, fontRendererObj, guiLeft + 4, guiTop + 5 + scroll.ySize, scroll.xSize, 20, search));
 
         this.addLabel(new GuiNpcLabel(0, title, guiLeft + x, guiTop - 8));
 
@@ -53,7 +61,7 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     @Override
     public void confirmClicked(boolean flag, int i){
 		if(flag){
-			Client.sendData(EnumPacketServer.RemoteDelete,data.get(scroll.getSelected()));
+            PacketClient.sendClient(new RemoteDeletePacket(data.get(scroll.getSelected())));
 		}
 		NoppesUtil.openGUI(player, this);
     }
@@ -61,11 +69,11 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     {
 		int id = guibutton.id;
     	if(id == 3){
-    		Client.sendData(EnumPacketServer.RemoteFreeze);
+            PacketClient.sendClient(new RemoteFreezePacket());
     	}
     	if(id == 5){
     		for(int ids : data.values()){
-    			Client.sendData(EnumPacketServer.RemoteReset, ids);
+                PacketClient.sendClient(new RemoteResetPacket(ids));
 	    		Entity entity  = player.worldObj.getEntityByID(ids);
 	    		if(entity != null && entity instanceof EntityNPCInterface)
 	    			((EntityNPCInterface)entity).reset();
@@ -73,27 +81,28 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     	}
 		if(id == 6){
 			NoppesUtil.setLastNpc(null);
-            Client.sendData(EnumPacketServer.RemoteGlobalMenu);
+            PacketClient.sendClient(new RemoteGlobalMenuPacket());
 		}
 
     	if(!data.containsKey(scroll.getSelected()))
     		return;
 
     	if(id == 0){
-    		Client.sendData(EnumPacketServer.RemoteMainMenu,data.get(scroll.getSelected()));
+            PacketClient.sendClient(new RemoteMainMenuPacket(data.get(scroll.getSelected())));
     	}
     	if(id == 1){
             GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("gui.delete"), 0);
             displayGuiScreen(guiyesno);
     	}
     	if(id == 2){
-    		Client.sendData(EnumPacketServer.RemoteReset,data.get(scroll.getSelected()));
-    		Entity entity  = player.worldObj.getEntityByID(data.get(scroll.getSelected()));
+            int selected = data.get(scroll.getSelected());
+            PacketClient.sendClient(new RemoteResetPacket(selected));
+    		Entity entity  = player.worldObj.getEntityByID(selected);
     		if(entity != null && entity instanceof EntityNPCInterface)
     			((EntityNPCInterface)entity).reset();
     	}
     	if(id == 4){
-    		Client.sendData(EnumPacketServer.RemoteTpToNpc,data.get(scroll.getSelected()));
+            PacketClient.sendClient(new RemoteTpToNpcPacket(data.get(scroll.getSelected())));
     		close();
     	}
     }
@@ -107,20 +116,47 @@ public class GuiNpcRemoteEditor extends GuiNPCInterface implements IScrollData, 
     @Override
     public void keyTyped(char c, int i)
     {
-        if (i == 1 || isInventoryKey(i))
+        super.keyTyped(c, i);
+        if(getTextField(66) != null){
+            if(getTextField(66).isFocused()){
+                if (i == 1)
+                {
+                    close();
+                    return;
+                }
+                if(search.equals(getTextField(66).getText()))
+                    return;
+                search = getTextField(66).getText().toLowerCase();
+                scroll.resetScroll();
+                scroll.setList(getNPCSearch());
+            }
+        }
+        if (i == 1)
         {
             close();
         }
     }
-	@Override
-	public void save() {
-		// TODO Auto-generated method stub
 
-	}
+    private List<String> getNPCSearch(){
+        if(search.isEmpty()){
+            return new ArrayList<String>(this.data.keySet());
+        }
+        List<String> list = new ArrayList<String>();
+        for(String name : this.data.keySet()){
+            if(name.toLowerCase().contains(search))
+                list.add(name);
+        }
+        return list;
+    }
+
+	@Override
+	public void save() {}
+
 	@Override
 	public void setData(Vector<String> list, HashMap<String, Integer> data) {
-		scroll.setList(list);
-		this.data = data;
+        this.data = data;
+        scroll.resetScroll();
+        scroll.setList(getNPCSearch());
 	}
 	@Override
 	public void setSelected(String selected) {

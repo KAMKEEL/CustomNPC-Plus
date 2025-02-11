@@ -5,15 +5,16 @@ import foxz.commandhelper.annotations.Command;
 import foxz.commandhelper.annotations.SubCommand;
 import foxz.commandhelper.permissions.OpOnly;
 import foxz.commandhelper.permissions.PlayerOnly;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumConfigOperation;
+import kamkeel.npcs.network.packets.data.ConfigCommandPacket;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
 import net.minecraft.block.BlockVine;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.ChunkController;
 
 import java.util.Arrays;
@@ -207,6 +208,6 @@ public class CmdConfig extends ChMcLogger {
 		for(int i = 0; i < args.length; i++){
 			font += " " + args[i];
 		}
-    	Server.sendData((EntityPlayerMP)this.pcParam, EnumPacketClient.CONFIG, 0, font.trim(), size);
+        PacketHandler.Instance.sendToPlayer(new ConfigCommandPacket(EnumConfigOperation.FONT, font.trim(), size), (EntityPlayerMP)this.pcParam);
     }
 }

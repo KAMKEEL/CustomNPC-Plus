@@ -1,24 +1,27 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
+import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents.GuiTalent;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumCompanionStage;
 import noppes.npcs.constants.EnumCompanionTalent;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListener, ISliderListener{	
+public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListener, ISliderListener{
 	private RoleCompanion role;
 	private List<GuiTalent> talents = new ArrayList<GuiTalent>();
     public GuiNpcCompanion(EntityNPCInterface npc){
-    	super(npc);    	
+    	super(npc);
     	role = (RoleCompanion) npc.roleInterface;
     }
 
@@ -27,11 +30,11 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
     	super.initGui();
     	talents.clear();
     	int y = guiTop + 4;
-    	
+
     	addButton(new GuiNpcButton(0, guiLeft + 70, y, 90, 20, new String[]{EnumCompanionStage.BABY.name, EnumCompanionStage.CHILD.name, EnumCompanionStage.TEEN.name, EnumCompanionStage.ADULT.name, EnumCompanionStage.FULLGROWN.name}, role.stage.ordinal()));
     	addLabel(new GuiNpcLabel(0, "companion.stage", guiLeft + 4, y + 5));
     	addButton(new GuiNpcButton(1, guiLeft + 162, y, 90, 20, "gui.update"));
-    	
+
     	addButton(new GuiNpcButton(2, guiLeft + 70, y += 22, 90, 20, new String[]{"gui.no", "gui.yes"}, role.canAge?1:0));
     	addLabel(new GuiNpcLabel(2, "companion.age", guiLeft + 4, y + 5));
     	if(role.canAge){
@@ -42,13 +45,13 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
 
     	talents.add(new GuiTalent(role, EnumCompanionTalent.INVENTORY, guiLeft + 4, y+=26));
     	addSlider(new GuiNpcSlider(this, 10, guiLeft + 30, y + 2, 100, 20, role.getExp(EnumCompanionTalent.INVENTORY)/5000f));
-    	
+
     	talents.add(new GuiTalent(role, EnumCompanionTalent.ARMOR, guiLeft + 4, y+=26));
     	addSlider(new GuiNpcSlider(this, 11, guiLeft + 30, y + 2, 100, 20, role.getExp(EnumCompanionTalent.ARMOR)/5000f));
-    	
+
     	talents.add(new GuiTalent(role, EnumCompanionTalent.SWORD, guiLeft + 4, y+=26));
     	addSlider(new GuiNpcSlider(this, 12, guiLeft + 30, y + 2, 100, 20, role.getExp(EnumCompanionTalent.SWORD)/5000f));
-    	
+
 //    	talents.add(new GuiTalent(role, EnumCompanionTalent.RANGED, guiLeft + 4, y+=26));
 //    	addSlider(new GuiNpcSlider(this, 13, guiLeft + 30, y + 2, 100, 20, role.getExp(EnumCompanionTalent.RANGED)/5000f));
     }
@@ -63,7 +66,7 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
     		initGui();
     	}
     	if(guibutton.id == 1){
-    		Client.sendData(EnumPacketServer.RoleCompanionUpdate, role.stage.ordinal());
+            PacketClient.sendClient(new RoleCompanionUpdatePacket(role.stage));
     	}
     	if(guibutton.id == 2){
         	GuiNpcButton button = (GuiNpcButton) guibutton;
@@ -85,16 +88,16 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
 			talent.drawScreen(i, j, f);
 		}
 	}
-    
+
     @Override
     public void elementClicked(){
-    	
+
     }
 
 
     @Override
 	public void save() {
-		Client.sendData(EnumPacketServer.RoleSave, role.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new RoleSavePacket(role.writeToNBT(new NBTTagCompound())));
 	}
 
 	@Override
@@ -111,14 +114,14 @@ public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListe
 
 	@Override
 	public void mousePressed(GuiNpcSlider slider) {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 
 	@Override
 	public void mouseReleased(GuiNpcSlider slider) {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 
 

@@ -1,6 +1,6 @@
 package noppes.npcs.ai;
 
-import kamkeel.addon.DBCAddon;
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIBase;
@@ -47,14 +47,14 @@ public class EntityAIAttackTarget extends EntityAIBase
         else if (!entitylivingbase.isEntityAlive()){
             return false;
         }
-        else if (this.npc.inventory.getProjectile() != null && this.npc.ai.useRangeMelee == 0){
+        else if (this.npc.inventory.getProjectile() != null && this.npc.ais.useRangeMelee == 0){
      	   return false;
         }
 
         double var2 = this.npc.getDistanceSq(entitylivingbase.posX, entitylivingbase.boundingBox.minY, entitylivingbase.posZ);
-        double var3 = this.npc.ai.distanceToMelee * this.npc.ai.distanceToMelee;
+        double var3 = this.npc.ais.distanceToMelee * this.npc.ais.distanceToMelee;
 
-        if (this.npc.ai.useRangeMelee == 1 && var2 > var3){
+        if (this.npc.ais.useRangeMelee == 1 && var2 > var3){
         	return false;
         }
         else{
@@ -81,7 +81,7 @@ public class EntityAIAttackTarget extends EntityAIBase
 
 		if(npc.getDistanceToEntity(entityTarget) > npc.stats.aggroRange)
 			return false;
-		if (this.npc.ai.useRangeMelee == 1 && npc.getDistanceSqToEntity(entityTarget) > (this.npc.ai.distanceToMelee * this.npc.ai.distanceToMelee))
+		if (this.npc.ais.useRangeMelee == 1 && npc.getDistanceSqToEntity(entityTarget) > (this.npc.ais.distanceToMelee * this.npc.ais.distanceToMelee))
 			return false;
 
 		return this.npc.isWithinHomeDistance(MathHelper.floor_double(entityTarget.posX), MathHelper.floor_double(entityTarget.posY), MathHelper.floor_double(entityTarget.posZ));
@@ -94,7 +94,7 @@ public class EntityAIAttackTarget extends EntityAIBase
     	if(!navOverride)
     		this.npc.getNavigator().setPath(this.entityPathEntity, 1.3D);
         this.field_75445_i = 0;
-        if (this.npc.getRangedTask() != null && this.npc.ai.useRangeMelee == 2)
+        if (this.npc.getRangedTask() != null && this.npc.ais.useRangeMelee == 2)
         {
         	this.npc.getRangedTask().navOverride(true);
         }
@@ -109,7 +109,7 @@ public class EntityAIAttackTarget extends EntityAIBase
     	this.entityTarget = null;
     	this.npc.setAttackTarget(null);
         this.npc.getNavigator().clearPathEntity();
-        if (this.npc.getRangedTask() != null && this.npc.ai.useRangeMelee == 2)
+        if (this.npc.getRangedTask() != null && this.npc.ais.useRangeMelee == 2)
         {
         	this.npc.getRangedTask().navOverride(false);
         }

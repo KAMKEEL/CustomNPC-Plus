@@ -3,6 +3,8 @@ package noppes.npcs.controllers.data;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -18,7 +20,6 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
@@ -228,7 +229,7 @@ public class AnimationData implements IAnimationData {
             data.setInteger("EntityId", entity.getEntityId());
         }
 
-        Server.sendData((EntityPlayerMP) ((PlayerData) parent).player, EnumPacketClient.UPDATE_ANIMATIONS, data, entity.getCommandSenderName());
+        PacketHandler.Instance.sendToPlayer(new UpdateAnimationsPacket(data, entity.getCommandSenderName()), (EntityPlayerMP) ((PlayerData) parent).player);
         return true;
     }
 

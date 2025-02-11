@@ -2,7 +2,7 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
-import kamkeel.developer.Developer;
+import kamkeel.npcs.developer.Developer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.apache.logging.log4j.LogManager;

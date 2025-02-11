@@ -5,7 +5,7 @@ import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import kamkeel.addon.client.DBCClient;
+import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -32,6 +32,7 @@ import noppes.npcs.*;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.*;
+import noppes.npcs.client.fx.EntityBigSmokeFX;
 import noppes.npcs.client.fx.EntityElementalStaffFX;
 import noppes.npcs.client.fx.EntityEnderFX;
 import noppes.npcs.client.fx.EntityRainbowFX;
@@ -76,7 +77,7 @@ import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
 	public static KeyBinding NPCButton;
-
+    public static final Random RAND = new Random();
 	public static FontContainer Font;
 
 	public void load() {
@@ -84,8 +85,6 @@ public class ClientProxy extends CommonProxy {
 
 		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
-		CustomNpcs.Channel.register(new PacketHandlerClient());
-		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 		new MusicController();
 		new ScriptSoundController();
 
@@ -246,7 +245,8 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNpcPather(npc);
 
 		else if (gui == EnumGuiType.ManageFactions)
-			return new GuiNPCManageFactions(npc);
+            return new GuiNPCManageMagic(npc);
+			// return new GuiNPCManageFactions(npc);
 
         else if (gui == EnumGuiType.ManageCustomForms)
             return DBCClient.Instance.manageCustomForms(npc);
@@ -274,7 +274,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNPCManageAnimations(animNpc, save);
 		}
 		else if (gui == EnumGuiType.ManageLinked)
-			return new GuiNPCManageLinkedNpc(npc);
+			return new GuiNPCManageLinked(npc);
 
 		else if (gui == EnumGuiType.ManageTransport)
 			return new GuiNPCManageTransporters(npc);
@@ -290,6 +290,9 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.ManageBanks)
 			return new GuiNPCManageBanks(npc, (ContainerManageBanks) container);
+
+        else if (gui == EnumGuiType.ManageEffects)
+            return new GuiNPCManageEffects(npc);
 
 		else if (gui == EnumGuiType.MainMenuGlobal)
 			return new GuiNPCGlobalMainMenu(npc);
@@ -318,8 +321,11 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ScriptItem)
 			return new GuiScriptItem();
 
-		else if (gui == EnumGuiType.PlayerAnvil)
+		else if (gui == EnumGuiType.PlayerCarpentryBench)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
+
+        else if (gui == EnumGuiType.PlayerAnvil)
+            return new GuiNpcAnvil((ContainerAnvilRepair) container);
 
 		else if (gui == EnumGuiType.SetupFollower)
 			return new GuiNpcFollowerSetup(npc, (ContainerNPCFollowerSetup) container);
@@ -366,7 +372,7 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.RedstoneBlock)
 			return new GuiNpcRedstoneBlock(x, y, z);
 
-		else if(gui == EnumGuiType.MobSpawner)
+		else if(gui == EnumGuiType.Cloner)
 			return new GuiNpcMobSpawner(x, y, z);
 
 		else if(gui == EnumGuiType.MobSpawnerMounter)
@@ -542,6 +548,17 @@ public class ClientProxy extends CommonProxy {
 			ObfuscationReflectionHelper.setPrivateValue(EntitySmokeFX.class, (EntitySmokeFX)fx, scale, 0);
 		}
 	}
+
+    @Override
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire)
+    {
+        if (RAND.nextFloat() < 0.11F)
+        {
+            float[] colours = new float[0];
+            for (int i = 0; i < RAND.nextInt(2) + 1; ++i)
+                Minecraft.getMinecraft().effectRenderer.addEffect(new EntityBigSmokeFX(world, x, y, z, signalFire, colours));
+        }
+    }
 
 	@Override
 	public String getAchievementDesc(Achievement achievement) {

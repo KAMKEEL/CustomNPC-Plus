@@ -9,6 +9,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
+import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
@@ -16,6 +18,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
@@ -33,7 +36,7 @@ public class GuiRecipes extends GuiNPCInterface
         this.xSize = 256;
         setBackground("recipes.png");
         this.closeOnEsc = true;
-		recipes.addAll(RecipeController.Instance.anvilRecipes.values());
+		recipes.addAll(RecipeController.Instance.carpentryRecipes.values());
     }
     @Override
     public void initGui(){
@@ -47,7 +50,7 @@ public class GuiRecipes extends GuiNPCInterface
 
         addButton(this.left = new GuiButtonNextPage(1, guiLeft + 150, guiTop + 164, true));
         addButton(this.right = new GuiButtonNextPage(2, guiLeft + 80, guiTop + 164, false));
-        
+
         updateButton();
     }
     private void updateButton(){
@@ -67,10 +70,10 @@ public class GuiRecipes extends GuiNPCInterface
 
 	private List<IRecipe> getSearchList(){
 		if(search.isEmpty()){
-			return new ArrayList<IRecipe>(RecipeController.Instance.anvilRecipes.values());
+			return new ArrayList<IRecipe>(RecipeController.Instance.carpentryRecipes.values());
 		}
 		List<IRecipe> list = new ArrayList<IRecipe>();
-		for(IRecipe recipe : RecipeController.Instance.anvilRecipes.values()){
+		for(IRecipe recipe : RecipeController.Instance.carpentryRecipes.values()){
 			if(recipe.getRecipeOutput() == null)
 				continue;
 
@@ -96,65 +99,130 @@ public class GuiRecipes extends GuiNPCInterface
     		page++;
         updateButton();
     }
-    
+
+    private static class ItemOverlayData {
+        public final int x, y;
+        public final ItemStack item;
+        public ItemOverlayData(int x, int y, ItemStack item) {
+            this.x = x;
+            this.y = y;
+            this.item = item;
+        }
+    }
+
+    private static class TextOverlayData {
+        public final int x, y, width, height;
+        public final List<String> textLines;
+
+        public TextOverlayData(int x, int y, int width, int height, String text) {
+            this(x, y, width, height, Arrays.asList(text));
+        }
+
+        public TextOverlayData(int x, int y, int width, int height, List<String> textLines) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.textLines = textLines;
+        }
+    }
+
     @Override
     public void drawScreen(int xMouse, int yMouse, float f){
     	super.drawScreen(xMouse, yMouse, f);
     	mc.renderEngine.bindTexture(resource);
-		
+
 		label.label = page + 1 + "/" + MathHelper.ceiling_float_int(recipes.size() / 4f);
 		label.x = guiLeft + (256 - Minecraft.getMinecraft().fontRenderer.getStringWidth(label.label)) / 2;
-		for(int i = 0; i < 4; i++){
-			int index = i + page * 4;
-			if(index >= recipes.size())
-				break;
-			IRecipe irecipe = recipes.get(index);
-			if(irecipe.getRecipeOutput() == null)
-				continue;
-			int x = guiLeft + 5 + i / 2 * 126;
-			int y = guiTop + 15 + i % 2 * 76;
-			drawItem(irecipe.getRecipeOutput(), x + 98, y + 28, xMouse, yMouse);
-			if(irecipe instanceof RecipeCarpentry){
-				RecipeCarpentry recipe = (RecipeCarpentry) irecipe;
-				x += (72 - recipe.recipeWidth * 18) / 2;
-				y += (72 - recipe.recipeHeight * 18) / 2;
-				for(int j = 0; j < recipe.recipeWidth; j++){
-					for(int k = 0; k < recipe.recipeHeight; k++){
-				    	mc.renderEngine.bindTexture(resource);
-				        GL11.glColor4f(1, 1, 1, 1);
-				        drawTexturedModalRect(x + j * 18, y + k * 18, 0, 0, 18, 18);
-				        ItemStack item = recipe.getCraftingItem(j + k * recipe.recipeWidth);
-				        if(item == null)
-				        	continue;
-				        drawItem(item, x + j * 18 + 1, y + k * 18 + 1, xMouse, yMouse);
-					}
-				}
-			}
-		}
-		for(int i = 0; i < 4; i++){
-			int index = i + page * 4;
-			if(index >= recipes.size())
-				break;
-			IRecipe irecipe = recipes.get(index);
-			if(irecipe instanceof RecipeCarpentry){
-				RecipeCarpentry recipe = (RecipeCarpentry) irecipe;
-				if(recipe.getRecipeOutput() == null)
-					continue;
-				int x = guiLeft + 5 + i / 2 * 126;
-				int y = guiTop + 15 + i % 2 * 76;
-				drawOverlay(recipe.getRecipeOutput(), x + 98, y + 22, xMouse, yMouse);
-				x += (72 - recipe.recipeWidth * 18) / 2;
-				y += (72 - recipe.recipeHeight * 18) / 2;
-				for(int j = 0; j < recipe.recipeWidth; j++){
-					for(int k = 0; k < recipe.recipeHeight; k++){
-				        ItemStack item = recipe.getCraftingItem(j + k * recipe.recipeWidth);
-				        if(item == null)
-				        	continue;
-				        drawOverlay(item, x + j * 18 + 1, y + k * 18 + 1, xMouse, yMouse);
-					}
-				}
-			}
-		}
+
+        List<ItemOverlayData> itemOverlays = new ArrayList<ItemOverlayData>();
+        List<TextOverlayData> textOverlays = new ArrayList<TextOverlayData>();
+
+        // Loop through recipes.
+        for (int i = 0; i < 4; i++) {
+            int index = i + page * 4;
+            if (index >= recipes.size())
+                break;
+            IRecipe irecipe = recipes.get(index);
+            if (irecipe.getRecipeOutput() == null)
+                continue;
+            int x = guiLeft + 5 + (i / 2) * 126;
+            int y = guiTop + 15 + (i % 2) * 76;
+
+            drawItem(irecipe.getRecipeOutput(), x + 98, y + 28, xMouse, yMouse);
+            if (func_146978_c((x+98) - guiLeft, (y+28) - guiTop, 16, 16, xMouse, yMouse)) {
+                itemOverlays.add(new ItemOverlayData(x+98, y+28, irecipe.getRecipeOutput()));
+            }
+
+            if (irecipe instanceof RecipeCarpentry) {
+                RecipeCarpentry recipe = (RecipeCarpentry) irecipe;
+                if (!recipe.isGlobal && recipe.availability != null && !recipe.availability.isDefault()) {
+                    int outputX = x + 98;
+                    int outputY = y + 38;
+                    float scale = 1.0F;
+                    String iconStr;
+                    int iconColor;
+                    if (!recipe.availability.isAvailable(mc.thePlayer)) {
+                        iconStr = "?";
+                        iconColor = 0xbd3e35;
+                    } else {
+                        iconStr = "!";
+                        iconColor = CustomNpcResourceListener.DefaultTextColor;
+                    }
+                    int iconWidth = (int)(fontRendererObj.getStringWidth(iconStr) * scale);
+                    int iconHeight = (int)(fontRendererObj.FONT_HEIGHT * scale);
+                    // Center the icon below the output slot (16x16 slot).
+                    int iconX = outputX + (16 - iconWidth) / 2;
+                    int iconY = outputY + 16;
+
+                    // Render the icon.
+                    GL11.glPushMatrix();
+                    GL11.glTranslatef(iconX, iconY, 0);
+                    GL11.glScalef(scale, scale, 1.0F);
+                    fontRendererObj.drawString(iconStr, 0, 0, iconColor);
+                    GL11.glPopMatrix();
+
+                    // Instead of rendering the tooltip immediately, add it as a text overlay.
+                    if (func_146978_c(iconX - guiLeft, iconY - guiTop, iconWidth, iconHeight, xMouse, yMouse)) {
+                        List<String> tooltipLines = recipe.availability.isAvailableText(mc.thePlayer);
+                        if (tooltipLines.isEmpty()) {
+                            tooltipLines.add(StatCollector.translateToLocal("gui.available"));
+                        }
+                        textOverlays.add(new TextOverlayData(iconX, iconY, iconWidth, iconHeight, tooltipLines));
+                    }
+                }
+            }
+
+            // Draw the recipe grid (for RecipeCarpentry recipes).
+            if (irecipe instanceof RecipeCarpentry) {
+                RecipeCarpentry recipe = (RecipeCarpentry) irecipe;
+                int gridX = x + (72 - recipe.recipeWidth * 18) / 2;
+                int gridY = y + (72 - recipe.recipeHeight * 18) / 2;
+                for (int j = 0; j < recipe.recipeWidth; j++) {
+                    for (int k = 0; k < recipe.recipeHeight; k++) {
+                        mc.renderEngine.bindTexture(resource);
+                        GL11.glColor4f(1, 1, 1, 1);
+                        drawTexturedModalRect(gridX + j * 18, gridY + k * 18, 0, 0, 18, 18);
+                        ItemStack item = recipe.getCraftingItem(j + k * recipe.recipeWidth);
+                        if (item == null)
+                            continue;
+                        drawItem(item, gridX + j * 18 + 1, gridY + k * 18 + 1, xMouse, yMouse);
+                        if (func_146978_c((gridX+j*18+1)-guiLeft, (gridY+k*18+1)-guiTop, 16, 16, xMouse, yMouse)) {
+                            itemOverlays.add(new ItemOverlayData(gridX+j*18+1, gridY+k*18+1, item));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Render any item tooltips.
+        for (ItemOverlayData iod : itemOverlays) {
+            this.renderToolTip(iod.item, xMouse, yMouse);
+        }
+        // Render all text overlays (each line from the availability tooltip will be on its own line).
+        for (TextOverlayData tod : textOverlays) {
+            this.drawHoveringText(tod.textLines, xMouse, yMouse, this.fontRendererObj);
+        }
     }
 
     private void drawItem(ItemStack item, int x, int y, int xMouse, int yMouse){
@@ -165,11 +233,11 @@ public class GuiRecipes extends GuiNPCInterface
         itemRender.renderItemAndEffectIntoGUI(fontRendererObj, mc.renderEngine, item, x, y);
         itemRender.renderItemOverlayIntoGUI(fontRendererObj, mc.renderEngine, item, x, y);
         itemRender.zLevel = 0.0F;
-        RenderHelper.disableStandardItemLighting(); 
+        RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
     	GL11.glPopMatrix();
     }
-    
+
     private void drawOverlay(ItemStack item, int x, int y, int xMouse, int yMouse){
         if (this.func_146978_c(x - guiLeft, y - guiTop, 16, 16, xMouse, yMouse)){
             this.renderToolTip(item, xMouse, yMouse);

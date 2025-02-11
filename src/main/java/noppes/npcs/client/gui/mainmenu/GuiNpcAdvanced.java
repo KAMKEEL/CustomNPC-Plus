@@ -1,9 +1,14 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
+import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.advanced.*;
 import noppes.npcs.client.gui.roles.*;
@@ -12,7 +17,7 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumJobType;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -22,8 +27,9 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
     public GuiNpcAdvanced(EntityNPCInterface npc)
     {
     	super(npc, 4);
-    	Client.sendData(EnumPacketServer.MainmenuAdvancedGet);
+        PacketClient.sendClient(new MainmenuAdvancedGetPacket());
     }
+
     @Override
     public void initGui(){
     	super.initGui();
@@ -55,7 +61,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
     	GuiNpcButton button = (GuiNpcButton) guibutton;
 		if (button.id == 3) {
 			save();
-			Client.sendData(EnumPacketServer.RoleGet);
+            PacketClient.sendClient(new RoleGetPacket());
 		}
         if(button.id == 8){
 			hasChanges = true;
@@ -65,7 +71,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
         }
         if(button.id == 4){
         	save();
-			Client.sendData(EnumPacketServer.JobGet);
+            PacketClient.sendClient(new JobGetPacket());
         }
         if(button.id == 5){
 			hasChanges = true;
@@ -152,7 +158,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
 	@Override
 	public void save() {
 		if(hasChanges){
-			Client.sendData(EnumPacketServer.MainmenuAdvancedSave, npc.advanced.writeToNBT(new NBTTagCompound()));
+            PacketClient.sendClient(new MainmenuAdvancedSavePacket(npc.advanced.writeToNBT(new NBTTagCompound())));
 			hasChanges = false;
 		}
 	}

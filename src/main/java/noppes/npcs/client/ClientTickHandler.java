@@ -5,11 +5,12 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
-import kamkeel.addon.DBCAddon;
-import kamkeel.addon.client.DBCClient;
+import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
+import kamkeel.npcs.network.packets.player.InputDevicePacket;
+import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.audio.SoundManager;
 import net.minecraft.entity.Entity;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
@@ -49,7 +50,7 @@ public class ClientTickHandler{
 		}
 		if(mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer){
 			if(otherContainer){
-		    	NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);
+                PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
 				otherContainer = false;
 			}
 		}
@@ -74,7 +75,7 @@ public class ClientTickHandler{
 		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
 			prevWidth = mc.displayWidth;
 			prevHeight = mc.displayHeight;
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.ScreenSize,mc.displayWidth,mc.displayHeight);
+            PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth,mc.displayHeight));
 		}
 	}
 
@@ -83,22 +84,7 @@ public class ClientTickHandler{
 		if(Mouse.getEventButton() == -1 && Mouse.getEventDWheel() == 0)
 			return;
 
-		boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
-		boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
-		boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
-		boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
-
-		StringBuilder keysDownString = new StringBuilder();
-		for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
-			if (Keyboard.isKeyDown(i)) {
-				keysDownString.append(Integer.valueOf(i)).append(",");
-			}
-		}
-		if (keysDownString.length() > 0) {//Removes last comma for later parsing
-			keysDownString.deleteCharAt(keysDownString.length() - 1);
-		}
-
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()), isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDownString.toString());
+		InputDevicePacket.sendMouse(Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()));
 	}
 
 	@SubscribeEvent
@@ -130,23 +116,9 @@ public class ClientTickHandler{
 
 		if(!Keyboard.isRepeatEvent()) {
 			int key = Keyboard.getEventKey();
-			boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
-			boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
-			boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
-			boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
 			boolean keyDown = Keyboard.isKeyDown(key);
 
-			StringBuilder keysDownString = new StringBuilder();
-			for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
-				if (Keyboard.isKeyDown(i)) {
-					keysDownString.append(Integer.valueOf(i)).append(",");
-				}
-			}
-			if (keysDownString.length() > 0) {//Removes last comma for later parsing
-				keysDownString.deleteCharAt(keysDownString.length() - 1);
-			}
-
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, key, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keyDown, keysDownString.toString());
+            InputDevicePacket.sendKeyboard(key, keyDown);
 		}
 	}
 

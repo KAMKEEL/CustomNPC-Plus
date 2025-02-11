@@ -1,46 +1,49 @@
 package noppes.npcs.client.gui.mainmenu;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAIGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAISavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataAI;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.SubGuiNpcMovement;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumCombatPolicy;
 import noppes.npcs.constants.EnumNavType;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IGuiData{
 	private DataAI ai;
 	public GuiNpcAI(EntityNPCInterface npc) {
 		super(npc,6);
-		ai = npc.ai;
-    	Client.sendData(EnumPacketServer.MainmenuAIGet);
+		ai = npc.ais;
+    	PacketClient.sendClient(new MainmenuAIGetPacket());
 	}
 
     public void initGui()
     {
         super.initGui();
         addLabel(new GuiNpcLabel(0,"ai.enemyresponse", guiLeft + 5, guiTop + 17));
-    	addButton(new GuiNpcButton(0,guiLeft + 86, guiTop + 10, 60, 20, new String[]{"gui.retaliate","gui.panic","gui.retreat","gui.nothing"} ,npc.ai.onAttack));
+    	addButton(new GuiNpcButton(0,guiLeft + 86, guiTop + 10, 60, 20, new String[]{"gui.retaliate","gui.panic","gui.retreat","gui.nothing"} ,npc.ais.onAttack));
     	addLabel(new GuiNpcLabel(1,"ai.door", guiLeft + 5, guiTop + 40));
-    	addButton(new GuiNpcButton(1,guiLeft + 86, guiTop + 35, 60, 20, new String[]{"gui.break","gui.open","gui.disabled"} ,npc.ai.doorInteract));
+    	addButton(new GuiNpcButton(1,guiLeft + 86, guiTop + 35, 60, 20, new String[]{"gui.break","gui.open","gui.disabled"} ,npc.ais.doorInteract));
     	addLabel(new GuiNpcLabel(12,"ai.swim", guiLeft + 5, guiTop + 65));
-    	addButton(new GuiNpcButton(7,guiLeft + 86, guiTop + 60, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ai.canSwim ? 1:0));
+    	addButton(new GuiNpcButton(7,guiLeft + 86, guiTop + 60, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ais.canSwim ? 1:0));
     	addLabel(new GuiNpcLabel(13,"ai.shelter", guiLeft + 5, guiTop + 90));
-    	addButton(new GuiNpcButton(9,guiLeft + 86, guiTop + 85, 60, 20, new String[]{"gui.darkness","gui.sunlight","gui.disabled"} ,npc.ai.findShelter));
+    	addButton(new GuiNpcButton(9,guiLeft + 86, guiTop + 85, 60, 20, new String[]{"gui.darkness","gui.sunlight","gui.disabled"} ,npc.ais.findShelter));
     	addLabel(new GuiNpcLabel(14,"ai.clearlos", guiLeft + 5, guiTop + 115));
-    	addButton(new GuiNpcButton(10,guiLeft + 86, guiTop + 110, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ai.directLOS ? 1:0));
+    	addButton(new GuiNpcButton(10,guiLeft + 86, guiTop + 110, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ais.directLOS ? 1:0));
     	addLabel(new GuiNpcLabel(18,"ai.sprint", guiLeft + 5, guiTop + 140));
-    	addButton(new GuiNpcButton(16,guiLeft + 86, guiTop + 135, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ai.canSprint ? 1:0));
+    	addButton(new GuiNpcButton(16,guiLeft + 86, guiTop + 135, 60, 20, new String[]{"gui.no", "gui.yes"} ,npc.ais.canSprint ? 1:0));
 
     	addLabel(new GuiNpcLabel(10,"ai.avoidwater", guiLeft + 150, guiTop + 17));
-    	addButton(new GuiNpcButton(5, guiLeft + 230, guiTop + 10, 60, 20, new String[]{"gui.no","gui.yes"} ,npc.ai.avoidsWater ? 1:0));
+    	addButton(new GuiNpcButton(5, guiLeft + 230, guiTop + 10, 60, 20, new String[]{"gui.no","gui.yes"} ,npc.ais.avoidsWater ? 1:0));
     	addLabel(new GuiNpcLabel(11,"ai.return", guiLeft + 150, guiTop + 40));
-    	addButton(new GuiNpcButton(6, guiLeft + 230, guiTop + 35, 60, 20, new String[]{"gui.no","gui.yes"} ,npc.ai.returnToStart ? 1:0));
+    	addButton(new GuiNpcButton(6, guiLeft + 230, guiTop + 35, 60, 20, new String[]{"gui.no","gui.yes"} ,npc.ais.returnToStart ? 1:0));
     	addLabel(new GuiNpcLabel(17,"ai.leapattarget", guiLeft + 150, guiTop + 65));
-        addButton(new GuiNpcButton(15,guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "ai.jump", "ai.pounce"} ,npc.ai.leapType));
+        addButton(new GuiNpcButton(15,guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "ai.jump", "ai.pounce"} ,npc.ais.leapType));
 		addLabel(new GuiNpcLabel(15, "ai.indirect", guiLeft + 150, guiTop + 90));
     	addButton(new GuiNpcButton(13, guiLeft + 230, guiTop + 85, 60, 20, new String[]{"gui.no", "gui.whendistant", "gui.whenhidden"}, ai.canFireIndirect));
 		addLabel(new GuiNpcLabel(16, "ai.rangemelee", guiLeft + 150, guiTop + 115));
@@ -82,7 +85,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 		}
         else if (ai.combatPolicy == EnumCombatPolicy.Tactical)
         {
-            addButton(new GuiNpcButton(40, guiLeft + 295, guiTop + 160, 60, 20, new String[]{"stats.normal","stats.reverse"}, npc.ai.tacticalChance > 50 ? 1:0));
+            addButton(new GuiNpcButton(40, guiLeft + 295, guiTop + 160, 60, 20, new String[]{"stats.normal","stats.reverse"}, npc.ais.tacticalChance > 50 ? 1:0));
         }
 
 		getButton(17).setEnabled(this.ai.onAttack == 0);
@@ -173,7 +176,7 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
 
 	@Override
 	public void save() {
-		Client.sendData(EnumPacketServer.MainmenuAISave, ai.writeToNBT(new NBTTagCompound()));
+        PacketClient.sendClient(new MainmenuAISavePacket(ai.writeToNBT(new NBTTagCompound())));
 	}
 
 	@Override

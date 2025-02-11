@@ -39,7 +39,7 @@ public class EntityNpcMonsterFemale extends EntityNPCInterface
 			data.modelScale.legs.setScale(0.92f,0.92f);
 			data.modelScale.arms.setScale(0.80f,0.92f);
 			data.modelScale.body.setScale(0.92f, 0.92f);
-	    	npc.ai.animationType = EnumAnimation.HUG;
+	    	npc.ais.animationType = EnumAnimation.HUG;
 	    	worldObj.spawnEntityInWorld(npc);
     	}
     	super.onUpdate();

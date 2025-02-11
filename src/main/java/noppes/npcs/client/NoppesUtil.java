@@ -1,22 +1,20 @@
 package noppes.npcs.client;
 
 import io.netty.buffer.ByteBuf;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.GuiRequestPacket;
+import kamkeel.npcs.network.packets.request.IsGuiOpenInform;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.PositionedSoundRecord;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.Util;
-import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.Server;
-import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
@@ -24,20 +22,16 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.client.gui.util.IScrollGroup;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
-import noppes.npcs.scripted.ScriptParticle;
 import org.lwjgl.Sys;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Vector;
 
 public class NoppesUtil {
@@ -47,31 +41,10 @@ public class NoppesUtil {
 	}
 
 	public static void requestOpenGUI(EnumGuiType gui, int i, int j, int k) {
-		Client.sendData(EnumPacketServer.Gui, gui.ordinal(), i, j, k);
+        PacketClient.sendClient(new GuiRequestPacket(gui.ordinal(), i, j, k));
 	}
 
-	public static void spawnParticle(ByteBuf buffer) throws IOException{
-		double posX = buffer.readDouble();
-		double posY = buffer.readDouble();
-		double posZ = buffer.readDouble();
-		float height = buffer.readFloat();
-		float width = buffer.readFloat();
-		float yOffset = buffer.readFloat();
-
-		String particle = Server.readString(buffer);
-		World worldObj = Minecraft.getMinecraft().theWorld;
-
-		Random rand = worldObj.rand;
-		if(particle.equals("heal")){
-	        for (int k = 0; k < 6; k++)
-	        {
-	        	worldObj.spawnParticle("instantSpell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
-	        	worldObj.spawnParticle("spell", posX + (rand.nextDouble() - 0.5D) * (double)width, (posY + rand.nextDouble() * (double)height) - (double)yOffset, posZ + (rand.nextDouble() - 0.5D) * (double)width, 0, 0, 0);
-	        }
-		}
-	}
-
-	public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
+    public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
 		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
 		HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
 		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
@@ -90,39 +63,7 @@ public class NoppesUtil {
 		ClientCacheHandler.skinOverlays.put(player.getUniqueID(), skinOverlays);
 	}
 
-	public static void spawnScriptedParticle(EntityPlayer player, ByteBuf buffer){
-		Minecraft minecraft =  Minecraft.getMinecraft();
-
-		NBTTagCompound compound;
-		ScriptParticle particle;
-		try {
-			compound = Server.readNBT(buffer);
-			particle = ScriptParticle.fromNBT(compound);
-		} catch (IOException ignored) {
-			return;
-		}
-
-		World worldObj = player.worldObj;
-		if (worldObj == null) {
-			return;
-		}
-
-		Entity entity = null;
-		if (compound.hasKey("EntityID")) {
-			entity = worldObj.getEntityByID(compound.getInteger("EntityID"));
-			if (entity != null)
-				worldObj = entity.worldObj;
-			else return;
-		}
-
-		CustomFX fx = CustomFX.fromScriptedParticle(particle, worldObj, entity);
-
-		for(int i = 0; i < particle.amount; i++){
-			minecraft.effectRenderer.addEffect(fx);
-		}
-	}
-
-	public static void clickSound() {
+    public static void clickSound() {
         Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
 	}
 
@@ -202,7 +143,7 @@ public class NoppesUtil {
 		try {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
-				data.add(Server.readString(buffer));
+				data.add(ByteBufUtils.readString(buffer));
 			}
 		} catch (Exception e) {
 
@@ -219,7 +160,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				group.put(name, id);
 			}
 		} catch (Exception ignored) {
@@ -234,7 +175,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				group.put(name, id);
 			}
 		} catch (Exception ignored) {
@@ -250,18 +191,6 @@ public class NoppesUtil {
 		group = new HashMap<String,Integer>();
 	}
 
-	public static void addScrollData(ByteBuf buffer) {
-		try {
-			int size = buffer.readInt();
-			for(int i = 0; i < size; i++){
-				int id = buffer.readInt();
-				String name = Server.readString(buffer);
-				data.put(name, id);
-			}
-		} catch (Exception e) {
-		}
-	}
-
 	public static void setScrollData(ByteBuf buffer) {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 		if(gui == null)
@@ -270,7 +199,7 @@ public class NoppesUtil {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
 				int id = buffer.readInt();
-				String name = Server.readString(buffer);
+				String name = ByteBufUtils.readString(buffer);
 				data.put(name, id);
 			}
 		} catch (Exception e) {
@@ -327,53 +256,6 @@ public class NoppesUtil {
 	}
 
 	public static void isGUIOpen(boolean isGUIOpen) {
-		Client.sendData(EnumPacketServer.IsGuiOpen, isGUIOpen);
+        PacketClient.sendClient(new IsGuiOpenInform(isGUIOpen));
 	}
-
-
-    private static byte[] accumulatedData = new byte[0];
-    public static void handleLargeData(byte[] chunk) {
-        // Append the chunk to the accumulated data
-        accumulatedData = concatByteArrays(accumulatedData, chunk);
-    }
-
-    public static void handlePlayerDataEnd(boolean sync) {
-        NBTTagCompound compound;
-        try {
-            compound = CompressedStreamTools.func_152457_a(accumulatedData, new NBTSizeTracker(2097152L));
-            if(sync){
-                ClientCacheHandler.playerData.setSyncNBT(compound);
-            }
-            else {
-                ClientCacheHandler.playerData.setSyncNBTFull(compound);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        } finally {
-            // Reset the accumulated data after processing
-            accumulatedData = new byte[0];
-        }
-    }
-
-    public static void handleFormEnd() {
-        NBTTagCompound compound;
-        try {
-            compound = CompressedStreamTools.func_152457_a(accumulatedData, new NBTSizeTracker(2097152L));
-            ClientCacheHandler.playerData.setDBCSync(compound);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        } finally {
-            accumulatedData = new byte[0];
-        }
-    }
-
-    // Utility method to concatenate two byte arrays
-    private static byte[] concatByteArrays(byte[] a, byte[] b) {
-        byte[] result = new byte[a.length + b.length];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
-    }
 }

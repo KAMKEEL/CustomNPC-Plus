@@ -93,21 +93,28 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setRotation(float rotation){
-		npc.ai.orientation = (int)rotation;
-		super.setRotation(rotation);
+        super.setRotation(rotation);
+        int r = (int) rotation;
+        if(npc.ais.orientation != r) {
+            npc.updateClient = true;
+            npc.rotationYawHead = npc.rotationYaw = npc.renderYawOffset = npc.ais.orientation = r;
+            npc.prevRenderYawOffset = r;
+            npc.prevRotationYaw = r;
+            npc.prevRotationYawHead = r;
+        }
 	}
 
 	public void setRotationType(int rotationType){
 		for (EnumStandingType e : EnumStandingType.values()) {
 			if (e.ordinal() == rotationType) {
-				npc.ai.standingType = e;
+				npc.ais.standingType = e;
 				break;
 			}
 		}
 	}
 
 	public int getRotationType(){
-		return npc.ai.standingType.ordinal();
+		return npc.ais.standingType.ordinal();
 	}
 
 	/**
@@ -116,7 +123,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setMovingType(int movingType){
 		for(EnumMovingType e : EnumMovingType.values()) {
 			if (e.ordinal() == movingType) {
-				npc.ai.movingType = e;
+				npc.ais.movingType = e;
 				break;
 			}
 		}
@@ -126,7 +133,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @return The moving type of the npc. 0 = standing, 1 = wandering, 2 = moving path
 	 */
 	public int getMovingType(){
-		return npc.ai.movingType.ordinal();
+		return npc.ais.movingType.ordinal();
 	}
 
 	/**
@@ -170,7 +177,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public IPos getHome() {
-		return NpcAPI.Instance().getIPos(npc.ai.startPos[0],npc.ai.startPos[1],npc.ai.startPos[2]);
+		return NpcAPI.Instance().getIPos(npc.ais.startPos[0],npc.ais.startPos[1],npc.ais.startPos[2]);
 	}
 
 	/**
@@ -184,7 +191,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param x The home x position
 	 */
 	public void setHomeX(int x){
-		npc.ai.startPos[0] = x;
+		npc.ais.startPos[0] = x;
 	}
 
 	/**
@@ -198,7 +205,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param y The home y position
 	 */
 	public void setHomeY(int y){
-		npc.ai.startPos[1] = y;
+		npc.ais.startPos[1] = y;
 	}
 
 	/**
@@ -212,7 +219,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param z The home x position
 	 */
 	public void setHomeZ(int z){
-		npc.ai.startPos[2] = z;
+		npc.ais.startPos[2] = z;
 	}
 
 	/**
@@ -221,11 +228,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param z The home z position
 	 */
 	public void setHome(int x, int y, int z){
-		npc.ai.startPos = new int[]{x, y, z};
+		npc.ais.startPos = new int[]{x, y, z};
 	}
 
 	public void setHome(IPos pos){
-		npc.ai.startPos = new int[]{pos.getX(), pos.getY(), pos.getZ()};
+		npc.ais.startPos = new int[]{pos.getX(), pos.getY(), pos.getZ()};
 	}
 
 	/**
@@ -240,14 +247,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 * @param bo Whether or not the npc will try to return to his home position
 	 */
 	public void setReturnToHome(boolean bo){
-		npc.ai.returnToStart = bo;
+		npc.ais.returnToStart = bo;
 	}
 
 	/**
 	 * @return Whether or not the npc returns home
 	 */
 	public boolean getReturnToHome(){
-		return npc.ai.returnToStart;
+		return npc.ais.returnToStart;
 	}
 
 	/**
@@ -697,29 +704,29 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	 */
 	public void setAnimation(int type){
 		if(type == AnimationType.NORMAL)
-			npc.ai.animationType = EnumAnimation.NONE;
+			npc.ais.animationType = EnumAnimation.NONE;
 		else if(type == AnimationType.SITTING)
-			npc.ai.animationType = EnumAnimation.SITTING;
+			npc.ais.animationType = EnumAnimation.SITTING;
 		else if(type == AnimationType.DANCING)
-			npc.ai.animationType = EnumAnimation.DANCING;
+			npc.ais.animationType = EnumAnimation.DANCING;
 		else if(type == AnimationType.SNEAKING)
-			npc.ai.animationType = EnumAnimation.SNEAKING;
+			npc.ais.animationType = EnumAnimation.SNEAKING;
 		else if(type == AnimationType.LYING)
-			npc.ai.animationType = EnumAnimation.LYING;
+			npc.ais.animationType = EnumAnimation.LYING;
 		else if(type == AnimationType.HUGGING)
-			npc.ai.animationType = EnumAnimation.HUG;
+			npc.ais.animationType = EnumAnimation.HUG;
 	}
 
 	public void setTacticalVariant(int variant){
 		if(variant > EnumNavType.values().length-1 || variant < 0)
 			return;
 
-		npc.ai.tacticalVariant = EnumNavType.values()[variant];
-		npc.ai.directLOS = EnumNavType.values()[variant] != EnumNavType.Stalk && npc.ai.directLOS;
+		npc.ais.tacticalVariant = EnumNavType.values()[variant];
+		npc.ais.directLOS = EnumNavType.values()[variant] != EnumNavType.Stalk && npc.ais.directLOS;
 	}
 
 	public int getTacticalVariant(){
-		return npc.ai.tacticalVariant.ordinal();
+		return npc.ais.tacticalVariant.ordinal();
 	}
 
 	public void setTacticalVariant(String variant){
@@ -732,22 +739,22 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		if(!found)
 			return;
 
-		npc.ai.tacticalVariant = EnumNavType.valueOf(variant);
+		npc.ais.tacticalVariant = EnumNavType.valueOf(variant);
 	}
 
 	public String getTacticalVariantName(){
-		return npc.ai.tacticalVariant.name();
+		return npc.ais.tacticalVariant.name();
 	}
 
 	public void setCombatPolicy(int variant){
 		if(variant > EnumCombatPolicy.values().length-1 || variant < 0)
 			return;
 
-		npc.ai.combatPolicy = EnumCombatPolicy.values()[variant];
+		npc.ais.combatPolicy = EnumCombatPolicy.values()[variant];
 	}
 
 	public int getCombatPolicy(){
-		return npc.ai.combatPolicy.ordinal();
+		return npc.ais.combatPolicy.ordinal();
 	}
 
 	public void setCombatPolicy(String variant){
@@ -760,22 +767,22 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		if(!found)
 			return;
 
-		npc.ai.combatPolicy = EnumCombatPolicy.valueOf(variant);
+		npc.ais.combatPolicy = EnumCombatPolicy.valueOf(variant);
 	}
 
 	public String getCombatPolicyName(){
-		return npc.ai.combatPolicy.name();
+		return npc.ais.combatPolicy.name();
 	}
 
 	public void setTacticalRadius(int tacticalRadius){
 		if(tacticalRadius < 0)
 			tacticalRadius = 0;
 
-		npc.ai.tacticalRadius = tacticalRadius;
+		npc.ais.tacticalRadius = tacticalRadius;
 	}
 
 	public int getTacticalRadius(){
-		return npc.ai.tacticalRadius;
+		return npc.ais.tacticalRadius;
 	}
 
 	public void setIgnoreCobweb(boolean ignore){
@@ -789,21 +796,21 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	public void setOnFoundEnemy(int onAttack){
 		if(onAttack < 0 || onAttack > 3)
 			return;
-		npc.ai.onAttack = onAttack;
+		npc.ais.onAttack = onAttack;
 	}
 
 	public int onFoundEnemy(){
-		return npc.ai.onAttack;
+		return npc.ais.onAttack;
 	}
 
 	public void setShelterFrom(int shelterFrom){
 		if(shelterFrom < 0 || shelterFrom > 2)
 			return;
-		npc.ai.findShelter = shelterFrom;
+		npc.ais.findShelter = shelterFrom;
 	}
 
 	public int getShelterFrom(){
-		return npc.ai.findShelter;
+		return npc.ais.findShelter;
 	}
 
 	public boolean hasLivingAnimation() {
@@ -1188,7 +1195,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		if (type > 3)
 			type = 3;
 
-		npc.ai.onAttack = type;
+		npc.ais.onAttack = type;
 		npc.updateTasks();
 	}
 
@@ -1254,22 +1261,22 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 			fly = 1;
 		else fly = 0;
 
-		npc.ai.movementType = fly;
+		npc.ais.movementType = fly;
 	}
 
 	public boolean canFly(){
-		return npc.ai.movementType == 1;
+		return npc.ais.movementType == 1;
 	}
 
 	public void setFlySpeed(double flySpeed){
 		if(flySpeed < 0.0D)
 			flySpeed = 0.0D;
 
-		npc.ai.flySpeed = flySpeed;
+		npc.ais.flySpeed = flySpeed;
 	}
 
 	public double getFlySpeed(double flySpeed){
-		return npc.ai.flySpeed;
+		return npc.ais.flySpeed;
 	}
 
 	public void setFlyGravity(double flyGravity){
@@ -1278,36 +1285,36 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 		if(flyGravity > 1.0D)
 			flyGravity = 1.0D;
 
-		npc.ai.flyGravity = flyGravity;
+		npc.ais.flyGravity = flyGravity;
 	}
 
 	public double getFlyGravity(double flySpeed){
-		return npc.ai.flyGravity;
+		return npc.ais.flyGravity;
 	}
 
 	public void setFlyHeightLimit(int flyHeightLimit){
 		if(flyHeightLimit < 0)
 			flyHeightLimit = 0;
 
-		this.npc.ai.flyHeightLimit = flyHeightLimit;
+		this.npc.ais.flyHeightLimit = flyHeightLimit;
 	}
 	public int getFlyHeightLimit(int flyHeightLimit){
-		return this.npc.ai.flyHeightLimit;
+		return this.npc.ais.flyHeightLimit;
 	}
 
 	public void limitFlyHeight(boolean limit){
-		this.npc.ai.hasFlyLimit = limit;
+		this.npc.ais.hasFlyLimit = limit;
 	}
 	public boolean isFlyHeightLimited(boolean limit){
-		return this.npc.ai.hasFlyLimit;
+		return this.npc.ais.hasFlyLimit;
 	}
 
 	public void setSpeed(double speed) {
-		npc.ai.setWalkingSpeed(speed);
+		npc.ais.setWalkingSpeed(speed);
 	}
 
 	public double getSpeed() {
-		return npc.ai.getWalkingSpeed();
+		return npc.ais.getWalkingSpeed();
 	}
 
 	public void setSkinType(byte type) {

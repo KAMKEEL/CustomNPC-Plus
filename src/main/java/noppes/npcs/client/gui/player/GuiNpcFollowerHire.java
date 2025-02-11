@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.FollowerPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
@@ -41,7 +43,7 @@ public class GuiNpcFollowerHire extends GuiContainerNPCInterface
     	super.actionPerformed(guibutton);
         if(guibutton.id == 5)
         {
-        	NoppesUtilPlayer.sendData(EnumPlayerPacket.FollowerHire);
+            PacketClient.sendClient(new FollowerPacket(FollowerPacket.Action.Hire));
         	close();
         }
     }
@@ -68,10 +70,10 @@ public class GuiNpcFollowerHire extends GuiContainerNPCInterface
 			int days = 1;
 			if(role.rates.containsKey(id))
 	            days = role.rates.get(id);
-				
-			
+
+
 			int yOffset = index * 26;
-			
+
 			int x = guiLeft +  78;
 			int y = guiTop + yOffset + 10;
             GL11.glEnable(32826 /*GL_RESCALE_NORMAL_EXT*/);
@@ -79,7 +81,7 @@ public class GuiNpcFollowerHire extends GuiContainerNPCInterface
             itemRender.renderItemIntoGUI(fontRendererObj, mc.renderEngine, itemstack, x + 11,y);
 	        itemRender.renderItemOverlayIntoGUI(fontRendererObj, mc.renderEngine, itemstack, x+11,y);
 
-            RenderHelper.disableStandardItemLighting(); 
+            RenderHelper.disableStandardItemLighting();
             GL11.glDisable(32826 /*GL_RESCALE_NORMAL_EXT*/);
 
             String daysS = days + " " + ((days == 1)?StatCollector.translateToLocal("follower.day"):StatCollector.translateToLocal("follower.days"));
@@ -92,7 +94,7 @@ public class GuiNpcFollowerHire extends GuiContainerNPCInterface
 	        }
 	        index++;
     	}
-    	
+
     }
 	@Override
 	public void save() {

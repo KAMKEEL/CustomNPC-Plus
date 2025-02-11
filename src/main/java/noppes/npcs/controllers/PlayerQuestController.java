@@ -1,13 +1,13 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.data.PlayerData;
@@ -45,8 +45,8 @@ public class PlayerQuestController {
 
 			data.activeQuests.put(questData.quest.id,questData);
 			if (questData.sendAlerts) {
-				Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.newquest", questData.quest.title);
-				Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.newquest", ": ", questData.quest.title);
+                AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", questData.quest.title);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", questData.quest.title);
 			}
             playerData.updateClient = true;
 		} else {
@@ -76,8 +76,8 @@ public class PlayerQuestController {
 			}
 		}
 		if (questData != null && questData.sendAlerts) {
-			Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
-			Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
+            AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.completed", questData.quest.title);
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.completed", ": ", questData.quest.title);
 		}
         playerdata.updateClient = true;
 	}
@@ -98,8 +98,8 @@ public class PlayerQuestController {
             }
         }
         if (questData != null && questData.sendAlerts) {
-            Server.sendData((EntityPlayerMP) player, EnumPacketClient.MESSAGE, "quest.completed", questData.quest.title);
-            Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "quest.completed", ": ", questData.quest.title);
+            AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.completed", questData.quest.title);
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.completed", ": ", questData.quest.title);
         }
         playerdata.updateClient = true;
     }

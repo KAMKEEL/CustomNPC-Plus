@@ -28,7 +28,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
             this.update = false;
 
             double speed = this.speed * this.entity.getEntityAttribute(SharedMonsterAttributes.movementSpeed).getAttributeValue();
-            double verticalSpeed = this.speed * this.entity.ai.flySpeed/8.0D;
+            double verticalSpeed = this.speed * this.entity.ais.flySpeed/8.0D;
             this.entity.setAIMoveSpeed((float)speed);
 
             double d0 = this.posX - this.entity.posX;
@@ -45,7 +45,7 @@ public class FlyingMoveHelper extends EntityMoveHelper{
                 this.entity.motionX += (speed * (d0 / d5) - this.entity.motionX) * speed;
                 this.entity.motionZ += (speed * (d2 / d5) - this.entity.motionZ) * speed;
 
-                if (((EntityNPCFlying)this.entity).flyLimitAllow || !this.entity.ai.hasFlyLimit) {
+                if (((EntityNPCFlying)this.entity).flyLimitAllow || !this.entity.ais.hasFlyLimit) {
                     this.entity.motionY = verticalSpeed * (d1 / d5);
                     if (this.entity.motionY > 0) {
                         this.entity.motionY += 0.1D;

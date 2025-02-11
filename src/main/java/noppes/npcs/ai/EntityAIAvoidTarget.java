@@ -19,7 +19,7 @@ public class EntityAIAvoidTarget extends EntityAIBase
     private EntityNPCInterface theEntity;
     private Entity closestLivingEntity;
     private float distanceFromEntity;
-    
+
     private float health;
 
     /** The PathEntity of our entity */
@@ -27,7 +27,7 @@ public class EntityAIAvoidTarget extends EntityAIBase
 
     /** The PathNavigate of our entity */
     private PathNavigate entityPathNavigate;
-    
+
     /** The class of the entity we should avoid */
     private Class targetEntityClass;
 
@@ -46,14 +46,14 @@ public class EntityAIAvoidTarget extends EntityAIBase
     public boolean shouldExecute()
     {
     	EntityLivingBase target = this.theEntity.getAttackTarget();
-    	
+
     	if (target == null)
         {
             return false;
         }
-        
+
     	targetEntityClass = target.getClass();
-    	
+
         if (this.targetEntityClass == EntityPlayer.class)
         {
             this.closestLivingEntity = this.theEntity.worldObj.getClosestPlayerToEntity(this.theEntity, (double)this.distanceFromEntity);
@@ -75,7 +75,7 @@ public class EntityAIAvoidTarget extends EntityAIBase
             this.closestLivingEntity = (Entity)var1.get(0);
         }
 
-        if (!this.theEntity.getEntitySenses().canSee(this.closestLivingEntity) && this.theEntity.ai.directLOS)
+        if (!this.theEntity.getEntitySenses().canSee(this.closestLivingEntity) && this.theEntity.ais.directLOS)
         {
             return false;
         }
@@ -83,10 +83,10 @@ public class EntityAIAvoidTarget extends EntityAIBase
         {
             Vec3 var2 = RandomPositionGeneratorAlt.findRandomTargetBlockAwayFrom(this.theEntity, 16, 7, Vec3.createVectorHelper(this.closestLivingEntity.posX, this.closestLivingEntity.posY, this.closestLivingEntity.posZ));
 
-            boolean var3 = this.theEntity.inventory.getProjectile() == null || this.theEntity.ai.useRangeMelee == 2;
-            
+            boolean var3 = this.theEntity.inventory.getProjectile() == null || this.theEntity.ais.useRangeMelee == 2;
+
             boolean var4 = var3 ? this.health == this.theEntity.getHealth() : this.theEntity.getRangedTask() != null && !this.theEntity.getRangedTask().hasFired();
-            
+
             if (var2 == null)
             {
                 return false;
@@ -95,7 +95,7 @@ public class EntityAIAvoidTarget extends EntityAIBase
             {
                 return false;
             }
-            else if (this.theEntity.ai.tacticalVariant == EnumNavType.HitNRun && var4)
+            else if (this.theEntity.ais.tacticalVariant == EnumNavType.HitNRun && var4)
             {
             	return false;
             }
@@ -145,10 +145,10 @@ public class EntityAIAvoidTarget extends EntityAIBase
         {
             this.theEntity.getNavigator().setSpeed(1.0D);
         }
-        if (this.theEntity.ai.tacticalVariant == EnumNavType.HitNRun)
+        if (this.theEntity.ais.tacticalVariant == EnumNavType.HitNRun)
         {
         	float dist = this.theEntity.getDistanceToEntity(this.closestLivingEntity);
-        	if (dist > this.distanceFromEntity || dist < this.theEntity.ai.tacticalRadius)
+        	if (dist > this.distanceFromEntity || dist < this.theEntity.ais.tacticalRadius)
         	{
         		this.health = this.theEntity.getHealth();
         	}

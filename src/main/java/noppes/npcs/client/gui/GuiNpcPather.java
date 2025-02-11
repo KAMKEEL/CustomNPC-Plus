@@ -1,15 +1,18 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.pather.MovingPathGetPacket;
+import kamkeel.npcs.network.packets.request.pather.MovingPathSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataAI;
 import noppes.npcs.NBTTags;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -17,19 +20,19 @@ import java.util.HashMap;
 import java.util.List;
 
 public class GuiNpcPather extends GuiNPCInterface implements IGuiData{
-    
+
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> data = new HashMap<String, Integer>();
     private DataAI ai;
-    
+
 	public GuiNpcPather(EntityNPCInterface npc) {
 		super();
 		drawDefaultBackground = false;
         xSize = 176;
         title = "Npc Pather";
         setBackground("smallbg.png");
-        ai = npc.ai;
-        Client.sendData(EnumPacketServer.MovingPathGet);
+        ai = npc.ais;
+        PacketClient.sendClient(new MovingPathGetPacket());
 	}
 	@Override
     public void initGui()
@@ -44,7 +47,7 @@ public class GuiNpcPather extends GuiNPCInterface implements IGuiData{
         scroll.setUnsortedList(list);
         scroll.guiLeft = guiLeft + 7;
         scroll.guiTop = guiTop + 12;
-        
+
         addScroll(scroll);
         this.addButton(new GuiNpcButton(0, guiLeft + 6, guiTop + 178,52,20, "gui.down"));
         this.addButton(new GuiNpcButton(1, guiLeft + 62, guiTop + 178,52,20, "gui.up"));
@@ -55,7 +58,7 @@ public class GuiNpcPather extends GuiNPCInterface implements IGuiData{
     {
     	if(scroll.selected < 0)
     		return;
-    	
+
     	int id = guibutton.id;
     	if(id == 0){
     		List<int[]> list = ai.getMovingPath();
@@ -109,12 +112,12 @@ public class GuiNpcPather extends GuiNPCInterface implements IGuiData{
             close();
         }
     }
-    
+
 	@Override
 	public void save() {
 		NBTTagCompound compound = new NBTTagCompound();
 		compound.setTag("MovingPathNew", NBTTags.nbtIntegerArraySet(ai.getMovingPath()));
-		Client.sendData(EnumPacketServer.MovingPathSave, compound);
+        PacketClient.sendClient(new MovingPathSavePacket(compound));
 	}
 
 	@Override

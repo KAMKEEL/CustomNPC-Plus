@@ -1,12 +1,13 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
 import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobConversation;
 import noppes.npcs.roles.JobConversation.ConversationLine;
@@ -109,7 +110,7 @@ public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldLi
 
     @Override
 	public void save() {
-    	Client.sendData(EnumPacketServer.JobSave, job.writeToNBT(new NBTTagCompound()));
+        JobSavePacket.saveJob(job);
 	}
 
 	@Override

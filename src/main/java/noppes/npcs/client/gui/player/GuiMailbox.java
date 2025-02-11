@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.packets.player.MailActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -18,16 +19,16 @@ import java.util.Comparator;
 import java.util.List;
 
 public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScrollListener, GuiYesNoCallback{
-    
+
     private GuiCustomScroll scroll;
     private PlayerMailData data;
     private PlayerMail selected;
-    
+
 	public GuiMailbox() {
 		super();
         xSize = 256;
         setBackground("menubg.png");
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.MailGet);
+        MailActionPacket.RequestMailData();
 	}
     public void initGui()
     {
@@ -39,7 +40,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 4;
         addScroll(scroll);
-        
+
         String title = StatCollector.translateToLocal("mailbox.name");
         int x = (xSize - this.fontRendererObj.getStringWidth(title)) / 2;
 
@@ -81,7 +82,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
     public void confirmClicked(boolean flag, int i)
     {
 		if(flag && selected != null){
-	        NoppesUtilPlayer.sendData(EnumPlayerPacket.MailDelete, selected.time, selected.sender);
+	        MailActionPacket.DeleteMail(selected.time, selected.sender);
 	        selected = null;
 		}
 		NoppesUtil.openGUI(player, this);
@@ -94,7 +95,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
     	if(id == 0){
     		GuiMailmanWrite.parent = this;
     		GuiMailmanWrite.mail = selected;
-    		NoppesUtilPlayer.sendData(EnumPlayerPacket.MailboxOpenMail, selected.time, selected.sender);
+    		MailActionPacket.OpenMail(selected.time, selected.sender);
     		selected = null;
     		scroll.selected = -1;
     	}
@@ -103,7 +104,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
             displayGuiScreen(guiyesno);
     	}
     }
-	
+
     @Override
     public void mouseClicked(int i, int j, int k)
     {
@@ -120,14 +121,14 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
     }
 	@Override
 	public void save() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		PlayerMailData data = new PlayerMailData();
 		data.loadNBTData(compound);
-		
+
 		List<String> list = new ArrayList<String>();
 		Collections.sort(data.playermail, new Comparator<PlayerMail>(){
 		     public int compare(PlayerMail o1, PlayerMail o2){
@@ -150,10 +151,10 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
 			GuiCustomScroll guiCustomScroll) {
 		selected = data.playermail.get(guiCustomScroll.selected);
 		initGui();
-		
+
 		if(selected != null && !selected.beenRead){
 			selected.beenRead = true;
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.MailRead, selected.time, selected.sender);
+            MailActionPacket.ReadMail(selected.time, selected.sender);
 		}
 	}
 

@@ -1,18 +1,17 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.packets.player.BankActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
@@ -26,7 +25,7 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
     private int maxSlots = 1;
     private int unlockedSlots = 1;
     private ItemStack currency;
-    
+
     public GuiNPCBankChest(EntityNPCInterface npc,ContainerNPCBankInterface container)
     {
         super(npc,container);
@@ -35,7 +34,7 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
         allowUserInput = false; //allowUserInput
         ySize = 235;
         closeOnEsc = true;
-        
+
     }
     @Override
     public void initGui(){
@@ -70,18 +69,18 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
     	int id = guibutton.id;
     	if(id < 6){
     		close();
-    		NoppesUtilPlayer.sendData(EnumPlayerPacket.BankSlotOpen, id, container.bankid);
+            BankActionPacket.Open(container.bankid, id);
     	}
     	if(id == 8){
-    		NoppesUtilPlayer.sendData(EnumPlayerPacket.BankUnlock);
+            BankActionPacket.Unlock();
     	}
     	if(id == 9){
-    		NoppesUtilPlayer.sendData(EnumPlayerPacket.BankUpgrade);
+            BankActionPacket.Upgrade();
     	}
-    	
+
 
     }
-    
+
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
@@ -91,8 +90,8 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
         int i1 = (height - ySize) / 2;
         drawTexturedModalRect(l, i1, 0, 0, xSize, 6);
         if(!container.isAvailable()){
-	        drawTexturedModalRect(l, i1 + 6, 0, 6, xSize, 64); 
-	        drawTexturedModalRect(l, i1 + 70, 0, 124, xSize, 222-124);    
+	        drawTexturedModalRect(l, i1 + 6, 0, 6, xSize, 64);
+	        drawTexturedModalRect(l, i1 + 70, 0, 124, xSize, 222-124);
 	        int x = guiLeft + 30;
 	        int y = guiTop + 8;
 	      	fontRendererObj.drawString(StatCollector.translateToLocal("bank.unlockCosts")+":", x , y + 4 , CustomNpcResourceListener.DefaultTextColor);
@@ -100,7 +99,7 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
         }
         else if(container.isUpgraded()){
 	        drawTexturedModalRect(l, i1 + 60, 0, 60, xSize, 162);
-	        drawTexturedModalRect(l, i1 + 6, 0, 60, xSize, 64);        	
+	        drawTexturedModalRect(l, i1 + 6, 0, 60, xSize, 64);
         }
         else if(container.canBeUpgraded()){
 	        drawTexturedModalRect(l, i1 + 6, 0, 6, xSize, 216);
@@ -136,7 +135,7 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
         {
             this.renderToolTip(item, mouseX, mouseY);
         }
-        RenderHelper.disableStandardItemLighting(); 
+        RenderHelper.disableStandardItemLighting();
         GL11.glColor4f(1, 1, 1, 1);
     }
 	@Override

@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.clone.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -9,11 +11,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.controllers.ClientTagMapController;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
 
@@ -62,7 +64,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		this.closeOnEsc = true;
 
 		setBackground("menubg.png");
-		Client.sendData(EnumPacketServer.CloneAllTags, activeTab);
+        PacketClient.sendClient(new CloneAllTagsPacket());
 	}
 	public void initGui()
 	{
@@ -187,8 +189,8 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 	}
 	private void showClones() {
 		if(showingClones == 2){
-			Client.sendData(EnumPacketServer.CloneTagList, activeTab);
-			Client.sendData(EnumPacketServer.CloneList, activeTab);
+            PacketClient.sendClient(new CloneTagListPacket(activeTab));
+            PacketClient.sendClient(new CloneListPacket(activeTab));
 			return;
 		}
 
@@ -377,14 +379,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 				String sel = scroll.getSelected();
 				if(sel == null)
 					return;
-				Client.sendData(EnumPacketServer.SpawnMob, true, posX, posY, posZ, sel, activeTab);
+                SpawnMobPacket.Server(posX, posY, posZ, sel, activeTab);
 				close();
 			}
 			else{
 				NBTTagCompound compound = getCompound();
 				if(compound == null)
 					return;
-				Client.sendData(EnumPacketServer.SpawnMob, false, posX, posY, posZ, compound);
+                SpawnMobPacket.Client(posX, posY, posZ, compound);
 				close();
 			}
 		}
@@ -393,14 +395,14 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 				String sel = scroll.getSelected();
 				if(sel == null)
 					return;
-				Client.sendData(EnumPacketServer.MobSpawner, true, posX, posY, posZ, sel, activeTab);
+                MobSpawnerPacket.Server(posX, posY, posZ, sel, activeTab);
 				close();
 			}
 			else{
 				NBTTagCompound compound = getCompound();
 				if(compound == null)
 					return;
-				Client.sendData(EnumPacketServer.MobSpawner, false, posX, posY, posZ, compound);
+                MobSpawnerPacket.Client(posX, posY, posZ, compound);
 				close();
 
 			}
@@ -427,7 +429,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 		if(id == 6){
 			if(scroll.getSelected() != null){
 				if(showingClones == 2){
-					Client.sendData(EnumPacketServer.CloneRemove, activeTab, scroll.getSelected());
+                    PacketClient.sendClient(new CloneRemovePacket(activeTab, scroll.getSelected()));
 					return;
 				}
 				ClientCloneController.Instance.removeClone(scroll.getSelected(), activeTab);
@@ -464,7 +466,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
 
 	@Override
 	public void save() {
-		// TODO Auto-generated method stub
+
 	}
 
 	@Override

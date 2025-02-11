@@ -24,14 +24,14 @@ public class DataInventory implements IInventory {
 	public HashMap<Integer,ItemStack> weapons = new HashMap<Integer, ItemStack>();
 	public HashMap<Integer,ItemStack> prevWeapons = new HashMap<Integer, ItemStack>();
 	public HashMap<Integer,ItemStack> armor = new HashMap<Integer, ItemStack>();
-		
+
 	public int minExp = 0;
 	public int maxExp = 0;
-	
+
 	public int lootMode = 0;
-	
+
 	private EntityNPCInterface npc;
-	
+
 	public DataInventory(EntityNPCInterface npc){
 		this.npc = npc;
 	}
@@ -43,7 +43,7 @@ public class DataInventory implements IInventory {
 		nbttagcompound.setTag("Weapons", NBTTags.nbtItemStackList(getWeapons()));
 		nbttagcompound.setTag("DoubleDropChance", NBTTags.nbtIntegerDoubleMap(dropchance));
 		nbttagcompound.setInteger("LootMode", lootMode);
-		
+
 		return nbttagcompound;
 	}
 	public void readEntityFromNBT(NBTTagCompound nbttagcompound){
@@ -187,7 +187,7 @@ public class DataInventory implements IInventory {
 				npc.worldObj.spawnEntityInWorld(item);
 		}
 	}
-	
+
 	public EntityItem getEntityItem(ItemStack itemstack) {
 		if (itemstack == null) {
 			return null;
@@ -205,13 +205,13 @@ public class DataInventory implements IInventory {
 
 		return entityitem;
 	}
-	
+
 	public ItemStack armorItemInSlot(int i) {
 		return getArmor().get(i);
 	}
 	@Override
 	public int getSizeInventory() {
-		// TODO Auto-generated method stub
+
 		return 15;
 	}
 	@Override
@@ -243,7 +243,7 @@ public class DataInventory implements IInventory {
         	var3 = getArmor();
             i = 2;
         }
-        
+
         ItemStack var4 = null;
         if (var3.get(par1) != null)
         {
@@ -355,17 +355,17 @@ public class DataInventory implements IInventory {
 	}
 	@Override
 	public void markDirty() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 	@Override
 	public void openInventory() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 	@Override
 	public void closeInventory() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 }

@@ -1,7 +1,7 @@
 package noppes.npcs.config;
 
 import cpw.mods.fml.common.FMLLog;
-import kamkeel.developer.Developer;
+import kamkeel.npcs.developer.Developer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.config.Configuration;
@@ -178,7 +178,7 @@ public class ConfigScript
         if(ScriptOpsOnly){
             return isOp || scriptDev;
         }
-        
+
         return scriptDev || CustomNpcsPermissions.hasPermission(player, perm);
     }
 }

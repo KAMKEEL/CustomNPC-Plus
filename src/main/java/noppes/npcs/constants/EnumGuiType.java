@@ -1,5 +1,11 @@
 package noppes.npcs.constants;
 
+import noppes.npcs.quests.QuestItem;
+import noppes.npcs.roles.companion.CompanionTrader;
+import noppes.npcs.scripted.ScriptBlock;
+
+import javax.swing.border.Border;
+
 public enum EnumGuiType {
 	MainMenuDisplay,
 	MainMenuInv,
@@ -23,13 +29,15 @@ public enum EnumGuiType {
 	SetupTransporter,
 	ManageTransport,
 	ManageBanks,
-	MobSpawner,
+    Cloner,
 	SetupBank,
 	ManageDialogs,
 	ManageQuests,
-	PlayerAnvil,
+    PlayerCarpentryBench,
+    PlayerAnvil,
 	QuestReward,
 	ManageRecipes,
+    ManageEffects,
 	QuestItem,
 	NpcRemote,
     GlobalRemote,

@@ -1,16 +1,15 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagsNpcGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.TagController;
-import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -31,8 +30,8 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
     {
         this.parent = guiNpcMobSpawnerAdd;
         this.mobSpawnerAdd = guiNpcMobSpawnerAdd;
-        Client.sendData(EnumPacketServer.TagsGet);
-        Client.sendData(EnumPacketServer.NpcTagsGet);
+        PacketClient.sendClient(new TagsGetPacket());
+        PacketClient.sendClient(new TagsNpcGetPacket());
         setBackground("menubg.png");
         xSize = 305;
         ySize = 220;
@@ -146,7 +145,7 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
 
         GuiNpcMobSpawnerAdd.tagsCompound = UUIDTagList;
         tagCompound.setTag("TagNames",tagList);
-        Client.sendData(EnumPacketServer.TagSet, tagCompound);
+        PacketClient.sendClient(new TagSetPacket(tagCompound));
     }
 
     public void keyTyped(char c, int i)

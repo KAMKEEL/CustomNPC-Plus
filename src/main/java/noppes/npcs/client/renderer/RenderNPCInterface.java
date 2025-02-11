@@ -2,7 +2,7 @@ package noppes.npcs.client.renderer;
 
 import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import com.mojang.authlib.minecraft.MinecraftProfileTexture.Type;
-import kamkeel.addon.client.GeckoAddonClient;
+import kamkeel.npcs.addon.client.GeckoAddonClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.gui.FontRenderer;
@@ -153,13 +153,13 @@ public class RenderNPCInterface extends RenderLiving{
 		shadowSize = npc.display.modelSize / 10f;
 
 		float xOffset = 0;
-		float yOffset = npc.currentAnimation == EnumAnimation.NONE?npc.ai.bodyOffsetY / 10 - 0.5f:0;
+		float yOffset = npc.currentAnimation == EnumAnimation.NONE?npc.ais.bodyOffsetY / 10 - 0.5f:0;
 		float zOffset = 0;
 
 		if(npc.isEntityAlive()){
 			if(npc.isPlayerSleeping()){
-				xOffset = (float) -Math.cos(Math.toRadians(180 - npc.ai.orientation));
-				zOffset = (float) -Math.sin(Math.toRadians(npc.ai.orientation));
+				xOffset = (float) -Math.cos(Math.toRadians(180 - npc.ais.orientation));
+				zOffset = (float) -Math.sin(Math.toRadians(npc.ais.orientation));
 				yOffset += 0.14f;
 			}
 			else if(npc.isRiding()){
@@ -180,7 +180,7 @@ public class RenderNPCInterface extends RenderLiving{
 		EntityNPCInterface npc = (EntityNPCInterface) entity;
 		if(npc.isEntityAlive() && npc.isPlayerSleeping())
 		{
-			GL11.glRotatef(npc.ai.orientation, 0.0F, 1.0F, 0.0F);
+			GL11.glRotatef(npc.ais.orientation, 0.0F, 1.0F, 0.0F);
 			GL11.glRotatef(getDeathMaxRotation(npc), 0.0F, 0.0F, 1.0F);
 			GL11.glRotatef(270F, 0.0F, 1.0F, 0.0F);
 		}
@@ -216,8 +216,8 @@ public class RenderNPCInterface extends RenderLiving{
 		if((npc.display.showBossBar == 1 || npc.display.showBossBar == 2 && npc.isAttacking()) && !npc.isKilled() && npc.deathTime <= 20 && npc.canSee(Minecraft.getMinecraft().thePlayer))
 			BossStatus.setBossStatus(npc, true);
 
-		if(npc.ai.standingType == EnumStandingType.HeadRotation && !npc.isWalking() && !npc.isInteracting()){
-			npc.prevRenderYawOffset = npc.renderYawOffset = npc.ai.orientation;
+		if(npc.ais.standingType == EnumStandingType.HeadRotation && !npc.isWalking() && !npc.isInteracting()){
+			npc.prevRenderYawOffset = npc.renderYawOffset = npc.ais.orientation;
 		}
 
 		staticRenderManager = this.renderManager;

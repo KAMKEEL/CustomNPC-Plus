@@ -90,20 +90,18 @@ public class GuiNpcTextArea extends GuiNpcTextField {
 		}
 		return false;
 	}
-	
+
 	@Override
     public void mouseClicked(int i, int j, int k){
     	boolean wasFocused = isFocused();
         super.mouseClicked(i, j, k);
-        
+
         if(hoverVerticalScrollBar(i, j)){
         	clickVerticalBar = true;
         	startClick = -1;
         	return;
         }
-        if(k != 0 || !canEdit)
-        	return;
-        
+
     	int x = i - posX;
     	int y = (j - posY - 4) / font.height() + getStartLineY();
     	cursorPosition = 0;
@@ -126,22 +124,22 @@ public class GuiNpcTextArea extends GuiNpcTextField {
             		return;
         		charCount++;
         		line += c;
-        		
+
     		}
     		cursorPosition = charCount;
 
-            	
+
 
     		lineCount++;
 			charCount++;
             if(y < lineCount){
             	break;
             }
-		}        
+		}
         if(y >= lineCount)
         	cursorPosition = getText().length();
     }
-	
+
 	private List<String> getLines(){
 		List<String> list = new ArrayList<String>();
 		String line = "";
@@ -156,7 +154,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
     	list.add(line);
 		return list;
 	}
-	
+
 	private int getStartLineY(){
 		if(!isScrolling())
 			scrolledY = 0;
@@ -171,9 +169,9 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         //int color = isEnabled?0xe0e0e0:0x707070;
         int color = 0xe0e0e0;
         boolean flag = isFocused() && (cursorCounter / 6) % 2 == 0;
-        
+
         int startLine = getStartLineY();
-        
+
         int maxLine = height / font.height() + startLine;
 
         int charCount = 0;
@@ -193,7 +191,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         			int xx = posX + font.width(line) + 4;
         			int yy = posY + ((lineCount - startLine) * font.height()) + 4;
             		if(getText().length() == cursorPosition){
-            			font.drawString("_", xx, yy, color);  
+            			font.drawString("_", xx, yy, color);
             		}
             		else{
             			drawCursorVertical(xx, yy, xx + 1, yy + font.height());
@@ -208,7 +206,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
 	    			int xx = posX + font.width(line) + 4;
 	    			int yy = posY + ((lineCount - startLine) * font.height()) + 4;
 	        		if(getText().length() == cursorPosition){
-	        			font.drawString("_", xx, yy, color);  
+	        			font.drawString("_", xx, yy, color);
 	        		}
 	        		else{
 	        			drawCursorVertical(xx, yy, xx + 1, yy + font.height());
@@ -218,8 +216,8 @@ public class GuiNpcTextArea extends GuiNpcTextField {
     		lineCount++;
         	charCount++;
         }
-        
-        
+
+
         int k2 = Mouse.getDWheel();
         if(k2 != 0 && isFocused()){
         	addScrollY(k2 < 0?-10:10);
@@ -229,10 +227,10 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         	if(clickVerticalBar){
 	        	if(startClick >= 0)
 	        		addScrollY(startClick - (mouseY - posY));
-	        	
+
 	        	if(hoverVerticalScrollBar(mouseX, mouseY))
 	        		startClick = mouseY - posY;
-	
+
 	    		startClick = mouseY - posY;
         	}
         }
@@ -242,20 +240,20 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         listHeight = lineCount * font.height();
         drawVerticalScrollBar();
     }
-	
+
     public void drawString(FontRenderer fontRendererIn, String text, int x, int y, int color){
     	GL11.glColor4f(1, 1, 1, 1);
     	font.drawString(text, x, y, color);
     	//super.drawString(fontRendererIn, text, x, y, color);
     }
-	
+
 	private boolean isScrolling() {
     	return listHeight > height - 4;
 	}
 
 	private void addScrollY(int scrolled){
 		scrolledY -= 1f * scrolled / height;
-		
+
     	if(scrolledY < 0)
     		scrolledY = 0;
 
@@ -263,17 +261,17 @@ public class GuiNpcTextArea extends GuiNpcTextField {
     	if(scrolledY > max )
     		scrolledY = max;
 	}
-	
+
 	private boolean hoverVerticalScrollBar(int x, int y){
     	if(listHeight <= height - 4)
     		return false;
-    	
+
     	if(posY < y && posY + height > y && x < posX + width && x > posX + (width - 8))
     		return true;
-    	
+
 		return false;
 	}
-	
+
     private void drawCursorVertical(int p_146188_1_, int p_146188_2_, int p_146188_3_, int p_146188_4_){
         int i1;
 

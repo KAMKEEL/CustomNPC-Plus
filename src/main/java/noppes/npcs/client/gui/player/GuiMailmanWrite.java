@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.player;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.network.packets.player.MailActionPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -38,15 +39,15 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
     private NBTTagList bookPages;
     private GuiButtonNextPage buttonNextPage;
     private GuiButtonNextPage buttonPreviousPage;
-    
+
     private boolean canEdit;
     private boolean canSend;
 
     /** The GuiButton to sign this book. */
-    
+
     public static GuiScreen parent;
 	public static PlayerMail mail = new PlayerMail();
-    
+
     private Minecraft mc = Minecraft.getMinecraft();
 
 	private String username = "";
@@ -105,7 +106,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
 			addLabel(new GuiNpcLabel(0, "mailbox.sender", guiLeft + 170, guiTop + 32, 0));
 		else
 			addLabel(new GuiNpcLabel(0, "mailbox.username", guiLeft + 170, guiTop + 32, 0));
-		
+
 		if(canEdit && !canSend)
 			addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 170, guiTop + 42, 114, 20, mail.sender));
 		else if(canEdit)
@@ -124,7 +125,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
 			addButton(new GuiNpcButton(0, this.guiLeft + 200, guiTop + 171, 60, 20, "gui.done"));
 		else if(canEdit)
 			addButton(new GuiNpcButton(0, this.guiLeft + 200, guiTop + 171, 60, 20, "mailbox.send"));
-		
+
 		if(!canEdit && !canSend)
 			addButton(new GuiNpcButton(4, this.guiLeft + 200, guiTop + 171, 60, 20, "selectWorld.deleteButton"));
 		if(!canEdit || canSend)
@@ -148,12 +149,12 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
         this.buttonNextPage.setVisible(this.currPage < this.bookTotalPages - 1 || this.canEdit);
         this.buttonPreviousPage.setVisible(this.currPage > 0);
     }
-    
+
 	@Override
     public void confirmClicked(boolean flag, int i)
     {
 		if(flag){
-	        NoppesUtilPlayer.sendData(EnumPlayerPacket.MailDelete, mail.time, mail.sender);
+            MailActionPacket.DeleteMail(mail.time, mail.sender);
 	        close();
 		}
 		else
@@ -172,7 +173,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
     		if(id == 0){
     			mail.message.setTag("pages", bookPages);
     	    	if(canSend)
-    	    		NoppesUtilPlayer.sendData(EnumPlayerPacket.MailSend, this.username, mail.writeNBT());
+                    MailActionPacket.SendMail(this.username, mail.writeNBT());
     	    	else
     	    		close();
     		}
@@ -327,7 +328,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
         {
             s1 = this.bookPages.getStringTagAt(this.currPage);
         }
-        
+
         if(canEdit){
 	        if (mc.fontRenderer.getBidiFlag())
 	        {
@@ -349,14 +350,14 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
 
         this.drawGradientRect(guiLeft + 175, guiTop + 136, guiLeft + 269, guiTop + 154, -1072689136, -804253680);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        
+
 
         this.mc.getTextureManager().bindTexture(bookWidgets);
         for(int i = 0; i < 4; i++)
         	this.drawTexturedModalRect(guiLeft + 175 + i * 24, guiTop + 134, 0, 22, 24, 24);
-        
+
         super.drawScreen(par1, par2, par3);
-        
+
     }
 
     public void close(){
@@ -390,6 +391,6 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
 
 	@Override
 	public void save() {
-		
+
 	}
 }

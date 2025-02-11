@@ -1,25 +1,29 @@
 package noppes.npcs.client.gui.advanced;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.transform.TransformGetPacket;
+import kamkeel.npcs.network.packets.request.transform.TransformLoadPacket;
+import kamkeel.npcs.network.packets.request.transform.TransformSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.controllers.data.DataTransform;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCNightSetup extends GuiNPCInterface2 implements IGuiData
 {
 	private DataTransform data;
-	
+
     public GuiNPCNightSetup(EntityNPCInterface npc)
     {
     	super(npc);
     	data = npc.transform;
-    	Client.sendData(EnumPacketServer.TransformGet);
+        PacketClient.sendClient(new TransformGetPacket());
     }
 
     public void initGui()
@@ -40,16 +44,16 @@ public class GuiNPCNightSetup extends GuiNPCInterface2 implements IGuiData
 
         this.addLabel(new GuiNpcLabel(4, "menu.advanced", guiLeft + 4, guiTop + 113));
         this.addButton(new GuiNpcButton(4, guiLeft + 104, guiTop + 108, 50, 20, new String[]{"gui.no","gui.yes"}, data.hasAdvanced?1:0));
-        
+
         this.addLabel(new GuiNpcLabel(5, "role.name", guiLeft + 4, guiTop + 135));
         this.addButton(new GuiNpcButton(5, guiLeft + 104, guiTop + 130, 50, 20, new String[]{"gui.no","gui.yes"}, data.hasRole?1:0));
-        
+
         this.addLabel(new GuiNpcLabel(6, "job.name", guiLeft + 4, guiTop + 157));
         this.addButton(new GuiNpcButton(6, guiLeft + 104, guiTop + 152, 50, 20, new String[]{"gui.no","gui.yes"}, data.hasJob?1:0));
-    
+
         this.addLabel(new GuiNpcLabel(10, "advanced.editingmode", guiLeft + 170, guiTop + 9));
         this.addButton(new GuiNpcButton(10, guiLeft + 244, guiTop + 4, 50, 20, new String[]{"gui.no","gui.yes"}, data.editingModus?1:0));
-    
+
         if(data.editingModus){
         	this.addButton(new GuiNpcButton(11, guiLeft + 170, guiTop + 34, "advanced.loadday"));
         	this.addButton(new GuiNpcButton(12, guiLeft + 170, guiTop + 56, "advanced.loadnight"));
@@ -80,16 +84,16 @@ public class GuiNPCNightSetup extends GuiNPCInterface2 implements IGuiData
         	initGui();
         }
         if(button.id == 11){
-        	Client.sendData(EnumPacketServer.TransformLoad, false);
+            PacketClient.sendClient(new TransformLoadPacket(false));
         }
         if(button.id == 12){
-        	Client.sendData(EnumPacketServer.TransformLoad, true);
+            PacketClient.sendClient(new TransformLoadPacket(true));
         }
     }
-    
-		
+
+
 	public void save() {
-		Client.sendData(EnumPacketServer.TransformSave, data.writeOptions(new NBTTagCompound()));
+        PacketClient.sendClient(new TransformSavePacket(data.writeOptions(new NBTTagCompound())));
 	}
 
 	@Override

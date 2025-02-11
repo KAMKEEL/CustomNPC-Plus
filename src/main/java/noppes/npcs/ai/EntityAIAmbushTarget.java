@@ -80,7 +80,7 @@ public class EntityAIAmbushTarget extends EntityAIBase
     {
     	boolean shouldHide = this.targetEntity.getDistanceSqToEntity(this.theEntity) > this.distance;
     	boolean isSeen = this.theEntity.canSee(targetEntity);
-    	return (!this.theEntity.getNavigator().noPath() && shouldHide) || (!isSeen && (shouldHide || this.theEntity.ai.directLOS));
+    	return (!this.theEntity.getNavigator().noPath() && shouldHide) || (!isSeen && (shouldHide || this.theEntity.ais.directLOS));
     }
 
     /**
@@ -90,7 +90,7 @@ public class EntityAIAmbushTarget extends EntityAIBase
     {
         this.theEntity.getNavigator().tryMoveToXYZ(this.shelterX, this.shelterY, this.shelterZ, this.movementSpeed);
     }
-    
+
     /**
      * Resets the task
      */
@@ -114,9 +114,9 @@ public class EntityAIAmbushTarget extends EntityAIBase
     {
     	this.theEntity.getLookHelper().setLookPositionWithEntity(targetEntity, 30.0F, 30.0F);
     }
-    
+
     private Vec3 findHidingSpot()
-    {        
+    {
     	Random random = this.theEntity.getRNG();
     	Vec3 idealPos = null;
 
@@ -131,7 +131,7 @@ public class EntityAIAmbushTarget extends EntityAIBase
         				double j = MathHelper.floor_double(this.theEntity.posX + x) + 0.5D;
         	            double k = MathHelper.floor_double(this.theEntity.boundingBox.minY + y);
         	            double l = MathHelper.floor_double(this.theEntity.posZ + z) + 0.5D;
-        	            
+
         	            if (this.theWorld.getBlock((int)j, (int)k, (int)l).isOpaqueCube() && !this.theWorld.getBlock((int)j, (int)k + 1, (int)l).isOpaqueCube() && !this.theWorld.getBlock((int)j, (int)k + 2, (int)l).isOpaqueCube())
         	            {
         		            Vec3 vec1 = Vec3.createVectorHelper(this.targetEntity.posX, this.targetEntity.posY + (double)this.targetEntity.getEyeHeight(), this.targetEntity.posZ);
@@ -148,7 +148,7 @@ public class EntityAIAmbushTarget extends EntityAIBase
         			}
         		}
         	}
-        	
+
         	if (idealPos != null)
         	{
         		return idealPos;

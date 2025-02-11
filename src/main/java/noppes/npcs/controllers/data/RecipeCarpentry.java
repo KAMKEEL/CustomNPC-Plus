@@ -23,7 +23,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
     public boolean isGlobal = false;
     public boolean ignoreDamage = false;
     public boolean ignoreNBT = false;
-    
+
 
     public RecipeCarpentry(int width, int height, ItemStack[] recipe, ItemStack result){
     	super(width, height, recipe, result);
@@ -32,9 +32,9 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
     	super(0, 0, new ItemStack[0], null);
     	this.name = name;
     }
-    
+
     public static RecipeCarpentry read(NBTTagCompound compound){
-    	RecipeCarpentry recipe = new RecipeCarpentry(compound.getInteger("Width"), compound.getInteger("Height"), 
+    	RecipeCarpentry recipe = new RecipeCarpentry(compound.getInteger("Width"), compound.getInteger("Height"),
     			NBTTags.getItemStackArray(compound.getTagList("Materials", 10)), NoppesUtilServer.readItem(compound.getCompoundTag("Item")));
 		recipe.name = compound.getString("Name");
 		recipe.id = compound.getInteger("ID");
@@ -42,7 +42,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 		recipe.ignoreDamage = compound.getBoolean("IgnoreDamage");
 		recipe.ignoreNBT = compound.getBoolean("IgnoreNBT");
 		recipe.isGlobal = compound.getBoolean("Global");
-		
+
 		return recipe;
     }
 
@@ -188,15 +188,14 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
                 var15[var9] = null;
             }
         }
-        RecipeCarpentry newrecipe = new RecipeCarpentry(var5, var6, var15, par1ItemStack);    
+        RecipeCarpentry newrecipe = new RecipeCarpentry(var5, var6, var15, par1ItemStack);
         newrecipe.copy(recipe);
         if(var5 == 4 || var6 == 4)
         	newrecipe.isGlobal = false;
-        
-        
-        
+
         return newrecipe;
     }
+
     public void copy(RecipeCarpentry recipe) {
 		this.id = recipe.id;
 		this.name = recipe.name;
@@ -205,7 +204,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 		this.ignoreDamage = recipe.ignoreDamage;
 		this.ignoreNBT = recipe.ignoreNBT;
 	}
-    
+
 	public ItemStack getCraftingItem(int i){
     	if(recipeItems == null || i >= recipeItems.length)
     		return null;

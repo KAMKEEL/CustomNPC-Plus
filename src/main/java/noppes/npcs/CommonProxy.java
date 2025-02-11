@@ -40,9 +40,6 @@ public class CommonProxy implements IGuiHandler {
 
 	public void load() {
         this.createAnimationThread();
-
-		CustomNpcs.Channel.register(new PacketHandlerServer());
-		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 	}
 
     protected void createAnimationThread() {
@@ -163,8 +160,11 @@ public class CommonProxy implements IGuiHandler {
 		if(gui == EnumGuiType.PlayerTrader)
 			return  new ContainerNPCTrader(npc, player);
 
-		if(gui == EnumGuiType.PlayerAnvil)
+		if(gui == EnumGuiType.PlayerCarpentryBench)
 			return new ContainerCarpentryBench(player.inventory, player.worldObj, x, y, z);
+
+        if(gui == EnumGuiType.PlayerAnvil)
+            return new ContainerAnvilRepair(player.inventory, player.worldObj, x, y, z);
 
 		if(gui == EnumGuiType.SetupItemGiver)
 			return new ContainerNpcItemGiver(npc, player);
@@ -204,16 +204,16 @@ public class CommonProxy implements IGuiHandler {
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
 	public void openGui(EntityNPCInterface npc, EnumGuiType gui) {
-		// TODO Auto-generated method stub
+
 	}
 
 	public void openGui(EntityNPCInterface npc, EnumGuiType gui, int x, int y, int z) {
-		// TODO Auto-generated method stub
+
 	}
 
 
@@ -222,12 +222,12 @@ public class CommonProxy implements IGuiHandler {
 	}
 
 	public void openGui(EntityPlayer player, Object guiscreen) {
-		// TODO Auto-generated method stub
+
 
 	}
 
 	public void spawnParticle(EntityLivingBase player, String string, Object... ob) {
-		// TODO Auto-generated method stub
+
 
 	}
 
@@ -242,7 +242,7 @@ public class CommonProxy implements IGuiHandler {
 	}
 
 	public void registerItem(Item item) {
-		// TODO Auto-generated method stub
+
 
 	}
 
@@ -255,7 +255,11 @@ public class CommonProxy implements IGuiHandler {
 
 	}
 
-	public String getAchievementDesc(Achievement achievement) {
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire){
+
+    }
+
+    public String getAchievementDesc(Achievement achievement) {
 		return "";
 	}
 

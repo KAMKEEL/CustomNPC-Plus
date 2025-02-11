@@ -149,4 +149,16 @@ public class ScriptLiving<T extends EntityLiving> extends ScriptLivingBase<T> im
 	public boolean canBeSteered() {
 		return this.entity.canBeSteered();
 	}
+
+    @Override
+    public void setRotation(float rotation){
+        super.setRotation(rotation);
+        entity.getLookHelper().setLookPosition(getX(), getY(), getZ(), rotation, getPitch());
+    }
+
+    @Override
+    public void setPitch(float rotation){
+        super.setPitch(rotation);
+        entity.getLookHelper().setLookPosition(getX(), getY(), getZ(), getRotation(), rotation);
+    }
 }

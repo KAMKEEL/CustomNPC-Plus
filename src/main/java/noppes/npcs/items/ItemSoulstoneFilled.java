@@ -41,7 +41,7 @@ public class ItemSoulstoneFilled extends Item {
     	if(stack.stackTagCompound == null || !stack.stackTagCompound.hasKey("Entity", 10)){
     		list.add(EnumChatFormatting.RED + "Error");
     		return;
-    	}    	
+    	}
     	String name = StatCollector.translateToLocal(stack.stackTagCompound.getString("Name"));
     	if(stack.stackTagCompound.hasKey("DisplayName"))
     		name = stack.stackTagCompound.getString("DisplayName") + " (" + name + ")";
@@ -55,17 +55,17 @@ public class ItemSoulstoneFilled extends Item {
     		list.add(text);
     	}
     }
-    
+
     @Override
     public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int p_77648_7_, float p_77648_8_, float p_77648_9_, float p_77648_10_){
     	if(!spawn(player, stack, world, x, y, z))
     		return false;
-		
+
 		if(!player.capabilities.isCreativeMode)
 			stack.splitStack(1);
     	return true;
     }
-    
+
     public boolean spawn(EntityPlayer player, ItemStack stack, World world, int x, int y, int z){
         if(world.isRemote)
         	return true;
@@ -86,7 +86,7 @@ public class ItemSoulstoneFilled extends Item {
 		}
     	if(entity instanceof EntityNPCInterface){
     		EntityNPCInterface npc = (EntityNPCInterface) entity;
-    		npc.ai.startPos = new int[]{x, y, z};
+    		npc.ais.startPos = new int[]{x, y, z};
     		npc.setHealth(npc.getMaxHealth());
 			npc.setPosition((float)x + 0.5F, npc.getStartYPos(), (float)z + 0.5F);
 			npc.advanced.soulStonePlayerName = sourceName;

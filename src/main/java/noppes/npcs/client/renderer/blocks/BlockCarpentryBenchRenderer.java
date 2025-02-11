@@ -12,15 +12,21 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCarpentryBench;
 import noppes.npcs.client.model.blocks.ModelAnvil;
 import noppes.npcs.client.model.blocks.ModelCarpentryBench;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyCarpentryBench;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 
 public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 
-	private final ModelCarpentryBench model = new ModelCarpentryBench();
-	private final ModelAnvil anvil = new ModelAnvil();
-	private static final ResourceLocation anvilTexture = new ResourceLocation("customnpcs","textures/models/Steel.png");
-    private static final ResourceLocation carpentryBench = new ResourceLocation("customnpcs","textures/models/CarpentryBench.png");
+	private final ModelCarpentryBench modelCarpentryBench = new ModelCarpentryBench();
+    private static final ResourceLocation carpentryBenchTexture = new ResourceLocation("customnpcs","textures/models/CarpentryBench.png");
 
+	private final ModelAnvil anvil = new ModelAnvil();
+
+    private static final ResourceLocation anvilTexture = new ResourceLocation("customnpcs","textures/models/Steel.png");
+
+    private final ModelLegacyCarpentryBench legacyBench = new ModelLegacyCarpentryBench();
+    private static final ResourceLocation legacyCarpentryBench = new ResourceLocation("customnpcs","textures/models/legacy/bench.png");
 
     public BlockCarpentryBenchRenderer(){
 		((BlockCarpentryBench)CustomItems.carpentyBench).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -40,9 +46,17 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
             this.bindTexture(anvilTexture);
         	anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
-        else{
-            this.bindTexture(carpentryBench);
-        	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        else {
+
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
+            if(ConfigClient.LegacyCarpentryBench){
+                this.bindTexture(legacyCarpentryBench);
+                legacyBench.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            } else {
+                this.bindTexture(carpentryBenchTexture);
+                modelCarpentryBench.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
         }
 		GL11.glPopMatrix();
 	}
@@ -58,8 +72,13 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 
         GL11.glColor3f(1, 1, 1);
         if(metadata == 0){
-            this.bindTexture(carpentryBench);
-        	model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            if(ConfigClient.LegacyCarpentryBench){
+                this.bindTexture(legacyCarpentryBench);
+                legacyBench.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            } else {
+                this.bindTexture(carpentryBenchTexture);
+                modelCarpentryBench.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
         }
         else{
             this.bindTexture(anvilTexture);
@@ -73,7 +92,7 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 	@Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
 			Block block, int modelId, RenderBlocks renderer) {
-		// TODO Auto-generated method stub
+
 		return false;
 	}
 

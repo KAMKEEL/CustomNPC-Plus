@@ -1,18 +1,21 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.request.quest.QuestUntrackPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.constants.EnumPacketServer;
+
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
@@ -102,7 +105,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
             switch (i) {
                 case 0:
                     // Untrack Quest
-                    Client.sendData(EnumPacketServer.UntrackQuest);
+                    PacketClient.sendClient(new QuestUntrackPacket());
                     break;
                 case 1:
                     // Clear Skin Cache

@@ -17,6 +17,7 @@ public class ConfigMain
     public final static String NPC = "NPC";
     public final static String UPDATE = "Update";
     public final static String PARTY = "PARTY";
+    public final static String PROFILES = "Profile";
 
     /**
      *  General Main Properties
@@ -78,6 +79,8 @@ public class ConfigMain
 
     public static Property DefaultMaxPartySizeProperty;
     public static int DefaultMaxPartySize = 4;
+
+    public static boolean EnableProfiles = true;
 
     /**
      *  General NPC Properties
@@ -215,6 +218,9 @@ public class ConfigMain
             // Update
             TrackedQuestUpdateFrequencyProperty = config.get(UPDATE, "Tracked Quest Update Frequency", 5, "How often in seconds to update a players tracked quest. [Only applies to Item Quest currently]");
             TrackedQuestUpdateFrequency = TrackedQuestUpdateFrequencyProperty.getInt(5);
+
+            // PROFILES
+            EnableProfiles = config.get(PROFILES, "Enable Profiles", true, "Allow the use of character Profiles").getBoolean(true);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

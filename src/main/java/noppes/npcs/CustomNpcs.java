@@ -8,10 +8,15 @@ import cpw.mods.fml.common.event.*;
 import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
+import cpw.mods.fml.relauncher.Side;
 import foxz.command.CommandNoppes;
-import kamkeel.addon.AddonManager;
-import kamkeel.command.CommandKamkeel;
-import kamkeel.developer.Developer;
+import kamkeel.npcs.addon.AddonManager;
+import kamkeel.npcs.command.CommandKamkeel;
+import kamkeel.npcs.command.profile.CommandProfile;
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.CNPCData;
+import kamkeel.npcs.developer.Developer;
+import kamkeel.npcs.network.PacketHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -50,9 +55,6 @@ public class CustomNpcs {
 
     public static boolean FreezeNPCs = false;
 
-    public static FMLEventChannel Channel;
-    public static FMLEventChannel ChannelPlayer;
-
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
 
     public static boolean InitIgnore = false;
@@ -82,8 +84,7 @@ public class CustomNpcs {
 
     @EventHandler
     public void load(FMLPreInitializationEvent ev) {
-        Channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCs");
-        ChannelPlayer = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCsPlayer");
+        PacketHandler.Instance = new PacketHandler();
 
         MinecraftServer server = MinecraftServer.getServer();
         String dir = "";
@@ -190,6 +191,7 @@ public class CustomNpcs {
         MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
         MARKOV_GENERATOR[9] = new MarkovSpanish(3);
 
+        PacketHandler.Instance.registerChannels();
     }
 
     @EventHandler
@@ -198,6 +200,8 @@ public class CustomNpcs {
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
         // VisibilityController.instance = new VisibilityController();
+        new MagicController();
+        MagicController.getInstance().load();
         new PlayerDataController();
         new TagController();
         new TransportController();
@@ -205,6 +209,11 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
+
+        // Profile Controller
+        new ProfileController();
+        ProfileController.registerProfileType(new CNPCData());
+
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();
         ScriptController.Instance.loadGlobalNPCScripts();
@@ -240,6 +249,7 @@ public class CustomNpcs {
         ServerTagMapController.Instance = new ServerTagMapController();
     }
 
+
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){
         ServerCloneController.Instance = null;
@@ -253,6 +263,7 @@ public class CustomNpcs {
     public void serverstart(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandNoppes());
         event.registerServerCommand(new CommandKamkeel());
+        event.registerServerCommand(new CommandProfile());
     }
 
     private void registerNpc(Class<? extends Entity> cl, String name) {
@@ -308,5 +319,9 @@ public class CustomNpcs {
 
     public static MinecraftServer getServer(){
         return MinecraftServer.getServer();
+    }
+
+    public static Side side() {
+        return FMLCommonHandler.instance().getEffectiveSide();
     }
 }

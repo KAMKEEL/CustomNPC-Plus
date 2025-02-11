@@ -7,7 +7,6 @@ public class MarkovDictionarySPA extends MarkovDictionary {
 
 	public MarkovDictionarySPA(String dictionary, int seqlen, Random rng) {
 		super(dictionary, seqlen, rng);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override

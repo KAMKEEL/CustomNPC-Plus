@@ -1,20 +1,24 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
+import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
+import kamkeel.npcs.network.packets.request.jobs.JobSpawnerRemovePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
+
 import noppes.npcs.client.gui.GuiNpcMobSpawnerSelector;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobSpawner;
 
 
 public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListener, IGuiData
-{	
+{
 	private JobSpawner job;
-	
+
 	private int slot = -1;
 
 	public String title1 = "gui.selectnpc";
@@ -25,10 +29,10 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 	public String title6 = "gui.selectnpc";
 	public String title7 = "gui.selectnpc";
 	public String title8 = "gui.selectnpc";
-	
+
     public GuiNpcSpawner(EntityNPCInterface npc)
     {
-    	super(npc);    	
+    	super(npc);
     	job = (JobSpawner) npc.jobInterface;
     }
 
@@ -66,12 +70,12 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
         addLabel(new GuiNpcLabel(3, "4:", guiLeft + 4, y + 5));
     	this.addButton(new GuiNpcButton(3, guiLeft + 45, y, 140, 20, title4));
 
-    	y += 23; 
+    	y += 23;
     	this.addButton(new GuiNpcButton(24, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(4, "5:", guiLeft + 4, y + 5));
     	this.addButton(new GuiNpcButton(4, guiLeft + 45, y, 140, 20, title5));
 
-    	y += 23; 
+    	y += 23;
     	this.addButton(new GuiNpcButton(25, guiLeft + 20, y,20,20, "X"));
         addLabel(new GuiNpcLabel(5, "6:", guiLeft + 4, y + 5));
     	this.addButton(new GuiNpcButton(5, guiLeft + 45, y, 140, 20, title6));
@@ -90,9 +94,9 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
         addLabel(new GuiNpcLabel(9,"Z:", guiLeft + 161 + 190, y + 5));
     	addTextField(new GuiNpcTextField(9,this, fontRendererObj, guiLeft + 171 + 190, y, 24, 20, job.zOffset + ""));
     	getTextField(9).integersOnly = true;
-        getTextField(9).setMinMaxDefault(-9, 9, 0);  
-        
-    	y += 23; 
+        getTextField(9).setMinMaxDefault(-9, 9, 0);
+
+    	y += 23;
         addLabel(new GuiNpcLabel(10, "spawner.type", guiLeft + 4 + 190, y + 5));
         addButton(new GuiNpcButton(10, guiLeft + 80 + 190, y, 100, 20, new String[]{"spawner.one", "spawner.all", "spawner.random", "spawner.summoner"}, job.spawnType));
 
@@ -122,15 +126,15 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
     }
 
     protected void actionPerformed(GuiButton guibutton){
-    	GuiNpcButton button = (GuiNpcButton) guibutton;     
+    	GuiNpcButton button = (GuiNpcButton) guibutton;
     	if(button.id >= 0 && button.id < 6){
     		slot = button.id + 1;
     		setSubGui(new GuiNpcMobSpawnerSelector());
-    	}    
+    	}
     	if(button.id >= 20 && button.id < 26){
 			int removeID = button.id - 19;
 			job.setJobCompound(removeID, null);
-			Client.sendData(EnumPacketServer.JobSpawnerRemove, button.id - 19);
+            PacketClient.sendClient(new JobSpawnerRemovePacket(button.id - 19));
     	}
     	if(button.id == 26){
     		job.doesntDie = button.getValue() == 1;
@@ -182,13 +186,13 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 		if(selector.isServer){
 			String selected = selector.getSelected();
 			if(selected != null)
-				Client.sendData(EnumPacketServer.JobSpawnerAdd, selector.isServer, selected, selector.activeTab, slot);
+                PacketClient.sendClient(new JobSpawnerAddPacket(selector.isServer, selected, selector.activeTab, slot));
 		}
 		else{
 			NBTTagCompound compound = selector.getCompound();
 			if(compound != null){
-				job.setJobCompound(slot, compound); 
-				Client.sendData(EnumPacketServer.JobSpawnerAdd, selector.isServer, slot, compound);
+				job.setJobCompound(slot, compound);
+                PacketClient.sendClient(new JobSpawnerAddPacket(selector.isServer, slot, compound));
 			}
 		}
 		initGui();
@@ -198,7 +202,7 @@ public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListene
 	public void save() {
     	NBTTagCompound compound = job.writeToNBT(new NBTTagCompound());
     	job.cleanCompound(compound);
-		Client.sendData(EnumPacketServer.JobSave, compound);
+        PacketClient.sendClient(new JobSavePacket(compound));
 	}
 
 	@Override

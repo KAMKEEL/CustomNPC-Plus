@@ -1,7 +1,7 @@
 package noppes.npcs.client;
 
-import kamkeel.addon.DBCAddon;
-import kamkeel.addon.GeckoAddon;
+import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.addon.GeckoAddon;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.passive.EntityChicken;
