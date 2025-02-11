@@ -16,7 +16,7 @@ import javax.script.ScriptEngine;
 import java.io.IOException;
 import java.util.*;
 
-public class EffectScriptHandler implements IScriptHandler {
+public class EffectScript implements IScriptHandler {
     public ScriptContainer container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
@@ -31,7 +31,7 @@ public class EffectScriptHandler implements IScriptHandler {
         return compound;
     }
 
-    public EffectScriptHandler readFromNBT(NBTTagCompound compound) {
+    public EffectScript readFromNBT(NBTTagCompound compound) {
         scriptLanguage = compound.getString("ScriptLanguage");
         enabled = compound.getBoolean("ScriptEnabled");
 

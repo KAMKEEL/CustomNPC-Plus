@@ -184,12 +184,12 @@ public class CustomEffect implements ICustomEffect {
 
         PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(iPlayer, playerEffect);
         if (onAddedConsumer != null) onAddedConsumer.accept(event);
-        EffectScriptHandler script = getScriptHandler();
+        EffectScript script = getScriptHandler();
         if (script == null) {
             return;
         }
 
-        script.callScript(EffectScriptHandler.ScriptType.OnAdd, event);
+        script.callScript(EffectScript.ScriptType.OnAdd, event);
     }
 
     public void onTick(EntityPlayer player, PlayerEffect playerEffect) {
@@ -200,12 +200,12 @@ public class CustomEffect implements ICustomEffect {
             onTickConsumer.accept(event);
         }
 
-        EffectScriptHandler script = getScriptHandler();
+        EffectScript script = getScriptHandler();
         if (script == null) {
             return;
         }
 
-        script.callScript(EffectScriptHandler.ScriptType.OnTick, event);
+        script.callScript(EffectScript.ScriptType.OnTick, event);
     }
 
     public void onRemoved(EntityPlayer player, PlayerEffect playerEffect, PlayerEvent.EffectEvent.ExpirationType type) {
@@ -217,12 +217,12 @@ public class CustomEffect implements ICustomEffect {
             onRemovedConsumer.accept(event);
         }
 
-        EffectScriptHandler script = getScriptHandler();
+        EffectScript script = getScriptHandler();
         if (script == null) {
             return;
         }
 
-        script.callScript(EffectScriptHandler.ScriptType.OnRemove, event);
+        script.callScript(EffectScript.ScriptType.OnRemove, event);
     }
 
     public NBTTagCompound writeToNBT(boolean saveScripts) {
@@ -242,7 +242,7 @@ public class CustomEffect implements ICustomEffect {
 //        if (saveScripts && scriptContainer != null) {
         if (saveScripts) {
             NBTTagCompound scriptData = new NBTTagCompound();
-            EffectScriptHandler handler = getScriptHandler();
+            EffectScript handler = getScriptHandler();
             if (handler != null)
                 handler.writeToNBT(scriptData);
             compound.setTag("ScriptData", scriptData);
@@ -282,7 +282,7 @@ public class CustomEffect implements ICustomEffect {
         lossOnDeath = compound.getBoolean("lossOnDeath");
 
         if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
-            EffectScriptHandler handler = new EffectScriptHandler();
+            EffectScript handler = new EffectScript();
             handler.readFromNBT(compound.getCompoundTag("ScriptData"));
             setScriptHandler(handler);
         }
@@ -296,17 +296,17 @@ public class CustomEffect implements ICustomEffect {
         return newEffect;
     }
 
-    public EffectScriptHandler getScriptHandler() {
+    public EffectScript getScriptHandler() {
         return CustomEffectController.getInstance().customEffectScriptHandlers.get(this.id);
     }
-    public void setScriptHandler(EffectScriptHandler handler) {
+    public void setScriptHandler(EffectScript handler) {
         CustomEffectController.getInstance().customEffectScriptHandlers.put(this.id, handler);
     }
 
-    public EffectScriptHandler getOrCreateScriptHandler() {
-        EffectScriptHandler data = getScriptHandler();
+    public EffectScript getOrCreateScriptHandler() {
+        EffectScript data = getScriptHandler();
         if (data == null)
-            setScriptHandler(data =new EffectScriptHandler());
+            setScriptHandler(data =new EffectScript());
         return data;
     }
 

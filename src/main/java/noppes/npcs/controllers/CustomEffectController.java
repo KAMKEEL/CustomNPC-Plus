@@ -2,7 +2,6 @@ package noppes.npcs.controllers;
 
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.enums.EnumSyncType;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -15,7 +14,7 @@ import noppes.npcs.api.handler.ICustomEffectHandler;
 import noppes.npcs.api.handler.data.ICustomEffect;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectKey;
-import noppes.npcs.controllers.data.EffectScriptHandler;
+import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.PlayerEffect;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -37,7 +36,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     public HashMap<Integer, CustomEffect> customEffectsSync = new HashMap<>();
     public HashMap<Integer, CustomEffect> customEffects = new HashMap<>();
 
-    public HashMap<Integer, EffectScriptHandler> customEffectScriptHandlers = new HashMap<>();
+    public HashMap<Integer, EffectScript> customEffectScriptHandlers = new HashMap<>();
     private HashMap<Integer, String> bootOrder;
 
     private int lastUsedID = 0;

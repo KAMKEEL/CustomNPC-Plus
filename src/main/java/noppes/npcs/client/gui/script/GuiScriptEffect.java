@@ -16,7 +16,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.CustomEffect;
-import noppes.npcs.controllers.data.EffectScriptHandler;
+import noppes.npcs.controllers.data.EffectScript;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
 
     public final GuiNPCManageEffects parent;
     public final CustomEffect effect;
-    private final EffectScriptHandler scriptHandler;
+    private final EffectScript scriptHandler;
 
 
     public GuiScriptEffect(GuiNPCManageEffects parent, CustomEffect effect) {
@@ -41,9 +41,9 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
 
         this.parent = parent;
         this.effect = effect;
-        this.scriptHandler = new EffectScriptHandler();
+        this.scriptHandler = new EffectScript();
 
-        for (EffectScriptHandler.ScriptType type : EffectScriptHandler.ScriptType.values()) {
+        for (EffectScript.ScriptType type : EffectScript.ScriptType.values()) {
             this.hookList.add(type.function);
         }
 
