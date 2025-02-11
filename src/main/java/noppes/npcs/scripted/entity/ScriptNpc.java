@@ -93,8 +93,12 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 	}
 
 	public void setRotation(float rotation){
-		npc.ai.orientation = (int)rotation;
-		super.setRotation(rotation);
+        super.setRotation(rotation);
+        int r = (int) rotation;
+        if(entity.ai.orientation != r) {
+            entity.ai.orientation = r;
+            entity.updateClient = true;
+        }
 	}
 
 	public void setRotationType(int rotationType){
