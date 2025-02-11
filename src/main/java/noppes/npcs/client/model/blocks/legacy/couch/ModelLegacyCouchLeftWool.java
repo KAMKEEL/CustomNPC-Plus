@@ -4,20 +4,18 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelCouchRightWool extends ModelBase {
+public class ModelLegacyCouchLeftWool extends ModelBase {
 	ModelRenderer Wool1;
 	ModelRenderer Wool2;
 
-	public ModelCouchRightWool() {
+	public ModelLegacyCouchLeftWool() {
 		Wool1 = new ModelRenderer(this, 3, 0);
-		Wool1.mirror = true;
 		Wool1.addBox(0F, 0F, 0F, 14, 5, 13);
-		Wool1.setRotationPoint(-8F, 16F, -6F);
+		Wool1.setRotationPoint(-6F, 16F, -6F);
 
 		Wool2 = new ModelRenderer(this, 14, 0);
-		Wool2.mirror = true;
 		Wool2.addBox(0F, 0F, 0F, 14, 10, 2);
-		Wool2.setRotationPoint(-8F, 6F, 5F);
+		Wool2.setRotationPoint(-6F, 6F, 5F);
 	}
 
 	public void render(Entity entity, float f, float f1, float f2, float f3,

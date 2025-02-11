@@ -4,13 +4,13 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelCouchCornerWool extends ModelBase {
+public class ModelLegacyCouchCornerWool extends ModelBase {
 	ModelRenderer Wool1;
 	ModelRenderer Wool2;
 	ModelRenderer Wool3;
 	ModelRenderer Wool4;
 
-	public ModelCouchCornerWool() {
+	public ModelLegacyCouchCornerWool() {
 		Wool1 = new ModelRenderer(this, 11, 3);
 		Wool1.addBox(0F, 0F, 0F, 13, 5, 2);
 		Wool1.setRotationPoint(-7F, 16F, -8F);

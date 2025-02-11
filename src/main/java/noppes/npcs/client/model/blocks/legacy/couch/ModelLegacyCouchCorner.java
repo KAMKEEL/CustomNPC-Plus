@@ -4,7 +4,7 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelCouchCorner extends ModelBase {
+public class ModelLegacyCouchCorner extends ModelBase {
 	ModelRenderer Leg1;
 	ModelRenderer Leg2;
 	ModelRenderer Leg3;
@@ -15,7 +15,7 @@ public class ModelCouchCorner extends ModelBase {
 	ModelRenderer Bottom;
 	ModelRenderer Bottom2;
 
-	public ModelCouchCorner() {
+	public ModelLegacyCouchCorner() {
 		Leg1 = new ModelRenderer(this, 0, 0);
 		Leg1.addBox(0F, 0F, 0F, 1, 1, 2);
 		Leg1.setRotationPoint(7F, 23F, 6F);
