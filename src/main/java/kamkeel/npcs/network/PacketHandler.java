@@ -10,13 +10,17 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.enums.EnumChannelType;
 import kamkeel.npcs.network.packets.data.*;
 import kamkeel.npcs.network.packets.data.gui.*;
-import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.*;
 import kamkeel.npcs.network.packets.data.npc.*;
-import kamkeel.npcs.network.packets.data.script.*;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
+import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.player.*;
 import kamkeel.npcs.network.packets.request.*;
-import kamkeel.npcs.network.packets.request.animation.*;
+import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
+import kamkeel.npcs.network.packets.request.animation.AnimationsGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankGetPacket;
 import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
@@ -80,7 +84,10 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Map;
 
 public class PacketHandler {
     public static PacketHandler Instance;
@@ -295,7 +302,6 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AnimationGetPacket());
         REQUEST_PACKET.registerPacket(new AnimationRemovePacket());
         REQUEST_PACKET.registerPacket(new AnimationSavePacket());
-        REQUEST_PACKET.registerPacket(new AnimationCachePacket());
 
         // Moving Path
         REQUEST_PACKET.registerPacket(new MovingPathSavePacket());

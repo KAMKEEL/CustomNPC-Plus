@@ -1,8 +1,6 @@
 package noppes.npcs.controllers.data;
 
 
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.relauncher.Side;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.UpdateAnimationsPacket;
 import net.minecraft.entity.Entity;
@@ -14,7 +12,6 @@ import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.CommonProxy;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.EventHooks;
-import noppes.npcs.Server;
 import noppes.npcs.api.entity.IAnimatable;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.data.IAnimation;
@@ -25,7 +22,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -40,8 +36,6 @@ public class AnimationData implements IAnimationData {
 
     public Animation currentClientAnimation;
     private boolean isClientAnimating;
-
-    private final HashSet<Integer> cachedAnimationIDs = new HashSet<>();
 
     //Client-side values
     public int finishedTime = -1;
@@ -180,22 +174,6 @@ public class AnimationData implements IAnimationData {
                 this.animatingTime += frame.customized ? frame.tickDuration : updateAnimation.tickDuration;
             }
         }
-    }
-
-    public boolean isCached(int id) {
-        return this.cachedAnimationIDs.contains(id);
-    }
-
-    public void cacheAnimation(int id) {
-        this.cachedAnimationIDs.add(id);
-    }
-
-    public void uncacheAnimation(int id) {
-        this.cachedAnimationIDs.remove(id);
-    }
-
-    public void clearCache() {
-        this.cachedAnimationIDs.clear();
     }
 
     public void viewAnimation(Animation animation, AnimationData animationData, NBTTagCompound animationNBT) {

@@ -51,7 +51,6 @@ public class ClientCacheHandler {
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();
-        ClientCacheHandler.playerData.animationData.clearCache();
     }
 
     public static void clearSkinCache() {
