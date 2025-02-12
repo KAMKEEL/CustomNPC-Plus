@@ -70,15 +70,19 @@ public class BlockChairRenderer extends BlockRendererInterface{
 			RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 1f, 0);
-        GL11.glScalef(1.2f, 1.1f, 1.2f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-
-        setWoodTexture(metadata);
         GL11.glColor3f(1, 1, 1);
-        if(ConfigClient.LegacyChair)
+        if(ConfigClient.LegacyChair){
+            setWoodTexture(metadata);
+            GL11.glScalef(1.2f, 1.1f, 1.2f);
+            GL11.glRotatef(180, 0, 0, 1);
+            GL11.glRotatef(180, 0, 1, 0);
             legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
         else {
+            GL11.glTranslatef(0, -0.15f, 0);
+            GL11.glScalef(1f, 0.9f, 1f);
+            GL11.glRotatef(180, 0, 0, 1);
+            GL11.glRotatef(180, 0, 1, 0);
             if(ConfigClient.WoodTextures)
                 chairSpoof.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else {
