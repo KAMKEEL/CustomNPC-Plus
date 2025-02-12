@@ -90,6 +90,7 @@ public class ConfigClient
     public static boolean LegacyTable = false;
     public static boolean LegacyBarrel = false;
     public static boolean LegacyCarpentryBench = false;
+    public static boolean LegacyLantern = false;
 
     public static void init(File configFile)
     {
@@ -157,6 +158,7 @@ public class ConfigClient
             LegacyCouch = config.get(MODEL, "Legacy Couch Model", false).getBoolean(false);
             LegacyTable = config.get(MODEL, "Legacy Table Model", false).getBoolean(false);
             LegacyCarpentryBench = config.get(MODEL, "Legacy Carpentry Bench Model", false).getBoolean(false);
+            LegacyLantern = config.get(MODEL, "Legacy Lantern Model", false).getBoolean(false);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

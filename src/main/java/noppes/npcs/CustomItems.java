@@ -187,11 +187,11 @@ public class CustomItems {
 	public static Block beam;
 	public static Block crystal;
 
-	public static Block lamp;
+	public static Block lantern;
 	public static Block campfire;
 	public static Block candle;
 
-	public static Block lamp_unlit;
+	public static Block lantern_unlit;
 	public static Block campfire_unlit;
 	public static Block candle_unlit;
 	public static Block scripted;
@@ -288,7 +288,7 @@ public class CustomItems {
 			couchWool = new BlockCouchWool().setBlockName("npcCouchWool").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			table = new BlockTable().setBlockName("npcTable").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			couchWood = new BlockCouchWood().setBlockName("npcCouchWood").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
-			lamp = new BlockLamp(true).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
+			lantern = new BlockLantern(true).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			candle = new BlockCandle(true).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			stool = new BlockStool().setBlockName("npcStool").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			Block placeholder = new BlockPlaceholder().setBlockName("npcPlaceholder").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabMisc);
@@ -304,7 +304,7 @@ public class CustomItems {
 			crystal = new BlockCrystal().setBlockName("npcCrystal").setBlockTextureName("customnpcs:npcCrystal").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeGlass).setCreativeTab(tabBlocks);
 
 			campfire_unlit = new BlockCampfire(false).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone);
-			lamp_unlit = new BlockLamp(false).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
+			lantern_unlit = new BlockLantern(false).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
 			candle_unlit = new BlockCandle(false).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
 
 			GameRegistry.registerBlock(blood, "npcBloodBlock");
@@ -329,11 +329,11 @@ public class CustomItems {
 			GameRegistry.registerBlock(pedestal, ItemBlock.class, "npcPedestal");
 			GameRegistry.registerBlock(crystal, ItemNpcColored.class, "npcCrystalBlock");
 			GameRegistry.registerBlock(campfire, "npcCampfire");
-			GameRegistry.registerBlock(lamp, "npcLamp");
+			GameRegistry.registerBlock(lantern, "npcLamp");
 			GameRegistry.registerBlock(candle, "npcCandle");
 			GameRegistry.registerBlock(campfire_unlit, "npcCampfireUnlit");
 			GameRegistry.registerBlock(candle_unlit, "npcLampUnlit");
-			GameRegistry.registerBlock(lamp_unlit, "npcCandleUnlit");
+			GameRegistry.registerBlock(lantern_unlit, "npcCandleUnlit");
 
 			Item.getItemFromBlock(banner).setHasSubtypes(true);
 			Item.getItemFromBlock(wallBanner).setHasSubtypes(true);
