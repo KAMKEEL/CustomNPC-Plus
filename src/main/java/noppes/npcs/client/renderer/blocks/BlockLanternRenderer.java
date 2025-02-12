@@ -120,7 +120,7 @@ public class BlockLanternRenderer extends TileEntitySpecialRenderer implements I
 
 	@Override
 	public boolean shouldRender3DInInventory(int modelId) {
-		return true;
+        return ConfigClient.LegacyLantern;
 	}
 
 

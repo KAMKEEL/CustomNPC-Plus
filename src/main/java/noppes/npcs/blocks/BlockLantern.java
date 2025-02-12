@@ -3,6 +3,7 @@ package noppes.npcs.blocks;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
@@ -77,10 +78,16 @@ public class BlockLantern extends BlockLightable{
 		world.setBlockMetadataWithNotify(x, y, z, 0, 4);
     }
 
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void registerBlockIcons(IIconRegister par1IconRegister){
+        this.blockIcon = par1IconRegister.registerIcon(this.getTextureName());
+    }
+
     @Override
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int p_149691_1_, int meta){
-        return Blocks.soul_sand.getIcon(p_149691_1_, meta);
+        return this.blockIcon;
     }
 
 	@Override
