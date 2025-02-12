@@ -5,15 +5,11 @@ import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelCouchCorner extends ModelBase {
+public class ModelCouchMiddle extends ModelBase {
     public final ModelRenderer CouchBack;
     public final ModelRenderer Cussion;
 
-    private final ModelRenderer cube_r1;
-    private final ModelRenderer cube_r2;
-    private final ModelRenderer cube_r3;
-
-    public ModelCouchCorner(){
+    public ModelCouchMiddle() {
         textureWidth = 64;
         textureHeight = 64;
 
@@ -23,32 +19,14 @@ public class ModelCouchCorner extends ModelBase {
         CouchBack.cubeList.add(new ModelBox(CouchBack, 0, 35, 6.0F, -2.0F, -8.0F, 2, 2, 2, 0.0F));
         CouchBack.cubeList.add(new ModelBox(CouchBack, 0, 35, -8.0F, -2.0F, 6.0F, 2, 2, 2, 0.0F));
         CouchBack.cubeList.add(new ModelBox(CouchBack, 0, 35, 6.0F, -2.0F, 6.0F, 2, 2, 2, 0.0F));
-        CouchBack.cubeList.add(new ModelBox(CouchBack, 1, 35, -8.0F, -3.0F, -8.0F, 15, 1, 15, 0.0F));
+        CouchBack.cubeList.add(new ModelBox(CouchBack, 0, 35, -8.0F, -3.0F, -8.0F, 16, 1, 15, 0.0F));
         CouchBack.cubeList.add(new ModelBox(CouchBack, 0, 51, -8.0F, -12.0F, 7.0F, 16, 10, 1, 0.0F));
-
-        cube_r1 = new ModelRenderer(this);
-        cube_r1.setRotationPoint(7.5F, -7.5F, -1.0F);
-        CouchBack.addChild(cube_r1);
-        setRotationAngle(cube_r1, 0.0F, 1.5708F, 0.0F);
-        cube_r1.cubeList.add(new ModelBox(cube_r1, 1, 51, -8.0F, -4.5F, -0.5F, 15, 10, 1, 0.0F));
 
         Cussion = new ModelRenderer(this);
         Cussion.setRotationPoint(0.0F, 24.0F, 0.0F);
-        Cussion.cubeList.add(new ModelBox(Cussion, 1, 37, -8.0F, -7.0F, -8.0F, 15, 4, 15, 0.0F));
-        Cussion.cubeList.add(new ModelBox(Cussion, 1, 20, -8.0F, -16.0F, 4.0F, 15, 9, 3, 0.0F));
+        Cussion.cubeList.add(new ModelBox(Cussion, 0, 0, -8.0F, -7.0F, -8.0F, 16, 4, 15, 0.0F));
+        Cussion.cubeList.add(new ModelBox(Cussion, 0, 19, -8.0F, -16.0F, 3.0F, 16, 9, 4, 0.0F));
         Cussion.cubeList.add(new ModelBox(Cussion, 0, 32, -8.0F, -16.0F, 7.0F, 16, 4, 1, 0.0F));
-
-        cube_r2 = new ModelRenderer(this);
-        cube_r2.setRotationPoint(7.5F, -14.0F, -1.0F);
-        Cussion.addChild(cube_r2);
-        setRotationAngle(cube_r2, 0.0F, 1.5708F, 0.0F);
-        cube_r2.cubeList.add(new ModelBox(cube_r2, 1, 32, -8.0F, -2.0F, -0.5F, 15, 4, 1, 0.0F));
-
-        cube_r3 = new ModelRenderer(this);
-        cube_r3.setRotationPoint(5.5F, -11.5F, -3.5F);
-        Cussion.addChild(cube_r3);
-        setRotationAngle(cube_r3, 0.0F, 1.5708F, 0.0F);
-        cube_r3.cubeList.add(new ModelBox(cube_r3, 5, 20, -7.5F, -4.5F, -1.5F, 12, 9, 3, 0.0F));
     }
 
     @Override

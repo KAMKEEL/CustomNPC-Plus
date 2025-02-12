@@ -2,9 +2,12 @@ package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCouchWool;
 import noppes.npcs.blocks.tiles.TileCouchWool;
@@ -16,11 +19,11 @@ import org.lwjgl.opengl.GL12;
 
 public class BlockCouchWoolRenderer extends BlockRendererInterface{
 
-    private final ModelBase modelCouchLeft = new ModelCouchLeft();
-    private final ModelBase modelCouchRight = new ModelCouchRight();
-    private final ModelBase modelCouchCorner = new ModelCouchCorner();
-    private final ModelBase modelCouch = new ModelCouch();
-    private final ModelBase modelCouchSingle = new ModelCouchSingle();
+    private final ModelCouchLeft modelCouchLeft = new ModelCouchLeft();
+    private final ModelCouchRight modelCouchRight = new ModelCouchRight();
+    private final ModelCouchCorner modelCouchCorner = new ModelCouchCorner();
+    private final ModelCouchMiddle modelCouch = new ModelCouchMiddle();
+    private final ModelCouchSingle modelCouchSingle = new ModelCouchSingle();
 
 	private final ModelBase modelLegacyCouchMiddle = new ModelLegacyCouchMiddle();
 	private final ModelBase modelLegacyCouchMiddleWool = new ModelLegacyCouchMiddleWool();
@@ -33,6 +36,16 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
 
 	private final ModelBase modelLegacyCouchCorner = new ModelLegacyCouchCorner();
 	private final ModelBase modelLegacyCouchCornerWool = new ModelLegacyCouchCornerWool();
+
+
+    private static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/couch/oak.png");
+    private static final ResourceLocation spruce = new ResourceLocation("customnpcs","textures/models/couch/spruce.png");
+    private static final ResourceLocation birch = new ResourceLocation("customnpcs","textures/models/couch/birch.png");
+    private static final ResourceLocation jungle = new ResourceLocation("customnpcs","textures/models/couch/jungle.png");
+    private static final ResourceLocation acacia = new ResourceLocation("customnpcs","textures/models/couch/acacia.png");
+    private static final ResourceLocation dark_oak = new ResourceLocation("customnpcs","textures/models/couch/dark_oak.png");
+
+    private static final ResourceLocation wool = new ResourceLocation("customnpcs","textures/models/couch/wool.png");
 
     public BlockCouchWoolRenderer(){
 		((BlockCouchWool)CustomItems.couchWool).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -50,7 +63,8 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
 
-        if(false){
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        if(ConfigClient.LegacyCouch){
             setWoodTexture(var1.getBlockMetadata());
             if(tile.hasCornerLeft)
                 modelLegacyCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -82,23 +96,98 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             else
                 modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
-            setWoodTexture(var1.getBlockMetadata());
-            if(tile.hasCornerLeft)
-                modelCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else if(tile.hasCornerRight){
-                GL11.glRotatef(90, 0, 1, 0);
-                modelCouchCorner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            int leftDX = 0, leftDZ = 0, rightDX = 0, rightDZ = 0;
+            switch(tile.rotation) {
+                case 1: // Facing south: left = east, right = west
+                    leftDX = 0; leftDZ = 1;
+                    rightDX = 0; rightDZ = -1;
+                    break;
+                case 0: // Facing west: left = south, right = north
+                    leftDX = 1; leftDZ = 0;
+                    rightDX = -1; rightDZ = 0;
+                    break;
+                case 3: // Facing north: left = west, right = east
+                    leftDX = 0; leftDZ = -1;
+                    rightDX = 0; rightDZ = 1;
+                    break;
+                case 2: // Facing east: left = north, right = south
+                    leftDX = -1; leftDZ = 0;
+                    rightDX = 1; rightDZ = 0;
+                    break;
             }
-            else if(tile.hasLeft && tile.hasRight)
-                modelCouch.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else if(tile.hasLeft)
-                modelCouchLeft.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else if(tile.hasRight)
-                modelCouchRight.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else
-                modelCouchSingle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
 
+            // Check if the blocks to the left and right are solid
+            Block blockLeft = tile.getWorldObj().getBlock(tile.xCoord + leftDX, tile.yCoord, tile.zCoord + leftDZ);
+            Block blockRight = tile.getWorldObj().getBlock(tile.xCoord + rightDX, tile.yCoord, tile.zCoord + rightDZ);
+            boolean leftSolid = blockLeft != null && blockLeft.getMaterial().isSolid();
+            boolean rightSolid = blockRight != null && blockRight.getMaterial().isSolid();
+
+            setCouchWood(var1.getBlockMetadata());
+            if(tile.hasCornerLeft){
+                GL11.glPushMatrix();
+                GL11.glRotatef(90, 0, 1, 0);
+                modelCouchCorner.CouchBack.render(0.0625F);
+                GL11.glPopMatrix();
+            }
+            else if(tile.hasCornerRight)
+                modelCouchCorner.CouchBack.render(0.0625F);
+            else if(tile.hasLeft && tile.hasRight)
+                modelCouch.CouchBack.render(0.0625F);
+            else if(tile.hasLeft)
+                modelCouchLeft.CouchBack.render(0.0625F);
+            else if(tile.hasRight)
+                modelCouchRight.CouchBack.render(0.0625F);
+            else {
+                if(leftSolid && rightSolid) {
+                    // Both sides occupied: use middle couch
+                    modelCouch.CouchBack.render(0.0625F);
+                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
+                    modelCouch.Cussion.render(0.0625F);
+                } else if(leftSolid) {
+                    // Block to left exists -> use right couch model
+                    modelCouchRight.CouchBack.render(0.0625F);
+                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
+                    modelCouchRight.Cussion.render(0.0625F);
+                } else if(rightSolid) {
+                    // Block to right exists -> use left couch model
+                    modelCouchLeft.CouchBack.render(0.0625F);
+                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
+                    modelCouchLeft.Cussion.render(0.0625F);
+                } else {
+                    // Neither side has a solid block: use the singleton couch model
+                    modelCouchSingle.CouchBack.render(0.0625F);
+                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
+                    modelCouchSingle.Cussion.render(0.0625F);
+                }
+            }
+
+            Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
+            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            GL11.glColor3f(color[0], color[1], color[2]);
+
+            if(tile.hasCornerLeft)
+                modelCouchCorner.Cussion.render(0.0625F);
+            else if(tile.hasCornerRight)
+                modelCouchCorner.Cussion.render(0.0625F);
+            else if(tile.hasLeft && tile.hasRight)
+                modelCouch.Cussion.render(0.0625F);
+            else if(tile.hasLeft)
+                modelCouchLeft.Cussion.render(0.0625F);
+            else if(tile.hasRight)
+                modelCouchRight.Cussion.render(0.0625F);
+            else {
+                if(leftSolid && rightSolid) {
+                    modelCouch.Cussion.render(0.0625F);
+                } else if(leftSolid) {
+                    modelCouchRight.Cussion.render(0.0625F);
+                } else if(rightSolid) {
+                    modelCouchLeft.Cussion.render(0.0625F);
+                } else {
+                    modelCouchSingle.Cussion.render(0.0625F);
+                }
+            }
+        }
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
 		GL11.glPopMatrix();
 	}
 
@@ -121,6 +210,22 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
         modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 		GL11.glPopMatrix();
 	}
+
+    public void setCouchWood(int meta){
+        TextureManager manager = Minecraft.getMinecraft().getTextureManager();
+        if(meta == 1)
+            manager.bindTexture(spruce);
+        else if(meta == 2)
+            manager.bindTexture(birch);
+        else if(meta == 3)
+            manager.bindTexture(jungle);
+        else if(meta == 4)
+            manager.bindTexture(acacia);
+        else if(meta == 5)
+            manager.bindTexture(dark_oak);
+        else
+            manager.bindTexture(oak);
+    }
 
 	@Override
 	public int getRenderId() {
