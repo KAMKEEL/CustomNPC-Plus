@@ -1,11 +1,13 @@
 package noppes.npcs.blocks;
 
+import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileTable;
 
@@ -15,7 +17,6 @@ public class BlockTable extends BlockRotated {
 
 	public BlockTable() {
         super(Blocks.planks);
-        this.setLightOpacity(-1);
 	}
 
     @Override
@@ -32,7 +33,6 @@ public class BlockTable extends BlockRotated {
     public int damageDropped(int par1){
         return par1;
     }
-
 
     @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
