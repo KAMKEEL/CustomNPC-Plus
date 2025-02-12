@@ -51,7 +51,7 @@ public class BlockCandleRenderer extends TileEntitySpecialRenderer implements IS
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
         //GL11.glScalef(0.95f, 0.95f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
-
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         if(ConfigClient.LegacyCandle){
             GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
@@ -88,6 +88,7 @@ public class BlockCandleRenderer extends TileEntitySpecialRenderer implements IS
             }
         }
         GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 

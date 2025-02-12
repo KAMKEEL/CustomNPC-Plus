@@ -68,6 +68,9 @@ public class BlockCarpentryBench extends BlockContainer
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int side, int meta)
     {
+        if(meta >= 4){
+            return Blocks.anvil.getIcon(side, 0);
+        }
         return Blocks.planks.getIcon(side, 0);
     }
 

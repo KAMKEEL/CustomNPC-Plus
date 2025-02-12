@@ -50,20 +50,22 @@ public class BlockTableRenderer extends BlockRendererInterface{
         legacyTable.Shape4.showModel = table.Shape4.showModel = !north && !east;
         legacyTable.Shape5.showModel = table.Shape5.showModel = !south && !west;
 
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
         if(ConfigClient.LegacyTable){
             setWoodTexture(var1.getBlockMetadata());
             legacyTable.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
             legacyTable.Table.render(0.0625f);
         } else {
-            GL11.glEnable(GL11.GL_ALPHA_TEST);
+
             setTableTexture(var1.getBlockMetadata());
             table.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
             table.Table.render(0.0625f);
-            GL11.glDisable(GL11.GL_ALPHA_TEST);
-        }
 
+        }
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 

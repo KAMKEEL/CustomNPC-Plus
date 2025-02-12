@@ -41,6 +41,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
 		TileWallBanner tile = (TileWallBanner) var1;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
@@ -89,6 +90,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
                 doRender(var2, var4, var6, tile.rotation, tile.icon, angle_x);
             }
         }
+        GL11.glPopAttrib();
 	}
     public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon, float rotate)
     {

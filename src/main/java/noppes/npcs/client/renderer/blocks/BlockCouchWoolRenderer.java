@@ -55,6 +55,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
 		TileCouchWool tile = (TileCouchWool) var1;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
@@ -62,7 +63,6 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         if(ConfigClient.LegacyCouch){
             setWoodTexture(var1.getBlockMetadata());
@@ -134,6 +134,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             }
         }
         GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 

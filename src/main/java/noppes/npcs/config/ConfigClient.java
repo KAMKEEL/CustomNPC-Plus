@@ -90,6 +90,7 @@ public class ConfigClient
     public static boolean LegacyTable = false;
     public static boolean LegacyBarrel = false;
     public static boolean LegacyCarpentryBench = false;
+    public static boolean LegacyAnvil = false;
     public static boolean LegacyLantern = false;
     public static boolean LegacyCandle = false;
 
@@ -158,6 +159,7 @@ public class ConfigClient
             LegacyStool = config.get(MODEL, "Legacy Stool Model", false).getBoolean(false);
             LegacyCouch = config.get(MODEL, "Legacy Couch Model", false).getBoolean(false);
             LegacyTable = config.get(MODEL, "Legacy Table Model", false).getBoolean(false);
+            LegacyAnvil = config.get(MODEL, "Legacy Anvil Model", false).getBoolean(false);
             LegacyCarpentryBench = config.get(MODEL, "Legacy Carpentry Bench Model", false).getBoolean(false);
             LegacyLantern = config.get(MODEL, "Legacy Lantern Model", false).getBoolean(false);
             LegacyCandle = config.get(MODEL, "Legacy Candle Model", false).getBoolean(false);
