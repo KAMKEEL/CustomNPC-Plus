@@ -12,34 +12,11 @@ public class PlayerEffect implements IPlayerEffect {
     public byte level;
     public int index;
 
-    public PlayerEffect(int id, int duration, byte level) {
+    public PlayerEffect(int id, int duration, byte level, int index) {
         this.id = id;
         this.duration = duration;
         this.level = level;
-    }
-
-    public static PlayerEffect readEffectData(NBTTagCompound nbt) {
-        int id = nbt.getInteger("Id");
-        int index = nbt.getInteger("Index");
-        if (id > 0) {
-            CustomEffectController controller = CustomEffectController.getInstance();
-            boolean found = controller.has(id);
-//                StatusEffectController.getInstance().customEffects.containsKey(id);
-            if (found) {
-                byte level = nbt.getByte("Level");
-                int dur = nbt.getInteger("Dur");
-                return new PlayerEffect(id, dur, level);
-            }
-        }
-        return null;
-    }
-
-    public NBTTagCompound writeEffectData(NBTTagCompound nbt) {
-        nbt.setInteger("Id", this.id);
-        nbt.setByte("Level", this.level);
-        nbt.setInteger("Dur", this.duration);
-        nbt.setInteger("Index", this.index);
-        return nbt;
+        this.index = index;
     }
 
     @Override
@@ -74,7 +51,7 @@ public class PlayerEffect implements IPlayerEffect {
 
     @Override
     public String getName() {
-        CustomEffect effect = CustomEffectController.getInstance().get(this.id);
+        CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);
         if(effect != null)
             return effect.getName();
 
@@ -84,7 +61,7 @@ public class PlayerEffect implements IPlayerEffect {
     @Override
     public void performEffect(IPlayer player) {
         if (player != null && player.getMCEntity() != null && player.getMCEntity() instanceof EntityPlayer) {
-            CustomEffect effect = CustomEffectController.getInstance().get(this.id);
+            CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);
             if(effect != null)
                 effect.onTick((EntityPlayer) player.getMCEntity(), this);
         }

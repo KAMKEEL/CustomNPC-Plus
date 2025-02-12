@@ -405,6 +405,7 @@ public class SyncController {
 
                 CustomEffectController.getInstance().customEffects = CustomEffectController.getInstance().customEffectsSync;
                 CustomEffectController.getInstance().customEffectsSync = new HashMap<>();
+                CustomEffectController.getInstance().registerEffectMap(0, CustomEffectController.getInstance().customEffects);
                 break;
             }
         }

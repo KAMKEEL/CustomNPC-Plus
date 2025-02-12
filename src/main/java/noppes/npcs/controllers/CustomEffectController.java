@@ -42,7 +42,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     private int lastUsedID = 0;
     public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
-    public CustomEffectController() {}
+    public CustomEffectController(){}
 
     public static CustomEffectController getInstance() {
         return Instance;
@@ -377,7 +377,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         Map<EffectKey, PlayerEffect> currentEffects = getPlayerEffects(player);
         CustomEffect parent = get(id, index);
         if (parent != null) {
-            PlayerEffect playerEffect = new PlayerEffect(id, duration, level);
+            PlayerEffect playerEffect = new PlayerEffect(id, duration, level, index);
             playerEffect.index = index;
             currentEffects.put(new EffectKey(id, index), playerEffect);
             parent.onAdded(player, playerEffect);
@@ -472,7 +472,7 @@ public class CustomEffectController implements ICustomEffectHandler {
                 }
             }
         }
-        registerEffectMap(0, customEffects);
+        this.registerEffectMap(0, customEffects);
         saveEffectLoadMap();
     }
 
