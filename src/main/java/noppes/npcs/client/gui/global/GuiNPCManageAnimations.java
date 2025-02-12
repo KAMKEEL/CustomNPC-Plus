@@ -10,11 +10,12 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -70,7 +71,6 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         if (!playingAnimation) {
             data.setAnimation(new Animation());
             data.animation.smooth = animation.smooth;
-            data.animation.tickDuration = 50;
             data.animation.loop = 0;
 
             if (this.animation.frames.size() > 0) {

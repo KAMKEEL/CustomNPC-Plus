@@ -16,6 +16,7 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -28,7 +29,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
-import noppes.npcs.*;
+import noppes.npcs.CommonProxy;
+import noppes.npcs.CustomItems;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.*;
@@ -59,6 +63,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.data.ModelData;
@@ -81,8 +86,6 @@ public class ClientProxy extends CommonProxy {
 	public static FontContainer Font;
 
 	public void load() {
-        this.createAnimationThread();
-
 		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
 		new MusicController();
@@ -206,6 +209,15 @@ public class ClientProxy extends CommonProxy {
 		}
         return null;
 	}
+
+    public AnimationData getClientAnimationData(Entity entity) {
+        if (entity instanceof EntityPlayer) {
+            return ClientCacheHandler.playerAnimations.get(entity.getUniqueID());
+        } else if (entity instanceof EntityNPCInterface) {
+            return ((EntityNPCInterface) entity).display.animationData;
+        }
+        return null;
+    }
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {

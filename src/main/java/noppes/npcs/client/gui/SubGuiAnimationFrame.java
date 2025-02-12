@@ -30,12 +30,6 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
             //smooth - button
             this.addLabel(new GuiNpcLabel(12, "animation.smoothing", guiLeft + 5, guiTop + 63));
             this.addButton(new GuiNpcButton(12, guiLeft + 75, guiTop + 55, 60, 20, new String[]{"animation.smooth", "animation.linear", "gui.none"}, editingFrame.smooth));
-            //
-            //tick duration - textfield
-            this.addLabel(new GuiNpcLabel(13, "animation.tickDuration", guiLeft + 5, guiTop + 84));
-            this.addTextField(new GuiNpcTextField(13, this, guiLeft + 75, guiTop + 79, 40, 15, editingFrame.tickDuration + ""));
-            this.getTextField(13).integersOnly = true;
-            this.getTextField(13).setMinMaxDefault(1, Integer.MAX_VALUE, 50);
         }
 
         this.addLabel(new GuiNpcLabel(14, "Comment", guiLeft + 5, guiTop + 106));
@@ -67,8 +61,6 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
 
         if (textfield.id == 11) {
             this.editingFrame.speed = textfield.getFloat();
-        } else if (textfield.id == 13) {
-            this.editingFrame.tickDuration = textfield.getInteger();
         } else if (textfield.id == 14) {
             this.editingFrame.setComment(textfield.getText());
         }

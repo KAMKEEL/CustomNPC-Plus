@@ -37,4 +37,4 @@ sourceSets {
 }
 
 // Modify the existing 'build' task to depend on 'updateAPI'
-tasks.apiClasses.dependsOn 'updateAPI'
+//tasks.apiClasses.dependsOn 'updateAPI'

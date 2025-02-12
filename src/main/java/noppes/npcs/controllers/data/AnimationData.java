@@ -9,7 +9,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
-import noppes.npcs.CommonProxy;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.EventHooks;
 import noppes.npcs.api.entity.IAnimatable;
@@ -44,7 +44,12 @@ public class AnimationData implements IAnimationData {
     public AnimationData(Object parent){
         this.parent = parent;
     }
+
     public static AnimationData getData(Entity entity) {
+        if (entity.worldObj.isRemote) {
+            return CustomNpcs.proxy.getClientAnimationData(entity);
+        }
+
         if (entity instanceof EntityPlayerMP) {
             return PlayerData.get((EntityPlayer) entity).animationData;
         } else if (entity instanceof EntityNPCInterface) {
@@ -102,13 +107,6 @@ public class AnimationData implements IAnimationData {
                 EventHooks.onAnimationFrameEntered(this.animation, this.animation.currentFrame());
             }
 
-            synchronized (CommonProxy.serverPlayingAnimations) {
-                if (this.isClientAnimating && this.getMCEntity() != null &&
-                    !this.getMCEntity().worldObj.isRemote && this.animation != null) {
-                    CommonProxy.serverPlayingAnimations.add(this);
-                }
-            }
-
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(
                 sendingEntity.posX - range, sendingEntity.posY - range, sendingEntity.posZ - range,
                 sendingEntity.posX + range, sendingEntity.posY + range, sendingEntity.posZ + range));
@@ -159,7 +157,7 @@ public class AnimationData implements IAnimationData {
 
     public void increaseTime() {
         Animation updateAnimation = null;
-        if (this.isActive(animation.parent.currentClientAnimation)) {
+        if (this.animation != null && this.isActive(this.animation.parent.currentClientAnimation)) {
             updateAnimation = this.currentClientAnimation;
         } else {
             this.isClientAnimating = false;
@@ -171,7 +169,7 @@ public class AnimationData implements IAnimationData {
         if (updateAnimation != null && updateAnimation.increaseTime()) {
             Frame frame = (Frame) updateAnimation.currentFrame();
             if (frame != null) {
-                this.animatingTime += frame.customized ? frame.tickDuration : updateAnimation.tickDuration;
+                this.animatingTime++;
             }
         }
     }
@@ -274,9 +272,6 @@ public class AnimationData implements IAnimationData {
 
         if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote && newAnim != null) {
             this.animatingTime = 0;
-            synchronized (CommonProxy.clientPlayingAnimations) {
-                CommonProxy.clientPlayingAnimations.add(this);
-            }
         }
 
         Animation prevAnim = this.animation;

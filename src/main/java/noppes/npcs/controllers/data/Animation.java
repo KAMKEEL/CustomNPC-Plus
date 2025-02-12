@@ -26,7 +26,6 @@ public class Animation implements IAnimation {
     public float speed = 1.0F;
     public byte smooth = 0;
     public int loop = -1; //If greater than 0 and less than the amount of frames, the animation will begin looping when it reaches this frame.
-    public int tickDuration = 50;
 
     public boolean whileStanding = true;
     public boolean whileAttacking = true;
@@ -97,15 +96,6 @@ public class Animation implements IAnimation {
 
     public String getName() {
         return this.name;
-    }
-
-    public int tickDuration() {
-        return this.tickDuration;
-    }
-
-    public IAnimation setTickDuration(int tickDuration) {
-        this.tickDuration = tickDuration;
-        return this;
     }
 
     public IAnimation setSpeed(float speed) {
@@ -179,7 +169,7 @@ public class Animation implements IAnimation {
     public long getTotalTime() {
         long time = 0;
         for (Frame frame : this.frames) {
-            time += (long) frame.duration * (frame.customized ? frame.tickDuration : this.tickDuration);
+            time += frame.duration;
         }
         return time;
     }
@@ -196,12 +186,6 @@ public class Animation implements IAnimation {
         speed = compound.getFloat("Speed");
         smooth = compound.getByte("Smooth");
         loop = compound.getInteger("Loop");
-
-        if (compound.hasKey("TickDuration")) {
-            this.tickDuration = compound.getInteger("TickDuration");
-        } else if(compound.hasKey("RenderTicks")){
-            this.tickDuration = compound.getBoolean("RenderTicks") ? 20 : 50;
-        }
 
         ArrayList<Frame> frames = new ArrayList<Frame>();
         NBTTagList list = compound.getTagList("Frames", 10);
@@ -229,7 +213,6 @@ public class Animation implements IAnimation {
         compound.setFloat("Speed", speed);
         compound.setByte("Smooth", smooth);
         compound.setInteger("Loop",loop);
-        compound.setInteger("TickDuration", tickDuration);
 
         NBTTagList list = new NBTTagList();
         for(Frame frame : frames){

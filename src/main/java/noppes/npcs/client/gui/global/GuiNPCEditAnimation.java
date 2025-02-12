@@ -4,13 +4,11 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAnimationPart;
-
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
@@ -98,7 +96,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         if (!playingAnimation) {
             data.setAnimation(new Animation());
             data.animation.smooth = animation.smooth;
-            data.animation.tickDuration = 50;
             data.animation.loop = 0;
             if (editingFrame != null) {
                 data.animation.frames.add(editingFrame);
@@ -111,7 +108,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             if (!frame.isCustomized()) {
                 frame.speed = animation.speed;
                 frame.smooth = animation.smooth;
-                frame.tickDuration = animation.tickDuration();
             }
             for (Map.Entry<EnumAnimationPart,FramePart> entry : frame.frameParts.entrySet()) {
                 FramePart part = entry.getValue();

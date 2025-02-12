@@ -8,11 +8,11 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
+import kamkeel.npcs.network.packets.data.ClonerPacket;
 import kamkeel.npcs.network.packets.data.MarkDataPacket;
 import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.VillagerListPacket;
 import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
-import kamkeel.npcs.network.packets.data.ClonerPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
@@ -33,6 +33,7 @@ import net.minecraft.village.MerchantRecipeList;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -484,16 +485,13 @@ public class ServerEventsHandler {
             return;
 
         AnimationData animationData = AnimationData.getData(event.target);
-        if (animationData.isClientAnimating()) {
+        if (animationData != null && animationData.isClientAnimating()) {
             AnimationData playerAnimData = AnimationData.getData(event.entityPlayer);
-            Animation currentAnimation = animationData.currentClientAnimation;
-            NBTTagCompound compound = currentAnimation.writeToNBT();
-
-            if (playerAnimData.viewAnimation(currentAnimation, animationData, compound,
-                animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime)) {
-                synchronized (CommonProxy.serverPlayingAnimations) {
-                    CommonProxy.serverPlayingAnimations.add(animationData);
-                }
+            if (playerAnimData != null) {
+                Animation currentAnimation = animationData.currentClientAnimation;
+                NBTTagCompound compound = currentAnimation.writeToNBT();
+                playerAnimData.viewAnimation(currentAnimation, animationData, compound,
+                    animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
             }
         }
 
@@ -502,6 +500,14 @@ public class ServerEventsHandler {
             if (data.marks.isEmpty())
                 return;
             PacketHandler.Instance.sendToPlayer(new MarkDataPacket(event.target.getEntityId(), data.getNBT()), (EntityPlayerMP)event.entityPlayer);
+        }
+    }
+
+    @SubscribeEvent
+    public void entityTick(LivingEvent.LivingUpdateEvent event) {
+        AnimationData data = AnimationData.getData(event.entityLiving);
+        if (data != null) {
+            data.increaseTime();
         }
     }
 }
