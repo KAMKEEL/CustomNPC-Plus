@@ -142,8 +142,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
                     tf.mouseClicked(i, j, k);
 
             for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-                if (guiScrollableComponent.isMouseOver(i, j))
-                    guiScrollableComponent.mouseClicked(i, j, k);
+                guiScrollableComponent.mouseClicked(i, j, k);
             }
 
             if (k == 0) {

@@ -513,6 +513,7 @@ menu.global=Global
 menu.role=Role
 menu.animations=Animations
 menu.tags=Tags
+menu.general=General
 
 cloner.tagFilters=Tag Filters
 cloner.tagVisibility=Tag Visibility

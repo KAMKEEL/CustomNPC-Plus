@@ -304,12 +304,10 @@ public class CustomEffectController implements ICustomEffectHandler {
             customEffect.setID(getUnusedId());
             while (has(customEffect.getName()))
                 customEffect.setName(customEffect.getName() + "_");
-        } else {
-            CustomEffect existing = getCustomEffects().get(customEffect.getID());
-            if (existing != null && !existing.name.equalsIgnoreCase(customEffect.getName()))
-                while (has(customEffect.getName()))
-                    customEffect.setName(customEffect.getName() + "_");
         }
+
+        while (hasOther(customEffect.getName(), customEffect.getID()))
+            customEffect.setName(customEffect.getName() + "_");
 
         getCustomEffects().remove(customEffect.getID());
         getCustomEffects().put(customEffect.getID(), (CustomEffect) customEffect);
@@ -335,6 +333,14 @@ public class CustomEffectController implements ICustomEffectHandler {
             LogWriter.except(e);
         }
         return getCustomEffects().get(customEffect.getID());
+    }
+
+    private boolean hasOther(String name, int id) {
+        for (CustomEffect effect : getCustomEffects().values()) {
+            if (effect.getID() != id && effect.getName().equalsIgnoreCase(name))
+                return true;
+        }
+        return false;
     }
 
     public void clearEffects(EntityPlayer player) {

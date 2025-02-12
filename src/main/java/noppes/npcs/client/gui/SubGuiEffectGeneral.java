@@ -39,7 +39,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         super.initGui();
         GuiMenuTopButton close = new GuiMenuTopButton(-5, guiLeft + xSize - 22, guiTop - 10, "X");
 
-        GuiMenuTopButton general = new GuiMenuTopButton(-1, guiLeft + 4, guiTop - 10, "display.general");
+        GuiMenuTopButton general = new GuiMenuTopButton(-1, guiLeft + 4, guiTop - 10, "menu.general");
         GuiMenuTopButton scripts = new GuiMenuTopButton(-2, general.xPosition + general.getWidth(), guiTop - 10, "script.scripts");
 
         close.active = false;

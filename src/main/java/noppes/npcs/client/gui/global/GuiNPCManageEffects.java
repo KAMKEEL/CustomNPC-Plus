@@ -50,7 +50,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
         addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
         getButton(1).enabled = effect != null && effect.id != -1;
 
-        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 56, 45, 20, "gui.clone"));
+        addButton(new GuiNpcButton(2, guiLeft + 368, guiTop + 56, 45, 20, "gui.copy"));
         getButton(2).enabled = effect != null && effect.id != -1;
 
         addButton(new GuiNpcButton(3, guiLeft + 368, guiTop + 80, 45, 20, "gui.edit"));
@@ -173,7 +173,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
 
         // TODO: Fix ICONS
         // textureManager.bindTexture(new ResourceLocation(CustomNpcPlusDBC.ID + ":textures/gui/icons.png"));
-        func_152125_a(x, y, 0, 240, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
+        // func_152125_a(x, y, 0, 240, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
 
         x += iconRenderSize + 3;
