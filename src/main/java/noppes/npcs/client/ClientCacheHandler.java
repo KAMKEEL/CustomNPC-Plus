@@ -13,7 +13,6 @@ import java.util.UUID;
 
 public class ClientCacheHandler {
     private static final CacheHashMap<String, CacheHashMap.CachedObject<ImageData>> imageDataCache = new CacheHashMap<>((long) ConfigClient.CacheLife * 60 * 1000);
-    public static final HashMap<Integer, Animation> animationCache = new HashMap<>();
     public static PlayerData playerData = new PlayerData();
     public static OverlayQuestTracking questTrackingOverlay = null;
     public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
@@ -48,7 +47,6 @@ public class ClientCacheHandler {
 
     public static void clearCache() {
         ClientCacheHandler.imageDataCache.clear();
-        ClientCacheHandler.animationCache.clear();
         ClientCacheHandler.questTrackingOverlay = null;
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
