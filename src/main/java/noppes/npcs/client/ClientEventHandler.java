@@ -13,12 +13,10 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
+import net.minecraftforge.client.event.*;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.renderer.MarkRenderer;
@@ -107,8 +105,17 @@ public class ClientEventHandler {
         ClientEventHandler.renderer = event.renderer;
         ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
 
-        if (event.entity instanceof EntityClientPlayerMP) {
-            Render render = RenderManager.instance.getEntityClassRenderObject(event.entity.getClass());
+        this.setOriginalPlayerParts(event.entity);
+    }
+
+    @SubscribeEvent
+    public void renderHand(RenderHandEvent event) {
+        this.setOriginalPlayerParts(Minecraft.getMinecraft().thePlayer);
+    }
+
+    private void setOriginalPlayerParts(Entity entity) {
+        if (entity instanceof EntityClientPlayerMP) {
+            Render render = RenderManager.instance.getEntityClassRenderObject(entity.getClass());
             if (!processedPlayerRenderers.contains(render)) {
                 processedPlayerRenderers.add(render);
                 Collection<ModelRenderer> modelRenderers = getAllModelRenderers(render);

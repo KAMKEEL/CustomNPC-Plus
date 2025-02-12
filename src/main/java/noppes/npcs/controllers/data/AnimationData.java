@@ -46,6 +46,9 @@ public class AnimationData implements IAnimationData {
     }
 
     public static AnimationData getData(Entity entity) {
+        if (entity == null) {
+            return null;
+        }
         if (entity.worldObj.isRemote) {
             return CustomNpcs.proxy.getClientAnimationData(entity);
         }

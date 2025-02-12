@@ -39,7 +39,9 @@ public class ClientTickHandler{
 	public void onClientTick(TickEvent.ClientTickEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
 		if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
-			ClientCacheHandler.clearCache();
+            if (mc.theWorld == null) {
+                ClientCacheHandler.clearCache();
+            }
 			this.prevWorld = mc.theWorld;
 		}
 		if(event.phase == Phase.END) {

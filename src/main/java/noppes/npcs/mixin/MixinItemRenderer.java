@@ -3,7 +3,6 @@ package noppes.npcs.mixin;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
-import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.*;
@@ -39,7 +38,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -73,9 +71,9 @@ public abstract class MixinItemRenderer {
     }
 
     private boolean mixin_renderFirstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model) {
-        AnimationData animData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
-        if (animData != null && animData.isActive()) {
-            Frame frame = (Frame) animData.animation.currentFrame();
+        AnimationData animationData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
+        if (animationData != null && animationData.isActive()) {
+            Frame frame = (Frame) animationData.animation.currentFrame();
             if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
                 FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
                 part.interpolateOffset();
@@ -87,8 +85,7 @@ public abstract class MixinItemRenderer {
         EnumAnimationPart[] enumParts = new EnumAnimationPart[]{EnumAnimationPart.RIGHT_ARM, EnumAnimationPart.LEFT_ARM, EnumAnimationPart.RIGHT_LEG, EnumAnimationPart.LEFT_LEG};
         Frame frame;
 
-        AnimationData animationData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
-        if (animationData != null && animationData.isActive() && animationData.getAnimation() != null && animationData.getAnimation().currentFrame() != null) {
+        if (animationData != null && animationData.isActive()) {
             Animation animation = (Animation) animationData.getAnimation();
             frame = (Frame) animation.currentFrame();
             for (int i = 0; i < parts.length; i++) {
@@ -109,7 +106,7 @@ public abstract class MixinItemRenderer {
             return false;
         }
 
-        if (animData != null && animData.isActive()) {
+        if (animationData != null && animationData.isActive()) {
             if (frame.frameParts.containsKey(EnumAnimationPart.FULL_MODEL)) {
                 FramePart part = frame.frameParts.get(EnumAnimationPart.FULL_MODEL);
                 float pi = 180 / (float) Math.PI;

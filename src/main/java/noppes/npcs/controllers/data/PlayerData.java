@@ -69,7 +69,15 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public ScreenSize screenSize = new ScreenSize(-1,-1);
 
 	public void onLogin() {
-	}
+        //Continue playing animation for self when re-logging
+        AnimationData animationData = this.animationData;
+        if (animationData != null && animationData.isClientAnimating()) {
+            Animation currentAnimation = animationData.currentClientAnimation;
+            NBTTagCompound compound = currentAnimation.writeToNBT();
+            animationData.viewAnimation(currentAnimation, animationData, compound,
+                animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+        }
+    }
 
 	public void onLogout() {
 		this.partyInvites.clear();
