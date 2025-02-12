@@ -131,7 +131,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
 
                 // TODO: FIX TEXTURE
                 // textureManager.bindTexture(new ResourceLocation(CustomNpcPlusDBC.ID + ":textures/gui/icons.png"));
-                func_152125_a(x, y, 0, 240, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
+                // func_152125_a(x, y, 0, 240, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
         };

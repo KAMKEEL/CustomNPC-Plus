@@ -34,7 +34,6 @@ public class CustomEffectController implements ICustomEffectHandler {
     public HashMap<Integer, HashMap<Integer, CustomEffect>> indexMapper = new HashMap<>();
 
     public HashMap<Integer, CustomEffect> customEffectsSync = new HashMap<>();
-    public HashMap<Integer, CustomEffect> customEffects = new HashMap<>();
 
     public HashMap<Integer, EffectScript> customEffectScriptHandlers = new HashMap<>();
     private HashMap<Integer, String> bootOrder;
@@ -42,15 +41,21 @@ public class CustomEffectController implements ICustomEffectHandler {
     private int lastUsedID = 0;
     public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
-    public CustomEffectController(){}
+    public CustomEffectController(){
+        HashMap<Integer, CustomEffect> customEffects = new HashMap<>();
+        registerEffectMap(0, customEffects);
+    }
 
     public static CustomEffectController getInstance() {
         return Instance;
     }
 
     public <T extends CustomEffect> void registerEffectMap(int index, HashMap<Integer, T> effectHashMap) {
-        HashMap<Integer, CustomEffect> map = new HashMap<>(effectHashMap);
-        indexMapper.put(index, map);
+        indexMapper.put(index, (HashMap<Integer, CustomEffect>) effectHashMap);
+    }
+
+    public HashMap<Integer, CustomEffect> getCustomEffects(){
+        return indexMapper.get(0);
     }
 
     public void load() {
@@ -104,12 +109,12 @@ public class CustomEffectController implements ICustomEffectHandler {
 
         if (effect.id == -1) {
             int id = getUnusedId();
-            while (customEffects.containsKey(id)) {
+            while (getCustomEffects().containsKey(id)) {
                 id = getUnusedId();
             }
             effect.id = id;
         }
-        customEffects.put(effect.id, effect);
+        getCustomEffects().put(effect.id, effect);
         return effect;
     }
 
@@ -122,14 +127,14 @@ public class CustomEffectController implements ICustomEffectHandler {
     public void deleteEffect(String name) {
         ICustomEffect effect = getEffect(name);
         if (effect != null) {
-            CustomEffect foundEffect = customEffects.remove(effect.getID());
+            CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
             customEffectScriptHandlers.remove(effect.getID());
             if (foundEffect != null && foundEffect.name != null) {
                 File dir = this.getDir();
                 for (File file : dir.listFiles()) {
                     if (!file.isFile() || !file.getName().endsWith(".json"))
                         continue;
-                    if (file.getName().equals(foundEffect.name + ".json")) {
+                    if (file.getName().equalsIgnoreCase(foundEffect.name + ".json")) {
                         file.delete();
                         SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
                         break;
@@ -143,14 +148,14 @@ public class CustomEffectController implements ICustomEffectHandler {
     public void delete(int id) {
         ICustomEffect effect = get(id);
         if (effect != null) {
-            CustomEffect foundEffect = customEffects.remove(effect.getID());
+            CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
             customEffectScriptHandlers.remove(effect.getID());
             if (foundEffect != null && foundEffect.name != null) {
                 File dir = this.getDir();
                 for (File file : dir.listFiles()) {
                     if (!file.isFile() || !file.getName().endsWith(".json"))
                         continue;
-                    if (file.getName().equals(foundEffect.name + ".json")) {
+                    if (file.getName().equalsIgnoreCase(foundEffect.name + ".json")) {
                         file.delete();
                         SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
                         break;
@@ -162,7 +167,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     }
 
     public int getUnusedId() {
-        for (int catid : customEffects.keySet()) {
+        for (int catid : getCustomEffects().keySet()) {
             if (catid > lastUsedID)
                 lastUsedID = catid;
         }
@@ -300,14 +305,14 @@ public class CustomEffectController implements ICustomEffectHandler {
             while (has(customEffect.getName()))
                 customEffect.setName(customEffect.getName() + "_");
         } else {
-            CustomEffect existing = customEffects.get(customEffect.getID());
-            if (existing != null && !existing.name.equals(customEffect.getName()))
+            CustomEffect existing = getCustomEffects().get(customEffect.getID());
+            if (existing != null && !existing.name.equalsIgnoreCase(customEffect.getName()))
                 while (has(customEffect.getName()))
                     customEffect.setName(customEffect.getName() + "_");
         }
 
-        customEffects.remove(customEffect.getID());
-        customEffects.put(customEffect.getID(), (CustomEffect) customEffect);
+        getCustomEffects().remove(customEffect.getID());
+        getCustomEffects().put(customEffect.getID(), (CustomEffect) customEffect);
 
         saveEffectLoadMap();
 
@@ -329,7 +334,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         } catch (Exception e) {
             LogWriter.except(e);
         }
-        return customEffects.get(customEffect.getID());
+        return getCustomEffects().get(customEffect.getID());
     }
 
     public void clearEffects(EntityPlayer player) {
@@ -437,7 +442,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     }
 
     private void loadCustomEffects() {
-        customEffects.clear();
+        getCustomEffects().clear();
 
         File dir = getDir();
         if (!dir.exists()) {
@@ -455,9 +460,9 @@ public class CustomEffectController implements ICustomEffectHandler {
                     }
                     int originalID = effect.id;
                     int setID = effect.id;
-                    while (bootOrder.containsKey(setID) || customEffects.containsKey(setID)) {
+                    while (bootOrder.containsKey(setID) || getCustomEffects().containsKey(setID)) {
                         if (bootOrder.containsKey(setID))
-                            if (bootOrder.get(setID).equals(effect.name))
+                            if (bootOrder.get(setID).equalsIgnoreCase(effect.name))
                                 break;
                         setID++;
                     }
@@ -466,13 +471,13 @@ public class CustomEffectController implements ICustomEffectHandler {
                         LogWriter.info("Found Custom Effect ID Mismatch: " + effect.name + ", New ID: " + setID);
                         effect.save();
                     }
-                    customEffects.put(effect.id, effect);
+                    getCustomEffects().put(effect.id, effect);
                 } catch (Exception e) {
                     LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
                 }
             }
         }
-        this.registerEffectMap(0, customEffects);
+        this.registerEffectMap(0, getCustomEffects());
         saveEffectLoadMap();
     }
 
@@ -513,8 +518,8 @@ public class CustomEffectController implements ICustomEffectHandler {
     private NBTTagCompound writeMapNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
         NBTTagList customEffectsList = new NBTTagList();
-        for (Integer key : this.customEffects.keySet()) {
-            CustomEffect customEffect = this.customEffects.get(key);
+        for (Integer key : this.getCustomEffects().keySet()) {
+            CustomEffect customEffect = this.getCustomEffects().get(key);
             if (!customEffect.getName().isEmpty()) {
                 NBTTagCompound effectCompound = new NBTTagCompound();
                 effectCompound.setString("Name", customEffect.getName());
