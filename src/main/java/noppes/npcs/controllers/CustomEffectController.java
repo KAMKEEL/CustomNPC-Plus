@@ -418,7 +418,7 @@ public class CustomEffectController implements ICustomEffectHandler {
             if (effect.duration == -100)
                 continue;
             if (effect.duration <= 0) {
-                CustomEffect parent = CustomEffectController.Instance.get(effect.id);
+                CustomEffect parent = CustomEffectController.Instance.get(effect.id, effect.index);
                 if (parent != null) {
                     parent.onRemoved(player, effect, ExpirationType.RUN_OUT);
                 }
