@@ -96,32 +96,6 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             else
                 modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
-            int leftDX = 0, leftDZ = 0, rightDX = 0, rightDZ = 0;
-            switch(tile.rotation) {
-                case 1: // Facing south: left = east, right = west
-                    leftDX = 0; leftDZ = 1;
-                    rightDX = 0; rightDZ = -1;
-                    break;
-                case 0: // Facing west: left = south, right = north
-                    leftDX = 1; leftDZ = 0;
-                    rightDX = -1; rightDZ = 0;
-                    break;
-                case 3: // Facing north: left = west, right = east
-                    leftDX = 0; leftDZ = -1;
-                    rightDX = 0; rightDZ = 1;
-                    break;
-                case 2: // Facing east: left = north, right = south
-                    leftDX = -1; leftDZ = 0;
-                    rightDX = 1; rightDZ = 0;
-                    break;
-            }
-
-            // Check if the blocks to the left and right are solid
-            Block blockLeft = tile.getWorldObj().getBlock(tile.xCoord + leftDX, tile.yCoord, tile.zCoord + leftDZ);
-            Block blockRight = tile.getWorldObj().getBlock(tile.xCoord + rightDX, tile.yCoord, tile.zCoord + rightDZ);
-            boolean leftSolid = blockLeft != null && blockLeft.getMaterial().isSolid();
-            boolean rightSolid = blockRight != null && blockRight.getMaterial().isSolid();
-
             setCouchWood(var1.getBlockMetadata());
             if(tile.hasCornerLeft){
                 GL11.glPushMatrix();
@@ -138,27 +112,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             else if(tile.hasRight)
                 modelCouchRight.CouchBack.render(0.0625F);
             else {
-                if(leftSolid && rightSolid) {
-                    // Both sides occupied: use middle couch
-                    modelCouch.CouchBack.render(0.0625F);
-                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
-                    modelCouch.Cussion.render(0.0625F);
-                } else if(leftSolid) {
-                    // Block to left exists -> use right couch model
-                    modelCouchRight.CouchBack.render(0.0625F);
-                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
-                    modelCouchRight.Cussion.render(0.0625F);
-                } else if(rightSolid) {
-                    // Block to right exists -> use left couch model
-                    modelCouchLeft.CouchBack.render(0.0625F);
-                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
-                    modelCouchLeft.Cussion.render(0.0625F);
-                } else {
-                    // Neither side has a solid block: use the singleton couch model
-                    modelCouchSingle.CouchBack.render(0.0625F);
-                    Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
-                    modelCouchSingle.Cussion.render(0.0625F);
-                }
+                modelCouchSingle.CouchBack.render(0.0625F);
             }
 
             Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
@@ -176,15 +130,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             else if(tile.hasRight)
                 modelCouchRight.Cussion.render(0.0625F);
             else {
-                if(leftSolid && rightSolid) {
-                    modelCouch.Cussion.render(0.0625F);
-                } else if(leftSolid) {
-                    modelCouchRight.Cussion.render(0.0625F);
-                } else if(rightSolid) {
-                    modelCouchLeft.Cussion.render(0.0625F);
-                } else {
-                    modelCouchSingle.Cussion.render(0.0625F);
-                }
+                modelCouchSingle.Cussion.render(0.0625F);
             }
         }
         GL11.glDisable(GL11.GL_ALPHA_TEST);

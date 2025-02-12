@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 
 public class ModelBannerWallFlag extends ModelBase {
     public final ModelRenderer BannerFlag;
+    public final float rotationX = 0;
 
     public ModelBannerWallFlag() {
         textureWidth = 32;

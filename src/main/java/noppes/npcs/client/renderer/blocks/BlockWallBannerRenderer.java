@@ -203,6 +203,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
             modelLegacyWallBannerFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
         else {
+            flag.BannerFlag.rotateAngleX = 0;
             BlockBannerRenderer.setBannerMaterial(metadata);
             model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
