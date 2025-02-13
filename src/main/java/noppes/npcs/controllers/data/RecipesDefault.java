@@ -30,6 +30,10 @@ public class RecipesDefault {
 			addRecipe("Mob Cloner", CustomItems.cloner, true, "XX","XY"," Y",'X', Items.bread,'Y', Items.stick);
 			addRecipe("Carpentry Bench", CustomItems.carpentyBench, true, "XYX","Z Z","Z Z", 'X', Blocks.planks, 'Z', Items.stick, 'Y', Blocks.crafting_table);
 
+            ItemStack anvil = new ItemStack(CustomItems.carpentyBench);
+            anvil.setItemDamage(1);
+            addRecipe("Anvil", anvil, true, "XXX","Z Z","Z Z", 'X', Blocks.iron_block, 'Z', Items.iron_ingot);
+
 			if(!ConfigMain.DisableExtraItems){
 				addRecipe("Mana", CustomItems.mana, true, "XY",'X',Items.redstone,'Y',Items.glowstone_dust);
 				addRecipe("Gun Wooden", CustomItems.gunWood, false, "XXXY"," ZM ","  M ",'Y', Blocks.lever, 'M', Items.stick, 'Z', Blocks.stone_button,'X', Blocks.planks);
