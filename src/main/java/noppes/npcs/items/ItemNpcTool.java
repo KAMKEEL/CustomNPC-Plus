@@ -12,6 +12,9 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.constants.EnumGuiType;
 
 import java.util.List;
 
@@ -30,6 +33,7 @@ public class ItemNpcTool extends Item {
         setHasSubtypes(true);
         setMaxDamage(0);
         setCreativeTab(CustomItems.tab);
+        CustomNpcs.proxy.registerItem(this);
     }
 
     @Override
@@ -67,13 +71,24 @@ public class ItemNpcTool extends Item {
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        if(world.isRemote) {
-            int meta = stack.getItemDamage();
-            if(meta < 0 || meta >= toolTypes.length) meta = 0;
-            // Send a simple chat message indicating which tool was used
-            player.addChatMessage(new ChatComponentTranslation("item.npc_tool." + toolTypes[meta] + ".use"));
+        if(!world.isRemote)
+            return stack;
+
+        if(player.isSneaking() && isPaintbrush(stack)){
+
+        } else if(isPaintbrush(stack)){
+
         }
+        if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.PAINTBRUSH_GUI)){
+            CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.Paintbrush, player);
+        }
+        else
+            player.addChatMessage(new ChatComponentTranslation("item.npc_tool." + toolTypes[stack.getItemDamage()] + ".use"));
         return stack;
+    }
+
+    public boolean isPaintbrush(ItemStack itemStack){
+        return itemStack.getItemDamage() == 1;
     }
 
     @Override

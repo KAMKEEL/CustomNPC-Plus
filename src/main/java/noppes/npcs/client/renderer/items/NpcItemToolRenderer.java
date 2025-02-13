@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemRenderInterface;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -16,8 +17,8 @@ import org.lwjgl.opengl.GL12;
 public class NpcItemToolRenderer implements IItemRenderer {
 
     // Textures for the assembled paintbrush parts:
-    private static final ResourceLocation PAINTBRUSH_HANDLE = new ResourceLocation("noppes", "textures/items/paintbrush_handle.png");
-    private static final ResourceLocation PAINTBRUSH_BRUSH = new ResourceLocation("noppes", "textures/items/paintbrush_brush.png");
+    private static final ResourceLocation PAINTBRUSH_HANDLE = new ResourceLocation("customnpcs", "textures/items/paintbrush_handle.png");
+    private static final ResourceLocation PAINTBRUSH_BRUSH = new ResourceLocation("customnpcs", "textures/items/paintbrush_brush.png");
     private static final ResourceLocation ENCHANT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
     @Override
@@ -34,25 +35,17 @@ public class NpcItemToolRenderer implements IItemRenderer {
     @Override
     public void renderItem(ItemRenderType type, ItemStack item, Object... data) {
         // Ensure the item implements our render interface
-        if (!(item.getItem() instanceof ItemRenderInterface))
+        if (!(item.getItem() instanceof ItemNpcTool))
             return;
 
         EntityLivingBase entity = (EntityLivingBase) data[1];
 
         GL11.glPushMatrix();
-        // Apply base translations/rotations
-        GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
-        GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
-
         // For meta==1 (paintbrush) we want to assemble the texture from two parts
         if (item.getItemDamage() == 1) {
             renderPaintbrush(entity, item);
         } else {
             // For other tools, fall back on the normal special render routine.
-            ((ItemRenderInterface) item.getItem()).renderSpecial();
-            GL11.glRotatef(-20.0F, 0.0F, 0.0F, 1.0F);
-            GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
-            GL11.glTranslatef(-0.09375F, 0.0625F, 0.0F);
             renderItem3d(entity, item);
         }
         GL11.glPopMatrix();

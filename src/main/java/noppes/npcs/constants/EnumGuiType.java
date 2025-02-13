@@ -66,5 +66,6 @@ public enum EnumGuiType {
 	ManageLinked,
 	CustomGui,
 	ScriptItem,
-	ScriptBlock;
+	ScriptBlock,
+    Paintbrush;
 }

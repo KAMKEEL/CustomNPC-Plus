@@ -7,5 +7,6 @@ public enum EnumItemPacketType {
     TELEPORTER,
     SCRIPTER,
     PATHER,
-    BLOCK
+    BLOCK,
+    BRUSH
 }

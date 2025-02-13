@@ -17,6 +17,10 @@ import java.util.List;
 public class CustomNpcsPermissions{
     // Open GUI
     public static final Permission NPC_GUI = new Permission("customnpcs.npc.gui");
+    public static final Permission PAINTBRUSH_GUI = new Permission("customnpcs.npc.paintbrush");
+
+    // Builder
+    public static final Permission NPC_BUILD = new Permission("customnpcs.npc.build");
 
     // Modify NPC
     public static final Permission NPC_DELETE = new Permission("customnpcs.npc.delete");

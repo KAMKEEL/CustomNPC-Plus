@@ -87,6 +87,13 @@ public class PacketUtil {
                     return false;
                 }
                 break;
+            case BRUSH:
+                if (item.getItem() != CustomItems.tool || item.getItemDamage() != 1) {
+                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Pather, they could be a hacker",
+                        player.getCommandSenderName(), type));
+                    return false;
+                }
+                break;
         }
         return true;
     }
@@ -141,6 +148,8 @@ public class PacketUtil {
                 return !(item.getItem() == Item.getItemFromBlock(CustomItems.waypoint)
                     || item.getItem() == Item.getItemFromBlock(CustomItems.border)
                     || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock));
+            case BRUSH:
+                return item.getItem() == CustomItems.tool && item.getItemDamage() == 1;
             default:
                 return false;
         }
@@ -176,6 +185,8 @@ public class PacketUtil {
                 return "Pather";
             case BLOCK:
                 return "valid Block";
+            case BRUSH:
+                return "Paintbrush";
             default:
                 return type.toString();
         }

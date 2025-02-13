@@ -21,6 +21,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemTool;
 import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
@@ -43,6 +44,7 @@ import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.global.*;
+import noppes.npcs.client.gui.item.GuiNpcPaintbrush;
 import noppes.npcs.client.gui.mainmenu.*;
 import noppes.npcs.client.gui.player.*;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
@@ -57,6 +59,7 @@ import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.*;
 import noppes.npcs.client.renderer.items.CustomItemRenderer;
+import noppes.npcs.client.renderer.items.NpcItemToolRenderer;
 import noppes.npcs.client.renderer.items.ScriptedBlockItemRenderer;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
@@ -68,6 +71,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -409,6 +413,9 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ScriptBlock)
 			return new GuiScriptBlock(x,y,z);
 
+        else if (gui == EnumGuiType.Paintbrush)
+            return new GuiNpcPaintbrush();
+
         else if (gui == EnumGuiType.GlobalRemote)
             return new GuiNPCGlobalMainMenu(null);
 
@@ -523,7 +530,9 @@ public class ClientProxy extends CommonProxy {
 	public void registerItem(Item item) {
 		if (item instanceof ItemScripted) {
 			MinecraftForgeClient.registerItemRenderer(item, new CustomItemRenderer());
-		} else {
+		} else if (item instanceof ItemNpcTool) {
+            MinecraftForgeClient.registerItemRenderer(item, new NpcItemToolRenderer());
+        }else {
 			MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());
 		}
 	}
