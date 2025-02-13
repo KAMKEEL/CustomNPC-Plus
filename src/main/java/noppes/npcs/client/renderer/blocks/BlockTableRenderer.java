@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockTable;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.ModelTable;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyTable;
 import noppes.npcs.config.ConfigClient;
@@ -34,7 +34,7 @@ public class BlockTableRenderer extends BlockRendererInterface{
 	@Override
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
-		TileColorable tile = (TileColorable) var1;
+		TileVariant tile = (TileVariant) var1;
         GL11.glPushMatrix();
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);

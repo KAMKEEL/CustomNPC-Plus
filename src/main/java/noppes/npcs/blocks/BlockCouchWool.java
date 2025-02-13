@@ -25,6 +25,8 @@ import noppes.npcs.blocks.tiles.TileCouchWool;
 
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.colorTableInts;
+
 public class BlockCouchWool extends BlockContainer{
 
 	public int renderId = -1;
@@ -40,8 +42,8 @@ public class BlockCouchWool extends BlockContainer{
     	int meta = par1World.getBlockMetadata(i, j, k);
     	if(meta >= 7)
     		j--;
-    	TileColorable tile = (TileColorable) par1World.getTileEntity(i, j, k);
-    	int color = BlockColored.func_150031_c(item.getItemDamage());
+        TileColorable tile = (TileColorable) par1World.getTileEntity(i, j, k);
+    	int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];
     	if(tile.color != color){
     		NoppesUtilServer.consumeItemStack(1, player);
 			tile.color = color;
@@ -75,8 +77,8 @@ public class BlockCouchWool extends BlockContainer{
         int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
         l %= 4;
         TileCouchWool tile = (TileCouchWool) par1World.getTileEntity(par2, par3, par4);
-    	tile.rotation = l;
-    	tile.color = 15 - par6ItemStack.getItemDamage();
+        tile.rotation = l;
+        tile.color = colorTableInts[15 - par6ItemStack.getItemDamage()];
 
         par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
     	updateModel(par1World, par2, par3, par4, tile);

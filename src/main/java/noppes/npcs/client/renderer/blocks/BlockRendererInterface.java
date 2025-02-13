@@ -32,68 +32,41 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 
     protected static final RenderItem renderer = new RenderItem();
 
-    public static float colorTable[][] = {
-        {
-            1.0F, 1.0F, 1.0F
-        }, {
-            0.95F, 0.7F, 0.2F
-        }, {
-            0.9F, 0.5F, 0.85F
-        }, {
-            0.6F, 0.7F, 0.95F
-        }, {
-            0.9F, 0.9F, 0.2F
-        }, {
-            0.5F, 0.8F, 0.1F
-        }, {
-            0.95F, 0.7F, 0.8F
-        }, {
-            0.3F, 0.3F, 0.3F
-        }, {
-            0.6F, 0.6F, 0.6F
-        }, {
-            0.3F, 0.6F, 0.7F
-        }, {
-            0.7F, 0.4F, 0.9F
-        }, {
-            0.2F, 0.4F, 0.8F
-        }, {
-            0.5F, 0.4F, 0.3F
-        }, {
-            0.4F, 0.5F, 0.2F
-        }, {
-            0.8F, 0.3F, 0.3F
-        }, {
-            0.1F, 0.1F, 0.1F
-        }
-    };
-
-    public static int colorTableInts[][] = {
-        { 0xFFFFFF }, // White
-        { 0xF2B233 }, // Light Orange
-        { 0xE680D9 }, // Pinkish Purple
-        { 0x99B2F2 }, // Light Blue
-        { 0xE6E633 }, // Yellow
-        { 0x80CC1A }, // Green
-        { 0xF2B2CC }, // Light Pink
-        { 0x4D4D4D }, // Dark Gray
-        { 0x999999 }, // Gray
-        { 0x4D99B2 }, // Teal
-        { 0xB266E6 }, // Purple
-        { 0x3366CC }, // Deep Blue
-        { 0x805D4D }, // Brown
-        { 0x668033 }, // Olive Green
-        { 0xCC4D4D }, // Red
-        { 0x1A1A1A }  // Black
-    };
-
-    public static float[] hexToRGB(int hex) {
-        float r = ((hex >> 16) & 0xFF) / 255.0F;
-        float g = ((hex >> 8) & 0xFF) / 255.0F;
-        float b = (hex & 0xFF) / 255.0F;
-        return new float[]{r, g, b};
-    }
-
+//    public static float colorTable[][] = {
+//        {
+//            1.0F, 1.0F, 1.0F
+//        }, {
+//            0.95F, 0.7F, 0.2F
+//        }, {
+//            0.9F, 0.5F, 0.85F
+//        }, {
+//            0.6F, 0.7F, 0.95F
+//        }, {
+//            0.9F, 0.9F, 0.2F
+//        }, {
+//            0.5F, 0.8F, 0.1F
+//        }, {
+//            0.95F, 0.7F, 0.8F
+//        }, {
+//            0.3F, 0.3F, 0.3F
+//        }, {
+//            0.6F, 0.6F, 0.6F
+//        }, {
+//            0.3F, 0.6F, 0.7F
+//        }, {
+//            0.7F, 0.4F, 0.9F
+//        }, {
+//            0.2F, 0.4F, 0.8F
+//        }, {
+//            0.5F, 0.4F, 0.3F
+//        }, {
+//            0.4F, 0.5F, 0.2F
+//        }, {
+//            0.8F, 0.3F, 0.3F
+//        }, {
+//            0.1F, 0.1F, 0.1F
+//        }
+//    };
 
     @Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,

@@ -25,6 +25,8 @@ import noppes.npcs.blocks.tiles.TileTallLamp;
 
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.colorTableInts;
+
 public class BlockTallLamp extends BlockContainer {
 
 	public int renderId = -1;
@@ -43,7 +45,7 @@ public class BlockTallLamp extends BlockContainer {
     	if(meta >= 7)
     		j--;
     	TileColorable tile = (TileColorable) par1World.getTileEntity(i, j, k);
-    	int color = BlockColored.func_150031_c(item.getItemDamage());
+        int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];
     	if(tile.color != color){
     		NoppesUtilServer.consumeItemStack(1, player);
 			tile.color = color;
@@ -88,7 +90,7 @@ public class BlockTallLamp extends BlockContainer {
 
 	        TileColorable tile = (TileColorable) par1World.getTileEntity(par2, par3, par4);
 	    	tile.rotation = l;
-	    	tile.color = 15 - par6ItemStack.getItemDamage();
+	    	tile.color = colorTableInts[15 - par6ItemStack.getItemDamage()];
 
 	        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
 	        par1World.setBlock(par2, par3 + 1, par4, this, par6ItemStack.getItemDamage() + 7, 2);

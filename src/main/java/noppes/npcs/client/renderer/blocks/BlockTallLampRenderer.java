@@ -1,6 +1,7 @@
 package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -55,7 +56,7 @@ public class BlockTallLampRenderer extends BlockRendererInterface{
             modelLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(resourceTop);
-            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[tile.color]);
             GL11.glColor3f(color[0], color[1], color[2]);
             topLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
@@ -73,7 +74,7 @@ public class BlockTallLampRenderer extends BlockRendererInterface{
             model.Light.render(0.0625F);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)brightX, (float)brightY);
 
-            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[tile.color]);
             GL11.glColor3f(color[0], color[1], color[2]);
             model.Shade.render(0.0625F);
         }
@@ -96,14 +97,14 @@ public class BlockTallLampRenderer extends BlockRendererInterface{
             modelLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(resourceTop);
-            float[] color = BlockBannerRenderer.colorTable[15 - metadata];
+            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
             GL11.glColor3f(color[0], color[1], color[2]);
             topLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
             setLampTexture(metadata);
             model.Lamp.render(0.0625F);
             model.Light.render(0.0625F);
-            float[] color = BlockBannerRenderer.colorTable[15 - metadata];
+            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
             GL11.glColor3f(color[0], color[1], color[2]);
             model.Shade.render(0.0625F);
         }

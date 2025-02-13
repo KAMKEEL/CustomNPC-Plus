@@ -13,7 +13,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 public abstract class BlockRotated extends BlockContainer {
 	private Block block;
@@ -29,7 +29,7 @@ public abstract class BlockRotated extends BlockContainer {
         int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * maxRotation() / 360.0F) + 0.5D) & (maxRotation() - 1);
         l %= maxRotation();
 
-    	TileColorable tile = (TileColorable) par1World.getTileEntity(par2, par3, par4);
+    	TileVariant tile = (TileVariant) par1World.getTileEntity(par2, par3, par4);
     	tile.rotation = l;
     }
 

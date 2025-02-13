@@ -22,7 +22,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileTombstone;
 import noppes.npcs.constants.EnumGuiType;
 
@@ -79,11 +79,11 @@ public class BlockTombstone extends BlockContainer{
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
     	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileColorable)){
+    	if(!(tileentity instanceof TileVariant)){
     		super.setBlockBoundsBasedOnState(world, x, y, z);
     		return;
     	}
-    	TileColorable tile = (TileColorable) tileentity;
+    	TileVariant tile = (TileVariant) tileentity;
     	if(tile.rotation % 2 == 0)
             setBlockBounds(0, 0, 0.3f, 1, 1, 0.7f);
     	else

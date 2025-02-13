@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockChair;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.chair.ModelChair;
 import noppes.npcs.client.model.blocks.chair.ModelChairSpoof;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyChair;
@@ -38,7 +38,7 @@ public class BlockChairRenderer extends BlockRendererInterface{
 	@Override
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
-		TileColorable tile = (TileColorable) var1;
+		TileVariant tile = (TileVariant) var1;
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();

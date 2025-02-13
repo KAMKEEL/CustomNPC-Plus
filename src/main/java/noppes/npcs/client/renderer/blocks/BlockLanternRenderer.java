@@ -55,19 +55,19 @@ public class BlockLanternRenderer extends TileEntitySpecialRenderer implements I
         if(ConfigClient.LegacyLantern){
             GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
             Minecraft.getMinecraft().getTextureManager().bindTexture(legacyTexture);
-            if(tile.color == 0)
+            if(tile.variant == 0)
                 modelLegacyLantern.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else if(tile.color == 1)
+            else if(tile.variant == 1)
                 modelLegacyCeiling.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else
                 modelLegacyWall.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
-            if(tile.color == 0){
+            if(tile.variant == 0){
                 GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
                 modelLantern.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             }
-            else if(tile.color == 1){
+            else if(tile.variant == 1){
                 GL11.glRotatef(90, 0, 1, 0);
                 modelLanternCeiling.Chain.render(0.0625F);
                 GL11.glRotatef(45 * tile.rotation, 0, 1, 0);

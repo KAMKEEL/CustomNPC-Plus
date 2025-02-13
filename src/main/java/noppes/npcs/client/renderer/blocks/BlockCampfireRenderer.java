@@ -6,10 +6,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockRotated;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.ModelCampfire;
 import noppes.npcs.client.model.blocks.campfire.ModelCampfireCoals;
 import noppes.npcs.client.model.blocks.campfire.ModelCampfireFlame;
@@ -41,7 +40,7 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
 	@Override
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
-		TileColorable tile = (TileColorable) var1;
+		TileVariant tile = (TileVariant) var1;
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);

@@ -1,6 +1,7 @@
 package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.ModelBase;
@@ -82,7 +83,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
                 modelLegacyCouchMiddle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(BlockTallLampRenderer.resourceTop);
-            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            float[] color =  ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
 
             if(tile.hasCornerLeft || tile.hasCornerRight)
@@ -116,7 +117,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             }
 
             Minecraft.getMinecraft().getTextureManager().bindTexture(wool);
-            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            float[] color =  ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
 
             if(tile.hasCornerLeft)
@@ -152,7 +153,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
         modelLegacyCouchMiddle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
         this.bindTexture(BlockTallLampRenderer.resourceTop);
-        float[] color = BlockBannerRenderer.colorTable[15 - metadata];
+        float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
         GL11.glColor3f(color[0], color[1], color[2]);
         modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 		GL11.glPopMatrix();

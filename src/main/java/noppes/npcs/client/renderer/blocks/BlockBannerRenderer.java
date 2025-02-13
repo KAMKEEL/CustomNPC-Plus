@@ -1,6 +1,7 @@
 package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -70,7 +71,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
             legacyBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(legacyFlagResource);
-            float[] color = colorTable[tile.color];
+            float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
             legacyFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
@@ -92,7 +93,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
             banner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             setFlagType(tile.bannerTrim);
-            float[] color = colorTable[tile.color];
+            float[] color =  ColorUtil.hexToRGB(tile.color);
             GL11.glPushMatrix();
             GL11.glColor3f(color[0], color[1], color[2]);
             flag.render(null, 0, 0, 0, f3, 0.0F, 0.0625F);
@@ -195,7 +196,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
             legacyBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(legacyFlagResource);
-            float[] color = colorTable[15 - metadata];
+            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
             GL11.glColor3f(color[0], color[1], color[2]);
             legacyFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
@@ -204,7 +205,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
             banner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(normalFlag);
-            float[] color = colorTable[15 - metadata];
+            float[] color = ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
             GL11.glColor3f(color[0], color[1], color[2]);
             flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }

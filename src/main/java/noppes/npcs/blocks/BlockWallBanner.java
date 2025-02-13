@@ -24,14 +24,16 @@ import noppes.npcs.blocks.tiles.TileWallBanner;
 
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.colorTableInts;
+
 public class BlockWallBanner extends BlockContainer{
-	
+
 	public int renderId = -1;
 
 	public BlockWallBanner() {
         super(Material.rock);
 	}
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	ItemStack item = player.inventory.getCurrentItem();
     	if(item == null)
@@ -41,8 +43,8 @@ public class BlockWallBanner extends BlockContainer{
     		return true;
     	else if(item.getItem() != Items.dye)
     		return false;
-    	
-    	int color = BlockColored.func_150031_c(item.getItemDamage());
+
+        int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];
     	if(tile.color != color){
     		NoppesUtilServer.consumeItemStack(1, player);
 			tile.color = color;
@@ -51,28 +53,28 @@ public class BlockWallBanner extends BlockContainer{
     	return true;
     }
 
-    @Override   
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack)
     {
         int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
         l %= 4;
     	TileWallBanner tile = (TileWallBanner) par1World.getTileEntity(par2, par3, par4);
-    	tile.rotation = l;
-    	tile.color = 15 - par6ItemStack.getItemDamage();
+        tile.rotation = l;
+        tile.color = colorTableInts[15 - par6ItemStack.getItemDamage()];
     	tile.time = System.currentTimeMillis();
-        
+
         par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
 
     	if(par5EntityLivingBase instanceof EntityPlayer && par1World.isRemote)
     		((EntityPlayer)par5EntityLivingBase).addChatComponentMessage(new ChatComponentTranslation("availability.editIcon"));
     }
-    
+
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World p_149668_1_, int p_149668_2_, int p_149668_3_, int p_149668_4_)
     {
     	return null;
     }
 
-    @Override   
+    @Override
     public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
@@ -82,31 +84,31 @@ public class BlockWallBanner extends BlockContainer{
     }
 
 
-    @Override   
+    @Override
     public int damageDropped(int par1)
     {
         return par1;
     }
 
-    @Override   
+    @Override
 	public boolean isOpaqueCube(){
 		return false;
 	}
 
-    @Override   
+    @Override
 	public boolean renderAsNormalBlock(){
 		return false;
 	}
-    @Override   
+    @Override
 	public int getRenderType(){
-		return renderId; 	
+		return renderId;
 	}
 
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister par1IconRegister)
     {
-    	
+
     }
     @Override
     @SideOnly(Side.CLIENT)

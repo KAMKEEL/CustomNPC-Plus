@@ -13,7 +13,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.blocks.tiles.TileWeaponRack;
 
@@ -24,7 +24,7 @@ public class BlockWeaponRack extends BlockTrigger{
 	public BlockWeaponRack() {
         super(Blocks.planks);
 	}
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int side, float hitX, float hitY, float hitZ){
     	if(par1World.isRemote)
     		return true;
@@ -39,7 +39,7 @@ public class BlockWeaponRack extends BlockTrigger{
     		hit = 1 - hitZ;
     	if(tile.rotation == 1)
     		hit = hitZ;
-    	
+
     	int selected = 2 - (int) (hit / 0.34);
     	ItemStack item = player.getCurrentEquippedItem();
     	ItemStack weapon = tile.getStackInSlot(selected);
@@ -59,7 +59,7 @@ public class BlockWeaponRack extends BlockTrigger{
     	}
     	return true;
     }
-    @Override   
+    @Override
     public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
@@ -69,13 +69,13 @@ public class BlockWeaponRack extends BlockTrigger{
         par3List.add(new ItemStack(par1, 1, 5));
     }
 
-    @Override   
+    @Override
     public int damageDropped(int par1){
         return par1 % 7;
     }
 
 
-    @Override   
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
     	if(!par1World.isAirBlock(par2, par3 + 1, par4)){
     		par1World.setBlockToAir(par2, par3, par4);
@@ -83,31 +83,31 @@ public class BlockWeaponRack extends BlockTrigger{
     	else{
 	    	int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
 	        l %= 4;
-	
-	    	TileColorable tile = (TileColorable) par1World.getTileEntity(par2, par3, par4);
+
+	    	TileVariant tile = (TileVariant) par1World.getTileEntity(par2, par3, par4);
 	    	tile.rotation = l;
-	    	
+
 	        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
 	        par1World.setBlock(par2, par3 + 1, par4, this, par6ItemStack.getItemDamage() + 7, 2);
     	}
-    	
+
     }
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z){
     	setBlockBoundsBasedOnState(world, x, y, z);
     	return super.getCollisionBoundingBoxFromPool(world, x, y, z);
     }
 
-    @Override 
+    @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
         int meta = world.getBlockMetadata(x, y, z);
     	if(meta >= 7)
     		y--;
     	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileColorable)){
+    	if(!(tileentity instanceof TileVariant)){
     		super.setBlockBoundsBasedOnState(world, x, y, z);
     		return;
     	}
-    	TileColorable tile = (TileColorable) tileentity;
+    	TileVariant tile = (TileVariant) tileentity;
     	float xStart = 0;
     	float zStart = 0;
     	float xEnd = 1;
@@ -139,7 +139,7 @@ public class BlockWeaponRack extends BlockTrigger{
     {
         if (p_149681_5_ >= 7 && p_149681_1_.getBlock(p_149681_2_, p_149681_3_ - 1, p_149681_4_) == this)
             p_149681_1_.setBlockToAir(p_149681_2_, p_149681_3_ - 1, p_149681_4_);
-        
+
         else if (p_149681_5_ < 7 && p_149681_1_.getBlock(p_149681_2_, p_149681_3_ + 1, p_149681_4_) == this)
             p_149681_1_.setBlockToAir(p_149681_2_, p_149681_3_ + 1, p_149681_4_);
     }

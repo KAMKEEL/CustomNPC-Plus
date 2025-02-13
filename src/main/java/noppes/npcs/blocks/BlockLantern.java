@@ -10,7 +10,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileLamp;
 
 public class BlockLantern extends BlockLightable{
@@ -28,12 +28,12 @@ public class BlockLantern extends BlockLightable{
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
     	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileColorable)){
+    	if(!(tileentity instanceof TileVariant)){
     		super.setBlockBoundsBasedOnState(world, x, y, z);
     		return;
     	}
-    	TileColorable tile = (TileColorable) tileentity;
-    	if(tile.color == 2){
+    	TileVariant tile = (TileVariant) tileentity;
+    	if(tile.variant == 2){
     		float xOffset = 0;
     		float yOffset = 0;
     		if(tile.rotation == 0)
@@ -61,11 +61,11 @@ public class BlockLantern extends BlockLightable{
     public void onPostBlockPlaced(World world, int x, int y, int z, int meta) {
     	TileLamp tile = (TileLamp) world.getTileEntity(x, y, z);
     	if(meta == 1)
-    		tile.color = 0;
+    		tile.variant = 0;
     	else if(meta == 0)
-    		tile.color = 1;
+    		tile.variant = 1;
     	else{
-    		tile.color = 2;
+    		tile.variant = 2;
     		if(meta == 2)
     			tile.rotation = 0;
     		else if(meta == 3)

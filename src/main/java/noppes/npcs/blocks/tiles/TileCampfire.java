@@ -2,13 +2,12 @@ package noppes.npcs.blocks.tiles;
 
 
 import net.minecraft.block.Block;
-import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 
 import java.util.Random;
 
-public class TileCampfire extends TileColorable {
+public class TileCampfire extends TileVariant {
 
     public static final Random RAND = new Random();
     private boolean rainAndSky = false;

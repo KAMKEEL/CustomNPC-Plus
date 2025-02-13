@@ -12,7 +12,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileBanner;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileSign;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class BlockSign extends BlockRotated{
         super(Blocks.planks);
 	}
 
-    @Override   
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack)
     {
         int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
@@ -36,13 +36,13 @@ public class BlockSign extends BlockRotated{
     		((EntityPlayer)par5EntityLivingBase).addChatComponentMessage(new ChatComponentTranslation("availability.editIcon"));
     }
 
-    @Override   
+    @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ){
     	TileBanner tile = (TileBanner) world.getTileEntity(x, y, z);
     	return tile.canEdit();
     }
-    
-    @Override   
+
+    @Override
     public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
@@ -51,22 +51,22 @@ public class BlockSign extends BlockRotated{
         par3List.add(new ItemStack(par1, 1, 4));
         par3List.add(new ItemStack(par1, 1, 5));
     }
-    
-    @Override 
+
+    @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
     	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileColorable)){
+    	if(!(tileentity instanceof TileVariant)){
     		super.setBlockBoundsBasedOnState(world, x, y, z);
     		return;
     	}
-    	TileColorable tile = (TileColorable) tileentity;
+    	TileVariant tile = (TileVariant) tileentity;
     	if(tile.rotation % 2 == 1)
             setBlockBounds(0, 0.3f, 0.3f, 1, 1, 0.7f);
-    	else 
+    	else
             setBlockBounds(0.3f, 0.3f, 0, 0.7f, 1, 1);
     }
 
-    @Override   
+    @Override
     public int damageDropped(int par1){
         return par1;
     }

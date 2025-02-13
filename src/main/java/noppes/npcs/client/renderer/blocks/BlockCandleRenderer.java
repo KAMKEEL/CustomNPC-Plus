@@ -19,7 +19,6 @@ import noppes.npcs.client.model.blocks.legacy.ModelLegacyCandle;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyCandleCeiling;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyCandleWall;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.config.legacy.LegacyConfig;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -57,9 +56,9 @@ public class BlockCandleRenderer extends TileEntitySpecialRenderer implements IS
             GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
             GL11.glColor3f(1, 1, 1);
             Minecraft.getMinecraft().getTextureManager().bindTexture(legacy);
-            if(tile.color == 0)
+            if(tile.variant == 0)
                 legacyCandle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else if(tile.color == 1)
+            else if(tile.variant == 1)
                 legacyCandleCeiling.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else{
                 GL11.glRotatef(180, 0, 1, 0);
@@ -67,12 +66,12 @@ public class BlockCandleRenderer extends TileEntitySpecialRenderer implements IS
             }
         } else {
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
-            if(tile.color == 0){
+            if(tile.variant == 0){
                 GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
                 GL11.glColor3f(1, 1, 1);
                 candle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             }
-            else if(tile.color == 1){
+            else if(tile.variant == 1){
                 GL11.glPushMatrix();
                 GL11.glColor3f(1, 1, 1);
                 GL11.glRotatef( 90, 0, 1, 0);

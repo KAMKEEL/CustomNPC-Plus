@@ -25,6 +25,8 @@ import noppes.npcs.blocks.tiles.TileShortLamp;
 
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.colorTableInts;
+
 public class BlockShortLamp extends BlockContainer {
 
     public int renderId = -1;
@@ -42,7 +44,7 @@ public class BlockShortLamp extends BlockContainer {
             return false;
         int meta = world.getBlockMetadata(x, y, z);
         TileColorable tile = (TileColorable) world.getTileEntity(x, y, z);
-        int color = BlockColored.func_150031_c(item.getItemDamage());
+        int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];
         if (tile.color != color) {
             NoppesUtilServer.consumeItemStack(1, player);
             tile.color = color;
@@ -78,7 +80,7 @@ public class BlockShortLamp extends BlockContainer {
         l %= 4;
         TileColorable tile = (TileColorable) world.getTileEntity(x, y, z);
         tile.rotation = l;
-        tile.color = 15 - stack.getItemDamage();
+        tile.color = colorTableInts[BlockColored.func_150031_c(15 - stack.getItemDamage())];
         world.setBlockMetadataWithNotify(x, y, z, stack.getItemDamage(), 2);
     }
 
