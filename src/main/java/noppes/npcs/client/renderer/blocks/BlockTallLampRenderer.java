@@ -56,7 +56,7 @@ public class BlockTallLampRenderer extends BlockRendererInterface{
             modelLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(resourceTop);
-            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[tile.color]);
+            float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
             topLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
@@ -74,7 +74,7 @@ public class BlockTallLampRenderer extends BlockRendererInterface{
             model.Light.render(0.0625F);
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)brightX, (float)brightY);
 
-            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[tile.color]);
+            float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
             model.Shade.render(0.0625F);
         }

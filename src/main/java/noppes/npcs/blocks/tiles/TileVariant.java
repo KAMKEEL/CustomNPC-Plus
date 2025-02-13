@@ -70,12 +70,10 @@ public class TileVariant extends TileEntity {
                     compound.setInteger("BrushColor", ColorUtil.colorTableInts[bannerColor]);
                 }
                 compound.setInteger("CNPCVariant", bannerColor);
-                compound.removeTag("BannerColor");
                 fixMade = true;
             }
             if(compound.hasKey("BannerRotation")){
                 compound.setInteger("CNPCRotation", compound.getInteger("BannerRotation"));
-                compound.removeTag("BannerRotation");
                 fixMade = true;
             }
         }
