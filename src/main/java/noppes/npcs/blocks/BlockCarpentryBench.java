@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.blocks.tiles.TileBlockAnvil;
@@ -26,8 +27,23 @@ public class BlockCarpentryBench extends BlockContainer
 	public int renderId = -1;
     public BlockCarpentryBench()
     {
-        super(Material.wood);
-        setStepSound(soundTypeWood);
+        super(Material.rock);
+        setStepSound(soundTypePiston);
+    }
+
+    @Override
+    public int getLightValue(IBlockAccess world, int x, int y, int z)
+    {
+        Block block = world.getBlock(x, y, z);
+        int meta = world.getBlockMetadata(x, y, z);
+        if (block != this)
+        {
+            return block.getLightValue(world, x, y, z);
+        }
+        if(meta >= 4)
+            return 5;
+
+        return getLightValue();
     }
 
     @Override

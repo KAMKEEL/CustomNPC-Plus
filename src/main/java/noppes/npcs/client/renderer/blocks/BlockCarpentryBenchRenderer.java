@@ -54,8 +54,22 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
             } else {
                 GL11.glEnable(GL11.GL_ALPHA_TEST);
                 this.bindTexture(anvilTexture);
+
+                // Get current brightness at the tile entity's location
+                int light = var1.getWorldObj().getLightBrightnessForSkyBlocks(var1.xCoord, var1.yCoord, var1.zCoord, 0);
+                int brightX = light % 65536;
+                int brightY = light / 65536;
+
+                // Set full brightness for the lava
+                int fullBright = 0xF000F0;
+                int fullBrightX = fullBright % 65536;
+                int fullBrightY = fullBright / 65536;
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)fullBrightX, (float)fullBrightY);
+
                 // Render the lava part glowing
                 anvil.Lava.render(0.0625F);
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)brightX, (float)brightY);
+
                 // Now render the rest (the anvil) normally
                 anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);
