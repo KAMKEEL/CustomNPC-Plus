@@ -46,8 +46,7 @@ public class PlayerEffectData {
                     effect.duration = duration;
                     effect.level = level;
                 } else {
-                    effect = new PlayerEffect(id, duration, level);
-                    effect.index = index;
+                    effect = new PlayerEffect(id, duration, level, index);
                     effects.put(key, effect);
                 }
             }

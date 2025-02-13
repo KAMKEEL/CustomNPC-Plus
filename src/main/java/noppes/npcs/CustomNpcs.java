@@ -210,6 +210,9 @@ public class CustomNpcs {
         new LinkedNpcController();
         new AnimationController();
 
+        // Custom Effects
+        CustomEffectController.getInstance().load();
+
         // Profile Controller
         new ProfileController();
         ProfileController.registerProfileType(new CNPCData());

@@ -3,6 +3,7 @@ package noppes.npcs.client.renderer.blocks;
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.tileentity.TileEntity;
@@ -10,7 +11,9 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCarpentryBench;
+import noppes.npcs.blocks.tiles.TileBlockAnvil;
 import noppes.npcs.client.model.blocks.ModelAnvil;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyAnvil;
 import noppes.npcs.client.model.blocks.ModelCarpentryBench;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyCarpentryBench;
 import noppes.npcs.config.ConfigClient;
@@ -21,12 +24,14 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 	private final ModelCarpentryBench modelCarpentryBench = new ModelCarpentryBench();
     private static final ResourceLocation carpentryBenchTexture = new ResourceLocation("customnpcs","textures/models/CarpentryBench.png");
 
-	private final ModelAnvil anvil = new ModelAnvil();
+    private static final ResourceLocation legacyAnvilTexture = new ResourceLocation("customnpcs","textures/models/legacy/Steel.png");
+    private static final ResourceLocation anvilTexture = new ResourceLocation("customnpcs","textures/models/anvil.png");
 
-    private static final ResourceLocation anvilTexture = new ResourceLocation("customnpcs","textures/models/Steel.png");
 
     private final ModelLegacyCarpentryBench legacyBench = new ModelLegacyCarpentryBench();
     private static final ResourceLocation legacyCarpentryBench = new ResourceLocation("customnpcs","textures/models/legacy/bench.png");
+    private final ModelLegacyAnvil legacyAnvil = new ModelLegacyAnvil();
+    private final ModelAnvil anvil = new ModelAnvil();
 
     public BlockCarpentryBenchRenderer(){
 		((BlockCarpentryBench)CustomItems.carpentyBench).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -42,9 +47,34 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
         GL11.glScalef(0.95f, 0.95f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * (meta % 4), 0, 1, 0);
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         if(meta >= 4){
-            this.bindTexture(anvilTexture);
-        	anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            if(ConfigClient.LegacyAnvil){
+                this.bindTexture(legacyAnvilTexture);
+                legacyAnvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            } else {
+                GL11.glEnable(GL11.GL_ALPHA_TEST);
+                this.bindTexture(anvilTexture);
+
+                // Get current brightness at the tile entity's location
+                int light = var1.getWorldObj().getLightBrightnessForSkyBlocks(var1.xCoord, var1.yCoord, var1.zCoord, 0);
+                int brightX = light % 65536;
+                int brightY = light / 65536;
+
+                // Set full brightness for the lava
+                int fullBright = 0xF000F0;
+                int fullBrightX = fullBright % 65536;
+                int fullBrightY = fullBright / 65536;
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)fullBrightX, (float)fullBrightY);
+
+                // Render the lava part glowing
+                anvil.Lava.render(0.0625F);
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)brightX, (float)brightY);
+
+                // Now render the rest (the anvil) normally
+                anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+                GL11.glDisable(GL11.GL_ALPHA_TEST);
+            }
         }
         else {
 
@@ -58,6 +88,7 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
             }
             GL11.glDisable(GL11.GL_ALPHA_TEST);
         }
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 
@@ -81,8 +112,14 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
             }
         }
         else{
-            this.bindTexture(anvilTexture);
-            anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            if(ConfigClient.LegacyAnvil){
+                this.bindTexture(legacyAnvilTexture);
+                legacyAnvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            } else {
+                this.bindTexture(anvilTexture);
+                anvil.Lava.render(0.0625F);
+                anvil.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
         }
 
 		GL11.glPopMatrix();

@@ -1,10 +1,10 @@
-package noppes.npcs.client.model.blocks;
+package noppes.npcs.client.model.blocks.legacy;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelCandleWall extends ModelBase {
+public class ModelLegacyCandleWall extends ModelBase {
 	ModelRenderer Base;
 	ModelRenderer Bar1;
 	ModelRenderer Bar2;
@@ -16,45 +16,45 @@ public class ModelCandleWall extends ModelBase {
 	ModelRenderer Bar5;
 	ModelRenderer Bar6;
 
-	public ModelCandleWall() {
+	public ModelLegacyCandleWall() {
 		Base = new ModelRenderer(this, 0, 0);
 		Base.addBox(0F, 0F, 0F, 4, 1, 4);
 		Base.setRotationPoint(-2F, 13F, -4F);
-		
+
 		Bar1 = new ModelRenderer(this, 0, 0);
 		Bar1.addBox(0F, 0F, 0F, 1, 1, 6);
 		Bar1.setRotationPoint(-3F, 12F, -5F);
-		
+
 		Bar2 = new ModelRenderer(this, 0, 0);
 		Bar2.addBox(0F, 0F, 0F, 1, 1, 6);
 		Bar2.setRotationPoint(2F, 12F, -5F);
-		
+
 		Bar3 = new ModelRenderer(this, 0, 0);
 		Bar3.addBox(0F, 0F, 0F, 4, 1, 1);
 		Bar3.setRotationPoint(-2F, 12F, -5F);
-		
+
 		Bar4 = new ModelRenderer(this, 0, 0);
 		Bar4.addBox(0F, 0F, 0F, 4, 1, 1);
 		Bar4.setRotationPoint(-2F, 12F, 0F);
-		
+
 		Wax = new ModelRenderer(this, 16, 0);
 		Wax.addBox(0F, 0F, 0F, 2, 4, 2);
 		Wax.setRotationPoint(-1F, 9F, -3F);
-		
+
 		Wall2 = new ModelRenderer(this, 0, 0);
 		Wall2.addBox(0F, 0F, 0F, 3, 3, 1);
 		Wall2.setRotationPoint(0F, 13.7F, -7.5F);
 		setRotation(Wall2, 0F, 0F, 0.7853982F);
-		
+
 		Wall1 = new ModelRenderer(this, 0, 0);
 		Wall1.addBox(0F, 0F, 0F, 4, 4, 1);
 		Wall1.setRotationPoint(0F, 13F, -8F);
 		setRotation(Wall1, 0F, 0F, 0.7853982F);
-		
+
 		Bar5 = new ModelRenderer(this, 0, 0);
 		Bar5.addBox(0F, 0F, 0F, 1, 2, 1);
 		Bar5.setRotationPoint(-0.5F, 13.5F, -2.5F);
-		
+
 		Bar6 = new ModelRenderer(this, 0, 0);
 		Bar6.addBox(0F, 0F, 0F, 1, 1, 5);
 		Bar6.setRotationPoint(-0.5F, 15.5F, -6.5F);

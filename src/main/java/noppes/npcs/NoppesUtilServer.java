@@ -658,7 +658,7 @@ public class NoppesUtilServer {
 
     public static void sendCustomEffectDataAll(EntityPlayerMP player) {
         Map<String, Integer> map = new HashMap<String, Integer>();
-        for (CustomEffect effect : CustomEffectController.getInstance().customEffects.values()) {
+        for (CustomEffect effect : CustomEffectController.getInstance().getCustomEffects().values()) {
             map.put(effect.name, effect.id);
         }
         ScrollDataPacket.sendScrollData(player, map);

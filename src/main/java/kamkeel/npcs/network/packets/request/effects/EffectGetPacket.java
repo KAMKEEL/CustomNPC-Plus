@@ -13,6 +13,7 @@ import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public final class EffectGetPacket extends AbstractPacket {
     public static final String packetName = "NPC|GetEffect";
@@ -48,7 +49,6 @@ public final class EffectGetPacket extends AbstractPacket {
             CustomEffect Effect = (CustomEffect) CustomEffectController.getInstance().get(effectID);
             if (Effect != null) {
                 compound = Effect.writeToNBT(false);
-                compound.setString("Type", "ViewEffect");
             }
         }
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
