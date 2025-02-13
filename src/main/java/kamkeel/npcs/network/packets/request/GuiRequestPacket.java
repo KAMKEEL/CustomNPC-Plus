@@ -53,7 +53,7 @@ public final class GuiRequestPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.CLONER, EnumItemPacketType.BRUSH))
             return;
         int index = in.readInt();
         int x = in.readInt();

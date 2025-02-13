@@ -39,7 +39,7 @@ public class BlockTallLamp extends BlockContainer {
     @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	ItemStack item = player.inventory.getCurrentItem();
-    	if(item == null || item.getItem() != Items.dye)
+        if(TileColorable.doNotAllowModification(item))
     		return false;
     	int meta = par1World.getBlockMetadata(i, j, k);
     	if(meta >= 7)

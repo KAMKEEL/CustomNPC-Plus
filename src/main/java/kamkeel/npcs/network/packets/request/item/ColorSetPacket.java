@@ -9,15 +9,15 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.controllers.LinkedNpcController;
 
 import java.io.IOException;
+
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
 public final class ColorSetPacket extends AbstractPacket {
     public static String packetName = "Request|ColorSet";
@@ -68,7 +68,7 @@ public final class ColorSetPacket extends AbstractPacket {
         if(brushCompound == null)
             brushCompound = new NBTTagCompound();
 
-        brushCompound.setInteger("Color", color);
+        brushCompound.setInteger(BRUSH_COLOR_TAG, color);
         brush.setTagCompound(brushCompound);
     }
 }

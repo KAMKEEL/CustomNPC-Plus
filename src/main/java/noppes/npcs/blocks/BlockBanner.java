@@ -21,6 +21,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBanner;
+import noppes.npcs.blocks.tiles.TileColorable;
 
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class BlockBanner extends BlockContainer{
     	TileBanner tile = (TileBanner) par1World.getTileEntity(i, j, k);
     	if(tile.canEdit())
     		return true;
-    	else if(item.getItem() != Items.dye)
+    	else if(TileColorable.doNotAllowModification(item))
     		return false;
 
         int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];

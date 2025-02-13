@@ -10,12 +10,15 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.items.ItemNpcTool;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
 public class GuiNpcPaintbrush extends GuiNPCInterface {
 
@@ -33,9 +36,7 @@ public class GuiNpcPaintbrush extends GuiNPCInterface {
         if(brush == null)
             return;
 
-        NBTTagCompound compound = brush.getTagCompound();
-        if(compound != null && compound.hasKey("Color"))
-            color = compound.getInteger("Color");
+        color = ItemNpcTool.getColor(brush.getTagCompound());
     }
 
     @Override

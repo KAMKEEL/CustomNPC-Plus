@@ -20,6 +20,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileWallBanner;
 
 import java.util.List;
@@ -41,7 +42,7 @@ public class BlockWallBanner extends BlockContainer{
     	TileWallBanner tile = (TileWallBanner) par1World.getTileEntity(i, j, k);
     	if(tile.canEdit())
     		return true;
-    	else if(item.getItem() != Items.dye)
+    	else if(TileColorable.doNotAllowModification(item))
     		return false;
 
         int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];

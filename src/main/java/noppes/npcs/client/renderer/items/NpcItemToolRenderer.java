@@ -14,6 +14,8 @@ import noppes.npcs.items.ItemRenderInterface;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
+
 public class NpcItemToolRenderer implements IItemRenderer {
 
     // Textures for the assembled paintbrush parts:
@@ -53,7 +55,7 @@ public class NpcItemToolRenderer implements IItemRenderer {
 
     /**
      * Renders the paintbrush by drawing its handle first, then overlaying the brush part tinted
-     * by the NBT "Color" value (an integer/hex value).
+     * by the NBT "BrushColor" value (an integer/hex value).
      */
     private void renderPaintbrush(EntityLivingBase entity, ItemStack item) {
         Minecraft mc = Minecraft.getMinecraft();
@@ -71,10 +73,7 @@ public class NpcItemToolRenderer implements IItemRenderer {
         ItemRenderer.renderItemIn2D(tessellator, 1.0F, 0.0F, 0.0F, 1.0F, width, height, thickness);
 
         // Get the NBT color (default is white if not present)
-        int color = 0xFFFFFF;
-        if (item.hasTagCompound() && item.getTagCompound().hasKey("Color")) {
-            color = item.getTagCompound().getInteger("Color");
-        }
+        int color = ItemNpcTool.getColor(item.getTagCompound());
         float red = ((color >> 16) & 0xFF) / 255.0F;
         float green = ((color >> 8) & 0xFF) / 255.0F;
         float blue = (color & 0xFF) / 255.0F;
