@@ -26,13 +26,13 @@ import noppes.npcs.blocks.tiles.TileCouchWool;
 import java.util.List;
 
 public class BlockCouchWool extends BlockContainer{
-	
+
 	public int renderId = -1;
-	
+
     public BlockCouchWool() {
         super(Material.wood);
 	}
-    @Override    
+    @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	ItemStack item = player.inventory.getCurrentItem();
     	if(item == null || item.getItem() != Items.dye)
@@ -49,8 +49,8 @@ public class BlockCouchWool extends BlockContainer{
     	}
     	return true;
     }
-    
-    @Override   
+
+    @Override
     public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
@@ -60,7 +60,7 @@ public class BlockCouchWool extends BlockContainer{
         par3List.add(new ItemStack(par1, 1, 5));
     }
 
-    @Override   
+    @Override
     public int damageDropped(int par1)
     {
         return par1;
@@ -69,7 +69,7 @@ public class BlockCouchWool extends BlockContainer{
         return AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 0.5, z + 1);
     }
 
-    @Override   
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack)
     {
         int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
@@ -77,7 +77,7 @@ public class BlockCouchWool extends BlockContainer{
         TileCouchWool tile = (TileCouchWool) par1World.getTileEntity(par2, par3, par4);
     	tile.rotation = l;
     	tile.color = 15 - par6ItemStack.getItemDamage();
-        
+
         par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
     	updateModel(par1World, par2, par3, par4, tile);
         onNeighborBlockChange(par1World, par2 + 1, par3, par4, this);
@@ -88,7 +88,7 @@ public class BlockCouchWool extends BlockContainer{
         par1World.markBlockForUpdate(par2, par3, par4);
     }
 
-    @Override  
+    @Override
     public void onNeighborBlockChange(World worldObj, int x, int y, int z, Block block) {
     	if(worldObj.isRemote || block != this)
     		return;
@@ -98,7 +98,7 @@ public class BlockCouchWool extends BlockContainer{
     	updateModel(worldObj, x, y, z, (TileCouchWool) tile);
     	worldObj.markBlockForUpdate(x, y, z);
     }
-    
+
     private void updateModel(World world, int x, int y, int z, TileCouchWool tile){
     	if(world.isRemote)
     		return;
@@ -130,16 +130,16 @@ public class BlockCouchWool extends BlockContainer{
     }
     private boolean compareCornerTiles(TileCouchWool tile, int x, int y, int z, World world, int meta, boolean isLeft){
     	int meta2 = world.getBlockMetadata(x, y, z);
-    	if(meta2 != meta)
-    		return false;
+//    	if(meta2 != meta)
+//    		return false;
     	TileEntity tile2 = world.getTileEntity(x , y, z);
     	int rotation = (tile.rotation + (!isLeft?1:3)) % 4;
     	return tile2 != null & tile2 instanceof TileCouchWool && ((TileCouchWool)tile2).rotation == rotation;
     }
     private boolean compareTiles(TileCouchWool tile, int x, int y, int z, World world, int meta){
     	int meta2 = world.getBlockMetadata(x, y, z);
-    	if(meta2 != meta)
-    		return false;
+//    	if(meta2 != meta)
+//    		return false;
     	TileEntity tile2 = world.getTileEntity(x, y, z);
     	if(tile2 == null || !(tile2 instanceof TileCouchWool))
     		return false;
@@ -155,25 +155,25 @@ public class BlockCouchWool extends BlockContainer{
     	return tile.rotation == rotation;
     }
 
-    @Override   
+    @Override
 	public boolean isOpaqueCube(){
 		return false;
 	}
 
-    @Override   
+    @Override
 	public boolean renderAsNormalBlock(){
 		return false;
 	}
-    @Override   
+    @Override
 	public int getRenderType(){
-		return renderId; 	
+		return renderId;
 	}
 
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister par1IconRegister)
     {
-    	
+
     }
     @Override
     @SideOnly(Side.CLIENT)

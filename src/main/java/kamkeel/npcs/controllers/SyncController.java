@@ -165,7 +165,7 @@ public class SyncController {
     public static NBTTagCompound customEffectsNBT(){
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for (CustomEffect effect : CustomEffectController.getInstance().customEffects.values()) {
+        for (CustomEffect effect : CustomEffectController.getInstance().getCustomEffects().values()) {
             list.appendTag(effect.writeToNBT(false));
         }
         compound.setTag("Data", list);
@@ -396,15 +396,18 @@ public class SyncController {
             }
             case CUSTOM_EFFECTS: {
                 NBTTagList list = fullCompound.getTagList("Data", 10);
+                CustomEffectController ce = CustomEffectController.getInstance();
+                ce.customEffectsSync.clear();
                 for (int i = 0; i < list.tagCount(); i++) {
                     CustomEffect effect = new CustomEffect();
                     effect.readFromNBT(list.getCompoundTagAt(i));
                     ClientCacheHandler.getImageData(effect.icon);
-                    CustomEffectController.getInstance().customEffectsSync.put(effect.id, effect);
+                    ce.customEffectsSync.put(effect.id, effect);
                 }
 
-                CustomEffectController.getInstance().customEffects = CustomEffectController.getInstance().customEffectsSync;
-                CustomEffectController.getInstance().customEffectsSync = new HashMap<>();
+                ce.getCustomEffects().clear();
+                ce.getCustomEffects().putAll(ce.customEffectsSync);
+                ce.customEffectsSync.clear();
                 break;
             }
         }
@@ -485,7 +488,7 @@ public class SyncController {
                 effect.readFromNBT(compound);
                 ClientCacheHandler.getImageData(effect.icon);
 
-                CustomEffectController.Instance.customEffects.put(effect.id, effect);
+                CustomEffectController.Instance.getCustomEffects().put(effect.id, effect);
                 break;
             }
         }
@@ -558,7 +561,7 @@ public class SyncController {
             case MAGIC:
                 break;
             case CUSTOM_EFFECTS:
-                CustomEffectController.Instance.customEffects.remove(id);
+                CustomEffectController.Instance.getCustomEffects().remove(id);
                 break;
         }
     }

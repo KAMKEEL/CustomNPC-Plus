@@ -45,30 +45,27 @@ public class BlockTableRenderer extends BlockRendererInterface{
         boolean east = var1.getWorldObj().getBlock(var1.xCoord, var1.yCoord, var1.zCoord + 1) == CustomItems.table;
         boolean west = var1.getWorldObj().getBlock(var1.xCoord, var1.yCoord, var1.zCoord - 1) == CustomItems.table;
 
-        legacyTable.Shape1.showModel = !south && !east;
-        legacyTable.Shape3.showModel = !north && !west;
-        legacyTable.Shape4.showModel = !north && !east;
-        legacyTable.Shape5.showModel = !south && !west;
+        legacyTable.Shape1.showModel = table.Shape1.showModel = !south && !east;
+        legacyTable.Shape3.showModel = table.Shape3.showModel = !north && !west;
+        legacyTable.Shape4.showModel = table.Shape4.showModel = !north && !east;
+        legacyTable.Shape5.showModel = table.Shape5.showModel = !south && !west;
 
-        table.Shape1.showModel = !south && !east;
-        table.Shape2.showModel = !south && !west;
-        table.Shape3.showModel = !north && !west;
-        table.Shape4.showModel = !north && !east;
-
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
         if(ConfigClient.LegacyTable){
             setWoodTexture(var1.getBlockMetadata());
             legacyTable.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
             legacyTable.Table.render(0.0625f);
         } else {
-            GL11.glEnable(GL11.GL_ALPHA_TEST);
+
             setTableTexture(var1.getBlockMetadata());
             table.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
             table.Table.render(0.0625f);
-            GL11.glDisable(GL11.GL_ALPHA_TEST);
-        }
 
+        }
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 
@@ -94,9 +91,9 @@ public class BlockTableRenderer extends BlockRendererInterface{
             GL11.glColor3f(1, 1, 1);
             table.Table.render(0.0625f);
             table.Shape1.showModel = true;
-            table.Shape2.showModel = true;
             table.Shape3.showModel = true;
             table.Shape4.showModel = true;
+            table.Shape5.showModel = true;
             table.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
 

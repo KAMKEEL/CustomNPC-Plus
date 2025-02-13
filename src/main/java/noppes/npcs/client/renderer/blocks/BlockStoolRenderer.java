@@ -43,7 +43,7 @@ public class BlockStoolRenderer extends BlockRendererInterface{
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glColor3f(1, 1, 1);
 
-
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         if(ConfigClient.LegacyStool){
             setWoodTexture(var1.getBlockMetadata());
@@ -59,6 +59,7 @@ public class BlockStoolRenderer extends BlockRendererInterface{
             stool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
         GL11.glDisable(GL11.GL_ALPHA_TEST);
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 

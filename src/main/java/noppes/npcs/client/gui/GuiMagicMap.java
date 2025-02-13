@@ -32,7 +32,7 @@ public class GuiMagicMap extends GuiDiagram {
         for (Magic magic : MagicController.getInstance().magics.values()) {
             magics.add(magic);
         }
-        setLayout(DiagramLayout.CHART);
+        setLayout(DiagramLayout.CIRCULAR_MANUAL);
         this.setCurvedArrows(true);
         this.setCurveAngle(-20);
     }

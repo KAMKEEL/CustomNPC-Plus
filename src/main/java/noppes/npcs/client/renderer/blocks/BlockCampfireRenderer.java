@@ -64,12 +64,14 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
             Minecraft.getMinecraft().getTextureManager().bindTexture(Cobble);
             stonesModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             if(block == CustomItems.campfire){
+                GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
                 GL11.glDisable(GL11.GL_LIGHTING);
                 GL11.glEnable(GL11.GL_ALPHA_TEST);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(Flame);
                 flameModel.render(null, tile.getWorldObj().getWorldTime(), 0, 0, 0, 0.0F, 0.0625F);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);
                 GL11.glEnable(GL11.GL_LIGHTING);
+                GL11.glPopAttrib();
             }
             Minecraft.getMinecraft().getTextureManager().bindTexture(coalsTexture);
             coalsModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);

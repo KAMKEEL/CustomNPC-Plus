@@ -3,6 +3,7 @@ package noppes.npcs.blocks;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
@@ -12,10 +13,10 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileLamp;
 
-public class BlockLamp extends BlockLightable{
+public class BlockLantern extends BlockLightable{
 
-	public BlockLamp(boolean lit) {
-        super(Blocks.planks, lit);
+	public BlockLantern(boolean lit) {
+        super(Blocks.iron_block, lit);
         setBlockBounds(0.3f, 0, 0.3f, 0.7f, 0.6f, 0.7f);
 	}
 
@@ -23,8 +24,8 @@ public class BlockLamp extends BlockLightable{
     public int maxRotation(){
     	return 8;
     }
-    
-    @Override 
+
+    @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
     	TileEntity tileentity = world.getTileEntity(x, y, z);
     	if(!(tileentity instanceof TileColorable)){
@@ -43,20 +44,20 @@ public class BlockLamp extends BlockLightable{
     			xOffset = 0.2f;
     		else if(tile.rotation == 2)
     			xOffset = -0.2f;
-    		
+
             setBlockBounds(0.3f + xOffset, 0.2f, 0.3f + yOffset, 0.7f + xOffset, 0.7f, 0.7f + yOffset);
     	}
     	else
             setBlockBounds(0.3f, 0, 0.3f, 0.7f, 0.6f, 0.7f);
-    	
+
     }
-    
-    @Override  
+
+    @Override
     public int onBlockPlaced(World world, int x, int y, int z, int side, float p_149660_6_, float p_149660_7_, float p_149660_8_, int meta){
         return side;
     }
 
-    @Override  
+    @Override
     public void onPostBlockPlaced(World world, int x, int y, int z, int meta) {
     	TileLamp tile = (TileLamp) world.getTileEntity(x, y, z);
     	if(meta == 1)
@@ -77,10 +78,16 @@ public class BlockLamp extends BlockLightable{
 		world.setBlockMetadataWithNotify(x, y, z, 0, 4);
     }
 
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void registerBlockIcons(IIconRegister par1IconRegister){
+        this.blockIcon = par1IconRegister.registerIcon(this.getTextureName());
+    }
+
     @Override
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int p_149691_1_, int meta){
-        return Blocks.soul_sand.getIcon(p_149691_1_, meta);
+        return this.blockIcon;
     }
 
 	@Override
@@ -90,11 +97,11 @@ public class BlockLamp extends BlockLightable{
 
 	@Override
 	public Block unlitBlock() {
-		return CustomItems.lamp_unlit;
+		return CustomItems.lantern_unlit;
 	}
 
 	@Override
 	public Block litBlock() {
-		return CustomItems.lamp;
+		return CustomItems.lantern;
 	}
 }

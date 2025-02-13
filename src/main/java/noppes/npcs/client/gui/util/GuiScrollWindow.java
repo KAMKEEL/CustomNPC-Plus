@@ -94,7 +94,6 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
     }
 
     public void mouseClicked(int i, int j, int k) {
-
         i = i - xPos;
         j = (int) (j - yPos + scrollY);
 
