@@ -20,7 +20,7 @@ public class TileVariant extends TileEntity {
         super.readFromNBT(compound);
         version = compound.getInteger("CNPCVersion");
         FixTileData(version, compound, this);
-        variant = compound.getInteger("CNPCVersion");
+        variant = compound.getInteger("CNPCVariant");
         rotation = compound.getInteger("CNPCRotation");
     }
 
@@ -83,21 +83,6 @@ public class TileVariant extends TileEntity {
     }
 
     public static boolean isColorTile(TileEntity tileEntity){
-        if(tileEntity instanceof TileShortLamp)
-            return true;
-
-        if(tileEntity instanceof TileBanner)
-            return true;
-
-        if(tileEntity instanceof TileWallBanner)
-            return true;
-
-        if(tileEntity instanceof TileCouchWool)
-            return true;
-
-        if(tileEntity instanceof TileTallLamp)
-            return true;
-
-        return false;
+        return tileEntity instanceof TileColorable;
     }
 }
