@@ -11,6 +11,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCarpentryBench;
+import noppes.npcs.blocks.tiles.TileBlockAnvil;
 import noppes.npcs.client.model.blocks.ModelAnvil;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyAnvil;
 import noppes.npcs.client.model.blocks.ModelCarpentryBench;
