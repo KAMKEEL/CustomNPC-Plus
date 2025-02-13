@@ -238,12 +238,12 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack {
 
     public static class Display {
         public String texture = "minecraft:textures/items/iron_pickaxe.png";
-        public float translateX, translateY, translateZ;
-        public int itemColor = 0x8B4513;
-        public float scaleX = 1.0F, scaleY = 1.0F, scaleZ = 1.0F;
-        public float rotationX, rotationY, rotationZ;
-        public float rotationXRate, rotationYRate, rotationZRate;
-        public boolean durabilityShow = false;
-        public int durabilityColor = -1;
+        public Float translateX = 0F, translateY = 0F, translateZ = 0F;
+        public Integer itemColor = 0x8B4513;
+        public Float scaleX = 1.0F, scaleY = 1.0F, scaleZ = 1.0F;
+        public Float rotationX = 0F, rotationY = 0F, rotationZ = 0F;
+        public Float rotationXRate = 0F, rotationYRate = 0F, rotationZRate = 0F;
+        public Boolean durabilityShow = false;
+        public Integer durabilityColor = -1;
     }
 }
