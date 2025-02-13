@@ -11,7 +11,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -19,7 +18,6 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import noppes.npcs.CustomItems;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileCouchWool;
@@ -38,8 +36,12 @@ public class BlockCouchWool extends BlockContainer {
     @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	ItemStack item = player.inventory.getCurrentItem();
-    	if(TileColorable.doNotAllowModification(item))
+        TileColorable.ColorChangeType colorChangeType = TileColorable.allowColorChange(item);
+        if(colorChangeType == TileColorable.ColorChangeType.NONE)
     		return BlockChair.MountBlock(par1World, i, j, k, player);
+        else if(colorChangeType == TileColorable.ColorChangeType.PAINTBRUSH)
+            return false;
+
     	int meta = par1World.getBlockMetadata(i, j, k);
     	if(meta >= 7)
     		j--;

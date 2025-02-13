@@ -37,6 +37,7 @@ import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectsGetPacket;
 import kamkeel.npcs.network.packets.request.faction.*;
 import kamkeel.npcs.network.packets.request.feather.DimensionTeleportPacket;
+import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import kamkeel.npcs.network.packets.request.item.ColorSetPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
@@ -309,6 +310,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new MovingPathGetPacket());
 
         // Tool Packets
+        REQUEST_PACKET.registerPacket(new ColorBrushPacket());
         REQUEST_PACKET.registerPacket(new ColorSetPacket());
 
         // Custom Effect Packets

@@ -1,11 +1,10 @@
 package noppes.npcs.client.gui.item;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.item.ColorSetPacket;
+import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -17,8 +16,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-
-import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
 public class GuiNpcPaintbrush extends GuiNPCInterface {
 
@@ -90,7 +87,7 @@ public class GuiNpcPaintbrush extends GuiNPCInterface {
 
     @Override
     public void close(){
-        PacketClient.sendClient(new ColorSetPacket(this.color));
+        PacketClient.sendClient(new ColorBrushPacket(this.color));
         super.close();
     }
 

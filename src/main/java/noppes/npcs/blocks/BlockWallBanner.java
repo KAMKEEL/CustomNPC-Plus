@@ -10,7 +10,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -42,8 +41,8 @@ public class BlockWallBanner extends BlockContainer{
     	TileWallBanner tile = (TileWallBanner) par1World.getTileEntity(i, j, k);
     	if(tile.canEdit())
     		return true;
-    	else if(TileColorable.doNotAllowModification(item))
-    		return false;
+    	else if(TileColorable.allowColorChange(item) != TileColorable.ColorChangeType.DYE)
+            return false;
 
         int color = colorTableInts[BlockColored.func_150031_c(item.getItemDamage())];
     	if(tile.color != color){

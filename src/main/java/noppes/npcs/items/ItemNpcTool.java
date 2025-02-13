@@ -4,7 +4,9 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import kamkeel.npcs.network.packets.request.item.ColorSetPacket;
+import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -12,12 +14,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.blocks.BlockBanner;
+import noppes.npcs.blocks.BlockTallLamp;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.constants.EnumGuiType;
@@ -90,18 +93,26 @@ public class ItemNpcTool extends Item {
     }
 
     @Override
-    public boolean onItemUse(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
+    public boolean onItemUseFirst(ItemStack stack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ) {
+        if(!world.isRemote)
+            return false;
+
         if(isPaintbrush(stack)) {
+            Block block = world.getBlock(x, y, z);
+            if(block instanceof BlockTallLamp || block instanceof BlockBanner){
+                int meta = world.getBlockMetadata(x, y, z);
+                if(meta >= 7)
+                    y--;
+            }
+
             TileEntity tile = world.getTileEntity(x, y, z);
             if(tile instanceof TileColorable) {
-                if(player.isSneaking() && world.isRemote){
+                if(player.isSneaking()){
                     int color = ((TileColorable) tile).color;
-                    PacketClient.sendClient(new ColorSetPacket(color));
+                    PacketClient.sendClient(new ColorBrushPacket(color));
                 }
-                else if (!world.isRemote && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_BUILD)){
-                    int color = getColor(stack.getTagCompound());
-                    TileColorable colorable = (TileColorable) tile;
-                    colorable.setColor(color);
+                else {
+                    PacketClient.sendClient(new ColorSetPacket(x, y, z));
                 }
                 return true;
             }

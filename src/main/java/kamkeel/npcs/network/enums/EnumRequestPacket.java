@@ -178,5 +178,5 @@ public enum EnumRequestPacket {
     EffectRemove,
     EffectSave,
 
-    ColorSet,
+    ColorSet, ColorBrush,
 }

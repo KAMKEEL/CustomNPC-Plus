@@ -10,7 +10,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -40,7 +39,7 @@ public class BlockShortLamp extends BlockContainer {
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player,
                                     int side, float hitX, float hitY, float hitZ) {
         ItemStack item = player.inventory.getCurrentItem();
-        if(TileColorable.doNotAllowModification(item))
+        if(TileColorable.allowColorChange(item) != TileColorable.ColorChangeType.DYE)
             return false;
         int meta = world.getBlockMetadata(x, y, z);
         TileColorable tile = (TileColorable) world.getTileEntity(x, y, z);

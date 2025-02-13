@@ -7,9 +7,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.items.ItemNpcTool;
-import noppes.npcs.items.ItemStaff;
-
-import static kamkeel.npcs.util.ColorUtil.colorTableInts;
 
 public class TileColorable extends TileVariant {
 
@@ -31,27 +28,22 @@ public class TileColorable extends TileVariant {
         this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
     }
 
-    public void changeColor(EntityPlayer player, ItemStack stack){
-        if(stack == null)
-            return;
+    public static ColorChangeType allowColorChange(ItemStack stack){
+        if(stack == null || stack.getItem() == null)
+            return ColorChangeType.NONE;
 
-        if(stack.getItem() == null)
-            return;
+        if(stack.getItem() == Items.dye)
+            return ColorChangeType.DYE;
 
-        if(stack.getItem() == Items.dye){
-            int color = colorTableInts[BlockColored.func_150031_c(stack.getItemDamage())];
-            NoppesUtilServer.consumeItemStack(1, player);
-            setColor(color);
-        } else if(ItemNpcTool.isPaintbrush(stack)){
-            int color = colorTableInts[BlockColored.func_150031_c(stack.getItemDamage())];
-            NoppesUtilServer.consumeItemStack(1, player);
-            setColor(color);
-        }
+        if(ItemNpcTool.isPaintbrush(stack))
+            return ColorChangeType.PAINTBRUSH;
+
+        return ColorChangeType.NONE;
     }
 
-    public static boolean doNotAllowModification(ItemStack stack){
-        return stack == null || stack.getItem() == null ||
-            (stack.getItem() != Items.dye &&
-            !(stack.getItem() instanceof ItemNpcTool));
+    public enum ColorChangeType {
+        NONE,
+        DYE,
+        PAINTBRUSH
     }
 }

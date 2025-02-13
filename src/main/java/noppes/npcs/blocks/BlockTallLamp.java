@@ -10,7 +10,6 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -39,8 +38,8 @@ public class BlockTallLamp extends BlockContainer {
     @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9){
     	ItemStack item = player.inventory.getCurrentItem();
-        if(TileColorable.doNotAllowModification(item))
-    		return false;
+        if(TileColorable.allowColorChange(item) != TileColorable.ColorChangeType.DYE)
+            return false;
     	int meta = par1World.getBlockMetadata(i, j, k);
     	if(meta >= 7)
     		j--;
