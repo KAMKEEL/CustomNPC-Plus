@@ -95,6 +95,9 @@ public class TileVariant extends TileEntity {
         if(tileEntity instanceof TileCouchWool)
             return true;
 
+        if(tileEntity instanceof TileTallLamp)
+            return true;
+
         return false;
     }
 }
