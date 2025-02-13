@@ -14,7 +14,7 @@ import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.*;
 
-public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, INpcScriptHandler {
+public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, INpcScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
@@ -32,8 +32,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
     public int digSpeed = 1;
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
     public int enchantability;
-
-    public Display itemDisplay = new Display();
 
     public long lastInited = -1;
 
@@ -140,17 +138,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
     public void clearConsole() {
     }
 
-    public String getTexture() {
-        return this.itemDisplay.texture == null ? "" : this.itemDisplay.texture;
-    }
-
-    public void setTexture(String texture){
-        if(texture == null)
-            texture = "";
-        this.itemDisplay.texture = texture;
-        saveItemData();
-    }
-
     public int getMaxStackSize() {
         return this.stackSize;
     }
@@ -210,33 +197,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         saveItemData();
     }
 
-    public boolean getDurabilityShow() {
-        return this.itemDisplay.durabilityShow;
-    }
-
-    public void setDurabilityShow(boolean bo) {
-        this.itemDisplay.durabilityShow = bo;
-        saveItemData();
-    }
-
-    public int getDurabilityColor() {
-        return this.itemDisplay.durabilityColor;
-    }
-
-    public void setDurabilityColor(int color) {
-        this.itemDisplay.durabilityColor = color;
-        saveItemData();
-    }
-
-    public int getColor() {
-        return this.itemDisplay.itemColor;
-    }
-
-    public void setColor(int color) {
-        this.itemDisplay.itemColor = color;
-        saveItemData();
-    }
-
     public int getMaxItemUseDuration(){
         return this.maxItemUseDuration;
     }
@@ -264,165 +224,6 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         saveItemData();
     }
 
-    public void setRotation(float rotationX, float rotationY, float rotationZ){
-        this.itemDisplay.rotationX = rotationX;
-        this.itemDisplay.rotationY = rotationY;
-        this.itemDisplay.rotationZ = rotationZ;
-        saveItemData();
-    }
-
-    public void setRotationRate(float rotationXRate, float rotationYRate, float rotationZRate){
-        this.itemDisplay.rotationXRate = rotationXRate;
-        this.itemDisplay.rotationYRate = rotationYRate;
-        this.itemDisplay.rotationZRate = rotationZRate;
-        saveItemData();
-    }
-
-    public void setScale(float scaleX, float scaleY, float scaleZ){
-        this.itemDisplay.scaleX = scaleX;
-        this.itemDisplay.scaleY = scaleY;
-        this.itemDisplay.scaleZ = scaleZ;
-        saveItemData();
-    }
-
-    public void setTranslate(float translateX, float translateY, float translateZ){
-        this.itemDisplay.translateX = translateX;
-        this.itemDisplay.translateY = translateY;
-        this.itemDisplay.translateZ = translateZ;
-        saveItemData();
-    }
-
-    public float getRotationX() {
-        return this.itemDisplay.rotationX;
-    }
-
-    public float getRotationY() {
-        return this.itemDisplay.rotationY;
-    }
-
-    public float getRotationZ() {
-        return this.itemDisplay.rotationZ;
-    }
-
-    public float getRotationXRate() {
-        return this.itemDisplay.rotationXRate;
-    }
-
-    public float getRotationYRate() {
-        return this.itemDisplay.rotationYRate;
-    }
-
-    public float getRotationZRate() {
-        return this.itemDisplay.rotationZRate;
-    }
-
-    public float getScaleX() {
-        return this.itemDisplay.scaleX;
-    }
-
-    public float getScaleY() {
-        return this.itemDisplay.scaleY;
-    }
-
-    public float getScaleZ() {
-        return this.itemDisplay.scaleZ;
-    }
-
-    public float getTranslateX() {
-        return this.itemDisplay.translateX;
-    }
-
-    public float getTranslateY() {
-        return this.itemDisplay.translateY;
-    }
-
-    public float getTranslateZ() {
-        return this.itemDisplay.translateZ;
-    }
-
-    public NBTTagCompound getMCNbt() {
-        NBTTagCompound compound = super.getMCNbt();
-        compound.setTag("ItemData", this.getItemNBT(new NBTTagCompound()));
-        compound.setTag("ScriptedData", this.getScriptNBT(new NBTTagCompound()));
-        return compound;
-    }
-
-    public void setMCNbt(NBTTagCompound compound) {
-        setScriptNBT(compound.getCompoundTag("ScriptedData"));
-        setItemNBT(compound.getCompoundTag("ItemData"));
-    }
-
-    public NBTTagCompound getItemNBT(NBTTagCompound compound) {
-        compound.setBoolean("DurabilityShow",this.itemDisplay.durabilityShow);
-        compound.setDouble("DurabilityValue",this.durabilityValue);
-        compound.setInteger("DurabilityColor",this.itemDisplay.durabilityColor );
-        compound.setInteger("ItemColor",this.itemDisplay.itemColor);
-        compound.setInteger("MaxStackSize",this.stackSize);
-        compound.setString("ItemTexture",this.itemDisplay.texture);
-
-        compound.setFloat("RotationX",this.itemDisplay.rotationX);
-        compound.setFloat("RotationY",this.itemDisplay.rotationY);
-        compound.setFloat("RotationZ",this.itemDisplay.rotationZ);
-
-        compound.setFloat("RotationXRate",this.itemDisplay.rotationXRate);
-        compound.setFloat("RotationYRate",this.itemDisplay.rotationYRate);
-        compound.setFloat("RotationZRate",this.itemDisplay.rotationZRate);
-
-        compound.setFloat("ScaleX",this.itemDisplay.scaleX);
-        compound.setFloat("ScaleY",this.itemDisplay.scaleY);
-        compound.setFloat("ScaleZ",this.itemDisplay.scaleZ);
-
-        compound.setFloat("TranslateX",this.itemDisplay.translateX);
-        compound.setFloat("TranslateY",this.itemDisplay.translateY);
-        compound.setFloat("TranslateZ",this.itemDisplay.translateZ);
-
-        compound.setBoolean("IsTool", this.isTool);
-        compound.setBoolean("IsNormalItem", this.isNormalItem);
-        compound.setInteger("DigSpeed", this.digSpeed);
-        compound.setInteger("ArmorType", this.armorType);
-        compound.setInteger("Enchantability", this.enchantability);
-
-        compound.setInteger("MaxItemUseDuration", this.maxItemUseDuration);
-        compound.setInteger("ItemUseAction", this.itemUseAction);
-        return compound;
-    }
-
-    public void setItemNBT(NBTTagCompound compound) {
-        this.itemDisplay.durabilityShow = compound.getBoolean("DurabilityShow");
-        this.durabilityValue = compound.getDouble("DurabilityValue");
-        if (compound.hasKey("DurabilityColor")) {
-            this.itemDisplay.durabilityColor = compound.getInteger("DurabilityColor");
-        }
-        this.itemDisplay.itemColor = compound.getInteger("ItemColor");
-        this.stackSize = compound.getInteger("MaxStackSize");
-        this.itemDisplay.texture = compound.getString("ItemTexture");
-
-        this.itemDisplay.rotationX = compound.getFloat("RotationX");
-        this.itemDisplay.rotationY = compound.getFloat("RotationY");
-        this.itemDisplay.rotationZ = compound.getFloat("RotationZ");
-
-        this.itemDisplay.rotationXRate = compound.getFloat("RotationXRate");
-        this.itemDisplay.rotationYRate = compound.getFloat("RotationYRate");
-        this.itemDisplay.rotationZRate = compound.getFloat("RotationZRate");
-
-        this.itemDisplay.scaleX = compound.getFloat("ScaleX");
-        this.itemDisplay.scaleY = compound.getFloat("ScaleY");
-        this.itemDisplay.scaleZ = compound.getFloat("ScaleZ");
-
-        this.itemDisplay.translateX = compound.getFloat("TranslateX");
-        this.itemDisplay.translateY = compound.getFloat("TranslateY");
-        this.itemDisplay.translateZ = compound.getFloat("TranslateZ");
-
-        this.isTool = compound.getBoolean("IsTool");
-        this.isNormalItem = compound.getBoolean("IsNormalItem");
-        this.digSpeed = compound.getInteger("DigSpeed");
-        this.armorType = compound.getInteger("ArmorType");
-        this.enchantability = compound.getInteger("Enchantability");
-
-        this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
-        this.itemUseAction = compound.getInteger("ItemUseAction");
-    }
-
     public void saveScriptData() {
         NBTTagCompound c = this.item.getTagCompound();
         if (c == null) {
@@ -439,31 +240,45 @@ public class ScriptCustomItem extends ScriptItemStack implements IItemCustom, IN
         }
     }
 
-    public void saveItemData() {
-        NBTTagCompound c = this.item.getTagCompound();
-        if (c == null) {
-            this.item.setTagCompound(c = new NBTTagCompound());
-        }
-
-        c.setTag("ItemData", this.getItemNBT(new NBTTagCompound()));
+    public NBTTagCompound getMCNbt() {
+        NBTTagCompound compound = super.getMCNbt();
+        compound.setTag("ScriptedData", this.getScriptNBT(new NBTTagCompound()));
+        return compound;
     }
 
-    public void loadItemData() {
-        NBTTagCompound c = this.item.getTagCompound();
-        if (c != null && !c.getCompoundTag("ItemData").hasNoTags()){
-            this.setItemNBT(c.getCompoundTag("ItemData"));
-        }
+    public void setMCNbt(NBTTagCompound compound) {
+        super.setMCNbt(compound);
+        setScriptNBT(compound.getCompoundTag("ScriptedData"));
     }
 
+    public NBTTagCompound getItemNBT(NBTTagCompound compound) {
+        super.getItemNBT(compound);
+        compound.setDouble("DurabilityValue",this.durabilityValue);
+        compound.setInteger("MaxStackSize",this.stackSize);
 
-    public static class Display {
-        public String texture = "minecraft:textures/items/iron_pickaxe.png";
-        public float translateX, translateY, translateZ;
-        public int itemColor = 0x8B4513;
-        public float scaleX = 1.0F, scaleY = 1.0F, scaleZ = 1.0F;
-        public float rotationX, rotationY, rotationZ;
-        public float rotationXRate, rotationYRate, rotationZRate;
-        public boolean durabilityShow = false;
-        public int durabilityColor = -1;
+        compound.setBoolean("IsTool", this.isTool);
+        compound.setBoolean("IsNormalItem", this.isNormalItem);
+        compound.setInteger("DigSpeed", this.digSpeed);
+        compound.setInteger("ArmorType", this.armorType);
+        compound.setInteger("Enchantability", this.enchantability);
+
+        compound.setInteger("MaxItemUseDuration", this.maxItemUseDuration);
+        compound.setInteger("ItemUseAction", this.itemUseAction);
+        return compound;
+    }
+
+    public void setItemNBT(NBTTagCompound compound) {
+        super.setItemNBT(compound);
+        this.durabilityValue = compound.getDouble("DurabilityValue");
+        this.stackSize = compound.getInteger("MaxStackSize");
+
+        this.isTool = compound.getBoolean("IsTool");
+        this.isNormalItem = compound.getBoolean("IsNormalItem");
+        this.digSpeed = compound.getInteger("DigSpeed");
+        this.armorType = compound.getInteger("ArmorType");
+        this.enchantability = compound.getInteger("Enchantability");
+
+        this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
+        this.itemUseAction = compound.getInteger("ItemUseAction");
     }
 }
