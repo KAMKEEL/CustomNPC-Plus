@@ -8,7 +8,7 @@ import noppes.npcs.constants.EnumBannerVariant;
 public class TileBanner extends TileColorable {
 
 	public ItemStack icon;
-    public EnumBannerVariant variant = EnumBannerVariant.Normal;
+    public EnumBannerVariant bannerTrim = EnumBannerVariant.Normal;
 	public long time = 0;
 
     public void readFromNBT(NBTTagCompound compound){
@@ -17,9 +17,9 @@ public class TileBanner extends TileColorable {
 
         int variantIndex = compound.getInteger("BannerVariant");
         if (variantIndex >= 0 && variantIndex < EnumBannerVariant.values().length) {
-            variant = EnumBannerVariant.values()[variantIndex];
+            bannerTrim = EnumBannerVariant.values()[variantIndex];
         } else {
-            variant = EnumBannerVariant.Normal;
+            bannerTrim = EnumBannerVariant.Normal;
         }
     }
 
@@ -27,7 +27,7 @@ public class TileBanner extends TileColorable {
     	super.writeToNBT(compound);
     	if(icon != null)
     		compound.setTag("BannerIcon", icon.writeToNBT(new NBTTagCompound()));
-        compound.setInteger("BannerVariant", variant.ordinal());
+        compound.setInteger("BannerVariant", bannerTrim.ordinal());
     }
 
 	@Override

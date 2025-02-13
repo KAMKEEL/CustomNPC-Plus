@@ -236,9 +236,9 @@ public class ServerEventsHandler {
                 if(block == CustomItems.banner || block == CustomItems.wallBanner){
                     // If sneaking and using shear
                     if(player.isSneaking() && item.getItem() == Items.shears){
-                        int currentVariantIndex = tile.variant.ordinal();
+                        int currentVariantIndex = tile.bannerTrim.ordinal();
                         int nextVariantIndex = (currentVariantIndex + 1) % EnumBannerVariant.values().length;
-                        tile.variant = EnumBannerVariant.values()[nextVariantIndex];
+                        tile.bannerTrim = EnumBannerVariant.values()[nextVariantIndex];
 
                         player.worldObj.markBlockForUpdate(event.x, y, event.z);
                         event.setCanceled(true);

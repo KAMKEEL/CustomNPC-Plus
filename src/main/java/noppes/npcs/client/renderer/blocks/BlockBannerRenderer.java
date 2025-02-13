@@ -91,7 +91,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
             setBannerMaterial(var1.getBlockMetadata());
             banner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
-            setFlagType(tile.variant);
+            setFlagType(tile.bannerTrim);
             float[] color = colorTable[tile.color];
             GL11.glPushMatrix();
             GL11.glColor3f(color[0], color[1], color[2]);
