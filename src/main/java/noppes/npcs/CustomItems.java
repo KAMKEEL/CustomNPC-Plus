@@ -28,7 +28,9 @@ public class CustomItems {
 	public static Item mount;
 	public static Item teleporter;
     public static Item tool;
+
 	public static Item scripted_item;
+    public static Item linked_item;
 
 	public static Item soulstoneEmpty;
 	public static Item soulstoneFull;
@@ -245,6 +247,7 @@ public class CustomItems {
 		mount = new ItemMounter().setUnlocalizedName("npcMounter").setFull3D();
 		teleporter = new ItemTeleporter().setUnlocalizedName("npcTeleporter").setFull3D();
 		scripted_item = new ItemScripted().setUnlocalizedName("scripted_item").setFull3D();
+        linked_item = new ItemLinked().setUnlocalizedName("linked_item").setFull3D();
         tool = new ItemNpcTool().setUnlocalizedName("npcTool").setFull3D();
 
 		redstoneBlock = new BlockNpcRedstone().setHardness(50.0F).setResistance(2000).setBlockName("npcRedstoneBlock").setBlockTextureName("customnpcs:npcRedstoneBlock").setCreativeTab(tab);

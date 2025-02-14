@@ -48,13 +48,11 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.controllers.data.FramePart;
-import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
+import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
@@ -64,7 +62,6 @@ import noppes.npcs.util.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -473,7 +470,17 @@ public class NpcAPI extends AbstractNpcAPI {
             if (scriptItemCache.containsKey(itemstack)) {
                 scriptStack = scriptItemCache.get(itemstack).getObject();
             } else {
-                if (itemstack.getItem() instanceof ItemScripted) {
+                LinkedItem linkedItem;
+                if (itemstack.hasTagCompound()) {
+                    int linkedItemId = itemstack.getTagCompound().getInteger(LinkedItem.LINKED_NBT_TAG);
+                    linkedItem = LinkedItemController.Instance().get(linkedItemId);
+                } else {
+                    linkedItem = null;
+                }
+
+                if (linkedItem != null && itemstack.getItem() instanceof ItemLinked) {
+                    scriptStack = new ScriptLinkedItem(itemstack);
+                } else if (itemstack.getItem() instanceof ItemScripted) {
                     scriptStack = new ScriptCustomItem(itemstack);
                 } else if (itemstack.getItem() instanceof ItemArmor) {
                     scriptStack = new ScriptItemArmor(itemstack);

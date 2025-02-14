@@ -22,6 +22,7 @@ import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.item.IItemCustom;
+import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomGuiController;
@@ -42,76 +43,108 @@ public class EventHooks {
     public EventHooks() {
     }
 
-    public static void onScriptItemInit(IItemCustom handler) {
-        if (!((ScriptCustomItem) handler).isClient()) {
-            ItemEvent.InitEvent event = new ItemEvent.InitEvent(handler);
-            ((ScriptCustomItem) handler).callScript(EnumScriptType.INIT, event);
+    public static void onScriptItemInit(IItemCustomizable item) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        if (handler != null && !handler.isClient()) {
+            ItemEvent.InitEvent event = new ItemEvent.InitEvent(item);
+            handler.callScript(EnumScriptType.INIT, event);
             NpcAPI.EVENT_BUS.post(event);
         }
     }
 
-    public static void onScriptItemUpdate(IItemCustom handler, EntityLivingBase player) {
-        if (!((ScriptCustomItem) handler).isClient()) {
-            ItemEvent.UpdateEvent event = new ItemEvent.UpdateEvent(handler, NpcAPI.Instance().getIEntity(player));
-            ((ScriptCustomItem) handler).callScript(EnumScriptType.TICK, event);
+    public static void onScriptItemUpdate(IItemCustomizable item, EntityLivingBase player) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        if (handler != null && !handler.isClient()) {
+            ItemEvent.UpdateEvent event = new ItemEvent.UpdateEvent(item, NpcAPI.Instance().getIEntity(player));
+            handler.callScript(EnumScriptType.TICK, event);
             NpcAPI.EVENT_BUS.post(event);
         }
     }
 
-    public static boolean onScriptItemTossed(IItemCustom handler, EntityPlayer player, EntityItem entity) {
-        ItemEvent.TossedEvent event = new ItemEvent.TossedEvent(handler, (IPlayer)NpcAPI.Instance().getIEntity(player), NpcAPI.Instance().getIEntity(entity));
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.TOSSED, event);
+    public static boolean onScriptItemTossed(IItemCustomizable item, EntityPlayer player, EntityItem entity) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.TossedEvent event = new ItemEvent.TossedEvent(item, (IPlayer)NpcAPI.Instance().getIEntity(player), NpcAPI.Instance().getIEntity(entity));
+        if (handler != null) {
+            handler.callScript(EnumScriptType.TOSSED, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onScriptItemPickedUp(IItemCustom handler, EntityPlayer player) {
-        ItemEvent.PickedUpEvent event = new ItemEvent.PickedUpEvent(handler, (IPlayer)NpcAPI.Instance().getIEntity(player));
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.PICKEDUP, event);
+    public static boolean onScriptItemPickedUp(IItemCustomizable item, EntityPlayer player) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.PickedUpEvent event = new ItemEvent.PickedUpEvent(item, (IPlayer)NpcAPI.Instance().getIEntity(player));
+        if (handler != null) {
+            handler.callScript(EnumScriptType.PICKEDUP, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onScriptItemSpawn(IItemCustom handler, EntityItem entity) {
-        ItemEvent.SpawnEvent event = new ItemEvent.SpawnEvent(handler, NpcAPI.Instance().getIEntity(entity));
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.SPAWN, event);
+    public static boolean onScriptItemSpawn(IItemCustomizable item, EntityItem entity) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.SpawnEvent event = new ItemEvent.SpawnEvent(item, NpcAPI.Instance().getIEntity(entity));
+        if (handler != null) {
+            handler.callScript(EnumScriptType.SPAWN, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onScriptItemInteract(IItemCustom handler, noppes.npcs.scripted.event.ItemEvent.InteractEvent event) {
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.INTERACT, event);
+    public static boolean onScriptItemInteract(IItemCustomizable item, noppes.npcs.scripted.event.ItemEvent.InteractEvent event) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        if (handler != null) {
+            handler.callScript(EnumScriptType.INTERACT, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onScriptItemRightClick(IItemCustom handler, noppes.npcs.scripted.event.ItemEvent.RightClickEvent event) {
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.RIGHT_CLICK, event);
+    public static boolean onScriptItemRightClick(IItemCustomizable item, noppes.npcs.scripted.event.ItemEvent.RightClickEvent event) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        if (handler != null) {
+            handler.callScript(EnumScriptType.RIGHT_CLICK, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onScriptItemAttack(IItemCustom handler, noppes.npcs.scripted.event.ItemEvent.AttackEvent event) {
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.ATTACK, event);
+    public static boolean onScriptItemAttack(IItemCustomizable item, noppes.npcs.scripted.event.ItemEvent.AttackEvent event) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        if (handler != null) {
+            handler.callScript(EnumScriptType.ATTACK, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onStartUsingCustomItem(IItemCustom handler, IPlayer player, int duration) {
-        ItemEvent.StartUsingItem event = new ItemEvent.StartUsingItem(handler, player, duration);
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.START_USING_ITEM, event);
+    public static boolean onStartUsingCustomItem(IItemCustomizable item, IPlayer player, int duration) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.StartUsingItem event = new ItemEvent.StartUsingItem(item, player, duration);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.START_USING_ITEM, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onUsingCustomItem(IItemCustom handler, IPlayer player, int duration) {
-        ItemEvent.UsingItem event = new ItemEvent.UsingItem(handler, player, duration);
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.USING_ITEM, event);
+    public static boolean onUsingCustomItem(IItemCustomizable item, IPlayer player, int duration) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.UsingItem event = new ItemEvent.UsingItem(item, player, duration);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.USING_ITEM, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onStopUsingCustomItem(IItemCustom handler, IPlayer player, int duration) {
-        ItemEvent.StopUsingItem event = new ItemEvent.StopUsingItem(handler, player, duration);
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.STOP_USING_ITEM, event);
+    public static boolean onStopUsingCustomItem(IItemCustomizable item, IPlayer player, int duration) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.StopUsingItem event = new ItemEvent.StopUsingItem(item, player, duration);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.STOP_USING_ITEM, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onFinishUsingCustomItem(IItemCustom handler, IPlayer player, int duration) {
-        ItemEvent.FinishUsingItem event = new ItemEvent.FinishUsingItem(handler, player, duration);
-        ((ScriptCustomItem) handler).callScript(EnumScriptType.FINISH_USING_ITEM, event);
+    public static boolean onFinishUsingCustomItem(IItemCustomizable item, IPlayer player, int duration) {
+        INpcScriptHandler handler = item.getScriptHandler();
+        ItemEvent.FinishUsingItem event = new ItemEvent.FinishUsingItem(item, player, duration);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.FINISH_USING_ITEM, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 

@@ -7,6 +7,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
@@ -16,7 +17,7 @@ import javax.script.ScriptEngine;
 import java.io.IOException;
 import java.util.*;
 
-public class EffectScript implements IScriptHandler {
+public class EffectScript implements INpcScriptHandler {
     public ScriptContainer container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
@@ -50,7 +51,12 @@ public class EffectScript implements IScriptHandler {
         return this.enabled && ScriptController.HasStart && container != null && ConfigScript.ScriptingEnabled;
     }
 
-        @Override
+    @Override
+    public void callScript(EnumScriptType type, Event event) {
+        this.callScript(type.function, event);
+    }
+
+    @Override
     public void callScript(String s, Event event) {
         if (!this.isEnabled()) {
             return;
