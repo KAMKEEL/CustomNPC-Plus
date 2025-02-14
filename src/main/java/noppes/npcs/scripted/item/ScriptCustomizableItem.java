@@ -2,9 +2,10 @@ package noppes.npcs.scripted.item;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.controllers.data.ItemDisplayData;
 
-public abstract class ScriptCustomizableItem extends ScriptItemStack {
+public abstract class ScriptCustomizableItem extends ScriptItemStack implements IItemCustomizable {
     public final ItemDisplayData itemDisplay = new ItemDisplayData();
 
     public ScriptCustomizableItem(ItemStack item) {
