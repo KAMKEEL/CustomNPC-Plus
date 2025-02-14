@@ -24,35 +24,16 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.item.ScriptCustomizableItem;
 import org.lwjgl.opengl.GL11;
 
 public class ItemScripted extends ItemCustomizable {
+
     public ItemScripted() {
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
         CustomNpcs.proxy.registerItem(this);
         setHasSubtypes(true);
-    }
-
-    @SideOnly(Side.CLIENT)
-    public void registerIcons(IIconRegister par1IconRegister){
-        this.itemIcon = Items.iron_pickaxe.getIconFromDamage(0);
-    }
-
-    @Override
-    public int getColorFromItemStack(ItemStack itemStack, int par2){
-        return 0x8B4513;
-    }
-
-    @Override
-    public boolean requiresMultipleRenderPasses(){
-        return true;
-    }
-
-    @Override
-    public Item setUnlocalizedName(String name){
-        GameRegistry.registerItem(this, name);
-        return super.setUnlocalizedName(name);
     }
 
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player)
@@ -64,8 +45,7 @@ public class ItemScripted extends ItemCustomizable {
                 CustomNpcs.proxy.openGui(0, 0, 0, EnumGuiType.ScriptItem, player);
             }
         }
-        player.setItemInUse(stack, this.getMaxItemUseDuration(stack));
-        return stack;
+        return super.onItemRightClick(stack, world, player);
     }
 
     @Override
@@ -134,26 +114,6 @@ public class ItemScripted extends ItemCustomizable {
         IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
         ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptCustomItem) istack, NpcAPI.Instance().getIEntity(attacker), 1, NpcAPI.Instance().getIEntity(target));
         return EventHooks.onScriptItemAttack((ScriptCustomItem) istack, eve);
-    }
-
-    public EnumAction getItemUseAction(ItemStack stack)
-    {
-        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
-        if (istack instanceof ScriptCustomItem) {
-            switch (((ScriptCustomItem) istack).getItemUseAction()) {
-                case 0:
-                    return EnumAction.none;
-                case 1:
-                    return EnumAction.block;
-                case 2:
-                    return EnumAction.bow;
-                case 3:
-                    return EnumAction.eat;
-                case 4:
-                    return EnumAction.drink;
-            }
-        }
-        return super.getItemUseAction(stack);
     }
 
     public void renderOffset(ScriptCustomItem scriptCustomItem) {

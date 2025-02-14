@@ -30,33 +30,6 @@ public class ItemLinked extends ItemCustomizable {
         setHasSubtypes(true);
     }
 
-    @SideOnly(Side.CLIENT)
-    public void registerIcons(IIconRegister par1IconRegister){
-        this.itemIcon = Items.iron_pickaxe.getIconFromDamage(0);
-    }
-
-    @Override
-    public int getColorFromItemStack(ItemStack itemStack, int par2){
-        return 0x8B4513;
-    }
-
-    @Override
-    public boolean requiresMultipleRenderPasses(){
-        return true;
-    }
-
-    @Override
-    public Item setUnlocalizedName(String name){
-        GameRegistry.registerItem(this, name);
-        return super.setUnlocalizedName(name);
-    }
-
-    public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player)
-    {
-        player.setItemInUse(stack, this.getMaxItemUseDuration(stack));
-        return stack;
-    }
-
     @Override
     public boolean onEntitySwing(EntityLivingBase entityLivingBase, ItemStack stack){
         if (entityLivingBase.worldObj.isRemote) {
