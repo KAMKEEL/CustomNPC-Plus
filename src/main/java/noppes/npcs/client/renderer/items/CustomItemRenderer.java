@@ -14,10 +14,12 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
+import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.items.ItemScripted;
-import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.NpcAPI;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
@@ -44,9 +46,13 @@ public class CustomItemRenderer implements IItemRenderer {
 
     @Override
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
-        ScriptCustomItem scriptCustomItem = ItemScripted.GetWrapper(itemStack);
+        IItemStack iItemStack = NpcAPI.Instance().getIItemStack(itemStack);
+        if (!(iItemStack instanceof IItemCustomizable)) {
+            return;
+        }
 
-        ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.itemDisplay.texture);
+        IItemCustomizable scriptCustomItem = (IItemCustomizable) iItemStack;
+        ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
         if (!imageData.imageLoaded()) {
             return;
         }
@@ -64,34 +70,34 @@ public class CustomItemRenderer implements IItemRenderer {
             if (!entityItem.ignoreFrustumCheck) {
                 entityItem.ignoreFrustumCheck = true;
 
-                float entityXZSize = (float) Math.sqrt(Math.pow(scriptCustomItem.itemDisplay.scaleX,2) + Math.pow(scriptCustomItem.itemDisplay.scaleZ,2));
-                this.setEntitySize(entityItem, entityXZSize * 0.25F, scriptCustomItem.itemDisplay.scaleY * 0.25F);
+                float entityXZSize = (float) Math.sqrt(Math.pow(scriptCustomItem.getScaleX(),2) + Math.pow(scriptCustomItem.getScaleZ(),2));
+                this.setEntitySize(entityItem, entityXZSize * 0.25F, scriptCustomItem.getScaleY() * 0.25F);
 
                 double XSize = entityItem.boundingBox.maxX - entityItem.boundingBox.minX;
                 double YSize = entityItem.boundingBox.maxY - entityItem.boundingBox.minY;
                 double ZSize = entityItem.boundingBox.maxZ - entityItem.boundingBox.minZ;
-                entityItem.boundingBox.maxX = entityItem.boundingBox.minX + XSize * scriptCustomItem.itemDisplay.scaleX;
-                entityItem.boundingBox.maxY = entityItem.boundingBox.minY + YSize * scriptCustomItem.itemDisplay.scaleY;
-                entityItem.boundingBox.maxZ = entityItem.boundingBox.minZ + ZSize * scriptCustomItem.itemDisplay.scaleZ;
+                entityItem.boundingBox.maxX = entityItem.boundingBox.minX + XSize * scriptCustomItem.getScaleX();
+                entityItem.boundingBox.maxY = entityItem.boundingBox.minY + YSize * scriptCustomItem.getScaleY();
+                entityItem.boundingBox.maxZ = entityItem.boundingBox.minZ + ZSize * scriptCustomItem.getScaleZ();
             }
 
             float entityRenderTicks = Minecraft.getMinecraft().timer.renderPartialTicks;
             float bobbing = MathHelper.sin(((float)entityItem.age + entityRenderTicks) / 10.0F + entityItem.hoverStart) * 0.1F + 0.1F;
 
-            if(!scriptCustomItem.isNormalItem){
-                GL11.glRotatef(scriptCustomItem.itemDisplay.rotationX, 1, 0, 0);
-                GL11.glRotatef(scriptCustomItem.itemDisplay.rotationY, 0, 1, 0);
-                GL11.glRotatef(scriptCustomItem.itemDisplay.rotationZ, 0, 0, 1);
+            if(!scriptCustomItem.isNormalItem()){
+                GL11.glRotatef(scriptCustomItem.getRotationX(), 1, 0, 0);
+                GL11.glRotatef(scriptCustomItem.getRotationY(), 0, 1, 0);
+                GL11.glRotatef(scriptCustomItem.getRotationZ(), 0, 0, 1);
             }
 
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationXRate * entityRenderTicks %360, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationYRate * entityRenderTicks %360, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationZRate * entityRenderTicks %360, 0, 0, 1);
+            GL11.glRotatef(scriptCustomItem.getRotationXRate() * entityRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationYRate() * entityRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZRate() * entityRenderTicks %360, 0, 0, 1);
 
             if (!renderInFrame) {
-                if(!scriptCustomItem.isNormalItem){
-                    GL11.glScalef(scriptCustomItem.itemDisplay.scaleX, scriptCustomItem.itemDisplay.scaleY, scriptCustomItem.itemDisplay.scaleZ);
-                    GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.itemDisplay.scaleY, 1) - 1) * (1.0F / 4), 0.0F);
+                if(!scriptCustomItem.isNormalItem()){
+                    GL11.glScalef(scriptCustomItem.getScaleX(), scriptCustomItem.getScaleY(), scriptCustomItem.getScaleZ());
+                    GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.getScaleY(), 1) - 1) * (1.0F / 4), 0.0F);
                 }
                 GL11.glTranslatef(0.0F, -bobbing, 0.0F);
             }
@@ -108,8 +114,7 @@ public class CustomItemRenderer implements IItemRenderer {
             return;
         }
 
-        if (type == ItemRenderType.EQUIPPED_FIRST_PERSON && scriptCustomItem.isNormalItem) {
-
+        if (type == ItemRenderType.EQUIPPED_FIRST_PERSON && scriptCustomItem.isNormalItem()) {
             GL11.glPushMatrix();
             GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
             GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
@@ -138,29 +143,29 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
 
         ((ItemScripted) itemStack.getItem()).renderOffset(scriptCustomItem);
-        if(scriptCustomItem.isNormalItem){
+        if(scriptCustomItem.isNormalItem()){
             GL11.glTranslatef(-0.05F, 0.3F, 0.3F);
             GL11.glRotatef(50, 1, 0, 0);
             GL11.glRotatef(-80, 0, 1, 0);
             GL11.glRotatef(80, 0, 0, 1);
 
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationXRate * item3dRenderTicks %360, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationYRate * item3dRenderTicks %360, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationZRate * item3dRenderTicks %360, 0, 0, 1);
+            GL11.glRotatef(scriptCustomItem.getRotationXRate() * item3dRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationYRate() * item3dRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZRate() * item3dRenderTicks %360, 0, 0, 1);
 
             GL11.glScalef(0.6F, 0.6F,0.6F);
         }
         else {
-            GL11.glTranslatef(scriptCustomItem.itemDisplay.translateX, scriptCustomItem.itemDisplay.translateY, scriptCustomItem.itemDisplay.translateZ);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationX, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationY, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationZ, 0, 0, 1);
+            GL11.glTranslatef(scriptCustomItem.getTranslateX(), scriptCustomItem.getTranslateY(), scriptCustomItem.getTranslateZ());
+            GL11.glRotatef(scriptCustomItem.getRotationX(), 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationY(), 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZ(), 0, 0, 1);
 
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationXRate * item3dRenderTicks %360, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationYRate * item3dRenderTicks %360, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.itemDisplay.rotationZRate * item3dRenderTicks %360, 0, 0, 1);
+            GL11.glRotatef(scriptCustomItem.getRotationXRate() * item3dRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationYRate() * item3dRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZRate() * item3dRenderTicks %360, 0, 0, 1);
 
-            GL11.glScalef(scriptCustomItem.itemDisplay.scaleX, scriptCustomItem.itemDisplay.scaleY, scriptCustomItem.itemDisplay.scaleZ);
+            GL11.glScalef(scriptCustomItem.getScaleX(), scriptCustomItem.getScaleY(), scriptCustomItem.getScaleZ());
         }
 
         int color = scriptCustomItem.getColor();
@@ -226,11 +231,11 @@ public class CustomItemRenderer implements IItemRenderer {
         }
     }
 
-    public void renderEntityCustomItem(ScriptCustomItem scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
+    public void renderEntityCustomItem(IItemCustomizable scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
         int pass = 0;
 
         GL11.glPushMatrix();
-            ClientCacheHandler.getImageData(scriptCustomItem.itemDisplay.texture).bindTexture();
+            ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
 
             if (renderInFrame)
             {
@@ -276,8 +281,8 @@ public class CustomItemRenderer implements IItemRenderer {
                     b0 = 4;
                 }
 
-                if(!scriptCustomItem.isNormalItem)
-                    GL11.glScalef(scriptCustomItem.itemDisplay.scaleX, scriptCustomItem.itemDisplay.scaleY, scriptCustomItem.itemDisplay.scaleZ);
+                if(!scriptCustomItem.isNormalItem())
+                    GL11.glScalef(scriptCustomItem.getScaleX(), scriptCustomItem.getScaleY(), scriptCustomItem.getScaleZ());
                 GL11.glTranslatef(-f7, -f8, -((f9 + f10) * (float)b0 / 2.0F));
 
                 for (int k = 0; k < b0; ++k)
@@ -289,7 +294,7 @@ public class CustomItemRenderer implements IItemRenderer {
                         GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
                     }*/
 
-                    ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.itemDisplay.texture);
+                    ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
                     ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
 
                     if (itemStack.hasEffect(pass))
@@ -378,7 +383,7 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glPopMatrix();
     }
 
-    public void renderInventoryCustomItem(ScriptCustomItem scriptCustomItem) {
+    public void renderInventoryCustomItem(IItemCustomizable scriptCustomItem) {
         GL11.glPushMatrix();
             int color = scriptCustomItem.getColor();
             float itemRed = (color >> 16 & 255) / 255f;
@@ -389,13 +394,13 @@ public class CustomItemRenderer implements IItemRenderer {
             GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
             GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-            ClientCacheHandler.getImageData(scriptCustomItem.itemDisplay.texture).bindTexture();
+            ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
             renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
             GL11.glEnable(GL11.GL_LIGHTING);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
-            if (scriptCustomItem.item.hasEffect(0))
+            if (scriptCustomItem.getMCItemStack().hasEffect(0))
             {
                 renderEffect(Minecraft.getMinecraft().getTextureManager(), 0, 0);
             }
@@ -457,14 +462,14 @@ public class CustomItemRenderer implements IItemRenderer {
         tessellator.draw();
     }
 
-    public void renderItem3d(ScriptCustomItem scriptCustomItem, EntityLivingBase entityLivingBase, ItemStack itemStack) {
+    public void renderItem3d(IItemCustomizable scriptCustomItem, EntityLivingBase entityLivingBase, ItemStack itemStack) {
         item3dRenderTicks++;
 
         Minecraft mc = Minecraft.getMinecraft();
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        ClientCacheHandler.getImageData(scriptCustomItem.itemDisplay.texture).bindTexture();
+        ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
 
         Tessellator tessellator = Tessellator.instance;
         IIcon icon = entityLivingBase.getItemIcon(itemStack, par3);
@@ -482,7 +487,7 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
         GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
 
-        renderCustomItemIn2D(itemStack, tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 0.0625F);
+        renderCustomItemIn2D(scriptCustomItem, tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 0.0625F);
 
         if (itemStack.hasEffect(par3)) {
             GL11.glDepthFunc(GL11.GL_EQUAL);
@@ -517,9 +522,9 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
     }
 
-    public static void renderCustomItemIn2D(ItemStack itemStack, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
+    public static void renderCustomItemIn2D(IItemCustomizable wrapper, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
     {
-        ImageData imageData = ClientCacheHandler.getImageData(ItemScripted.GetWrapper(itemStack).itemDisplay.texture);
+        ImageData imageData = ClientCacheHandler.getImageData(wrapper.getTexture());
         int width = imageData.getTotalWidth();
         int height = imageData.getTotalHeight();
 

@@ -63,6 +63,11 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         return this.enabled && ScriptController.HasStart;
     }
 
+    @Override
+    public INpcScriptHandler getScriptHandler() {
+        return this;
+    }
+
     public void callScript(EnumScriptType type, Event event) {
         this.callScript(type.function, event);
     }

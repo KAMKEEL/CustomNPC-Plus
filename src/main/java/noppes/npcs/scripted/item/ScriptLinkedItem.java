@@ -2,6 +2,7 @@ package noppes.npcs.scripted.item;
 
 import net.minecraft.item.ItemStack;
 import noppes.npcs.controllers.LinkedItemController;
+import noppes.npcs.controllers.data.INpcScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 
 public class ScriptLinkedItem extends ScriptCustomizableItem {
@@ -9,8 +10,8 @@ public class ScriptLinkedItem extends ScriptCustomizableItem {
 
     public ScriptLinkedItem(ItemStack item) {
         super(item);
-        String linkedItemName = item.getTagCompound().getString(LinkedItem.LINKED_NBT_TAG);
-        this.linkedItem = LinkedItemController.Instance().get(linkedItemName);
+        int linkedItemId = item.getTagCompound().getInteger(LinkedItem.LINKED_NBT_TAG);
+        this.linkedItem = LinkedItemController.Instance().get(linkedItemId);
 
         this.itemDisplay.texture = null;
         this.itemDisplay.translateX = null;
@@ -32,6 +33,11 @@ public class ScriptLinkedItem extends ScriptCustomizableItem {
 
     public LinkedItem getLinkedItem() {
         return this.linkedItem;
+    }
+
+    @Override
+    public INpcScriptHandler getScriptHandler() {
+        return this.getLinkedItem().getScriptHandler();
     }
 
     @Override

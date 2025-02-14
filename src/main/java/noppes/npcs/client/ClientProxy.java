@@ -63,6 +63,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
+import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -507,7 +508,7 @@ public class ClientProxy extends CommonProxy {
 
 	@Override
 	public void registerItem(Item item) {
-		if (item instanceof ItemScripted) {
+        if (item instanceof ItemScripted || item instanceof ItemLinked) {
 			MinecraftForgeClient.registerItemRenderer(item, new CustomItemRenderer());
 		} else {
 			MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());

@@ -2,13 +2,15 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagString;
+import net.minecraft.nbt.NBTTagInt;
 import noppes.npcs.CustomItems;
+import noppes.npcs.controllers.LinkedItemController;
 
 public class LinkedItem {
-    public static final String LINKED_NBT_TAG = "LinkedName";
+    public static final String LINKED_NBT_TAG = "LinkedId";
 
-    private final String name;
+    private int id = -1;
+    private String name;
     public final ItemDisplayData display = new ItemDisplayData();
 
     public double durabilityValue = 1.0D;
@@ -23,8 +25,20 @@ public class LinkedItem {
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
     public int enchantability;
 
+    public LinkedItem() {
+        this("New");
+    }
+
     public LinkedItem(String name) {
         this.name = name;
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -32,13 +46,23 @@ public class LinkedItem {
     }
 
     public ItemStack createStack() {
-        ItemStack linkedStack = new ItemStack(CustomItems.linked_item);
-        linkedStack.setTagInfo(LinkedItem.LINKED_NBT_TAG, new NBTTagString(this.getName()));
-        return linkedStack;
+        if (LinkedItemController.Instance().contains(this)) {
+            ItemStack linkedStack = new ItemStack(CustomItems.linked_item);
+            linkedStack.setTagInfo(LinkedItem.LINKED_NBT_TAG, new NBTTagInt(this.getId()));
+            return linkedStack;
+        }
+        return null;
+    }
+
+    public INpcScriptHandler getScriptHandler() {
+        return LinkedItemController.Instance().getScriptHandler(this.getId());
     }
 
     public NBTTagCompound writeToNBT() {
         NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("Id", this.id);
+        compound.setString("Name", this.name);
+
         compound.setTag("Display", this.display.writeToNBT());
 
         compound.setDouble("DurabilityValue",this.durabilityValue);
@@ -56,6 +80,9 @@ public class LinkedItem {
     }
 
     public void readFromNBT(NBTTagCompound compound) {
+        this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.Instance().getUnusedId();
+        this.name = compound.getString("Name");
+
         this.display.readFromNBT(compound.getCompoundTag("Display"));
 
         this.durabilityValue = compound.getDouble("DurabilityValue");
