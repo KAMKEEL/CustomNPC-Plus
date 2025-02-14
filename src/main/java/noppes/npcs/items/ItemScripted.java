@@ -26,7 +26,7 @@ import noppes.npcs.scripted.event.ItemEvent;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.GL11;
 
-public class ItemScripted extends Item implements ItemRenderInterface {
+public class ItemScripted extends ItemCustomizable {
     public ItemScripted() {
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
@@ -155,9 +155,6 @@ public class ItemScripted extends Item implements ItemRenderInterface {
         }
         return super.getItemUseAction(stack);
     }
-
-    @Override
-    public void renderSpecial() {}
 
     public void renderOffset(ScriptCustomItem scriptCustomItem) {
         GL11.glTranslatef(0.135F * scriptCustomItem.itemDisplay.scaleX, 0.2F * scriptCustomItem.itemDisplay.scaleY, 0.07F * scriptCustomItem.itemDisplay.scaleZ);
