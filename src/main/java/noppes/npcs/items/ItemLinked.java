@@ -1,24 +1,13 @@
 package noppes.npcs.items;
 
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
-import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Items;
 import net.minecraft.item.EnumAction;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.EventHooks;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.ItemEvent;
-import noppes.npcs.scripted.item.ScriptCustomItem;
 import noppes.npcs.scripted.item.ScriptLinkedItem;
 import org.lwjgl.opengl.GL11;
 
@@ -102,26 +91,6 @@ public class ItemLinked extends ItemCustomizable {
 //        ItemEvent.AttackEvent eve = new ItemEvent.AttackEvent( (ScriptLinkedItem) istack, NpcAPI.Instance().getIEntity(attacker), 1, NpcAPI.Instance().getIEntity(target));
 //        return EventHooks.onScriptItemAttack((ScriptLinkedItem) istack, eve);
         return true;
-    }
-
-    public EnumAction getItemUseAction(ItemStack stack)
-    {
-        IItemStack istack = NpcAPI.Instance().getIItemStack(stack);
-        if (istack instanceof ScriptLinkedItem) {
-            switch (((ScriptLinkedItem) istack).getItemUseAction()) {
-                case 0:
-                    return EnumAction.none;
-                case 1:
-                    return EnumAction.block;
-                case 2:
-                    return EnumAction.bow;
-                case 3:
-                    return EnumAction.eat;
-                case 4:
-                    return EnumAction.drink;
-            }
-        }
-        return super.getItemUseAction(stack);
     }
 
     public void renderOffset(ScriptLinkedItem scriptCustomItem) {
