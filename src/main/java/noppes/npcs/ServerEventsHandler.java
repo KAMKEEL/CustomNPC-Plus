@@ -26,7 +26,6 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
@@ -41,8 +40,8 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
+import noppes.npcs.blocks.tiles.ITileIcon;
 import noppes.npcs.blocks.tiles.TileBanner;
-import noppes.npcs.blocks.tiles.TileSign;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.*;
@@ -224,45 +223,18 @@ public class ServerEventsHandler {
 			int meta = player.worldObj.getBlockMetadata(event.x, event.y, event.z);
 			if(meta >= 7)
 				y--;
-			TileEntity tile = player.worldObj.getTileEntity(event.x, y, event.z);
-            if(tile instanceof TileBanner){
-                TileBanner banner = (TileBanner) tile;
-                if(!banner.canEdit()){
-                    if(item.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)){
-                        banner.time = System.currentTimeMillis();
-                        if(player.worldObj.isRemote)
-                            player.addChatComponentMessage(new ChatComponentTranslation("availability.editIcon"));
-                    }
-                    return;
-                }
-            } else if (tile instanceof TileSign) {
-                TileSign sign = (TileSign) tile;
-                if(!sign.canEdit()){
-                    if(item.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)){
-                        sign.time = System.currentTimeMillis();
-                        if(player.worldObj.isRemote)
-                            player.addChatComponentMessage(new ChatComponentTranslation("availability.editIcon"));
-                    }
-                    return;
-                }
-            }
-
+            ITileIcon tile = (ITileIcon)player.worldObj.getTileEntity(event.x, y, event.z);
+			if(!tile.canEdit()){
+				if(item.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)){
+					tile.setTime(System.currentTimeMillis());
+					if(player.worldObj.isRemote)
+						player.addChatComponentMessage(new ChatComponentTranslation("availability.editIcon"));
+				}
+				return;
+			}
 
 			if(!player.worldObj.isRemote){
-                if(block == CustomItems.banner || block == CustomItems.wallBanner){
-                    // If sneaking and using shear
-                    if(player.isSneaking() && item.getItem() == Items.shears){
-                        int currentVariantIndex = tile.bannerTrim.ordinal();
-                        int nextVariantIndex = (currentVariantIndex + 1) % EnumBannerVariant.values().length;
-                        tile.bannerTrim = EnumBannerVariant.values()[nextVariantIndex];
-
-                        player.worldObj.markBlockForUpdate(event.x, y, event.z);
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
-
-				tile.icon = item.copy();
+				tile.setIcon(item.copy());
 				player.worldObj.markBlockForUpdate(event.x, y, event.z);
 				event.setCanceled(true);
 			}

@@ -4,7 +4,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 
-public class TileSign extends TileVariant {
+public class TileSign extends TileVariant implements ITileIcon {
 
     public ItemStack icon;
     public long time = 0;
@@ -27,6 +27,16 @@ public class TileSign extends TileVariant {
 
     public boolean canEdit(){
         return System.currentTimeMillis() - time  < 20000;
+    }
+
+    @Override
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    @Override
+    public void setIcon(ItemStack stack) {
+        this.icon = stack;
     }
 
 }

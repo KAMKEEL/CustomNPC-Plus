@@ -5,7 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import noppes.npcs.constants.EnumBannerVariant;
 
-public class TileBanner extends TileColorable {
+public class TileBanner extends TileColorable implements ITileIcon {
 
 	public ItemStack icon;
     public EnumBannerVariant bannerTrim = EnumBannerVariant.Normal;
@@ -35,7 +35,18 @@ public class TileBanner extends TileColorable {
 		return AxisAlignedBB.getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 2, zCoord + 1);
     }
 
-	public boolean canEdit(){
+    @Override
+    public boolean canEdit(){
 		return System.currentTimeMillis() - time  < 20000;
 	}
+
+    @Override
+    public void setTime(long time){
+        this.time = time;
+    }
+
+    @Override
+    public void setIcon(ItemStack stack){
+        this.icon = stack;
+    }
 }
