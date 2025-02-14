@@ -1,11 +1,12 @@
 package noppes.npcs.scripted.item;
 
 import net.minecraft.item.ItemStack;
+import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.data.INpcScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 
-public class ScriptLinkedItem extends ScriptCustomizableItem {
+public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLinked {
     private final LinkedItem linkedItem;
 
     public ScriptLinkedItem(ItemStack item) {
