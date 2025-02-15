@@ -79,7 +79,7 @@ public class BlockShortLamp extends BlockContainer {
         l %= 4;
         TileColorable tile = (TileColorable) world.getTileEntity(x, y, z);
         tile.rotation = l;
-        tile.color = colorTableInts[BlockColored.func_150031_c(15 - stack.getItemDamage())];
+        tile.color = colorTableInts[15 - stack.getItemDamage()];
         world.setBlockMetadataWithNotify(x, y, z, stack.getItemDamage(), 2);
     }
 
