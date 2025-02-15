@@ -8,18 +8,20 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.items.ItemNpcTool;
 
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
+
 public class TileColorable extends TileVariant {
 
     public int color = 0xFFFFFF;
 
     public void readFromNBT(NBTTagCompound compound){
         super.readFromNBT(compound);
-        color = compound.getInteger("BrushColor");
+        color = compound.getInteger(BRUSH_COLOR_TAG);
     }
 
     public void writeToNBT(NBTTagCompound compound){
     	super.writeToNBT(compound);
-    	compound.setInteger("BrushColor", color);
+    	compound.setInteger(BRUSH_COLOR_TAG, color);
     }
 
     public void setColor(int color){

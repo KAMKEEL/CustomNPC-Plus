@@ -8,6 +8,8 @@ import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
+
 public class TileVariant extends TileEntity {
 
     public static int variantVersion = 1;
@@ -67,7 +69,7 @@ public class TileVariant extends TileEntity {
             if(compound.hasKey("BannerColor")){
                 int bannerColor = compound.getInteger("BannerColor");
                 if(isColorTile(tileEntity)){
-                    compound.setInteger("BrushColor", ColorUtil.colorTableInts[bannerColor]);
+                    compound.setInteger(BRUSH_COLOR_TAG, ColorUtil.colorTableInts[bannerColor]);
                 }
                 compound.setInteger("CNPCVariant", bannerColor);
                 fixMade = true;
