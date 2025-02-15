@@ -33,6 +33,7 @@ public class BlockShortLamp extends BlockContainer {
     public BlockShortLamp() {
         super(Material.wood);
         setLightLevel(1);
+        setBlockBounds(0.25f, 0, 0.25f, 0.75f, 1, 0.75f);
     }
 
     @Override
@@ -85,8 +86,7 @@ public class BlockShortLamp extends BlockContainer {
 
     @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
-        // Always one block tall.
-        setBlockBounds(0, 0, 0, 1, 1, 1);
+        setBlockBounds(0.25f, 0, 0.25f, 0.75f, 1, 0.75f);
     }
 
     @Override
