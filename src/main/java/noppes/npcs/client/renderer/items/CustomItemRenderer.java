@@ -242,6 +242,7 @@ public class CustomItemRenderer implements IItemRenderer {
                 GL11.glTranslatef(0.0F, -0.05F, 0.0F);
                 GL11.glScalef(1.025641F,1.025641F,1.025641F);
                 GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+                GL11.glTranslatef(scriptCustomItem.getTranslateX(), scriptCustomItem.getTranslateY(), scriptCustomItem.getTranslateZ());
             }
 
             Tessellator tessellator = Tessellator.instance;
