@@ -210,6 +210,8 @@ public class CustomNpcs {
         new LinkedNpcController();
         new AnimationController();
 
+        LinkedItemController.Instance().load();
+
         // Custom Effects
         CustomEffectController.getInstance().load();
 

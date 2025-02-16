@@ -1,16 +1,16 @@
 package noppes.npcs.controllers.data;
 
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
-import noppes.npcs.CustomItems;
+import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.controllers.LinkedItemController;
 
-public class LinkedItem {
-    public static final String LINKED_NBT_TAG = "LinkedId";
+public class LinkedItem implements ILinkedItem {
+    public static final String LINKED_VERSION_VERSION_TAG = "LinkedVersion";
+    public static final String LINKED_DATA_NBT_TAG = "LinkedData";
 
-    private int id = -1;
-    private String name;
+    public int id = -1;
+    public int version = 1;
+    public String name;
     public final ItemDisplayData display = new ItemDisplayData();
 
     public double durabilityValue = 1.0D;
@@ -33,27 +33,6 @@ public class LinkedItem {
         this.name = name;
     }
 
-    public int getId() {
-        return this.id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public ItemStack createStack() {
-        if (LinkedItemController.Instance().contains(this)) {
-            ItemStack linkedStack = new ItemStack(CustomItems.linked_item);
-            linkedStack.setTagInfo(LinkedItem.LINKED_NBT_TAG, new NBTTagInt(this.getId()));
-            return linkedStack;
-        }
-        return null;
-    }
-
     public INpcScriptHandler getScriptHandler() {
         return LinkedItemController.Instance().getScriptHandler(this.getId());
     }
@@ -61,6 +40,7 @@ public class LinkedItem {
     public NBTTagCompound writeToNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("Id", this.id);
+        compound.setInteger("Version", this.version);
         compound.setString("Name", this.name);
 
         compound.setTag("Display", this.display.writeToNBT());
@@ -79,9 +59,14 @@ public class LinkedItem {
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound) {
-        this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.Instance().getUnusedId();
+    public void readFromNBT(NBTTagCompound compound, boolean checkID) {
+        if(checkID)
+            this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.Instance().getUnusedId();
+        else
+            this.id = compound.getInteger("Id");
+
         this.name = compound.getString("Name");
+        this.version = compound.getInteger("Version");
 
         this.display.readFromNBT(compound.getCompoundTag("Display"));
 
@@ -97,4 +82,131 @@ public class LinkedItem {
         this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
         this.itemUseAction = compound.getInteger("ItemUseAction");
     }
+
+    public ILinkedItem save() {
+        return LinkedItemController.Instance().saveLinkedItem(this);
+    }
+
+    @Override
+    public int getId() {
+        return id;
+    }
+
+    @Override
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public int getVersion() {
+        return version;
+    }
+
+    @Override
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public double getDurabilityValue() {
+        return durabilityValue;
+    }
+
+    @Override
+    public void setDurabilityValue(double durabilityValue) {
+        this.durabilityValue = durabilityValue;
+    }
+
+    @Override
+    public int getStackSize() {
+        return stackSize;
+    }
+
+    @Override
+    public void setStackSize(int stackSize) {
+        this.stackSize = stackSize;
+    }
+
+    @Override
+    public int getMaxItemUseDuration() {
+        return maxItemUseDuration;
+    }
+
+    @Override
+    public void setMaxItemUseDuration(int maxItemUseDuration) {
+        this.maxItemUseDuration = maxItemUseDuration;
+    }
+
+    @Override
+    public int getItemUseAction() {
+        return itemUseAction;
+    }
+
+    @Override
+    public void setItemUseAction(int itemUseAction) {
+        this.itemUseAction = itemUseAction;
+    }
+
+    @Override
+    public boolean isNormalItem() {
+        return isNormalItem;
+    }
+
+    @Override
+    public void setNormalItem(boolean normalItem) {
+        isNormalItem = normalItem;
+    }
+
+    @Override
+    public boolean isTool() {
+        return isTool;
+    }
+
+    @Override
+    public void setTool(boolean tool) {
+        isTool = tool;
+    }
+
+    @Override
+    public int getDigSpeed() {
+        return digSpeed;
+    }
+
+    @Override
+    public void setDigSpeed(int digSpeed) {
+        this.digSpeed = digSpeed;
+    }
+
+    @Override
+    public int getArmorType() {
+        return armorType;
+    }
+
+    @Override
+    public void setArmorType(int armorType) {
+        this.armorType = armorType;
+    }
+
+    @Override
+    public int getEnchantability() {
+        return enchantability;
+    }
+
+    @Override
+    public void setEnchantability(int enchantability) {
+        this.enchantability = enchantability;
+    }
+
+    // ADD / GET SETS FOR LINKED ITEM DISPLAY THINGS
+
 }

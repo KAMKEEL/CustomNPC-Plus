@@ -14,39 +14,22 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
 
     public abstract int getMaxStackSize();
 
-//    public abstract void setArmorType(int armorType);
-
     public abstract int getArmorType();
-
-//    public abstract void setIsTool(boolean isTool);
 
     public abstract boolean isTool();
 
-//    public abstract void setIsNormalItem(boolean normalItem);
-
     public abstract boolean isNormalItem();
-
-//    public abstract void setDigSpeed(int digSpeed);
 
     public abstract int getDigSpeed();
 
-//    public abstract void setMaxStackSize(int size);
-
     public abstract double getDurabilityValue();
-
-//    public abstract void setDurabilityValue(float value);
 
     public abstract int getMaxItemUseDuration();
 
-//    public abstract void setMaxItemUseDuration(int duration);
-
     public abstract int getItemUseAction();
-
-//    public abstract void setItemUseAction(int action);
 
     public abstract int getEnchantability();
 
-//    public abstract void setEnchantability(int enchantability);
 
     public String getTexture() {
         return this.itemDisplay.texture == null ? "" : this.itemDisplay.texture;

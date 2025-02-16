@@ -317,14 +317,7 @@ public class ScriptItemStack implements IItemStack {
             return null;
 
         if (item.getItem() instanceof ItemLinked) {
-            LinkedItem linkedItem;
-            if (item.hasTagCompound()) {
-                int linkedItemId = item.getTagCompound().getInteger(LinkedItem.LINKED_NBT_TAG);
-                linkedItem = LinkedItemController.Instance().get(linkedItemId);
-                if (linkedItem != null) {
-                    return new ScriptLinkedItem(item);
-                }
-            }
+            return new ScriptLinkedItem(item);
         }
         if(item.getItem() instanceof ItemScripted) {
             return new ScriptCustomItem(item);

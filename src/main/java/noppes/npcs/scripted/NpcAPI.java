@@ -470,15 +470,7 @@ public class NpcAPI extends AbstractNpcAPI {
             if (scriptItemCache.containsKey(itemstack)) {
                 scriptStack = scriptItemCache.get(itemstack).getObject();
             } else {
-                LinkedItem linkedItem;
-                if (itemstack.hasTagCompound()) {
-                    int linkedItemId = itemstack.getTagCompound().getInteger(LinkedItem.LINKED_NBT_TAG);
-                    linkedItem = LinkedItemController.Instance().get(linkedItemId);
-                } else {
-                    linkedItem = null;
-                }
-
-                if (linkedItem != null && itemstack.getItem() instanceof ItemLinked) {
+                if (itemstack.getItem() instanceof ItemLinked) {
                     scriptStack = new ScriptLinkedItem(itemstack);
                 } else if (itemstack.getItem() instanceof ItemScripted) {
                     scriptStack = new ScriptCustomItem(itemstack);
