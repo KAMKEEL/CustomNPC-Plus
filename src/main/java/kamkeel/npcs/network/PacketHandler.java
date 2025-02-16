@@ -43,10 +43,7 @@ import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerRemovePacket;
-import kamkeel.npcs.network.packets.request.linked.LinkedAddPacket;
-import kamkeel.npcs.network.packets.request.linked.LinkedGetAllPacket;
-import kamkeel.npcs.network.packets.request.linked.LinkedRemovePacket;
-import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
+import kamkeel.npcs.network.packets.request.linked.*;
 import kamkeel.npcs.network.packets.request.mainmenu.*;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetAllPacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
@@ -150,6 +147,7 @@ public class PacketHandler {
 
         // Linked Packets
         REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());
+        REQUEST_PACKET.registerPacket(new LinkedGetPacket());
         REQUEST_PACKET.registerPacket(new LinkedRemovePacket());
         REQUEST_PACKET.registerPacket(new LinkedSetPacket());
         REQUEST_PACKET.registerPacket(new LinkedAddPacket());

@@ -3,26 +3,32 @@ package kamkeel.npcs.network.packets.request.linked;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.AbstractPacket;
-import kamkeel.npcs.network.PacketChannel;
-import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.ScrollSelectedPacket;
+import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.LinkedNpcController;
+import noppes.npcs.controllers.data.LinkedItem;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public final class LinkedGetAllPacket extends AbstractPacket {
     public static String packetName = "Request|LinkedGetAll";
 
+    private Action action;
     public LinkedGetAllPacket() {}
+
+    public LinkedGetAllPacket(Action action) {
+        this.action = action;
+    }
 
     @Override
     public Enum getType() {
@@ -37,6 +43,7 @@ public final class LinkedGetAllPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
+        out.writeInt(this.action.ordinal());
     }
 
     @Override
@@ -45,13 +52,36 @@ public final class LinkedGetAllPacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
-        List<String> list = new ArrayList<>();
-        for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
-            list.add(d.name);
+
+        Action action = Action.values()[in.readInt()];
+        if(action == Action.NPC){
+            HashMap<String, Integer> list = new HashMap<>();
+            for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
+                list.put(d.name, 0);
+            }
+            ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list);
+            if (npc != null) {
+                ScrollSelectedPacket.setSelectedList((EntityPlayerMP) player, npc.linkedName);
+            }
+        } else if (action == Action.ITEM){
+            HashMap<String, Integer> list = new HashMap<>();
+            for (LinkedItem linkedItem : LinkedItemController.Instance().linkedItems.values()) {
+                list.put(linkedItem.name, linkedItem.id);
+            }
+            ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list);
         }
-        ScrollListPacket.sendList((EntityPlayerMP) player, list);
-        if (npc != null) {
-            ScrollSelectedPacket.setSelectedList((EntityPlayerMP) player, npc.linkedName);
-        }
+    }
+
+    public static void GetNPCs(){
+        PacketClient.sendClient(new LinkedGetAllPacket(Action.NPC));
+    }
+
+    public static void GetItems(){
+        PacketClient.sendClient(new LinkedGetAllPacket(Action.ITEM));
+    }
+
+    private enum Action {
+        NPC,
+        ITEM
     }
 }

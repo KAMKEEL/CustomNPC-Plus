@@ -19,8 +19,8 @@ public class LinkedItemController {
     private static LinkedItemController Instance;
     private int lastUsedID = 0;
 
-    private HashMap<Integer, LinkedItem> linkedItems = new HashMap<>();
-    private HashMap<Integer, LinkedItemScript> linkedItemsScripts = new HashMap<>();
+    public HashMap<Integer, LinkedItem> linkedItems = new HashMap<>();
+    public HashMap<Integer, LinkedItemScript> linkedItemsScripts = new HashMap<>();
 
     private HashMap<Integer, String> bootOrder;
 

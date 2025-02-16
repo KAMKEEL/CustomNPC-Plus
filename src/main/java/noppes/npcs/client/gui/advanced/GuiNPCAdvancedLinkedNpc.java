@@ -24,7 +24,7 @@ public class GuiNPCAdvancedLinkedNpc extends GuiNPCInterface2 implements IScroll
     public GuiNPCAdvancedLinkedNpc(EntityNPCInterface npc){
     	super(npc);
     	Instance = this;
-        PacketClient.sendClient(new LinkedGetAllPacket());
+        LinkedGetAllPacket.GetNPCs();
     }
 
     @Override

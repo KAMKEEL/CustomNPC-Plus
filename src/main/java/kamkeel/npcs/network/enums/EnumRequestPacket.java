@@ -1,4 +1,7 @@
 package kamkeel.npcs.network.enums;
+
+import noppes.npcs.controllers.data.EffectScript;
+
 public enum EnumRequestPacket {
     NPCDelete,
     RemoteMainMenu,
@@ -122,6 +125,7 @@ public enum EnumRequestPacket {
     LinkedAdd,
     LinkedGetAll,
     LinkedSet,
+    LinkedGet,
 
     BankGet,
     BanksGet,
@@ -178,5 +182,5 @@ public enum EnumRequestPacket {
     EffectRemove,
     EffectSave,
 
-    ColorSet, ColorBrush,
+    ColorSet, ColorBrush
 }
