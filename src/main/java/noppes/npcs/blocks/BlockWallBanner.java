@@ -12,19 +12,19 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileCouchWool;
 import noppes.npcs.blocks.tiles.TileWallBanner;
 
 import java.util.List;
 
 import static kamkeel.npcs.util.ColorUtil.colorTableInts;
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
 public class BlockWallBanner extends BlockContainer{
 
@@ -61,6 +61,10 @@ public class BlockWallBanner extends BlockContainer{
     	TileWallBanner tile = (TileWallBanner) par1World.getTileEntity(par2, par3, par4);
         tile.rotation = l;
         tile.color = colorTableInts[15 - par6ItemStack.getItemDamage()];
+        if(par6ItemStack.hasTagCompound() && par6ItemStack.getTagCompound().hasKey(BRUSH_COLOR_TAG)){
+            tile.color = par6ItemStack.getTagCompound().getInteger(BRUSH_COLOR_TAG);
+        }
+
     	tile.time = System.currentTimeMillis();
 
         par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
@@ -130,4 +134,19 @@ public class BlockWallBanner extends BlockContainer{
 	public TileEntity createNewTileEntity(World var1, int var2) {
 		return new TileWallBanner();
 	}
+
+    @Override
+    public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
+        TileEntity tileentity = world.getTileEntity(x, y, z);
+        ItemStack stack = new ItemStack(this, 1, world.getBlockMetadata(x, y, z));
+        if (tileentity instanceof TileWallBanner) {
+            NBTTagCompound compound = new NBTTagCompound();
+            tileentity.writeToNBT(compound);
+
+            NBTTagCompound brushCompound = new NBTTagCompound();
+            brushCompound.setInteger(BRUSH_COLOR_TAG, compound.getInteger(BRUSH_COLOR_TAG));
+            stack.setTagCompound(brushCompound);
+        }
+        return stack;
+    }
 }

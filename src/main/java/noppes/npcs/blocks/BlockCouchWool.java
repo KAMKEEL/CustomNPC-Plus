@@ -13,10 +13,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
@@ -25,6 +27,7 @@ import noppes.npcs.blocks.tiles.TileCouchWool;
 import java.util.List;
 
 import static kamkeel.npcs.util.ColorUtil.colorTableInts;
+import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
 public class BlockCouchWool extends BlockContainer {
 
@@ -75,15 +78,18 @@ public class BlockCouchWool extends BlockContainer {
     }
 
     @Override
-    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack)
+    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack itemStack)
     {
         int l = MathHelper.floor_double((double)(par5EntityLivingBase.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
         l %= 4;
         TileCouchWool tile = (TileCouchWool) par1World.getTileEntity(par2, par3, par4);
         tile.rotation = l;
-        tile.color = colorTableInts[15 - par6ItemStack.getItemDamage()];
+        tile.color = colorTableInts[15 - itemStack.getItemDamage()];
+        if(itemStack.hasTagCompound() && itemStack.getTagCompound().hasKey(BRUSH_COLOR_TAG)){
+            tile.color = itemStack.getTagCompound().getInteger(BRUSH_COLOR_TAG);
+        }
 
-        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
+        par1World.setBlockMetadataWithNotify(par2, par3, par4, itemStack.getItemDamage(), 2);
     	updateModel(par1World, par2, par3, par4, tile);
         onNeighborBlockChange(par1World, par2 + 1, par3, par4, this);
         onNeighborBlockChange(par1World, par2 - 1, par3, par4, this);
@@ -192,4 +198,18 @@ public class BlockCouchWool extends BlockContainer {
 		return new TileCouchWool();
 	}
 
+    @Override
+    public ItemStack getPickBlock(MovingObjectPosition target, World world, int x, int y, int z) {
+        TileEntity tileentity = world.getTileEntity(x, y, z);
+        ItemStack stack = new ItemStack(this, 1, world.getBlockMetadata(x, y, z));
+        if (tileentity instanceof TileCouchWool) {
+            NBTTagCompound compound = new NBTTagCompound();
+            tileentity.writeToNBT(compound);
+
+            NBTTagCompound brushCompound = new NBTTagCompound();
+            brushCompound.setInteger(BRUSH_COLOR_TAG, compound.getInteger(BRUSH_COLOR_TAG));
+            stack.setTagCompound(brushCompound);
+        }
+        return stack;
+    }
 }

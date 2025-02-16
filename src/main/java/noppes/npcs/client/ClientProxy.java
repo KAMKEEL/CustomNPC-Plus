@@ -58,9 +58,7 @@ import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.*;
-import noppes.npcs.client.renderer.items.CustomItemRenderer;
-import noppes.npcs.client.renderer.items.NpcItemToolRenderer;
-import noppes.npcs.client.renderer.items.ScriptedBlockItemRenderer;
+import noppes.npcs.client.renderer.items.*;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
@@ -138,6 +136,13 @@ public class ClientProxy extends CommonProxy {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBook.class, new BlockBookRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TilePedestal.class, new BlockPedestalRenderer());
 			RenderingRegistry.registerBlockHandler(new BlockBloodRenderer());
+
+            // Tile Item Renderers
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.couchWool), new ItemCouchWoolRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.banner), new ItemBannerRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.wallBanner), new ItemBannerWallRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.shortLamp), new ItemShortLampRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.tallLamp), new ItemTallLampRenderer());
 		}
 		Minecraft mc = Minecraft.getMinecraft();
 

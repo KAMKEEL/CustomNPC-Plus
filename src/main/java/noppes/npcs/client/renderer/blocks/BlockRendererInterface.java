@@ -93,7 +93,7 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	public int specialRenderDistance(){
 		return 20;
 	}
-    public void setWoodTexture(int meta){
+    public static void setWoodTexture(int meta){
     	TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
         	manager.bindTexture(PlanksSpruce);

@@ -21,12 +21,12 @@ import org.lwjgl.opengl.GL12;
 
 public class BlockTallLampRenderer extends BlockRendererInterface{
 
-	private final ModelLegacyTallLamp modelLegacy = new ModelLegacyTallLamp();
-    private final ModelLegacyTallLampTop topLegacy = new ModelLegacyTallLampTop();
+	public static final ModelLegacyTallLamp modelLegacy = new ModelLegacyTallLamp();
+    public static final ModelLegacyTallLampTop topLegacy = new ModelLegacyTallLampTop();
     public static final ResourceLocation resourceTop = new ResourceLocation("customnpcs","textures/cache/wool_colored_white.png");
 
 
-    private final ModelTallLamp model = new ModelTallLamp();
+    public static final ModelTallLamp model = new ModelTallLamp();
 
     public static final ResourceLocation wood = new ResourceLocation("customnpcs","textures/models/lamp/tall/wood.png");
     public static final ResourceLocation stone = new ResourceLocation("customnpcs","textures/models/lamp/tall/stone.png");
@@ -85,34 +85,9 @@ public class BlockTallLampRenderer extends BlockRendererInterface{
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0, 0.42f, 0);
-        GL11.glScalef(0.76f, 0.66f, 0.76f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-        if(ConfigClient.LegacyTallLamp){
-            setMaterialTexture(metadata);
-            GL11.glColor3f(1, 1, 1);
-            modelLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+			RenderBlocks renderer) {}
 
-            this.bindTexture(resourceTop);
-            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-            GL11.glColor3f(color[0], color[1], color[2]);
-            topLegacy.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        } else {
-            setLampTexture(metadata);
-            model.Lamp.render(0.0625F);
-            model.Light.render(0.0625F);
-            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-            GL11.glColor3f(color[0], color[1], color[2]);
-            model.Shade.render(0.0625F);
-        }
-
-		GL11.glPopMatrix();
-	}
-
-    public void setLampTexture(int meta){
+    public static void setLampTexture(int meta){
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
             manager.bindTexture(stone);

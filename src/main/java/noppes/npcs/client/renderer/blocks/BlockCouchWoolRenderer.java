@@ -23,11 +23,11 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
     private final ModelCouchLeft modelCouchLeft = new ModelCouchLeft();
     private final ModelCouchRight modelCouchRight = new ModelCouchRight();
     private final ModelCouchCorner modelCouchCorner = new ModelCouchCorner();
-    private final ModelCouchMiddle modelCouch = new ModelCouchMiddle();
+    public static  final ModelCouchMiddle modelCouch = new ModelCouchMiddle();
     private final ModelCouchSingle modelCouchSingle = new ModelCouchSingle();
 
-	private final ModelBase modelLegacyCouchMiddle = new ModelLegacyCouchMiddle();
-	private final ModelBase modelLegacyCouchMiddleWool = new ModelLegacyCouchMiddleWool();
+    public static final ModelBase modelLegacyCouchMiddle = new ModelLegacyCouchMiddle();
+	public static final ModelBase modelLegacyCouchMiddleWool = new ModelLegacyCouchMiddleWool();
 
 	private final ModelBase modelLegacyCouchLeft = new ModelLegacyCouchLeft();
 	private final ModelBase modelLegacyCouchLeftWool = new ModelLegacyCouchLeftWool();
@@ -39,14 +39,14 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
 	private final ModelBase modelLegacyCouchCornerWool = new ModelLegacyCouchCornerWool();
 
 
-    private static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/couch/oak.png");
-    private static final ResourceLocation spruce = new ResourceLocation("customnpcs","textures/models/couch/spruce.png");
-    private static final ResourceLocation birch = new ResourceLocation("customnpcs","textures/models/couch/birch.png");
-    private static final ResourceLocation jungle = new ResourceLocation("customnpcs","textures/models/couch/jungle.png");
-    private static final ResourceLocation acacia = new ResourceLocation("customnpcs","textures/models/couch/acacia.png");
-    private static final ResourceLocation dark_oak = new ResourceLocation("customnpcs","textures/models/couch/dark_oak.png");
+    public static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/couch/oak.png");
+    public static final ResourceLocation spruce = new ResourceLocation("customnpcs","textures/models/couch/spruce.png");
+    public static final ResourceLocation birch = new ResourceLocation("customnpcs","textures/models/couch/birch.png");
+    public static final ResourceLocation jungle = new ResourceLocation("customnpcs","textures/models/couch/jungle.png");
+    public static final ResourceLocation acacia = new ResourceLocation("customnpcs","textures/models/couch/acacia.png");
+    public static final ResourceLocation dark_oak = new ResourceLocation("customnpcs","textures/models/couch/dark_oak.png");
 
-    private static final ResourceLocation wool = new ResourceLocation("customnpcs","textures/models/couch/wool.png");
+    public static final ResourceLocation wool = new ResourceLocation("customnpcs","textures/models/couch/wool.png");
 
     public BlockCouchWoolRenderer(){
 		((BlockCouchWool)CustomItems.couchWool).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -139,26 +139,6 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
 		GL11.glPopMatrix();
 	}
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0, 0.9f, 0.1f);
-        GL11.glScalef(0.9f, 0.9f, 0.9f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-
-        setWoodTexture(metadata);
-        GL11.glColor3f(1, 1, 1);
-        modelLegacyCouchMiddle.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-        this.bindTexture(BlockTallLampRenderer.resourceTop);
-        float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-        GL11.glColor3f(color[0], color[1], color[2]);
-        modelLegacyCouchMiddleWool.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-		GL11.glPopMatrix();
-	}
-
     public void setCouchWood(int meta){
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
@@ -175,7 +155,10 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface{
             manager.bindTexture(oak);
     }
 
-	@Override
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {}
+
+    @Override
 	public int getRenderId() {
 		return CustomItems.couchWool.getRenderType();
 	}

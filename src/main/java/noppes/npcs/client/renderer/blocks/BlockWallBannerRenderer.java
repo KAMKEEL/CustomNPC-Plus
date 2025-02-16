@@ -27,11 +27,11 @@ import org.lwjgl.opengl.GL12;
 
 public class BlockWallBannerRenderer extends BlockRendererInterface{
 
-	private final ModelLegacyWallBanner modelLegacyWallBanner = new ModelLegacyWallBanner();
-	private final ModelLegacyWallBannerFlag modelLegacyWallBannerFlag = new ModelLegacyWallBannerFlag();
+	public static final ModelLegacyWallBanner modelLegacyWallBanner = new ModelLegacyWallBanner();
+    public static final ModelLegacyWallBannerFlag modelLegacyWallBannerFlag = new ModelLegacyWallBannerFlag();
 
-    private final ModelBannerWall model = new ModelBannerWall();
-    private final ModelBannerWallFlag flag = new ModelBannerWallFlag();
+    public static final ModelBannerWall model = new ModelBannerWall();
+    public static final ModelBannerWallFlag flag = new ModelBannerWallFlag();
 
     public BlockWallBannerRenderer(){
 		((BlockWallBanner)CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -188,35 +188,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0, 0.26f, 0.3f);
-        GL11.glScalef(0.95f, 0.85f, 0.95f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-
-        if(ConfigClient.LegacyBanner){
-            setMaterialTexture(metadata);
-            GL11.glColor3f(1, 1, 1);
-            modelLegacyWallBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-            this.bindTexture(BlockBannerRenderer.legacyFlagResource);
-            float[] color = ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-            GL11.glColor3f(color[0], color[1], color[2]);
-            modelLegacyWallBannerFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-        else {
-            flag.BannerFlag.rotateAngleX = 0;
-            BlockBannerRenderer.setBannerMaterial(metadata);
-            model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-            this.bindTexture(BlockBannerRenderer.normalFlag);
-            float[] color = ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-            GL11.glColor3f(color[0], color[1], color[2]);
-            flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-		GL11.glPopMatrix();
-	}
+			RenderBlocks renderer) {}
 
 	@Override
 	public int getRenderId() {

@@ -27,11 +27,11 @@ import org.lwjgl.opengl.GL12;
 
 public class BlockBannerRenderer extends BlockRendererInterface{
 
-	private final ModelLegacyBanner legacyBanner = new ModelLegacyBanner();
-	private final ModelLegacyBannerFlag legacyFlag = new ModelLegacyBannerFlag();
+    public static final ModelLegacyBanner legacyBanner = new ModelLegacyBanner();
+    public static final ModelLegacyBannerFlag legacyFlag = new ModelLegacyBannerFlag();
 
-    private final ModelBannerFloor banner = new ModelBannerFloor();
-    private final ModelBannerFloorFlag flag = new ModelBannerFloorFlag();
+    public static final ModelBannerFloor banner = new ModelBannerFloor();
+    public static final ModelBannerFloorFlag flag = new ModelBannerFloorFlag();
 
     public static final ResourceLocation legacyFlagResource = new ResourceLocation("customnpcs","textures/models/legacy/banner.png");
 
@@ -183,35 +183,7 @@ public class BlockBannerRenderer extends BlockRendererInterface{
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0, 0.44f, 0);
-        GL11.glScalef(0.76f, 0.66f, 0.76f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-
-        if(ConfigClient.LegacyBanner){
-            setMaterialTexture(metadata);
-            GL11.glColor3f(1, 1, 1);
-            legacyBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-            this.bindTexture(legacyFlagResource);
-            float[] color =  ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-            GL11.glColor3f(color[0], color[1], color[2]);
-            legacyFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-        else {
-            setBannerMaterial(metadata);
-            banner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-            this.bindTexture(normalFlag);
-            float[] color = ColorUtil.hexToRGB(ColorUtil.colorTableInts[15 - metadata]);
-            GL11.glColor3f(color[0], color[1], color[2]);
-            flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-
-		GL11.glPopMatrix();
-	}
+			RenderBlocks renderer) {}
 
 	@Override
 	public int getRenderId() {
