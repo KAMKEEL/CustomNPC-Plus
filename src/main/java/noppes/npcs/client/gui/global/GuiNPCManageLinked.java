@@ -190,7 +190,6 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 	public void buttonEvent(GuiButton button){
         if(button.id == 1){
             if(tab == 0){
-                save();
                 setSubGui(new SubGuiEditText("New"));
             } else {
 
