@@ -19,6 +19,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptLinkedItem;
 
 import java.io.IOException;
@@ -63,15 +64,16 @@ public final class LinkedItemBuildPacket extends AbstractPacket {
             return;
 
         int id = in.readInt();
-        LinkedItem linkedItem = LinkedItemController.getInstance().get(id);
-        if(linkedItem == null)
+        LinkedItem original = LinkedItemController.getInstance().get(id);
+        if(original == null)
             return;
 
+        LinkedItem copy = original.clone();
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
         ItemStack stack = new ItemStack(CustomItems.linked_item, 1);
-        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, linkedItem.writeToNBT());
-        scriptLinkedItem.linkedVersion = linkedItem.version;
+        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, copy);
+        scriptLinkedItem.linkedVersion = copy.version;
         scriptLinkedItem.saveItemData();
-        playerMP.inventory.addItemStackToInventory(stack.copy());
+        playerMP.inventory.addItemStackToInventory(stack);
     }
 }

@@ -207,6 +207,13 @@ public class LinkedItem implements ILinkedItem {
         this.enchantability = enchantability;
     }
 
+    public LinkedItem clone() {
+        NBTTagCompound nbt = this.writeToNBT();
+        LinkedItem clone = new LinkedItem(this.name);
+        clone.readFromNBT(nbt, false);
+        return clone;
+    }
+
     // ADD / GET SETS FOR LINKED ITEM DISPLAY THINGS
 
 }

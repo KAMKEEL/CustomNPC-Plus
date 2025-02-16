@@ -17,11 +17,10 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     // For Building
-    public ScriptLinkedItem(ItemStack item, NBTTagCompound linkedData) {
+    public ScriptLinkedItem(ItemStack item, LinkedItem original) {
         super(item);
         setDefaults();
-        this.linkedItem = new LinkedItem();
-        this.linkedItem.readFromNBT(linkedData, false);
+        this.linkedItem = original.clone();
     }
 
     public void setDefaults(){
