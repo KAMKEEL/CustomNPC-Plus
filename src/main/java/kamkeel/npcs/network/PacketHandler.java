@@ -153,6 +153,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new LinkedNPCAddPacket());
         REQUEST_PACKET.registerPacket(new LinkedItemSavePacket());
         REQUEST_PACKET.registerPacket(new LinkedItemRemovePacket());
+        REQUEST_PACKET.registerPacket(new LinkedItemBuildPacket());
 
 
         // Bank Packets

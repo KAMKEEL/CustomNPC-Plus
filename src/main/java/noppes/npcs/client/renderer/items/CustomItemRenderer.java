@@ -18,7 +18,7 @@ import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.renderer.ImageData;
-import noppes.npcs.items.ItemScripted;
+import noppes.npcs.items.ItemCustomizable;
 import noppes.npcs.scripted.NpcAPI;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -142,7 +142,7 @@ public class CustomItemRenderer implements IItemRenderer {
         GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
         GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
 
-        ((ItemScripted) itemStack.getItem()).renderOffset(scriptCustomItem);
+        ((ItemCustomizable) itemStack.getItem()).renderOffset(scriptCustomItem);
         if(scriptCustomItem.isNormalItem()){
             GL11.glTranslatef(-0.05F, 0.3F, 0.3F);
             GL11.glRotatef(50, 1, 0, 0);

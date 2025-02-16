@@ -16,6 +16,33 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         loadItemData();
     }
 
+    // For Building
+    public ScriptLinkedItem(ItemStack item, NBTTagCompound linkedData) {
+        super(item);
+        setDefaults();
+        this.linkedItem = new LinkedItem();
+        this.linkedItem.readFromNBT(linkedData, false);
+    }
+
+    public void setDefaults(){
+        this.itemDisplay.texture = null;
+        this.itemDisplay.translateX = null;
+        this.itemDisplay.translateY = null;
+        this.itemDisplay.translateZ = null;
+        this.itemDisplay.itemColor = null;
+        this.itemDisplay.scaleX = null;
+        this.itemDisplay.scaleY = null;
+        this.itemDisplay.scaleZ = null;
+        this.itemDisplay.rotationX = null;
+        this.itemDisplay.rotationY = null;
+        this.itemDisplay.rotationZ = null;
+        this.itemDisplay.rotationXRate = null;
+        this.itemDisplay.rotationYRate = null;
+        this.itemDisplay.rotationZRate = null;
+        this.itemDisplay.durabilityShow = null;
+        this.itemDisplay.durabilityColor = null;
+    }
+
     public LinkedItem getLinkedItem() {
         return LinkedItemController.getInstance().get(this.linkedItem.getId());
     }
@@ -175,6 +202,8 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     public void setItemNBT(NBTTagCompound compound) {
         this.itemDisplay.readFromNBT(compound);
+        if(linkedItem == null)
+            this.linkedItem = new LinkedItem();
         this.linkedItem.readFromNBT(compound, false);
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
     }

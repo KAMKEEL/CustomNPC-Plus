@@ -77,8 +77,10 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
         this.addButton(new GuiNpcButton(3,guiLeft + 368, y += 22, 45, 20, "gui.edit"));
         this.addButton(new GuiNpcButton(4,guiLeft + 368, y += 22, 45, 20, "gui.copy"));
+        this.addButton(new GuiNpcButton(5,guiLeft + 368, y += 22, 45, 20, "gui.build"));
         getButton(3).enabled = tab == 1;
         getButton(4).enabled = tab == 1;
+        getButton(5).enabled = tab == 1;
 
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0,0);
@@ -234,6 +236,12 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         if(button.id == 3){
             setSubGui(new SubGuiLinkedItem(this, this.linkedItem));
         }
+        if(button.id == 5){
+            // Build Linked Item
+            if(tab == 1)
+                PacketClient.sendClient(new LinkedItemBuildPacket(this.linkedItem.getId()));
+
+        }
     }
 
     @Override
@@ -317,9 +325,6 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             if(!((SubGuiEditText)subgui).cancelled){
                 PacketClient.sendClient(new LinkedNPCAddPacket(((SubGuiEditText)subgui).text));
             }
-        }
-		else if (subgui instanceof SubGuiLinkedItem){
-
         }
 	}
 
