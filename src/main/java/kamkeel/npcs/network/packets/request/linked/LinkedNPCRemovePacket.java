@@ -15,27 +15,25 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.LinkedNpcController;
-import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class LinkedAddPacket extends AbstractPacket {
-    public static String packetName = "Request|LinkedAdd";
+public final class LinkedNPCRemovePacket extends AbstractPacket {
+    public static String packetName = "Request|LinkedNPCRemove";
 
     private String data;
 
-    public LinkedAddPacket(String data) {
+    public LinkedNPCRemovePacket(String data) {
         this.data = data;
     }
 
-    public LinkedAddPacket() {
-    }
+    public LinkedNPCRemovePacket() {}
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.LinkedAdd;
+        return EnumRequestPacket.LinkedNPCRemove;
     }
 
     @Override
@@ -62,9 +60,9 @@ public final class LinkedAddPacket extends AbstractPacket {
             return;
 
         String received = ByteBufUtils.readString(in);
-        LinkedNpcController.Instance.addData(received);
+        LinkedNpcController.Instance.removeData(received);
         List<String> list = new ArrayList<>();
-        for (LinkedData d : LinkedNpcController.Instance.list) {
+        for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
             list.add(d.name);
         }
         ScrollListPacket.sendList((EntityPlayerMP) player, list);

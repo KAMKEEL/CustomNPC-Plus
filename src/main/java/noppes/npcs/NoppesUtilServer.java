@@ -664,6 +664,14 @@ public class NoppesUtilServer {
         ScrollDataPacket.sendScrollData(player, map);
     }
 
+    public static void sendLinkedItemDataAll(EntityPlayerMP player) {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        for (LinkedItem linkedItem : LinkedItemController.getInstance().linkedItems.values()) {
+            map.put(linkedItem.name, linkedItem.id);
+        }
+        ScrollDataPacket.sendScrollData(player, map);
+    }
+
 	public static void sendTransportCategoryData(EntityPlayerMP player) {
 		HashMap<String,Integer> map = new HashMap<String,Integer>();
 		for(TransportCategory category : TransportController.getInstance().categories.values()){

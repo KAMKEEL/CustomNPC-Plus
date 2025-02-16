@@ -148,9 +148,12 @@ public class PacketHandler {
         // Linked Packets
         REQUEST_PACKET.registerPacket(new LinkedGetAllPacket());
         REQUEST_PACKET.registerPacket(new LinkedGetPacket());
-        REQUEST_PACKET.registerPacket(new LinkedRemovePacket());
+        REQUEST_PACKET.registerPacket(new LinkedNPCRemovePacket());
         REQUEST_PACKET.registerPacket(new LinkedSetPacket());
-        REQUEST_PACKET.registerPacket(new LinkedAddPacket());
+        REQUEST_PACKET.registerPacket(new LinkedNPCAddPacket());
+        REQUEST_PACKET.registerPacket(new LinkedItemSavePacket());
+        REQUEST_PACKET.registerPacket(new LinkedItemRemovePacket());
+
 
         // Bank Packets
         REQUEST_PACKET.registerPacket(new BanksGetPacket());

@@ -1,7 +1,5 @@
 package noppes.npcs.controllers;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -26,7 +24,7 @@ public class LinkedItemController {
 
     private LinkedItemController() {}
 
-    public static LinkedItemController Instance() {
+    public static LinkedItemController getInstance() {
         if (Instance == null) {
             Instance = new LinkedItemController();
         }
@@ -49,17 +47,15 @@ public class LinkedItemController {
         }
     }
 
-    @SideOnly(Side.SERVER)
     private void addScript(int id) {
         this.linkedItemsScripts.put(id, new LinkedItemScript());
     }
 
-    public void remove(int id) {
-        this.linkedItems.remove(id);
+    public LinkedItem remove(int id) {
         this.removeScript(id);
+        return this.linkedItems.remove(id);
     }
 
-    @SideOnly(Side.SERVER)
     private void removeScript(int id) {
         this.linkedItemsScripts.remove(id);
     }
@@ -163,21 +159,17 @@ public class LinkedItemController {
     }
 
     public ILinkedItem saveLinkedItem(ILinkedItem linkedItem){
-        if(linkedItem.getId() < 0){
+        if (linkedItem.getId() < 0) {
             linkedItem.setId(getUnusedId());
-            while(hasName(linkedItem.getName()))
+            while (hasName(linkedItem.getName()))
                 linkedItem.setName(linkedItem.getName() + "_");
         }
-        else{
-            LinkedItem existing = linkedItems.get(linkedItem.getId());
-            if(existing != null && !existing.name.equals(linkedItem.getName()))
-                while(hasName(linkedItem.getName()))
-                    linkedItem.setName(linkedItem.getName() + "_");
-        }
+
+        while (hasOther(linkedItem.getName(), linkedItem.getId()))
+            linkedItem.setName(linkedItem.getName() + "_");
 
         linkedItems.remove(linkedItem.getId());
         linkedItems.put(linkedItem.getId(), (LinkedItem) linkedItem);
-
         saveLinkedItemsMap();
 
         // Save Linked Item File
@@ -197,6 +189,42 @@ public class LinkedItemController {
             LogWriter.except(e);
         }
         return linkedItems.get(linkedItem.getId());
+    }
+
+    private boolean hasOther(String name, int id) {
+        for (LinkedItem linkedItem : linkedItems.values()) {
+            if (linkedItem.getId() != id && linkedItem.getName().equalsIgnoreCase(name))
+                return true;
+        }
+        return false;
+    }
+
+    public void delete(int id) {
+        LinkedItem linkedItem = get(id);
+        if (linkedItem != null) {
+            LinkedItem foundItem = remove(id);
+            if (foundItem != null && foundItem.name != null) {
+                File dir = this.getDir();
+                for (File file : dir.listFiles()) {
+                    if (!file.isFile() || !file.getName().endsWith(".json"))
+                        continue;
+                    if (file.getName().equalsIgnoreCase(foundItem.name + ".json")) {
+                        file.delete();
+                        break;
+                    }
+                }
+                saveLinkedItemsMap();
+            }
+        }
+    }
+
+    public void deleteLinkedItemFile(String prevName) {
+        File dir = this.getDir();
+        if (!dir.exists())
+            dir.mkdirs();
+        File file2 = new File(dir, prevName + ".json");
+        if (file2.exists())
+            file2.delete();
     }
 
 

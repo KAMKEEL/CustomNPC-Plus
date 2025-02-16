@@ -58,7 +58,6 @@ public class ItemDisplayData {
         if (compound.hasKey("ItemTexture")) {
             this.texture = compound.getString("ItemTexture");
         }
-
         if (compound.hasKey("RotationX")) {
             this.rotationX = compound.getFloat("RotationX");
         }

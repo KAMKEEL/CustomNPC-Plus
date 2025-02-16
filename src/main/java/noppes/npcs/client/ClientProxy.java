@@ -268,8 +268,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNpcPather(npc);
 
 		else if (gui == EnumGuiType.ManageFactions)
-            return new GuiNPCManageMagic(npc);
-			// return new GuiNPCManageFactions(npc);
+            return new GuiNPCManageFactions(npc);
 
         else if (gui == EnumGuiType.ManageCustomForms)
             return DBCClient.Instance.manageCustomForms(npc);

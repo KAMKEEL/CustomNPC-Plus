@@ -17,7 +17,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     public LinkedItem getLinkedItem() {
-        return LinkedItemController.Instance().get(this.linkedItem.getId());
+        return LinkedItemController.getInstance().get(this.linkedItem.getId());
     }
 
     @Override

@@ -8,7 +8,6 @@ import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.ScrollSelectedPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
-import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.controllers.LinkedItemController;
@@ -16,9 +15,7 @@ import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.data.LinkedItem;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public final class LinkedGetAllPacket extends AbstractPacket {
     public static String packetName = "Request|LinkedGetAll";
@@ -65,7 +62,7 @@ public final class LinkedGetAllPacket extends AbstractPacket {
             }
         } else if (action == Action.ITEM){
             HashMap<String, Integer> list = new HashMap<>();
-            for (LinkedItem linkedItem : LinkedItemController.Instance().linkedItems.values()) {
+            for (LinkedItem linkedItem : LinkedItemController.getInstance().linkedItems.values()) {
                 list.put(linkedItem.name, linkedItem.id);
             }
             ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list);

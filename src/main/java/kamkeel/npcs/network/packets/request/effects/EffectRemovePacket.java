@@ -43,7 +43,7 @@ public class EffectRemovePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        effectID = in.readInt();
+        int effectID = in.readInt();
         CustomEffectController.getInstance().delete(effectID);
         NoppesUtilServer.sendCustomEffectDataAll((EntityPlayerMP) player);
         NBTTagCompound compound = (new CustomEffect()).writeToNBT(false);

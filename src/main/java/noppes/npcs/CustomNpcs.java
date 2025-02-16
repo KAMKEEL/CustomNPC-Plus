@@ -5,7 +5,6 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
-import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -210,7 +209,7 @@ public class CustomNpcs {
         new LinkedNpcController();
         new AnimationController();
 
-        LinkedItemController.Instance().load();
+        LinkedItemController.getInstance().load();
 
         // Custom Effects
         CustomEffectController.getInstance().load();

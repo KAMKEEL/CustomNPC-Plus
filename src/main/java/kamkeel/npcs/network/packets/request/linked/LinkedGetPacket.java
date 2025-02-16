@@ -72,7 +72,7 @@ public final class LinkedGetPacket extends AbstractPacket {
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         } else if (action == Action.ITEM) {
             int id = in.readInt();
-            LinkedItem data = LinkedItemController.Instance().get(id);
+            LinkedItem data = LinkedItemController.getInstance().get(id);
             NBTTagCompound compound = data.writeToNBT();
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }

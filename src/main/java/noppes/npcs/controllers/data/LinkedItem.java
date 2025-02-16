@@ -9,7 +9,7 @@ public class LinkedItem implements ILinkedItem {
     public static final String LINKED_DATA_NBT_TAG = "LinkedData";
 
     public int id = -1;
-    public int version = 1;
+    public int version = 0;
     public String name;
     public final ItemDisplayData display = new ItemDisplayData();
 
@@ -22,7 +22,7 @@ public class LinkedItem implements ILinkedItem {
     public boolean isNormalItem = false;
     public boolean isTool = false;
     public int digSpeed = 1;
-    public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
+    public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 3: Fits in Head -> Boots slot respectively
     public int enchantability;
 
     public LinkedItem() {
@@ -34,7 +34,7 @@ public class LinkedItem implements ILinkedItem {
     }
 
     public INpcScriptHandler getScriptHandler() {
-        return LinkedItemController.Instance().getScriptHandler(this.getId());
+        return LinkedItemController.getInstance().getScriptHandler(this.getId());
     }
 
     public NBTTagCompound writeToNBT() {
@@ -61,7 +61,7 @@ public class LinkedItem implements ILinkedItem {
 
     public void readFromNBT(NBTTagCompound compound, boolean checkID) {
         if(checkID)
-            this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.Instance().getUnusedId();
+            this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.getInstance().getUnusedId();
         else
             this.id = compound.getInteger("Id");
 
@@ -84,7 +84,7 @@ public class LinkedItem implements ILinkedItem {
     }
 
     public ILinkedItem save() {
-        return LinkedItemController.Instance().saveLinkedItem(this);
+        return LinkedItemController.getInstance().saveLinkedItem(this);
     }
 
     @Override

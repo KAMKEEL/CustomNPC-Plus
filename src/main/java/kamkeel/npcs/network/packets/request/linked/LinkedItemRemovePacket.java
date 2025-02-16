@@ -9,31 +9,28 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.controllers.LinkedNpcController;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.controllers.LinkedItemController;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-public final class LinkedRemovePacket extends AbstractPacket {
-    public static String packetName = "Request|LinkedRemove";
+public final class LinkedItemRemovePacket extends AbstractPacket {
+    public static String packetName = "Request|LinkedItemRemove";
 
-    private String data;
+    private int id;
 
-    public LinkedRemovePacket(String data) {
-        this.data = data;
+    public LinkedItemRemovePacket(int id) {
+        this.id = id;
     }
 
-    public LinkedRemovePacket() {}
+    public LinkedItemRemovePacket() {}
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.LinkedRemove;
+        return EnumRequestPacket.LinkedItemRemove;
     }
 
     @Override
@@ -49,7 +46,7 @@ public final class LinkedRemovePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, data);
+        out.writeInt(this.id);
     }
 
     @Override
@@ -59,12 +56,8 @@ public final class LinkedRemovePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        String received = ByteBufUtils.readString(in);
-        LinkedNpcController.Instance.removeData(received);
-        List<String> list = new ArrayList<>();
-        for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
-            list.add(d.name);
-        }
-        ScrollListPacket.sendList((EntityPlayerMP) player, list);
+        int linkedID = in.readInt();
+        LinkedItemController.getInstance().delete(linkedID);
+        NoppesUtilServer.sendLinkedItemDataAll((EntityPlayerMP) player);
     }
 }
