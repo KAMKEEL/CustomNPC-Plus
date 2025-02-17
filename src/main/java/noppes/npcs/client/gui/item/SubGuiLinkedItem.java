@@ -4,6 +4,7 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
+import noppes.npcs.client.gui.script.GuiScriptLinkedItem;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.data.LinkedItem;
 
@@ -185,6 +186,12 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         if (id == -5) {
             close();
             return;
+        } else if (id == -2) {
+            PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
+            GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem(this.parent, linkedItem);
+            scriptGUI.setWorldAndResolution(mc, width, height);
+            scriptGUI.initGui();
+            mc.currentScreen = scriptGUI;
         } else if (id == 9) {
             // OPEN COLOR PICKER
         } else if (id == 10) {

@@ -61,14 +61,6 @@ public class EffectScript implements INpcScriptHandler {
         if (!this.isEnabled()) {
             return;
         }
-
-        ScriptEngine engine = container.engine;
-        engine.put("API", NpcAPI.Instance());
-
-        for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
-            engine.put(engineObjects.getKey(), engineObjects.getValue());
-        }
-
         container.run(s, event);
     }
 

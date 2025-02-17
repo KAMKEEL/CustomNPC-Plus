@@ -22,7 +22,6 @@ public class LinkedItemScript implements INpcScriptHandler {
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
 
-
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString("ScriptLanguage", scriptLanguage);
         compound.setBoolean("ScriptEnabled", enabled);
@@ -43,10 +42,6 @@ public class LinkedItemScript implements INpcScriptHandler {
         return this;
     }
 
-    public void callScript(ScriptType type, PlayerEvent.EffectEvent event) {
-        callScript(type.function, event);
-    }
-
     public boolean isEnabled() {
         return this.enabled && ScriptController.HasStart && container != null && ConfigScript.ScriptingEnabled;
     }
@@ -61,14 +56,6 @@ public class LinkedItemScript implements INpcScriptHandler {
         if (!this.isEnabled()) {
             return;
         }
-
-        ScriptEngine engine = container.engine;
-        engine.put("API", NpcAPI.Instance());
-
-        for (Map.Entry<String, Object> engineObjects : NpcAPI.engineObjects.entrySet()) {
-            engine.put(engineObjects.getKey(), engineObjects.getValue());
-        }
-
         container.run(s, event);
     }
 
@@ -115,7 +102,7 @@ public class LinkedItemScript implements INpcScriptHandler {
 
     @Override
     public String noticeString() {
-        return "";
+        return "LinkedItem";
     }
 
     @Override
@@ -171,17 +158,6 @@ public class LinkedItemScript implements INpcScriptHandler {
                 }
             }
             this.setEnabled(compound.getBoolean("ScriptEnabled"));
-        }
-    }
-
-    public enum ScriptType {
-        OnAdd("onAdded"),
-        OnTick("onTick"),
-        OnRemove("onRemove");
-
-        public final String function;
-        ScriptType(String functionName) {
-            this.function = functionName;
         }
     }
 }

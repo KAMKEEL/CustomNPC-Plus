@@ -230,6 +230,10 @@ public class LinkedItem implements ILinkedItem {
         return clone;
     }
 
-    // ADD / GET SETS FOR LINKED ITEM DISPLAY THINGS
-
+    public LinkedItemScript getOrCreateScriptHandler() {
+        LinkedItemScript data = getScriptHandler();
+        if (data == null)
+            setScriptHandler(data =new LinkedItemScript());
+        return data;
+    }
 }

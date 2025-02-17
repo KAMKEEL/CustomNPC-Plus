@@ -180,5 +180,5 @@ public enum EnumRequestPacket {
     EffectRemove,
     EffectSave,
 
-    ColorSet, LinkedItemSave, LinkedItemRemove, LinkedItemBuild, ColorBrush
+    ColorSet, LinkedItemSave, LinkedItemRemove, LinkedItemBuild, LinkedItemScript, ColorBrush
 }
