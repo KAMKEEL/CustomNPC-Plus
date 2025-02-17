@@ -70,10 +70,8 @@ public final class LinkedItemBuildPacket extends AbstractPacket {
 
         LinkedItem copy = original.clone();
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
-        ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) NpcAPI.Instance().createItem("customnpcs:linked_item", 0, 1);
-        scriptLinkedItem.setDefaults();
-        scriptLinkedItem.linkedVersion = copy.version;
-        scriptLinkedItem.saveItemData();
+        ItemStack stack = new ItemStack(CustomItems.linked_item, 1);
+        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, copy);
         playerMP.inventory.addItemStackToInventory(scriptLinkedItem.item);
     }
 }

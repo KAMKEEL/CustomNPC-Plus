@@ -13,7 +13,17 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     public int linkedVersion = 1;
     public ScriptLinkedItem(ItemStack item) {
         super(item);
+        setDefaults();
         loadItemData();
+    }
+
+    // For Building new Linked Item
+    public ScriptLinkedItem(ItemStack item, LinkedItem linkedItem) {
+        super(item);
+        this.linkedItem = linkedItem.clone();
+        this.linkedVersion = this.linkedItem.version;
+        setDefaults();
+        saveItemData();
     }
 
     public void setDefaults(){
@@ -194,7 +204,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     public void setItemNBT(NBTTagCompound compound) {
         this.itemDisplay.readFromNBT(compound);
-        this.linkedItem.readFromNBT(compound, false);
+        this.linkedItem.readFromNBT(compound.getCompoundTag(LinkedItem.LINKED_DATA_NBT_TAG), false);
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
     }
 }
