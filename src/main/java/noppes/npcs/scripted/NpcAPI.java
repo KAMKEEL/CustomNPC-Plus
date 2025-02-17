@@ -494,9 +494,13 @@ public class NpcAPI extends AbstractNpcAPI {
                     scriptLinkedItem.linkedItem = linkedItem.clone();
                     scriptLinkedItem.linkedVersion = linkedItem.version;
                     scriptLinkedItem.saveItemData();
+
                     // Send Version Change Event
                     // TODO: Version Change Event
-                } else {
+
+
+
+                } else if (linkedItem == null){
                     // Destroy Linked Item
                     scriptStack.item.stackSize = 0;
                 }
