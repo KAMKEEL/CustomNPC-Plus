@@ -197,14 +197,14 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     public NBTTagCompound getItemNBT(NBTTagCompound compound) {
         this.itemDisplay.writeToNBT(compound);
-        compound.setTag(LinkedItem.LINKED_DATA_NBT_TAG, this.linkedItem.writeToNBT());
+        compound.setTag(LinkedItem.LINKED_DATA_NBT_TAG, this.linkedItem.writeToNBT(false));
         compound.setInteger(LinkedItem.LINKED_VERSION_VERSION_TAG, this.linkedVersion);
         return compound;
     }
 
     public void setItemNBT(NBTTagCompound compound) {
         this.itemDisplay.readFromNBT(compound);
-        this.linkedItem.readFromNBT(compound.getCompoundTag(LinkedItem.LINKED_DATA_NBT_TAG), false);
+        this.linkedItem.readFromNBT(compound.getCompoundTag(LinkedItem.LINKED_DATA_NBT_TAG));
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
     }
 }

@@ -100,7 +100,7 @@ public class LinkedItemController {
                     continue;
                 try {
                     LinkedItem linkedItem = new LinkedItem();
-                    linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file), false);
+                    linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file));
                     linkedItem.name = file.getName().substring(0, file.getName().length() - 5);
 
                     if(linkedItem.id == -1){
@@ -181,7 +181,7 @@ public class LinkedItemController {
         File file2 = new File(dir, linkedItem.getName() +  ".json");
 
         try {
-            NBTJsonUtil.SaveFile(file, ((LinkedItem)linkedItem).writeToNBT());
+            NBTJsonUtil.SaveFile(file, ((LinkedItem)linkedItem).writeToNBT(true));
             if(file2.exists())
                 file2.delete();
             file.renameTo(file2);

@@ -1,7 +1,9 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.api.handler.data.ILinkedItem;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.LinkedItemController;
 
 public class LinkedItem implements ILinkedItem {
@@ -33,11 +35,11 @@ public class LinkedItem implements ILinkedItem {
         this.name = name;
     }
 
-    public INpcScriptHandler getScriptHandler() {
-        return LinkedItemController.getInstance().getScriptHandler(this.getId());
+    public LinkedItemScript getScriptHandler() {
+        return (LinkedItemScript) LinkedItemController.getInstance().getScriptHandler(this.getId());
     }
 
-    public NBTTagCompound writeToNBT() {
+    public NBTTagCompound writeToNBT(boolean saveScripts) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("Id", this.id);
         compound.setInteger("Version", this.version);
@@ -56,15 +58,19 @@ public class LinkedItem implements ILinkedItem {
 
         compound.setInteger("MaxItemUseDuration", this.maxItemUseDuration);
         compound.setInteger("ItemUseAction", this.itemUseAction);
+
+        if (saveScripts) {
+            NBTTagCompound scriptData = new NBTTagCompound();
+            LinkedItemScript handler = getScriptHandler();
+            if (handler != null)
+                handler.writeToNBT(scriptData);
+            compound.setTag("ScriptData", scriptData);
+        }
         return compound;
     }
 
-    public void readFromNBT(NBTTagCompound compound, boolean checkID) {
-        if(checkID)
-            this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.getInstance().getUnusedId();
-        else
-            this.id = compound.getInteger("Id");
-
+    public void readFromNBT(NBTTagCompound compound) {
+        this.id = compound.hasKey("Id") ? compound.getInteger("Id") : LinkedItemController.getInstance().getUnusedId();
         this.name = compound.getString("Name");
         this.version = compound.getInteger("Version");
 
@@ -81,10 +87,20 @@ public class LinkedItem implements ILinkedItem {
 
         this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
         this.itemUseAction = compound.getInteger("ItemUseAction");
+
+        if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
+            LinkedItemScript handler = new LinkedItemScript();
+            handler.readFromNBT(compound.getCompoundTag("ScriptData"));
+            setScriptHandler(handler);
+        }
     }
 
     public ILinkedItem save() {
         return LinkedItemController.getInstance().saveLinkedItem(this);
+    }
+
+    public void setScriptHandler(LinkedItemScript handler) {
+        LinkedItemController.getInstance().linkedItemsScripts.put(this.id, handler);
     }
 
     @Override
@@ -208,9 +224,9 @@ public class LinkedItem implements ILinkedItem {
     }
 
     public LinkedItem clone() {
-        NBTTagCompound nbt = this.writeToNBT();
+        NBTTagCompound nbt = this.writeToNBT(true);
         LinkedItem clone = new LinkedItem(this.name);
-        clone.readFromNBT(nbt, false);
+        clone.readFromNBT(nbt);
         return clone;
     }
 

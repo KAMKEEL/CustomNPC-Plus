@@ -251,7 +251,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
     @Override
     public void close() {
         super.close();
-        PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(), originalName));
+        PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
     }
 
     public enum LinkedItemType {

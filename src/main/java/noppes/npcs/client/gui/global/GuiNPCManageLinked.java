@@ -205,7 +205,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 while (data.containsKey(name))
                     name += "_";
                 LinkedItem linkedItem = new LinkedItem(name);
-                PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(), ""));
+                PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), ""));
             }
         }
         if(button.id == 2){
@@ -383,7 +383,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             loadedNPC = true;
         } else {
             this.linkedItem = new LinkedItem();
-            this.linkedItem.readFromNBT(compound, false);
+            this.linkedItem.readFromNBT(compound);
         }
         initGui();
     }
