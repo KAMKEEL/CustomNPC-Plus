@@ -8,19 +8,12 @@ import noppes.npcs.controllers.data.INpcScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 
 public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLinked {
-    public LinkedItem linkedItem;
+    public LinkedItem linkedItem = new LinkedItem();
     public double durabilityValue = 1.0D;
     public int linkedVersion = 1;
     public ScriptLinkedItem(ItemStack item) {
         super(item);
         loadItemData();
-    }
-
-    // For Building
-    public ScriptLinkedItem(ItemStack item, LinkedItem original) {
-        super(item);
-        setDefaults();
-        this.linkedItem = original.clone();
     }
 
     public void setDefaults(){
@@ -201,8 +194,6 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     public void setItemNBT(NBTTagCompound compound) {
         this.itemDisplay.readFromNBT(compound);
-        if(linkedItem == null)
-            this.linkedItem = new LinkedItem();
         this.linkedItem.readFromNBT(compound, false);
         this.linkedVersion = compound.getInteger(LinkedItem.LINKED_VERSION_VERSION_TAG);
     }
