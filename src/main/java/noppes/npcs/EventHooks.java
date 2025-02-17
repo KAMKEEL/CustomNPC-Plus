@@ -21,7 +21,6 @@ import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
-import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
@@ -34,7 +33,6 @@ import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.PlayerEvent.*;
-import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

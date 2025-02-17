@@ -1,6 +1,7 @@
 package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
+import cpw.mods.fml.relauncher.Side;
 import foxz.command.ScriptedCommand;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
@@ -483,9 +484,23 @@ public class NpcAPI extends AbstractNpcAPI {
                 } else {
                     scriptStack = new ScriptItemStack(itemstack);
                 }
-                scriptItemCache.put(itemstack, new CacheHashMap.CachedObject<>(scriptStack));
             }
 
+            // Version Check Linked Item
+            if(scriptStack instanceof ScriptLinkedItem && CustomNpcs.side() == Side.SERVER){
+                ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) scriptStack;
+                LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
+                if(linkedItem != null && scriptLinkedItem.linkedVersion != linkedItem.version){
+                    scriptLinkedItem.linkedItem = linkedItem.clone();
+                    scriptLinkedItem.linkedVersion = linkedItem.version;
+                    scriptLinkedItem.saveItemData();
+                    // Send Version Change Event
+                    // TODO: Version Change Event
+                } else {
+                    // Destroy Linked Item
+                    scriptStack.item.stackSize = 0;
+                }
+            }
             return scriptStack;
         }
     }

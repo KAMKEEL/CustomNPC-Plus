@@ -22,6 +22,7 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -53,8 +54,8 @@ public class ScriptPlayerEventHandler {
 
                 for(int i = 0; i < player.inventory.getSizeInventory(); i++){
                     ItemStack item = player.inventory.getStackInSlot(i);
-                    if(item != null && item.getItem() == CustomItems.scripted_item){
-                        ScriptCustomItem isw = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(item);
+                    if(item != null && NoppesUtilServer.isScriptableItem(item.getItem())){
+                        IItemCustomizable isw = (IItemCustomizable) NpcAPI.Instance().getIItemStack(item);
                         EventHooks.onScriptItemUpdate(isw, player);
                     }
                 }

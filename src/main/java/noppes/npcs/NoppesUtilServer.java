@@ -74,6 +74,10 @@ public class NoppesUtilServer {
         return entity instanceof EntityPlayer ? ((EntityPlayer) entity).getGameProfile().getId() : entity.getUniqueID();
     }
 
+    public static boolean isScriptableItem(Item item){
+        return item == CustomItems.scripted_item || item == CustomItems.linked_item;
+    }
+
     public static void setEditingNpc(EntityPlayer player, EntityNPCInterface npc){
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         data.editingNpc = npc;
