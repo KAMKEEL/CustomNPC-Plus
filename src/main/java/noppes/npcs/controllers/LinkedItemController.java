@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.ILinkedItem;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -32,6 +33,14 @@ public class LinkedItemController {
     }
     public LinkedItem createItem(String name) {
         return new LinkedItem(name);
+    }
+
+    public IItemStack createItemStack(int id) {
+        LinkedItem linkedItem = this.get(id);
+        if (linkedItem != null) {
+            return linkedItem.createStack();
+        }
+        return null;
     }
 
     public void add(LinkedItem linkedItem) {

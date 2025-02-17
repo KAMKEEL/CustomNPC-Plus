@@ -64,14 +64,11 @@ public final class LinkedItemBuildPacket extends AbstractPacket {
             return;
 
         int id = in.readInt();
-        LinkedItem original = LinkedItemController.getInstance().get(id);
-        if(original == null)
+        LinkedItem linkedItem = LinkedItemController.getInstance().get(id);
+        if(linkedItem == null)
             return;
 
-        LinkedItem copy = original.clone();
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
-        ItemStack stack = new ItemStack(CustomItems.linked_item, 1);
-        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, copy);
-        playerMP.inventory.addItemStackToInventory(scriptLinkedItem.item);
+        playerMP.inventory.addItemStackToInventory(linkedItem.createStack().getMCItemStack());
     }
 }

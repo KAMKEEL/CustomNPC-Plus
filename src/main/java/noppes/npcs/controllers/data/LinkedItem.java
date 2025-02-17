@@ -1,10 +1,16 @@
 package noppes.npcs.controllers.data;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagInt;
 import net.minecraftforge.common.util.Constants;
+import noppes.npcs.CustomItems;
 import noppes.npcs.api.handler.data.ILinkedItem;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.LinkedItemController;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.item.ScriptLinkedItem;
 
 public class LinkedItem implements ILinkedItem {
     public static final String LINKED_VERSION_VERSION_TAG = "LinkedVersion";
@@ -33,6 +39,13 @@ public class LinkedItem implements ILinkedItem {
 
     public LinkedItem(String name) {
         this.name = name;
+    }
+
+    public IItemStack createStack() {
+        LinkedItem copy = this.clone();
+        ItemStack stack = new ItemStack(CustomItems.linked_item, 1);
+        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, copy);
+        return NpcAPI.Instance().getIItemStack(scriptLinkedItem.item);
     }
 
     public LinkedItemScript getScriptHandler() {
