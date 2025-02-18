@@ -57,17 +57,18 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
     public GuiNPCManageLinked(EntityNPCInterface npc){
     	super(npc);
-
-        // Spoof NPC
-        this.npc =  new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
-        this.npc.display.name = "Linked NPC";
-        this.npc.height = 1.62f;
-        this.npc.width = 0.43f;
-
+        resetNPC();
         if(tab == 0)
             LinkedGetAllPacket.GetNPCs();
         else if(tab == 1)
             LinkedGetAllPacket.GetItems();
+    }
+
+    public void resetNPC(){
+        this.npc =  new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+        this.npc.display.name = "Linked NPC";
+        this.npc.height = 1.62f;
+        this.npc.width = 0.43f;
     }
 
     @Override
@@ -243,11 +244,14 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         }
         if(button.id == 10){
             tab = 0;
+            resetNPC();
             LinkedGetAllPacket.GetNPCs();
+            scroll.setSelected("");
         }
         if(button.id == 11){
             tab = 1;
             LinkedGetAllPacket.GetItems();
+            scroll.setSelected("");
         }
 
         if(linkedItem == null)
