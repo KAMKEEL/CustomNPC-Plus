@@ -1,6 +1,8 @@
 package kamkeel.npcs.controllers.data;
 
+import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.data.PlayerData;
 
@@ -21,6 +23,7 @@ public class CNPCData implements IProfileData {
     public void save(EntityPlayer player) {
         PlayerData customNPCData = PlayerData.get(player);
         customNPCData.save();
+        SyncController.syncPlayerData((EntityPlayerMP) player, false);
     }
 
     @Override

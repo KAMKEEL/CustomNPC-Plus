@@ -6,16 +6,16 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 
-public class CommandProfileChange extends CommandProfileBase {
+public class CommandProfileRemove extends CommandProfileBase {
 
     @Override
     public String getCommandName() {
-        return "change";
+        return "remove";
     }
 
     @Override
     public String getDescription() {
-        return "Change your active profile slot.";
+        return "Remove a slot from your profile. You cannot remove your active slot.";
     }
 
     @Override
@@ -46,16 +46,16 @@ public class CommandProfileChange extends CommandProfileBase {
             return;
         }
         EntityPlayer player = (EntityPlayer) sender;
-        ProfileOperation result = ProfileController.changeSlot(player, slotId);
+        ProfileOperation result = ProfileController.removeSlot(player, slotId);
         switch(result) {
             case SUCCESS:
-                sendResult(sender, "Successfully changed profile slot to %s.", slotId);
+                sendResult(sender, "Successfully removed slot %d from your profile.", slotId);
                 break;
             case LOCKED:
                 sendError(sender, "Profile is locked. Please try again later.");
                 break;
             case ERROR:
-                sendError(sender, "Error occurred while changing your profile slot.");
+                sendError(sender, "Error removing slot. Ensure the slot exists and is not your active slot.");
                 break;
             default:
                 sendError(sender, "Operation could not be completed.");

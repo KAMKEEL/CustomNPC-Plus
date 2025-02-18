@@ -68,6 +68,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public ScreenSize screenSize = new ScreenSize(-1,-1);
 
+    public int profileSlot = 0;
+
 	public void onLogin() {
         //Continue playing animation for self when re-logging
         AnimationData animationData = this.animationData;
@@ -113,6 +115,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			uuid = data.getString("UUID");
 		}
 		companionID = data.getInteger("PlayerCompanionId");
+        profileSlot = data.getInteger("ProfileSlot");
 		if(data.hasKey("PlayerCompanion") && !hasCompanion()){
 			EntityCustomNpc npc = new EntityCustomNpc(player.worldObj);
 			npc.readEntityFromNBT(data.getCompoundTag("PlayerCompanion"));
@@ -148,6 +151,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         compound.setString("UUID", uuid);
         compound.setInteger("PlayerCompanionId", companionID);
         compound.setBoolean("isGUIOpen",isGUIOpen);
+        compound.setInteger("ProfileSlot", profileSlot);
 
         if(hasCompanion()){
             NBTTagCompound nbt = new NBTTagCompound();
