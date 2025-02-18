@@ -4,11 +4,14 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
@@ -37,12 +40,22 @@ public class EffectRemovePacket extends AbstractPacket {
     }
 
     @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_EFFECT;
+    }
+
+    @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(this.effectID);
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if (!(player instanceof EntityPlayerMP))
+            return;
+        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+            return;
+
         int effectID = in.readInt();
         CustomEffectController.getInstance().delete(effectID);
         NoppesUtilServer.sendCustomEffectDataAll((EntityPlayerMP) player);
