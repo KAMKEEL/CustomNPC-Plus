@@ -12,6 +12,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import java.util.Map;
 import java.util.UUID;
 
+import static kamkeel.npcs.util.ColorUtil.*;
+
 public class CommandProfileAdmin extends CommandProfileBase {
 
     @Override

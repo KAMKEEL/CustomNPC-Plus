@@ -1,5 +1,11 @@
 package kamkeel.npcs.util;
 
+import net.minecraft.command.ICommandSender;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.IChatComponent;
+
 public class ColorUtil {
 
 
@@ -28,4 +34,133 @@ public class ColorUtil {
         float b = (hex & 0xFF) / 255.0F;
         return new float[]{r, g, b};
     }
+
+
+    /**
+     * Helper method that retrieves the EnumChatFormatting associated with a given formatting code character.
+     *
+     * @param c The formatting code character (e.g., '6' or 'l').
+     * @return The matching EnumChatFormatting, or null if not found.
+     */
+    public static EnumChatFormatting getFormattingByChar(char c) {
+        for (EnumChatFormatting format : EnumChatFormatting.values()) {
+            if (format.getFormattingCode() == c) {
+                return format;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Assembles a composite IChatComponent from a raw text string with formatting codes (using §).
+     * Each time the formatting changes, a new component is created and appended as a sibling.
+     *
+     * @param text The raw text with formatting codes.
+     * @return A composite IChatComponent reflecting the formatting changes.
+     */
+    public static IChatComponent assembleComponent(String text) {
+        // Final composite component
+        ChatComponentText composite = new ChatComponentText("");
+        // Accumulates text until a formatting code change
+        ChatComponentText current = new ChatComponentText("");
+        // Start with a fresh ChatStyle
+        ChatStyle currentStyle = new ChatStyle();
+
+        int i = 0;
+        while (i < text.length()) {
+            char c = text.charAt(i);
+            if (c == '\u00A7' && i + 1 < text.length()) {
+                // When a formatting code is encountered, first add any accumulated text as a sibling.
+                if (current.getUnformattedText().length() > 0) {
+                    current.setChatStyle(currentStyle.createDeepCopy());
+                    composite.appendSibling(current);
+                    current = new ChatComponentText("");
+                }
+                char code = text.charAt(i + 1);
+                EnumChatFormatting formatting = getFormattingByChar(code);
+                if (formatting != null) {
+                    // If it’s a color code (0-9, a-f), then it resets previous formatting.
+                    if ("0123456789abcdef".indexOf(Character.toLowerCase(code)) >= 0) {
+                        currentStyle = new ChatStyle().setColor(formatting);
+                    } else {
+                        // For modifiers (BOLD, ITALIC, etc.)
+                        if (formatting == EnumChatFormatting.RESET) {
+                            currentStyle = new ChatStyle();
+                        } else {
+                            switch (formatting) {
+                                case BOLD:
+                                    currentStyle = currentStyle.setBold(Boolean.TRUE);
+                                    break;
+                                case ITALIC:
+                                    currentStyle = currentStyle.setItalic(Boolean.TRUE);
+                                    break;
+                                case UNDERLINE:
+                                    currentStyle = currentStyle.setUnderlined(Boolean.TRUE);
+                                    break;
+                                case STRIKETHROUGH:
+                                    currentStyle = currentStyle.setStrikethrough(Boolean.TRUE);
+                                    break;
+                                case OBFUSCATED:
+                                    currentStyle = currentStyle.setObfuscated(Boolean.TRUE);
+                                    break;
+                                default:
+                                    break;
+                            }
+                        }
+                    }
+                }
+                i += 2; // Skip the § and the code character.
+            } else {
+                // Accumulate normal characters.
+                current.appendText(String.valueOf(c));
+                i++;
+            }
+        }
+        // Append any trailing text.
+        if (current.getUnformattedText().length() > 0) {
+            current.setChatStyle(currentStyle.createDeepCopy());
+            composite.appendSibling(current);
+        }
+        return composite;
+    }
+
+    private static String LABEL = "\u00A7e[CNPC+] ";
+
+    /**
+     * Assembles a composite chat component from a raw text string with formatting codes,
+     * and immediately sends it to the specified ICommandSender.
+     *
+     * @param sender The ICommandSender to send the message to.
+     * @param text   The raw text (with § codes) to be assembled and sent.
+     */
+    public static void sendMessage(ICommandSender sender, String text) {
+        text = "\u00A77" + text;
+        IChatComponent component = assembleComponent(text);
+        sender.addChatMessage(component);
+    }
+
+    public static void sendMessage(ICommandSender sender, String format, Object... obs) {
+        sendMessage(sender, String.format(format, obs));
+    }
+
+    public static void sendResult(ICommandSender sender, String text) {
+        text = LABEL + "\u00A7a" + text;
+        IChatComponent component = assembleComponent(text);
+        sender.addChatMessage(component);
+    }
+
+    public static void sendResult(ICommandSender sender, String format, Object... obs) {
+        sendResult(sender, String.format(format, obs));
+    }
+
+    public static void sendError(ICommandSender sender, String text) {
+        text = LABEL + "\u00A7c" + text;
+        IChatComponent component = assembleComponent(text);
+        sender.addChatMessage(component);
+    }
+
+    public static void sendError(ICommandSender sender, String format, Object... obs) {
+        sendError(sender, String.format(format, obs));
+    }
+
 }

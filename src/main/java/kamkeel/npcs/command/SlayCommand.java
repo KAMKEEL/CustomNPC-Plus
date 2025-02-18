@@ -20,6 +20,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;
 
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class SlayCommand extends CommandKamkeelBase {
 	public Map<String, Class<?>> SlayMap = new LinkedHashMap<String, Class<?>>();
 

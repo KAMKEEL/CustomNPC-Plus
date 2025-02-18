@@ -13,6 +13,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class EffectCommand extends CommandKamkeelBase {
 
     @Override
@@ -26,7 +29,7 @@ public class EffectCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(desc = "Lists all Effects")
-    public void infoAll(ICommandSender sender, String[] args) throws CommandException {
+    public void list(ICommandSender sender, String[] args) throws CommandException {
         CustomEffectController controller = CustomEffectController.getInstance();
         if (controller.indexMapper.isEmpty()) {
             sendError(sender, "No effects found.");

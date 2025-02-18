@@ -20,6 +20,9 @@ import noppes.npcs.controllers.PlayerDataController;
 import java.util.Arrays;
 import java.util.Set;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class ConfigCommand extends CommandKamkeelBase {
 
 

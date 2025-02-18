@@ -7,6 +7,9 @@ import net.minecraft.util.ChatComponentTranslation;
 import java.lang.reflect.Method;
 import java.util.Map.Entry;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendMessage;
+
 public class CommandHelpProfile extends CommandProfileBase {
 	private CommandProfile parent;
 

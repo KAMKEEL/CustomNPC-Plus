@@ -9,6 +9,9 @@ import net.minecraft.entity.player.EntityPlayer;
 
 import java.util.Map;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendMessage;
+
 public class CommandProfileList extends CommandProfileBase {
 
     @Override

@@ -17,6 +17,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.*;
+
 public class CloneCommand extends CommandKamkeelBase {
 
 	@Override

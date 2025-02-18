@@ -21,6 +21,9 @@ import noppes.npcs.util.ValueUtil;
 import java.util.Collection;
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class QuestCommand extends CommandKamkeelBase {
 
 	@Override

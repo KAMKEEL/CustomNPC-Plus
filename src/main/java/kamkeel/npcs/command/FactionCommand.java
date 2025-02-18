@@ -11,6 +11,9 @@ import noppes.npcs.controllers.data.PlayerFactionData;
 import java.util.Arrays;
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class FactionCommand extends CommandKamkeelBase {
 
     public Faction selectedFaction;

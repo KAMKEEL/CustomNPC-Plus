@@ -3,6 +3,9 @@ package kamkeel.npcs.command;
 import net.minecraft.command.ICommandSender;
 import noppes.npcs.controllers.ScriptController;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 
 public class ScriptCommand extends CommandKamkeelBase {
 

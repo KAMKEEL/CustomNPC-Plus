@@ -22,6 +22,9 @@ import org.apache.commons.lang3.ArrayUtils;
 import java.util.Arrays;
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class NpcCommand extends CommandKamkeelBase {
 
 	public EntityNPCInterface selectedNpc;
