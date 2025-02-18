@@ -689,15 +689,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	public EntityProjectile shoot(double x, double y, double z, int accuracy, ItemStack proj, boolean indirect){
         EntityProjectile projectile = new EntityProjectile(this.worldObj, this, proj.copy(), true);
 
-        double throwerHeight = this.getEyeHeight(); // default eye height
-        if (this.currentAnimation == EnumAnimation.LYING || this.currentAnimation == EnumAnimation.CRAWLING) {
-            // When lying or crawling, assume the effective throw point is roughly halfway up the entity
-            throwerHeight = this.height * 0.5;
-        } else if (this.currentAnimation == EnumAnimation.SITTING) {
-            // When sitting, adjust accordingly (example factor)
-            throwerHeight = this.height * 0.7;
-        }
-
+        double throwerHeight = this.getEyeHeight();
         double varX = x - this.posX;
         double varY = y - (this.posY + throwerHeight);
         double varZ = z - this.posZ;
