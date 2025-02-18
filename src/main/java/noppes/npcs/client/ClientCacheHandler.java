@@ -3,6 +3,8 @@ package noppes.npcs.client;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.gui.select.GuiSoundSelection;
+import noppes.npcs.client.gui.select.GuiTextureSelection;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.controllers.data.*;
@@ -51,11 +53,19 @@ public class ClientCacheHandler {
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();
+
+        // Clear Texture Caches
+        GuiSoundSelection.cachedDomains.clear();
+        GuiTextureSelection.cachedTextures.clear();
     }
 
     public static void clearSkinCache() {
         ClientCacheHandler.imageDataCache.clear();
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
+
+        // Clear Texture Caches
+        GuiSoundSelection.cachedDomains.clear();
+        GuiTextureSelection.cachedTextures.clear();
     }
 }
