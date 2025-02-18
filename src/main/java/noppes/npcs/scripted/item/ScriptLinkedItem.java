@@ -51,6 +51,8 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     @Override
     public INpcScriptHandler getScriptHandler() {
+        if(this.getLinkedItem() == null)
+            return null;
         return this.getLinkedItem().getScriptHandler();
     }
 

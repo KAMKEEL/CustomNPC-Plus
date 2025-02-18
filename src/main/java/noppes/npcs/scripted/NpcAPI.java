@@ -488,23 +488,12 @@ public class NpcAPI extends AbstractNpcAPI {
             }
 
             // Version Check Linked Item
-            if(scriptStack instanceof ScriptLinkedItem && CustomNpcs.side() == Side.SERVER){
-                ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) scriptStack;
-                LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
-
-                int prevVersion = scriptLinkedItem.linkedVersion;
-                if(linkedItem != null && scriptLinkedItem.linkedVersion != linkedItem.version){
-                    scriptLinkedItem.linkedItem = linkedItem.clone();
-                    scriptLinkedItem.linkedVersion = linkedItem.version;
-                    scriptLinkedItem.saveItemData();
-
-                    // Send Version Change Event
-                    EventHooks.onLinkedItemVersionChange(scriptLinkedItem, linkedItem.version, prevVersion);
-                } else if (linkedItem == null){
-                    // Destroy Linked Item
-                    scriptStack.item.stackSize = 0;
-                }
-            }
+//            if(scriptStack instanceof ScriptLinkedItem && CustomNpcs.side() == Side.SERVER){
+//                ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) scriptStack;
+//                LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
+//
+//
+//            }
             return scriptStack;
         }
     }
