@@ -17,6 +17,7 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.*;
 import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
@@ -145,6 +146,24 @@ public class EventHooks {
             handler.callScript(EnumScriptType.FINISH_USING_ITEM, event);
         }
         return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onRepairCustomItem(IItemCustomizable item, IPlayer player, IItemStack left, IItemStack right, float anvilBreakChance) {
+        INpcScriptHandler handler = (INpcScriptHandler) item.getScriptHandler();
+        ItemEvent.RepairItem event = new ItemEvent.RepairItem(item, player, left, right, anvilBreakChance);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.REPAIR_ITEM, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onBreakCustomItem(IItemCustomizable item, IPlayer player) {
+        INpcScriptHandler handler = (INpcScriptHandler) item.getScriptHandler();
+        ItemEvent.BreakItem event = new ItemEvent.BreakItem(item, player);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.BREAK_ITEM, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onLinkedItemVersionChange(IItemLinked item, int version, int prevVersion) {

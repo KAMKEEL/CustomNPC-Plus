@@ -5,6 +5,7 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 
 public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
@@ -295,6 +296,71 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
 
         public int getDuration() {
             return duration;
+        }
+    }
+
+    public static class BreakItem extends ItemEvent implements IItemEvent.BreakItem {
+        public final IPlayer player;
+
+        public BreakItem(IItemCustomizable item, IPlayer player) {
+            super(item);
+            this.player = player;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.BREAK_ITEM.function;
+        }
+
+        @Override
+        public IItemStack getBrokenStack() {
+            return this.item;
+        }
+
+        @Override
+        public IPlayer getPlayer() {
+            return this.player;
+        }
+    }
+
+    public static class RepairItem extends ItemEvent implements IItemEvent.RepairItem {
+        public final IPlayer player;
+        public final IItemStack left, right;
+        public final float anvilBreakChance;
+
+        public RepairItem(IItemCustomizable item, IPlayer player, IItemStack left, IItemStack right, float anvilBreakChance) {
+            super(item);
+            this.player = player;
+            this.left = left;
+            this.right = right;
+            this.anvilBreakChance = anvilBreakChance;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.REPAIR_ITEM.function;
+        }
+
+        public IPlayer getPlayer() {
+            return this.player;
+        }
+
+        @Override
+        public IItemStack getLeft() {
+            return this.left;
+        }
+
+        @Override
+        public IItemStack getRight() {
+            return this.right;
+        }
+
+        @Override
+        public IItemStack getOutput() {
+            return this.item;
+        }
+
+        @Override
+        public float getAnvilBreakChance() {
+            return this.anvilBreakChance;
         }
     }
 }

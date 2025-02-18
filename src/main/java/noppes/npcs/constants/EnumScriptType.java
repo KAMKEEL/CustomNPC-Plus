@@ -72,6 +72,8 @@ public enum EnumScriptType {
 	USING_ITEM("usingItem"),
 	STOP_USING_ITEM("stopItem"),
 	FINISH_USING_ITEM("finishItem"),
+    REPAIR_ITEM("repairItem"),
+    BREAK_ITEM("breakItem"),
 	USE_HOE("useHoe"),
 	SLEEP("sleep"),
 	WAKE_UP("wakeUp"),

@@ -9,9 +9,7 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
-import net.minecraftforge.event.entity.player.EntityInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerInteractEvent;
-import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
+import net.minecraftforge.event.entity.player.*;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
@@ -222,6 +220,26 @@ public class ScriptItemEventHandler {
                 IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
                 EventHooks.onFinishUsingCustomItem((IItemCustomizable) isw, IPlayer, event.duration);
             }
+        }
+    }
+    @SubscribeEvent
+    public void invoke(AnvilRepairEvent repairEvent) {
+        IItemStack output = NpcAPI.Instance().getIItemStack(repairEvent.output);
+        if (output instanceof IItemCustomizable) {
+            IPlayer player = (IPlayer) NpcAPI.Instance().getIEntity(repairEvent.entityPlayer);
+            IItemStack left = NpcAPI.Instance().getIItemStack(repairEvent.left);
+            IItemStack right = NpcAPI.Instance().getIItemStack(repairEvent.right);
+            float breakChance = repairEvent.breakChance;
+            EventHooks.onRepairCustomItem((IItemCustomizable) output, player, left, right, breakChance);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerDestroyItemEvent destroyItemEvent) {
+        IItemStack itemStack = NpcAPI.Instance().getIItemStack(destroyItemEvent.original);
+        if (itemStack instanceof IItemCustomizable) {
+            IPlayer player = (IPlayer) NpcAPI.Instance().getIEntity(destroyItemEvent.entityPlayer);
+            EventHooks.onBreakCustomItem((IItemCustomizable) itemStack, player);
         }
     }
 }
