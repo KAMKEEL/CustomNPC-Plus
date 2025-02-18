@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.CustomItems;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.controllers.CustomEffectController;
@@ -39,13 +40,6 @@ public class LinkedItem implements ILinkedItem {
 
     public LinkedItem(String name) {
         this.name = name;
-    }
-
-    public IItemStack createStack() {
-        LinkedItem copy = this.clone();
-        ItemStack stack = new ItemStack(CustomItems.linked_item, 1);
-        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, copy);
-        return NpcAPI.Instance().getIItemStack(scriptLinkedItem.item);
     }
 
     public LinkedItemScript getScriptHandler() {
@@ -114,6 +108,14 @@ public class LinkedItem implements ILinkedItem {
 
     public void setScriptHandler(LinkedItemScript handler) {
         LinkedItemController.getInstance().linkedItemsScripts.put(this.id, handler);
+    }
+
+    public IItemStack createStack() {
+        LinkedItem copy = this.clone();
+        ItemStack stack = new ItemStack(CustomItems.linked_item, 1);
+        ScriptLinkedItem scriptLinkedItem = new ScriptLinkedItem(stack, copy);
+        EventHooks.onLinkedItemBuild(scriptLinkedItem);
+        return NpcAPI.Instance().getIItemStack(scriptLinkedItem.item);
     }
 
     @Override

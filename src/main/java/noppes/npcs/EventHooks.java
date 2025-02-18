@@ -22,6 +22,7 @@ import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomGuiController;
@@ -144,6 +145,24 @@ public class EventHooks {
             handler.callScript(EnumScriptType.FINISH_USING_ITEM, event);
         }
         return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onLinkedItemVersionChange(IItemLinked item, int version, int prevVersion) {
+        INpcScriptHandler handler = (INpcScriptHandler) item.getScriptHandler();
+        LinkedItemEvent.VersionChangeEvent event = new LinkedItemEvent.VersionChangeEvent(item, version, prevVersion);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.LINKED_ITEM_VERSION, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static void onLinkedItemBuild(IItemLinked item) {
+        INpcScriptHandler handler = (INpcScriptHandler) item.getScriptHandler();
+        LinkedItemEvent.BuildEvent event = new LinkedItemEvent.BuildEvent(item);
+        if (handler != null) {
+            handler.callScript(EnumScriptType.LINKED_ITEM_BUILD, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onNPCInit(EntityNPCInterface npc) {

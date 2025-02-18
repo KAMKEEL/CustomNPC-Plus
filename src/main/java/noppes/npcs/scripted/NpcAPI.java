@@ -31,6 +31,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
 import noppes.npcs.api.entity.ICustomNpc;
@@ -490,16 +491,15 @@ public class NpcAPI extends AbstractNpcAPI {
             if(scriptStack instanceof ScriptLinkedItem && CustomNpcs.side() == Side.SERVER){
                 ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) scriptStack;
                 LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
+
+                int prevVersion = scriptLinkedItem.linkedVersion;
                 if(linkedItem != null && scriptLinkedItem.linkedVersion != linkedItem.version){
                     scriptLinkedItem.linkedItem = linkedItem.clone();
                     scriptLinkedItem.linkedVersion = linkedItem.version;
                     scriptLinkedItem.saveItemData();
 
                     // Send Version Change Event
-                    // TODO: Version Change Event
-
-
-
+                    EventHooks.onLinkedItemVersionChange(scriptLinkedItem, linkedItem.version, prevVersion);
                 } else if (linkedItem == null){
                     // Destroy Linked Item
                     scriptStack.item.stackSize = 0;

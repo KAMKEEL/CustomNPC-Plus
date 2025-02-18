@@ -104,7 +104,10 @@ public enum EnumScriptType {
     ANIMATION_START("animationStart"),
     ANIMATION_END("animationEnd"),
     ANIMATION_FRAME_ENTER("frameEnter"),
-    ANIMATION_FRAME_EXIT("frameExit");
+    ANIMATION_FRAME_EXIT("frameExit"),
+
+    LINKED_ITEM_VERSION("versionChanged"),
+    LINKED_ITEM_BUILD("buildingItem");
 
 	public String function;
 
