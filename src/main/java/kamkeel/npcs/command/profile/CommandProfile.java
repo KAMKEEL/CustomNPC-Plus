@@ -26,6 +26,7 @@ public class CommandProfile extends CommandBase {
         registerCommand(new CommandProfileRemove());
         registerCommand(new CommandProfileAdmin());
         registerCommand(new CommandProfileList());
+        registerCommand(new CommandProfileRename());
 	}
 
 	public void registerCommand(CommandProfileBase command){

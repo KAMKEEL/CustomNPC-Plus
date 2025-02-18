@@ -190,18 +190,72 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sendError(sender, "Profile not found for player: " + targetPlayer);
             return;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Profile Slots for ").append(targetPlayer).append(":\n");
+        sendMessage(sender, "Profile Slots for " + targetPlayer + ":");
         for (Map.Entry<Integer, Slot> entry : targetProfile.slots.entrySet()) {
             int id = entry.getKey();
             String name = entry.getValue().getName();
-            if (id == targetProfile.currentID) {
-                sb.append(" * "); // active slot
-            } else {
-                sb.append(" - ");
-            }
-            sb.append("Slot ").append(id).append(": ").append(name).append("\n");
+            String prefix = (id == targetProfile.currentID) ? "* " : "- ";
+            sendMessage(sender, prefix + "Slot " + id + ": " + name);
         }
-        sendMessage(sender, sb.toString());
+    }
+
+    @SubCommand(
+        desc = "Rename a specified player's slot.",
+        usage = "<targetPlayer> <slotId> <newName>"
+    )
+    public void rename(ICommandSender sender, String[] args) throws CommandException {
+        if (args.length < 3) {
+            sendError(sender, "Usage: /profile admin rename <targetPlayer> <slotId> <newName>");
+            return;
+        }
+        String targetPlayer = args[0];
+        int slotId;
+        try {
+            slotId = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "Slot ID must be a number.");
+            return;
+        }
+        // Combine remaining arguments for the new name.
+        StringBuilder sb = new StringBuilder();
+        for (int i = 2; i < args.length; i++) {
+            if (i > 2) sb.append(" ");
+            sb.append(args[i]);
+        }
+        String newName = sb.toString().trim();
+        // Cap name at 20 characters.
+        if (newName.length() > 20) {
+            newName = newName.substring(0, 20);
+        }
+        // Validate that name contains only letters and spaces.
+        if (!newName.matches("[A-Za-z ]+")) {
+            sendError(sender, "Invalid name. Only alphabetic characters and spaces are allowed.");
+            return;
+        }
+        Profile targetProfile = ProfileController.getProfile(targetPlayer);
+        if (targetProfile == null) {
+            sendError(sender, "Profile not found for player: " + targetPlayer);
+            return;
+        }
+        if (targetProfile.locked) {
+            sendError(sender, "Profile for " + targetPlayer + " is locked. Please try again later.");
+            return;
+        }
+        if (!targetProfile.slots.containsKey(slotId)) {
+            sendError(sender, "Slot " + slotId + " not found in " + targetPlayer + "'s profile.");
+            return;
+        }
+        // Rename the slot.
+        Slot targetSlot = targetProfile.slots.get(slotId);
+        targetSlot.setName(newName);
+        // Save the updated profile.
+        if (targetProfile.player != null) {
+            ProfileController.save(targetProfile.player, targetProfile);
+        } else {
+            UUID uuid = ProfileController.getUUIDFromUsername(targetPlayer);
+            if (uuid != null)
+                ProfileController.saveOffline(targetProfile, uuid);
+        }
+        sendResult(sender, "Successfully renamed slot %s for %s to '%s'.", slotId, targetPlayer, newName);
     }
 }

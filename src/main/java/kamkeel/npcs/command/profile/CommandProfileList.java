@@ -23,7 +23,7 @@ public class CommandProfileList extends CommandProfileBase {
 
     @Override
     public String getUsage() {
-        return ""; // No extra parameters
+        return ""; // No extra parameters.
     }
 
     @Override
@@ -38,18 +38,12 @@ public class CommandProfileList extends CommandProfileBase {
             sendError(sender, "Profile not found.");
             return;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("Your Profile Slots:\n");
+        sendMessage(sender, "Your Profile Slots:");
         for (Map.Entry<Integer, Slot> entry : profile.slots.entrySet()) {
             int id = entry.getKey();
             String name = entry.getValue().getName();
-            if (id == profile.currentID) {
-                sb.append(" * "); // mark active slot
-            } else {
-                sb.append(" - ");
-            }
-            sb.append("Slot ").append(id).append(": ").append(name).append("\n");
+            String prefix = (id == profile.currentID) ? "* " : "- ";
+            sendMessage(sender, prefix + "Slot " + id + ": " + name);
         }
-        sendMessage(sender, sb.toString());
     }
 }
