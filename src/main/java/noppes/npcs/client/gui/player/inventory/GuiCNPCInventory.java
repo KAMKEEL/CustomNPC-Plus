@@ -79,23 +79,23 @@ public class GuiCNPCInventory extends GuiNPCInterface {
     @Override
     protected void actionPerformed(GuiButton guibutton){
         if (guibutton.id <= -100) {
-            if (guibutton.id == -100 && activeTab != 0) {
+            if (guibutton.id == -100 && activeTab != -100) {
                 activeTab = -100;
                 mc.displayGuiScreen(new GuiQuestLog());
             }
-            if (guibutton.id == -101 && activeTab != 1) {
+            if (guibutton.id == -101 && activeTab != -101) {
                 activeTab = -101;
                 mc.displayGuiScreen(new GuiParty());
             }
-            if (guibutton.id == -102 && activeTab != 2) {
+            if (guibutton.id == -102 && activeTab != -102) {
                 activeTab = -102;
                 mc.displayGuiScreen(new GuiFaction());
             }
-            if (guibutton.id == -103 && activeTab != 3) {
+            if (guibutton.id == -103 && activeTab != -103) {
                 activeTab = -103;
                 mc.displayGuiScreen(new GuiSettings());
             }
-            if (guibutton.id == -104 && activeTab != 4) {
+            if (guibutton.id == -104 && activeTab != -104) {
                 activeTab = -104;
                 mc.displayGuiScreen(new GuiProfiles());
             }
