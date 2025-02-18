@@ -31,16 +31,15 @@ public class JobHealer extends JobInterface{
 		speed = nbttagcompound.getInteger("HealerSpeed");
 	}
 	private List<EntityLivingBase> toHeal = new ArrayList<EntityLivingBase>();
-	
-	//TODO heal food, heal potion effects, heal more types of entities besides just the player and npcs
+
 	public boolean aiShouldExecute() {
 		healTicks++;
-		if (healTicks < speed * 10) 
+		if (healTicks < speed * 10)
 			return false;
-		
+
 		for(Object plObj:  npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(range, range/2, range))){
 			EntityLivingBase entity = (EntityLivingBase) plObj;
-			
+
 			if(entity instanceof EntityPlayer){
 				EntityPlayer player = (EntityPlayer) entity;
 				if(player.getHealth() < player.getMaxHealth() && !npc.faction.isAggressiveToPlayer(player))
@@ -51,7 +50,7 @@ public class JobHealer extends JobInterface{
 				if(npc.getHealth() < npc.getMaxHealth() && !this.npc.faction.isAggressiveToNpc(npc))
 					toHeal.add(npc);
 			}
-			
+
 		}
 
 		healTicks = 0;
@@ -65,7 +64,7 @@ public class JobHealer extends JobInterface{
 		}
 		toHeal.clear();
 	}
-	
+
 	public void heal(EntityLivingBase entity, float amount){
 		entity.heal(amount);
 		NoppesUtilServer.spawnParticle(entity, "heal",entity.dimension);

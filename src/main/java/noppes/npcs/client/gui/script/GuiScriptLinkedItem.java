@@ -116,7 +116,6 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
             this.addButton(new GuiNpcButton(105, left1 + 61, this.guiTop + 21 + yoffset, 60, 20, "gui.remove"));
 
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
-            // TODO Uncomment if script lists ever get added
             this.getButton(107).enabled = false;
 
             GuiCustomScroll scroll = (new GuiCustomScroll(this, 0)).setUnselectable();

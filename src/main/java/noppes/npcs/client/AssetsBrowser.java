@@ -42,10 +42,10 @@ public class AssetsBrowser {
 	private void getFiles() {
 		folders.clear();
 		files.clear();
-		
+
 		ResourcePackRepository repos = Minecraft.getMinecraft().getResourcePackRepository();
         SimpleReloadableResourceManager simplemanager = (SimpleReloadableResourceManager) Minecraft.getMinecraft().getResourceManager();
-				
+
         Map<String, IResourceManager> map = ObfuscationReflectionHelper.getPrivateValue(SimpleReloadableResourceManager.class, simplemanager, 2);
         HashSet<String> set = new HashSet<String>();
         for(String name: map.keySet()){
@@ -62,7 +62,7 @@ public class AssetsBrowser {
         		}
         	}
         }
-        
+
         for(String file : set){
         	progressFile(new File(file));
         }
@@ -97,7 +97,7 @@ public class AssetsBrowser {
 	                ZipEntry zipentry = entries.nextElement();
 	                String entryName = zipentry.getName();
 	        		checkFile(entryName);
-	                
+
 	            }
 	            zip.close();
 	        }
@@ -109,7 +109,7 @@ public class AssetsBrowser {
 			e.printStackTrace();
 		}
 	}
-	
+
 	private void checkFolder(File file, int length){
 		File[] files = file.listFiles();
 		if(files == null){
@@ -128,7 +128,7 @@ public class AssetsBrowser {
     			checkFile(name);
     	}
 	}
-	
+
 	private void checkFile(String name){
         if(!name.startsWith("/"))
         	name = "/" + name;

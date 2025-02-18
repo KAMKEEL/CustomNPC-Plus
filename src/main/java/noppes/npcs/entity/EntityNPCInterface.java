@@ -687,17 +687,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 	}
 
 	public EntityProjectile shoot(double x, double y, double z, int accuracy, ItemStack proj, boolean indirect){
-		EntityProjectile projectile = new EntityProjectile(this.worldObj, this, proj.copy(), true);
-		//TODO calculate height of the thrower
-		double varX = x - this.posX;
-		double varY = y - (this.posY + this.getEyeHeight());
-		double varZ = z - this.posZ;
-		float varF = projectile.hasGravity() ? MathHelper.sqrt_double(varX * varX + varZ * varZ) : 0.0F;
-		float angle = projectile.getAngleForXYZ(varX, varY, varZ, varF, indirect);
-		float acc = 20.0F - MathHelper.floor_float(accuracy / 5.0F);
-		projectile.setThrowableHeading(varX, varY, varZ, angle, acc);
-		worldObj.spawnEntityInWorld(projectile);
-		return projectile;
+        EntityProjectile projectile = new EntityProjectile(this.worldObj, this, proj.copy(), true);
+
+        double throwerHeight = this.getEyeHeight(); // default eye height
+        if (this.currentAnimation == EnumAnimation.LYING || this.currentAnimation == EnumAnimation.CRAWLING) {
+            // When lying or crawling, assume the effective throw point is roughly halfway up the entity
+            throwerHeight = this.height * 0.5;
+        } else if (this.currentAnimation == EnumAnimation.SITTING) {
+            // When sitting, adjust accordingly (example factor)
+            throwerHeight = this.height * 0.7;
+        }
+
+        double varX = x - this.posX;
+        double varY = y - (this.posY + throwerHeight);
+        double varZ = z - this.posZ;
+        float varF = projectile.hasGravity() ? MathHelper.sqrt_double(varX * varX + varZ * varZ) : 0.0F;
+        float angle = projectile.getAngleForXYZ(varX, varY, varZ, varF, indirect);
+        float acc = 20.0F - MathHelper.floor_float(accuracy / 5.0F);
+        projectile.setThrowableHeading(varX, varY, varZ, angle, acc);
+        worldObj.spawnEntityInWorld(projectile);
+        return projectile;
 	}
 
 	private void clearTasks(EntityAITasks tasks){
