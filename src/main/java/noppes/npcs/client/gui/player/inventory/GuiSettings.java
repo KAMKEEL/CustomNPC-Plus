@@ -122,7 +122,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         if(btn instanceof AbstractTab)
             return;
 
-        if (btn.id >= 100 && btn.id <= 105) {
+        if (btn.id <= -100) {
             super.actionPerformed(btn);
             return;
         }

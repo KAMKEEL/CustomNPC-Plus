@@ -171,7 +171,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         if(guibutton instanceof AbstractTab)
             return;
 
-        if (guibutton.id >= 100 && guibutton.id <= 105) {
+        if (guibutton.id <= -100) {
             super.actionPerformed(guibutton);
             return;
         }

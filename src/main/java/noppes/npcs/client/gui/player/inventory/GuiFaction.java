@@ -133,7 +133,7 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData {
         if(guibutton instanceof AbstractTab)
             return;
 
-        if (guibutton.id >= 100 && guibutton.id <= 105) {
+        if (guibutton.id <= -100) {
             super.actionPerformed(guibutton);
             return;
         }

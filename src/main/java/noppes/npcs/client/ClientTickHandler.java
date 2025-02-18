@@ -23,6 +23,7 @@ import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.EnumPlayerPacket;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
 
 import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
@@ -94,23 +95,7 @@ public class ClientTickHandler{
 		if(ClientProxy.NPCButton.isPressed()){
 			Minecraft mc = Minecraft.getMinecraft();
 			if(mc.currentScreen == null){
-                switch (GuiCNPCInventory.activeTab){
-                    case 0:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog());
-                        break;
-                    case 1:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiParty());
-                        break;
-                    case 2:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiFaction());
-                        break;
-                    case 3:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiSettings());
-                        break;
-                    case 4:
-                        NoppesUtil.openGUI(mc.thePlayer, DBCClient.Instance.inventoryGUI());
-                        break;
-                }
+                InventoryTabCustomNpc.tabHelper();
             }
 			else if(mc.currentScreen instanceof GuiCNPCInventory)
 				mc.setIngameFocus();

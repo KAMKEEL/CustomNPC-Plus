@@ -226,7 +226,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
             return;
 
         Party party = ClientCacheHandler.party;
-        if (guibutton.id >= 100 && guibutton.id <= 105) {
+        if (guibutton.id <= -100) {
             super.actionPerformed(guibutton);
             return;
         }

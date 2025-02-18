@@ -64,7 +64,7 @@ public final class ChatAlertPacket extends AbstractPacket {
         while ((part = ByteBufUtils.readString(in)) != null && !part.isEmpty()) {
             parts.add(part);
         }
-        
+
         StringBuilder finalMessage = new StringBuilder();
         for (String s : parts) {
             finalMessage.append(StatCollector.translateToLocal(s));

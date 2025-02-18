@@ -17,8 +17,6 @@ public class InventoryTabCustomNpc extends AbstractTab {
 
 	@Override
 	public void onTabClicked() {
-
-
 		Thread t = new Thread(){
 			@Override
 			public void run(){
@@ -27,24 +25,7 @@ public class InventoryTabCustomNpc extends AbstractTab {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				Minecraft mc = Minecraft.getMinecraft();
-                switch (GuiCNPCInventory.activeTab){
-                    case 0:
-                        mc.displayGuiScreen(new GuiQuestLog());
-                        break;
-                    case 1:
-                        mc.displayGuiScreen(new GuiParty());
-                        break;
-                    case 2:
-                        mc.displayGuiScreen(new GuiFaction());
-                        break;
-                    case 3:
-                        mc.displayGuiScreen(new GuiSettings());
-                        break;
-                    case 4:
-                        mc.displayGuiScreen(DBCClient.Instance.inventoryGUI());
-                        break;
-                }
+                tabHelper();
 			}
 		};
 		t.start();
@@ -54,4 +35,24 @@ public class InventoryTabCustomNpc extends AbstractTab {
 	public boolean shouldAddToList() {
 		return true;
 	}
+
+    public static void tabHelper(){
+        Minecraft mc = Minecraft.getMinecraft();
+        int tab = GuiCNPCInventory.activeTab;
+        if(tab == -100){
+            mc.displayGuiScreen(new GuiQuestLog());
+        }
+        if(tab == -101){
+            mc.displayGuiScreen(new GuiParty());
+        }
+        if(tab == -102){
+            mc.displayGuiScreen(new GuiFaction());
+        }
+        if(tab == -103){
+            mc.displayGuiScreen(new GuiSettings());
+        }
+        if(tab == -104){
+            // Profile Tab
+        }
+    }
 }
