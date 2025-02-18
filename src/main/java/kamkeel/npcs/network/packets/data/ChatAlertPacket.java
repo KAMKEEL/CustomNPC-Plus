@@ -8,12 +8,17 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.config.ConfigClient;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class ChatAlertPacket extends AbstractPacket {
     public static final String packetName = "Data|ChatAlert";
@@ -53,11 +58,20 @@ public final class ChatAlertPacket extends AbstractPacket {
         if (!ConfigClient.ChatAlerts)
             return;
 
-        StringBuilder message = new StringBuilder();
-        String str;
-        while ((str = ByteBufUtils.readString(in)) != null && !str.isEmpty()) {
-            message.append(str);
+        // Read all objects (sent as strings) from the buffer.
+        List<String> parts = new ArrayList<>();
+        String part;
+        while ((part = ByteBufUtils.readString(in)) != null && !part.isEmpty()) {
+            parts.add(part);
         }
-        player.addChatMessage(new ChatComponentTranslation(message.toString()));
+        
+        StringBuilder finalMessage = new StringBuilder();
+        for (String s : parts) {
+            finalMessage.append(StatCollector.translateToLocal(s));
+        }
+
+        String text = finalMessage.toString();
+        IChatComponent comp = ColorUtil.assembleComponent(text);
+        player.addChatMessage(comp);
     }
 }
