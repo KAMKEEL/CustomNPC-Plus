@@ -124,7 +124,7 @@ public class ColorUtil {
         return composite;
     }
 
-    private static String LABEL = "\u00A7e[CNPC+] ";
+    private static String LABEL = "\u00A76[\u00A7eCNPC+\u00A76] ";
 
     /**
      * Assembles a composite chat component from a raw text string with formatting codes,
@@ -154,7 +154,7 @@ public class ColorUtil {
     }
 
     public static void sendError(ICommandSender sender, String text) {
-        text = LABEL + "\u00A7c" + text;
+        text = LABEL + "\u00A74Error: \u00A7c" + text;
         IChatComponent component = assembleComponent(text);
         sender.addChatMessage(component);
     }
