@@ -65,8 +65,6 @@ public final class LinkedItemSavePacket extends AbstractPacket {
         String prevName = ByteBufUtils.readString(in);
         LinkedItem linkedItem = new LinkedItem();
         linkedItem.readFromNBT(ByteBufUtils.readNBT(in));
-        linkedItem.version++;
-
         LinkedItemController.getInstance().saveLinkedItem(linkedItem);
 
         if(!prevName.isEmpty() && !prevName.equals(linkedItem.name)){

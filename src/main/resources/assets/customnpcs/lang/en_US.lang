@@ -119,6 +119,7 @@ gui.done=Done
 gui.paste=Paste
 gui.test=Test
 gui.settings=Settings
+gui.build=Build
 gui.enabled=Enabled
 gui.website=Website
 gui.text=Text
@@ -145,6 +146,8 @@ gui.off=Off
 gui.on=On
 gui.sure=Are you sure?
 gui.available=Requirements Met
+gui.items=Items
+gui.npcs=NPCs
 
 party.accept=Accept
 party.allowParty=Allow Partying
@@ -296,6 +299,31 @@ display.glow=Glow
 display.solid=Solid
 display.tintsettings=Tint Settings
 display.hitboxsettings=Hitbox Settings
+display.version=Version
+display.versionInfo=Sends Version Update to all Items
+display.maxStack=Max Stack Size
+display.useAction=Use Action
+display.armor=Armor Type
+display.enchantability=Enchantability
+display.digSpeed=Dig Speed
+display.color=Color
+display.durabilityShow=Show Durability
+display.isTool=Is Tool
+display.isNormalItem=Is Normal Item
+display.isToolInfo=Modifies Tool Utility and Rendering
+display.isNormalItemInfo=Changes Item Rendering. Scaling and Rotation will not work
+
+use_action.none=None
+use_action.block=Block
+use_action.eat=Eat
+use_action.drink=Drink
+
+armor_type.none=None
+armor_type.all=All
+armor_type.head=Helm
+armor_type.chestplate=Chestplate
+armor_type.leggings=Leggings
+armor_type.boots=Boots
 
 inv.minExp=Min Exp
 inv.maxExp=Max Exp
@@ -1164,6 +1192,8 @@ model.legs=Legs
 model.scale=Scale
 model.animation=Animation
 model.rotate=Rotate
+model.rotationRate=Rotation Rate
+model.translate=Translate
 model.pivot=Pivot
 model.load=Model Load
 model.save=Model Save
@@ -1265,7 +1295,6 @@ general.menuName=Menu Name
 effect.runsEveryX=Runs every X tick
 effect.defaultLength=Default length
 
-# These are supposed to be shorter
 effect.editor.runsEveryX=Every X tick
 effect.editor.defaultLength=Length
 effect.editor.height=Height
@@ -1273,3 +1302,4 @@ effect.editor.width=Width
 effect.editor.xPos=X Pos
 effect.editor.yPos=Y Pos
 effect.editor.lossOnDeath=Loss on Death
+

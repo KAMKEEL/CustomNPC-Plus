@@ -124,6 +124,10 @@ public enum EnumRequestPacket {
     LinkedGetAll,
     LinkedSet,
     LinkedGet,
+    LinkedItemSave,
+    LinkedItemRemove,
+    LinkedItemBuild,
+    LinkedItemScript,
 
     BankGet,
     BanksGet,
@@ -180,5 +184,6 @@ public enum EnumRequestPacket {
     EffectRemove,
     EffectSave,
 
-    ColorSet, LinkedItemSave, LinkedItemRemove, LinkedItemBuild, LinkedItemScript, ColorBrush
+    ColorSet,
+    ColorBrush
 }

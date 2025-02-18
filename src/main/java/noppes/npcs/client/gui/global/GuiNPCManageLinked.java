@@ -4,6 +4,7 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
 import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import kamkeel.npcs.network.packets.request.linked.*;
+import kamkeel.npcs.network.packets.request.quest.QuestSavePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 
@@ -12,17 +13,22 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.item.SubGuiLinkedItem;
 import noppes.npcs.client.gui.util.*;
 
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Mouse;
@@ -35,7 +41,7 @@ import java.util.List;
 import java.util.Vector;
 
 public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback {
-	private int tab = 0;
+	private static int tab = 0;
     private boolean loadedNPC = false;
     private GuiCustomScroll scroll;
 
@@ -47,7 +53,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
 	private String search = "";
 
-    private float zoomed = 70, rotation;
+    private float zoomed = 36, rotation;
 
     public GuiNPCManageLinked(EntityNPCInterface npc){
     	super(npc);
@@ -58,7 +64,10 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         this.npc.height = 1.62f;
         this.npc.width = 0.43f;
 
-        LinkedGetAllPacket.GetNPCs();
+        if(tab == 0)
+            LinkedGetAllPacket.GetNPCs();
+        else if(tab == 1)
+            LinkedGetAllPacket.GetItems();
     }
 
     @Override
@@ -67,8 +76,8 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
         int y = guiTop + 8;
 
-        this.addButton(new GuiNpcButton(10,guiLeft + 368, y, 45, 20, "npc"));
-        this.addButton(new GuiNpcButton(11,guiLeft + 368, y += 22, 45, 20, "items"));
+        this.addButton(new GuiNpcButton(10,guiLeft + 368, y, 45, 20, "gui.npcs"));
+        this.addButton(new GuiNpcButton(11,guiLeft + 368, y += 22, 45, 20, "gui.items"));
         getButton(10).enabled = tab == 1;
         getButton(11).enabled = tab == 0;
 
@@ -111,34 +120,28 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
     @Override
     public void drawScreen(int i, int j, float f) {
         super.drawScreen(i, j, f);
+        if(hasSubGui())
+            return;
 
-        if(tab == 0){
-            if (hasSubGui())
-                return;
-
+        if(tab == 0) {
+            // (Existing NPC rendering code...)
             if (isMouseOverRenderer(i, j)) {
                 zoomed += Mouse.getDWheel() * 0.035f;
                 if (zoomed > 100)
                     zoomed = 100;
                 if (zoomed < 10)
                     zoomed = 10;
-
                 if (Mouse.isButtonDown(0) || Mouse.isButtonDown(1)) {
                     rotation -= Mouse.getDX() * 0.75f;
                 }
             }
-
             GL11.glColor4f(1, 1, 1, 1);
-
             EntityLivingBase entity = this.npc;
             int l = guiLeft + 150;
             int i1 = guiTop + 198;
-
-
             GL11.glEnable(GL11.GL_COLOR_MATERIAL);
             GL11.glPushMatrix();
             GL11.glTranslatef(l, i1, 60F);
-
             GL11.glScalef(-zoomed, zoomed, zoomed);
             GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
             float f2 = entity.renderYawOffset;
@@ -150,28 +153,22 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
             RenderHelper.enableStandardItemLighting();
             GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-            GL11.glRotatef(-(float) Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(-(float)Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
             entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
-            entity.prevRotationYaw = entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
-            entity.rotationPitch = -(float) Math.atan(f6 / 80F) * 20F;
+            entity.prevRotationYaw = entity.rotationYaw = (float)Math.atan(f5 / 80F) * 40F + rotation;
+            entity.rotationPitch = -(float)Math.atan(f6 / 80F) * 20F;
             entity.prevRotationYawHead = entity.rotationYawHead = entity.rotationYaw;
             GL11.glTranslatef(0.0F, entity.yOffset, 1F);
             RenderManager.instance.playerViewY = 180F;
-
-
-            // Render Entity
             GL11.glPushMatrix();
             try {
                 RenderManager.instance.renderEntityWithPosYaw(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F);
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) {}
             GL11.glPopMatrix();
-
             entity.prevRenderYawOffset = entity.renderYawOffset = f2;
             entity.prevRotationYaw = entity.rotationYaw = f3;
             entity.rotationPitch = f4;
             entity.prevRotationYawHead = entity.rotationYawHead = f7;
-
             RenderHelper.disableStandardItemLighting();
             GL11.glDisable(GL12.GL_RESCALE_NORMAL);
             OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
@@ -180,7 +177,30 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
             GL11.glPopMatrix();
         }
-
+        else if(tab == 1) {
+            // Render the linked item image in the top-left area
+            if(linkedItem != null) {
+                int x = guiLeft + 155;
+                int y = guiTop + 30;
+                int iconRenderSize = 64;
+                TextureManager textureManager = mc.getTextureManager();
+                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                ImageData imageData = ClientCacheHandler.getImageData(linkedItem.display.texture);
+                if(imageData.imageLoaded()){
+                    imageData.bindTexture();
+                    int iconX = 0, iconY = 0;
+                    int iconWidth = imageData.getTotalWidth();
+                    int iconHeight = imageData.getTotalHeight();
+                    int width = imageData.getTotalWidth();
+                    int height = imageData.getTotalHeight();
+                    func_152125_a(x, y, iconX, iconY, iconWidth, iconHeight, iconRenderSize, iconRenderSize, width, height);
+                } else {
+                    textureManager.bindTexture(new ResourceLocation("customnpcs", "textures/marks/question.png"));
+                    func_152125_a(x, y, 0, 0, 1, 1, iconRenderSize, iconRenderSize, 1, 1);
+                }
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
+            }
+        }
     }
 
 	private List<String> getSearchList(){
@@ -236,6 +256,17 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         if(button.id == 3){
             setSubGui(new SubGuiLinkedItem(this, this.linkedItem));
         }
+        if(button.id == 4){
+            if (data.containsKey(scroll.getSelected()) && linkedItem != null && linkedItem.id >= 0) {
+                String name = linkedItem.name;
+                while (data.containsKey(name))
+                    name += "_";
+                LinkedItem linkedItemClone = this.linkedItem.clone();
+                linkedItemClone.name = name;
+                linkedItemClone.id = -1;
+                PacketClient.sendClient(new LinkedItemSavePacket(linkedItemClone.writeToNBT(false), ""));
+            }
+        }
         if(button.id == 5){
             // Build Linked Item
             if(tab == 1)
@@ -271,34 +302,206 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 
 
     private void renderScreen() {
+        // Draw the common background bars
         drawGradientRect(guiLeft + 5, guiTop + 4, guiLeft + 218, guiTop + 24, 0xC0101010, 0xC0101010);
         drawHorizontalLine(guiLeft + 5, guiLeft + 218, guiTop + 25, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
         drawGradientRect(guiLeft + 5, guiTop + 27, guiLeft + 218, guiTop + ySize + 9, 0xA0101010, 0xA0101010);
+
         if (tab == 0 && loadedNPC && this.npc != null) {
-            String drawString = npc.display.getName();
-            int textWidth = getStringWidthWithoutColor(drawString);
+            // Top bar: display NPC display name (centered)
+            String topBarText = npc.display.getName();
+            int textWidth = getStringWidthWithoutColor(topBarText);
             int centerX = guiLeft + 5 + ((218 - 10 - textWidth) / 2);
-            fontRendererObj.drawString(drawString, centerX, guiTop + 10, npc.getFaction().color, true);
-            int y = guiTop + 18;
+            fontRendererObj.drawString(topBarText, centerX, guiTop + 10, npc.getFaction().color, true);
 
-            String healthMenu = "Health:";
-            fontRendererObj.drawString(healthMenu, guiLeft + 8, y += 12, 0xFFFFFF, true);
+            // Lower section: display NPC properties as label and value pairs
+            int y = guiTop + 30;
+            int xLabel = guiLeft + 8;
+            int xValue = guiLeft + 120;
+            int valueColor = 0xFFFFFF;
+            String label, value;
 
-            healthMenu = "§c" + String.valueOf(this.npc.stats.maxHealth);
-            fontRendererObj.drawString(healthMenu, guiLeft + 50, y, 0xFFFFFF, true);
+            // Health
+            label = StatCollector.translateToLocal("stats.health") + ": ";
+            value = String.valueOf(npc.stats.maxHealth);
+            fontRendererObj.drawString(label, xLabel, y, 0x29d6b9, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
 
+            // Damage (using getAttackStrength)
+            label = StatCollector.translateToLocal("stats.meleestrength") + ": ";
+            value = String.valueOf(npc.stats.getAttackStrength());
+            fontRendererObj.drawString(label, xLabel, y, 0xff5714, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
 
-            String damage = "Damage:";
-            fontRendererObj.drawString(damage, guiLeft + 8, y += 12, 0xFFFFFF, true);
+            // Attack Speed
+            label = StatCollector.translateToLocal("stats.meleespeed") + ": ";
+            value = String.valueOf(npc.stats.attackSpeed);
+            fontRendererObj.drawString(label, xLabel, y, 0xf7ca28, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
 
-            damage = "§4" + String.valueOf(this.npc.stats.getAttackStrength());
-            fontRendererObj.drawString(damage, guiLeft + 50, y, 0xFFFFFF, true);
+            // AI Type (npc.ai.onAttack: 0 = fight, 1 = panic, 2 = retreat, 3 = nothing)
+            label = StatCollector.translateToLocal("menu.ai") + ": ";
+            int onAttack = npc.ais.onAttack;
+            switch (onAttack) {
+                case 0:
+                    value = StatCollector.translateToLocal("gui.retaliate");
+                    break;
+                case 1:
+                    value = StatCollector.translateToLocal("gui.panic");
+                    break;
+                case 2:
+                    value = StatCollector.translateToLocal("gui.retreat");
+                    break;
+                case 3:
+                default:
+                    value = StatCollector.translateToLocal("gui.nothing");
+                    break;
+            }
+            fontRendererObj.drawString(label, xLabel, y, 0xce75fa, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
 
-            String moveSpeed = "Speed:";
-            fontRendererObj.drawString(moveSpeed, guiLeft + 8, y += 12, 0xFFFFFF, true);
+            // Walk Speed
+            label = StatCollector.translateToLocal("stats.speed") + ": ";
+            value = String.valueOf(npc.ais.getWalkingSpeed());
+            fontRendererObj.drawString(label, xLabel, y, 0xffae0d, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
 
-            moveSpeed = "§b" + String.valueOf(this.npc.ais.getWalkingSpeed());
-            fontRendererObj.drawString(moveSpeed, guiLeft + 50, y, 0xFFFFFF, true);
+            // Movement Type (0 = Ground, 1 = Flying)
+            label = StatCollector.translateToLocal("movement.type") + ": ";
+            int movementType = npc.ais.movementType;
+            if (movementType == 0) {
+                value = StatCollector.translateToLocal("movement.ground");
+            } else {
+                value = StatCollector.translateToLocal("movement.flying");
+            }
+            fontRendererObj.drawString(label, xLabel, y, 0x7cff54, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+        }
+        if (tab == 1 && this.linkedItem != null) {
+            // Top bar: display the linked item's ID and name (centered)
+            String topBarText = StatCollector.translateToLocal("gui.id") + ": " + linkedItem.id + " - " + linkedItem.name;
+            int textWidth = getStringWidthWithoutColor(topBarText);
+            int centerX = guiLeft + 5 + ((218 - 10 - textWidth) / 2);
+            fontRendererObj.drawString(topBarText, centerX, guiTop + 10, 0xFFFFFF, true);
+
+            // Lower section: draw each property with a label (in a dimmer color) and its value (in white)
+            int y = guiTop + 30;
+            int xLabel = guiLeft + 8;
+            int xValue = guiLeft + 100;
+            int labelColor = 0xffae0d;
+            int valueColor = 0xFFFFFF;
+            String label, value;
+
+            // Version
+            label = StatCollector.translateToLocal("display.version") + ": ";
+            value = String.valueOf(linkedItem.version);
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            // Max Stack Size
+            labelColor = 0xff5714;
+            label = StatCollector.translateToLocal("display.maxStack") + ": ";
+            value = String.valueOf(linkedItem.stackSize);
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            // Dig Speed
+            labelColor = 0xf7ca28;
+            label = StatCollector.translateToLocal("display.digSpeed") + ": ";
+            value = String.valueOf(linkedItem.digSpeed);
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            labelColor = 0x29d6b9;
+            // Use Action
+            String[] useActions = {
+                StatCollector.translateToLocal("use_action.none"),
+                StatCollector.translateToLocal("use_action.block"),
+                StatCollector.translateToLocal("use_action.eat"),
+                StatCollector.translateToLocal("use_action.drink")
+            };
+            int useActionIndex;
+            switch(linkedItem.itemUseAction) {
+                case 0: useActionIndex = 0; break;
+                case 1: useActionIndex = 1; break;
+                case 3: useActionIndex = 2; break;
+                case 4: useActionIndex = 3; break;
+                default: useActionIndex = 0; break;
+            }
+            label = StatCollector.translateToLocal("display.useAction") + ": ";
+            value = useActions[useActionIndex];
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            // Armor Type
+            String[] armorOptions = {
+                StatCollector.translateToLocal("armor_type.none"),
+                StatCollector.translateToLocal("armor_type.all"),
+                StatCollector.translateToLocal("armor_type.head"),
+                StatCollector.translateToLocal("armor_type.chestplate"),
+                StatCollector.translateToLocal("armor_type.leggings"),
+                StatCollector.translateToLocal("armor_type.boots")
+            };
+            int armorIndex;
+            if (linkedItem.armorType == -2) {
+                armorIndex = 0;
+            } else if (linkedItem.armorType == -1) {
+                armorIndex = 1;
+            } else {
+                armorIndex = linkedItem.armorType + 2;
+            }
+            label = StatCollector.translateToLocal("display.armor") + ": ";
+            value = armorOptions[armorIndex];
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            labelColor = 0x7cff54;
+            // isTool
+            label = StatCollector.translateToLocal("display.isTool") + ": ";
+            value = String.valueOf(linkedItem.isTool).toUpperCase();
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            // isNormalItem
+            label = StatCollector.translateToLocal("display.isNormalItem") + ": ";
+            value = String.valueOf(linkedItem.isNormalItem).toUpperCase();
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            labelColor = 0xce75fa;
+
+            // Scale
+            label = StatCollector.translateToLocal("model.scale") + ": ";
+            value = linkedItem.display.scaleX + ", " + linkedItem.display.scaleY + ", " + linkedItem.display.scaleZ;
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            // Rotation
+            label = StatCollector.translateToLocal("model.rotate") + ": ";
+            value = linkedItem.display.rotationX + ", " + linkedItem.display.rotationY + ", " + linkedItem.display.rotationZ;
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+            y += 15;
+
+            // Translate
+            label = StatCollector.translateToLocal("model.translate") + ": ";
+            value = linkedItem.display.translateX + ", " + linkedItem.display.translateY + ", " + linkedItem.display.translateZ;
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            fontRendererObj.drawString(value, xValue, y, valueColor, false);
         }
     }
 

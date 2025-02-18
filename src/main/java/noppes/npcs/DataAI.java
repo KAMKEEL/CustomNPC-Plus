@@ -11,7 +11,7 @@ import java.util.List;
 
 public class DataAI {
     private EntityNPCInterface npc;
-	
+
 	public int onAttack = 0; //0:fight 1:panic 2:retreat 3:nothing
 	public int doorInteract = 2;
 	public int findShelter = 2;
@@ -31,13 +31,13 @@ public class DataAI {
 	public int useRangeMelee = 0;
 	public int tacticalRadius = 8;
 	public int tacticalChance = 5;
-	
-	public int movementType = 0;
+
+	public int movementType = 0; // 0 - Ground , 1 - Flying
 	public double flySpeed = 1.0D;
 	public double flyGravity = 0.0D;
 	public boolean hasFlyLimit = true;
 	public int flyHeightLimit = 2;
-	
+
 	public EnumAnimation animationType = EnumAnimation.NONE;
 	public EnumStandingType standingType = EnumStandingType.RotateBody;
 	public EnumMovingType movingType = EnumMovingType.Standing;
@@ -59,7 +59,7 @@ public class DataAI {
 		this.npc = npc;
 	}
 
-	public void readToNBT(NBTTagCompound compound) {		
+	public void readToNBT(NBTTagCompound compound) {
 		canSwim = compound.getBoolean("CanSwim");
 		reactsToFire = compound.getBoolean("ReactsToFire");
 		avoidsWater = compound.getBoolean("AvoidsWater");
@@ -79,21 +79,21 @@ public class DataAI {
 		movingPause = compound.getBoolean("MovingPause");
 		npcInteracting = compound.getBoolean("npcInteracting");
 		stopAndInteract = compound.getBoolean("stopAndInteract");
-		
+
 
 		animationType = EnumAnimation.values()[compound.getInteger("MoveState") % EnumAnimation.values().length];
 		standingType = EnumStandingType.values()[compound.getInteger("StandingState") % EnumStandingType.values().length];
 		movingType = EnumMovingType.values()[compound.getInteger("MovingState") % EnumMovingType.values().length];
 		tacticalVariant = EnumNavType.values()[compound.getInteger("TacticalVariant") % EnumNavType.values().length];
 		combatPolicy = EnumCombatPolicy.values()[compound.getInteger("CombatPolicy") % EnumCombatPolicy.values().length];
-	
+
 		orientation = compound.getInteger("Orientation");
 		bodyOffsetY = compound.getFloat("PositionOffsetY");
 		bodyOffsetZ = compound.getFloat("PositionOffsetZ");
 		bodyOffsetX = compound.getFloat("PositionOffsetX");
 		walkingRange = compound.getInteger("WalkingRange");
 		setWalkingSpeed(compound.getInteger("MoveSpeed"));
-		
+
 		setMovingPath(NBTTags.getIntegerArraySet(compound.getTagList("MovingPathNew",10)));
 		movingPos = compound.getInteger("MovingPos");
 		movingPattern = compound.getInteger("MovingPatern");
@@ -121,7 +121,7 @@ public class DataAI {
 
 		startPos = compound.getIntArray("StartPosNew");
 		if (startPos == null || startPos.length != 3){
-			startPos = new int[] { 
+			startPos = new int[] {
 				MathHelper.floor_double(npc.posX),
 				MathHelper.floor_double(npc.posY),
 				MathHelper.floor_double(npc.posZ) };
@@ -154,14 +154,14 @@ public class DataAI {
 		compound.setInteger("MovingState", movingType.ordinal());
 		compound.setInteger("TacticalVariant", tacticalVariant.ordinal());
 		compound.setInteger("CombatPolicy", combatPolicy.ordinal());
-		
+
 		compound.setInteger("Orientation", orientation);
 		compound.setFloat("PositionOffsetX", bodyOffsetX);
 		compound.setFloat("PositionOffsetY", bodyOffsetY);
 		compound.setFloat("PositionOffsetZ", bodyOffsetZ);
 		compound.setInteger("WalkingRange", walkingRange);
 		compound.setInteger("MoveSpeed", moveSpeed);
-		
+
 		compound.setTag("MovingPathNew", NBTTags.nbtIntegerArraySet(movingPath));
 		compound.setInteger("MovingPos", movingPos);
 		compound.setInteger("MovingPatern", movingPattern);
@@ -173,9 +173,9 @@ public class DataAI {
 		compound.setInteger("FlyHeightLimit", flyHeightLimit);
 
 		npc.setAvoidWater(avoidsWater);
-		
+
 		compound.setIntArray("StartPosNew", npc.getStartPos());
-		
+
 		return compound;
 	}
 
@@ -190,7 +190,7 @@ public class DataAI {
 		if(!movingPath.isEmpty())
 			startPos = movingPath.get(0);
 	}
-	
+
 	public int[] getCurrentMovingPath(){
 		List<int[]> list = getMovingPath();
 		if(list.size() == 1){
@@ -206,14 +206,14 @@ public class DataAI {
 				}
 				else if(movingPos >= list.size()){
 					return list.get(list.size() - (movingPos % list.size()) - 2);
-				}				
+				}
 			}
 		}
-		
-		
+
+
 		return list.get(movingPos);
 	}
-	
+
 	public void incrementMovingPath(){
 		List<int[]> list = getMovingPath();
 		if(list.size() == 1){
@@ -229,7 +229,7 @@ public class DataAI {
 			movingPos = movingPos % size;
 		}
 	}
-	
+
 
 	public void decreaseMovingPath() {
 		List<int[]> list = getMovingPath();
@@ -254,12 +254,12 @@ public class DataAI {
 		int[] pos = getCurrentMovingPath();
 		return npc.getDistanceSq(pos[0] + 0.5, pos[1], pos[2] + 0.5);
 	}
-	
+
 	public void setWalkingSpeed(double speed){
 		this.moveSpeed = (int)speed;
 		npc.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(npc.getSpeed());
 	}
-	
+
 	public int getWalkingSpeed(){
 		return this.moveSpeed;
 	}

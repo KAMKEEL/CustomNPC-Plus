@@ -13,6 +13,7 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.LinkedItem;
@@ -32,7 +33,6 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
     public final LinkedItem linkedItem;
     private final LinkedItemScript scriptHandler;
 
-
     public GuiScriptLinkedItem(GuiNPCManageLinked parent, LinkedItem linkedItem) {
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
@@ -43,18 +43,20 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
         this.linkedItem = linkedItem;
         this.scriptHandler = new LinkedItemScript();
 
-        hookList.add("init");
-        hookList.add("tick");
-        hookList.add("tossed");
-        hookList.add("pickedUp");
-        hookList.add("spawn");
-        hookList.add("interact");
-        hookList.add("rightClick");
-        hookList.add("attack");
-        hookList.add("startItem");
-        hookList.add("usingItem");
-        hookList.add("stopItem");
-        hookList.add("finishItem");
+        hookList.add(EnumScriptType.LINKED_ITEM_BUILD.name());
+        hookList.add(EnumScriptType.LINKED_ITEM_VERSION.name());
+        hookList.add(EnumScriptType.INIT.name());
+        hookList.add(EnumScriptType.TICK.name());
+        hookList.add(EnumScriptType.TOSSED.name());
+        hookList.add(EnumScriptType.PICKEDUP.name());
+        hookList.add(EnumScriptType.SPAWN.name());
+        hookList.add(EnumScriptType.INTERACT.name());
+        hookList.add(EnumScriptType.RIGHT_CLICK.name());
+        hookList.add(EnumScriptType.ATTACK.name());
+        hookList.add(EnumScriptType.START_USING_ITEM.name());
+        hookList.add(EnumScriptType.USING_ITEM.name());
+        hookList.add(EnumScriptType.STOP_USING_ITEM.name());
+        hookList.add(EnumScriptType.FINISH_USING_ITEM.name());
 
         LinkedItemScriptPacket.Get(linkedItem.id);
     }
