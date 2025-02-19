@@ -23,6 +23,7 @@ public class CommandProfile extends CommandBase {
 	public CommandProfile(){
 		registerCommand(help);
         registerCommand(new CommandProfileChange());
+        registerCommand(new CommandProfileCreate());
         registerCommand(new CommandProfileRemove());
         registerCommand(new CommandProfileAdmin());
         registerCommand(new CommandProfileList());
@@ -116,7 +117,7 @@ public class CommandProfile extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel(){
-        return 0;
+        return 4;
     }
 
 	public static String getCommandPermission(String command){

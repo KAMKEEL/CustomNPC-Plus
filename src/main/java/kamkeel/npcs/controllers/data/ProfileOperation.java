@@ -7,6 +7,7 @@ public enum ProfileOperation {
     PLAYER_NOT_FOUND,
     NEW_SLOT_CREATED,
     ALREADY_ACTIVE,
-    VERIFICATION_FAILED
+    VERIFICATION_FAILED,
+    MAX_SLOTS
 }
 

@@ -5,33 +5,37 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.network.*;
-import kamkeel.npcs.network.enums.EnumItemPacketType;
+import kamkeel.npcs.controllers.data.ProfileOperation;
+import kamkeel.npcs.network.AbstractPacket;
+import kamkeel.npcs.network.PacketChannel;
+import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.LinkedNpcController;
-import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.CustomNpcsPermissions;
 
 import java.io.IOException;
 
-public final class ProfileGetPacket extends AbstractPacket {
-    public static String packetName = "Request|ProfileGet";
+public final class ProfileCreatePacket extends AbstractPacket {
+    public static String packetName = "Request|ProfileCreate";
 
-    public ProfileGetPacket() {}
+    public ProfileCreatePacket() {}
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.ProfileGet;
+        return EnumRequestPacket.ProfileCreate;
     }
 
     @Override
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;
+    }
+
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.PROFILE_CREATE;
     }
 
     @SideOnly(Side.CLIENT)
@@ -43,13 +47,11 @@ public final class ProfileGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        sendProfileNBT(player);
-    }
-
-    public static void sendProfileNBT(EntityPlayer player){
         Profile profile = ProfileController.getProfile(player);
-        NBTTagCompound compound = profile.writeToNBT();
-        compound.setBoolean("PROFILE", true);
-        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+        ProfileOperation operation = ProfileController.createSlotInternal(profile);
+        // TODO: Check Operation and Send Message
+
+        ProfileGetPacket.sendProfileNBT(player);
+        ProfileGetInfoPacket.sendProfileInfo(player);
     }
 }

@@ -148,6 +148,9 @@ gui.sure=Are you sure?
 gui.available=Requirements Met
 gui.items=Items
 gui.npcs=NPCs
+gui.change=Change
+gui.create=Create
+gui.rename=Rename
 
 party.accept=Accept
 party.allowParty=Allow Partying
@@ -1307,3 +1310,7 @@ profile.lastLoaded=Last Loaded
 profile.info.quest.active=Quests Active
 profile.info.quest.finished=Quests Finished
 profile.info.dialog.read=Dialogs Read
+profile.change.message=Do you want to change?
+profile.create.message=Creating a new profile will change you to it.
+profile.rename.message=Do you want to rename your slot?
+profile.operation.error=There was an error in your request

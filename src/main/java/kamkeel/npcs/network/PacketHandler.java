@@ -56,8 +56,7 @@ import kamkeel.npcs.network.packets.request.pather.MovingPathSavePacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
-import kamkeel.npcs.network.packets.request.profile.ProfileGetInfoPacket;
-import kamkeel.npcs.network.packets.request.profile.ProfileGetPacket;
+import kamkeel.npcs.network.packets.request.profile.*;
 import kamkeel.npcs.network.packets.request.quest.*;
 import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
@@ -328,6 +327,10 @@ public class PacketHandler {
         // Profile Packets
         REQUEST_PACKET.registerPacket(new ProfileGetPacket());
         REQUEST_PACKET.registerPacket(new ProfileGetInfoPacket());
+        REQUEST_PACKET.registerPacket(new ProfileCreatePacket());
+        REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
+        REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
+        REQUEST_PACKET.registerPacket(new ProfileChangePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

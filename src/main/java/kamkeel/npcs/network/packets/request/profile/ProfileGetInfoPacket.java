@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public final class ProfileGetInfoPacket extends AbstractPacket {
     public static String packetName = "Request|ProfileGetInfo";
@@ -48,6 +47,10 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
+        sendProfileInfo(player);
+    }
+
+    public static void sendProfileInfo(EntityPlayer player){
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("PROFILE_INFO", true);
         NBTTagList slotList = new NBTTagList();
@@ -69,7 +72,7 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 
-    public static HashMap<Integer, List<InfoEntry>> readSlotsFromNBT(NBTTagCompound compound) {
+    public static HashMap<Integer, List<InfoEntry>> readProfileInfo(NBTTagCompound compound) {
         HashMap<Integer, List<InfoEntry>> slotInfoMap = new HashMap<>();
 
         if (!compound.getBoolean("PROFILE_INFO")) return slotInfoMap;

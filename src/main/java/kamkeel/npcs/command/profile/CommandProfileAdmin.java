@@ -105,6 +105,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         }
     }
 
+    // Existing change subcommand update:
     @SubCommand(
         desc = "Change a specified player's active slot.",
         usage = "<targetPlayer> <newSlotId>"
@@ -141,6 +142,41 @@ public class CommandProfileAdmin extends CommandProfileBase {
                 break;
             default:
                 sendError(sender, "Error changing active slot for %s.", targetPlayer);
+        }
+    }
+
+    // New admin create subcommand:
+    @SubCommand(
+        desc = "Create a new slot for a specified player's profile.",
+        usage = "<targetPlayer>"
+    )
+    public void create(ICommandSender sender, String[] args) throws CommandException {
+        if(args.length < 1) {
+            sendError(sender, "Usage: /profile admin create <targetPlayer>");
+            return;
+        }
+        String targetPlayer = args[0];
+        Profile profile = ProfileController.getProfile(targetPlayer);
+        if(profile == null) {
+            sendError(sender, "Profile not found for player: " + targetPlayer);
+            return;
+        }
+        ProfileOperation result = ProfileController.createSlotInternal(profile);
+        switch(result) {
+            case NEW_SLOT_CREATED:
+                sendResult(sender, "New slot created successfully for %s.", targetPlayer);
+                break;
+            case MAX_SLOTS:
+                sendError(sender, "Player %s has reached maximum allowed slots.", targetPlayer);
+                break;
+            case LOCKED:
+                sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
+                break;
+            case VERIFICATION_FAILED:
+                sendError(sender, "Profile verification failed for %s.", targetPlayer);
+                break;
+            default:
+                sendError(sender, "Error creating new slot for %s.", targetPlayer);
         }
     }
 

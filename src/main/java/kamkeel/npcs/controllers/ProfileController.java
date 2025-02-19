@@ -1,12 +1,14 @@
 package kamkeel.npcs.controllers;
 
 import kamkeel.npcs.controllers.data.*;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.PlayerData;
@@ -357,52 +359,78 @@ public class ProfileController {
         return ProfileOperation.SUCCESS;
     }
 
-    // Change the active slot in a Profile.
-    // If the new slot doesn't exist, it is created and NEW_SLOT_CREATED is returned.
-    // Saves current slot data before switching.
-    private static ProfileOperation changeSlotInternal(Profile profile, int newSlotId) {
-        if(profile.locked) {
-            LogWriter.error("Profile is locked; cannot change slot.");
+    public static ProfileOperation createSlotInternal(Profile profile) {
+        if (profile.locked) {
+            LogWriter.error("Profile is locked; cannot create slot.");
             return ProfileOperation.LOCKED;
         }
-        // Disallow switching to the same active slot.
-        if(profile.currentID == newSlotId) {
-            LogWriter.error("Slot " + newSlotId + " is already active.");
-            return ProfileOperation.ALREADY_ACTIVE;
+        int newSlotId = 0;
+        while (profile.slots.containsKey(newSlotId)) {
+            newSlotId++;
+        }
+
+        // Check if the player is allowed to create a new slot.
+        if (!allowSlotPermission(profile.player)) {
+            LogWriter.error("Player has reached maximum allowed slots.");
+            return ProfileOperation.MAX_SLOTS;
         }
         // Run verification checks from all IProfileData in order of priority.
-        if(profile.player != null) {
+        if (profile.player != null) {
             List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
             dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
-            for(IProfileData pd : dataList) {
-                if(!pd.verifySwitch(profile.player)) {
+            for (IProfileData pd : dataList) {
+                if (!pd.verifySwitch(profile.player)) {
                     LogWriter.error("Verification check failed for profile type: " + pd.getTagName());
                     return ProfileOperation.VERIFICATION_FAILED;
                 }
             }
         }
-        if(profile.player != null) {
+        // Create and add the new slot.
+        Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
+        newSlot.setCompound(new NBTTagCompound());
+        profile.slots.put(newSlotId, newSlot);
+        return ProfileOperation.NEW_SLOT_CREATED;
+    }
+
+    // Change the active slot in a profile without automatically creating a new one.
+    // If the target slot does not exist, the operation fails.
+    private static ProfileOperation changeSlotInternal(Profile profile, int newSlotId) {
+        if (profile.locked) {
+            LogWriter.error("Profile is locked; cannot change slot.");
+            return ProfileOperation.LOCKED;
+        }
+        if (profile.currentID == newSlotId) {
+            LogWriter.error("Slot " + newSlotId + " is already active.");
+            return ProfileOperation.ALREADY_ACTIVE;
+        }
+        if (!profile.slots.containsKey(newSlotId)) {
+            LogWriter.error("Slot " + newSlotId + " does not exist.");
+            return ProfileOperation.ERROR;
+        }
+        // Run verification checks on all IProfileData in priority order.
+        if (profile.player != null) {
+            List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+            dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
+            for (IProfileData pd : dataList) {
+                if (!pd.verifySwitch(profile.player)) {
+                    LogWriter.error("Verification check failed for profile type: " + pd.getTagName());
+                    return ProfileOperation.VERIFICATION_FAILED;
+                }
+            }
+        }
+        if (profile.player != null) {
             saveSlotData(profile.player);
         }
-        boolean createdNewSlot = false;
-        // If the new slot doesn't exist, create it.
-        if(!profile.slots.containsKey(newSlotId)) {
-            Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
-            newSlot.setCompound(new NBTTagCompound());
-            profile.slots.put(newSlotId, newSlot);
-            createdNewSlot = true;
-        }
         profile.currentID = newSlotId;
-        if(profile.player != null) {
+        if (profile.player != null) {
             loadSlotData(profile.player);
         }
-        // Update PlayerData so that PlayerData.get(player).profileSlot matches Profile.currentID.
-        if(profile.player != null) {
+        if (profile.player != null) {
             PlayerData pdata = PlayerData.get(profile.player);
             pdata.profileSlot = newSlotId;
             pdata.save();
         }
-        return createdNewSlot ? ProfileOperation.NEW_SLOT_CREATED : ProfileOperation.SUCCESS;
+        return ProfileOperation.SUCCESS;
     }
 
     // ---------- Public Operations (Overloaded for EntityPlayer, UUID, or username) ----------
@@ -607,6 +635,51 @@ public class ProfileController {
     }
 
 
+    public static boolean allowSlotPermission(EntityPlayer player) {
+        Profile profile = ProfileController.getProfile(player);
+        int currentSlots = profile.slots.size();
+
+        // Unlimited slots if the player has the wildcard permission.
+        if (CustomNpcsPermissions.hasCustomPermission(player, "customnpcs.profile.max.*")) {
+            return true;
+        }
+
+        int highestAllowed = 0;
+        for (int i = 1; i <= 50; i++) {
+            String perm = "customnpcs.profile.max." + i;
+            if (CustomNpcsPermissions.hasCustomPermission(player, perm)) {
+                highestAllowed = i;
+            }
+        }
+
+        if (highestAllowed == 0) {
+            highestAllowed = 1;
+        }
+
+        return currentSlots < highestAllowed;
+    }
+
+    public void sendChatAlert(ProfileOperation operation, EntityPlayerMP player){
+        switch (operation){
+            case SUCCESS:
+                ChatAlertPacket.sendChatAlert(player, "quest.newquest", ": ", "");
+                break;
+            case ERROR:
+                break;
+            case LOCKED:
+                break;
+            case PLAYER_NOT_FOUND:
+                break;
+            case NEW_SLOT_CREATED:
+                break;
+            case ALREADY_ACTIVE:
+                break;
+            case VERIFICATION_FAILED:
+                break;
+            case MAX_SLOTS:
+                break;
+        }
+    }
 
     public static EntityPlayerMP getPlayer(String username){
         return MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);

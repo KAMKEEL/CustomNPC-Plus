@@ -4,11 +4,11 @@ import kamkeel.npcs.controllers.data.InfoEntry;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.Slot;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
-import kamkeel.npcs.network.packets.request.profile.ProfileGetInfoPacket;
-import kamkeel.npcs.network.packets.request.profile.ProfileGetPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
+import kamkeel.npcs.network.packets.request.profile.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
@@ -34,6 +34,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     private GuiCustomScroll scroll;
     public HashMap<String, Integer> data = new HashMap<>();
     private String selected = null;
+    private String rename;
     private Profile profile;
     private Slot slot;
     private HashMap<Integer, List<InfoEntry>> slotInfoMap = new HashMap<>();
@@ -84,6 +85,26 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
         if (guibutton.id <= -100) {
             super.actionPerformed(guibutton);
             return;
+        }
+
+        if(guibutton.id == 4){
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("profile.create.message"), StatCollector.translateToLocal("gui.sure"), 104);
+            displayGuiScreen(guiyesno);
+        }
+
+        if(this.slot == null)
+            return;
+
+        if(guibutton.id == 1){
+            GuiYesNo guiyesno = new GuiYesNo(this, slot.getName(), StatCollector.translateToLocal("profile.change.message"), 101);
+            displayGuiScreen(guiyesno);
+        }
+        if(guibutton.id == 2){
+            setSubGui(new SubGuiEditText(slot.getName()));
+        }
+        if(guibutton.id == 3){
+            GuiYesNo guiyesno = new GuiYesNo(this, slot.getName(), StatCollector.translateToLocal("gui.delete"), 103);
+            displayGuiScreen(guiyesno);
         }
     }
 
@@ -261,66 +282,36 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
         NoppesUtil.openGUI(player, this);
         if (!result)
             return;
-        if (id == 1) {
-            if (data.containsKey(scroll.getSelected())) {
-
-                // DELETE PROFILE
-                // PacketClient.sendClient(new LinkedNPCRemovePacket(scroll.getSelected()));
-
-                initGui();
-            }
+        if (id == 104) {
+            // Create Slot
+            PacketClient.sendClient(new ProfileCreatePacket());
         }
-        if(id == 1){
-            if (data.containsKey(scroll.getSelected())) {
+        if(slot == null)
+            return;
 
-                // RENAME PROFILE
-                // PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
-
-                initGui();
-            }
+        if(id == 101){
+            // Change Slot
+            PacketClient.sendClient(new ProfileChangePacket(slot.getId()));
         }
-        if(id == 1){
-            // CREATE PROFILE
-            // PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
-
-            initGui();
+        if(id == 102 && rename != null && !rename.equalsIgnoreCase(slot.getName())){
+            // Rename Slot
+            PacketClient.sendClient(new ProfileRenamePacket(slot.getId(), rename));
         }
-        if(id == 1){
-            // CHANGE PROFILE
-            // PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
-
-            initGui();
+        if(id == 103){
+            // Delete Slot
+            PacketClient.sendClient(new ProfileRemovePacket(slot.getId()));
         }
-    }
-
-    public int getStringWidthWithoutColor(String text) {
-        int width = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-
-            if (c == '§') {
-                if (i < text.length() - 1) {
-                    i += 1;
-                }
-            } else {
-                // If not a color code, calculate the width
-                width += Minecraft.getMinecraft().fontRenderer.getCharWidth(c);
-            }
-        }
-        return width;
     }
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
         if(subgui instanceof SubGuiEditText){
             if(!((SubGuiEditText)subgui).cancelled){
-                PacketClient.sendClient(new LinkedNPCAddPacket(((SubGuiEditText)subgui).text));
+                rename = ((SubGuiEditText)subgui).text;
+                GuiYesNo guiyesno = new GuiYesNo(this, rename, StatCollector.translateToLocal("profile.rename.message"), 102);
+                displayGuiScreen(guiyesno);
             }
         }
-    }
-
-    public boolean isMouseOverRenderer(int x, int y) {
-        return x >= guiLeft + 10 && x <= guiLeft + 10 + 200 && y >= guiTop + 6 && y <= guiTop + 6 + 204;
     }
 
     @Override
@@ -343,19 +334,23 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
 
     public void setGuiData(NBTTagCompound compound) {
+        this.slot = null;
         if(compound.hasKey("PROFILE")){
             // Load Profile
             this.profile = new Profile(mc.thePlayer, compound);
             this.data = new HashMap<>();
-            String colorCode = "\u00A7e";
+            String currentSlot = "\u00A7e";
+            String otherSlot = "\u00A7f";
             for(Slot slot1 : profile.slots.values()){
                 String name = slot1.getId() + " - " + slot1.getName();
                 if(profile.currentID == slot1.getId())
-                    name = colorCode + name;
+                    name = currentSlot + name;
+                else
+                    name = otherSlot + name;
                 this.data.put(name, slot1.getId());
             }
         } else if(compound.hasKey("PROFILE_INFO")){
-            slotInfoMap = ProfileGetInfoPacket.readSlotsFromNBT(compound);
+            slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
         }
         initGui();
     }
