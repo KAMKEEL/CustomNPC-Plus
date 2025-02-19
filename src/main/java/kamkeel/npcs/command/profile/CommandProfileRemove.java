@@ -5,7 +5,6 @@ import kamkeel.npcs.controllers.data.ProfileOperation;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendResult;
 
@@ -33,22 +32,22 @@ public class CommandProfileRemove extends CommandProfileBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (!(sender instanceof EntityPlayer)) {
+        if(!(sender instanceof EntityPlayer)) {
             sendError(sender, "This command can only be used by a player.");
             return;
         }
-        if (args.length < 1) {
+        if(args.length < 1) {
             sendError(sender, "Usage: " + getUsage());
             return;
         }
         int slotId;
         try {
             slotId = Integer.parseInt(args[0]);
-        } catch (NumberFormatException ex) {
+        } catch(NumberFormatException ex) {
             sendError(sender, "Slot ID must be a number: " + args[0]);
             return;
         }
-        EntityPlayer player = (EntityPlayer) sender;
+        EntityPlayer player = (EntityPlayer)sender;
         ProfileOperation result = ProfileController.removeSlot(player, slotId);
         switch(result) {
             case SUCCESS:

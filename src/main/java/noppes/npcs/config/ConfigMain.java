@@ -80,7 +80,13 @@ public class ConfigMain
     public static Property DefaultMaxPartySizeProperty;
     public static int DefaultMaxPartySize = 4;
 
-    public static boolean EnableProfiles = true;
+    /**
+     *  Profile Properties
+     **/
+    public static boolean ProfilesEnabled = true;
+    public static boolean AllowProfileBackups = true;
+    public static int ProfileBackupAmount = 5;
+
 
     /**
      *  General NPC Properties
@@ -220,7 +226,9 @@ public class ConfigMain
             TrackedQuestUpdateFrequency = TrackedQuestUpdateFrequencyProperty.getInt(5);
 
             // PROFILES
-            EnableProfiles = config.get(PROFILES, "Enable Profiles", true, "Allow the use of character Profiles").getBoolean(true);
+            ProfilesEnabled = config.get(PROFILES, "Enable Profiles", true, "Allow the use of character Profiles").getBoolean(true);
+            AllowProfileBackups = config.get(PROFILES, "Enable Profile Backups", true, "Will create backups of profile changes").getBoolean(true);
+            ProfileBackupAmount = config.get(PROFILES, "Number of Backups", 5, "How many backups per player to save").getInt(5);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

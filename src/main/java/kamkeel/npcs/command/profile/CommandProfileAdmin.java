@@ -4,14 +4,13 @@ import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.ProfileOperation;
 import kamkeel.npcs.controllers.data.Slot;
+import noppes.npcs.LogWriter;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import noppes.npcs.LogWriter;
-import net.minecraft.nbt.NBTTagCompound;
 
+import java.io.File;
 import java.util.Map;
 import java.util.UUID;
-
 import static kamkeel.npcs.util.ColorUtil.*;
 
 public class CommandProfileAdmin extends CommandProfileBase {
@@ -23,7 +22,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
 
     @Override
     public String getDescription() {
-        return "Admin profile management: clone, remove, change, and list a player's slots.";
+        return "Admin profile management: clone, remove, change, list, rename, and rollback profiles.";
     }
 
     @Override
@@ -36,7 +35,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         usage = "<sourcePlayer> <destinationPlayer> <sourceSlot> <destinationSlot> [temp]"
     )
     public void clone(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length < 4) {
+        if(args.length < 4) {
             sendError(sender, "Usage: /profile admin clone <sourcePlayer> <destinationPlayer> <sourceSlot> <destinationSlot> [temp]");
             return;
         }
@@ -47,55 +46,31 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sourceSlot = Integer.parseInt(args[2]);
             destinationSlot = Integer.parseInt(args[3]);
         } catch (NumberFormatException ex) {
-            sendError(sender, "Source and destination slot IDs must be numbers.");
+            sendError(sender, "Slot IDs must be numbers.");
             return;
         }
         boolean temporary = (args.length >= 5 && args[4].equalsIgnoreCase("temp"));
-
-        Profile sourceProfile = ProfileController.getProfile(sourcePlayer);
-        if (sourceProfile == null) {
-            sendError(sender, "Source profile not found for player: " + sourcePlayer);
-            return;
-        }
-        Profile destProfile = ProfileController.getProfile(destinationPlayer);
-        if (destProfile == null) {
-            sendError(sender, "Destination profile not found for player: " + destinationPlayer);
-            return;
-        }
-        if (destProfile.locked) {
-            sendError(sender, "Destination profile is locked. Please try again later.");
-            return;
-        }
-        if (!sourceProfile.slots.containsKey(sourceSlot)) {
-            sendError(sender, "Source slot " + sourceSlot + " does not exist for player: " + sourcePlayer);
-            return;
-        }
-        if (destinationSlot == destProfile.currentID) {
-            sendError(sender, "Cannot clone into the destination's active slot.");
-            return;
-        }
-        try {
-            Slot sourceSlotObj = sourceProfile.slots.get(sourceSlot);
-            if (sourceSlotObj == null) {
-                sendError(sender, "Source slot is invalid.");
-                return;
-            }
-            NBTTagCompound clonedData = (NBTTagCompound) sourceSlotObj.getCompound().copy();
-            Slot clonedSlot = new Slot(destinationSlot, "Admin Cloned Slot " + destinationSlot, clonedData, System.currentTimeMillis(), temporary);
-            destProfile.slots.put(destinationSlot, clonedSlot);
-
-            if (destProfile.player != null) {
-                ProfileController.save(destProfile.player, destProfile);
-            } else {
-                UUID destUUID = ProfileController.getUUIDFromUsername(destinationPlayer);
-                if (destUUID != null)
-                    ProfileController.saveOffline(destProfile, destUUID);
-            }
-            sendResult(sender, "Successfully cloned slot %d from %s to slot %d for %s%s.",
-                sourceSlot, sourcePlayer, destinationSlot, destinationPlayer, (temporary ? " (temporary)" : ""));
-        } catch (Exception e) {
-            LogWriter.error("Error cloning slot", e);
-            sendError(sender, "An error occurred while cloning slot.");
+        ProfileOperation result = ProfileController.cloneSlot(sourcePlayer, sourceSlot, destinationSlot, temporary);
+        switch(result) {
+            case SUCCESS:
+                sendResult(sender, "Successfully cloned slot %d from %s to slot %d for %s.", sourceSlot, sourcePlayer, destinationSlot, destinationPlayer);
+                break;
+            case NEW_SLOT_CREATED:
+                sendResult(sender, "Successfully cloned slot %d from %s to NEW slot %d for %s.", sourceSlot, sourcePlayer, destinationSlot, destinationPlayer);
+                break;
+            case LOCKED:
+                sendError(sender, "Profile is locked. Please try again later.");
+                break;
+            case VERIFICATION_FAILED:
+                sendError(sender, "Profile verification failed. Change not permitted.");
+                break;
+            case PLAYER_NOT_FOUND:
+                sendError(sender, "Player profile not found.");
+                break;
+            case ERROR:
+            default:
+                sendError(sender, "Error cloning slot.");
+                break;
         }
     }
 
@@ -104,7 +79,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         usage = "<targetPlayer> <slotId>"
     )
     public void remove(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length < 2) {
+        if(args.length < 2) {
             sendError(sender, "Usage: /profile admin remove <targetPlayer> <slotId>");
             return;
         }
@@ -112,29 +87,21 @@ public class CommandProfileAdmin extends CommandProfileBase {
         int slotId;
         try {
             slotId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException ex) {
+        } catch(NumberFormatException ex) {
             sendError(sender, "Slot ID must be a number.");
             return;
         }
-        Profile targetProfile = ProfileController.getProfile(targetPlayer);
-        if (targetProfile == null) {
-            sendError(sender, "Profile not found for player: " + targetPlayer);
-            return;
-        }
-        if (targetProfile.locked) {
-            sendError(sender, "Profile for " + targetPlayer + " is locked. Please try again later.");
-            return;
-        }
         ProfileOperation result = ProfileController.removeSlot(targetPlayer, slotId);
-        switch (result) {
+        switch(result) {
             case SUCCESS:
                 sendResult(sender, "Successfully removed slot %d from %s.", slotId, targetPlayer);
                 break;
             case LOCKED:
-                sendError(sender, "Profile for " + targetPlayer + " is locked.");
+                sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
                 break;
             default:
                 sendError(sender, "Error removing slot %d from %s.", slotId, targetPlayer);
+                break;
         }
     }
 
@@ -143,7 +110,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         usage = "<targetPlayer> <newSlotId>"
     )
     public void change(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length < 2) {
+        if(args.length < 2) {
             sendError(sender, "Usage: /profile admin change <targetPlayer> <newSlotId>");
             return;
         }
@@ -151,29 +118,29 @@ public class CommandProfileAdmin extends CommandProfileBase {
         int newSlotId;
         try {
             newSlotId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException ex) {
+        } catch(NumberFormatException ex) {
             sendError(sender, "Slot ID must be a number.");
             return;
         }
-        Profile targetProfile = ProfileController.getProfile(targetPlayer);
-        if (targetProfile == null) {
-            sendError(sender, "Profile not found for player: " + targetPlayer);
-            return;
-        }
-        if (targetProfile.locked) {
-            sendError(sender, "Profile for " + targetPlayer + " is locked. Please try again later.");
-            return;
-        }
         ProfileOperation result = ProfileController.changeSlot(targetPlayer, newSlotId);
-        switch (result) {
+        switch(result) {
             case SUCCESS:
                 sendResult(sender, "Successfully changed %s's active slot to %d.", targetPlayer, newSlotId);
                 break;
+            case NEW_SLOT_CREATED:
+                sendResult(sender, "Switched %s to NEW slot %d (new profile created).", targetPlayer, newSlotId);
+                break;
+            case ALREADY_ACTIVE:
+                sendError(sender, "Slot %d is already active for %s.", newSlotId, targetPlayer);
+                break;
             case LOCKED:
-                sendError(sender, "Profile for " + targetPlayer + " is locked.");
+                sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
+                break;
+            case VERIFICATION_FAILED:
+                sendError(sender, "Profile verification failed for %s.", targetPlayer);
                 break;
             default:
-                sendError(sender, "Error changing active slot for " + targetPlayer);
+                sendError(sender, "Error changing active slot for %s.", targetPlayer);
         }
     }
 
@@ -182,21 +149,21 @@ public class CommandProfileAdmin extends CommandProfileBase {
         usage = "<targetPlayer>"
     )
     public void list(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length < 1) {
+        if(args.length < 1) {
             sendError(sender, "Usage: /profile admin list <targetPlayer>");
             return;
         }
         String targetPlayer = args[0];
-        Profile targetProfile = ProfileController.getProfile(targetPlayer);
-        if (targetProfile == null) {
+        Profile profile = ProfileController.getProfile(targetPlayer);
+        if(profile == null) {
             sendError(sender, "Profile not found for player: " + targetPlayer);
             return;
         }
-        sendMessage(sender, "Profile Slots for " + targetPlayer + ":");
-        for (Map.Entry<Integer, Slot> entry : targetProfile.slots.entrySet()) {
+        sendMessage(sender, "Profile Slots for %s:", targetPlayer);
+        for(Map.Entry<Integer, Slot> entry : profile.slots.entrySet()) {
             int id = entry.getKey();
             String name = entry.getValue().getName();
-            String prefix = (id == targetProfile.currentID) ? "* " : "- ";
+            String prefix = (id == profile.currentID) ? "* " : "- ";
             sendMessage(sender, prefix + "Slot " + id + ": " + name);
         }
     }
@@ -206,7 +173,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         usage = "<targetPlayer> <slotId> <newName>"
     )
     public void rename(ICommandSender sender, String[] args) throws CommandException {
-        if (args.length < 3) {
+        if(args.length < 3) {
             sendError(sender, "Usage: /profile admin rename <targetPlayer> <slotId> <newName>");
             return;
         }
@@ -214,50 +181,69 @@ public class CommandProfileAdmin extends CommandProfileBase {
         int slotId;
         try {
             slotId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException ex) {
+        } catch(NumberFormatException ex) {
             sendError(sender, "Slot ID must be a number.");
             return;
         }
-        // Combine remaining arguments for the new name.
         StringBuilder sb = new StringBuilder();
-        for (int i = 2; i < args.length; i++) {
-            if (i > 2) sb.append(" ");
+        for(int i = 2; i < args.length; i++){
+            if(i > 2) sb.append(" ");
             sb.append(args[i]);
         }
         String newName = sb.toString().trim();
-        // Cap name at 20 characters.
-        if (newName.length() > 20) {
+        if(newName.length() > 20) {
             newName = newName.substring(0, 20);
         }
-        // Validate that name contains only letters and spaces.
-        if (!newName.matches("[A-Za-z ]+")) {
+        if(!newName.matches("[A-Za-z ]+")){
             sendError(sender, "Invalid name. Only alphabetic characters and spaces are allowed.");
             return;
         }
-        Profile targetProfile = ProfileController.getProfile(targetPlayer);
-        if (targetProfile == null) {
+        Profile profile = ProfileController.getProfile(targetPlayer);
+        if(profile == null) {
             sendError(sender, "Profile not found for player: " + targetPlayer);
             return;
         }
-        if (targetProfile.locked) {
-            sendError(sender, "Profile for " + targetPlayer + " is locked. Please try again later.");
+        if(profile.locked) {
+            sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
             return;
         }
-        if (!targetProfile.slots.containsKey(slotId)) {
-            sendError(sender, "Slot " + slotId + " not found in " + targetPlayer + "'s profile.");
+        if(!profile.slots.containsKey(slotId)) {
+            sendError(sender, "Slot %d not found in %s's profile.", slotId, targetPlayer);
             return;
         }
-        // Rename the slot.
-        Slot targetSlot = targetProfile.slots.get(slotId);
-        targetSlot.setName(newName);
-        // Save the updated profile.
-        if (targetProfile.player != null) {
-            ProfileController.save(targetProfile.player, targetProfile);
+        profile.slots.get(slotId).setName(newName);
+        if(profile.player != null) {
+            ProfileController.save(profile.player, profile);
         } else {
             UUID uuid = ProfileController.getUUIDFromUsername(targetPlayer);
-            if (uuid != null)
-                ProfileController.saveOffline(targetProfile, uuid);
+            if(uuid != null)
+                ProfileController.saveOffline(profile, uuid);
         }
-        sendResult(sender, "Successfully renamed slot %s for %s to '%s'.", slotId, targetPlayer, newName);
+        sendResult(sender, "Successfully renamed slot %d for %s to '%s'.", slotId, targetPlayer, newName);
+    }
+
+    @SubCommand(
+        desc = "Rollback a player's profile to one of their backups.",
+        usage = "<targetPlayer> <backupFileName>"
+    )
+    public void rollback(ICommandSender sender, String[] args) throws CommandException {
+        if(args.length < 2) {
+            sendError(sender, "Usage: /profile admin rollback <targetPlayer> <backupFileName>");
+            return;
+        }
+        String targetPlayer = args[0];
+        String backupFileName = args[1];
+        File backupDir = new File(ProfileController.getBackupDir(), ProfileController.getProfile(targetPlayer).player.getUniqueID().toString());
+        File backupFile = new File(backupDir, backupFileName);
+        if(!backupFile.exists()){
+            sendError(sender, "Backup file %s not found for player %s.", backupFileName, targetPlayer);
+            return;
+        }
+        boolean success = ProfileController.rollbackProfile(targetPlayer, backupFile);
+        if(success) {
+            sendResult(sender, "Successfully rolled back %s's profile to backup %s.", targetPlayer, backupFileName);
+        } else {
+            sendError(sender, "Failed to rollback %s's profile.", targetPlayer);
+        }
     }
 }

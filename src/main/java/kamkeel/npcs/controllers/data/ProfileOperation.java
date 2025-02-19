@@ -5,6 +5,8 @@ public enum ProfileOperation {
     ERROR,
     LOCKED,
     PLAYER_NOT_FOUND,
+    NEW_SLOT_CREATED,
+    ALREADY_ACTIVE,
     VERIFICATION_FAILED
 }
 

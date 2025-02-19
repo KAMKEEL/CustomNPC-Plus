@@ -99,7 +99,8 @@ public class CommandProfile extends CommandBase {
 		if(args.length <= useArgs.length + 2) {
 			if(args.length - 3 >= 0){
 				String usage = useArgs[args.length - 3];
-				if(usage.equals("<player>") || usage.equals("[player]")) {
+				if(usage.equals("<player>") || usage.equals("[player]") || usage.equals("<targetPlayer>")
+                || usage.equals("<sourcePlayer>") || usage.equals("<destinationPlayer>")) {
 					return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
 				}
 			}

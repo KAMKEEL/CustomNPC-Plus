@@ -6,9 +6,7 @@ import kamkeel.npcs.controllers.data.Slot;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-
 import java.util.Map;
-
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendMessage;
 
@@ -31,18 +29,21 @@ public class CommandProfileList extends CommandProfileBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if (!(sender instanceof EntityPlayer)) {
+        if(!(sender instanceof EntityPlayer)) {
             sendError(sender, "This command can only be used by a player.");
             return;
         }
-        EntityPlayer player = (EntityPlayer) sender;
+        EntityPlayer player = (EntityPlayer)sender;
         Profile profile = ProfileController.getProfile(player);
-        if (profile == null) {
+        if(profile == null) {
             sendError(sender, "Profile not found.");
             return;
         }
+        if(profile.slots.isEmpty()){
+            sendMessage(sender, "No slots found. Using default slot 0.");
+        }
         sendMessage(sender, "Your Profile Slots:");
-        for (Map.Entry<Integer, Slot> entry : profile.slots.entrySet()) {
+        for(Map.Entry<Integer, Slot> entry : profile.slots.entrySet()) {
             int id = entry.getKey();
             String name = entry.getValue().getName();
             String prefix = (id == profile.currentID) ? "* " : "- ";

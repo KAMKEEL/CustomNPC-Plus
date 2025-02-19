@@ -23,6 +23,10 @@ public class ClientCacheHandler {
 
     public static Party party;
 
+    public static boolean allowProfiles = true;
+    public static boolean allowParties = true;
+
+
     public static ImageData getImageData(String directory) {
         synchronized (imageDataCache) {
             if (!imageDataCache.containsKey(directory)) {

@@ -11,9 +11,9 @@ public class Profile {
     public EntityPlayer player;
     public int currentID;
     public HashMap<Integer, Slot> slots = new HashMap<>();
-    public boolean locked = false;  // Prevent modifications while saving
+    public boolean locked = false;
 
-    public Profile(EntityPlayer player, NBTTagCompound compound){
+    public Profile(EntityPlayer player, NBTTagCompound compound) {
         this.player = player;
         if(compound.hasKey("CurrentID")){
             this.currentID = compound.getInteger("CurrentID");
@@ -21,9 +21,9 @@ public class Profile {
             this.currentID = 0;
         }
 
-        if (compound.hasKey("Slots")) {
+        if(compound.hasKey("Slots")) {
             NBTTagCompound slotsCompound = compound.getCompoundTag("Slots");
-            for (String key : (Set<String>) slotsCompound.func_150296_c()) {
+            for(String key : (Set<String>) slotsCompound.func_150296_c()){
                 int slotID = Integer.parseInt(key);
                 NBTTagCompound slotNBT = slotsCompound.getCompoundTag(key);
                 Slot slot = Slot.fromNBT(slotID, slotNBT);
@@ -34,7 +34,6 @@ public class Profile {
 
     public NBTTagCompound writeToNBT() {
         NBTTagCompound fullCompound = new NBTTagCompound();
-
         if(this.player != null)
             fullCompound.setString("Name", player.getCommandSenderName());
         fullCompound.setInteger("CurrentID", currentID);
@@ -44,7 +43,7 @@ public class Profile {
             for (HashMap.Entry<Integer, Slot> entry : slots.entrySet()) {
                 Slot slot = entry.getValue();
                 if(slot.isTemporary())
-                    continue; // Do not save temporary slots
+                    continue;
                 int id = entry.getKey();
                 slot.setId(id);
                 NBTTagCompound slotTag = slot.toNBT();

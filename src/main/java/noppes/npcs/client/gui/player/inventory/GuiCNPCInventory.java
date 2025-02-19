@@ -1,10 +1,9 @@
 package noppes.npcs.client.gui.player.inventory;
 
-import cpw.mods.fml.common.Loader;
-import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.config.ConfigClient;
@@ -41,13 +40,14 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         questsButton.renderResource = specialIcons;
         addButton(questsButton);
 
-        y += 21;
-        GuiMenuSideButton partyButton = new GuiMenuSideButton(-101, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
-        partyButton.rightSided = true;
-        partyButton.active = activeTab == -101;
-        partyButton.renderResource = specialIcons;
-        addButton(partyButton);
-
+        if(ClientCacheHandler.allowParties){
+            y += 21;
+            GuiMenuSideButton partyButton = new GuiMenuSideButton(-101, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
+            partyButton.rightSided = true;
+            partyButton.active = activeTab == -101;
+            partyButton.renderResource = specialIcons;
+            addButton(partyButton);
+        }
         if(ConfigClient.enableFactionTab){
             y += 21;
             GuiMenuSideButton factionButton = new GuiMenuSideButton(-102, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
@@ -57,7 +57,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             factionButton.renderResource = specialIcons;
             addButton(factionButton);
         }
-        if(ConfigMain.EnableProfiles){
+        if(ClientCacheHandler.allowProfiles){
             y += 21;
             GuiMenuSideButton profileButton = new GuiMenuSideButton(-104, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             profileButton.rightSided = true;

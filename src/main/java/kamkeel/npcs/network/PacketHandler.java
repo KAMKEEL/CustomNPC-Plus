@@ -338,6 +338,7 @@ public class PacketHandler {
 
     public void registerDataPackets(){
         // Data Packets
+        DATA_PACKET.registerPacket(new LoginPacket());
         DATA_PACKET.registerPacket(new AchievementPacket());
         DATA_PACKET.registerPacket(new ChatAlertPacket());
         DATA_PACKET.registerPacket(new ChatBubblePacket());

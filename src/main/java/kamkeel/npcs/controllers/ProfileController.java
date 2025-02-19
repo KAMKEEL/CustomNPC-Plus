@@ -1,8 +1,8 @@
 package kamkeel.npcs.controllers;
 
 import kamkeel.npcs.controllers.data.IProfileData;
-import kamkeel.npcs.controllers.data.ProfileOperation;
 import kamkeel.npcs.controllers.data.Profile;
+import kamkeel.npcs.controllers.data.ProfileOperation;
 import kamkeel.npcs.controllers.data.Slot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -11,17 +11,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ProfileController {
@@ -36,7 +34,6 @@ public class ProfileController {
     }
 
     // ---------- Registration & I/O ----------
-
     public static boolean registerProfileType(IProfileData type){
         if(profileTypes.containsKey(type.getTagName()))
             return false;
@@ -56,7 +53,18 @@ public class ProfileController {
         }
     }
 
-    // Login for online players
+    // Returns the backup folder for profiles.
+    public static File getBackupDir() {
+        File base = getProfileDir();
+        File backup = new File(base, "backup");
+        if(!backup.exists()){
+            backup.mkdir();
+        }
+        return backup;
+    }
+
+    // Login for online players.
+    // If no slots exist, create default slot 0 and save the player's current IProfileData into it.
     public static synchronized void login(EntityPlayer player){
         if(player == null)
             return;
@@ -67,6 +75,15 @@ public class ProfileController {
         } else {
             NBTTagCompound compound = load(player);
             profile = new Profile(player, compound);
+            // If no slots exist, create default slot 0.
+            if(profile.slots.isEmpty()){
+                Slot defaultSlot = new Slot(0, "Default Slot");
+                defaultSlot.setCompound(new NBTTagCompound());
+                profile.slots.put(0, defaultSlot);
+                profile.currentID = 0;
+                saveSlotData(player);
+                save(player, profile);
+            }
             activeProfiles.put(player.getUniqueID(), profile);
         }
     }
@@ -99,7 +116,7 @@ public class ProfileController {
         return new NBTTagCompound();
     }
 
-    // Offline save (synchronous) when no EntityPlayer is available
+    // Offline save (synchronous) when no EntityPlayer is available.
     public static synchronized void saveOffline(Profile profile, UUID uuid) {
         final NBTTagCompound compound = profile.writeToNBT();
         final String filename = uuid.toString() + ".dat";
@@ -112,12 +129,14 @@ public class ProfileController {
                 fileOld.delete();
             }
             fileNew.renameTo(fileOld);
+            // Also backup if allowed.
+            backupProfile(uuid, compound);
         } catch (Exception e) {
             LogWriter.except(e);
         }
     }
 
-    // Save for online players (asynchronous)
+    // Save for online players (asynchronous).
     public static synchronized void save(EntityPlayer player, Profile profile) {
         profile.locked = true;
         CustomNPCsThreader.customNPCThread.execute(() -> {
@@ -132,6 +151,10 @@ public class ProfileController {
                     fileOld.delete();
                 }
                 fileNew.renameTo(fileOld);
+                // Backup if enabled.
+                if(ConfigMain.AllowProfileBackups) {
+                    backupProfile(player.getUniqueID(), compound);
+                }
             } catch (Exception e) {
                 LogWriter.except(e);
             } finally {
@@ -140,7 +163,67 @@ public class ProfileController {
         });
     }
 
-    // Logout removes an active profile
+    // Backup the profile by saving a copy to profiles/backup/<uuid>/<date>.dat.
+    private static void backupProfile(UUID uuid, NBTTagCompound compound) {
+        try {
+            File backupDir = new File(getBackupDir(), uuid.toString());
+            if(!backupDir.exists()){
+                backupDir.mkdirs();
+            }
+            String dateStr = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+            File backupFile = new File(backupDir, dateStr + ".dat");
+            CompressedStreamTools.writeCompressed(compound, new FileOutputStream(backupFile));
+            // Now enforce backup amount limit.
+            File[] backups = backupDir.listFiles((dir, name) -> name.endsWith(".dat"));
+            if(backups != null && backups.length > ConfigMain.ProfileBackupAmount) {
+                // Sort backups by last modified ascending (oldest first)
+                Arrays.sort(backups, Comparator.comparingLong(File::lastModified));
+                for(int i = 0; i < backups.length - ConfigMain.ProfileBackupAmount; i++){
+                    backups[i].delete();
+                }
+            }
+        } catch(Exception e) {
+            LogWriter.except(e);
+        }
+    }
+
+    // Rollback a player's profile from a backup file.
+    // Returns true if successful.
+    public static boolean rollbackProfile(String username, File backupFile) {
+        UUID uuid = getUUIDFromUsername(username);
+        if(uuid == null) return false;
+        try (FileInputStream fis = new FileInputStream(backupFile)) {
+            NBTTagCompound compound = CompressedStreamTools.readCompressed(fis);
+            // Overwrite the main profile file.
+            File saveDir = getProfileDir();
+            File mainFile = new File(saveDir, uuid.toString() + ".dat");
+            File fileNew = new File(saveDir, uuid.toString() + "_new");
+            CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
+            if(mainFile.exists()){
+                mainFile.delete();
+            }
+            fileNew.renameTo(mainFile);
+
+            // Update the in-memory profile.
+            EntityPlayerMP player = getPlayer(username);
+            Profile newProfile;
+            if(player != null) {
+                newProfile = new Profile(player, compound);
+                activeProfiles.put(uuid, newProfile);
+                // Load the rolled-back data into the player's IProfileData.
+                loadSlotData(player);
+            } else {
+                newProfile = new Profile(null, compound);
+                activeProfiles.put(uuid, newProfile);
+            }
+            return true;
+        } catch(Exception e) {
+            LogWriter.except(e);
+            return false;
+        }
+    }
+
+    // Logout removes an active profile.
     public static synchronized void logout(EntityPlayer player) {
         if(player != null) {
             activeProfiles.remove(player.getUniqueID());
@@ -148,8 +231,6 @@ public class ProfileController {
     }
 
     // ---------- Profile Retrieval Helpers ----------
-
-    // Get profile via EntityPlayer (online)
     public static Profile getProfile(EntityPlayer player) {
         if(player == null) return null;
         if(!activeProfiles.containsKey(player.getUniqueID()))
@@ -157,7 +238,6 @@ public class ProfileController {
         return activeProfiles.get(player.getUniqueID());
     }
 
-    // Get profile via UUID (may be offline)
     public static Profile getProfile(UUID uuid) {
         if(activeProfiles.containsKey(uuid))
             return activeProfiles.get(uuid);
@@ -165,7 +245,6 @@ public class ProfileController {
         return new Profile(null, compound);
     }
 
-    // Get profile via username (tries online first, then offline via Mojang API)
     public static Profile getProfile(String username) {
         EntityPlayer player = getPlayer(username);
         if(player != null) {
@@ -178,7 +257,6 @@ public class ProfileController {
     }
 
     // ---------- Mojang API UUID Lookup ----------
-
     public static UUID getUUIDFromUsername(String username) {
         try {
             URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
@@ -214,7 +292,6 @@ public class ProfileController {
     }
 
     // ---------- Internal Slot Operation Helpers ----------
-
     // Returns the next available temporary (negative) slot id (starting at -1)
     private static int getNextAvailableTempSlot(Profile profile) {
         int id = -1;
@@ -225,15 +302,12 @@ public class ProfileController {
     }
 
     // Clone a slot within a Profile.
-    // sourceSlotId is the slot to copy.
-    // destinationSlotId is the target id for non-temporary clones.
     // If temporary==true, destinationSlotId is computed automatically.
     private static ProfileOperation cloneSlotInternal(Profile profile, int sourceSlotId, int destinationSlotId, boolean temporary) {
         if(profile.locked) {
             LogWriter.error("Profile is locked; cannot clone slot.");
             return ProfileOperation.LOCKED;
         }
-
         // Run verification checks on all IProfileData in priority order.
         if(profile.player != null) {
             List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
@@ -245,7 +319,6 @@ public class ProfileController {
                 }
             }
         }
-
         if(!profile.slots.containsKey(sourceSlotId)) {
             LogWriter.error("Source slot " + sourceSlotId + " does not exist.");
             return ProfileOperation.ERROR;
@@ -288,17 +361,22 @@ public class ProfileController {
     }
 
     // Change the active slot in a Profile.
+    // If the new slot doesn't exist, it is created and NEW_SLOT_CREATED is returned.
     // Saves current slot data before switching.
     private static ProfileOperation changeSlotInternal(Profile profile, int newSlotId) {
         if(profile.locked) {
             LogWriter.error("Profile is locked; cannot change slot.");
             return ProfileOperation.LOCKED;
         }
-
-        // Run verification checks from all registered IProfileData in order of priority.
+        // Disallow switching to the same active slot.
+        if(profile.currentID == newSlotId) {
+            LogWriter.error("Slot " + newSlotId + " is already active.");
+            return ProfileOperation.ALREADY_ACTIVE;
+        }
+        // Run verification checks from all IProfileData in order of priority.
         if(profile.player != null) {
             List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
-            dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));;
+            dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
             for(IProfileData pd : dataList) {
                 if(!pd.verifySwitch(profile.player)) {
                     LogWriter.error("Verification check failed for profile type: " + pd.getTagName());
@@ -306,34 +384,31 @@ public class ProfileController {
                 }
             }
         }
-
         if(profile.player != null) {
             saveSlotData(profile.player);
         }
-
+        boolean createdNewSlot = false;
         // If the new slot doesn't exist, create it.
         if(!profile.slots.containsKey(newSlotId)) {
             Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
             newSlot.setCompound(new NBTTagCompound());
             profile.slots.put(newSlotId, newSlot);
+            createdNewSlot = true;
         }
-
         profile.currentID = newSlotId;
         if(profile.player != null) {
             loadSlotData(profile.player);
         }
-
         // Update PlayerData so that PlayerData.get(player).profileSlot matches Profile.currentID.
         if(profile.player != null) {
             PlayerData pdata = PlayerData.get(profile.player);
             pdata.profileSlot = newSlotId;
             pdata.save();
         }
-        return ProfileOperation.SUCCESS;
+        return createdNewSlot ? ProfileOperation.NEW_SLOT_CREATED : ProfileOperation.SUCCESS;
     }
 
     // ---------- Public Operations (Overloaded for EntityPlayer, UUID, or username) ----------
-
     // ----- Clone Slot -----
     public static ProfileOperation cloneSlot(EntityPlayer player, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(player);
@@ -417,7 +492,7 @@ public class ProfileController {
         Profile profile = getProfile(player);
         if(profile == null) return ProfileOperation.PLAYER_NOT_FOUND;
         ProfileOperation result = changeSlotInternal(profile, newSlotId);
-        if(result == ProfileOperation.SUCCESS && player != null)
+        if((result == ProfileOperation.SUCCESS || result == ProfileOperation.NEW_SLOT_CREATED) && player != null)
             save(player, profile);
         return result;
     }
@@ -426,7 +501,7 @@ public class ProfileController {
         Profile profile = getProfile(uuid);
         if(profile == null) return ProfileOperation.PLAYER_NOT_FOUND;
         ProfileOperation result = changeSlotInternal(profile, newSlotId);
-        if(result == ProfileOperation.SUCCESS) {
+        if(result == ProfileOperation.SUCCESS || result == ProfileOperation.NEW_SLOT_CREATED) {
             if(profile.player != null)
                 save(profile.player, profile);
             else
@@ -439,7 +514,7 @@ public class ProfileController {
         Profile profile = getProfile(username);
         if(profile == null) return ProfileOperation.PLAYER_NOT_FOUND;
         ProfileOperation result = changeSlotInternal(profile, newSlotId);
-        if(result == ProfileOperation.SUCCESS) {
+        if(result == ProfileOperation.SUCCESS || result == ProfileOperation.NEW_SLOT_CREATED) {
             if(profile.player != null)
                 save(profile.player, profile);
             else {
@@ -470,7 +545,6 @@ public class ProfileController {
             dataCompound = new NBTTagCompound();
             slot.setCompound(dataCompound);
         }
-
         List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
         dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
         for(IProfileData profileData : dataList){
@@ -483,15 +557,10 @@ public class ProfileController {
     public static void loadSlotData(EntityPlayer player) {
         if(player == null || !activeProfiles.containsKey(player.getUniqueID()))
             return;
-
         Profile profile = activeProfiles.get(player.getUniqueID());
         if(profile.slots.isEmpty() || !profile.slots.containsKey(profile.currentID))
             return;
-
-        // Get a copy of the active slot's NBT compound.
         NBTTagCompound slotCompound = (NBTTagCompound) profile.slots.get(profile.currentID).getCompound().copy();
-
-        // For each registered profile data type, load its saved compound onto the player.
         List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
         dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
         for(IProfileData profileData : dataList){
@@ -500,10 +569,8 @@ public class ProfileController {
                 data = slotCompound.getCompoundTag(profileData.getTagName());
             else
                 data = new NBTTagCompound();
-
             profileData.setNBT(player, data);
         }
-
         for(IProfileData profileData : dataList){
             profileData.save(player);
         }
