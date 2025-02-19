@@ -3,11 +3,11 @@ package kamkeel.npcs.command.profile;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.ProfileOperation;
+import kamkeel.npcs.controllers.data.EnumProfileOperation;
 import kamkeel.npcs.controllers.data.Slot;
 import noppes.npcs.LogWriter;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-
 import java.io.File;
 import java.util.Map;
 import java.util.UUID;
@@ -51,26 +51,15 @@ public class CommandProfileAdmin extends CommandProfileBase {
         }
         boolean temporary = (args.length >= 5 && args[4].equalsIgnoreCase("temp"));
         ProfileOperation result = ProfileController.cloneSlot(sourcePlayer, sourceSlot, destinationSlot, temporary);
-        switch(result) {
-            case SUCCESS:
-                sendResult(sender, "Successfully cloned slot %d from %s to slot %d for %s.", sourceSlot, sourcePlayer, destinationSlot, destinationPlayer);
-                break;
-            case NEW_SLOT_CREATED:
-                sendResult(sender, "Successfully cloned slot %d from %s to NEW slot %d for %s.", sourceSlot, sourcePlayer, destinationSlot, destinationPlayer);
-                break;
-            case LOCKED:
-                sendError(sender, "Profile is locked. Please try again later.");
-                break;
-            case VERIFICATION_FAILED:
-                sendError(sender, "Profile verification failed. Change not permitted.");
-                break;
-            case PLAYER_NOT_FOUND:
-                sendError(sender, "Player profile not found.");
-                break;
-            case ERROR:
-            default:
-                sendError(sender, "Error cloning slot.");
-                break;
+        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+            sendResult(sender, "Successfully cloned slot %d from %s to slot %d for %s.", sourceSlot, sourcePlayer, destinationSlot, destinationPlayer);
+        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+            // Detail message for admins – note: using result.getMessage() for further details.
+            sendError(sender, "Clone failed for %s: Profile is locked. Details: %s", sourcePlayer, result.getMessage());
+        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+            sendError(sender, "Error cloning slot for %s: %s", sourcePlayer, result.getMessage());
+        } else {
+            sendError(sender, "Unexpected error cloning slot: %s", result.getMessage());
         }
     }
 
@@ -92,20 +81,17 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         ProfileOperation result = ProfileController.removeSlot(targetPlayer, slotId);
-        switch(result) {
-            case SUCCESS:
-                sendResult(sender, "Successfully removed slot %d from %s.", slotId, targetPlayer);
-                break;
-            case LOCKED:
-                sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
-                break;
-            default:
-                sendError(sender, "Error removing slot %d from %s.", slotId, targetPlayer);
-                break;
+        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+            sendResult(sender, "Successfully removed slot %d from %s.", slotId, targetPlayer);
+        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+            sendError(sender, "Remove failed for %s: Profile is locked. Details: %s", targetPlayer, result.getMessage());
+        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+            sendError(sender, "Error removing slot %d from %s: %s", slotId, targetPlayer, result.getMessage());
+        } else {
+            sendError(sender, "Unexpected error during removal: %s", result.getMessage());
         }
     }
 
-    // Existing change subcommand update:
     @SubCommand(
         desc = "Change a specified player's active slot.",
         usage = "<targetPlayer> <newSlotId>"
@@ -124,28 +110,17 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         ProfileOperation result = ProfileController.changeSlot(targetPlayer, newSlotId);
-        switch(result) {
-            case SUCCESS:
-                sendResult(sender, "Successfully changed %s's active slot to %d.", targetPlayer, newSlotId);
-                break;
-            case NEW_SLOT_CREATED:
-                sendResult(sender, "Switched %s to NEW slot %d (new profile created).", targetPlayer, newSlotId);
-                break;
-            case ALREADY_ACTIVE:
-                sendError(sender, "Slot %d is already active for %s.", newSlotId, targetPlayer);
-                break;
-            case LOCKED:
-                sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
-                break;
-            case VERIFICATION_FAILED:
-                sendError(sender, "Profile verification failed for %s.", targetPlayer);
-                break;
-            default:
-                sendError(sender, "Error changing active slot for %s.", targetPlayer);
+        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+            sendResult(sender, "Successfully changed %s's active slot to %d.", targetPlayer, newSlotId);
+        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+            sendError(sender, "Change failed for %s: Profile is locked. Details: %s", targetPlayer, result.getMessage());
+        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+            sendError(sender, "Error changing active slot for %s: %s", targetPlayer, result.getMessage());
+        } else {
+            sendError(sender, "Unexpected error during change: %s", result.getMessage());
         }
     }
 
-    // New admin create subcommand:
     @SubCommand(
         desc = "Create a new slot for a specified player's profile.",
         usage = "<targetPlayer>"
@@ -158,25 +133,18 @@ public class CommandProfileAdmin extends CommandProfileBase {
         String targetPlayer = args[0];
         Profile profile = ProfileController.getProfile(targetPlayer);
         if(profile == null) {
-            sendError(sender, "Profile not found for player: " + targetPlayer);
+            sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;
         }
         ProfileOperation result = ProfileController.createSlotInternal(profile);
-        switch(result) {
-            case NEW_SLOT_CREATED:
-                sendResult(sender, "New slot created successfully for %s.", targetPlayer);
-                break;
-            case MAX_SLOTS:
-                sendError(sender, "Player %s has reached maximum allowed slots.", targetPlayer);
-                break;
-            case LOCKED:
-                sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
-                break;
-            case VERIFICATION_FAILED:
-                sendError(sender, "Profile verification failed for %s.", targetPlayer);
-                break;
-            default:
-                sendError(sender, "Error creating new slot for %s.", targetPlayer);
+        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+            sendResult(sender, "New slot created successfully for %s.", targetPlayer);
+        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+            sendError(sender, "Create failed for %s: Profile is locked. Details: %s", targetPlayer, result.getMessage());
+        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+            sendError(sender, "Error creating new slot for %s: %s", targetPlayer, result.getMessage());
+        } else {
+            sendError(sender, "Unexpected error during slot creation: %s", result.getMessage());
         }
     }
 
@@ -192,7 +160,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         String targetPlayer = args[0];
         Profile profile = ProfileController.getProfile(targetPlayer);
         if(profile == null) {
-            sendError(sender, "Profile not found for player: " + targetPlayer);
+            sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;
         }
         sendMessage(sender, "Profile Slots for %s:", targetPlayer);
@@ -236,7 +204,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         }
         Profile profile = ProfileController.getProfile(targetPlayer);
         if(profile == null) {
-            sendError(sender, "Profile not found for player: " + targetPlayer);
+            sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;
         }
         if(profile.locked) {
@@ -268,7 +236,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         String targetPlayer = args[0];
-        String backupFileName = args[1] += ".dat";
+        String backupFileName = args[1] + ".dat";
         File backupDir = new File(ProfileController.getBackupDir(), ProfileController.getProfile(targetPlayer).player.getUniqueID().toString());
         File backupFile = new File(backupDir, backupFileName);
         if(!backupFile.exists()){

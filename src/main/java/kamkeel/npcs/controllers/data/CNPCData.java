@@ -4,6 +4,7 @@ import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.PlayerData;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,8 +49,12 @@ public class CNPCData implements IProfileData {
     }
 
     @Override
-    public boolean verifySwitch(EntityPlayer player) {
-        return true;
+    public ProfileOperation verifySwitch(EntityPlayer player) {
+        PlayerData playerData = PlayerData.get(player);
+        if(playerData.partyUUID != null)
+            return ProfileOperation.error("Cannot switch while in Party");
+
+        return ProfileOperation.success("");
     }
 
     @Override

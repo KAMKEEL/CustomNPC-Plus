@@ -8,6 +8,8 @@ import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ConfigMain
 {
@@ -87,6 +89,11 @@ public class ConfigMain
     public static boolean AllowProfileBackups = true;
     public static int ProfileBackupAmount = 5;
 
+    public static Property RegionProfileSwitchingProperty;
+    public static boolean RegionProfileSwitching = false;
+
+    public static Property RestrictedProfileRegionsProperty;
+    public static List<List<Integer>> RestrictedProfileRegions = new ArrayList<>();
 
     /**
      *  General NPC Properties
@@ -229,6 +236,24 @@ public class ConfigMain
             ProfilesEnabled = config.get(PROFILES, "Enable Profiles", true, "Allow the use of character Profiles").getBoolean(true);
             AllowProfileBackups = config.get(PROFILES, "Enable Profile Backups", true, "Will create backups of profile changes").getBoolean(true);
             ProfileBackupAmount = config.get(PROFILES, "Number of Backups", 5, "How many backups per player to save").getInt(5);
+
+            RegionProfileSwitchingProperty = config.get(PROFILES, "Region Profile Switching", false, "If true, only allows profile switching in certain regions.");
+            RegionProfileSwitching = RegionProfileSwitchingProperty.getBoolean(false);
+
+            RestrictedProfileRegionsProperty = config.get(PROFILES, "Restricted Profile Regions", new String[]{
+                "0, 100, 64, 100, 200, 80, 200",
+                "1, 50, 60, 50, 150, 75, 150"
+            }, "List of restricted regions where profile switching is enabled. Format: DIM, X1, Y1, Z1, X2, Y2, Z2");
+
+            RestrictedProfileRegions.clear();
+            for (String region : RestrictedProfileRegionsProperty.getStringList()) {
+                String[] parts = region.split(", ");
+                List<Integer> regionList = new ArrayList<>();
+                for (String part : parts) {
+                    regionList.add(Integer.parseInt(part));
+                }
+                RestrictedProfileRegions.add(regionList);
+            }
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

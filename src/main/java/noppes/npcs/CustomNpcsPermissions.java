@@ -94,6 +94,7 @@ public class CustomNpcsPermissions{
     public static final Permission PROFILE_DELETE = new Permission("customnpcs.profile.delete");
     public static final Permission PROFILE_RENAME = new Permission("customnpcs.profile.rename");
     public static final Permission PROFILE_CHANGE = new Permission("customnpcs.profile.change");
+    public static final Permission PROFILE_REGION_BYPASS = new Permission("customnpcs.profile.region-bypass");
     public static final Permission PROFILE_MAX = new Permission("customnpcs.profile.max.*");
 
 	public static CustomNpcsPermissions Instance;

@@ -1,13 +1,12 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.ProfileOperation;
+import kamkeel.npcs.controllers.data.EnumProfileOperation;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import static kamkeel.npcs.util.ColorUtil.sendError;
-import static kamkeel.npcs.util.ColorUtil.sendResult;
+import static kamkeel.npcs.util.ColorUtil.*;
 
 public class CommandProfileCreate extends CommandProfileBase {
 
@@ -38,27 +37,19 @@ public class CommandProfileCreate extends CommandProfileBase {
             return;
         }
         EntityPlayer player = (EntityPlayer)sender;
-        Profile profile = ProfileController.getProfile(player);
-        if(profile == null) {
+        if(ProfileController.getProfile(player) == null) {
             sendError(sender, "Profile not found.");
             return;
         }
-        ProfileOperation result = ProfileController.createSlotInternal(profile);
-        switch(result) {
-            case NEW_SLOT_CREATED:
-                sendResult(sender, "New profile slot created successfully.");
-                break;
-            case MAX_SLOTS:
-                sendError(sender, "You have reached the maximum allowed slots.");
-                break;
-            case LOCKED:
-                sendError(sender, "Profile is locked. Please try again later.");
-                break;
-            case VERIFICATION_FAILED:
-                sendError(sender, "Profile verification failed. Creation not permitted.");
-                break;
-            default:
-                sendError(sender, "Error occurred while creating a new profile slot.");
+        ProfileOperation result = ProfileController.createSlotInternal(ProfileController.getProfile(player));
+        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+            sendResult(sender, "New profile slot created successfully.");
+        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+            sendError(sender, "Profile is locked. Details: %s", result.getMessage());
+        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+            sendError(sender, "Error creating new profile slot: %s", result.getMessage());
+        } else {
+            sendError(sender, "Unexpected error: %s", result.getMessage());
         }
     }
 }

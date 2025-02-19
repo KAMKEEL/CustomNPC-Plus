@@ -38,7 +38,7 @@ public interface IProfileData {
      * @param player The player switching profiles.
      * @return true if allowed, false if not.
      */
-    public boolean verifySwitch(EntityPlayer player);
+    public ProfileOperation verifySwitch(EntityPlayer player);
 
     /**
      * NEW: Builds and returns a list of informational strings about this profile data,

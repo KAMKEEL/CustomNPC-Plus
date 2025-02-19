@@ -2,11 +2,11 @@ package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.ProfileOperation;
+import kamkeel.npcs.controllers.data.EnumProfileOperation;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import static kamkeel.npcs.util.ColorUtil.sendError;
-import static kamkeel.npcs.util.ColorUtil.sendResult;
+import static kamkeel.npcs.util.ColorUtil.*;
 
 public class CommandProfileChange extends CommandProfileBase {
 
@@ -49,24 +49,14 @@ public class CommandProfileChange extends CommandProfileBase {
         }
         EntityPlayer player = (EntityPlayer)sender;
         ProfileOperation result = ProfileController.changeSlot(player, slotId);
-        switch(result) {
-            case SUCCESS:
-                sendResult(sender, "Successfully changed profile slot to %d.", slotId);
-                break;
-            case NEW_SLOT_CREATED:
-                sendResult(sender, "Switched to new slot %d (new profile created).", slotId);
-                break;
-            case ALREADY_ACTIVE:
-                sendError(sender, "Slot %d is already active.", slotId);
-                break;
-            case LOCKED:
-                sendError(sender, "Profile is locked. Please try again later.");
-                break;
-            case VERIFICATION_FAILED:
-                sendError(sender, "Profile verification failed. Change not permitted.");
-                break;
-            default:
-                sendError(sender, "Error occurred while changing your profile slot.");
+        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+            sendResult(sender, "Successfully changed profile slot to %d.", slotId);
+        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+            sendError(sender, "Profile is locked. Details: %s", result.getMessage());
+        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+            sendError(sender, "Error changing your profile slot: %s", result.getMessage());
+        } else {
+            sendError(sender, "Unexpected error: %s", result.getMessage());
         }
     }
 }
