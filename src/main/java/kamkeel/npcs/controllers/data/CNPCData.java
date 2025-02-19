@@ -33,10 +33,19 @@ public class CNPCData implements IProfileData {
             PlayerData newData = new PlayerData();
             newData.player = player;
             customNPCData.setNBT((NBTTagCompound) newData.getNBT().copy());
-        }
-        else {
+        } else {
             customNPCData.setNBT(replace);
         }
         customNPCData.updateClient = true;
+    }
+
+    @Override
+    public int getSwitchPriority() {
+        return 0;
+    }
+
+    @Override
+    public boolean verifySwitch(EntityPlayer player) {
+        return true;
     }
 }

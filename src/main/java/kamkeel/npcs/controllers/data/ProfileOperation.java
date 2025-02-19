@@ -4,5 +4,7 @@ public enum ProfileOperation {
     SUCCESS,
     ERROR,
     LOCKED,
-    PLAYER_NOT_FOUND
+    PLAYER_NOT_FOUND,
+    VERIFICATION_FAILED
 }
+

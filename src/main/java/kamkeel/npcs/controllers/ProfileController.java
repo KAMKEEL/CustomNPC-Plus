@@ -22,8 +22,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 public class ProfileController {
 
@@ -234,6 +233,19 @@ public class ProfileController {
             LogWriter.error("Profile is locked; cannot clone slot.");
             return ProfileOperation.LOCKED;
         }
+
+        // Run verification checks on all IProfileData in priority order.
+        if(profile.player != null) {
+            List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+            dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
+            for(IProfileData pd : dataList) {
+                if(!pd.verifySwitch(profile.player)) {
+                    LogWriter.error("Verification check failed for profile type: " + pd.getTagName());
+                    return ProfileOperation.VERIFICATION_FAILED;
+                }
+            }
+        }
+
         if(!profile.slots.containsKey(sourceSlotId)) {
             LogWriter.error("Source slot " + sourceSlotId + " does not exist.");
             return ProfileOperation.ERROR;
@@ -442,14 +454,16 @@ public class ProfileController {
             dataCompound = new NBTTagCompound();
             slot.setCompound(dataCompound);
         }
-        for(IProfileData profileData : profileTypes.values()){
+
+        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
+        for(IProfileData profileData : dataList){
             NBTTagCompound cloned = (NBTTagCompound) profileData.getCurrentNBT(player).copy();
             dataCompound.setTag(profileData.getTagName(), cloned);
         }
         slot.setCompound(dataCompound);
     }
 
-    // TODO:
     public static void loadSlotData(EntityPlayer player) {
         if(player == null || !activeProfiles.containsKey(player.getUniqueID()))
             return;
@@ -462,7 +476,9 @@ public class ProfileController {
         NBTTagCompound slotCompound = (NBTTagCompound) profile.slots.get(profile.currentID).getCompound().copy();
 
         // For each registered profile data type, load its saved compound onto the player.
-        for(IProfileData profileData : profileTypes.values()){
+        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
+        for(IProfileData profileData : dataList){
             NBTTagCompound data;
             if(slotCompound.hasKey(profileData.getTagName()))
                 data = slotCompound.getCompoundTag(profileData.getTagName());
@@ -470,6 +486,9 @@ public class ProfileController {
                 data = new NBTTagCompound();
 
             profileData.setNBT(player, data);
+        }
+
+        for(IProfileData profileData : dataList){
             profileData.save(player);
         }
     }
