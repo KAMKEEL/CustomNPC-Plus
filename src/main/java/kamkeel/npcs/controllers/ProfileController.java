@@ -294,8 +294,23 @@ public class ProfileController {
             LogWriter.error("Profile is locked; cannot change slot.");
             return ProfileOperation.LOCKED;
         }
-        if(profile.player != null)
+
+        // Run verification checks from all registered IProfileData in order of priority.
+        if(profile.player != null) {
+            List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+            dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));;
+            for(IProfileData pd : dataList) {
+                if(!pd.verifySwitch(profile.player)) {
+                    LogWriter.error("Verification check failed for profile type: " + pd.getTagName());
+                    return ProfileOperation.VERIFICATION_FAILED;
+                }
+            }
+        }
+
+        if(profile.player != null) {
             saveSlotData(profile.player);
+        }
+
         // If the new slot doesn't exist, create it.
         if(!profile.slots.containsKey(newSlotId)) {
             Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
@@ -304,10 +319,11 @@ public class ProfileController {
         }
 
         profile.currentID = newSlotId;
-        if(profile.player != null)
+        if(profile.player != null) {
             loadSlotData(profile.player);
+        }
 
-        // Update PlayerData so that PlayerData.get(player).profileSlot matches Profile.currentID
+        // Update PlayerData so that PlayerData.get(player).profileSlot matches Profile.currentID.
         if(profile.player != null) {
             PlayerData pdata = PlayerData.get(profile.player);
             pdata.profileSlot = newSlotId;
