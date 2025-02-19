@@ -232,7 +232,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         String targetPlayer = args[0];
-        String backupFileName = args[1];
+        String backupFileName = args[1] += ".dat";
         File backupDir = new File(ProfileController.getBackupDir(), ProfileController.getProfile(targetPlayer).player.getUniqueID().toString());
         File backupFile = new File(backupDir, backupFileName);
         if(!backupFile.exists()){

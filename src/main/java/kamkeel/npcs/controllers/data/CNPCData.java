@@ -5,6 +5,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.data.PlayerData;
+import java.util.ArrayList;
+import java.util.List;
 
 public class CNPCData implements IProfileData {
 
@@ -33,7 +35,8 @@ public class CNPCData implements IProfileData {
             PlayerData newData = new PlayerData();
             newData.player = player;
             customNPCData.setNBT((NBTTagCompound) newData.getNBT().copy());
-        } else {
+        }
+        else {
             customNPCData.setNBT(replace);
         }
         customNPCData.updateClient = true;
@@ -47,5 +50,20 @@ public class CNPCData implements IProfileData {
     @Override
     public boolean verifySwitch(EntityPlayer player) {
         return true;
+    }
+
+    @Override
+    public List<String> getInfo(EntityPlayer player, NBTTagCompound compound) {
+        PlayerData playerData = new PlayerData();
+        playerData.player = player;
+        playerData.setNBT(compound);
+
+        List<String> info = new ArrayList<>();
+
+        info.add("QuestsFinished" + "###" + playerData.questData.finishedQuests.size());
+        info.add("QuestsActive" + "###" + playerData.questData.activeQuests.size());
+        info.add("DialogsRead" + "###" + playerData.dialogData.dialogsRead.size());
+
+        return info;
     }
 }

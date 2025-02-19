@@ -2,12 +2,12 @@ package kamkeel.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import java.util.List;
 
 public interface IProfileData {
 
     /**
      * Do not use the tags: Name, lastLoaded, ID.
-     *
      * @return The save tag utilized in the Profile.
      */
     public String getTagName();
@@ -39,4 +39,13 @@ public interface IProfileData {
      * @return true if allowed, false if not.
      */
     public boolean verifySwitch(EntityPlayer player);
+
+    /**
+     * NEW: Builds and returns a list of informational strings about this profile data,
+     * based on the provided NBTTagCompound from the slot.
+     * @param player The player in question.
+     * @param compound The NBT data from the slot under this profile data's tag.
+     * @return A list of strings with information (could be empty).
+     */
+    public List<String> getInfo(EntityPlayer player, NBTTagCompound compound);
 }

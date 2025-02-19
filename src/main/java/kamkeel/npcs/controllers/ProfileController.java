@@ -576,6 +576,40 @@ public class ProfileController {
         }
     }
 
+    public static List<String> getProfileInfo(EntityPlayer player, int slotId) {
+        List<String> infoList = new ArrayList<>();
+        Profile profile = getProfile(player);
+        if (profile == null)
+            return infoList;
+
+        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
+
+        if (slotId == profile.currentID) {
+            // Use current data (not stored slot data) for active slot.
+            for (IProfileData pd : dataList) {
+                NBTTagCompound currentNBT = pd.getCurrentNBT(player);
+                List<String> subInfo = pd.getInfo(player, currentNBT);
+                infoList.addAll(subInfo);
+            }
+        } else {
+            // Use stored data from the specified slot.
+            if (!profile.slots.containsKey(slotId))
+                return infoList;
+            NBTTagCompound slotCompound = profile.slots.get(slotId).getCompound();
+            for (IProfileData pd : dataList) {
+                if (slotCompound.hasKey(pd.getTagName())) {
+                    NBTTagCompound sub = slotCompound.getCompoundTag(pd.getTagName());
+                    List<String> subInfo = pd.getInfo(player, sub);
+                    infoList.addAll(subInfo);
+                }
+            }
+        }
+        return infoList;
+    }
+
+
+
     public static EntityPlayerMP getPlayer(String username){
         return MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
     }

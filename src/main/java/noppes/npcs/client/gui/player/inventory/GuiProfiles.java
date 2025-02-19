@@ -1,35 +1,45 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.controllers.data.Profile;
+import kamkeel.npcs.controllers.data.Slot;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
+import kamkeel.npcs.network.packets.request.linked.LinkedGetPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedItemRemovePacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
+import kamkeel.npcs.network.packets.request.linked.LinkedNPCRemovePacket;
+import kamkeel.npcs.network.packets.request.profile.ProfileGetPacket;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.gui.util.GuiButtonNextPage;
-import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.SubGuiEditText;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.PlayerFactionData;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
 
-public class GuiProfiles extends GuiCNPCInventory implements IGuiData {
+public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
-
-    private ArrayList<Faction> playerFactions = new ArrayList<Faction>();
-
-	private int page = 0;
-	private int pages = 1;
-
-	private GuiButtonNextPage buttonNextPage;
-	private GuiButtonNextPage buttonPreviousPage;
+    private GuiCustomScroll scroll;
+    public HashMap<String, Integer> data = new HashMap<>();
+    private String selected = null;
+    private Profile profile;
+    private Slot slot;
 
 	public GuiProfiles() {
 		super();
@@ -37,7 +47,7 @@ public class GuiProfiles extends GuiCNPCInventory implements IGuiData {
 		ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
-        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.Faction));
+        PacketClient.sendClient(new ProfileGetPacket());
 	}
 
 	@Override
@@ -45,91 +55,24 @@ public class GuiProfiles extends GuiCNPCInventory implements IGuiData {
     {
 		super.initGui();
 
-        this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, (guiLeft + (xSize + 35) / 2) + 25, guiTop + 170, true));
-        this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, (guiLeft + (xSize + 35) / 2) - 40, guiTop + 170, false));
-        updateButtons();
-    }
+        int y = guiTop + 8;
+        this.addButton(new GuiNpcButton(1,guiLeft + 368, y += 40, 45, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(2,guiLeft + 368, y += 22, 45, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(3,guiLeft + 368, y += 22, 45, 20, "gui.rename"));
+        this.addButton(new GuiNpcButton(4,guiLeft + 368, y += 22, 45, 20, "gui.change"));
 
-	@Override
-    public void drawScreen(int i, int j, float f)
-    {
-    	drawDefaultBackground();
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		mc.renderEngine.bindTexture(resource);
-		drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
-		drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
-
-        if(playerFactions.isEmpty()){
-        	String noFaction = StatCollector.translateToLocal("faction.nostanding");
-            fontRendererObj.drawString(noFaction,guiLeft + (xSize - fontRendererObj.getStringWidth(noFaction)) / 2,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+        if(scroll == null){
+            scroll = new GuiCustomScroll(this,0,0);
+            scroll.setSize(143, 185);
         }
-        else
-        	renderScreen();
-
-        super.drawScreen(i, j, f);
-
-    }
-
-	private void renderScreen(){
-        int size = 10;
-        if(playerFactions.size() % 10 != 0 && page == pages)
-        	size = playerFactions.size() % 10;
-
-		int hLine = 5;
-		if(size < 5){
-			hLine = size;
-		}
-
-		int count = -1;
-        for(int id = 0 ; id < size; id++){
-			count++;
-
-			Faction faction = playerFactions.get((page - 1) * 10 + id);
-			String name = faction.name;
-			String points = " : " + faction.defaultPoints;
-
-			String standing = StatCollector.translateToLocal("faction.friendly");
-			int color = 0x00FF00;
-			if(faction.defaultPoints < faction.neutralPoints){
-				standing = StatCollector.translateToLocal("faction.unfriendly");
-				color = 0xFF0000;
-				points += "/" + faction.neutralPoints;
-			}
-			else if(faction.defaultPoints < faction.friendlyPoints){
-				standing = StatCollector.translateToLocal("faction.neutral");
-				color = 0xF2FF00;
-				points += "/" + faction.friendlyPoints;
-			}
-			else{
-				points += "/-";
-			}
-
-			drawVerticalLine(guiLeft + (xSize + 45) / 2, (guiTop + ySize - 15), guiTop + 13, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-			if(count < 5){
-				drawHorizontalLine(guiLeft + 2, guiLeft + xSize + 35, guiTop + 14 + count * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-				fontRendererObj.drawString(name, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(name)) / 4, guiTop + 19 + count * 30, faction.color);
-
-				fontRendererObj.drawString(standing,  (guiLeft + (xSize + 45) / 4) - fontRendererObj.getStringWidth(standing), guiTop + 33 + count * 30, color);
-				fontRendererObj.drawString(points, (guiLeft + (xSize + 45) / 4), guiTop + 33 + count * 30, CustomNpcResourceListener.DefaultTextColor);
-			}
-			else {
-				fontRendererObj.drawString(name, guiLeft + 3*(xSize + 45 - fontRendererObj.getStringWidth(name)) / 4, guiTop + 19 + (count - 5) * 30, faction.color);
-
-				fontRendererObj.drawString(standing, (guiLeft + 3*(xSize + 45) / 4) - fontRendererObj.getStringWidth(standing) - 10, guiTop + 33 + (count - 5) * 30, color);
-				fontRendererObj.drawString(points, (guiLeft + 3*(xSize + 45) / 4) - 10, guiTop + 33 + (count - 5) * 30, CustomNpcResourceListener.DefaultTextColor);
-			}
-
-			drawHorizontalLine(guiLeft + 2, guiLeft + xSize + 35, guiTop + 14 + hLine * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-		}
-
-        if(pages > 1){
-        	String s = page +"/" + pages;
-        	fontRendererObj.drawString(s, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(s)) / 2, guiTop + 175, CustomNpcResourceListener.DefaultTextColor);
-        }
+        scroll.guiLeft = guiLeft + 220;
+        scroll.guiTop = guiTop + 4;
+        scroll.setList(new ArrayList<String>(this.data.keySet()));
+        this.addScroll(scroll);
     }
 
     @Override
-	protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton){
         if(guibutton instanceof AbstractTab)
             return;
 
@@ -137,63 +80,211 @@ public class GuiProfiles extends GuiCNPCInventory implements IGuiData {
             super.actionPerformed(guibutton);
             return;
         }
-    	if(!(guibutton instanceof GuiButtonNextPage))
-    		return;
-		int id = guibutton.id;
-		if(id == 1){
-			page++;
-		}
-		if(id == 2){
-			page--;
-		}
-		updateButtons();
     }
-    private void updateButtons(){
-		buttonNextPage.setVisible(page < pages);
-		buttonPreviousPage.setVisible(page > 1);
-    }
-    protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
-    {
 
+	@Override
+    public void drawScreen(int i, int j, float f)
+    {
+        super.drawScreen(i, j, f);
+        if(hasSubGui())
+            return;
+    }
+
+    @Override
+    public void drawBackground() {
+        super.drawBackground();
+        renderScreen();
+    }
+
+    private void renderScreen() {
+        // Draw the common background bars
+        drawGradientRect(guiLeft + 5, guiTop + 4, guiLeft + 218, guiTop + 24, 0xC0101010, 0xC0101010);
+        drawHorizontalLine(guiLeft + 5, guiLeft + 218, guiTop + 25, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+        drawGradientRect(guiLeft + 5, guiTop + 27, guiLeft + 218, guiTop + ySize + 9, 0xA0101010, 0xA0101010);
+
+        if (this.profile != null) {
+            // Top bar: display NPC display name (centered)
+//            String topBarText = npc.display.getName();
+//            int textWidth = getStringWidthWithoutColor(topBarText);
+//            int centerX = guiLeft + 5 + ((218 - 10 - textWidth) / 2);
+//            fontRendererObj.drawString(topBarText, centerX, guiTop + 10, npc.getFaction().color, true);
+//
+//            // Lower section: display NPC properties as label and value pairs
+//            int y = guiTop + 30;
+//            int xLabel = guiLeft + 8;
+//            int xValue = guiLeft + 120;
+//            int valueColor = 0xFFFFFF;
+//            String label, value;
+//
+//            // Health
+//            label = StatCollector.translateToLocal("stats.health") + ": ";
+//            value = String.valueOf(npc.stats.maxHealth);
+//            fontRendererObj.drawString(label, xLabel, y, 0x29d6b9, false);
+//            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+//            y += 15;
+//
+//            // Damage (using getAttackStrength)
+//            label = StatCollector.translateToLocal("stats.meleestrength") + ": ";
+//            value = String.valueOf(npc.stats.getAttackStrength());
+//            fontRendererObj.drawString(label, xLabel, y, 0xff5714, false);
+//            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+//            y += 15;
+//
+//            // Attack Speed
+//            label = StatCollector.translateToLocal("stats.meleespeed") + ": ";
+//            value = String.valueOf(npc.stats.attackSpeed);
+//            fontRendererObj.drawString(label, xLabel, y, 0xf7ca28, false);
+//            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+//            y += 15;
+//
+//            // AI Type (npc.ai.onAttack: 0 = fight, 1 = panic, 2 = retreat, 3 = nothing)
+//            label = StatCollector.translateToLocal("menu.ai") + ": ";
+//            int onAttack = npc.ais.onAttack;
+//            switch (onAttack) {
+//                case 0:
+//                    value = StatCollector.translateToLocal("gui.retaliate");
+//                    break;
+//                case 1:
+//                    value = StatCollector.translateToLocal("gui.panic");
+//                    break;
+//                case 2:
+//                    value = StatCollector.translateToLocal("gui.retreat");
+//                    break;
+//                case 3:
+//                default:
+//                    value = StatCollector.translateToLocal("gui.nothing");
+//                    break;
+//            }
+//            fontRendererObj.drawString(label, xLabel, y, 0xce75fa, false);
+//            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+//            y += 15;
+//
+//            // Walk Speed
+//            label = StatCollector.translateToLocal("stats.speed") + ": ";
+//            value = String.valueOf(npc.ais.getWalkingSpeed());
+//            fontRendererObj.drawString(label, xLabel, y, 0xffae0d, false);
+//            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+//            y += 15;
+//
+//            // Movement Type (0 = Ground, 1 = Flying)
+//            label = StatCollector.translateToLocal("movement.type") + ": ";
+//            int movementType = npc.ais.movementType;
+//            if (movementType == 0) {
+//                value = StatCollector.translateToLocal("movement.ground");
+//            } else {
+//                value = StatCollector.translateToLocal("movement.flying");
+//            }
+//            fontRendererObj.drawString(label, xLabel, y, 0x7cff54, false);
+//            fontRendererObj.drawString(value, xValue, y, valueColor, false);
+//            y += 15;
+        }
     }
 
     @Override
     public void keyTyped(char c, int i)
     {
-        if (i == 1 || isInventoryKey(i))
+        if (i == 1 || (!hasSubGui() && isInventoryKey(i)))
         {
             close();
         }
     }
 	@Override
-	public void save() {
-	}
-	@Override
-	public void setGuiData(NBTTagCompound compound) {
-		playerFactions = new ArrayList<Faction>();
+	public void save() {}
 
-		NBTTagList list = compound.getTagList("FactionList", 10);
-		for(int i = 0; i < list.tagCount(); i++){
-			Faction faction = new Faction();
-			faction.readNBT(list.getCompoundTagAt(i));
-			playerFactions.add(faction);
-		}
-		PlayerFactionData data = new PlayerFactionData();
-		data.loadNBTData(compound);
-		for(int id : data.factionData.keySet()){
-			int points = data.factionData.get(id);
-			for(Faction faction : playerFactions){
-				if(faction.id == id)
-					faction.defaultPoints = points;
-			}
-		}
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if (!result)
+            return;
+        if (id == 1) {
+            if (data.containsKey(scroll.getSelected())) {
 
-		pages = (playerFactions.size() - 1) / 10 ;
-		pages++;
+                // DELETE PROFILE
+                // PacketClient.sendClient(new LinkedNPCRemovePacket(scroll.getSelected()));
 
-		page = 1;
+                initGui();
+            }
+        }
+        if(id == 1){
+            if (data.containsKey(scroll.getSelected())) {
 
-		updateButtons();
-	}
+                // RENAME PROFILE
+                // PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
+
+                initGui();
+            }
+        }
+        if(id == 1){
+            // CREATE PROFILE
+            // PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
+
+            initGui();
+        }
+        if(id == 1){
+            // CHANGE PROFILE
+            // PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
+
+            initGui();
+        }
+    }
+
+    public int getStringWidthWithoutColor(String text) {
+        int width = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char c = text.charAt(i);
+
+            if (c == '§') {
+                if (i < text.length() - 1) {
+                    i += 1;
+                }
+            } else {
+                // If not a color code, calculate the width
+                width += fontRendererObj.getCharWidth(c);
+            }
+        }
+        return width;
+    }
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if(subgui instanceof SubGuiEditText){
+            if(!((SubGuiEditText)subgui).cancelled){
+                PacketClient.sendClient(new LinkedNPCAddPacket(((SubGuiEditText)subgui).text));
+            }
+        }
+    }
+
+    public boolean isMouseOverRenderer(int x, int y) {
+        return x >= guiLeft + 10 && x <= guiLeft + 10 + 200 && y >= guiTop + 6 && y <= guiTop + 6 + 204;
+    }
+
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        if (guiCustomScroll.id == 0) {
+            selected = scroll.getSelected();
+            if (selected != null && !selected.isEmpty()){
+                // LOAD SLOT INFORMATION
+
+            }
+        }
+    }
+
+    @Override
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+
+    public void setGuiData(NBTTagCompound compound) {
+        this.profile = null;
+        if(compound.hasKey("PROFILE")){
+            // Load Profile
+            this.profile = new Profile(mc.thePlayer, compound);
+            this.data = new HashMap<>();
+            for(Slot slot1 : profile.slots.values()){
+                this.data.put(slot1.getName(), slot1.getId());
+            }
+        } else if(compound.hasKey("PROFILE_INFO")){
+
+        }
+        initGui();
+    }
 
 }

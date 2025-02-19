@@ -17,6 +17,7 @@ import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -71,13 +72,20 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public int profileSlot = 0;
 
 	public void onLogin() {
-        //Continue playing animation for self when re-logging
+        // Continue playing animation for self when re-logging
         AnimationData animationData = this.animationData;
         if (animationData != null && animationData.isClientAnimating()) {
             Animation currentAnimation = animationData.currentClientAnimation;
             NBTTagCompound compound = currentAnimation.writeToNBT();
             animationData.viewAnimation(currentAnimation, animationData, compound,
                 animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+        }
+
+        CustomEffectController controller = CustomEffectController.getInstance();
+        UUID playerID = player.getPersistentID();
+        // Only add if there are saved effects and none are registered yet.
+        if (!controller.playerEffects.containsKey(playerID)) {
+            controller.playerEffects.put(playerID, effectData.getEffects());
         }
     }
 
