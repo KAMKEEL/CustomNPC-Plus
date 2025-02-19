@@ -52,7 +52,7 @@ public class InventoryTabCustomNpc extends AbstractTab {
             mc.displayGuiScreen(new GuiSettings());
         }
         if(tab == -104){
-            // Profile Tab
+            mc.displayGuiScreen(new GuiProfiles());
         }
     }
 }

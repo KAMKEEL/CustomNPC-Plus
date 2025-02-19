@@ -45,7 +45,7 @@ public interface IProfileData {
      * based on the provided NBTTagCompound from the slot.
      * @param player The player in question.
      * @param compound The NBT data from the slot under this profile data's tag.
-     * @return A list of strings with information (could be empty).
+     * @return A list of InfoEntry with information
      */
-    public List<String> getInfo(EntityPlayer player, NBTTagCompound compound);
+    public List<InfoEntry> getInfo(EntityPlayer player, NBTTagCompound compound);
 }

@@ -53,17 +53,15 @@ public class CNPCData implements IProfileData {
     }
 
     @Override
-    public List<String> getInfo(EntityPlayer player, NBTTagCompound compound) {
+    public List<InfoEntry> getInfo(EntityPlayer player, NBTTagCompound compound) {
         PlayerData playerData = new PlayerData();
         playerData.player = player;
         playerData.setNBT(compound);
 
-        List<String> info = new ArrayList<>();
-
-        info.add("QuestsFinished" + "###" + playerData.questData.finishedQuests.size());
-        info.add("QuestsActive" + "###" + playerData.questData.activeQuests.size());
-        info.add("DialogsRead" + "###" + playerData.dialogData.dialogsRead.size());
-
+        List<InfoEntry> info = new ArrayList<>();
+        info.add(new InfoEntry("profile.info.quest.finished", 0x60fa57, playerData.questData.finishedQuests.size(), 0xFFFFFF));
+        info.add(new InfoEntry("profile.info.quest.active", 0xf75336, playerData.questData.activeQuests.size(), 0xFFFFFF));
+        info.add(new InfoEntry("profile.info.dialog.read", 0x47acf5, playerData.dialogData.dialogsRead.size(), 0xFFFFFF));
         return info;
     }
 }

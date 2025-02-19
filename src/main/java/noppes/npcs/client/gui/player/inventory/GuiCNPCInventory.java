@@ -4,10 +4,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.gui.util.GuiEffectBar;
 import noppes.npcs.client.gui.util.GuiMenuSideButton;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.config.ConfigMain;
+import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerEffect;
+import org.lwjgl.input.Mouse;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
@@ -16,6 +21,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
 
     public static int activeTab = -100;
     protected Minecraft mc = Minecraft.getMinecraft();
+    private GuiEffectBar effectBar;
 
     public GuiCNPCInventory() {
         super();
@@ -38,7 +44,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         questsButton.active = activeTab == -100;
         questsButton.renderIconPosX = 32;
         questsButton.renderResource = specialIcons;
-        addButton(questsButton);
+        addSideButton(questsButton);
 
         if(ClientCacheHandler.allowParties){
             y += 21;
@@ -46,7 +52,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             partyButton.rightSided = true;
             partyButton.active = activeTab == -101;
             partyButton.renderResource = specialIcons;
-            addButton(partyButton);
+            addSideButton(partyButton);
         }
         if(ConfigClient.enableFactionTab){
             y += 21;
@@ -55,16 +61,16 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             factionButton.active = activeTab == -102;
             factionButton.renderIconPosX = 48;
             factionButton.renderResource = specialIcons;
-            addButton(factionButton);
+            addSideButton(factionButton);
         }
         if(ClientCacheHandler.allowProfiles){
             y += 21;
             GuiMenuSideButton profileButton = new GuiMenuSideButton(-104, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             profileButton.rightSided = true;
             profileButton.active = activeTab == -104;
-            profileButton.renderIconPosX = 80;
+            profileButton.renderIconPosX = 64;
             profileButton.renderResource = specialIcons;
-            addButton(profileButton);
+            addSideButton(profileButton);
         }
 
         y += 21;
@@ -73,8 +79,54 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         clientButton.active = activeTab == -103;
         clientButton.renderIconPosX = 16;
         clientButton.renderResource = specialIcons;
-        addButton(clientButton);
+        addSideButton(clientButton);
+
+        int effectBarX = guiLeft + xSize + 65;
+        int effectBarY = guiTop + 10;
+        int effectBarWidth = 24;
+        int effectBarHeight = ySize;
+        effectBar = new GuiEffectBar(effectBarX, effectBarY, effectBarWidth, effectBarHeight);
     }
+
+    private void updateEffectBar() {
+        if (effectBar != null) {
+            effectBar.entries.clear();
+            PlayerData data = PlayerData.get(mc.thePlayer);
+            if (data != null && data.effectData != null) {
+                for (PlayerEffect pe : data.effectData.getEffects().values()) {
+                    CustomEffect effect = CustomEffectController.getInstance().get(pe.id, pe.index);
+                    if (effect != null) {
+                        effectBar.entries.add(new GuiEffectBar.EffectEntry(effect, pe));
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        updateEffectBar();
+        super.drawScreen(mouseX, mouseY, partialTicks);
+        if (effectBar != null) {
+            effectBar.drawScreen(mouseX, mouseY, partialTicks);
+        }
+    }
+
+    @Override
+    public void handleMouseInput() {
+        super.handleMouseInput();
+        int delta = Mouse.getDWheel();
+        if (delta != 0 && effectBar != null) {
+            int mouseX = Mouse.getX() * width / mc.displayWidth;
+            int mouseY = height - Mouse.getY() * height / mc.displayHeight - 1;
+            // Only scroll the effect bar if the mouse is over its area.
+            if (mouseX >= effectBar.x && mouseX < effectBar.x + effectBar.width &&
+                mouseY >= effectBar.y && mouseY < effectBar.y + effectBar.height) {
+                effectBar.mouseScrolled(delta > 0 ? 1 : -1);
+            }
+        }
+    }
+
 
     @Override
     protected void actionPerformed(GuiButton guibutton){

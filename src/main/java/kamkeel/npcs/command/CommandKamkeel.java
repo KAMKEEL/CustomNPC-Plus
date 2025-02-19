@@ -47,7 +47,7 @@ public class CommandKamkeel extends CommandBase{
 
 	@Override
 	public String getCommandName() {
-		return "kamkeel/npcs";
+		return "kamkeel";
 	}
 
 	@Override

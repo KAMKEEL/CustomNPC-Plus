@@ -185,5 +185,5 @@ public enum EnumRequestPacket {
     EffectSave,
 
     ColorSet,
-    ProfileGet, ProfileGetAll, ColorBrush
+    ProfileGet, ProfileGetAll, ProfileGetInfo, ColorBrush
 }

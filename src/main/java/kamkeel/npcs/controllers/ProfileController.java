@@ -1,9 +1,6 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.IProfileData;
-import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.ProfileOperation;
-import kamkeel.npcs.controllers.data.Slot;
+import kamkeel.npcs.controllers.data.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -552,6 +549,7 @@ public class ProfileController {
             dataCompound.setTag(profileData.getTagName(), cloned);
         }
         slot.setCompound(dataCompound);
+        slot.setLastLoaded(System.currentTimeMillis());
     }
 
     public static void loadSlotData(EntityPlayer player) {
@@ -576,8 +574,8 @@ public class ProfileController {
         }
     }
 
-    public static List<String> getProfileInfo(EntityPlayer player, int slotId) {
-        List<String> infoList = new ArrayList<>();
+    public static List<InfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
+        List<InfoEntry> infoList = new ArrayList<>();
         Profile profile = getProfile(player);
         if (profile == null)
             return infoList;
@@ -589,7 +587,7 @@ public class ProfileController {
             // Use current data (not stored slot data) for active slot.
             for (IProfileData pd : dataList) {
                 NBTTagCompound currentNBT = pd.getCurrentNBT(player);
-                List<String> subInfo = pd.getInfo(player, currentNBT);
+                List<InfoEntry> subInfo = pd.getInfo(player, currentNBT);
                 infoList.addAll(subInfo);
             }
         } else {
@@ -600,7 +598,7 @@ public class ProfileController {
             for (IProfileData pd : dataList) {
                 if (slotCompound.hasKey(pd.getTagName())) {
                     NBTTagCompound sub = slotCompound.getCompoundTag(pd.getTagName());
-                    List<String> subInfo = pd.getInfo(player, sub);
+                    List<InfoEntry> subInfo = pd.getInfo(player, sub);
                     infoList.addAll(subInfo);
                 }
             }

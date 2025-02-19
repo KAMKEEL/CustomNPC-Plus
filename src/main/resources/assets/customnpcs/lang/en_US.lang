@@ -1303,3 +1303,7 @@ effect.editor.xPos=X Pos
 effect.editor.yPos=Y Pos
 effect.editor.lossOnDeath=Loss on Death
 
+profile.lastLoaded=Last Loaded
+profile.info.quest.active=Quests Active
+profile.info.quest.finished=Quests Finished
+profile.info.dialog.read=Dialogs Read
