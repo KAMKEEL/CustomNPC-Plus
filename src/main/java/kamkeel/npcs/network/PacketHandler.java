@@ -328,7 +328,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ProfileGetPacket());
         REQUEST_PACKET.registerPacket(new ProfileGetInfoPacket());
         REQUEST_PACKET.registerPacket(new ProfileCreatePacket());
-        REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
+        REQUEST_PACKET.registerPacket(new ProfileRemovePacket());
         REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
         REQUEST_PACKET.registerPacket(new ProfileChangePacket());
 
