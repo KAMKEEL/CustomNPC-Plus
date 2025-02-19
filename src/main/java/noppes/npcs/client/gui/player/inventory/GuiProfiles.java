@@ -68,7 +68,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
         this.addButton(new GuiNpcButton(4,guiLeft + 4, y, 60, 20, "gui.create"));
 
         if(scroll == null){
-            scroll = new GuiCustomScroll(this,0,0);
+            scroll = new GuiCustomScroll(this,0);
             scroll.setSize(123, 141);
         }
         scroll.guiLeft = guiLeft + 4;
@@ -269,6 +269,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     @Override
     public void keyTyped(char c, int i)
     {
+        super.keyTyped(c, i);
         if (i == 1 || (!hasSubGui() && isInventoryKey(i)))
         {
             close();
@@ -351,6 +352,9 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             }
         } else if(compound.hasKey("PROFILE_INFO")){
             slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
+        }
+        if(scroll != null){
+            scroll.setSelected("");
         }
         initGui();
     }
