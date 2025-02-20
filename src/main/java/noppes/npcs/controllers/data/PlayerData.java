@@ -1,6 +1,8 @@
 package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import kamkeel.npcs.network.packets.request.party.PartyInvitePacket;
@@ -373,6 +375,13 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	}
 
 	public synchronized void save() {
+        // Don't Save this is a Modification of a Profile's PlayerData
+        Profile profile = ProfileController.getProfile(UUID.fromString(uuid));
+        if(profile != null && profile.currentID != this.profileSlot){
+            ProfileController.saveOffline(profile, UUID.fromString(uuid));
+            return;
+        }
+
 		final NBTTagCompound compound = getNBT();
 		final String filename;
 		if(ConfigMain.DatFormat){

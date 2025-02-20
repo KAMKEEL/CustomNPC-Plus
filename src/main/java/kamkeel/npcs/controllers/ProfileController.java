@@ -150,22 +150,25 @@ public class ProfileController {
 
     // Offline save (synchronous) when no EntityPlayer is available.
     public static synchronized void saveOffline(Profile profile, UUID uuid) {
-        final NBTTagCompound compound = profile.writeToNBT();
-        final String filename = uuid.toString() + ".dat";
-        try {
-            File saveDir = getProfileDir();
-            File fileNew = new File(saveDir, filename + "_new");
-            File fileOld = new File(saveDir, filename);
-            CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
-            if(fileOld.exists()){
-                fileOld.delete();
+        profile.locked = true;
+        CustomNPCsThreader.customNPCThread.execute(() -> {
+            final NBTTagCompound compound = profile.writeToNBT();
+            final String filename = uuid.toString() + ".dat";
+            try {
+                File saveDir = getProfileDir();
+                File fileNew = new File(saveDir, filename + "_new");
+                File fileOld = new File(saveDir, filename);
+                CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
+                if(fileOld.exists()){
+                    fileOld.delete();
+                }
+                fileNew.renameTo(fileOld);
+                // Also backup if allowed.
+                backupProfile(uuid, compound);
+            } catch (Exception e) {
+                LogWriter.except(e);
             }
-            fileNew.renameTo(fileOld);
-            // Also backup if allowed.
-            backupProfile(uuid, compound);
-        } catch (Exception e) {
-            LogWriter.except(e);
-        }
+        });
     }
 
     // Save for online players (asynchronous).
