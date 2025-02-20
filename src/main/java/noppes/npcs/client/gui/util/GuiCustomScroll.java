@@ -15,7 +15,7 @@ import static noppes.npcs.client.gui.util.GuiNPCInterface.resizingActive;
 public class GuiCustomScroll extends GuiScreen
 {
 	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/misc.png");
-    protected List<String> list;
+    public List<String> list;
     public final HashMap<String,Integer> colors = new HashMap<>();
 
     public int id;

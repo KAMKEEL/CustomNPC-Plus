@@ -390,7 +390,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
      * Handles mouse dragging while clicking.
      */
     @Override
-    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (draggingScrollbar) {
             int mouseDiff = mouseY - lastMouseY;
             scrollY += (mouseDiff * maxScrollY) / (ySize - 70);

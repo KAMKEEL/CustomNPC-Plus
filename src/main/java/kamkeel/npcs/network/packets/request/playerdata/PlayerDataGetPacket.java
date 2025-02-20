@@ -32,7 +32,7 @@ public final class PlayerDataGetPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PlayerDataGet;
+        return EnumRequestPacket.PlayerDataGetOld;
     }
 
     @Override

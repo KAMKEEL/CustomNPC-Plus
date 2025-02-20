@@ -26,9 +26,7 @@ import noppes.npcs.client.gui.item.SubGuiLinkedItem;
 import noppes.npcs.client.gui.util.*;
 
 import noppes.npcs.client.renderer.ImageData;
-import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.LinkedItem;
-import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Mouse;

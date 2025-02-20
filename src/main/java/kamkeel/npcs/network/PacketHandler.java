@@ -82,6 +82,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.client.gui.test.PlayerDataGetPacketNew;
+import noppes.npcs.client.gui.test.PlayerDataRemovePacketNew;
+import noppes.npcs.client.gui.test.PlayerDataSendPacketNew;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -225,8 +228,14 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TagRemovePacket());
 
         // PlayerData Packets
+
+
         REQUEST_PACKET.registerPacket(new PlayerDataGetPacket());
-        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
+//        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
+
+        REQUEST_PACKET.registerPacket(new PlayerDataGetPacketNew());
+        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacketNew());
+
         REQUEST_PACKET.registerPacket(new PlayerDataMapRegenPacket());
 
         // Main Menu Packets
@@ -346,6 +355,9 @@ public class PacketHandler {
     }
 
     public void registerDataPackets(){
+
+        DATA_PACKET.registerPacket(new PlayerDataSendPacketNew());
+
         // Data Packets
         DATA_PACKET.registerPacket(new LoginPacket());
         DATA_PACKET.registerPacket(new AchievementPacket());

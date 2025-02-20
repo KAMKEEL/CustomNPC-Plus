@@ -186,5 +186,5 @@ public enum EnumRequestPacket {
 
     ColorSet,
     ColorBrush,
-    ProfileGet, ProfileGetAll, ProfileGetInfo, ProfileCreate, ProfileRemove, ProfileRename, ProfileChange,
+    ProfileGet, ProfileGetAll, ProfileGetInfo, ProfileCreate, ProfileRemove, ProfileRename, ProfileChange, PlayerDataGetOld,
 }

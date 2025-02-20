@@ -162,6 +162,24 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
     }
 
+    @Override
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        if (subgui != null) {
+            subgui.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+            return;
+        }
+        super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+    }
+
+    @Override
+    protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+        if (subgui != null) {
+            subgui.mouseMovedOrUp(mouseX, mouseY, state);
+            return;
+        }
+        super.mouseMovedOrUp(mouseX, mouseY, state);
+    }
+
     public void mouseEvent(int i, int j, int k){}
 
     @Override
