@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -293,6 +294,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             dialogCatScroll.guiLeft = paddedLeft;
             dialogCatScroll.guiTop = guiTop + scrollTopOffset;
             dialogCatScroll.setSize(dividerOffset1, scrollHeight);
+            dialogCatScroll.selected = -1;
             dialogCatScroll.setList(new ArrayList<>(dialogCatData.keySet()));
             addScroll(dialogCatScroll);
             addLabel(new GuiNpcLabel(2000, "Categories", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
@@ -301,7 +303,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             dialogReadScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
             dialogReadScroll.guiTop = guiTop + scrollTopOffset;
             dialogReadScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, scrollHeight);
-            dialogReadScroll.setList(new ArrayList<>(dialogReadData.keySet()));
+            dialogReadScroll.selected = -1;
+            dialogReadScroll.setList(new ArrayList<>());
             addScroll(dialogReadScroll);
             addLabel(new GuiNpcLabel(2001, "Read", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
@@ -313,6 +316,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             dialogCompactScroll.guiTop = guiTop + scrollTopOffset;
             dialogCompactScroll.setSize(availableWidth, getScrollHeight());
             dialogCompactScroll.setList(new ArrayList<>(dialogReadData.keySet()));
+            dialogCompactScroll.selected = -1;
             addScroll(dialogCompactScroll);
             addLabel(new GuiNpcLabel(2002, "All", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
             addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), availableWidth, textFieldHeight, dialogCompactSearch));
@@ -333,6 +337,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             transCatScroll.guiLeft = paddedLeft;
             transCatScroll.guiTop = guiTop + scrollTopOffset;
             transCatScroll.setSize(dividerOffset1, scrollHeight);
+            transCatScroll.selected = -1;
             transCatScroll.setList(new ArrayList<>(transCatData.keySet()));
             addScroll(transCatScroll);
             addLabel(new GuiNpcLabel(3000, "Categories", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
@@ -341,7 +346,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             transLocScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
             transLocScroll.guiTop = guiTop + scrollTopOffset;
             transLocScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, scrollHeight);
-            transLocScroll.setList(new ArrayList<>(transLocData.keySet()));
+            transLocScroll.selected = -1;
+            transLocScroll.setList(new ArrayList<>());
             addScroll(transLocScroll);
             addLabel(new GuiNpcLabel(3001, "Locations", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
@@ -351,6 +357,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             transCompactScroll = ensureScroll(transCompactScroll, 5);
             transCompactScroll.guiLeft = paddedLeft;
             transCompactScroll.guiTop = guiTop + scrollTopOffset;
+            transCompactScroll.selected = -1;
             transCompactScroll.setSize(availableWidth, getScrollHeight());
             transCompactScroll.setList(new ArrayList<>(transLocData.keySet()));
             addScroll(transCompactScroll);
@@ -370,10 +377,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         if (currentTab == 13) {
             singleScroll.setSize(availableWidth, scrollHeight);
             singleScroll.setList(new ArrayList<>(bankData.keySet()));
+            singleScroll.selected = -1;
             addLabel(new GuiNpcLabel(4000, "Bank", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
         } else {
             singleScroll.setSize(availableWidth, scrollHeight);
             singleScroll.setList(new ArrayList<>(factionData.keySet()));
+            singleScroll.selected = -1;
             addLabel(new GuiNpcLabel(4000, "Faction", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
         }
         addScroll(singleScroll);
@@ -386,11 +395,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
         int scrollHeight = getScrollHeight();
         int paddedLeft = getPaddedLeft();
         int availableWidth = getAvailableWidth();
 
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
         // In compact mode for Quests, draw divider between the two scrolls.
         if (currentTab == 10 && viewMode != 0 && !hasSubGui()) {
             int dividerX = paddedLeft + dividerOffset1;
@@ -406,6 +416,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             int dividerX = paddedLeft + dividerOffset1;
             drawRect(dividerX, guiTop + scrollTopOffset, dividerX + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
         }
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glPopAttrib();
+
+        super.drawScreen(mouseX, mouseY, partialTicks);
         // Compact mode for Dialog/Transport uses one scroll => no divider.
     }
 
@@ -915,13 +929,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         if (dialogCatScroll != null) {
             dialogCatScroll.setList(new ArrayList<>(dialogCatData.keySet()));
         }
-        if (dialogReadScroll != null) {
-            dialogReadScroll.setList(new ArrayList<>(dialogReadData.keySet()));
-        }
-        if (dialogCompactScroll != null) {
-            List<String> merged = new ArrayList<>(dialogReadData.keySet());
-            dialogCompactScroll.setList(merged);
-        }
     }
 
     @Override
@@ -930,13 +937,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         this.transLocData = new HashMap<>(transportLocations);
         if (transCatScroll != null) {
             transCatScroll.setList(new ArrayList<>(transCatData.keySet()));
-        }
-        if (transLocScroll != null) {
-            transLocScroll.setList(new ArrayList<>(transLocData.keySet()));
-        }
-        if (transCompactScroll != null) {
-            List<String> merged = new ArrayList<>(transLocData.keySet());
-            transCompactScroll.setList(merged);
         }
     }
 

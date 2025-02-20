@@ -1085,25 +1085,27 @@ public class NoppesUtilServer {
     public static void removePlayerDataInfo(String playerName, int tabType, int value, EntityPlayerMP player) {
         EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playerName);
         PlayerData playerdata;
+
+        EnumPlayerData enumPlayerData = EnumPlayerData.values()[tabType];
         if(pl == null)
             playerdata = PlayerDataController.Instance.getDataFromUsername(playerName);
         else
             playerdata = PlayerDataController.Instance.getPlayerData(pl);
 
-        if(tabType == 0) { // Quest removal
+        if(enumPlayerData == EnumPlayerData.Quest) { // Quest removal
             playerdata.questData.activeQuests.remove(value);
             playerdata.questData.finishedQuests.remove(value);
         }
-        if(tabType == 1) { // Dialog removal
+        if(enumPlayerData == EnumPlayerData.Dialog){ // Dialog removal
             playerdata.dialogData.dialogsRead.remove(value);
         }
-        if(tabType == 2) { // Transport removal
+        if(enumPlayerData == EnumPlayerData.Transport) { // Transport removal
             playerdata.transportData.transports.remove(value);
         }
-        if(tabType == 3) { // Bank removal
+        if(enumPlayerData == EnumPlayerData.Bank) { // Bank removal
             playerdata.bankData.banks.remove(value);
         }
-        if(tabType == 4) { // Faction removal
+        if(enumPlayerData == EnumPlayerData.Factions) { // Faction removal
             playerdata.factionData.factionData.remove(value);
         }
         playerdata.save();
@@ -1111,7 +1113,5 @@ public class NoppesUtilServer {
         if(pl != null) {
             SyncController.syncPlayer((EntityPlayerMP) pl);
         }
-        // Resend the updated data to the client.
-        sendPlayerDataInfo(playerName, player);
     }
 }
