@@ -404,31 +404,38 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
+    }
+
+    @Override
+    public void drawBackground() {
+        super.drawBackground();
+
+        int paddingTopBottom = 25;
         int scrollHeight = getScrollHeight();
         int paddedLeft = getPaddedLeft();
         int availableWidth = getAvailableWidth();
+        int widthPadding = 1;
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         // In compact mode for Quests, draw divider between the two scrolls.
         if (currentTab == 10 && viewMode != 0 && !hasSubGui()) {
             int dividerX = paddedLeft + dividerOffset1;
-            drawRect(dividerX, guiTop + scrollTopOffset, dividerX + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
+            drawRect(dividerX + widthPadding, guiTop + scrollTopOffset + paddingTopBottom, dividerX + dividerWidth - widthPadding, guiTop + scrollTopOffset + scrollHeight - paddingTopBottom, 0xFF707070);
         }
         // In categorical mode for Quest, draw both dividers.
         if (currentTab == 10 && viewMode == 0 && !hasSubGui()) {
             int dividerX1 = paddedLeft + dividerOffset1;
             int dividerX2 = paddedLeft + dividerOffset2;
-            drawRect(dividerX1, guiTop + scrollTopOffset, dividerX1 + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
-            drawRect(dividerX2, guiTop + scrollTopOffset, dividerX2 + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
+            drawRect(dividerX1 + widthPadding, guiTop + scrollTopOffset + paddingTopBottom, dividerX1 + dividerWidth - widthPadding, guiTop + scrollTopOffset + scrollHeight - paddingTopBottom, 0xFF707070);
+            drawRect(dividerX2 + widthPadding, guiTop + scrollTopOffset + paddingTopBottom, dividerX2 + dividerWidth - widthPadding, guiTop + scrollTopOffset + scrollHeight - paddingTopBottom, 0xFF707070);
         } else if ((currentTab == 11 || currentTab == 12) && viewMode == 0 && !hasSubGui()) {
             int dividerX = paddedLeft + dividerOffset1;
-            drawRect(dividerX, guiTop + scrollTopOffset, dividerX + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
+            drawRect(dividerX + widthPadding, guiTop + scrollTopOffset + paddingTopBottom, dividerX + dividerWidth - widthPadding, guiTop + scrollTopOffset + scrollHeight - paddingTopBottom, 0xFF707070);
         }
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glPopAttrib();
-
-        super.drawScreen(mouseX, mouseY, partialTicks);
         // Compact mode for Dialog/Transport uses one scroll => no divider.
     }
 
