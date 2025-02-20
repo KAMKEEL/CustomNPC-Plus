@@ -801,110 +801,97 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         if (button.id == 20) {
             viewMode = (viewMode == 0) ? 1 : 0;
             initGui();
+            return;
         }
         // Delete button.
-        else if (button.id == 30) {
+        if (button.id == 30) {
             Integer selectedID = null;
             EnumPlayerData tabType = null;
+            // Quest tab
             if (currentTab == 10) {
-                if (viewMode == 0) {
+                if (viewMode == 0) { // Categorical mode
                     if (questCatScroll.getSelected() == null)
                         return;
+                    // Use category + selection key.
                     if (questActiveScroll.getSelected() != null) {
-                        selectedID = questActiveData.get(questCatScroll.getSelected() + ": " + questActiveScroll.getSelected());
-                        if (selectedID != null) {
-                            questActiveScroll.list.remove(questActiveScroll.selected);
-                            questActiveData.remove(questCatScroll.getSelected() + ": " + questActiveScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Quest;
+                        selectedID = removeSelection(questActiveScroll, questActiveData, questCatScroll.getSelected());
                     } else if (questFinishedScroll.getSelected() != null) {
-                        selectedID = questFinishedData.get(questCatScroll.getSelected() + ": " + questFinishedScroll.getSelected());
-                        if (selectedID != null) {
-                            questFinishedScroll.list.remove(questFinishedScroll.selected);
-                            questFinishedData.remove(questCatScroll.getSelected() + ": " + questFinishedScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Quest;
+                        selectedID = removeSelection(questFinishedScroll, questFinishedData, questCatScroll.getSelected());
                     }
-                } else {
+                } else { // Compact mode: key is just the selection.
                     if (questActiveScroll.getSelected() != null) {
-                        selectedID = questActiveData.get(questActiveScroll.getSelected());
-                        if (selectedID != null) {
-                            questActiveScroll.list.remove(questActiveScroll.selected);
-                            questActiveData.remove(questActiveScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Quest;
+                        selectedID = removeSelection(questActiveScroll, questActiveData, null);
                     } else if (questFinishedScroll.getSelected() != null) {
-                        selectedID = questFinishedData.get(questFinishedScroll.getSelected());
-                        if (selectedID != null) {
-                            questFinishedScroll.list.remove(questFinishedScroll.selected);
-                            questFinishedData.remove(questFinishedScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Quest;
+                        selectedID = removeSelection(questFinishedScroll, questFinishedData, null);
                     }
                 }
-            } else if (currentTab == 11) {
+                tabType = EnumPlayerData.Quest;
+            }
+            // Dialog tab
+            else if (currentTab == 11) {
                 if (viewMode == 0) {
                     if (dialogReadScroll.getSelected() != null && dialogCatScroll.getSelected() != null) {
-                        selectedID = dialogReadData.get(dialogCatScroll.getSelected() + ": " + dialogReadScroll.getSelected());
-                        if (selectedID != null) {
-                            dialogReadScroll.list.remove(dialogReadScroll.selected);
-                            dialogReadData.remove(dialogCatScroll.getSelected() + ": " + dialogReadScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Dialog;
+                        selectedID = removeSelection(dialogReadScroll, dialogReadData, dialogCatScroll.getSelected());
                     }
                 } else {
                     if (dialogCompactScroll.getSelected() != null) {
-                        selectedID = dialogReadData.get(dialogCompactScroll.getSelected());
-                        if (selectedID != null) {
-                            dialogCompactScroll.list.remove(dialogCompactScroll.selected);
-                            dialogReadData.remove(dialogCompactScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Dialog;
+                        selectedID = removeSelection(dialogCompactScroll, dialogReadData, null);
                     }
                 }
-            } else if (currentTab == 12) {
+                tabType = EnumPlayerData.Dialog;
+            }
+            // Transport tab
+            else if (currentTab == 12) {
                 if (viewMode == 0) {
                     if (transLocScroll.getSelected() != null && transCatScroll.getSelected() != null) {
-                        selectedID = transLocData.get(transCatScroll.getSelected() + ": " + transLocScroll.getSelected());
-                        if (selectedID != null) {
-                            transLocScroll.list.remove(transLocScroll.selected);
-                            transLocData.remove(transCatScroll.getSelected() + ": " + transLocScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Transport;
+                        selectedID = removeSelection(transLocScroll, transLocData, transCatScroll.getSelected());
                     }
                 } else {
                     if (transCompactScroll.getSelected() != null) {
-                        selectedID = transLocData.get(transCompactScroll.getSelected());
-                        if (selectedID != null) {
-                            transCompactScroll.list.remove(transCompactScroll.selected);
-                            transLocData.remove(transCompactScroll.getSelected());
-                        }
-                        tabType = EnumPlayerData.Transport;
+                        selectedID = removeSelection(transCompactScroll, transLocData, null);
                     }
                 }
-            } else if (currentTab == 13) {
+                tabType = EnumPlayerData.Transport;
+            }
+            // Bank tab
+            else if (currentTab == 13) {
                 if (singleScroll.getSelected() != null) {
-                    selectedID = bankData.get(singleScroll.getSelected());
-                    if (selectedID != null) {
-                        singleScroll.list.remove(singleScroll.selected);
-                        bankData.remove(singleScroll.getSelected());
-                    }
-                    tabType = EnumPlayerData.Bank;
+                    selectedID = removeSelection(singleScroll, bankData, null);
                 }
-            } else if (currentTab == 14) {
+                tabType = EnumPlayerData.Bank;
+            }
+            // Faction tab
+            else if (currentTab == 14) {
                 if (singleScroll.getSelected() != null) {
-                    selectedID = factionData.get(singleScroll.getSelected());
-                    if (selectedID != null) {
-                        singleScroll.list.remove(singleScroll.selected);
-                        factionData.remove(singleScroll.getSelected());
-                    }
-                    tabType = EnumPlayerData.Factions;
+                    selectedID = removeSelection(singleScroll, factionData, null);
                 }
+                tabType = EnumPlayerData.Factions;
             }
             if (selectedID != null) {
                 PacketClient.sendClient(new PlayerDataRemoveInfoPacket(playerName, tabType, selectedID));
             }
         }
+    }
+
+    /**
+     * Helper method that removes the selected entry from a scroll and its backing data.
+     *
+     * @param scroll The GuiCustomScroll in question.
+     * @param data The backing map holding keys and IDs.
+     * @param prefix If non-null and non-empty, the key is built as "prefix: " + scroll.getSelected(); otherwise,
+     *               scroll.getSelected() is used.
+     * @return The ID of the removed item, or null if none was found.
+     */
+    private Integer removeSelection(GuiCustomScroll scroll, Map<String, Integer> data, String prefix) {
+        if (scroll.getSelected() == null) return null;
+        String key = (prefix == null || prefix.isEmpty()) ? scroll.getSelected() : prefix + ": " + scroll.getSelected();
+        Integer id = data.get(key);
+        if (id != null) {
+            scroll.list.remove(scroll.selected);
+            scroll.selected = -1;
+            data.remove(key);
+        }
+        return id;
     }
 
     ////////////////////////////////////////////////////////////////////////////////

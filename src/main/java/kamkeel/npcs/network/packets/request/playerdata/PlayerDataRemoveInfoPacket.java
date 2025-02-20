@@ -30,7 +30,7 @@ public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PlayerDataRemove;
+        return EnumRequestPacket.PlayerDataDelete;
     }
 
     @Override
