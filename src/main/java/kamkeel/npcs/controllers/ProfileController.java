@@ -416,38 +416,39 @@ public class ProfileController {
         if (!profile.slots.containsKey(newSlotId)) {
             return ProfileOperation.error(MSG_SLOT_NOT_EXIST);
         }
-        // Region-based check: if enabled, ensure the player is within an allowed region.
-        if (ConfigMain.RegionProfileSwitching && profile.player != null) {
-            boolean allowed = hasPermission(profile.player, PROFILE_REGION_BYPASS);
-            if(!allowed){
-                int playerDim = profile.player.dimension;
-                int playerX = (int) profile.player.posX;
-                int playerY = (int) profile.player.posY;
-                int playerZ = (int) profile.player.posZ;
-                for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
-                    if(region.size() == 7) {
-                        int dim = region.get(0);
-                        int x1 = Math.min(region.get(1), region.get(4));
-                        int y1 = Math.min(region.get(2), region.get(5));
-                        int z1 = Math.min(region.get(3), region.get(6));
-                        int x2 = Math.max(region.get(1), region.get(4));
-                        int y2 = Math.max(region.get(2), region.get(5));
-                        int z2 = Math.max(region.get(3), region.get(6));
-                        if(playerDim == dim &&
-                            playerX >= x1 && playerX <= x2 &&
-                            playerY >= y1 && playerY <= y2 &&
-                            playerZ >= z1 && playerZ <= z2) {
-                            allowed = true;
-                            break;
+
+        if(profile.player != null){
+            // Region-based check: if enabled, ensure the player is within an allowed region.
+            if (ConfigMain.RegionProfileSwitching) {
+                boolean allowed = hasPermission(profile.player, PROFILE_REGION_BYPASS);
+                if(!allowed){
+                    int playerDim = profile.player.dimension;
+                    int playerX = (int) profile.player.posX;
+                    int playerY = (int) profile.player.posY;
+                    int playerZ = (int) profile.player.posZ;
+                    for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
+                        if(region.size() == 7) {
+                            int dim = region.get(0);
+                            int x1 = Math.min(region.get(1), region.get(4));
+                            int y1 = Math.min(region.get(2), region.get(5));
+                            int z1 = Math.min(region.get(3), region.get(6));
+                            int x2 = Math.max(region.get(1), region.get(4));
+                            int y2 = Math.max(region.get(2), region.get(5));
+                            int z2 = Math.max(region.get(3), region.get(6));
+                            if(playerDim == dim &&
+                                playerX >= x1 && playerX <= x2 &&
+                                playerY >= y1 && playerY <= y2 &&
+                                playerZ >= z1 && playerZ <= z2) {
+                                allowed = true;
+                                break;
+                            }
                         }
                     }
                 }
+                if (!allowed) {
+                    return ProfileOperation.error(MSG_REGION_NOT_ALLOWED);
+                }
             }
-            if (!allowed) {
-                return ProfileOperation.error(MSG_REGION_NOT_ALLOWED);
-            }
-        }
-        if (profile.player != null) {
             List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
             dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
             for (IProfileData pd : dataList) {
@@ -455,17 +456,17 @@ public class ProfileController {
                     return pd.verifySwitch(profile.player);
                 }
             }
-        }
-        if (profile.player != null) {
             saveSlotData(profile.player);
-        }
-        profile.currentID = newSlotId;
-        if (profile.player != null) {
+            profile.currentID = newSlotId;
+
             loadSlotData(profile.player);
             PlayerData pdata = PlayerData.get(profile.player);
             pdata.profileSlot = newSlotId;
             pdata.save();
+        } else {
+            return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         }
+
         return ProfileOperation.success(MSG_CHANGE_SUCCESS);
     }
 
@@ -525,20 +526,6 @@ public class ProfileController {
         return result;
     }
 
-    public static ProfileOperation removeSlot(UUID uuid, int slotId) {
-        Profile profile = getProfile(uuid);
-        if(profile == null)
-            return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
-        ProfileOperation result = removeSlotInternal(profile, slotId);
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
-            if(profile.player != null)
-                save(profile.player, profile);
-            else
-                saveOffline(profile, uuid);
-        }
-        return result;
-    }
-
     public static ProfileOperation removeSlot(String username, int slotId) {
         Profile profile = getProfile(username);
         if(profile == null)
@@ -564,20 +551,6 @@ public class ProfileController {
         ProfileOperation result = changeSlotInternal(profile, newSlotId);
         if(result.getResult() == EnumProfileOperation.SUCCESS && player != null)
             save(player, profile);
-        return result;
-    }
-
-    public static ProfileOperation changeSlot(UUID uuid, int newSlotId) {
-        Profile profile = getProfile(uuid);
-        if(profile == null)
-            return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
-        ProfileOperation result = changeSlotInternal(profile, newSlotId);
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
-            if(profile.player != null)
-                save(profile.player, profile);
-            else
-                saveOffline(profile, uuid);
-        }
         return result;
     }
 

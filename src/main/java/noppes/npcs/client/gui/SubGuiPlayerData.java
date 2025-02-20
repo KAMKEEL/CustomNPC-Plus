@@ -124,10 +124,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     // Create top buttons.
     private void setupTopButtons() {
 
+        // Show General Display Information
         GuiMenuTopButton playerTab = new GuiMenuTopButton(-10, guiLeft + 4, guiTop - 10, playerName);
-        playerTab.active = false;
-        playerTab.enabled = false;
-        playerTab.packedFGColour = CustomNpcResourceListener.DefaultTextColor;
 
         GuiMenuTopButton btnQuest = new GuiMenuTopButton(10, playerTab.xPosition + playerTab.getButtonWidth(), guiTop - 10, "quest.quests");
         GuiMenuTopButton btnDialog = new GuiMenuTopButton(11, btnQuest.xPosition + btnQuest.getWidth(), guiTop - 10, "dialog.dialogs");
@@ -137,6 +135,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         // Close button.
         GuiMenuTopButton close = new GuiMenuTopButton(-5, guiLeft + xSize - 22, guiTop - 10, "X");
 
+        playerTab.active = (currentTab == -10);
         btnQuest.active = (currentTab == 10);
         btnDialog.active = (currentTab == 11);
         btnTransport.active = (currentTab == 12);
@@ -414,7 +413,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         int paddingTopBottom = 25;
         int scrollHeight = getScrollHeight();
         int paddedLeft = getPaddedLeft();
-        int availableWidth = getAvailableWidth();
         int widthPadding = 1;
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
@@ -436,7 +434,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glPopAttrib();
-        // Compact mode for Dialog/Transport uses one scroll => no divider.
     }
 
     ////////////////////////////////////////////////////////////////////////////////
