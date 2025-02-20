@@ -16,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
+
 public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo, ICustomScrollListener {
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -121,11 +123,17 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
     // Create top buttons.
     private void setupTopButtons() {
-        GuiMenuTopButton btnQuest = new GuiMenuTopButton(10, guiLeft + 4, guiTop - 10, StatCollector.translateToLocal("tab.quests"));
-        GuiMenuTopButton btnDialog = new GuiMenuTopButton(11, btnQuest.xPosition + btnQuest.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.dialog"));
-        GuiMenuTopButton btnTransport = new GuiMenuTopButton(12, btnDialog.xPosition + btnDialog.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.transport"));
-        GuiMenuTopButton btnBank = new GuiMenuTopButton(13, btnTransport.xPosition + btnTransport.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.bank"));
-        GuiMenuTopButton btnFaction = new GuiMenuTopButton(14, btnBank.xPosition + btnBank.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.faction"));
+
+        GuiMenuTopButton playerTab = new GuiMenuTopButton(-10, guiLeft + 4, guiTop - 10, playerName);
+        playerTab.active = false;
+        playerTab.enabled = false;
+        playerTab.packedFGColour = CustomNpcResourceListener.DefaultTextColor;
+
+        GuiMenuTopButton btnQuest = new GuiMenuTopButton(10, playerTab.xPosition + playerTab.getButtonWidth(), guiTop - 10, "quest.quests");
+        GuiMenuTopButton btnDialog = new GuiMenuTopButton(11, btnQuest.xPosition + btnQuest.getWidth(), guiTop - 10, "dialog.dialogs");
+        GuiMenuTopButton btnTransport = new GuiMenuTopButton(12, btnDialog.xPosition + btnDialog.getWidth(), guiTop - 10, "global.transport");
+        GuiMenuTopButton btnBank = new GuiMenuTopButton(13, btnTransport.xPosition + btnTransport.getWidth(), guiTop - 10, "global.banks");
+        GuiMenuTopButton btnFaction = new GuiMenuTopButton(14, btnBank.xPosition + btnBank.getWidth(), guiTop - 10, "menu.factions");
         // Close button.
         GuiMenuTopButton close = new GuiMenuTopButton(-5, guiLeft + xSize - 22, guiTop - 10, "X");
 
@@ -135,6 +143,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         btnBank.active = (currentTab == 13);
         btnFaction.active = (currentTab == 14);
 
+        addTopButton(playerTab);
         addTopButton(btnQuest);
         addTopButton(btnDialog);
         addTopButton(btnTransport);
@@ -177,10 +186,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         super.initGui();
         setupTopButtons();
 
-        // Mode toggle button (50px wide)
         if (currentTab == 10 || currentTab == 11 || currentTab == 12) {
-            String modeText = viewMode == 0 ? StatCollector.translateToLocal("view.categorical") : StatCollector.translateToLocal("view.compact");
-            addButton(new GuiNpcButton(20, guiLeft + xSize - 60, guiTop + 10, 50, 20, modeText));
+            addButton(new GuiToggleButton(20, guiLeft + xSize - 102, guiTop + 10, viewMode == 0));
+            ((GuiToggleButton) getButton(20)).setTextureOff(specialIcons).setTextureOffPos( 16, 0);
+            ((GuiToggleButton) getButton(20)).setIconTexture(specialIcons).setIconPos( 16, 16, 16, 0 );
         }
 
         guiTop += 7;
@@ -201,7 +210,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                 break;
         }
         // Delete button.
-        addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + ySize - 30, 50, 20, StatCollector.translateToLocal("button.delete")));
+        addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + 10 - 7, 50, 20, "gui.remove"));
     }
 
     // ----- Quest Tab Initialization -----

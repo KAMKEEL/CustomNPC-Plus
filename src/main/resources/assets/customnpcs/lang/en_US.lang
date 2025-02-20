@@ -58,6 +58,7 @@ tile.npcScripted.name=Scripted Block
 
 gui.delete=Are you sure you want to delete this?
 gui.add=Add
+gui.view=View
 gui.remove=Remove
 gui.save=Save
 gui.name=Name
@@ -151,6 +152,7 @@ gui.npcs=NPCs
 gui.change=Change
 gui.create=Create
 gui.rename=Rename
+gui.playerMap=Regen PlayerMap
 
 party.accept=Accept
 party.allowParty=Allow Partying

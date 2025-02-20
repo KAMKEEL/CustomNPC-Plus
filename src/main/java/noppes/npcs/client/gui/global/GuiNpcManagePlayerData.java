@@ -44,9 +44,9 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
 
         addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("All Players"), guiLeft + 10, guiTop + 6));
 
-        addButton(new GuiNpcButton(0, guiLeft + 313, guiTop + 10, 98, 20, StatCollector.translateToLocal("button.delete")));
-        addButton(new GuiNpcButton(1, guiLeft + 313, guiTop + 32, 98, 20, StatCollector.translateToLocal("button.view")));
-        addButton(new GuiNpcButton(2, guiLeft + 313, guiTop + 54, 98, 20, StatCollector.translateToLocal("button.regenPlayerMap")));
+        addButton(new GuiNpcButton(0, guiLeft + 313, guiTop + 10, 98, 20, "gui.remove"));
+        addButton(new GuiNpcButton(1, guiLeft + 313, guiTop + 32, 98, 20, "gui.view"));
+        addButton(new GuiNpcButton(2, guiLeft + 313, guiTop + 54, 98, 20, "gui.playerMap"));
 
         addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 4, guiTop + 193, 303, 20, search));
 
