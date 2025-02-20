@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.test;
+package kamkeel.npcs.network.packets.data;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -8,10 +8,12 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.client.NoppesUtil;
+
 import java.io.IOException;
 import java.util.Map;
 
-public final class PlayerDataSendPacketNew extends LargeAbstractPacket {
+public final class PlayerDataInfoPacket extends LargeAbstractPacket {
     public static final String packetName = "Large|PlayerDataSendNew";
 
     private String playerName;
@@ -28,13 +30,13 @@ public final class PlayerDataSendPacketNew extends LargeAbstractPacket {
     private Map<String, Integer> bankData;
     private Map<String, Integer> factionData;
 
-    public PlayerDataSendPacketNew() {}
+    public PlayerDataInfoPacket() {}
 
-    public PlayerDataSendPacketNew(String playerName,
-                                   Map<String, Integer> questCategories, Map<String, Integer> questActive, Map<String, Integer> questFinished,
-                                   Map<String, Integer> dialogCategories, Map<String, Integer> dialogRead,
-                                   Map<String, Integer> transportCategories, Map<String, Integer> transportLocations,
-                                   Map<String, Integer> bankData, Map<String, Integer> factionData) {
+    public PlayerDataInfoPacket(String playerName,
+                                Map<String, Integer> questCategories, Map<String, Integer> questActive, Map<String, Integer> questFinished,
+                                Map<String, Integer> dialogCategories, Map<String, Integer> dialogRead,
+                                Map<String, Integer> transportCategories, Map<String, Integer> transportLocations,
+                                Map<String, Integer> bankData, Map<String, Integer> factionData) {
         this.playerName = playerName;
         this.questCategories = questCategories;
         this.questActive = questActive;
@@ -96,6 +98,6 @@ public final class PlayerDataSendPacketNew extends LargeAbstractPacket {
 
     @Override
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
-        NoppesUtilClientNew.handlePlayerData(data, player);
+        NoppesUtil.handlePlayerData(data, player);
     }
 }

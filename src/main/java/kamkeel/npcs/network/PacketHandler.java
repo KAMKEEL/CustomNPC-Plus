@@ -53,7 +53,7 @@ import kamkeel.npcs.network.packets.request.npc.*;
 import kamkeel.npcs.network.packets.request.party.*;
 import kamkeel.npcs.network.packets.request.pather.MovingPathGetPacket;
 import kamkeel.npcs.network.packets.request.pather.MovingPathSavePacket;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetNamesPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
 import kamkeel.npcs.network.packets.request.profile.*;
@@ -82,9 +82,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.client.gui.test.PlayerDataGetPacketNew;
-import noppes.npcs.client.gui.test.PlayerDataRemovePacketNew;
-import noppes.npcs.client.gui.test.PlayerDataSendPacketNew;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemoveInfoPacket;
+import kamkeel.npcs.network.packets.data.PlayerDataInfoPacket;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -230,12 +230,10 @@ public class PacketHandler {
         // PlayerData Packets
 
 
-        REQUEST_PACKET.registerPacket(new PlayerDataGetPacket());
-//        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
-
-        REQUEST_PACKET.registerPacket(new PlayerDataGetPacketNew());
-        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacketNew());
-
+        REQUEST_PACKET.registerPacket(new PlayerDataGetNamesPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataGetInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataRemoveInfoPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataMapRegenPacket());
 
         // Main Menu Packets
@@ -355,9 +353,6 @@ public class PacketHandler {
     }
 
     public void registerDataPackets(){
-
-        DATA_PACKET.registerPacket(new PlayerDataSendPacketNew());
-
         // Data Packets
         DATA_PACKET.registerPacket(new LoginPacket());
         DATA_PACKET.registerPacket(new AchievementPacket());
@@ -375,6 +370,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new SwingPlayerArmPacket());
         DATA_PACKET.registerPacket(new UpdateAnimationsPacket());
         DATA_PACKET.registerPacket(new VillagerListPacket());
+        DATA_PACKET.registerPacket(new PlayerDataInfoPacket());
 
         // Data | GUI Packets
         DATA_PACKET.registerPacket(new GuiClosePacket());

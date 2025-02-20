@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.test;
+package noppes.npcs.client.gui.util;
 
 import java.util.Map;
 

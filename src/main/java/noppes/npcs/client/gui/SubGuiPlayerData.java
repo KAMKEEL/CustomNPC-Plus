@@ -1,11 +1,10 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
-import net.minecraft.client.gui.GuiYesNo;
-import net.minecraft.client.gui.GuiYesNoCallback;
-import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.gui.util.IPlayerDataInfo;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemoveInfoPacket;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
 import net.minecraft.client.gui.GuiButton;
@@ -14,119 +13,177 @@ import net.minecraft.util.StatCollector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Vector;
+import java.util.Map;
 
-public class SubGuiPlayerData extends SubGuiInterface implements GuiYesNoCallback, ICustomScrollListener, IScrollData {
+public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo, ICustomScrollListener {
 
-    private String playerName;
-    private int currentTab = 10; // 10: Quests, 11: Dialog, 12: Transport, 13: Bank, 14: Faction.
-    private int viewMode = 0; // 0: Categorical, 1: Compact.
-    private int lastDataType = 0;
+    ////////////////////////////////////////////////////////////////////////////////
+    // Fields
+    ////////////////////////////////////////////////////////////////////////////////
 
-    // ----- Quest Tab (10) -----
-    private GuiCustomScroll questCatScroll, questFinishedScroll, questActiveScroll;
-    private String questCatSearch = "", questFinishedSearch = "", questActiveSearch = "";
-    // Maps for category display (questCatData) and for quest entries:
+    // Current tab (10=Quest, 11=Dialog, 12=Transport, 13=Bank, 14=Faction)
+    private int currentTab = 10;
+    // View mode: 0 = Categorical (3 or 2 scrolls), 1 = Compact (2 or 1 scroll)
+    private int viewMode = 0;
+
+    // ----- Quest Tab Components -----
+    protected GuiCustomScroll questCatScroll, questActiveScroll, questFinishedScroll;
+    private String questCatSearch = "", questActiveSearch = "", questFinishedSearch = "";
     private HashMap<String, Integer> questCatData = new HashMap<>();
-    private HashMap<String, Integer> questFinishedData = new HashMap<>();
     private HashMap<String, Integer> questActiveData = new HashMap<>();
-    // New: maps storing the extracted category for each quest entry (keyed by the displayed quest title)
-    private HashMap<String, String> questFinishedCategory = new HashMap<>();
-    private HashMap<String, String> questActiveCategory = new HashMap<>();
+    private HashMap<String, Integer> questFinishedData = new HashMap<>();
     private String selectedQuestCategory = "";
 
-    // ----- Dialog Tab (11) -----
-    private GuiCustomScroll dialogCatScroll, dialogReadScroll;
-    private String dialogCatSearch = "", dialogReadSearch = "";
+    // ----- Dialog Tab Components -----
+    protected GuiCustomScroll dialogCatScroll, dialogReadScroll, dialogCompactScroll;
+    private String dialogCatSearch = "", dialogReadSearch = "", dialogCompactSearch = "";
     private HashMap<String, Integer> dialogCatData = new HashMap<>();
     private HashMap<String, Integer> dialogReadData = new HashMap<>();
-    // For dialog entries, we split off the category from the key ("Category: Title")
-    private HashMap<String, String> dialogCategory = new HashMap<>();
-    private GuiCustomScroll dialogCompactScroll;
-    private String dialogCompactSearch = "";
-    private HashMap<String, Integer> dialogCompactData = new HashMap<>();
     private String selectedDialogCategory = "";
 
-    // ----- Transport Tab (12) -----
-    private GuiCustomScroll transCatScroll, transLocScroll;
-    private String transCatSearch = "", transLocSearch = "";
+    // ----- Transport Tab Components -----
+    protected GuiCustomScroll transCatScroll, transLocScroll, transCompactScroll;
+    private String transCatSearch = "", transLocSearch = "", transCompactSearch = "";
     private HashMap<String, Integer> transCatData = new HashMap<>();
     private HashMap<String, Integer> transLocData = new HashMap<>();
-    // For transport locations, also store their category:
-    private HashMap<String, String> transLocationCategory = new HashMap<>();
-    private GuiCustomScroll transCompactScroll;
-    private String transCompactSearch = "";
-    private HashMap<String, Integer> transCompactData = new HashMap<>();
     private String selectedTransCategory = "";
 
-    // ----- Bank & Faction Tabs (13 & 14) -----
-    private GuiCustomScroll singleScroll;
+    // ----- Bank and Faction (Single Scroll) -----
+    protected GuiCustomScroll singleScroll;
     private String singleSearch = "";
-    private HashMap<String, Integer> singleData = new HashMap<>();
+    private HashMap<String, Integer> bankData = new HashMap<>();
+    private HashMap<String, Integer> factionData = new HashMap<>();
 
-    // ----- Divider/resizing variables -----
-// We use margins so that scrolls have room on the right for buttons.
-    private final int leftMargin = guiLeft + 4;
-    private final int rightMargin = guiLeft + xSize - 80; // leave 80px for the buttons on the right
-    private int dividerOffset1 = 120;
-    private int dividerOffset2 = 240;
+    // ----- Divider & Resizing Variables -----
+    // In categorical mode for Quest: two dividers (3 scrolls).
+    // In compact mode for Quest: one divider between two scrolls.
+    private int dividerOffset1 = 0; // In categorical: width of left scroll; in compact for quests: width of left scroll.
+    private int dividerOffset2 = 0; // Only used for Quest categorical mode.
     private final int dividerWidth = 5;
     private final int minScrollWidth = 50;
-    private int draggingDivider = 0;
-    private int initialDragX = 0;
     private boolean isResizing = false;
+    private int resizingDivider = 0;
+    private int initialDragX = 0;
 
+    // ----- Layout Constants -----
+    private final int leftPadding = 6;
+    private final int rightPadding = 6;
+    private final int scrollTopOffset = 30;
+    private final int verticalGapAboveTF = 3;
+    private final int textFieldHeight = 20;
+    private final int verticalGapBelowTF = 3;
+
+    // ----- Other -----
+    private String playerName;
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Constructor
+    ////////////////////////////////////////////////////////////////////////////////
     public SubGuiPlayerData(String playerName) {
         this.playerName = playerName;
         xSize = 420;
-        ySize = 216;
+        ySize = 215;
         setBackground("menubg.png");
-        lastDataType = 11;
-        PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Quest, playerName));
         closeOnEsc = true;
+        PacketClient.sendClient(new PlayerDataGetInfoPacket(playerName));
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Layout Helpers
+    ////////////////////////////////////////////////////////////////////////////////
+
+    private int getPaddedLeft() {
+        return guiLeft + leftPadding;
+    }
+
+    private int getPaddedRight() {
+        return guiLeft + xSize - rightPadding;
+    }
+
+    private int getAvailableWidth() {
+        return getPaddedRight() - getPaddedLeft();
+    }
+
+    // Height available for scroll windows.
+    private int getScrollHeight() {
+        return ySize - (scrollTopOffset + verticalGapAboveTF + textFieldHeight + verticalGapBelowTF);
+    }
+
+    // Y coordinate for textfields.
+    private int getTextFieldY() {
+        return guiTop + scrollTopOffset + getScrollHeight() + verticalGapAboveTF;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Component Setup Helpers
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // Create top buttons.
+    private void setupTopButtons() {
+        GuiMenuTopButton btnQuest = new GuiMenuTopButton(10, guiLeft + 4, guiTop - 10, StatCollector.translateToLocal("tab.quests"));
+        GuiMenuTopButton btnDialog = new GuiMenuTopButton(11, btnQuest.xPosition + btnQuest.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.dialog"));
+        GuiMenuTopButton btnTransport = new GuiMenuTopButton(12, btnDialog.xPosition + btnDialog.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.transport"));
+        GuiMenuTopButton btnBank = new GuiMenuTopButton(13, btnTransport.xPosition + btnTransport.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.bank"));
+        GuiMenuTopButton btnFaction = new GuiMenuTopButton(14, btnBank.xPosition + btnBank.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.faction"));
+        // Close button.
+        GuiMenuTopButton close = new GuiMenuTopButton(-5, guiLeft + xSize - 22, guiTop - 10, "X");
+
+        btnQuest.active = (currentTab == 10);
+        btnDialog.active = (currentTab == 11);
+        btnTransport.active = (currentTab == 12);
+        btnBank.active = (currentTab == 13);
+        btnFaction.active = (currentTab == 14);
+
+        addTopButton(btnQuest);
+        addTopButton(btnDialog);
+        addTopButton(btnTransport);
+        addTopButton(btnBank);
+        addTopButton(btnFaction);
+        addTopButton(close);
+    }
+
+    // Helper to ensure scroll exists.
+    private GuiCustomScroll ensureScroll(GuiCustomScroll scroll, int id) {
+        if (scroll == null) {
+            scroll = new GuiCustomScroll(this, id, 0);
+        }
+        return scroll;
+    }
+
+    // Helper to update a text field's position and width.
+    private void updateComponentPosition(int fieldId, int newX, int newWidth) {
+        GuiNpcTextField tf = getTextField(fieldId);
+        if (tf != null) {
+            tf.xPosition = newX;
+            tf.width = newWidth;
+        }
+    }
+
+    // Helper to update a label's x position.
+    private void updateLabelPosition(int labelId, int newX) {
+        GuiNpcLabel lbl = getLabel(labelId);
+        if (lbl != null) {
+            lbl.x = newX;
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // initGui() & Tab Initialization
+    ////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void initGui() {
         super.initGui();
-        // --- Top Buttons ---
-        GuiMenuTopButton close = new GuiMenuTopButton(-5, guiLeft + xSize - 22, guiTop - 10, "X");
-        GuiMenuTopButton quests = new GuiMenuTopButton(10, guiLeft + 4, guiTop - 10, StatCollector.translateToLocal("tab.quests"));
-        GuiMenuTopButton dialog = new GuiMenuTopButton(11, quests.xPosition + quests.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.dialog"));
-        GuiMenuTopButton transport = new GuiMenuTopButton(12, dialog.xPosition + dialog.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.transport"));
-        GuiMenuTopButton bank = new GuiMenuTopButton(13, transport.xPosition + transport.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.bank"));
-        GuiMenuTopButton faction = new GuiMenuTopButton(14, bank.xPosition + bank.getWidth(), guiTop - 10, StatCollector.translateToLocal("tab.faction"));
+        setupTopButtons();
 
-        quests.active = (currentTab == 10);
-        dialog.active = (currentTab == 11);
-        transport.active = (currentTab == 12);
-        bank.active = (currentTab == 13);
-        faction.active = (currentTab == 14);
-        close.active = false;
-
-        addTopButton(close);
-        addTopButton(quests);
-        addTopButton(dialog);
-        addTopButton(transport);
-        addTopButton(bank);
-        addTopButton(faction);
-
+        // Mode toggle button (50px wide)
         if (currentTab == 10 || currentTab == 11 || currentTab == 12) {
-            addButton(new GuiNpcButton(20, guiLeft + xSize - 80, guiTop - 10, 75, 20,
-                viewMode == 0 ? StatCollector.translateToLocal("view.categorical") : StatCollector.translateToLocal("view.compact")));
+            String modeText = viewMode == 0 ? StatCollector.translateToLocal("view.categorical") : StatCollector.translateToLocal("view.compact");
+            addButton(new GuiNpcButton(20, guiLeft + xSize - 60, guiTop + 10, 50, 20, modeText));
         }
 
         guiTop += 7;
-
-        if (currentTab == 10)
-            lastDataType = 11;
-        else if (currentTab == 11)
-            lastDataType = (viewMode == 0) ? 21 : 22;
-        else if (currentTab == 12)
-            lastDataType = (viewMode == 0) ? 31 : 32;
-        else if (currentTab == 13 || currentTab == 14)
-            lastDataType = 40;
-
+        // Initialize components based on current tab.
         switch (currentTab) {
             case 10:
                 initQuestTab();
@@ -139,386 +196,268 @@ public class SubGuiPlayerData extends SubGuiInterface implements GuiYesNoCallbac
                 break;
             case 13:
             case 14:
-                initSingleScroll();
+                initSingleTab();
                 break;
         }
-
-        addButton(new GuiNpcButton(30, guiLeft + xSize - 80, guiTop + ySize - 30, 75, 20, StatCollector.translateToLocal("button.delete")));
+        // Delete button.
+        addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + ySize - 30, 50, 20, StatCollector.translateToLocal("button.delete")));
     }
 
+    // ----- Quest Tab Initialization -----
     private void initQuestTab() {
-        int regionLeft = leftMargin;
-        int regionRight = rightMargin;
-        int dividerX1 = regionLeft + dividerOffset1;
-        int dividerX2 = regionLeft + dividerOffset2;
+        int paddedLeft = getPaddedLeft();
+        int paddedRight = getPaddedRight();
+        int availableWidth = getAvailableWidth();
+        int scrollHeight = getScrollHeight();
 
-        if (viewMode == 0) {
-            if (questCatScroll == null) {
-                questCatScroll = new GuiCustomScroll(this, 0, 0);
+        if (viewMode == 0) { // Categorical: 3 scrolls.
+            if (!isResizing) {
+                dividerOffset1 = (availableWidth - 2 * dividerWidth) / 3;
+                dividerOffset2 = dividerOffset1 + dividerWidth + (availableWidth - 2 * dividerWidth) / 3;
             }
-            questCatScroll.guiLeft = regionLeft;
-            questCatScroll.guiTop = guiTop + 30;
-            questCatScroll.setSize(dividerX1 - regionLeft, 150);
+            // Quest Category Scroll.
+            questCatScroll = ensureScroll(questCatScroll, 0);
+            questCatScroll.guiLeft = paddedLeft;
+            questCatScroll.guiTop = guiTop + scrollTopOffset;
+            questCatScroll.setSize(dividerOffset1, scrollHeight);
+            questCatScroll.setList(new ArrayList<>(questCatData.keySet()));
+            questCatScroll.selected = -1;
+            questCatSearch = "";
             addScroll(questCatScroll);
-            addLabel(new GuiNpcLabel(1000, "Categories", regionLeft, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(1000, "Categories", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (questFinishedScroll == null) {
-                questFinishedScroll = new GuiCustomScroll(this, 1, 0);
-            }
-            questFinishedScroll.guiLeft = dividerX1 + dividerWidth;
-            questFinishedScroll.guiTop = guiTop + 30;
-            questFinishedScroll.setSize(dividerX2 - dividerX1 - dividerWidth, 150);
+            // Quest Finished Scroll.
+            questFinishedScroll = ensureScroll(questFinishedScroll, 1);
+            questFinishedScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+            questFinishedScroll.guiTop = guiTop + scrollTopOffset;
+            questFinishedScroll.setSize(dividerOffset2 - dividerOffset1 - dividerWidth, scrollHeight);
+            questFinishedScroll.setList(new ArrayList<>());
+            questFinishedScroll.selected = -1;
+            questFinishedSearch = "";
             addScroll(questFinishedScroll);
-            addLabel(new GuiNpcLabel(1001, "Finished", dividerX1 + dividerWidth, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(1001, "Finished", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (questActiveScroll == null) {
-                questActiveScroll = new GuiCustomScroll(this, 2, 0);
-            }
-            questActiveScroll.guiLeft = dividerX2 + dividerWidth;
-            questActiveScroll.guiTop = guiTop + 30;
-            questActiveScroll.setSize(regionRight - dividerX2 - dividerWidth, 150);
+            // Quest Active Scroll.
+            questActiveScroll = ensureScroll(questActiveScroll, 2);
+            questActiveScroll.guiLeft = paddedLeft + dividerOffset2 + dividerWidth;
+            questActiveScroll.guiTop = guiTop + scrollTopOffset;
+            questActiveScroll.setSize(paddedRight - (paddedLeft + dividerOffset2 + dividerWidth), scrollHeight);
+            questActiveScroll.setList(new ArrayList<>());
+            questActiveScroll.selected = -1;
+            questActiveSearch = "";
             addScroll(questActiveScroll);
-            addLabel(new GuiNpcLabel(1002, "Active", dividerX2 + dividerWidth, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(1002, "Active", paddedLeft + dividerOffset2 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            // When a category is selected, filter using our extra maps.
-            if (!selectedQuestCategory.isEmpty()) {
-                questFinishedScroll.setList(filterQuestsByCategory(questFinishedData, questFinishedCategory, selectedQuestCategory));
-                questActiveScroll.setList(filterQuestsByCategory(questActiveData, questActiveCategory, selectedQuestCategory));
-            } else {
-                questFinishedScroll.setList(getSearchList(questFinishedData, questFinishedSearch));
-                questActiveScroll.setList(getSearchList(questActiveData, questActiveSearch));
+            // Text Fields.
+            addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, questCatSearch));
+            addTextField(new GuiNpcTextField(56, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), dividerOffset2 - dividerOffset1 - dividerWidth, textFieldHeight, questFinishedSearch));
+            addTextField(new GuiNpcTextField(57, this, fontRendererObj, paddedLeft + dividerOffset2 + dividerWidth, getTextFieldY(), paddedRight - (paddedLeft + dividerOffset2 + dividerWidth), textFieldHeight, questActiveSearch));
+        } else { // Compact: 2 scrolls with resizable divider.
+            if (!isResizing) {
+                dividerOffset1 = (availableWidth - dividerWidth) / 2;
             }
-        } else {
-            if (questFinishedScroll == null) {
-                questFinishedScroll = new GuiCustomScroll(this, 1, 0);
-            }
-            questFinishedScroll.guiLeft = regionLeft;
-            questFinishedScroll.guiTop = guiTop + 30;
-            questFinishedScroll.setSize((regionRight - regionLeft) / 2, 150);
+            questFinishedScroll = ensureScroll(questFinishedScroll, 1);
+            questFinishedScroll.guiLeft = paddedLeft;
+            questFinishedScroll.guiTop = guiTop + scrollTopOffset;
+            questFinishedScroll.setSize(dividerOffset1, scrollHeight);
+            questFinishedScroll.setList(new ArrayList<>(questFinishedData.keySet()));
+            questFinishedSearch = "";
             addScroll(questFinishedScroll);
-            addLabel(new GuiNpcLabel(1003, "Finished", regionLeft, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(1003, "Finished", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (questActiveScroll == null) {
-                questActiveScroll = new GuiCustomScroll(this, 2, 0);
-            }
-            questActiveScroll.guiLeft = regionLeft + (regionRight - regionLeft) / 2;
-            questActiveScroll.guiTop = guiTop + 30;
-            questActiveScroll.setSize((regionRight - regionLeft) / 2, 150);
+            questActiveScroll = ensureScroll(questActiveScroll, 2);
+            questActiveScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+            questActiveScroll.guiTop = guiTop + scrollTopOffset;
+            questActiveScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, scrollHeight);
+            questActiveScroll.setList(new ArrayList<>(questActiveData.keySet()));
+            questActiveSearch = "";
             addScroll(questActiveScroll);
-            addLabel(new GuiNpcLabel(1004, "Active", questActiveScroll.guiLeft, guiTop + 15, 0xFFFFFF));
-        }
-        if (viewMode == 0) {
-            addTextField(new GuiNpcTextField(55, this, fontRendererObj, regionLeft, guiTop + 30 + 153, dividerX1 - regionLeft, 20, questCatSearch));
-            addTextField(new GuiNpcTextField(56, this, fontRendererObj, dividerX1 + dividerWidth, guiTop + 30 + 153, dividerX2 - dividerX1 - dividerWidth, 20, questFinishedSearch));
-            addTextField(new GuiNpcTextField(57, this, fontRendererObj, dividerX2 + dividerWidth, guiTop + 30 + 153, regionRight - dividerX2 - dividerWidth, 20, questActiveSearch));
-        } else {
-            addTextField(new GuiNpcTextField(55, this, fontRendererObj, regionLeft, guiTop + 30 + 153, (regionRight - regionLeft) / 2, 20, questFinishedSearch));
-            addTextField(new GuiNpcTextField(56, this, fontRendererObj, questActiveScroll.guiLeft, guiTop + 30 + 153, (regionRight - regionLeft) / 2, 20, questActiveSearch));
+            addLabel(new GuiNpcLabel(1004, "Active", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
+
+            addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, questFinishedSearch));
+            addTextField(new GuiNpcTextField(56, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), availableWidth - dividerOffset1 - dividerWidth, textFieldHeight, questActiveSearch));
         }
     }
 
+    // ----- Dialog Tab Initialization -----
     private void initDialogTab() {
-        int regionLeft = leftMargin;
-        int regionRight = rightMargin;
-        int dividerX = regionLeft + dividerOffset1;
+        int paddedLeft = getPaddedLeft();
+        int availableWidth = getAvailableWidth();
+        int scrollHeight = getScrollHeight();
 
-        if (viewMode == 0) {
-            if (dialogCatScroll == null) {
-                dialogCatScroll = new GuiCustomScroll(this, 0, 0);
+        if (viewMode == 0) { // Categorical: 2 scrolls.
+            if (!isResizing) {
+                dividerOffset1 = (availableWidth - dividerWidth) / 2;
             }
-            dialogCatScroll.guiLeft = regionLeft;
-            dialogCatScroll.guiTop = guiTop + 30;
-            dialogCatScroll.setSize(dividerX - regionLeft, 150);
+            dialogCatScroll = ensureScroll(dialogCatScroll, 0);
+            dialogCatScroll.guiLeft = paddedLeft;
+            dialogCatScroll.guiTop = guiTop + scrollTopOffset;
+            dialogCatScroll.setSize(dividerOffset1, scrollHeight);
+            dialogCatScroll.setList(new ArrayList<>(dialogCatData.keySet()));
             addScroll(dialogCatScroll);
-            addLabel(new GuiNpcLabel(2000, "Categories", regionLeft, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(2000, "Categories", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (dialogReadScroll == null) {
-                dialogReadScroll = new GuiCustomScroll(this, 1, 0);
-            }
-            dialogReadScroll.guiLeft = dividerX + dividerWidth;
-            dialogReadScroll.guiTop = guiTop + 30;
-            dialogReadScroll.setSize(regionRight - dividerX - dividerWidth, 150);
+            dialogReadScroll = ensureScroll(dialogReadScroll, 1);
+            dialogReadScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+            dialogReadScroll.guiTop = guiTop + scrollTopOffset;
+            dialogReadScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, scrollHeight);
+            dialogReadScroll.setList(new ArrayList<>(dialogReadData.keySet()));
             addScroll(dialogReadScroll);
-            addLabel(new GuiNpcLabel(2001, "Read", dividerX + dividerWidth, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(2001, "Read", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (!selectedDialogCategory.isEmpty()) {
-                dialogReadScroll.setList(filterDialogsByCategory(dialogReadData, dialogCategory, selectedDialogCategory));
-            } else {
-                dialogReadScroll.setList(getSearchList(dialogReadData, dialogReadSearch));
-            }
-        } else {
-            if (dialogCompactScroll == null) {
-                dialogCompactScroll = new GuiCustomScroll(this, 5, 0);
-            }
-            dialogCompactScroll.guiLeft = regionLeft;
-            dialogCompactScroll.guiTop = guiTop + 30;
-            dialogCompactScroll.setSize(regionRight - regionLeft, 150);
+            addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, dialogCatSearch));
+            addTextField(new GuiNpcTextField(56, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), availableWidth - dividerOffset1 - dividerWidth, textFieldHeight, dialogReadSearch));
+        } else { // Compact: 1 scroll (no divider).
+            dialogCompactScroll = ensureScroll(dialogCompactScroll, 5);
+            dialogCompactScroll.guiLeft = paddedLeft;
+            dialogCompactScroll.guiTop = guiTop + scrollTopOffset;
+            dialogCompactScroll.setSize(availableWidth, getScrollHeight());
+            dialogCompactScroll.setList(new ArrayList<>(dialogReadData.keySet()));
             addScroll(dialogCompactScroll);
-            addLabel(new GuiNpcLabel(2002, "All", regionLeft, guiTop + 15, 0xFFFFFF));
-            dialogCompactScroll.setList(getSearchList(dialogCompactData, dialogCompactSearch));
-            addTextField(new GuiNpcTextField(55, this, fontRendererObj, regionLeft, guiTop + 30 + 153, regionRight - regionLeft, 20, dialogCompactSearch));
-        }
-        if (viewMode == 0) {
-            addTextField(new GuiNpcTextField(55, this, fontRendererObj, regionLeft, guiTop + 30 + 153, dividerX - regionLeft, 20, dialogCatSearch));
-            addTextField(new GuiNpcTextField(56, this, fontRendererObj, dividerX + dividerWidth, guiTop + 30 + 153, regionRight - dividerX - dividerWidth, 20, dialogReadSearch));
+            addLabel(new GuiNpcLabel(2002, "All", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
+            addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), availableWidth, textFieldHeight, dialogCompactSearch));
         }
     }
 
+    // ----- Transport Tab Initialization -----
     private void initTransportTab() {
-        int regionLeft = leftMargin;
-        int regionRight = rightMargin;
-        int dividerX = regionLeft + dividerOffset1;
+        int paddedLeft = getPaddedLeft();
+        int availableWidth = getAvailableWidth();
+        int scrollHeight = getScrollHeight();
 
-        if (viewMode == 0) {
-            if (transCatScroll == null) {
-                transCatScroll = new GuiCustomScroll(this, 3, 0);
+        if (viewMode == 0) { // Categorical: 2 scrolls.
+            if (!isResizing) {
+                dividerOffset1 = (availableWidth - dividerWidth) / 2;
             }
-            transCatScroll.guiLeft = regionLeft;
-            transCatScroll.guiTop = guiTop + 30;
-            transCatScroll.setSize(dividerX - regionLeft, 150);
+            transCatScroll = ensureScroll(transCatScroll, 3);
+            transCatScroll.guiLeft = paddedLeft;
+            transCatScroll.guiTop = guiTop + scrollTopOffset;
+            transCatScroll.setSize(dividerOffset1, scrollHeight);
+            transCatScroll.setList(new ArrayList<>(transCatData.keySet()));
             addScroll(transCatScroll);
-            addLabel(new GuiNpcLabel(3000, "Categories", regionLeft, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(3000, "Categories", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (transLocScroll == null) {
-                transLocScroll = new GuiCustomScroll(this, 4, 0);
-            }
-            transLocScroll.guiLeft = dividerX + dividerWidth;
-            transLocScroll.guiTop = guiTop + 30;
-            transLocScroll.setSize(regionRight - dividerX - dividerWidth, 150);
+            transLocScroll = ensureScroll(transLocScroll, 4);
+            transLocScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+            transLocScroll.guiTop = guiTop + scrollTopOffset;
+            transLocScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, scrollHeight);
+            transLocScroll.setList(new ArrayList<>(transLocData.keySet()));
             addScroll(transLocScroll);
-            addLabel(new GuiNpcLabel(3001, "Locations", dividerX + dividerWidth, guiTop + 15, 0xFFFFFF));
+            addLabel(new GuiNpcLabel(3001, "Locations", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            if (!selectedTransCategory.isEmpty()) {
-                transLocScroll.setList(filterTransportsByCategory(transLocData, transLocationCategory, selectedTransCategory));
-            } else {
-                transLocScroll.setList(getSearchList(transLocData, transLocSearch));
-            }
-        } else {
-            if (transCompactScroll == null) {
-                transCompactScroll = new GuiCustomScroll(this, 5, 0);
-            }
-            transCompactScroll.guiLeft = regionLeft;
-            transCompactScroll.guiTop = guiTop + 30;
-            transCompactScroll.setSize(regionRight - regionLeft, 150);
+            addTextField(new GuiNpcTextField(60, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, transCatSearch));
+            addTextField(new GuiNpcTextField(61, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), availableWidth - dividerOffset1 - dividerWidth, textFieldHeight, transLocSearch));
+        } else { // Compact: 1 scroll (no divider).
+            transCompactScroll = ensureScroll(transCompactScroll, 5);
+            transCompactScroll.guiLeft = paddedLeft;
+            transCompactScroll.guiTop = guiTop + scrollTopOffset;
+            transCompactScroll.setSize(availableWidth, getScrollHeight());
+            transCompactScroll.setList(new ArrayList<>(transLocData.keySet()));
             addScroll(transCompactScroll);
-            addLabel(new GuiNpcLabel(3002, "All", regionLeft, guiTop + 15, 0xFFFFFF));
-            transCompactScroll.setList(getSearchList(transCompactData, transCompactSearch));
-            addTextField(new GuiNpcTextField(60, this, fontRendererObj, regionLeft, guiTop + 30 + 153, regionRight - regionLeft, 20, transCompactSearch));
-        }
-        if (viewMode == 0) {
-            addTextField(new GuiNpcTextField(60, this, fontRendererObj, regionLeft, guiTop + 30 + 153, dividerX - regionLeft, 20, transCatSearch));
-            addTextField(new GuiNpcTextField(61, this, fontRendererObj, dividerX + dividerWidth, guiTop + 30 + 153, regionRight - dividerX - dividerWidth, 20, transLocSearch));
+            addLabel(new GuiNpcLabel(3002, "All", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
+            addTextField(new GuiNpcTextField(60, this, fontRendererObj, paddedLeft, getTextFieldY(), availableWidth, textFieldHeight, transCompactSearch));
         }
     }
 
-    private void initSingleScroll() {
-        int regionLeft = leftMargin;
-        int regionRight = rightMargin;
-        if (singleScroll == null) {
-            singleScroll = new GuiCustomScroll(this, 6, 0);
+    // ----- Single Tab Initialization (Bank/Faction) -----
+    private void initSingleTab() {
+        int paddedLeft = getPaddedLeft();
+        int availableWidth = getAvailableWidth();
+        int scrollHeight = getScrollHeight();
+        singleScroll = ensureScroll(singleScroll, 0);
+        singleScroll.guiLeft = paddedLeft;
+        singleScroll.guiTop = guiTop + scrollTopOffset;
+        if (currentTab == 13) {
+            singleScroll.setSize(availableWidth, scrollHeight);
+            singleScroll.setList(new ArrayList<>(bankData.keySet()));
+            addLabel(new GuiNpcLabel(4000, "Bank", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
+        } else {
+            singleScroll.setSize(availableWidth, scrollHeight);
+            singleScroll.setList(new ArrayList<>(factionData.keySet()));
+            addLabel(new GuiNpcLabel(4000, "Faction", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
         }
-        singleScroll.guiLeft = regionLeft;
-        singleScroll.guiTop = guiTop + 30;
-        singleScroll.setSize(regionRight - regionLeft, 150);
         addScroll(singleScroll);
-        addLabel(new GuiNpcLabel(4000, "Data", regionLeft, guiTop + 15, 0xFFFFFF));
-        addTextField(new GuiNpcTextField(70, this, fontRendererObj, regionLeft, guiTop + 30 + 153, regionRight - regionLeft, 20, singleSearch));
+        addTextField(new GuiNpcTextField(70, this, fontRendererObj, paddedLeft, getTextFieldY(), availableWidth, textFieldHeight, singleSearch));
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Drawing Helpers
+    ////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void actionPerformed(GuiButton button) {
-        int id = button.id;
-        if (id >= 10 && id <= 14) {
-            currentTab = id;
-            clearData();
-            selectedQuestCategory = "";
-            selectedDialogCategory = "";
-            selectedTransCategory = "";
-            switch (currentTab) {
-                case 10:
-                    PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Quest, playerName));
-                    break;
-                case 11:
-                    PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Dialog, playerName));
-                    break;
-                case 12:
-                    PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Transport, playerName));
-                    break;
-                case 13:
-                    PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Bank, playerName));
-                    break;
-                case 14:
-                    PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Factions, playerName));
-                    break;
-            }
-            initGui();
-            return;
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
+        int scrollHeight = getScrollHeight();
+        int paddedLeft = getPaddedLeft();
+        int availableWidth = getAvailableWidth();
+
+        // In compact mode for Quests, draw divider between the two scrolls.
+        if (currentTab == 10 && viewMode != 0 && !hasSubGui()) {
+            int dividerX = paddedLeft + dividerOffset1;
+            drawRect(dividerX, guiTop + scrollTopOffset, dividerX + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
         }
-        if (id == 20) {
-            viewMode = (viewMode == 0) ? 1 : 0;
-            initGui();
-            return;
+        // In categorical mode for Quest, draw both dividers.
+        if (currentTab == 10 && viewMode == 0 && !hasSubGui()) {
+            int dividerX1 = paddedLeft + dividerOffset1;
+            int dividerX2 = paddedLeft + dividerOffset2;
+            drawRect(dividerX1, guiTop + scrollTopOffset, dividerX1 + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
+            drawRect(dividerX2, guiTop + scrollTopOffset, dividerX2 + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
+        } else if ((currentTab == 11 || currentTab == 12) && viewMode == 0 && !hasSubGui()) {
+            int dividerX = paddedLeft + dividerOffset1;
+            drawRect(dividerX, guiTop + scrollTopOffset, dividerX + dividerWidth, guiTop + scrollTopOffset + scrollHeight, 0xFF707070);
         }
-        if (id == 30) {
-            displayGuiScreen(new GuiYesNo(this, StatCollector.translateToLocal("gui.deleteconfirm"), "", 100 + currentTab));
-            return;
-        }
+        // Compact mode for Dialog/Transport uses one scroll => no divider.
     }
 
-    private void clearData() {
-        questCatData.clear();
-        questFinishedData.clear();
-        questActiveData.clear();
-        questFinishedCategory.clear();
-        questActiveCategory.clear();
-        dialogCatData.clear();
-        dialogReadData.clear();
-        dialogCompactData.clear();
-        dialogCategory.clear();
-        transCatData.clear();
-        transLocData.clear();
-        transLocationCategory.clear();
-        transCompactData.clear();
-        singleData.clear();
-    }
-
-    @Override
-    public void keyTyped(char c, int i) {
-        super.keyTyped(c, i);
-        if (currentTab == 10) {
-            if (getTextField(55) != null && getTextField(55).isFocused()) {
-                String newSearch = getTextField(55).getText().toLowerCase();
-                if (!questCatSearch.equals(newSearch)) {
-                    questCatSearch = newSearch;
-                    if (questCatScroll != null)
-                        questCatScroll.setList(getSearchList(questCatData, questCatSearch));
-                }
-            }
-            if (getTextField(56) != null && getTextField(56).isFocused()) {
-                String newSearch = getTextField(56).getText().toLowerCase();
-                if (!questFinishedSearch.equals(newSearch)) {
-                    questFinishedSearch = newSearch;
-                    if (questFinishedScroll != null)
-                        questFinishedScroll.setList(getSearchList(questFinishedData, questFinishedSearch));
-                }
-            }
-            if (getTextField(57) != null && getTextField(57).isFocused()) {
-                String newSearch = getTextField(57).getText().toLowerCase();
-                if (!questActiveSearch.equals(newSearch)) {
-                    questActiveSearch = newSearch;
-                    if (questActiveScroll != null)
-                        questActiveScroll.setList(getSearchList(questActiveData, questActiveSearch));
-                }
-            }
-        }
-        if (currentTab == 11) {
-            if (viewMode == 0) {
-                if (getTextField(55) != null && getTextField(55).isFocused()) {
-                    String newSearch = getTextField(55).getText().toLowerCase();
-                    if (!dialogCatSearch.equals(newSearch)) {
-                        dialogCatSearch = newSearch;
-                        if (dialogCatScroll != null)
-                            dialogCatScroll.setList(getSearchList(dialogCatData, dialogCatSearch));
-                    }
-                }
-                if (getTextField(56) != null && getTextField(56).isFocused()) {
-                    String newSearch = getTextField(56).getText().toLowerCase();
-                    if (!dialogReadSearch.equals(newSearch)) {
-                        dialogReadSearch = newSearch;
-                        if (dialogReadScroll != null)
-                            dialogReadScroll.setList(getSearchList(dialogReadData, dialogReadSearch));
-                    }
-                }
-            } else {
-                if (getTextField(55) != null && getTextField(55).isFocused()) {
-                    String newSearch = getTextField(55).getText().toLowerCase();
-                    if (!dialogCompactSearch.equals(newSearch)) {
-                        dialogCompactSearch = newSearch;
-                        if (dialogCompactScroll != null)
-                            dialogCompactScroll.setList(getSearchList(dialogCompactData, dialogCompactSearch));
-                    }
-                }
-            }
-        }
-        if (currentTab == 12) {
-            if (viewMode == 0) {
-                if (getTextField(60) != null && getTextField(60).isFocused()) {
-                    String newSearch = getTextField(60).getText().toLowerCase();
-                    if (!transCatSearch.equals(newSearch)) {
-                        transCatSearch = newSearch;
-                        if (transCatScroll != null)
-                            transCatScroll.setList(getSearchList(transCatData, transCatSearch));
-                    }
-                }
-                if (getTextField(61) != null && getTextField(61).isFocused()) {
-                    String newSearch = getTextField(61).getText().toLowerCase();
-                    if (!transLocSearch.equals(newSearch)) {
-                        transLocSearch = newSearch;
-                        if (transLocScroll != null)
-                            transLocScroll.setList(getSearchList(transLocData, transLocSearch));
-                    }
-                }
-            } else {
-                if (getTextField(60) != null && getTextField(60).isFocused()) {
-                    String newSearch = getTextField(60).getText().toLowerCase();
-                    if (!transCompactSearch.equals(newSearch)) {
-                        transCompactSearch = newSearch;
-                        if (transCompactScroll != null)
-                            transCompactScroll.setList(getSearchList(transCompactData, transCompactSearch));
-                    }
-                }
-            }
-        }
-        if (currentTab == 13 || currentTab == 14) {
-            if (getTextField(70) != null && getTextField(70).isFocused()) {
-                String newSearch = getTextField(70).getText().toLowerCase();
-                if (!singleSearch.equals(newSearch)) {
-                    singleSearch = newSearch;
-                    if (singleScroll != null)
-                        singleScroll.setList(getSearchList(singleData, singleSearch));
-                }
-            }
-        }
-    }
+    ////////////////////////////////////////////////////////////////////////////////
+    // Mouse & Resizing Handlers
+    ////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if ((currentTab == 10 || currentTab == 11 || currentTab == 12) && viewMode == 0) {
-            int regionLeft = leftMargin;
-            if (currentTab == 10) {
-                int dividerX1 = regionLeft + dividerOffset1;
-                int dividerX2 = regionLeft + dividerOffset2;
-                int regionTop = guiTop + 30;
-                int regionHeight = 150;
-                int dividerLineHeight = 20;
-                int dividerLineYOffset = (regionHeight - dividerLineHeight) / 2;
-                if (mouseX >= dividerX1 && mouseX <= dividerX1 + dividerWidth &&
-                    mouseY >= regionTop + dividerLineYOffset && mouseY <= regionTop + dividerLineYOffset + dividerLineHeight) {
-                    isResizing = true;
-                    draggingDivider = 1;
-                    initialDragX = mouseX;
-                    return;
+        int hitMargin = 3;
+        int regionTop = guiTop + scrollTopOffset;
+        int regionBottom = regionTop + getScrollHeight();
+        int paddedLeft = getPaddedLeft();
+        int availableWidth = getAvailableWidth();
+        if (!hasSubGui() && mouseY >= regionTop && mouseY <= regionBottom) {
+            if (viewMode == 0) {
+                if (currentTab == 10) { // Quest categorical: 3 scrolls.
+                    int dividerX1 = paddedLeft + dividerOffset1;
+                    int dividerX2 = paddedLeft + dividerOffset2;
+                    if (mouseX >= dividerX1 - hitMargin && mouseX <= dividerX1 + dividerWidth + hitMargin) {
+                        isResizing = true;
+                        resizingDivider = 1;
+                        initialDragX = mouseX;
+                        return;
+                    } else if (mouseX >= dividerX2 - hitMargin && mouseX <= dividerX2 + dividerWidth + hitMargin) {
+                        isResizing = true;
+                        resizingDivider = 2;
+                        initialDragX = mouseX;
+                        return;
+                    }
+                } else if (currentTab == 11 || currentTab == 12) {
+                    int dividerX = paddedLeft + dividerOffset1;
+                    if (mouseX >= dividerX - hitMargin && mouseX <= dividerX + dividerWidth + hitMargin) {
+                        isResizing = true;
+                        resizingDivider = 1;
+                        initialDragX = mouseX;
+                        return;
+                    }
                 }
-                if (mouseX >= dividerX2 && mouseX <= dividerX2 + dividerWidth &&
-                    mouseY >= regionTop + dividerLineYOffset && mouseY <= regionTop + dividerLineYOffset + dividerLineHeight) {
-                    isResizing = true;
-                    draggingDivider = 2;
-                    initialDragX = mouseX;
-                    return;
+            } else { // Compact mode.
+                if (currentTab == 10) { // Quest compact: 2 scrolls.
+                    int defaultWidth = (availableWidth - dividerWidth) / 2;
+                    if (!isResizing) dividerOffset1 = defaultWidth;
+                    int dividerX = paddedLeft + dividerOffset1;
+                    if (mouseX >= dividerX - hitMargin && mouseX <= dividerX + dividerWidth + hitMargin) {
+                        isResizing = true;
+                        resizingDivider = 1;
+                        initialDragX = mouseX;
+                        return;
+                    }
                 }
-            } else {
-                int dividerX = regionLeft + dividerOffset1;
-                int regionTop = guiTop + 30;
-                int regionHeight = 150;
-                int dividerLineHeight = 20;
-                int dividerLineYOffset = (regionHeight - dividerLineHeight) / 2;
-                if (mouseX >= dividerX && mouseX <= dividerX + dividerWidth &&
-                    mouseY >= regionTop + dividerLineYOffset && mouseY <= regionTop + dividerLineYOffset + dividerLineHeight) {
-                    isResizing = true;
-                    draggingDivider = 1;
-                    initialDragX = mouseX;
-                    return;
-                }
+                // Dialog/Transport compact have only one scroll => no divider.
             }
         }
         super.mouseClicked(mouseX, mouseY, mouseButton);
@@ -526,78 +465,76 @@ public class SubGuiPlayerData extends SubGuiInterface implements GuiYesNoCallbac
 
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        int paddedLeft = getPaddedLeft();
+        int paddedRight = getPaddedRight();
+        int availableWidth = getAvailableWidth();
         if (isResizing) {
             int dx = mouseX - initialDragX;
             initialDragX = mouseX;
+            // Handle Quest tab resizing.
             if (currentTab == 10) {
-                if (draggingDivider == 1) {
-                    dividerOffset1 += dx;
-                    int regionLeft = leftMargin;
-                    if (dividerOffset1 < minScrollWidth)
-                        dividerOffset1 = minScrollWidth;
-                    if (dividerOffset1 > dividerOffset2 - dividerWidth - minScrollWidth)
-                        dividerOffset1 = dividerOffset2 - dividerWidth - minScrollWidth;
+                if (viewMode == 0) { // Categorical (3 scrolls)
+                    if (resizingDivider == 1) {
+                        dividerOffset1 += dx;
+                        int maxOffset = dividerOffset2 - dividerWidth - minScrollWidth;
+                        dividerOffset1 = clamp(dividerOffset1, minScrollWidth, maxOffset);
+                        questCatScroll.setSize(dividerOffset1, getScrollHeight());
+                        questFinishedScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+                        questFinishedScroll.setSize(dividerOffset2 - dividerOffset1 - dividerWidth, getScrollHeight());
+                        questActiveScroll.guiLeft = paddedLeft + dividerOffset2 + dividerWidth;
+                        questActiveScroll.setSize(availableWidth - (dividerOffset2 + dividerWidth), getScrollHeight());
+                        updateComponentPosition(55, paddedLeft, dividerOffset1);
+                        updateComponentPosition(56, paddedLeft + dividerOffset1 + dividerWidth, dividerOffset2 - dividerOffset1 - dividerWidth);
+                        updateComponentPosition(57, paddedLeft + dividerOffset2 + dividerWidth, availableWidth - (dividerOffset2 + dividerWidth));
+                        updateLabelPosition(1000, paddedLeft);
+                        updateLabelPosition(1001, paddedLeft + dividerOffset1 + dividerWidth);
+                        updateLabelPosition(1002, paddedLeft + dividerOffset2 + dividerWidth);
+                    } else if (resizingDivider == 2) {
+                        dividerOffset2 += dx;
+                        int minOffset = dividerOffset1 + dividerWidth + minScrollWidth;
+                        int maxOffset = availableWidth - minScrollWidth;
+                        dividerOffset2 = clamp(dividerOffset2, minOffset, maxOffset);
+                        questFinishedScroll.setSize(dividerOffset2 - dividerOffset1 - dividerWidth, getScrollHeight());
+                        questActiveScroll.guiLeft = paddedLeft + dividerOffset2 + dividerWidth;
+                        questActiveScroll.setSize(availableWidth - (dividerOffset2 + dividerWidth), getScrollHeight());
+                        updateComponentPosition(56, paddedLeft + dividerOffset1 + dividerWidth, dividerOffset2 - dividerOffset1 - dividerWidth);
+                        updateComponentPosition(57, paddedLeft + dividerOffset2 + dividerWidth, availableWidth - (dividerOffset2 + dividerWidth));
+                        updateLabelPosition(1001, paddedLeft + dividerOffset1 + dividerWidth);
+                        updateLabelPosition(1002, paddedLeft + dividerOffset2 + dividerWidth);
+                    }
+                } else { // Compact mode for Quests (2 scrolls)
+                    if (resizingDivider == 1) {
+                        dividerOffset1 += dx;
+                        dividerOffset1 = clamp(dividerOffset1, minScrollWidth, availableWidth - dividerWidth - minScrollWidth);
+                        questFinishedScroll.setSize(dividerOffset1, getScrollHeight());
+                        questActiveScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+                        questActiveScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, getScrollHeight());
+                        updateComponentPosition(55, paddedLeft, dividerOffset1);
+                        updateComponentPosition(56, paddedLeft + dividerOffset1 + dividerWidth, availableWidth - dividerOffset1 - dividerWidth);
+                        updateLabelPosition(1003, paddedLeft);
+                        updateLabelPosition(1004, paddedLeft + dividerOffset1 + dividerWidth);
+                    }
                 }
-                if (draggingDivider == 2) {
-                    dividerOffset2 += dx;
-                    int regionLeft = leftMargin;
-                    int regionRight = rightMargin;
-                    if (dividerOffset2 < dividerOffset1 + dividerWidth + minScrollWidth)
-                        dividerOffset2 = dividerOffset1 + dividerWidth + minScrollWidth;
-                    if (dividerOffset2 > (regionRight - regionLeft) - minScrollWidth)
-                        dividerOffset2 = (regionRight - regionLeft) - minScrollWidth;
-                }
-                int regionLeft = leftMargin;
-                int regionRight = rightMargin;
-                int dividerX1 = regionLeft + dividerOffset1;
-                int dividerX2 = regionLeft + dividerOffset2;
-                if (questCatScroll != null)
-                    questCatScroll.setSize(dividerX1 - regionLeft, 150);
-                if (questFinishedScroll != null) {
-                    questFinishedScroll.guiLeft = dividerX1 + dividerWidth;
-                    questFinishedScroll.setSize(dividerX2 - dividerX1 - dividerWidth, 150);
-                }
-                if (questActiveScroll != null) {
-                    questActiveScroll.guiLeft = dividerX2 + dividerWidth;
-                    questActiveScroll.setSize(regionRight - dividerX2 - dividerWidth, 150);
-                }
-                if (getTextField(55) != null)
-                    getTextField(55).width = dividerX1 - regionLeft;
-                if (getTextField(56) != null)
-                    getTextField(56).width = dividerX2 - dividerX1 - dividerWidth;
-                if (getTextField(57) != null)
-                    getTextField(57).width = regionRight - dividerX2 - dividerWidth;
             } else if ((currentTab == 11 || currentTab == 12) && viewMode == 0) {
-                int regionLeft = leftMargin;
-                int regionRight = rightMargin;
+                // For Dialog and Transport in categorical mode.
                 dividerOffset1 += dx;
-                if (dividerOffset1 < minScrollWidth)
-                    dividerOffset1 = minScrollWidth;
-                if (dividerOffset1 > (regionRight - regionLeft) - dividerWidth - minScrollWidth)
-                    dividerOffset1 = (regionRight - regionLeft) - dividerWidth - minScrollWidth;
-                int dividerX = regionLeft + dividerOffset1;
+                dividerOffset1 = clamp(dividerOffset1, minScrollWidth, availableWidth - minScrollWidth);
                 if (currentTab == 11) {
-                    if (dialogCatScroll != null)
-                        dialogCatScroll.setSize(dividerX - regionLeft, 150);
-                    if (dialogReadScroll != null) {
-                        dialogReadScroll.guiLeft = dividerX + dividerWidth;
-                        dialogReadScroll.setSize(regionRight - dividerX - dividerWidth, 150);
-                    }
-                    if (getTextField(55) != null)
-                        getTextField(55).width = dividerX - regionLeft;
-                    if (getTextField(56) != null)
-                        getTextField(56).width = regionRight - dividerX - dividerWidth;
-                } else {
-                    if (transCatScroll != null)
-                        transCatScroll.setSize(dividerX - regionLeft, 150);
-                    if (transLocScroll != null) {
-                        transLocScroll.guiLeft = dividerX + dividerWidth;
-                        transLocScroll.setSize(regionRight - dividerX - dividerWidth, 150);
-                    }
-                    if (getTextField(60) != null)
-                        getTextField(60).width = dividerX - regionLeft;
-                    if (getTextField(61) != null)
-                        getTextField(61).width = regionRight - dividerX - dividerWidth;
+                    dialogCatScroll.setSize(dividerOffset1, getScrollHeight());
+                    dialogReadScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+                    dialogReadScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, getScrollHeight());
+                    updateComponentPosition(55, paddedLeft, dividerOffset1);
+                    updateComponentPosition(56, paddedLeft + dividerOffset1 + dividerWidth, availableWidth - dividerOffset1 - dividerWidth);
+                    updateLabelPosition(2000, paddedLeft);
+                    updateLabelPosition(2001, paddedLeft + dividerOffset1 + dividerWidth);
+                } else if (currentTab == 12) {
+                    transCatScroll.setSize(dividerOffset1, getScrollHeight());
+                    transLocScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
+                    transLocScroll.setSize(availableWidth - dividerOffset1 - dividerWidth, getScrollHeight());
+                    updateComponentPosition(60, paddedLeft, dividerOffset1);
+                    updateComponentPosition(61, paddedLeft + dividerOffset1 + dividerWidth, availableWidth - dividerOffset1 - dividerWidth);
+                    updateLabelPosition(3000, paddedLeft);
+                    updateLabelPosition(3001, paddedLeft + dividerOffset1 + dividerWidth);
                 }
             }
             return;
@@ -609,320 +546,466 @@ public class SubGuiPlayerData extends SubGuiInterface implements GuiYesNoCallbac
     protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
         if (isResizing) {
             isResizing = false;
-            draggingDivider = 0;
+            resizingDivider = 0;
             return;
         }
         super.mouseMovedOrUp(mouseX, mouseY, state);
     }
 
-    @Override
-    public void confirmClicked(boolean confirm, int id) {
-        if (confirm && id == 100 + currentTab) {
-            int removeId = -1;
-            String selected = null;
-            switch (currentTab) {
-                case 10:
-                    if (questFinishedScroll != null && questFinishedScroll.getSelected() != null) {
-                        selected = questFinishedScroll.getSelected();
-                        removeId = questFinishedData.get(selected);
-                    } else if (questActiveScroll != null && questActiveScroll.getSelected() != null) {
-                        selected = questActiveScroll.getSelected();
-                        removeId = questActiveData.get(selected);
-                    }
-                    if (removeId != -1)
-                        PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Quest, playerName, removeId));
-                    break;
-                case 11:
-                    if (viewMode == 0) {
-                        if (dialogReadScroll != null && dialogReadScroll.getSelected() != null) {
-                            selected = dialogReadScroll.getSelected();
-                            removeId = dialogReadData.get(selected);
-                        }
-                    } else {
-                        if (dialogCompactScroll != null && dialogCompactScroll.getSelected() != null) {
-                            selected = dialogCompactScroll.getSelected();
-                            removeId = dialogCompactData.get(selected);
-                        }
-                    }
-                    if (removeId != -1)
-                        PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Dialog, playerName, removeId));
-                    break;
-                case 12:
-                    if (viewMode == 0) {
-                        if (transLocScroll != null && transLocScroll.getSelected() != null) {
-                            selected = transLocScroll.getSelected();
-                            removeId = transLocData.get(selected);
-                        }
-                    } else {
-                        if (transCompactScroll != null && transCompactScroll.getSelected() != null) {
-                            selected = transCompactScroll.getSelected();
-                            removeId = transCompactData.get(selected);
-                        }
-                    }
-                    if (removeId != -1)
-                        PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Transport, playerName, removeId));
-                    break;
-                case 13:
-                case 14:
-                    if (singleScroll != null && singleScroll.getSelected() != null) {
-                        selected = singleScroll.getSelected();
-                        removeId = singleData.get(selected);
-                    }
-                    if (removeId != -1) {
-                        EnumPlayerData type = (currentTab == 13) ? EnumPlayerData.Bank : EnumPlayerData.Factions;
-                        PacketClient.sendClient(new PlayerDataRemovePacket(type, playerName, removeId));
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        NoppesUtil.openGUI(mc.thePlayer, this);
+    // Simple clamp helper.
+    private int clamp(int value, int min, int max) {
+        if (value < min)
+            return min;
+        if (value > max)
+            return max;
+        return value;
     }
 
-    // In setData, for quests we now extract category and remove the suffix from the displayed quest title.
-    public void setData(Vector<String> list, HashMap<String, Integer> data, int dataType) {
-        lastDataType = dataType;
-        if (currentTab == 10 && viewMode == 0 && (dataType == 11 || dataType == 12)) {
-            if (dataType == 11) {
-                questFinishedData.clear();
-                questFinishedCategory.clear();
-                for (String key : data.keySet()) {
-                    int colon = key.indexOf(":");
-                    int paren = key.lastIndexOf("(");
-                    if (colon != -1 && paren != -1) {
-                        String category = key.substring(0, colon).trim();
-                        String questName = key.substring(colon + 1, paren).trim();
-                        questFinishedData.put(questName, data.get(key));
-                        questFinishedCategory.put(questName, category);
-                        if (!questCatData.containsKey(category))
-                            questCatData.put(category, -1);
-                    } else {
-                        questFinishedData.put(key, data.get(key));
-                    }
-                }
-                if (questFinishedScroll != null)
-                    questFinishedScroll.setList(getSearchList(questFinishedData, questFinishedSearch));
-            } else if (dataType == 12) {
-                questActiveData.clear();
-                questActiveCategory.clear();
-                for (String key : data.keySet()) {
-                    int colon = key.indexOf(":");
-                    int paren = key.lastIndexOf("(");
-                    if (colon != -1 && paren != -1) {
-                        String category = key.substring(0, colon).trim();
-                        String questName = key.substring(colon + 1, paren).trim();
-                        questActiveData.put(questName, data.get(key));
-                        questActiveCategory.put(questName, category);
-                        if (!questCatData.containsKey(category))
-                            questCatData.put(category, -1);
-                    } else {
-                        questActiveData.put(key, data.get(key));
-                    }
-                }
-                if (questActiveScroll != null)
-                    questActiveScroll.setList(getSearchList(questActiveData, questActiveSearch));
-            }
-            if (questCatScroll != null)
-                questCatScroll.setList(new ArrayList<>(questCatData.keySet()));
-            return;
-        }
-        switch (dataType) {
-            case 10:
-                questCatData.clear();
-                questCatData.putAll(data);
-                if (questCatScroll != null)
-                    questCatScroll.setList(getSearchList(questCatData, questCatSearch));
-                break;
-            case 20:
-                dialogCatData.clear();
-                dialogCatData.putAll(data);
-                // For dialogs, split key into category and title:
-                dialogCategory.clear();
-                HashMap<String, Integer> temp = new HashMap<>();
-                for (String key : data.keySet()) {
-                    int colon = key.indexOf(":");
-                    if (colon != -1) {
-                        String cat = key.substring(0, colon).trim();
-                        String title = key.substring(colon + 1).trim();
-                        temp.put(title, data.get(key));
-                        dialogCategory.put(title, cat);
-                        if (!dialogCatData.containsKey(cat))
-                            dialogCatData.put(cat, -1);
-                    } else {
-                        temp.put(key, data.get(key));
-                    }
-                }
-                dialogCatData.putAll(temp);
-                if (dialogCatScroll != null)
-                    dialogCatScroll.setList(getSearchList(dialogCatData, dialogCatSearch));
-                break;
-            case 21:
-                dialogReadData.clear();
-                dialogReadData.putAll(data);
-                if (dialogReadScroll != null)
-                    dialogReadScroll.setList(getSearchList(dialogReadData, dialogReadSearch));
-                break;
-            case 22:
-                dialogCompactData.clear();
-                dialogCompactData.putAll(data);
-                if (dialogCompactScroll != null)
-                    dialogCompactScroll.setList(getSearchList(dialogCompactData, dialogCompactSearch));
-                break;
-            case 30:
-                transCatData.clear();
-                transCatData.putAll(data);
-                if (transCatScroll != null)
-                    transCatScroll.setList(getSearchList(transCatData, transCatSearch));
-                break;
-            case 31:
-                transLocData.clear();
-                transLocData.putAll(data);
-                // For transports, split key into category and location name:
-                transLocationCategory.clear();
-                HashMap<String, Integer> temp2 = new HashMap<>();
-                for (String key : data.keySet()) {
-                    int colon = key.indexOf(":");
-                    if (colon != -1) {
-                        String cat = key.substring(0, colon).trim();
-                        String loc = key.substring(colon + 1).trim();
-                        temp2.put(loc, data.get(key));
-                        transLocationCategory.put(loc, cat);
-                        if (!transCatData.containsKey(cat))
-                            transCatData.put(cat, -1);
-                    } else {
-                        temp2.put(key, data.get(key));
-                    }
-                }
-                transLocData.putAll(temp2);
-                if (transLocScroll != null)
-                    transLocScroll.setList(getSearchList(transLocData, transLocSearch));
-                break;
-            case 32:
-                transCompactData.clear();
-                transCompactData.putAll(data);
-                if (transCompactScroll != null)
-                    transCompactScroll.setList(getSearchList(transCompactData, transCompactSearch));
-                break;
-            case 40:
-                singleData.clear();
-                singleData.putAll(data);
-                if (singleScroll != null)
-                    singleScroll.setList(getSearchList(singleData, singleSearch));
-                break;
-            default:
-                break;
-        }
-    }
+    ////////////////////////////////////////////////////////////////////////////////
+    // Key & Search Field Handling
+    ////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void setData(Vector<String> list, HashMap<String, Integer> data) {
-        setData(list, data, lastDataType);
-    }
-
-    @Override
-    public void setSelected(String selected) {
-        // Handled in customScrollClicked.
-    }
-
-    @Override
-    public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c, i);
         if (currentTab == 10) {
-            if (scroll.id == 0) {
-                selectedQuestCategory = scroll.getSelected();
-                questFinishedScroll.setList(filterQuestsByCategory(questFinishedData, questFinishedCategory, selectedQuestCategory));
-                questActiveScroll.setList(filterQuestsByCategory(questActiveData, questActiveCategory, selectedQuestCategory));
-            } else if (scroll.id == 1) {
-                lastDataType = 11;
-                if (questActiveScroll != null)
-                    questActiveScroll.setSelected(null);
-            } else if (scroll.id == 2) {
-                lastDataType = 12;
-                if (questFinishedScroll != null)
-                    questFinishedScroll.setSelected(null);
+            if (viewMode == 0) {
+                updateQuestSearchField(55, 56, 57);
+            } else {
+                updateQuestSearchFieldCompact(55, 56);
             }
         } else if (currentTab == 11) {
             if (viewMode == 0) {
-                if (scroll.id == 0) {
-                    selectedDialogCategory = scroll.getSelected();
-                    dialogReadScroll.setList(filterDialogsByCategory(dialogReadData, dialogCategory, selectedDialogCategory));
-                } else if (scroll.id == 1) {
-                    lastDataType = 21;
-                    if (dialogCatScroll != null)
-                        dialogCatScroll.setSelected(null);
-                }
+                updateDialogSearchField(55, 56);
             } else {
-                lastDataType = 22;
+                updateDialogSearchFieldCompact(55);
             }
         } else if (currentTab == 12) {
             if (viewMode == 0) {
-                if (scroll.id == 3) {
-                    selectedTransCategory = scroll.getSelected();
-                    transLocScroll.setList(filterTransportsByCategory(transLocData, transLocationCategory, selectedTransCategory));
-                } else if (scroll.id == 4) {
-                    lastDataType = 31;
-                    if (transCatScroll != null)
-                        transCatScroll.setSelected(null);
-                }
+                updateTransportSearchField(60, 61);
             } else {
-                lastDataType = 32;
+                updateTransportSearchFieldCompact(60);
             }
         } else if (currentTab == 13 || currentTab == 14) {
-            lastDataType = 40;
+            updateSingleSearchField(70);
         }
     }
 
-    @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
-        // Optional double-click behavior.
+    // Update quest search fields (categorical mode).
+    private void updateQuestSearchField(int catFieldId, int finishedFieldId, int activeFieldId) {
+        GuiNpcTextField tf = getTextField(catFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!questCatSearch.equals(newText)) {
+                questCatSearch = newText;
+                if (questCatScroll != null) {
+                    if (selectedQuestCategory.isEmpty())
+                        questCatScroll.setList(new ArrayList<>());
+                    else
+                        questCatScroll.setList(filterList(questCatData, questCatSearch));
+                }
+            }
+        }
+        tf = getTextField(finishedFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!questFinishedSearch.equals(newText)) {
+                questFinishedSearch = newText;
+                if (questFinishedScroll != null)
+                    questFinishedScroll.setList(
+                        selectedQuestCategory.isEmpty() ?
+                            new ArrayList<>() :
+                            filterAndTrimListByCategory(questFinishedData, selectedQuestCategory, questFinishedSearch)
+                    );
+            }
+        }
+        tf = getTextField(activeFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!questActiveSearch.equals(newText)) {
+                questActiveSearch = newText;
+                if (questActiveScroll != null)
+                    questActiveScroll.setList(
+                        selectedQuestCategory.isEmpty() ?
+                            new ArrayList<>() :
+                            filterAndTrimListByCategory(questActiveData, selectedQuestCategory, questActiveSearch)
+                    );
+            }
+        }
     }
 
-    private List<String> getSearchList(HashMap<String, Integer> dataMap, String searchTerm) {
-        if (searchTerm.isEmpty())
-            return new ArrayList<>(dataMap.keySet());
+    // Update quest search fields in compact mode.
+    private void updateQuestSearchFieldCompact(int finishedFieldId, int activeFieldId) {
+        GuiNpcTextField tf = getTextField(finishedFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!questFinishedSearch.equals(newText)) {
+                questFinishedSearch = newText;
+                if (questFinishedScroll != null)
+                    questFinishedScroll.setList(filterList(questFinishedData, questFinishedSearch));
+            }
+        }
+        tf = getTextField(activeFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!questActiveSearch.equals(newText)) {
+                questActiveSearch = newText;
+                if (questActiveScroll != null)
+                    questActiveScroll.setList(filterList(questActiveData, questActiveSearch));
+            }
+        }
+    }
+
+    // Update dialog search fields (categorical).
+    private void updateDialogSearchField(int catFieldId, int readFieldId) {
+        GuiNpcTextField tf = getTextField(catFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!dialogCatSearch.equals(newText)) {
+                dialogCatSearch = newText;
+                if (dialogCatScroll != null)
+                    dialogCatScroll.setList(
+                        selectedDialogCategory.isEmpty() ?
+                            new ArrayList<>() :
+                            filterList(dialogCatData, dialogCatSearch)
+                    );
+            }
+        }
+        tf = getTextField(readFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!dialogReadSearch.equals(newText)) {
+                dialogReadSearch = newText;
+                if (dialogReadScroll != null)
+                    dialogReadScroll.setList(
+                        selectedDialogCategory.isEmpty() ?
+                            new ArrayList<>() :
+                            filterAndTrimListByCategory(dialogReadData, selectedDialogCategory, dialogReadSearch)
+                    );
+            }
+        }
+    }
+
+    // Update dialog search fields (compact).
+    private void updateDialogSearchFieldCompact(int fieldId) {
+        GuiNpcTextField tf = getTextField(fieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!dialogCompactSearch.equals(newText)) {
+                dialogCompactSearch = newText;
+                if (dialogCompactScroll != null)
+                    dialogCompactScroll.setList(filterList(dialogReadData, dialogCompactSearch));
+            }
+        }
+    }
+
+    // Update transport search fields (categorical).
+    private void updateTransportSearchField(int catFieldId, int locFieldId) {
+        GuiNpcTextField tf = getTextField(catFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!transCatSearch.equals(newText)) {
+                transCatSearch = newText;
+                if (transCatScroll != null)
+                    transCatScroll.setList(
+                        selectedTransCategory.isEmpty() ?
+                            new ArrayList<>() :
+                            filterList(transCatData, transCatSearch)
+                    );
+            }
+        }
+        tf = getTextField(locFieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!transLocSearch.equals(newText)) {
+                transLocSearch = newText;
+                if (transLocScroll != null)
+                    transLocScroll.setList(
+                        selectedTransCategory.isEmpty() ?
+                            new ArrayList<>() :
+                            filterAndTrimListByCategory(transLocData, selectedTransCategory, transLocSearch)
+                    );
+            }
+        }
+    }
+
+    // Update transport search fields (compact).
+    private void updateTransportSearchFieldCompact(int fieldId) {
+        GuiNpcTextField tf = getTextField(fieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!transCompactSearch.equals(newText)) {
+                transCompactSearch = newText;
+                if (transCompactScroll != null)
+                    transCompactScroll.setList(filterList(transLocData, transCompactSearch));
+            }
+        }
+    }
+
+    // Update search field for single scroll (Bank/Faction).
+    private void updateSingleSearchField(int fieldId) {
+        GuiNpcTextField tf = getTextField(fieldId);
+        if (tf != null && tf.isFocused()) {
+            String newText = tf.getText().toLowerCase();
+            if (!singleSearch.equals(newText)) {
+                singleSearch = newText;
+                if (singleScroll != null)
+                    singleScroll.setList(filterList(currentTab == 13 ? bankData : factionData, singleSearch));
+            }
+        }
+    }
+
+    // Standard filtering helpers.
+    private List<String> filterList(HashMap<String, Integer> data, String search) {
         List<String> list = new ArrayList<>();
-        for (String key : dataMap.keySet()) {
-            if (key.toLowerCase().contains(searchTerm))
+        for (String key : data.keySet()) {
+            if (key.toLowerCase().contains(search)) {
                 list.add(key);
+            }
         }
         return list;
     }
 
-    private List<String> filterQuestsByCategory(HashMap<String, Integer> questMap, HashMap<String, String> catMap, String category) {
-        List<String> filtered = new ArrayList<>();
-        for (String title : questMap.keySet()) {
-            if (catMap.containsKey(title) && catMap.get(title).equalsIgnoreCase(category))
-                filtered.add(title);
+    private List<String> filterAndTrimListByCategory(HashMap<String, Integer> data, String category, String search) {
+        List<String> list = new ArrayList<>();
+        String prefix = category + ":";
+        for (String key : data.keySet()) {
+            if (key.startsWith(prefix)) {
+                String trimmed = key.substring(prefix.length()).trim();
+                if (trimmed.toLowerCase().contains(search)) {
+                    list.add(trimmed);
+                }
+            }
         }
-        return filtered;
+        return list;
     }
 
-    private List<String> filterDialogsByCategory(HashMap<String, Integer> dialogMap, HashMap<String, String> catMap, String category) {
-        List<String> filtered = new ArrayList<>();
-        for (String title : dialogMap.keySet()) {
-            if (catMap.containsKey(title) && catMap.get(title).equalsIgnoreCase(category))
-                filtered.add(title);
+    ////////////////////////////////////////////////////////////////////////////////
+    // Action Handling
+    ////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void actionPerformed(GuiButton button) {
+        // Close if the "X" button was clicked.
+        if (button.id == -5) {
+            close();
+            return;
         }
-        return filtered;
+        // Tab switching.
+        if (button.id >= 10 && button.id <= 14) {
+            currentTab = button.id;
+            initGui(); // Reinitialize components using stored data.
+            return;
+        }
+        // Mode toggle.
+        if (button.id == 20) {
+            viewMode = (viewMode == 0) ? 1 : 0;
+            initGui();
+        }
+        // Delete button.
+        else if (button.id == 30) {
+            Integer selectedID = null;
+            EnumPlayerData tabType = null;
+            if (currentTab == 10) {
+                if (viewMode == 0) {
+                    if (questCatScroll.getSelected() == null)
+                        return;
+                    if (questActiveScroll.getSelected() != null) {
+                        selectedID = questActiveData.get(questCatScroll.getSelected() + ": " + questActiveScroll.getSelected());
+                        if (selectedID != null) {
+                            questActiveScroll.list.remove(questActiveScroll.selected);
+                            questActiveData.remove(questCatScroll.getSelected() + ": " + questActiveScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Quest;
+                    } else if (questFinishedScroll.getSelected() != null) {
+                        selectedID = questFinishedData.get(questCatScroll.getSelected() + ": " + questFinishedScroll.getSelected());
+                        if (selectedID != null) {
+                            questFinishedScroll.list.remove(questFinishedScroll.selected);
+                            questFinishedData.remove(questCatScroll.getSelected() + ": " + questFinishedScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Quest;
+                    }
+                } else {
+                    if (questActiveScroll.getSelected() != null) {
+                        selectedID = questActiveData.get(questActiveScroll.getSelected());
+                        if (selectedID != null) {
+                            questActiveScroll.list.remove(questActiveScroll.selected);
+                            questActiveData.remove(questActiveScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Quest;
+                    } else if (questFinishedScroll.getSelected() != null) {
+                        selectedID = questFinishedData.get(questFinishedScroll.getSelected());
+                        if (selectedID != null) {
+                            questFinishedScroll.list.remove(questFinishedScroll.selected);
+                            questFinishedData.remove(questFinishedScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Quest;
+                    }
+                }
+            } else if (currentTab == 11) {
+                if (viewMode == 0) {
+                    if (dialogReadScroll.getSelected() != null && dialogCatScroll.getSelected() != null) {
+                        selectedID = dialogReadData.get(dialogCatScroll.getSelected() + ": " + dialogReadScroll.getSelected());
+                        if (selectedID != null) {
+                            dialogReadScroll.list.remove(dialogReadScroll.selected);
+                            dialogReadData.remove(dialogCatScroll.getSelected() + ": " + dialogReadScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Dialog;
+                    }
+                } else {
+                    if (dialogCompactScroll.getSelected() != null) {
+                        selectedID = dialogReadData.get(dialogCompactScroll.getSelected());
+                        if (selectedID != null) {
+                            dialogCompactScroll.list.remove(dialogCompactScroll.selected);
+                            dialogReadData.remove(dialogCompactScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Dialog;
+                    }
+                }
+            } else if (currentTab == 12) {
+                if (viewMode == 0) {
+                    if (transLocScroll.getSelected() != null && transCatScroll.getSelected() != null) {
+                        selectedID = transLocData.get(transCatScroll.getSelected() + ": " + transLocScroll.getSelected());
+                        if (selectedID != null) {
+                            transLocScroll.list.remove(transLocScroll.selected);
+                            transLocData.remove(transCatScroll.getSelected() + ": " + transLocScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Transport;
+                    }
+                } else {
+                    if (transCompactScroll.getSelected() != null) {
+                        selectedID = transLocData.get(transCompactScroll.getSelected());
+                        if (selectedID != null) {
+                            transCompactScroll.list.remove(transCompactScroll.selected);
+                            transLocData.remove(transCompactScroll.getSelected());
+                        }
+                        tabType = EnumPlayerData.Transport;
+                    }
+                }
+            } else if (currentTab == 13) {
+                if (singleScroll.getSelected() != null) {
+                    selectedID = bankData.get(singleScroll.getSelected());
+                    if (selectedID != null) {
+                        singleScroll.list.remove(singleScroll.selected);
+                        bankData.remove(singleScroll.getSelected());
+                    }
+                    tabType = EnumPlayerData.Bank;
+                }
+            } else if (currentTab == 14) {
+                if (singleScroll.getSelected() != null) {
+                    selectedID = factionData.get(singleScroll.getSelected());
+                    if (selectedID != null) {
+                        singleScroll.list.remove(singleScroll.selected);
+                        factionData.remove(singleScroll.getSelected());
+                    }
+                    tabType = EnumPlayerData.Factions;
+                }
+            }
+            if (selectedID != null) {
+                PacketClient.sendClient(new PlayerDataRemoveInfoPacket(playerName, tabType, selectedID));
+            }
+        }
     }
 
-    private List<String> filterTransportsByCategory(HashMap<String, Integer> transMap, HashMap<String, String> catMap, String category) {
-        List<String> filtered = new ArrayList<>();
-        for (String name : transMap.keySet()) {
-            if (catMap.containsKey(name) && catMap.get(name).equalsIgnoreCase(category))
-                filtered.add(name);
+    ////////////////////////////////////////////////////////////////////////////////
+    // Data Setting Methods (IPlayerDataInfo)
+    ////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void setQuestData(Map<String, Integer> questCategories, Map<String, Integer> questActive, Map<String, Integer> questFinished) {
+        this.questCatData = new HashMap<>(questCategories);
+        this.questActiveData = new HashMap<>(questActive);
+        this.questFinishedData = new HashMap<>(questFinished);
+        if (questCatScroll != null) {
+            questCatScroll.setList(new ArrayList<>(questCatData.keySet()));
         }
-        return filtered;
     }
 
     @Override
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        drawDefaultBackground();
-        super.drawScreen(mouseX, mouseY, partialTicks);
+    public void setDialogData(Map<String, Integer> dialogCategories, Map<String, Integer> dialogRead) {
+        this.dialogCatData = new HashMap<>(dialogCategories);
+        this.dialogReadData = new HashMap<>(dialogRead);
+        if (dialogCatScroll != null) {
+            dialogCatScroll.setList(new ArrayList<>(dialogCatData.keySet()));
+        }
+        if (dialogReadScroll != null) {
+            dialogReadScroll.setList(new ArrayList<>(dialogReadData.keySet()));
+        }
+        if (dialogCompactScroll != null) {
+            List<String> merged = new ArrayList<>(dialogReadData.keySet());
+            dialogCompactScroll.setList(merged);
+        }
     }
 
     @Override
-    public void close() {
-        super.close();
+    public void setTransportData(Map<String, Integer> transportCategories, Map<String, Integer> transportLocations) {
+        this.transCatData = new HashMap<>(transportCategories);
+        this.transLocData = new HashMap<>(transportLocations);
+        if (transCatScroll != null) {
+            transCatScroll.setList(new ArrayList<>(transCatData.keySet()));
+        }
+        if (transLocScroll != null) {
+            transLocScroll.setList(new ArrayList<>(transLocData.keySet()));
+        }
+        if (transCompactScroll != null) {
+            List<String> merged = new ArrayList<>(transLocData.keySet());
+            transCompactScroll.setList(merged);
+        }
+    }
+
+    @Override
+    public void setBankData(Map<String, Integer> bankData) {
+        this.bankData = new HashMap<>(bankData);
+        if (singleScroll != null && currentTab == 13) {
+            singleScroll.setList(new ArrayList<>(this.bankData.keySet()));
+        }
+    }
+
+    @Override
+    public void setFactionData(Map<String, Integer> factionData) {
+        this.factionData = new HashMap<>(factionData);
+        if (singleScroll != null && currentTab == 14) {
+            singleScroll.setList(new ArrayList<>(this.factionData.keySet()));
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Custom Scroll Click Handling
+    ////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        if (guiCustomScroll == questCatScroll) {
+            selectedQuestCategory = questCatScroll.getSelected();
+            questFinishedScroll.resetScroll();
+            questActiveScroll.resetScroll();
+            if (!selectedQuestCategory.isEmpty()) {
+                questFinishedScroll.setList(filterAndTrimListByCategory(questFinishedData, selectedQuestCategory, questFinishedSearch));
+                questActiveScroll.setList(filterAndTrimListByCategory(questActiveData, selectedQuestCategory, questActiveSearch));
+            } else {
+                questFinishedScroll.setList(new ArrayList<>());
+                questActiveScroll.setList(new ArrayList<>());
+            }
+        } else if (guiCustomScroll == dialogCatScroll) {
+            selectedDialogCategory = dialogCatScroll.getSelected();
+            dialogReadScroll.resetScroll();
+            if (!selectedDialogCategory.isEmpty()) {
+                dialogReadScroll.setList(filterAndTrimListByCategory(dialogReadData, selectedDialogCategory, dialogReadSearch));
+            } else {
+                dialogReadScroll.setList(new ArrayList<>());
+            }
+        } else if (guiCustomScroll == transCatScroll) {
+            selectedTransCategory = transCatScroll.getSelected();
+            transLocScroll.resetScroll();
+            if (!selectedTransCategory.isEmpty()) {
+                transLocScroll.setList(filterAndTrimListByCategory(transLocData, selectedTransCategory, transLocSearch));
+            } else {
+                transLocScroll.setList(new ArrayList<>());
+            }
+        } else if (guiCustomScroll == questActiveScroll) {
+            questFinishedScroll.selected = -1;
+        } else if (guiCustomScroll == questFinishedScroll) {
+            questActiveScroll.selected = -1;
+        }
     }
 }

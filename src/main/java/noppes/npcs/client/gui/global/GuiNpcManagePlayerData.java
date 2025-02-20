@@ -1,13 +1,12 @@
 package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetNamesPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import noppes.npcs.client.gui.SubGuiPlayerData;
-import noppes.npcs.client.gui.test.SubGuiPlayerDataNew;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
 import net.minecraft.util.StatCollector;
@@ -29,7 +28,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
     public GuiNpcManagePlayerData(EntityNPCInterface npcInterface) {
         super(npcInterface);
         // Request the complete list of players.
-        PacketClient.sendClient(new PlayerDataGetPacket(EnumPlayerData.Players, ""));
+        PacketClient.sendClient(new PlayerDataGetNamesPacket(EnumPlayerData.Players, ""));
     }
 
     @Override
@@ -101,7 +100,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
         }
         if (id == 1) {
             if (selectedPlayer != null) {
-                setSubGui(new SubGuiPlayerDataNew(selectedPlayer));
+                setSubGui(new SubGuiPlayerData(selectedPlayer));
             }
         }
         if (id == 2) {

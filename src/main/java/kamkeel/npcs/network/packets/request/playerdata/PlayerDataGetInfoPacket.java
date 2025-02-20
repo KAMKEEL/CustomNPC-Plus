@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.test;
+package kamkeel.npcs.network.packets.request.playerdata;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
@@ -8,22 +8,23 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.NoppesUtilServer;
 
 import java.io.IOException;
 
-public final class PlayerDataGetPacketNew extends AbstractPacket {
+public final class PlayerDataGetInfoPacket extends AbstractPacket {
     public static final String packetName = "Request|PlayerDataGetNew";
     private String playerName;
 
-    public PlayerDataGetPacketNew() {}
+    public PlayerDataGetInfoPacket() {}
 
-    public PlayerDataGetPacketNew(String playerName) {
+    public PlayerDataGetInfoPacket(String playerName) {
         this.playerName = playerName;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PlayerDataGet;
+        return EnumRequestPacket.PlayerDataInfo;
     }
 
     @Override
@@ -42,6 +43,6 @@ public final class PlayerDataGetPacketNew extends AbstractPacket {
             return;
 
         String playerName = ByteBufUtils.readString(in);
-        NoppesUtilServerNew.sendPlayerData(playerName, (EntityPlayerMP) player);
+        NoppesUtilServer.sendPlayerDataInfo(playerName, (EntityPlayerMP) player);
     }
 }

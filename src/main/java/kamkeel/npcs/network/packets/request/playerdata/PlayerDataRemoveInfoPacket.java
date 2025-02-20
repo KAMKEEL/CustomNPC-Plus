@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.test;
+package kamkeel.npcs.network.packets.request.playerdata;
 
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
@@ -8,20 +8,21 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumPlayerData;
 
 import java.io.IOException;
 
-public final class PlayerDataRemovePacketNew extends AbstractPacket {
+public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
     public static final String packetName = "Request|PlayerDataRemoveNew";
 
     private String playerName;
     private EnumPlayerData tabType;
     private int value;
 
-    public PlayerDataRemovePacketNew() {}
+    public PlayerDataRemoveInfoPacket() {}
 
-    public PlayerDataRemovePacketNew(String playerName, EnumPlayerData tabType, int selectedKey) {
+    public PlayerDataRemoveInfoPacket(String playerName, EnumPlayerData tabType, int selectedKey) {
         this.playerName = playerName;
         this.tabType = tabType;
         this.value = selectedKey;
@@ -51,6 +52,6 @@ public final class PlayerDataRemovePacketNew extends AbstractPacket {
         String playerName = ByteBufUtils.readString(in);
         int tabType = in.readInt();
         int value = in.readInt();
-        NoppesUtilServerNew.removePlayerData(playerName, tabType, value, (EntityPlayerMP) player);
+        NoppesUtilServer.removePlayerDataInfo(playerName, tabType, value, (EntityPlayerMP) player);
     }
 }
