@@ -1,6 +1,6 @@
 package noppes.npcs.client.gui.player.inventory;
 
-import kamkeel.npcs.controllers.data.ISlot;
+import noppes.npcs.api.handler.data.ISlot;
 import kamkeel.npcs.controllers.data.InfoEntry;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.Slot;

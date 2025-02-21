@@ -2,6 +2,7 @@ package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
+import kamkeel.npcs.controllers.ProfileController;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -240,6 +241,10 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.Instance; }
+
+    public IProfileHandler getProfileHandler() { return ProfileController.Instance; }
+
+    public ICustomEffectHandler getCustomEffectHandler() { return CustomEffectController.Instance; }
 
     public ITransportHandler getLocations() {
         return TransportController.getInstance();

@@ -4,6 +4,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.IProfile;
+import noppes.npcs.api.handler.data.ISlot;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,7 +1,7 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.ISlot;
+import noppes.npcs.api.handler.data.ISlot;
 import kamkeel.npcs.controllers.data.Profile;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;

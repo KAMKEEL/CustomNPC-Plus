@@ -2,23 +2,21 @@ package kamkeel.npcs.controllers;
 
 import kamkeel.npcs.controllers.data.*;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerData;
-import noppes.npcs.api.handler.data.IQuest;
+import noppes.npcs.api.handler.data.IProfile;
+import noppes.npcs.api.handler.IProfileHandler;
+import noppes.npcs.api.handler.data.ISlot;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
-import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -31,7 +29,7 @@ import java.util.*;
 import static noppes.npcs.CustomNpcsPermissions.PROFILE_REGION_BYPASS;
 import static noppes.npcs.CustomNpcsPermissions.hasPermission;
 
-public class ProfileController implements IProfileController {
+public class ProfileController implements IProfileHandler {
 
     // Message constants
     private static final String MSG_PLAYER_NOT_FOUND       = "Player not found.";

@@ -1,6 +1,7 @@
 package kamkeel.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.ISlot;
 
 import java.util.HashMap;
 import java.util.Map;
