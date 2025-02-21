@@ -109,7 +109,7 @@ public class ProfileController implements IProfileController {
         }
     }
 
-    public static synchronized NBTTagCompound load(EntityPlayer player) {
+    public synchronized NBTTagCompound load(EntityPlayer player) {
         File saveDir = getProfileDir();
         String filename = player.getUniqueID().toString() + ".dat";
         try {
@@ -123,7 +123,7 @@ public class ProfileController implements IProfileController {
         return new NBTTagCompound();
     }
 
-    public static synchronized NBTTagCompound load(UUID uuid) {
+    public synchronized NBTTagCompound load(UUID uuid) {
         File saveDir = getProfileDir();
         String filename = uuid.toString() + ".dat";
         try {
@@ -137,7 +137,7 @@ public class ProfileController implements IProfileController {
         return new NBTTagCompound();
     }
 
-    public static synchronized void saveOffline(Profile profile, UUID uuid) {
+    public synchronized void saveOffline(Profile profile, UUID uuid) {
         profile.setLocked(true);
         CustomNPCsThreader.customNPCThread.execute(() -> {
             final NBTTagCompound compound = profile.writeToNBT();
@@ -158,7 +158,7 @@ public class ProfileController implements IProfileController {
         });
     }
 
-    public static synchronized void save(EntityPlayer player, Profile profile) {
+    public synchronized void save(EntityPlayer player, Profile profile) {
         profile.setLocked(true);
         CustomNPCsThreader.customNPCThread.execute(() -> {
             final NBTTagCompound compound = profile.writeToNBT();
@@ -183,7 +183,7 @@ public class ProfileController implements IProfileController {
         });
     }
 
-    private static void backupProfile(UUID uuid, NBTTagCompound compound) {
+    private void backupProfile(UUID uuid, NBTTagCompound compound) {
         try {
             File backupDir = new File(getBackupDir(), uuid.toString());
             if (!backupDir.exists()) {
@@ -204,7 +204,7 @@ public class ProfileController implements IProfileController {
         }
     }
 
-    public static boolean rollbackProfile(String username, File backupFile) {
+    public boolean rollbackProfile(String username, File backupFile) {
         UUID uuid = getUUIDFromUsername(username);
         if (uuid == null)
             return false;
@@ -235,13 +235,13 @@ public class ProfileController implements IProfileController {
         }
     }
 
-    public static synchronized void logout(EntityPlayer player) {
+    public synchronized void logout(EntityPlayer player) {
         if (player != null) {
             activeProfiles.remove(player.getUniqueID());
         }
     }
 
-    public static Profile getProfile(EntityPlayer player) {
+    public Profile getProfile(EntityPlayer player) {
         if (player == null)
             return null;
         if (!activeProfiles.containsKey(player.getUniqueID()))
@@ -249,14 +249,14 @@ public class ProfileController implements IProfileController {
         return activeProfiles.get(player.getUniqueID());
     }
 
-    public static Profile getProfile(UUID uuid) {
+    public Profile getProfile(UUID uuid) {
         if (activeProfiles.containsKey(uuid))
             return activeProfiles.get(uuid);
         NBTTagCompound compound = load(uuid);
         return new Profile(null, compound);
     }
 
-    public static Profile getProfile(String username) {
+    public Profile getProfile(String username) {
         EntityPlayer player = getPlayer(username);
         if (player != null) {
             return getProfile(player);
@@ -268,7 +268,7 @@ public class ProfileController implements IProfileController {
         }
     }
 
-    public static UUID getUUIDFromUsername(String username) {
+    public UUID getUUIDFromUsername(String username) {
         try {
             URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -302,7 +302,7 @@ public class ProfileController implements IProfileController {
         return null;
     }
 
-    private static int getNextAvailableTempSlot(Profile profile) {
+    private int getNextAvailableTempSlot(Profile profile) {
         int id = -1;
         while (profile.getSlots().containsKey(id)) {
             id--;
@@ -310,7 +310,7 @@ public class ProfileController implements IProfileController {
         return id;
     }
 
-    private static ProfileOperation cloneSlotInternal(Profile profile, int sourceSlotId, int destinationSlotId, boolean temporary) {
+    private ProfileOperation cloneSlotInternal(Profile profile, int sourceSlotId, int destinationSlotId, boolean temporary) {
         if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_CLONE);
         }
@@ -339,14 +339,14 @@ public class ProfileController implements IProfileController {
         ISlot sourceSlot = profile.getSlots().get(sourceSlotId);
         Map<String, NBTTagCompound> newComponents = new HashMap<>();
         for (String key : sourceSlot.getComponents().keySet()) {
-            newComponents.put(key, sourceSlot.getComponentData(key).copy());
+            newComponents.put(key, (NBTTagCompound) sourceSlot.getComponentData(key).copy());
         }
         Slot clonedSlot = new Slot(destinationSlotId, "Cloned Slot " + destinationSlotId, System.currentTimeMillis(), temporary, newComponents);
         profile.getSlots().put(destinationSlotId, clonedSlot);
         return ProfileOperation.success(MSG_CLONE_SUCCESS);
     }
 
-    private static ProfileOperation removeSlotInternal(Profile profile, int slotId) {
+    private ProfileOperation removeSlotInternal(Profile profile, int slotId) {
         if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_REMOVE);
         }
@@ -360,7 +360,7 @@ public class ProfileController implements IProfileController {
         return ProfileOperation.success(MSG_REMOVE_SUCCESS);
     }
 
-    public static ProfileOperation createSlotInternal(Profile profile) {
+    public ProfileOperation createSlotInternal(Profile profile) {
         if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_CREATE);
         }
@@ -386,7 +386,7 @@ public class ProfileController implements IProfileController {
         return ProfileOperation.success(MSG_NEW_SLOT_CREATED);
     }
 
-    private static ProfileOperation changeSlotInternal(Profile profile, int newSlotId) {
+    private ProfileOperation changeSlotInternal(Profile profile, int newSlotId) {
         if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_CHANGE);
         }
@@ -446,7 +446,7 @@ public class ProfileController implements IProfileController {
         return ProfileOperation.success(MSG_CHANGE_SUCCESS);
     }
 
-    public static ProfileOperation cloneSlot(EntityPlayer player, int sourceSlotId, int destinationSlotId, boolean temporary) {
+    public ProfileOperation cloneSlot(EntityPlayer player, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(player);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -457,7 +457,7 @@ public class ProfileController implements IProfileController {
         return result;
     }
 
-    public static ProfileOperation cloneSlot(UUID uuid, int sourceSlotId, int destinationSlotId, boolean temporary) {
+    public ProfileOperation cloneSlot(UUID uuid, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(uuid);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -471,7 +471,7 @@ public class ProfileController implements IProfileController {
         return result;
     }
 
-    public static ProfileOperation cloneSlot(String username, int sourceSlotId, int destinationSlotId, boolean temporary) {
+    public ProfileOperation cloneSlot(String username, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(username);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -488,7 +488,7 @@ public class ProfileController implements IProfileController {
         return result;
     }
 
-    public static ProfileOperation removeSlot(EntityPlayer player, int slotId) {
+    public ProfileOperation removeSlot(EntityPlayer player, int slotId) {
         Profile profile = getProfile(player);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -499,7 +499,7 @@ public class ProfileController implements IProfileController {
         return result;
     }
 
-    public static ProfileOperation removeSlot(String username, int slotId) {
+    public ProfileOperation removeSlot(String username, int slotId) {
         Profile profile = getProfile(username);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -516,7 +516,7 @@ public class ProfileController implements IProfileController {
         return result;
     }
 
-    public static ProfileOperation changeSlot(EntityPlayer player, int newSlotId) {
+    public ProfileOperation changeSlot(EntityPlayer player, int newSlotId) {
         Profile profile = getProfile(player);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -526,7 +526,7 @@ public class ProfileController implements IProfileController {
         return result;
     }
 
-    public static ProfileOperation changeSlot(String username, int newSlotId) {
+    public ProfileOperation changeSlot(String username, int newSlotId) {
         Profile profile = getProfile(username);
         if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
@@ -556,13 +556,13 @@ public class ProfileController implements IProfileController {
             profile.getSlots().put(profile.getCurrentSlotId(), slot);
         }
         for (IProfileData profileData : profileTypes.values()) {
-            NBTTagCompound cloned = profileData.getCurrentNBT(player).copy();
+            NBTTagCompound cloned = (NBTTagCompound) profileData.getCurrentNBT(player).copy();
             slot.setComponentData(profileData.getTagName(), cloned);
         }
         slot.setLastLoaded(System.currentTimeMillis());
     }
 
-    public static void loadSlotData(EntityPlayer player) {
+    public void loadSlotData(EntityPlayer player) {
         if (player == null || !activeProfiles.containsKey(player.getUniqueID()))
             return;
         Profile profile = activeProfiles.get(player.getUniqueID());
@@ -582,7 +582,7 @@ public class ProfileController implements IProfileController {
         }
     }
 
-    public static List<InfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
+    public List<InfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
         List<InfoEntry> infoList = new ArrayList<>();
         Profile profile = getProfile(player);
         if (profile == null)
@@ -608,7 +608,7 @@ public class ProfileController implements IProfileController {
         return infoList;
     }
 
-    public static boolean allowSlotPermission(EntityPlayer player) {
+    public boolean allowSlotPermission(EntityPlayer player) {
         Profile profile = getProfile(player);
         int currentSlots = profile.getSlots().size();
         if (CustomNpcsPermissions.hasCustomPermission(player, "customnpcs.profile.max.*")) {
@@ -627,7 +627,7 @@ public class ProfileController implements IProfileController {
         return currentSlots < highestAllowed;
     }
 
-    public static EntityPlayerMP getPlayer(String username) {
+    public EntityPlayerMP getPlayer(String username) {
         return MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
     }
 
@@ -635,7 +635,7 @@ public class ProfileController implements IProfileController {
     public IProfile getProfile(IPlayer player) {
         if(player == null || player.getMCEntity() == null)
             return null;
-        return ProfileController.getProfile((EntityPlayer) player.getMCEntity());
+        return getProfile((EntityPlayer) player.getMCEntity());
     }
 
     @Override

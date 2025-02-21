@@ -376,9 +376,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
 	public synchronized void save() {
         // Don't Save this is a Modification of a Profile's PlayerData
-        Profile profile = ProfileController.getProfile(UUID.fromString(uuid));
+        Profile profile = ProfileController.Instance.getProfile(UUID.fromString(uuid));
         if(profile != null && profile.currentSlotId != this.profileSlot){
-            ProfileController.saveOffline(profile, UUID.fromString(uuid));
+            ProfileController.Instance.saveOffline(profile, UUID.fromString(uuid));
             return;
         }
 

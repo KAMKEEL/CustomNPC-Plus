@@ -36,7 +36,7 @@ public class CommandProfileList extends CommandProfileBase {
             return;
         }
         EntityPlayer player = (EntityPlayer)sender;
-        Profile profile = ProfileController.getProfile(player);
+        Profile profile = ProfileController.Instance.getProfile(player);
         if(profile == null) {
             sendError(sender, "Profile not found.");
             return;

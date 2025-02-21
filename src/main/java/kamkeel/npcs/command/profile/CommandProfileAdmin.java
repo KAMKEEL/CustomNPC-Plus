@@ -51,7 +51,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         boolean temporary = (args.length >= 5 && args[4].equalsIgnoreCase("temp"));
-        ProfileOperation result = ProfileController.cloneSlot(sourcePlayer, sourceSlot, destinationSlot, temporary);
+        ProfileOperation result = ProfileController.Instance.cloneSlot(sourcePlayer, sourceSlot, destinationSlot, temporary);
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "Successfully cloned slot %d from %s to slot %d for %s.", sourceSlot, sourcePlayer, destinationSlot, destinationPlayer);
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {
@@ -81,7 +81,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sendError(sender, "Slot ID must be a number.");
             return;
         }
-        ProfileOperation result = ProfileController.removeSlot(targetPlayer, slotId);
+        ProfileOperation result = ProfileController.Instance.removeSlot(targetPlayer, slotId);
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "Successfully removed slot %d from %s.", slotId, targetPlayer);
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {
@@ -110,7 +110,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sendError(sender, "Slot ID must be a number.");
             return;
         }
-        ProfileOperation result = ProfileController.changeSlot(targetPlayer, newSlotId);
+        ProfileOperation result = ProfileController.Instance.changeSlot(targetPlayer, newSlotId);
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "Successfully changed %s's active slot to %d.", targetPlayer, newSlotId);
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {
@@ -132,12 +132,12 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         String targetPlayer = args[0];
-        Profile profile = ProfileController.getProfile(targetPlayer);
+        Profile profile = ProfileController.Instance.getProfile(targetPlayer);
         if(profile == null) {
             sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;
         }
-        ProfileOperation result = ProfileController.createSlotInternal(profile);
+        ProfileOperation result = ProfileController.Instance.createSlotInternal(profile);
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "New slot created successfully for %s.", targetPlayer);
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {
@@ -218,11 +218,11 @@ public class CommandProfileAdmin extends CommandProfileBase {
         }
         profile.getSlots().get(slotId).setName(newName);
         if(profile.getPlayer() != null) {
-            ProfileController.save(profile.player, profile);
+            ProfileController.Instance.save(profile.player, profile);
         } else {
-            UUID uuid = ProfileController.getUUIDFromUsername(targetPlayer);
+            UUID uuid = ProfileController.Instance.getUUIDFromUsername(targetPlayer);
             if(uuid != null)
-                ProfileController.saveOffline(profile, uuid);
+                ProfileController.Instance.saveOffline(profile, uuid);
         }
         sendResult(sender, "Successfully renamed slot %d for %s to '%s'.", slotId, targetPlayer, newName);
     }
@@ -239,7 +239,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
         String targetPlayer = args[0];
         String backupFileName = args[1] + ".dat";
 
-        Profile profile = ProfileController.getProfile(targetPlayer);
+        Profile profile = ProfileController.Instance.getProfile(targetPlayer);
         if(profile == null || profile.player == null)
             return;
 
@@ -249,7 +249,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sendError(sender, "Backup file %s not found for player %s.", backupFileName, targetPlayer);
             return;
         }
-        boolean success = ProfileController.rollbackProfile(targetPlayer, backupFile);
+        boolean success = ProfileController.Instance.rollbackProfile(targetPlayer, backupFile);
         if(success) {
             sendResult(sender, "Successfully rolled back %s's profile to backup %s.", targetPlayer, backupFileName);
         } else {

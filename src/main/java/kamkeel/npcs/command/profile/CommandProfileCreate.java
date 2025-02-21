@@ -39,11 +39,11 @@ public class CommandProfileCreate extends CommandProfileBase {
             return;
         }
         EntityPlayer player = (EntityPlayer)sender;
-        if(ProfileController.getProfile(player) == null) {
+        if(ProfileController.Instance.getProfile(player) == null) {
             sendError(sender, "Profile not found.");
             return;
         }
-        ProfileOperation result = ProfileController.createSlotInternal(ProfileController.getProfile(player));
+        ProfileOperation result = ProfileController.Instance.createSlotInternal(ProfileController.Instance.getProfile(player));
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "New profile slot created successfully.");
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {

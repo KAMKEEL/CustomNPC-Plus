@@ -50,7 +50,7 @@ public class CommandProfileRemove extends CommandProfileBase {
             return;
         }
         EntityPlayer player = (EntityPlayer)sender;
-        ProfileOperation result = ProfileController.removeSlot(player, slotId);
+        ProfileOperation result = ProfileController.Instance.removeSlot(player, slotId);
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "Successfully removed slot %d from your profile.", slotId);
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {

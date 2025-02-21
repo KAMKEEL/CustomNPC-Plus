@@ -50,7 +50,7 @@ public class CommandProfileChange extends CommandProfileBase {
             return;
         }
         EntityPlayer player = (EntityPlayer)sender;
-        ProfileOperation result = ProfileController.changeSlot(player, slotId);
+        ProfileOperation result = ProfileController.Instance.changeSlot(player, slotId);
         if(result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "Successfully changed profile slot to %d.", slotId);
         } else if(result.getResult() == EnumProfileOperation.LOCKED) {
