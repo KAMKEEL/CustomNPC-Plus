@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public enum EnumProfileSync {
     Individual("profile.individual"),
-	Shared("profile.shared");
+	Shared("party.shared");
 
 	public final String name;
 

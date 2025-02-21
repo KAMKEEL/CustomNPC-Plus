@@ -1320,3 +1320,7 @@ profile.change.message=Do you want to change?
 profile.create.message=Creating a new profile will change you to it.
 profile.rename.message=Do you want to rename your slot?
 profile.operation.error=There was an error in your request
+profile.enableOptions=Enable Options
+profile.completion=Completion
+profile.cooldown=Cooldown
+profile.individual=Individual

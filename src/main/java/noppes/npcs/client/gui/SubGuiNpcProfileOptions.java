@@ -26,18 +26,18 @@ public class SubGuiNpcProfileOptions extends SubGuiInterface
         //Allow party - T/F button
         addButton(new GuiNpcButton(0, guiLeft + 130, guiTop + 10 + y, 60, 20,
             new String[]{"gui.no", "gui.yes"}, options.enableOptions ? 1 : 0));
-        addLabel(new GuiNpcLabel(1, "party.allowParty", guiLeft + 10, guiTop + 17 + y));
+        addLabel(new GuiNpcLabel(1, "profile.enableOptions", guiLeft + 10, guiTop + 17 + y));
 
         if (options.enableOptions) {
             y += 23;
             addButton(new GuiNpcButton(5, guiLeft + 130, guiTop + 10 + y, 60, 20,
                 EnumProfileSync.values(), options.completeControl.ordinal()));
-            addLabel(new GuiNpcLabel(5, "party.partyRequirements", guiLeft + 10, guiTop + 17 + y));
+            addLabel(new GuiNpcLabel(5, "profile.completion", guiLeft + 10, guiTop + 17 + y));
 
             y += 23;
             addButton(new GuiNpcButton(18, guiLeft + 130, guiTop + 10 + y, 60, 20,
                 EnumProfileSync.values(), options.cooldownControl.ordinal()));
-            addLabel(new GuiNpcLabel(18, "quest.objectives", guiLeft + 10, guiTop + 17 + y));
+            addLabel(new GuiNpcLabel(18, "profile.cooldown", guiLeft + 10, guiTop + 17 + y));
         }
 
         addButton(new GuiNpcButton(66, guiLeft + 200, guiTop + 192, 50, 20, "gui.done"));
