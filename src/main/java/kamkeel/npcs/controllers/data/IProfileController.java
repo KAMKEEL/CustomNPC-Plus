@@ -14,4 +14,6 @@ public interface IProfileController {
     boolean removeSlot(IPlayer player, int slotID);
 
     IPlayerData getSlotPlayerData(IPlayer player, int slotID);
+
+    void saveSlotData(IPlayer player);
 }

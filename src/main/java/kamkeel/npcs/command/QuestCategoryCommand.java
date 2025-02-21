@@ -7,6 +7,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
@@ -85,11 +86,9 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
 
         int count = 0;
         for(PlayerData playerdata : data){
+            count = 0;
             for(Quest quest : questCategory.quests.values()){
-                if(playerdata.questData.activeQuests.containsKey(quest.id)){
-                    playerdata.questData.activeQuests.remove(quest.id);
-                }
-
+                playerdata.questData.activeQuests.remove(quest.id);
                 if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
                     playerdata.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
                 else

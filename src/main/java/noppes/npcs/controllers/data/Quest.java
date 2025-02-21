@@ -41,8 +41,6 @@ public class Quest implements ICompatibilty, IQuest {
 	public String command = "";
 
 	public QuestInterface questInterface = new QuestItem();
-
-    public boolean profileShared = false;
     public long customCooldown = 0;
 
 	public int rewardExp = 0;
@@ -50,7 +48,7 @@ public class Quest implements ICompatibilty, IQuest {
 	public boolean randomReward = false;
 	public FactionOptions factionOptions = new FactionOptions();
 	public PartyOptions partyOptions = new PartyOptions();
-
+    public ProfileOptions profileOptions = new ProfileOptions();
 
 	public void readNBT(NBTTagCompound compound) {
 		id = compound.getInteger("Id");
@@ -78,14 +76,12 @@ public class Quest implements ICompatibilty, IQuest {
 
 		completion = EnumQuestCompletion.values()[compound.getInteger("QuestCompletion")];
 		repeat = EnumQuestRepeat.values()[compound.getInteger("QuestRepeat")];
-
         customCooldown = compound.getLong("CustomCooldown");
-        profileShared = compound.getBoolean("ProfileShared");
-
 		questInterface.readEntityFromNBT(compound);
 
 		factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
 		partyOptions.readFromNBT(compound.getCompoundTag("PartyOptions"));
+        profileOptions.readFromNBT(compound.getCompoundTag("ProfileOptions"));
 
 		mail.readNBT(compound.getCompoundTag("QuestMail"));
 	}
@@ -124,7 +120,6 @@ public class Quest implements ICompatibilty, IQuest {
 		compound.setTag("Rewards", rewardItems.getToNBT());
 		compound.setString("QuestCommand", command);
 		compound.setBoolean("RandomReward", randomReward);
-        compound.setBoolean("ProfileShared", profileShared);
         compound.setLong("CustomCooldown", customCooldown);
 
 		compound.setInteger("QuestCompletion", completion.ordinal());
@@ -133,6 +128,7 @@ public class Quest implements ICompatibilty, IQuest {
 		this.questInterface.writeEntityToNBT(compound);
 		compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
 		compound.setTag("PartyOptions", partyOptions.writeToNBT());
+        compound.setTag("ProfileOptions", profileOptions.writeToNBT());
 		compound.setTag("QuestMail", mail.writeNBT());
 
 		return compound;
@@ -166,7 +162,7 @@ public class Quest implements ICompatibilty, IQuest {
 	}
 
     public long getTimeUntilRepeat(EntityPlayer player) {
-        if(profileShared && ConfigMain.ProfilesEnabled){
+        if(profileOptions.enableOptions && ConfigMain.ProfilesEnabled){
             Profile profile = ProfileController.Instance.getProfile(player);
             IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
             long timeRemaining = 0L;
@@ -373,12 +369,8 @@ public class Quest implements ICompatibilty, IQuest {
 		return this.partyOptions;
 	}
 
-    public boolean isProfileShared() {
-        return this.profileShared;
-    }
-
-    public void setProfileShared(boolean value) {
-        this.profileShared = value;
+    public IProfileOptions getProfileOptions() {
+        return this.profileOptions;
     }
 
     public long getCustomCooldown() {

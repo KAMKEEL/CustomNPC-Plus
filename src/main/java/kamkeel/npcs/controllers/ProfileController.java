@@ -11,8 +11,13 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerData;
+import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumProfileSync;
+import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -92,8 +97,7 @@ public class ProfileController implements IProfileController {
         Profile profile;
         if (activeProfiles.containsKey(player.getUniqueID())) {
             profile = activeProfiles.get(player.getUniqueID());
-            // Update the player reference if needed.
-            profile = new Profile(player, profile.writeToNBT());
+            profile.player = player;
         } else {
             NBTTagCompound compound = load(player);
             profile = new Profile(player, compound);
@@ -103,9 +107,10 @@ public class ProfileController implements IProfileController {
                 profile.getSlots().put(0, defaultSlot);
                 profile.currentSlotId = 0;
                 saveSlotData(player);
-                save(player, profile);
             }
+            profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
+            verifySlotQuests(profile.player);
         }
     }
 
@@ -382,6 +387,9 @@ public class ProfileController implements IProfileController {
         }
         Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
         newSlot.setLastLoaded(System.currentTimeMillis());
+        if(profile.player != null)
+            verifySlotQuests(profile.player);
+
         profile.getSlots().put(newSlotId, newSlot);
         return ProfileOperation.success(MSG_NEW_SLOT_CREATED);
     }
@@ -680,26 +688,95 @@ public class ProfileController implements IProfileController {
         Profile profile = getProfile(entityPlayer);
         if(profile == null)
             return null;
-
-        if(profile.currentSlotId == slotID){
-            playerData = PlayerData.get(entityPlayer);
-        } else {
-            Slot slot = (Slot) profile.getSlots().get(slotID);
-            if(slot == null)
-                return null;
-
-            playerData = new PlayerData();
-            playerData.player = entityPlayer;
-            playerData.setNBT(slot.getComponentData(new CNPCData().getTagName()));
-        }
-        return playerData;
+        return getSlotPlayerData(entityPlayer, slotID);
     }
 
+    @Override
     public void saveSlotData(IPlayer player) {
         if(player == null || player.getMCEntity() == null)
             return;
 
         EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
         saveSlotData(entityPlayer);
+    }
+
+    public IPlayerData getSlotPlayerData(EntityPlayer player, int slotID) {
+        PlayerData playerData;
+        Profile profile = getProfile(player);
+        if(profile == null)
+            return null;
+
+        if(profile.currentSlotId == slotID){
+            playerData = PlayerData.get(player);
+        } else {
+            Slot slot = (Slot) profile.getSlots().get(slotID);
+            return getSlotPlayerData(player, slot);
+        }
+        return playerData;
+    }
+
+    public PlayerData getSlotPlayerData(EntityPlayer player, Slot slot) {
+        if(slot == null)
+            return null;
+
+        PlayerData playerData = new PlayerData();
+        playerData.player = player;
+        playerData.setNBT(slot.getComponentData(new CNPCData().getTagName()));
+        return playerData;
+    }
+
+    public void verifySlotQuests(EntityPlayer player) {
+        Profile profile = getProfile(player);
+        if(profile == null)
+            return;
+
+        HashMap<Integer, Long> universalFinished = new HashMap<>();
+        for(ISlot profileSlot : profile.getSlots().values()){
+            IPlayerData playerData = getSlotPlayerData(player, profileSlot.getId());
+            if(playerData != null){
+                PlayerQuestData playerQuestData = (PlayerQuestData) playerData.getQuestData();
+                for(int id : playerQuestData.finishedQuests.keySet()){
+                    IQuest quest = QuestController.Instance.get(id);
+                    if(quest != null){
+                        Quest quest1 = (Quest) quest;
+                        if(quest1.profileOptions.enableOptions && quest1.profileOptions.completeControl == EnumProfileSync.Shared){
+                            long complete = playerQuestData.finishedQuests.get(id);
+                            if(universalFinished.containsKey(id)){
+                                complete = Math.max(universalFinished.get(id), complete);
+                            }
+                            universalFinished.put(id, complete);
+                        }
+                    }
+                }
+            }
+        }
+        for(ISlot profileSlot : profile.getSlots().values()){
+            IPlayerData playerData = getSlotPlayerData(player, profileSlot.getId());
+            if(playerData != null){
+                PlayerQuestData playerQuestData = (PlayerQuestData) playerData.getQuestData();
+                playerQuestData.finishedQuests.putAll(universalFinished);
+            }
+        }
+        ProfileController.Instance.save(player, profile);
+    }
+
+    public void shareQuestCompletion(EntityPlayer player, int questId, long completeTime) {
+        Profile profile = getProfile(player);
+        if (profile == null) {
+            return;
+        }
+        for (ISlot slot : profile.getSlots().values()) {
+            IPlayerData playerData = getSlotPlayerData(player, slot.getId());
+            if (playerData != null) {
+                PlayerQuestData questData = (PlayerQuestData) playerData.getQuestData();
+                Long existing = questData.finishedQuests.get(questId);
+                // Only update if this completion time is newer.
+                if (existing == null || completeTime > existing) {
+                    questData.finishedQuests.put(questId, completeTime);
+                }
+            }
+        }
+        // Optionally, immediately persist the updated profile.
+        save(player, profile);
     }
 }

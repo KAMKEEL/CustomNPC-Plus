@@ -47,8 +47,6 @@ public final class ProfileCreatePacket extends AbstractPacket {
 
         Profile profile = ProfileController.Instance.getProfile(player);
         ProfileOperation operation = ProfileController.Instance.createSlotInternal(profile);
-        // TODO: Check Operation and Send Message
-
         ProfileGetPacket.sendProfileNBT(player);
         ProfileGetInfoPacket.sendProfileInfo(player);
     }

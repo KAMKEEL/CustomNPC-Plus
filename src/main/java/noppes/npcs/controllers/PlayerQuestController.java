@@ -1,5 +1,6 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
@@ -8,6 +9,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.data.PlayerData;
@@ -64,11 +67,7 @@ public class PlayerQuestController {
 		PlayerQuestData data = playerdata.questData;
 		QuestData questData = data.activeQuests.get(quest.id);
 		data.activeQuests.remove(quest.id);
-		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
-			data.finishedQuests.put(quest.id, System.currentTimeMillis());
-		else
-			data.finishedQuests.put(quest.id,player.worldObj.getTotalWorldTime());
-
+        setQuestFinishedUtil(player, quest, data);
 		if(quest.repeat != EnumQuestRepeat.NONE && quest.type == EnumQuestType.Dialog){
 			QuestDialog questdialog = (QuestDialog) quest.questInterface;
 			for(int dialog : questdialog.dialogs.values()){
@@ -81,6 +80,20 @@ public class PlayerQuestController {
 		}
         playerdata.updateClient = true;
 	}
+
+    public static void setQuestFinishedUtil(EntityPlayer player, Quest quest, PlayerQuestData questData){
+        long completeTime;
+        if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY || quest.repeat == EnumQuestRepeat.RLCUSTOM){
+            completeTime = System.currentTimeMillis();
+            questData.finishedQuests.put(quest.id, completeTime);
+        } else {
+            completeTime = player.worldObj.getTotalWorldTime();
+            questData.finishedQuests.put(quest.id, completeTime);
+        }
+
+        if(ConfigMain.ProfilesEnabled && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
+            ProfileController.Instance.shareQuestCompletion(player, quest.id, completeTime);
+    }
 
     public static void setQuestPartyFinished(Quest quest, EntityPlayer player, QuestData questData ){
         PlayerData playerdata = PlayerData.get(player);
