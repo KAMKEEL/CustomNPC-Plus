@@ -91,6 +91,9 @@ public class ProfileController implements IProfileHandler {
     }
 
     public synchronized void login(EntityPlayer player) {
+        if(!ConfigMain.ProfilesEnabled)
+            return;
+
         if (player == null)
             return;
         Profile profile;

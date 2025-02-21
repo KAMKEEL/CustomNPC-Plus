@@ -83,7 +83,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         tagButton.setIconPos(24, 24, 192, 32).setIconTexture(specialIcons);
 
         registerButton(effectsButton = new GuiNpcSquareButton(19, 0, 0, 20, "global.customeffects", 0xFF333333));
-        effectsButton.setIconPos(24, 24, 192, 32).setIconTexture(specialIcons);
+        effectsButton.setIconPos(24, 24, 24, 56).setIconTexture(specialIcons);
 
         // Layout composite buttons optimally.
         layoutButtons();

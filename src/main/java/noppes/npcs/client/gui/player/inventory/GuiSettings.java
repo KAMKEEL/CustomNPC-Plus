@@ -13,6 +13,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigMain;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
@@ -76,6 +77,9 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         this.addButton(new GuiNpcButton(7, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.BannerAlerts?1:0));
 
         y += 22;
+
+        this.addLabel(new GuiNpcLabel(8, "settings.effectsBar", guiLeft + 8, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(8, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.HideEffectsBar?1:0));
 
         y += 22;
 
@@ -154,6 +158,12 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
             ConfigClient.BannerAlerts = button.getValue() == 1;
             ConfigClient.BannerAlertsProperty.set(ConfigClient.BannerAlerts);
         }
+        if(button.id == 8){
+            ConfigClient.HideEffectsBar = button.getValue() == 1;
+            ConfigClient.HideEffectsBarProperty.set(ConfigClient.HideEffectsBar);
+        }
+
+        ConfigClient.config.save();
     }
 
 

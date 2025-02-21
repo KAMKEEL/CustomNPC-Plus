@@ -210,6 +210,7 @@ settings.dialogSound=Dialog Sound
 settings.dialogSpeed=Dialog Speed
 settings.chatAlerts=Chat Alerts
 settings.bannerAlerts=Banner Alerts
+settings.effectsBar=Hide Effects Bar
 settings.alignmentX=Alignment X
 settings.alignmentY=Alignment Y
 settings.trackScale=Tracking Scale

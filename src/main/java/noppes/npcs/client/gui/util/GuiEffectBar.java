@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
@@ -12,6 +13,8 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
 public class GuiEffectBar extends GuiScreen {
     public int x, y, width, height;
@@ -77,6 +80,11 @@ public class GuiEffectBar extends GuiScreen {
                 int texWidth = imageData.getTotalWidth();
 
                 func_152125_a(x + 2, drawY + 2, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texWidth);
+
+                GL11.glDisable(GL11.GL_DEPTH_TEST);
+                minecraft.getTextureManager().bindTexture(specialIcons);
+                func_152125_a(x + 2, drawY + 2, 0, 224, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
+                GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
 
             // If mouse hovers over this effect, save tooltip info

@@ -83,7 +83,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
 
         int effectBarX = guiLeft + xSize + 65;
         int effectBarY = guiTop + 10;
-        int effectBarWidth = 24;
+        int effectBarWidth = 20;
         int effectBarHeight = ySize;
         effectBar = new GuiEffectBar(effectBarX, effectBarY, effectBarWidth, effectBarHeight);
     }
@@ -107,7 +107,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         updateEffectBar();
         super.drawScreen(mouseX, mouseY, partialTicks);
-        if (effectBar != null) {
+        if (!ConfigClient.HideEffectsBar && effectBar != null && !effectBar.entries.isEmpty()) {
             effectBar.drawScreen(mouseX, mouseY, partialTicks);
         }
     }

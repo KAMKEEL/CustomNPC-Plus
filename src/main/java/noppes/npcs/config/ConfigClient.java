@@ -47,6 +47,9 @@ public class ConfigClient
     public static Property ChatBubblesFontTypeProperty;
     public static boolean ChatBubblesFontType = false;
 
+    public static Property HideEffectsBarProperty;
+    public static boolean HideEffectsBar = false;
+
     /**
      *  Questing Properties
      **/
@@ -126,6 +129,9 @@ public class ConfigClient
 
             ChatBubblesFontTypeProperty = config.get(VISUAL, "Chat Bubbles Font Type", false, "Enable the use of Custom Font for Chat Bubbles");
             ChatBubblesFontType = ChatBubblesFontTypeProperty.getBoolean(false);
+
+            HideEffectsBarProperty = config.get(VISUAL, "Hide Effects Bar", false, "Hides CNPC+ Inventory Effects Bar");
+            HideEffectsBar = HideEffectsBarProperty.getBoolean(false);
 
             // Questing
             TrackingInfoAlignmentProperty = config.get(QUESTING, "Tracking Info Alignment", 3, "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8. Default: 3");
