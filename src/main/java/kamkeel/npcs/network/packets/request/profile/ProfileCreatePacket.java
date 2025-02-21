@@ -45,8 +45,8 @@ public final class ProfileCreatePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        Profile profile = ProfileController.getProfile(player);
-        ProfileOperation operation = ProfileController.createSlotInternal(profile);
+        Profile profile = ProfileController.Instance.getProfile(player);
+        ProfileOperation operation = ProfileController.Instance.createSlotInternal(profile);
         // TODO: Check Operation and Send Message
 
         ProfileGetPacket.sendProfileNBT(player);

@@ -54,13 +54,13 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("PROFILE_INFO", true);
         NBTTagList slotList = new NBTTagList();
-        Profile profile = ProfileController.getProfile(player);
+        Profile profile = ProfileController.Instance.getProfile(player);
         if(profile != null){
             for(ISlot slot : profile.getSlots().values()){
                 NBTTagCompound slotCompound = new NBTTagCompound();
                 NBTTagList infoList = new NBTTagList();
                 slotCompound.setInteger("ID", slot.getId());
-                List<InfoEntry> profileInfo = ProfileController.getProfileInfo(player, slot.getId());
+                List<InfoEntry> profileInfo = ProfileController.Instance.getProfileInfo(player, slot.getId());
                 for(InfoEntry infoEntry : profileInfo){
                     infoList.appendTag(infoEntry.writeToNBT());
                 }

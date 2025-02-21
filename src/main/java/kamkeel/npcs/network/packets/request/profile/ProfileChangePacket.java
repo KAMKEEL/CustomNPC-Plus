@@ -53,7 +53,7 @@ public final class ProfileChangePacket extends AbstractPacket {
             return;
 
         int slot = in.readInt();
-        ProfileOperation operation = ProfileController.changeSlot(player, slot);
+        ProfileOperation operation = ProfileController.Instance.changeSlot(player, slot);
         // TODO: Check Operation and Send Message
 
         ProfileGetPacket.sendProfileNBT(player);

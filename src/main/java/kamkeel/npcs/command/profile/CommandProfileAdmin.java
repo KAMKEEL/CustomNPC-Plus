@@ -159,7 +159,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         String targetPlayer = args[0];
-        Profile profile = ProfileController.getProfile(targetPlayer);
+        Profile profile = ProfileController.Instance.getProfile(targetPlayer);
         if(profile == null) {
             sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;
@@ -203,7 +203,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sendError(sender, "Invalid name. Only alphabetic characters and spaces are allowed.");
             return;
         }
-        Profile profile = ProfileController.getProfile(targetPlayer);
+        Profile profile = ProfileController.Instance.getProfile(targetPlayer);
         if(profile == null) {
             sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;

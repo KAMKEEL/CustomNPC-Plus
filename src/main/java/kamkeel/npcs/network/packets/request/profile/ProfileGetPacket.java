@@ -44,7 +44,7 @@ public final class ProfileGetPacket extends AbstractPacket {
     }
 
     public static void sendProfileNBT(EntityPlayer player){
-        Profile profile = ProfileController.getProfile(player);
+        Profile profile = ProfileController.Instance.getProfile(player);
         NBTTagCompound compound = profile.writeToNBT();
         compound.setBoolean("PROFILE", true);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);

@@ -53,7 +53,7 @@ public final class ProfileRemovePacket extends AbstractPacket {
             return;
 
         int slot = in.readInt();
-        ProfileOperation operation = ProfileController.removeSlot(player, slot);
+        ProfileOperation operation = ProfileController.Instance.removeSlot(player, slot);
         // TODO: Check Operation and Send Message
 
 
