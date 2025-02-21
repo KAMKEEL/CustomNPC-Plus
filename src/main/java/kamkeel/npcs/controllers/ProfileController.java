@@ -725,34 +725,35 @@ public class ProfileController implements IProfileController {
 
     public void verifySlotQuests(EntityPlayer player) {
         Profile profile = getProfile(player);
-        if(profile == null)
+        if (profile == null) {
             return;
+        }
 
-        HashMap<Integer, Long> universalFinished = new HashMap<>();
-        for(ISlot profileSlot : profile.getSlots().values()){
-            IPlayerData playerData = getSlotPlayerData(player, profileSlot.getId());
-            if(playerData != null){
-                PlayerQuestData playerQuestData = (PlayerQuestData) playerData.getQuestData();
-                for(int id : playerQuestData.finishedQuests.keySet()){
-                    IQuest quest = QuestController.Instance.get(id);
-                    if(quest != null){
-                        Quest quest1 = (Quest) quest;
-                        if(quest1.profileOptions.enableOptions && quest1.profileOptions.completeControl == EnumProfileSync.Shared){
-                            long complete = playerQuestData.finishedQuests.get(id);
-                            if(universalFinished.containsKey(id)){
-                                complete = Math.max(universalFinished.get(id), complete);
-                            }
-                            universalFinished.put(id, complete);
-                        }
-                    }
+        Map<Integer, Long> universalFinished = new HashMap<>();
+        for (Integer questId : QuestController.Instance.sharedQuests.keySet()) {
+            long maxTime = 0;
+            for (ISlot slot : profile.getSlots().values()) {
+                IPlayerData data = getSlotPlayerData(player, slot.getId());
+                if (data == null) {
+                    continue;
+                }
+                PlayerQuestData questData = (PlayerQuestData) data.getQuestData();
+                Long t = questData.finishedQuests.get(questId);
+                if (t != null && t > maxTime) {
+                    maxTime = t;
                 }
             }
+            if (maxTime > 0) {
+                universalFinished.put(questId, maxTime);
+            }
         }
-        for(ISlot profileSlot : profile.getSlots().values()){
-            IPlayerData playerData = getSlotPlayerData(player, profileSlot.getId());
-            if(playerData != null){
-                PlayerQuestData playerQuestData = (PlayerQuestData) playerData.getQuestData();
-                playerQuestData.finishedQuests.putAll(universalFinished);
+
+        // Push the universal shared completion times into every slot.
+        for (ISlot slot : profile.getSlots().values()) {
+            IPlayerData data = getSlotPlayerData(player, slot.getId());
+            if (data != null) {
+                PlayerQuestData questData = (PlayerQuestData) data.getQuestData();
+                questData.finishedQuests.putAll(universalFinished);
             }
         }
     }
@@ -767,7 +768,6 @@ public class ProfileController implements IProfileController {
             if (playerData != null) {
                 PlayerQuestData questData = (PlayerQuestData) playerData.getQuestData();
                 Long existing = questData.finishedQuests.get(questId);
-                // Only update if this completion time is newer.
                 if (existing == null || completeTime > existing) {
                     questData.finishedQuests.put(questId, completeTime);
                 }

@@ -11,6 +11,7 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
@@ -23,6 +24,7 @@ public class QuestController implements IQuestHandler {
     public HashMap<Integer,QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
+    public HashMap<Integer, Quest> sharedQuests = new HashMap<>();
 
 	public static QuestController Instance = new QuestController();;
 
@@ -75,6 +77,9 @@ public class QuestController implements IQuestHandler {
 					}
 					else{
 						quests.put(id, quest);
+                        if(quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared){
+                            sharedQuests.put(id, quest);
+                        }
 					}
 				}
 				lastUsedCatID++;
@@ -209,8 +214,14 @@ public class QuestController implements IQuestHandler {
 			lastUsedQuestID++;
 			quest.id = lastUsedQuestID;
 		}
+
     	quests.put(quest.id, quest);
     	category.quests.put(quest.id, quest);
+
+        sharedQuests.remove(quest.id);
+        if(quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared){
+            sharedQuests.put(quest.id, quest);
+        }
 
     	File dir = new File(getDir(), category.title);
     	if(!dir.exists())
