@@ -6,12 +6,10 @@ import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAISavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.DataAI;
-
 import noppes.npcs.client.gui.SubGuiNpcMovement;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumCombatPolicy;
 import noppes.npcs.constants.EnumNavType;
-
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IGuiData{

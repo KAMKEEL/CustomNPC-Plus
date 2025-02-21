@@ -14,9 +14,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.blocks.tiles.TilePedestal;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 

@@ -1,15 +1,15 @@
 package noppes.npcs.client.renderer.items;
 
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.IItemRenderer;
 import noppes.npcs.client.renderer.blocks.BlockCouchWoolRenderer;
 import noppes.npcs.client.renderer.blocks.BlockRendererInterface;
-import org.lwjgl.opengl.GL11;
 import noppes.npcs.client.renderer.blocks.BlockTallLampRenderer;
 import noppes.npcs.config.ConfigClient;
-import kamkeel.npcs.util.ColorUtil;
+import org.lwjgl.opengl.GL11;
 
 public class ItemCouchWoolRenderer implements IItemRenderer {
 

@@ -4,11 +4,11 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumSyncAction;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.data.LoginPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
-import kamkeel.npcs.network.enums.EnumSyncAction;
-import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -18,7 +18,6 @@ import noppes.npcs.controllers.*;
 import noppes.npcs.controllers.data.*;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncController {

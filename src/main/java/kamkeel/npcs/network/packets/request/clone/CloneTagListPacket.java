@@ -10,16 +10,11 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.data.TagMap;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 

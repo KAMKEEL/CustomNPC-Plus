@@ -9,8 +9,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileShelf;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 

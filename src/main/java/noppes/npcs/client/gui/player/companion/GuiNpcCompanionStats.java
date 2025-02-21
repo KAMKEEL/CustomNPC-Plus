@@ -11,12 +11,10 @@ import net.minecraft.util.MathHelper;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumCompanionJobs;
 import noppes.npcs.constants.EnumCompanionTalent;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 

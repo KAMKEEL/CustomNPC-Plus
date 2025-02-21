@@ -16,8 +16,6 @@ import net.minecraftforge.common.IPlantable;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.CustomNPCsException;

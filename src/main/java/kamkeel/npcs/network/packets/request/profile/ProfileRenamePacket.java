@@ -5,7 +5,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.ProfileOperation;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -16,8 +15,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 
 import java.io.IOException;
-
-import static kamkeel.npcs.util.ColorUtil.sendError;
 
 public final class ProfileRenamePacket extends AbstractPacket {
     public static String packetName = "Request|ProfileRename";

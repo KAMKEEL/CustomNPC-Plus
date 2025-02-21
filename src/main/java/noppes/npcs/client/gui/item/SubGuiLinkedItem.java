@@ -2,25 +2,20 @@ package noppes.npcs.client.gui.item;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
-import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
 import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiColorSelector;
-import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.script.GuiScriptLinkedItem;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.LinkedItem;
-import noppes.npcs.util.ValueUtil;
 import org.lwjgl.opengl.GL11;
 
 public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListener, GuiYesNoCallback, ISubGuiListener {

@@ -15,7 +15,6 @@ import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 public final class EffectGetPacket extends AbstractPacket {
     public static final String packetName = "NPC|GetEffect";

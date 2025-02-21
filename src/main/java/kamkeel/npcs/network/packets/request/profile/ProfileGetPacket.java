@@ -5,17 +5,14 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.network.*;
-import kamkeel.npcs.network.enums.EnumItemPacketType;
+import kamkeel.npcs.network.AbstractPacket;
+import kamkeel.npcs.network.PacketChannel;
+import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.LinkedNpcController;
-import noppes.npcs.controllers.data.LinkedItem;
 
 import java.io.IOException;
 

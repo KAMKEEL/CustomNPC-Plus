@@ -1,7 +1,6 @@
 package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
-import cpw.mods.fml.relauncher.Side;
 import foxz.command.ScriptedCommand;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
@@ -31,7 +30,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
 import noppes.npcs.api.entity.ICustomNpc;
@@ -50,7 +48,10 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.Frame;
+import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;

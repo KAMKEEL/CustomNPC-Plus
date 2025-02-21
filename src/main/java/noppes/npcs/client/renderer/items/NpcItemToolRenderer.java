@@ -10,11 +10,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.IItemRenderer;
 import noppes.npcs.items.ItemNpcTool;
-import noppes.npcs.items.ItemRenderInterface;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
-
-import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
 public class NpcItemToolRenderer implements IItemRenderer {
 

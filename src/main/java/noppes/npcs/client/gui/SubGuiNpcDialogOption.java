@@ -3,11 +3,9 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.packets.request.dialog.DialogGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumOptionType;
-
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 

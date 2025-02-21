@@ -1,6 +1,5 @@
 package tconstruct.client.tabs;
 
-import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;

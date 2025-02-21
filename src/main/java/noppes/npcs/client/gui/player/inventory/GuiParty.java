@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.request.party.*;
 import net.minecraft.client.gui.GuiButton;
@@ -12,14 +11,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
-
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
-
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;

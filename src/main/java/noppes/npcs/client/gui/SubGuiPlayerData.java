@@ -1,14 +1,12 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
-import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.gui.util.IPlayerDataInfo;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemoveInfoPacket;
+import net.minecraft.client.gui.GuiButton;
+import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;

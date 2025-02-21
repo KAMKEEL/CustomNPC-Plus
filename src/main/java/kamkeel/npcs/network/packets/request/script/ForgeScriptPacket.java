@@ -15,7 +15,6 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
-import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.io.IOException;
 

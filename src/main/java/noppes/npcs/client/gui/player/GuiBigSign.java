@@ -2,10 +2,8 @@ package noppes.npcs.client.gui.player;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.SaveSignPacket;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.client.gui.SubGuiNpcTextArea;
-import noppes.npcs.constants.EnumPlayerPacket;
 
 public class GuiBigSign extends SubGuiNpcTextArea{
 	public TileBigSign tile;

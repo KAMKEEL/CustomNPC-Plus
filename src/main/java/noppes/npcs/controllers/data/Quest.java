@@ -4,7 +4,10 @@ import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.*;
+import noppes.npcs.ICompatibilty;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NpcMiscInventory;
+import noppes.npcs.VersionCompatibility;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.*;
@@ -13,14 +16,9 @@ import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.quests.*;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.quests.QuestDialog;
-import noppes.npcs.quests.QuestInterface;
-import noppes.npcs.quests.QuestItem;
-import noppes.npcs.quests.QuestKill;
-import noppes.npcs.quests.QuestLocation;
-import noppes.npcs.quests.QuestManual;
 
 public class Quest implements ICompatibilty, IQuest {
 	public int version = VersionCompatibility.ModRev;

@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+
 import java.util.List;
 
 public interface IProfileData {

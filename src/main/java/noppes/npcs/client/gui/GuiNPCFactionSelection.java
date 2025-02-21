@@ -4,11 +4,8 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-
-import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;

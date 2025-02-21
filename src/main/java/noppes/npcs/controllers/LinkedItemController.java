@@ -7,7 +7,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.controllers.data.LinkedItemScript;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;

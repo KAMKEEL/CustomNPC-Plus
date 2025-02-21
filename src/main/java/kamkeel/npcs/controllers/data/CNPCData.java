@@ -4,8 +4,8 @@ import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.PlayerData;
+
 import java.util.ArrayList;
 import java.util.List;
 

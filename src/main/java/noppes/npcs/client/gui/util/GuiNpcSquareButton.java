@@ -5,8 +5,6 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.RenderHelper;
 import org.lwjgl.opengl.GL11;
 
-import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
-
 public class GuiNpcSquareButton extends GuiNpcButton {
 
     // Fixed height for the text button portion.

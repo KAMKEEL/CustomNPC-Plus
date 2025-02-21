@@ -1,14 +1,10 @@
 package noppes.npcs.client.gui.roles;
 
-import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobBard;
 

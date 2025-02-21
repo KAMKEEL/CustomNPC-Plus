@@ -7,7 +7,6 @@ import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.ISlot;
 import kamkeel.npcs.controllers.data.InfoEntry;
 import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.Slot;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;

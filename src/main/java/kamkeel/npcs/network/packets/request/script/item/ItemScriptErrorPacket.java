@@ -9,17 +9,14 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 

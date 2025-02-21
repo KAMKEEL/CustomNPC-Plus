@@ -6,7 +6,6 @@ import kamkeel.npcs.network.packets.request.TileEntitySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileBorder;
-
 import noppes.npcs.client.gui.util.*;
 
 public class GuiBorderBlock extends GuiNPCInterface implements IGuiData{

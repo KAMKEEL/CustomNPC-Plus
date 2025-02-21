@@ -23,7 +23,6 @@ import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileShortLamp;
-import noppes.npcs.blocks.tiles.TileTallLamp;
 
 import java.util.List;
 

@@ -2,24 +2,23 @@ package noppes.npcs.client.gui.player;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import net.minecraft.util.StatCollector;
-import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.gui.util.*;
-import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.data.RecipeAnvil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.util.ValueUtil;
+import net.minecraft.util.StatCollector;
+import noppes.npcs.client.CustomNpcResourceListener;
+import noppes.npcs.client.gui.util.*;
+import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.RecipeAnvil;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @SideOnly(Side.CLIENT)
 public class GuiAnvilRecipes extends GuiNPCInterface {

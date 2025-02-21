@@ -1,13 +1,9 @@
 package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
-import kamkeel.npcs.network.packets.request.effects.EffectSavePacket;
 import kamkeel.npcs.network.packets.request.linked.*;
-import kamkeel.npcs.network.packets.request.quest.QuestSavePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
-
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -24,7 +20,6 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.item.SubGuiLinkedItem;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.entity.EntityCustomNpc;

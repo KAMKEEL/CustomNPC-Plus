@@ -10,8 +10,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileLamp;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 public class BlockLantern extends BlockLightable{
 

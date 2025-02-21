@@ -3,11 +3,12 @@ package kamkeel.npcs.command.profile;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.ISlot;
 import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.Slot;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
+
 import java.util.Map;
+
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendMessage;
 

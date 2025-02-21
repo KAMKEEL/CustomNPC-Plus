@@ -18,7 +18,6 @@ import net.minecraft.util.*;
 import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
-import noppes.npcs.blocks.tiles.TileCouchWool;
 import noppes.npcs.blocks.tiles.TileWallBanner;
 
 import java.util.List;

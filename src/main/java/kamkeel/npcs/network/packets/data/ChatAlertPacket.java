@@ -11,7 +11,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.IChatComponent;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.config.ConfigClient;

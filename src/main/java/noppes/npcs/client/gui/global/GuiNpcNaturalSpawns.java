@@ -8,13 +8,11 @@ import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
-
 import noppes.npcs.client.gui.GuiNpcMobSpawnerSelector;
 import noppes.npcs.client.gui.SubGuiNpcBiomes;
 import noppes.npcs.client.gui.SubGuiNpcDimensions;
 import noppes.npcs.client.gui.SubGuiSpawningOptions;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityNPCInterface;
 

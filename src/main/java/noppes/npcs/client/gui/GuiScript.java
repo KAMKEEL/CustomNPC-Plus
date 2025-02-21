@@ -10,15 +10,12 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiNPCEventScripts;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
-import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.*;

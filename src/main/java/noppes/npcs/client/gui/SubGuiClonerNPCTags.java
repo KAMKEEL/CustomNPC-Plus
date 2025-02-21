@@ -1,9 +1,9 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagsNpcGetPacket;
-import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;

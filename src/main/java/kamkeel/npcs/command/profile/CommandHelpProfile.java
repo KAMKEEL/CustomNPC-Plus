@@ -4,11 +4,13 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentTranslation;
+import noppes.npcs.CustomNpcsPermissions;
+
 import java.lang.reflect.Method;
 import java.util.Map.Entry;
+
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendMessage;
-import noppes.npcs.CustomNpcsPermissions;
 
 public class CommandHelpProfile extends CommandProfileBase {
     private CommandProfile parent;

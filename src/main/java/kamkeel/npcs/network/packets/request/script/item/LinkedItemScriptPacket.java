@@ -15,7 +15,9 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.LinkedItem;
+import noppes.npcs.controllers.data.LinkedItemScript;
 
 import java.io.IOException;
 

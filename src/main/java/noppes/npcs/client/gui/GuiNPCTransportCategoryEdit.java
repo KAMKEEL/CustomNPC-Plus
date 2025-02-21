@@ -5,13 +5,11 @@ import kamkeel.npcs.network.packets.request.transport.TransportCategoriesGetPack
 import kamkeel.npcs.network.packets.request.transport.TransportCategorySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
-
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCTransportCategoryEdit extends GuiNPCInterface

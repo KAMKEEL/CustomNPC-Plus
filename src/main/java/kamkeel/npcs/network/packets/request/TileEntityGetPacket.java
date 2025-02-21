@@ -10,16 +10,12 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.WorldProvider;
-import net.minecraftforge.common.DimensionManager;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 public final class TileEntityGetPacket extends AbstractPacket {
     public static final String packetName = "Request|TileEntityGet";

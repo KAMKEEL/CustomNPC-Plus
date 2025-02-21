@@ -4,7 +4,7 @@ import kamkeel.npcs.controllers.ProfileController;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import java.util.UUID;
+
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendResult;
 

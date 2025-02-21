@@ -1,13 +1,17 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.*;
-import noppes.npcs.LogWriter;
+import kamkeel.npcs.controllers.data.EnumProfileOperation;
+import kamkeel.npcs.controllers.data.ISlot;
+import kamkeel.npcs.controllers.data.Profile;
+import kamkeel.npcs.controllers.data.ProfileOperation;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+
 import java.io.File;
 import java.util.Map;
 import java.util.UUID;
+
 import static kamkeel.npcs.util.ColorUtil.*;
 
 public class CommandProfileAdmin extends CommandProfileBase {

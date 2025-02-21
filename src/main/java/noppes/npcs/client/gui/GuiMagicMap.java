@@ -1,13 +1,5 @@
 package noppes.npcs.client.gui;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import noppes.npcs.client.gui.util.GuiDiagram;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.data.Magic;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.RenderHelper;
@@ -15,7 +7,15 @@ import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.gui.util.GuiDiagram;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.data.Magic;
 import org.lwjgl.opengl.GL11;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class GuiMagicMap extends GuiDiagram {
 

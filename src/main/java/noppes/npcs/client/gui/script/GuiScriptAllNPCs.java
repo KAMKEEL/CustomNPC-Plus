@@ -3,8 +3,6 @@ package noppes.npcs.client.gui.script;
 import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
-
-
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
 

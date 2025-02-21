@@ -1,16 +1,17 @@
 package noppes.npcs.client.gui.util;
 
-import java.util.ArrayList;
-import java.util.List;
-import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.renderer.ImageData;
-import noppes.npcs.controllers.data.CustomEffect;
-import noppes.npcs.controllers.data.PlayerEffect;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
+import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.PlayerEffect;
 import org.lwjgl.opengl.GL11;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GuiEffectBar extends GuiScreen {
     public int x, y, width, height;

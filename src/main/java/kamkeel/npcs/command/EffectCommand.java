@@ -2,8 +2,8 @@ package kamkeel.npcs.command;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.event.PlayerEvent.EffectEvent.ExpirationType;

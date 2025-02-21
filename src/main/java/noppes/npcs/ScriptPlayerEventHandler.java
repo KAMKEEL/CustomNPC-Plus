@@ -32,7 +32,6 @@ import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 

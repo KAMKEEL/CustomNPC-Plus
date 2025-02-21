@@ -18,9 +18,6 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.PlayerDataScript;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.io.IOException;
 

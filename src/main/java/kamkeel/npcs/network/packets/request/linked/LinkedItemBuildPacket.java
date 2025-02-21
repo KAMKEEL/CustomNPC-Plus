@@ -9,18 +9,11 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.data.LinkedItem;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.item.ScriptLinkedItem;
 
 import java.io.IOException;
 

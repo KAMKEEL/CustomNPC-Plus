@@ -19,7 +19,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;

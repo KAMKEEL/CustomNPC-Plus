@@ -22,8 +22,8 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBigSign;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileTombstone;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.constants.EnumGuiType;
 
 import java.util.List;

@@ -1,14 +1,13 @@
 package kamkeel.npcs.command.profile;
 
-import noppes.npcs.config.ConfigMain;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import noppes.npcs.config.ConfigMain;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import static kamkeel.npcs.util.ColorUtil.sendError;
-import static kamkeel.npcs.util.ColorUtil.sendMessage;
-import static kamkeel.npcs.util.ColorUtil.sendResult;
+import static kamkeel.npcs.util.ColorUtil.*;
 
 public class CommandProfileRegion extends CommandProfileBase {
 

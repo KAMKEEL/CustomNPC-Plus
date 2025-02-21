@@ -1,12 +1,14 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.ProfileOperation;
 import kamkeel.npcs.controllers.data.EnumProfileOperation;
+import kamkeel.npcs.controllers.data.ProfileOperation;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import static kamkeel.npcs.util.ColorUtil.*;
+
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class CommandProfileChange extends CommandProfileBase {
 

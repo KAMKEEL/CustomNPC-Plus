@@ -7,7 +7,10 @@ import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.select.GuiTextureSelection;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.config.ConfigClient;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.util.CacheHashMap;
 
 import java.util.HashMap;

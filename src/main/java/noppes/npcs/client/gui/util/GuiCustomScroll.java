@@ -4,7 +4,6 @@ import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 

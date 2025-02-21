@@ -4,13 +4,13 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetNamesPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataMapRegenPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemovePacket;
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.SubGuiPlayerData;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
-import net.minecraft.util.StatCollector;
-import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;

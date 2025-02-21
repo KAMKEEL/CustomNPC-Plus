@@ -3,7 +3,6 @@ package noppes.npcs.client.model.blocks.barrel;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
-import net.minecraft.entity.Entity;
 
 public class ModelBarrel extends ModelBase {
 	private final ModelRenderer Wall;

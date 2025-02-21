@@ -1,8 +1,6 @@
 package noppes.npcs;
 
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSoundOperation;
 import kamkeel.npcs.network.packets.data.*;

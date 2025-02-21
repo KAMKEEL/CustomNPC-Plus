@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.request.clone.CloneAllTagsShortPacket;
 import kamkeel.npcs.network.packets.request.clone.ClonePreSavePacket;
 import kamkeel.npcs.network.packets.request.clone.CloneSavePacket;
@@ -14,11 +13,8 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
-
-import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 

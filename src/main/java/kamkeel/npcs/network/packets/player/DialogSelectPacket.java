@@ -8,8 +8,6 @@ import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 

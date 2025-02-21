@@ -13,8 +13,6 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.NBTTags;
-
-
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import org.apache.commons.lang3.StringUtils;

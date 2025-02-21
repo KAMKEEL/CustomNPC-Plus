@@ -8,7 +8,6 @@ import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.advanced.*;
 import noppes.npcs.client.gui.roles.*;
@@ -17,7 +16,6 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumJobType;
-
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityNPCInterface;
 
