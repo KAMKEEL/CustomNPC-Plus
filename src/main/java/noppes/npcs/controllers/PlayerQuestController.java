@@ -99,11 +99,7 @@ public class PlayerQuestController {
         PlayerData playerdata = PlayerData.get(player);
         PlayerQuestData data = playerdata.questData;
         data.activeQuests.remove(quest.id);
-        if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
-            data.finishedQuests.put(quest.id, System.currentTimeMillis());
-        else
-            data.finishedQuests.put(quest.id,player.worldObj.getTotalWorldTime());
-
+        setQuestFinishedUtil(player, quest, data);
         if(quest.repeat != EnumQuestRepeat.NONE && quest.type == EnumQuestType.Dialog){
             QuestDialog questdialog = (QuestDialog) quest.questInterface;
             for(int dialog : questdialog.dialogs.values()){

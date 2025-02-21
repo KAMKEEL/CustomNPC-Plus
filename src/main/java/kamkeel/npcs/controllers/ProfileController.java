@@ -9,6 +9,7 @@ import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.data.IQuest;
@@ -111,6 +112,7 @@ public class ProfileController implements IProfileController {
             profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
             verifySlotQuests(profile.player);
+            save(player, profile);
         }
     }
 
@@ -223,7 +225,7 @@ public class ProfileController implements IProfileController {
                 mainFile.delete();
             }
             fileNew.renameTo(mainFile);
-            EntityPlayerMP player = getPlayer(username);
+            EntityPlayer player = NoppesUtilServer.getPlayerByName(username);
             Profile newProfile;
             if (player != null) {
                 newProfile = new Profile(player, compound);
@@ -262,7 +264,7 @@ public class ProfileController implements IProfileController {
     }
 
     public Profile getProfile(String username) {
-        EntityPlayer player = getPlayer(username);
+        EntityPlayer player = NoppesUtilServer.getPlayerByName(username);
         if (player != null) {
             return getProfile(player);
         } else {
@@ -635,10 +637,6 @@ public class ProfileController implements IProfileController {
         return currentSlots < highestAllowed;
     }
 
-    public EntityPlayerMP getPlayer(String username) {
-        return MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
-    }
-
     @Override
     public IProfile getProfile(IPlayer player) {
         if(player == null || player.getMCEntity() == null)
@@ -757,7 +755,6 @@ public class ProfileController implements IProfileController {
                 playerQuestData.finishedQuests.putAll(universalFinished);
             }
         }
-        ProfileController.Instance.save(player, profile);
     }
 
     public void shareQuestCompletion(EntityPlayer player, int questId, long completeTime) {
@@ -774,9 +771,9 @@ public class ProfileController implements IProfileController {
                 if (existing == null || completeTime > existing) {
                     questData.finishedQuests.put(questId, completeTime);
                 }
+                playerData.save();
             }
         }
-        // Optionally, immediately persist the updated profile.
         save(player, profile);
     }
 }
