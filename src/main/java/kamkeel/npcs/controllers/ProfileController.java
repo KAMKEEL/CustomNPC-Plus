@@ -389,10 +389,11 @@ public class ProfileController implements IProfileController {
         }
         Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
         newSlot.setLastLoaded(System.currentTimeMillis());
-        if(profile.player != null)
-            verifySlotQuests(profile.player);
-
         profile.getSlots().put(newSlotId, newSlot);
+        if(profile.player != null){
+            verifySlotQuests(profile.player);
+            save(profile.player, profile);
+        }
         return ProfileOperation.success(MSG_NEW_SLOT_CREATED);
     }
 
@@ -708,7 +709,7 @@ public class ProfileController implements IProfileController {
             playerData = PlayerData.get(player);
         } else {
             Slot slot = (Slot) profile.getSlots().get(slotID);
-            return getSlotPlayerData(player, slot);
+            playerData = getSlotPlayerData(player, slot);
         }
         return playerData;
     }
@@ -719,7 +720,11 @@ public class ProfileController implements IProfileController {
 
         PlayerData playerData = new PlayerData();
         playerData.player = player;
-        playerData.setNBT(slot.getComponentData(new CNPCData().getTagName()));
+
+        NBTTagCompound compound = slot.getComponentData(new CNPCData().getTagName());
+        if(compound == null)
+            compound = new NBTTagCompound();
+        playerData.setNBT(compound);
         return playerData;
     }
 
@@ -752,8 +757,10 @@ public class ProfileController implements IProfileController {
         for (ISlot slot : profile.getSlots().values()) {
             IPlayerData data = getSlotPlayerData(player, slot.getId());
             if (data != null) {
+                PlayerData playerData = (PlayerData) data;
                 PlayerQuestData questData = (PlayerQuestData) data.getQuestData();
                 questData.finishedQuests.putAll(universalFinished);
+                slot.setComponentData(new CNPCData().getTagName(), playerData.getNBT());
             }
         }
     }
