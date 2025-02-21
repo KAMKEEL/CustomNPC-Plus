@@ -13,7 +13,7 @@ public class CNPCData implements IProfileData {
 
     @Override
     public String getTagName() {
-        return "CustomNPC+";
+        return "CNPC+";
     }
 
     @Override

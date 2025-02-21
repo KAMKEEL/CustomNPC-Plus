@@ -1,6 +1,7 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.ISlot;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.Slot;
 import net.minecraft.command.CommandException;
@@ -39,14 +40,14 @@ public class CommandProfileList extends CommandProfileBase {
             sendError(sender, "Profile not found.");
             return;
         }
-        if(profile.slots.isEmpty()){
+        if(profile.getSlots().isEmpty()){
             sendMessage(sender, "No slots found. Using default slot 0.");
         }
         sendMessage(sender, "Your Profile Slots:");
-        for(Map.Entry<Integer, Slot> entry : profile.slots.entrySet()) {
+        for(Map.Entry<Integer, ISlot> entry : profile.getSlots().entrySet()) {
             int id = entry.getKey();
             String name = entry.getValue().getName();
-            String prefix = (id == profile.currentID) ? "* " : "- ";
+            String prefix = (id == profile.currentSlotId) ? "* " : "- ";
             sendMessage(sender, prefix + "Slot " + id + ": " + name);
         }
     }

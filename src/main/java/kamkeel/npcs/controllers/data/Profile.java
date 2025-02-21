@@ -2,55 +2,89 @@ package kamkeel.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.entity.IPlayer;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
-public class Profile {
-
+public class Profile implements IProfile {
     public EntityPlayer player;
-    public int currentID;
-    public HashMap<Integer, Slot> slots = new HashMap<>();
-    public boolean locked = false;
+    public int currentSlotId;
+    private Map<Integer, ISlot> slots = new HashMap<>();
+    private boolean locked = false;
 
     public Profile(EntityPlayer player, NBTTagCompound compound) {
         this.player = player;
-        if(compound.hasKey("CurrentID")){
-            this.currentID = compound.getInteger("CurrentID");
+        if(compound.hasKey("CurrentSlotId")){
+            this.currentSlotId = compound.getInteger("CurrentSlotId");
         } else {
-            this.currentID = 0;
+            this.currentSlotId = 0;
         }
 
-        if(compound.hasKey("Slots")) {
+        if(compound.hasKey("Slots")){
             NBTTagCompound slotsCompound = compound.getCompoundTag("Slots");
-            for(String key : (Set<String>) slotsCompound.func_150296_c()){
-                int slotID = Integer.parseInt(key);
-                NBTTagCompound slotNBT = slotsCompound.getCompoundTag(key);
-                Slot slot = Slot.fromNBT(slotID, slotNBT);
-                slots.put(slotID, slot);
+            Set<String> keys = slotsCompound.func_150296_c();
+            for(String key : keys) {
+                try {
+                    int slotId = Integer.parseInt(key);
+                    NBTTagCompound slotNBT = slotsCompound.getCompoundTag(key);
+                    ISlot slot = Slot.fromNBT(slotId, slotNBT);
+                    slots.put(slotId, slot);
+                } catch (NumberFormatException e) {
+                    // Skip keys that are not valid slot IDs.
+                }
             }
         }
     }
 
-    public NBTTagCompound writeToNBT() {
-        NBTTagCompound fullCompound = new NBTTagCompound();
-        if(this.player != null)
-            fullCompound.setString("Name", player.getCommandSenderName());
-        fullCompound.setInteger("CurrentID", currentID);
+    public Profile(EntityPlayer player) {
+        this.player = player;
+        this.currentSlotId = 0;
+        // Create a default slot.
+        Slot defaultSlot = new Slot(0, "Default Slot");
+        defaultSlot.setLastLoaded(System.currentTimeMillis());
+        slots.put(0, defaultSlot);
+    }
 
-        if(!slots.isEmpty()){
-            NBTTagCompound slotsCompound = new NBTTagCompound();
-            for (HashMap.Entry<Integer, Slot> entry : slots.entrySet()) {
-                Slot slot = entry.getValue();
-                if(slot.isTemporary())
-                    continue;
-                int id = entry.getKey();
-                slot.setId(id);
-                NBTTagCompound slotTag = slot.toNBT();
-                slotsCompound.setTag(String.valueOf(id), slotTag);
-            }
-            fullCompound.setTag("Slots", slotsCompound);
+    @Override
+    public IPlayer getPlayer() {
+        return NoppesUtilServer.getIPlayer(player);
+    }
+
+    @Override
+    public int getCurrentSlotId() {
+        return currentSlotId;
+    }
+
+    @Override
+    public Map<Integer, ISlot> getSlots() {
+        return slots;
+    }
+
+    public boolean isLocked() {
+        return locked;
+    }
+
+    public void setLocked(boolean locked) {
+        this.locked = locked;
+    }
+
+    @Override
+    public NBTTagCompound writeToNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+        if(player != null)
+            compound.setString("Name", player.getCommandSenderName());
+        compound.setInteger("CurrentSlotId", currentSlotId);
+        NBTTagCompound slotsCompound = new NBTTagCompound();
+        for(Map.Entry<Integer, ISlot> entry : slots.entrySet()) {
+            // Save only non-temporary slots.
+            if(entry.getValue().isTemporary())
+                continue;
+            slotsCompound.setTag(String.valueOf(entry.getKey()), entry.getValue().toNBT());
         }
-        return fullCompound;
+        compound.setTag("Slots", slotsCompound);
+        return compound;
     }
 }

@@ -63,12 +63,12 @@ public final class ProfileRenamePacket extends AbstractPacket {
         String newName = ByteBufUtils.readString(in);
 
         Profile profile = ProfileController.getProfile(player);
-        if(!profile.slots.containsKey(slot)) {
+        if(!profile.getSlots().containsKey(slot)) {
             // TODO: Check Operation and Send Message
             return;
         }
 
-        ProfileController.getProfile(player).slots.get(slot).setName(newName);
+        ProfileController.getProfile(player).getSlots().get(slot).setName(newName);
         ProfileController.save(player, ProfileController.getProfile(player));
 
         ProfileGetPacket.sendProfileNBT(player);

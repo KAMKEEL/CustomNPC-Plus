@@ -1,10 +1,7 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.ProfileOperation;
-import kamkeel.npcs.controllers.data.EnumProfileOperation;
-import kamkeel.npcs.controllers.data.Slot;
+import kamkeel.npcs.controllers.data.*;
 import noppes.npcs.LogWriter;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -164,10 +161,10 @@ public class CommandProfileAdmin extends CommandProfileBase {
             return;
         }
         sendMessage(sender, "Profile Slots for %s:", targetPlayer);
-        for(Map.Entry<Integer, Slot> entry : profile.slots.entrySet()) {
+        for(Map.Entry<Integer, ISlot> entry : profile.getSlots().entrySet()) {
             int id = entry.getKey();
             String name = entry.getValue().getName();
-            String prefix = (id == profile.currentID) ? "* " : "- ";
+            String prefix = (id == profile.currentSlotId) ? "* " : "- ";
             sendMessage(sender, prefix + "Slot " + id + ": " + name);
         }
     }
@@ -207,16 +204,16 @@ public class CommandProfileAdmin extends CommandProfileBase {
             sendError(sender, "Profile not found for player: %s", targetPlayer);
             return;
         }
-        if(profile.locked) {
+        if(profile.isLocked()) {
             sendError(sender, "Profile for %s is locked. Please try again later.", targetPlayer);
             return;
         }
-        if(!profile.slots.containsKey(slotId)) {
+        if(!profile.getSlots().containsKey(slotId)) {
             sendError(sender, "Slot %d not found in %s's profile.", slotId, targetPlayer);
             return;
         }
-        profile.slots.get(slotId).setName(newName);
-        if(profile.player != null) {
+        profile.getSlots().get(slotId).setName(newName);
+        if(profile.getPlayer() != null) {
             ProfileController.save(profile.player, profile);
         } else {
             UUID uuid = ProfileController.getUUIDFromUsername(targetPlayer);
@@ -237,7 +234,12 @@ public class CommandProfileAdmin extends CommandProfileBase {
         }
         String targetPlayer = args[0];
         String backupFileName = args[1] + ".dat";
-        File backupDir = new File(ProfileController.getBackupDir(), ProfileController.getProfile(targetPlayer).player.getUniqueID().toString());
+
+        Profile profile = ProfileController.getProfile(targetPlayer);
+        if(profile == null || profile.player == null)
+            return;
+
+        File backupDir = new File(ProfileController.getBackupDir(), profile.getPlayer().getUniqueID().toString());
         File backupFile = new File(backupDir, backupFileName);
         if(!backupFile.exists()){
             sendError(sender, "Backup file %s not found for player %s.", backupFileName, targetPlayer);

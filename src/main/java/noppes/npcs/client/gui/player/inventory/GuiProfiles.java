@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.controllers.data.ISlot;
 import kamkeel.npcs.controllers.data.InfoEntry;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.Slot;
@@ -321,9 +322,9 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             slot = null;
             selected = scroll.getSelected();
             if (profile != null && selected != null && !selected.isEmpty()){
-                for(Slot checkSlot : profile.slots.values()){
+                for(ISlot checkSlot : profile.getSlots().values()){
                     if(checkSlot.getId() == data.get(selected)){
-                        slot = checkSlot;
+                        slot = (Slot) checkSlot;
                         break;
                     }
                 }
@@ -342,9 +343,9 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             this.data = new HashMap<>();
             String currentSlot = "\u00A7e";
             String otherSlot = "\u00A7f";
-            for(Slot slot1 : profile.slots.values()){
+            for(ISlot slot1 : profile.getSlots().values()){
                 String name = slot1.getId() + " - " + slot1.getName();
-                if(profile.currentID == slot1.getId())
+                if(profile.currentSlotId == slot1.getId())
                     name = currentSlot + name;
                 else
                     name = otherSlot + name;

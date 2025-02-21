@@ -1,7 +1,6 @@
 package kamkeel.npcs.controllers;
 
 import kamkeel.npcs.controllers.data.*;
-import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.CompressedStreamTools;
@@ -10,73 +9,65 @@ import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static noppes.npcs.CustomNpcsPermissions.PROFILE_REGION_BYPASS;
 import static noppes.npcs.CustomNpcsPermissions.hasPermission;
 
-public class ProfileController {
+public class ProfileController implements IProfileController {
 
-    // ------------------- Message Constants -------------------
-    // General messages
+    // Message constants
     private static final String MSG_PLAYER_NOT_FOUND       = "Player not found.";
-
-    // Clone Slot messages
     private static final String MSG_PROFILE_LOCKED_CLONE     = "Profile is locked; cannot clone slot.";
     private static final String MSG_SOURCE_SLOT_NOT_EXIST    = "Source slot does not exist.";
     private static final String MSG_CANNOT_CLONE_CURRENT     = "Cannot clone to the current active slot.";
     private static final String MSG_INVALID_DEST_SLOT        = "Invalid destination slot id.";
     private static final String MSG_CLONE_SUCCESS            = "Slot cloned successfully.";
-
-    // Remove Slot messages
     private static final String MSG_PROFILE_LOCKED_REMOVE    = "Profile is locked; cannot remove slot.";
     private static final String MSG_CANNOT_REMOVE_ACTIVE     = "Cannot remove the currently active slot.";
     private static final String MSG_SLOT_NOT_EXIST           = "Slot does not exist.";
     private static final String MSG_REMOVE_SUCCESS           = "Slot removed successfully.";
-
-    // Create Slot messages
     private static final String MSG_PROFILE_LOCKED_CREATE    = "Profile is locked; cannot create slot.";
     private static final String MSG_MAX_SLOTS_REACHED        = "Maximum allowed slots reached.";
     private static final String MSG_NEW_SLOT_CREATED         = "New slot created successfully.";
-
-    // Change Slot messages
     private static final String MSG_PROFILE_LOCKED_CHANGE    = "Profile is locked; cannot change slot.";
     private static final String MSG_SLOT_ALREADY_ACTIVE      = "Slot is already active.";
     private static final String MSG_REGION_NOT_ALLOWED       = "Profile switching not allowed from your current location.";
     private static final String MSG_CHANGE_SUCCESS           = "Slot changed successfully.";
 
-    // ------------------- End Constants -------------------
-
-    public static HashMap<String, IProfileData> profileTypes;
-    public static HashMap<UUID, Profile> activeProfiles;
+    public static Map<String, IProfileData> profileTypes = new HashMap<>();
+    public static Map<UUID, Profile> activeProfiles = new HashMap<>();
     public static String profile_directory = "profiles";
 
-    public ProfileController(){
+    public static ProfileController Instance;
+
+    public ProfileController() {
+        Instance = this;
         profileTypes = new HashMap<>();
         activeProfiles = new HashMap<>();
     }
 
-    // ---------- Registration & I/O ----------
-    public static boolean registerProfileType(IProfileData type){
-        if(profileTypes.containsKey(type.getTagName()))
+    public static boolean registerProfileType(IProfileData type) {
+        if (profileTypes.containsKey(type.getTagName()))
             return false;
         profileTypes.put(type.getTagName(), type);
         return true;
     }
 
-    public static File getProfileDir(){
+    public static File getProfileDir() {
         try {
             File file = new File(CustomNpcs.getWorldSaveDirectory(), profile_directory);
-            if(!file.exists())
+            if (!file.exists())
                 file.mkdir();
             return file;
         } catch (Exception e) {
@@ -85,34 +76,31 @@ public class ProfileController {
         }
     }
 
-    // Returns the backup folder for profiles.
     public static File getBackupDir() {
         File base = getProfileDir();
         File backup = new File(base, "backup");
-        if(!backup.exists()){
+        if (!backup.exists()) {
             backup.mkdir();
         }
         return backup;
     }
 
-    // Login for online players.
-    // If no slots exist, create default slot 0 and save the player's current IProfileData into it.
-    public static synchronized void login(EntityPlayer player){
-        if(player == null)
+    public synchronized void login(EntityPlayer player) {
+        if (player == null)
             return;
         Profile profile;
-        if(activeProfiles.containsKey(player.getUniqueID())){
+        if (activeProfiles.containsKey(player.getUniqueID())) {
             profile = activeProfiles.get(player.getUniqueID());
-            profile.player = player;
+            // Update the player reference if needed.
+            profile = new Profile(player, profile.writeToNBT());
         } else {
             NBTTagCompound compound = load(player);
             profile = new Profile(player, compound);
-            // If no slots exist, create default slot 0.
-            if(profile.slots.isEmpty()){
+            if (profile.getSlots().isEmpty()) {
                 Slot defaultSlot = new Slot(0, "Default Slot");
-                defaultSlot.setCompound(new NBTTagCompound());
-                profile.slots.put(0, defaultSlot);
-                profile.currentID = 0;
+                defaultSlot.setLastLoaded(System.currentTimeMillis());
+                profile.getSlots().put(0, defaultSlot);
+                profile.currentSlotId = 0;
                 saveSlotData(player);
                 save(player, profile);
             }
@@ -125,7 +113,7 @@ public class ProfileController {
         String filename = player.getUniqueID().toString() + ".dat";
         try {
             File file = new File(saveDir, filename);
-            if(file.exists()){
+            if (file.exists()) {
                 return NBTJsonUtil.loadNBTData(file);
             }
         } catch (Exception e) {
@@ -139,7 +127,7 @@ public class ProfileController {
         String filename = uuid.toString() + ".dat";
         try {
             File file = new File(saveDir, filename);
-            if(file.exists()){
+            if (file.exists()) {
                 return NBTJsonUtil.loadNBTData(file);
             }
         } catch (Exception e) {
@@ -148,9 +136,8 @@ public class ProfileController {
         return new NBTTagCompound();
     }
 
-    // Offline save (synchronous) when no EntityPlayer is available.
     public static synchronized void saveOffline(Profile profile, UUID uuid) {
-        profile.locked = true;
+        profile.setLocked(true);
         CustomNPCsThreader.customNPCThread.execute(() -> {
             final NBTTagCompound compound = profile.writeToNBT();
             final String filename = uuid.toString() + ".dat";
@@ -159,11 +146,10 @@ public class ProfileController {
                 File fileNew = new File(saveDir, filename + "_new");
                 File fileOld = new File(saveDir, filename);
                 CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
-                if(fileOld.exists()){
+                if (fileOld.exists()) {
                     fileOld.delete();
                 }
                 fileNew.renameTo(fileOld);
-                // Also backup if allowed.
                 backupProfile(uuid, compound);
             } catch (Exception e) {
                 LogWriter.except(e);
@@ -171,9 +157,8 @@ public class ProfileController {
         });
     }
 
-    // Save for online players (asynchronous).
     public static synchronized void save(EntityPlayer player, Profile profile) {
-        profile.locked = true;
+        profile.setLocked(true);
         CustomNPCsThreader.customNPCThread.execute(() -> {
             final NBTTagCompound compound = profile.writeToNBT();
             final String filename = player.getUniqueID() + ".dat";
@@ -182,98 +167,89 @@ public class ProfileController {
                 File fileNew = new File(saveDir, filename + "_new");
                 File fileOld = new File(saveDir, filename);
                 CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
-                if(fileOld.exists()){
+                if (fileOld.exists()) {
                     fileOld.delete();
                 }
                 fileNew.renameTo(fileOld);
-                // Backup if enabled.
-                if(ConfigMain.AllowProfileBackups) {
+                if (ConfigMain.AllowProfileBackups) {
                     backupProfile(player.getUniqueID(), compound);
                 }
             } catch (Exception e) {
                 LogWriter.except(e);
             } finally {
-                profile.locked = false;
+                profile.setLocked(false);
             }
         });
     }
 
-    // Backup the profile by saving a copy to profiles/backup/<uuid>/<date>.dat.
     private static void backupProfile(UUID uuid, NBTTagCompound compound) {
         try {
             File backupDir = new File(getBackupDir(), uuid.toString());
-            if(!backupDir.exists()){
+            if (!backupDir.exists()) {
                 backupDir.mkdirs();
             }
             String dateStr = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             File backupFile = new File(backupDir, dateStr + ".dat");
             CompressedStreamTools.writeCompressed(compound, new FileOutputStream(backupFile));
-            // Now enforce backup amount limit.
             File[] backups = backupDir.listFiles((dir, name) -> name.endsWith(".dat"));
-            if(backups != null && backups.length > ConfigMain.ProfileBackupAmount) {
+            if (backups != null && backups.length > ConfigMain.ProfileBackupAmount) {
                 Arrays.sort(backups, Comparator.comparingLong(File::lastModified));
-                for(int i = 0; i < backups.length - ConfigMain.ProfileBackupAmount; i++){
+                for (int i = 0; i < backups.length - ConfigMain.ProfileBackupAmount; i++) {
                     backups[i].delete();
                 }
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             LogWriter.except(e);
         }
     }
 
-    // Rollback a player's profile from a backup file.
-    // Returns true if successful.
     public static boolean rollbackProfile(String username, File backupFile) {
         UUID uuid = getUUIDFromUsername(username);
-        if(uuid == null) return false;
+        if (uuid == null)
+            return false;
         try (FileInputStream fis = new FileInputStream(backupFile)) {
             NBTTagCompound compound = CompressedStreamTools.readCompressed(fis);
-            // Overwrite the main profile file.
             File saveDir = getProfileDir();
             File mainFile = new File(saveDir, uuid.toString() + ".dat");
             File fileNew = new File(saveDir, uuid.toString() + "_new");
             CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
-            if(mainFile.exists()){
+            if (mainFile.exists()) {
                 mainFile.delete();
             }
             fileNew.renameTo(mainFile);
-
-            // Update the in-memory profile.
             EntityPlayerMP player = getPlayer(username);
             Profile newProfile;
-            if(player != null) {
+            if (player != null) {
                 newProfile = new Profile(player, compound);
                 activeProfiles.put(uuid, newProfile);
-                // Load the rolled-back data into the player's IProfileData.
                 loadSlotData(player);
             } else {
                 newProfile = new Profile(null, compound);
                 activeProfiles.put(uuid, newProfile);
             }
             return true;
-        } catch(Exception e) {
+        } catch (Exception e) {
             LogWriter.except(e);
             return false;
         }
     }
 
-    // Logout removes an active profile.
     public static synchronized void logout(EntityPlayer player) {
-        if(player != null) {
+        if (player != null) {
             activeProfiles.remove(player.getUniqueID());
         }
     }
 
-    // ---------- Profile Retrieval Helpers ----------
     public static Profile getProfile(EntityPlayer player) {
-        if(player == null) return null;
-        if(!activeProfiles.containsKey(player.getUniqueID()))
+        if (player == null)
+            return null;
+        if (!activeProfiles.containsKey(player.getUniqueID()))
             login(player);
         return activeProfiles.get(player.getUniqueID());
     }
 
     public static Profile getProfile(UUID uuid) {
-        if(activeProfiles.containsKey(uuid))
+        if (activeProfiles.containsKey(uuid))
             return activeProfiles.get(uuid);
         NBTTagCompound compound = load(uuid);
         return new Profile(null, compound);
@@ -281,16 +257,16 @@ public class ProfileController {
 
     public static Profile getProfile(String username) {
         EntityPlayer player = getPlayer(username);
-        if(player != null) {
+        if (player != null) {
             return getProfile(player);
         } else {
             UUID uuid = getUUIDFromUsername(username);
-            if(uuid == null) return null;
+            if (uuid == null)
+                return null;
             return getProfile(uuid);
         }
     }
 
-    // ---------- Mojang API UUID Lookup ----------
     public static UUID getUUIDFromUsername(String username) {
         try {
             URL url = new URL("https://api.mojang.com/users/profiles/minecraft/" + username);
@@ -301,13 +277,13 @@ public class ProfileController {
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             StringBuilder temp = new StringBuilder();
             String line;
-            while((line = in.readLine()) != null){
+            while ((line = in.readLine()) != null) {
                 temp.append(line);
             }
             in.close();
             con.disconnect();
             String response = temp.toString();
-            if(response.contains("\"id\"")) {
+            if (response.contains("\"id\"")) {
                 int idIndex = response.indexOf("\"id\"");
                 int colonIndex = response.indexOf(":", idIndex);
                 int quoteStart = response.indexOf("\"", colonIndex);
@@ -325,70 +301,70 @@ public class ProfileController {
         return null;
     }
 
-    // ---------- Internal Slot Operation Helpers ----------
     private static int getNextAvailableTempSlot(Profile profile) {
         int id = -1;
-        while(profile.slots.containsKey(id)) {
+        while (profile.getSlots().containsKey(id)) {
             id--;
         }
         return id;
     }
 
-    // Clone a slot within a Profile.
     private static ProfileOperation cloneSlotInternal(Profile profile, int sourceSlotId, int destinationSlotId, boolean temporary) {
-        if(profile.locked) {
+        if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_CLONE);
         }
-        if(profile.player != null) {
+        if (profile.player != null) {
             List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
             dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
-            for(IProfileData pd : dataList) {
+            for (IProfileData pd : dataList) {
                 if (pd.verifySwitch(profile.player).getResult() != EnumProfileOperation.SUCCESS) {
                     return pd.verifySwitch(profile.player);
                 }
             }
         }
-        if(!profile.slots.containsKey(sourceSlotId)) {
+        if (!profile.getSlots().containsKey(sourceSlotId)) {
             return ProfileOperation.error(MSG_SOURCE_SLOT_NOT_EXIST);
         }
-        if(destinationSlotId == profile.currentID) {
+        if (destinationSlotId == profile.getCurrentSlotId()) {
             return ProfileOperation.error(MSG_CANNOT_CLONE_CURRENT);
         }
-        if(temporary) {
+        if (temporary) {
             destinationSlotId = getNextAvailableTempSlot(profile);
         } else {
-            if(destinationSlotId <= 0) {
+            if (destinationSlotId <= 0) {
                 return ProfileOperation.error(MSG_INVALID_DEST_SLOT);
             }
         }
-        Slot sourceSlot = profile.slots.get(sourceSlotId);
-        NBTTagCompound clonedData = (NBTTagCompound) sourceSlot.getCompound().copy();
-        Slot clonedSlot = new Slot(destinationSlotId, "Cloned Slot " + destinationSlotId, clonedData, System.currentTimeMillis(), temporary);
-        profile.slots.put(destinationSlotId, clonedSlot);
+        ISlot sourceSlot = profile.getSlots().get(sourceSlotId);
+        Map<String, NBTTagCompound> newComponents = new HashMap<>();
+        for (String key : sourceSlot.getComponents().keySet()) {
+            newComponents.put(key, sourceSlot.getComponentData(key).copy());
+        }
+        Slot clonedSlot = new Slot(destinationSlotId, "Cloned Slot " + destinationSlotId, System.currentTimeMillis(), temporary, newComponents);
+        profile.getSlots().put(destinationSlotId, clonedSlot);
         return ProfileOperation.success(MSG_CLONE_SUCCESS);
     }
 
-    // Remove a slot from a Profile.
     private static ProfileOperation removeSlotInternal(Profile profile, int slotId) {
-        if(profile.locked) {
+        if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_REMOVE);
         }
-        if(slotId == profile.currentID) {
+        if (slotId == profile.getCurrentSlotId()) {
             return ProfileOperation.error(MSG_CANNOT_REMOVE_ACTIVE);
         }
-        if(!profile.slots.containsKey(slotId)) {
+        if (!profile.getSlots().containsKey(slotId)) {
             return ProfileOperation.error(MSG_SLOT_NOT_EXIST);
         }
-        profile.slots.remove(slotId);
+        profile.getSlots().remove(slotId);
         return ProfileOperation.success(MSG_REMOVE_SUCCESS);
     }
 
     public static ProfileOperation createSlotInternal(Profile profile) {
-        if (profile.locked) {
+        if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_CREATE);
         }
         int newSlotId = 0;
-        while (profile.slots.containsKey(newSlotId)) {
+        while (profile.getSlots().containsKey(newSlotId)) {
             newSlotId++;
         }
         if (!allowSlotPermission(profile.player)) {
@@ -404,33 +380,31 @@ public class ProfileController {
             }
         }
         Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
-        newSlot.setCompound(new NBTTagCompound());
-        profile.slots.put(newSlotId, newSlot);
+        newSlot.setLastLoaded(System.currentTimeMillis());
+        profile.getSlots().put(newSlotId, newSlot);
         return ProfileOperation.success(MSG_NEW_SLOT_CREATED);
     }
 
     private static ProfileOperation changeSlotInternal(Profile profile, int newSlotId) {
-        if (profile.locked) {
+        if (profile.isLocked()) {
             return ProfileOperation.locked(MSG_PROFILE_LOCKED_CHANGE);
         }
-        if (profile.currentID == newSlotId) {
+        if (profile.getCurrentSlotId() == newSlotId) {
             return ProfileOperation.error(MSG_SLOT_ALREADY_ACTIVE);
         }
-        if (!profile.slots.containsKey(newSlotId)) {
+        if (!profile.getSlots().containsKey(newSlotId)) {
             return ProfileOperation.error(MSG_SLOT_NOT_EXIST);
         }
-
-        if(profile.player != null){
-            // Region-based check: if enabled, ensure the player is within an allowed region.
+        if (profile.player != null) {
             if (ConfigMain.RegionProfileSwitching) {
                 boolean allowed = hasPermission(profile.player, PROFILE_REGION_BYPASS);
-                if(!allowed){
+                if (!allowed) {
                     int playerDim = profile.player.dimension;
                     int playerX = (int) profile.player.posX;
                     int playerY = (int) profile.player.posY;
                     int playerZ = (int) profile.player.posZ;
                     for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
-                        if(region.size() == 7) {
+                        if (region.size() == 7) {
                             int dim = region.get(0);
                             int x1 = Math.min(region.get(1), region.get(4));
                             int y1 = Math.min(region.get(2), region.get(5));
@@ -438,7 +412,7 @@ public class ProfileController {
                             int x2 = Math.max(region.get(1), region.get(4));
                             int y2 = Math.max(region.get(2), region.get(5));
                             int z2 = Math.max(region.get(3), region.get(6));
-                            if(playerDim == dim &&
+                            if (playerDim == dim &&
                                 playerX >= x1 && playerX <= x2 &&
                                 playerY >= y1 && playerY <= y2 &&
                                 playerZ >= z1 && playerZ <= z2) {
@@ -460,8 +434,7 @@ public class ProfileController {
                 }
             }
             saveSlotData(profile.player);
-            profile.currentID = newSlotId;
-
+            profile.currentSlotId = newSlotId;
             loadSlotData(profile.player);
             PlayerData pdata = PlayerData.get(profile.player);
             pdata.profileSlot = newSlotId;
@@ -469,18 +442,15 @@ public class ProfileController {
         } else {
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         }
-
         return ProfileOperation.success(MSG_CHANGE_SUCCESS);
     }
 
-    // ---------- Public Operations (Overloaded for EntityPlayer, UUID, or username) ----------
-    // ----- Clone Slot -----
     public static ProfileOperation cloneSlot(EntityPlayer player, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(player);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = cloneSlotInternal(profile, sourceSlotId, destinationSlotId, temporary);
-        if(result.getResult() == EnumProfileOperation.SUCCESS && player != null) {
+        if (result.getResult() == EnumProfileOperation.SUCCESS && player != null) {
             save(player, profile);
         }
         return result;
@@ -488,11 +458,11 @@ public class ProfileController {
 
     public static ProfileOperation cloneSlot(UUID uuid, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(uuid);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = cloneSlotInternal(profile, sourceSlotId, destinationSlotId, temporary);
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
-            if(profile.player != null)
+        if (result.getResult() == EnumProfileOperation.SUCCESS) {
+            if (profile.player != null)
                 save(profile.player, profile);
             else
                 saveOffline(profile, uuid);
@@ -502,28 +472,27 @@ public class ProfileController {
 
     public static ProfileOperation cloneSlot(String username, int sourceSlotId, int destinationSlotId, boolean temporary) {
         Profile profile = getProfile(username);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = cloneSlotInternal(profile, sourceSlotId, destinationSlotId, temporary);
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
-            if(profile.player != null)
+        if (result.getResult() == EnumProfileOperation.SUCCESS) {
+            if (profile.player != null)
                 save(profile.player, profile);
             else {
                 UUID uuid = getUUIDFromUsername(username);
-                if(uuid != null)
+                if (uuid != null)
                     saveOffline(profile, uuid);
             }
         }
         return result;
     }
 
-    // ----- Remove Slot -----
     public static ProfileOperation removeSlot(EntityPlayer player, int slotId) {
         Profile profile = getProfile(player);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = removeSlotInternal(profile, slotId);
-        if(result.getResult() == EnumProfileOperation.SUCCESS && player != null) {
+        if (result.getResult() == EnumProfileOperation.SUCCESS && player != null) {
             save(player, profile);
         }
         return result;
@@ -531,95 +500,83 @@ public class ProfileController {
 
     public static ProfileOperation removeSlot(String username, int slotId) {
         Profile profile = getProfile(username);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = removeSlotInternal(profile, slotId);
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
-            if(profile.player != null)
+        if (result.getResult() == EnumProfileOperation.SUCCESS) {
+            if (profile.player != null)
                 save(profile.player, profile);
             else {
                 UUID uuid = getUUIDFromUsername(username);
-                if(uuid != null)
+                if (uuid != null)
                     saveOffline(profile, uuid);
             }
         }
         return result;
     }
 
-    // ----- Change Slot -----
     public static ProfileOperation changeSlot(EntityPlayer player, int newSlotId) {
         Profile profile = getProfile(player);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = changeSlotInternal(profile, newSlotId);
-        if(result.getResult() == EnumProfileOperation.SUCCESS && player != null)
+        if (result.getResult() == EnumProfileOperation.SUCCESS && player != null)
             save(player, profile);
         return result;
     }
 
     public static ProfileOperation changeSlot(String username, int newSlotId) {
         Profile profile = getProfile(username);
-        if(profile == null)
+        if (profile == null)
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         ProfileOperation result = changeSlotInternal(profile, newSlotId);
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
-            if(profile.player != null)
+        if (result.getResult() == EnumProfileOperation.SUCCESS) {
+            if (profile.player != null)
                 save(profile.player, profile);
             else {
                 UUID uuid = getUUIDFromUsername(username);
-                if(uuid != null)
+                if (uuid != null)
                     saveOffline(profile, uuid);
             }
         }
         return result;
     }
 
-    // ---------- Saving current slot data (used before switching) ----------
-    public static void saveSlotData(EntityPlayer player){
-        if(player == null || !activeProfiles.containsKey(player.getUniqueID()))
+    public void saveSlotData(EntityPlayer player) {
+        if (player == null || !activeProfiles.containsKey(player.getUniqueID()))
             return;
         Profile profile = activeProfiles.get(player.getUniqueID());
-        if(profile.locked) {
+        if (profile.isLocked()) {
             return;
         }
-        NBTTagCompound dataCompound;
-        Slot slot;
-        if(!profile.slots.isEmpty() && profile.slots.containsKey(profile.currentID)){
-            slot = profile.slots.get(profile.currentID);
-            dataCompound = (NBTTagCompound) slot.getCompound().copy();
-        } else {
-            slot = new Slot(profile.currentID, "Slot " + profile.currentID);
-            dataCompound = new NBTTagCompound();
-            slot.setCompound(dataCompound);
+        ISlot slot = profile.getSlots().get(profile.getCurrentSlotId());
+        if (slot == null) {
+            slot = new Slot(profile.getCurrentSlotId(), "Slot " + profile.getCurrentSlotId());
+            profile.getSlots().put(profile.getCurrentSlotId(), slot);
         }
-        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
-        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
-        for(IProfileData profileData : dataList){
-            NBTTagCompound cloned = (NBTTagCompound) profileData.getCurrentNBT(player).copy();
-            dataCompound.setTag(profileData.getTagName(), cloned);
+        for (IProfileData profileData : profileTypes.values()) {
+            NBTTagCompound cloned = profileData.getCurrentNBT(player).copy();
+            slot.setComponentData(profileData.getTagName(), cloned);
         }
-        slot.setCompound(dataCompound);
         slot.setLastLoaded(System.currentTimeMillis());
     }
 
     public static void loadSlotData(EntityPlayer player) {
-        if(player == null || !activeProfiles.containsKey(player.getUniqueID()))
+        if (player == null || !activeProfiles.containsKey(player.getUniqueID()))
             return;
         Profile profile = activeProfiles.get(player.getUniqueID());
-        if(profile.slots.isEmpty() || !profile.slots.containsKey(profile.currentID))
+        ISlot slot = profile.getSlots().get(profile.getCurrentSlotId());
+        if (slot == null)
             return;
-        NBTTagCompound slotCompound = (NBTTagCompound) profile.slots.get(profile.currentID).getCompound().copy();
-        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
-        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
-        for(IProfileData profileData : dataList){
+        for (IProfileData profileData : profileTypes.values()) {
             NBTTagCompound data;
-            if(slotCompound.hasKey(profileData.getTagName()))
-                data = slotCompound.getCompoundTag(profileData.getTagName());
+            if (slot.getComponents().containsKey(profileData.getTagName()))
+                data = slot.getComponentData(profileData.getTagName());
             else
                 data = new NBTTagCompound();
             profileData.setNBT(player, data);
         }
-        for(IProfileData profileData : dataList){
+        for (IProfileData profileData : profileTypes.values()) {
             profileData.save(player);
         }
     }
@@ -629,25 +586,19 @@ public class ProfileController {
         Profile profile = getProfile(player);
         if (profile == null)
             return infoList;
-
-        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
-        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
-
-        if (slotId == profile.currentID) {
-            // Use current data (not stored slot data) for active slot.
-            for (IProfileData pd : dataList) {
+        if (slotId == profile.getCurrentSlotId()) {
+            for (IProfileData pd : profileTypes.values()) {
                 NBTTagCompound currentNBT = pd.getCurrentNBT(player);
                 List<InfoEntry> subInfo = pd.getInfo(player, currentNBT);
                 infoList.addAll(subInfo);
             }
         } else {
-            // Use stored data from the specified slot.
-            if (!profile.slots.containsKey(slotId))
+            if (!profile.getSlots().containsKey(slotId))
                 return infoList;
-            NBTTagCompound slotCompound = profile.slots.get(slotId).getCompound();
-            for (IProfileData pd : dataList) {
-                if (slotCompound.hasKey(pd.getTagName())) {
-                    NBTTagCompound sub = slotCompound.getCompoundTag(pd.getTagName());
+            ISlot slot = profile.getSlots().get(slotId);
+            for (IProfileData pd : profileTypes.values()) {
+                if (slot.getComponents().containsKey(pd.getTagName())) {
+                    NBTTagCompound sub = slot.getComponentData(pd.getTagName());
                     List<InfoEntry> subInfo = pd.getInfo(player, sub);
                     infoList.addAll(subInfo);
                 }
@@ -657,14 +608,11 @@ public class ProfileController {
     }
 
     public static boolean allowSlotPermission(EntityPlayer player) {
-        Profile profile = ProfileController.getProfile(player);
-        int currentSlots = profile.slots.size();
-
-        // Unlimited slots if the player has the wildcard permission.
+        Profile profile = getProfile(player);
+        int currentSlots = profile.getSlots().size();
         if (CustomNpcsPermissions.hasCustomPermission(player, "customnpcs.profile.max.*")) {
             return true;
         }
-
         int highestAllowed = 0;
         for (int i = 1; i <= 50; i++) {
             String perm = "customnpcs.profile.max." + i;
@@ -672,15 +620,85 @@ public class ProfileController {
                 highestAllowed = i;
             }
         }
-
         if (highestAllowed == 0) {
             highestAllowed = 1;
         }
-
         return currentSlots < highestAllowed;
     }
 
-    public static EntityPlayerMP getPlayer(String username){
+    public static EntityPlayerMP getPlayer(String username) {
         return MinecraftServer.getServer().getConfigurationManager().func_152612_a(username);
+    }
+
+    @Override
+    public IProfile getProfile(IPlayer player) {
+        if(player == null || player.getMCEntity() == null)
+            return null;
+        return ProfileController.getProfile((EntityPlayer) player.getMCEntity());
+    }
+
+    @Override
+    public boolean changeSlot(IPlayer player, int slotID) {
+        if(player == null || player.getMCEntity() == null)
+            return false;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        ProfileOperation profileOperation = changeSlot(entityPlayer, slotID);
+        return profileOperation.getResult() == EnumProfileOperation.SUCCESS;
+    }
+
+    @Override
+    public boolean hasSlot(IPlayer player, int slotID) {
+        if(player == null || player.getMCEntity() == null)
+            return false;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        Profile profile = getProfile(entityPlayer);
+        if(profile == null)
+            return false;
+        return profile.getSlots().containsKey(slotID);
+    }
+
+    @Override
+    public boolean removeSlot(IPlayer player, int slotID) {
+        if(player == null || player.getMCEntity() == null)
+            return false;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        ProfileOperation profileOperation = removeSlot(entityPlayer, slotID);
+        return profileOperation.getResult() == EnumProfileOperation.SUCCESS;
+    }
+
+    @Override
+    public IPlayerData getSlotPlayerData(IPlayer player, int slotID) {
+        PlayerData playerData;
+        if(player == null || player.getMCEntity() == null)
+            return null;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        Profile profile = getProfile(entityPlayer);
+        if(profile == null)
+            return null;
+
+        if(profile.currentSlotId == slotID){
+            playerData = PlayerData.get(entityPlayer);
+        } else {
+            Slot slot = (Slot) profile.getSlots().get(slotID);
+            if(slot == null)
+                return null;
+
+            playerData = new PlayerData();
+            playerData.player = entityPlayer;
+            playerData.setNBT(slot.getComponentData(new CNPCData().getTagName()));
+        }
+        return playerData;
+    }
+
+    public void saveSlotData(IPlayer player) {
+        if(player == null || player.getMCEntity() == null)
+            return;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        saveSlotData(entityPlayer);
     }
 }

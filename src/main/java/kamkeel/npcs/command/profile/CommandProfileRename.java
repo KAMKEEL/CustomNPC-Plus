@@ -60,11 +60,11 @@ public class CommandProfileRename extends CommandProfileBase {
             sendError(sender, "Profile not found.");
             return;
         }
-        if(!ProfileController.getProfile(player).slots.containsKey(slotId)) {
+        if(!ProfileController.getProfile(player).getSlots().containsKey(slotId)) {
             sendError(sender, "Slot %d not found in your profile.", slotId);
             return;
         }
-        ProfileController.getProfile(player).slots.get(slotId).setName(newName);
+        ProfileController.getProfile(player).getSlots().get(slotId).setName(newName);
         ProfileController.save(player, ProfileController.getProfile(player));
         sendResult(sender, "Successfully renamed slot %d to '%s'.", slotId, newName);
     }

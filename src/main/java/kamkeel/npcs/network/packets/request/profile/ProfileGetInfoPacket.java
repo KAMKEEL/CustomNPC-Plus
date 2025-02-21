@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.ISlot;
 import kamkeel.npcs.controllers.data.InfoEntry;
 import kamkeel.npcs.controllers.data.Profile;
 import kamkeel.npcs.controllers.data.Slot;
@@ -56,7 +57,7 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
         NBTTagList slotList = new NBTTagList();
         Profile profile = ProfileController.getProfile(player);
         if(profile != null){
-            for(Slot slot : profile.slots.values()){
+            for(ISlot slot : profile.getSlots().values()){
                 NBTTagCompound slotCompound = new NBTTagCompound();
                 NBTTagList infoList = new NBTTagList();
                 slotCompound.setInteger("ID", slot.getId());
