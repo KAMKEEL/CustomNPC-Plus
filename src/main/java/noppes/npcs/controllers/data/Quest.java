@@ -15,6 +15,7 @@ import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.*;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
@@ -162,7 +163,7 @@ public class Quest implements ICompatibilty, IQuest {
 	}
 
     public long getTimeUntilRepeat(EntityPlayer player) {
-        if(profileOptions.enableOptions && ConfigMain.ProfilesEnabled){
+        if(ConfigMain.ProfilesEnabled && profileOptions.enableOptions && profileOptions.cooldownControl == EnumProfileSync.Shared){
             Profile profile = ProfileController.Instance.getProfile(player);
             IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
             long timeRemaining = 0L;
