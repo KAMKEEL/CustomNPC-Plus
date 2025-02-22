@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.renderer.ImageData;
@@ -19,7 +20,7 @@ import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIc
 public class GuiEffectBar extends GuiScreen {
     public int x, y, width, height;
     public int scrollY = 0; // Tracks vertical scrolling
-    public int entryHeight = 20; // Height for each effect slot
+    public int entryHeight = 28; // Height for each effect slot
     public List<EffectEntry> entries = new ArrayList<>();
     public FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
 
@@ -55,8 +56,10 @@ public class GuiEffectBar extends GuiScreen {
         int scissorH = height * scaleFactor;
         GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
 
-        int iconRenderSize = 16;
+        int iconRenderSize = 24;
         int padding = 1;
+        // Calculate vertical offset to center the icon in the slot
+        int iconYOffset = (entryHeight - iconRenderSize) / 2;
 
         int startIndex = scrollY / (entryHeight + padding);
         int endIndex = Math.min(entries.size(), startIndex + height / (entryHeight + padding) + 1);
@@ -79,15 +82,16 @@ public class GuiEffectBar extends GuiScreen {
                 int iconHeight = entry.effect.getHeight();
                 int texWidth = imageData.getTotalWidth();
 
-                func_152125_a(x + 2, drawY + 2, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texWidth);
+                // Use iconYOffset to vertically center the icon
+                func_152125_a(x + 2, drawY + iconYOffset, iconU, iconV, iconWidth, iconHeight, iconRenderSize, iconRenderSize, texWidth, texWidth);
 
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
-                minecraft.getTextureManager().bindTexture(specialIcons);
-                func_152125_a(x + 2, drawY + 2, 0, 224, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
+                Minecraft.getMinecraft().getTextureManager().bindTexture(specialIcons);
+                func_152125_a(x + 2, drawY + iconYOffset, 0, 224, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
 
-            // If mouse hovers over this effect, save tooltip info
+            // Mouse hover logic remains unchanged
             if (mouseX >= x && mouseX < x + width &&
                 mouseY >= drawY && mouseY < drawY + entryHeight) {
                 int seconds = entry.playerEffect.duration;
@@ -126,7 +130,8 @@ public class GuiEffectBar extends GuiScreen {
      * Adjusted scrolling to move up and down instead of left and right.
      */
     public void mouseScrolled(int delta) {
-        int totalHeight = entries.size() * entryHeight;
+        int padding = 1;
+        int totalHeight = entries.size() * (entryHeight + padding);
         scrollY -= delta * 10; // Adjust scroll speed as needed.
         if (scrollY < 0) scrollY = 0;
         if (scrollY > totalHeight - height) scrollY = Math.max(totalHeight - height, 0);
@@ -155,6 +160,7 @@ public class GuiEffectBar extends GuiScreen {
 
         int screenWidth = Minecraft.getMinecraft().currentScreen.width;
         int screenHeight = Minecraft.getMinecraft().currentScreen.height;
+        TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
 
         int tooltipX = x + 12;
         int tooltipY = y - 12;
@@ -188,7 +194,10 @@ public class GuiEffectBar extends GuiScreen {
             func_152125_a(tooltipX + (maxWidth - iconSize) / 2, textY + 4, hoveredEffect.iconX, hoveredEffect.iconY, hoveredEffect.getWidth(), hoveredEffect.getHeight(), iconSize, iconSize, imageData.getTotalWidth(), imageData.getTotalWidth());
         }
 
+        textureManager.bindTexture(specialIcons);
+        func_152125_a(tooltipX + (maxWidth - iconSize) / 2, textY + 4, 0, 224, 16, 16, iconSize, iconSize, 256, 256);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
+
         GL11.glPopMatrix();
         GL11.glPopAttrib();
     }

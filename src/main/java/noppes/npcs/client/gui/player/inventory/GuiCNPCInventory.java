@@ -81,9 +81,9 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         clientButton.renderResource = specialIcons;
         addSideButton(clientButton);
 
-        int effectBarX = guiLeft + xSize + 65;
+        int effectBarX = guiLeft - 40;
         int effectBarY = guiTop + 10;
-        int effectBarWidth = 20;
+        int effectBarWidth = 28;
         int effectBarHeight = ySize;
         effectBar = new GuiEffectBar(effectBarX, effectBarY, effectBarWidth, effectBarHeight);
     }
@@ -108,23 +108,24 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         updateEffectBar();
         super.drawScreen(mouseX, mouseY, partialTicks);
         if (!ConfigClient.HideEffectsBar && effectBar != null && !effectBar.entries.isEmpty()) {
-            effectBar.drawScreen(mouseX, mouseY, partialTicks);
+            if(activeTab != -100)
+                effectBar.drawScreen(mouseX, mouseY, partialTicks);
         }
     }
 
     @Override
     public void handleMouseInput() {
-        super.handleMouseInput();
         int delta = Mouse.getDWheel();
         if (delta != 0 && effectBar != null) {
-            int mouseX = Mouse.getX() * width / mc.displayWidth;
-            int mouseY = height - Mouse.getY() * height / mc.displayHeight - 1;
-            // Only scroll the effect bar if the mouse is over its area.
+            int mouseX = Mouse.getX() * this.width / mc.displayWidth;
+            int mouseY = this.height - Mouse.getY() * this.height / mc.displayHeight - 1;
             if (mouseX >= effectBar.x && mouseX < effectBar.x + effectBar.width &&
                 mouseY >= effectBar.y && mouseY < effectBar.y + effectBar.height) {
-                effectBar.mouseScrolled(delta > 0 ? 1 : -1);
+                // Use delta/120 to convert the typical scroll wheel values to ±1
+                effectBar.mouseScrolled(delta / 120);
             }
         }
+        super.handleMouseInput();
     }
 
 
