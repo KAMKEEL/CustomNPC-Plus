@@ -535,7 +535,7 @@ public class ClientProxy extends CommonProxy {
         if (item instanceof ItemScripted || item instanceof ItemLinked) {
 			MinecraftForgeClient.registerItemRenderer(item, new CustomItemRenderer());
 		} else if (item instanceof ItemNpcTool) {
-            MinecraftForgeClient.registerItemRenderer(item, new NpcItemToolRenderer());
+            MinecraftForgeClient.registerItemRenderer(item, new ToolItemRenderer());
         }else {
 			MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());
 		}

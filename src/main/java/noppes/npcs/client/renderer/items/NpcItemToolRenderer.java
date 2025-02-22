@@ -16,19 +16,18 @@ import org.lwjgl.opengl.GL12;
 public class NpcItemToolRenderer implements IItemRenderer {
 
     // Textures for the assembled paintbrush parts:
-    private static final ResourceLocation PAINTBRUSH_HANDLE = new ResourceLocation("customnpcs", "textures/items/paintbrush_handle.png");
-    private static final ResourceLocation PAINTBRUSH_BRUSH = new ResourceLocation("customnpcs", "textures/items/paintbrush_brush.png");
+    private static final ResourceLocation PAINTBRUSH_HANDLE = new ResourceLocation("customnpcs", "textures/items/npcBrushHandle.png");
+    private static final ResourceLocation PAINTBRUSH_BRUSH = new ResourceLocation("customnpcs", "textures/items/npcBrushHair.png");
     private static final ResourceLocation ENCHANT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
 
     @Override
     public boolean handleRenderType(ItemStack item, ItemRenderType type) {
-        // Only handle equipped types (first person or third person equipped)
-        return type == ItemRenderType.EQUIPPED || type == ItemRenderType.EQUIPPED_FIRST_PERSON;
+        return type != ItemRenderType.FIRST_PERSON_MAP;
     }
 
     @Override
     public boolean shouldUseRenderHelper(ItemRenderType type, ItemStack item, ItemRendererHelper helper) {
-        return false;
+        return helper == ItemRendererHelper.ENTITY_ROTATION || helper == ItemRendererHelper.ENTITY_BOBBING;
     }
 
     @Override
