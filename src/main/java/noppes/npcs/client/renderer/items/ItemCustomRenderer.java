@@ -19,7 +19,6 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.items.ItemCustomizable;
-import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.scripted.NpcAPI;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -28,11 +27,9 @@ import java.util.Random;
 
 import static net.minecraft.client.renderer.entity.RenderItem.renderInFrame;
 
-public class ToolItemRenderer implements IItemRenderer {
-
+public class ItemCustomRenderer implements IItemRenderer {
     private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
-    private static final ResourceLocation PAINTBRUSH_HANDLE = new ResourceLocation("customnpcs", "textures/items/npcBrushHandle.png");
-    private static final ResourceLocation PAINTBRUSH_BRUSH = new ResourceLocation("customnpcs", "textures/items/npcBrushHair.png");
+    private static final ResourceLocation enchant = new ResourceLocation("textures/misc/enchanted_item_glint.png");
     private final Random random = new Random();
 
     private int item3dRenderTicks = 1;
@@ -49,82 +46,140 @@ public class ToolItemRenderer implements IItemRenderer {
 
     @Override
     public void renderItem(ItemRenderType type, ItemStack itemStack, Object... data) {
-        if (itemStack == null || !(itemStack.getItem() instanceof ItemNpcTool)) {
+        IItemStack iItemStack = NpcAPI.Instance().getIItemStack(itemStack);
+        if (!(iItemStack instanceof IItemCustomizable)) {
+            return;
+        }
+
+        IItemCustomizable scriptCustomItem = (IItemCustomizable) iItemStack;
+        ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
+        if (!imageData.imageLoaded()) {
             return;
         }
 
         if (type == ItemRenderType.INVENTORY) {
             GL11.glPushMatrix();
-            renderInventoryCustomItem(itemStack);
+            renderInventoryCustomItem(scriptCustomItem);
             GL11.glPopMatrix();
             return;
         }
+
         if (type == ItemRenderType.ENTITY) {
             GL11.glPushMatrix();
             EntityItem entityItem = (EntityItem) data[1];
             if (!entityItem.ignoreFrustumCheck) {
                 entityItem.ignoreFrustumCheck = true;
 
-                float entityXZSize = (float) Math.sqrt(Math.pow(1,2) + Math.pow(1,2));
-                this.setEntitySize(entityItem, entityXZSize * 0.25F, 1 * 0.25F);
+                float entityXZSize = (float) Math.sqrt(Math.pow(scriptCustomItem.getScaleX(),2) + Math.pow(scriptCustomItem.getScaleZ(),2));
+                this.setEntitySize(entityItem, entityXZSize * 0.25F, scriptCustomItem.getScaleY() * 0.25F);
 
                 double XSize = entityItem.boundingBox.maxX - entityItem.boundingBox.minX;
                 double YSize = entityItem.boundingBox.maxY - entityItem.boundingBox.minY;
                 double ZSize = entityItem.boundingBox.maxZ - entityItem.boundingBox.minZ;
-                entityItem.boundingBox.maxX = entityItem.boundingBox.minX + XSize * 1;
-                entityItem.boundingBox.maxY = entityItem.boundingBox.minY + YSize * 1;
-                entityItem.boundingBox.maxZ = entityItem.boundingBox.minZ + ZSize * 1;
+                entityItem.boundingBox.maxX = entityItem.boundingBox.minX + XSize * scriptCustomItem.getScaleX();
+                entityItem.boundingBox.maxY = entityItem.boundingBox.minY + YSize * scriptCustomItem.getScaleY();
+                entityItem.boundingBox.maxZ = entityItem.boundingBox.minZ + ZSize * scriptCustomItem.getScaleZ();
             }
 
             float entityRenderTicks = Minecraft.getMinecraft().timer.renderPartialTicks;
             float bobbing = MathHelper.sin(((float)entityItem.age + entityRenderTicks) / 10.0F + entityItem.hoverStart) * 0.1F + 0.1F;
 
-            GL11.glRotatef(1 * entityRenderTicks %360, 1, 0, 0);
-            GL11.glRotatef(1 * entityRenderTicks %360, 0, 1, 0);
-            GL11.glRotatef(1 * entityRenderTicks %360, 0, 0, 1);
+            if(!scriptCustomItem.isNormalItem()){
+                GL11.glRotatef(scriptCustomItem.getRotationX(), 1, 0, 0);
+                GL11.glRotatef(scriptCustomItem.getRotationY(), 0, 1, 0);
+                GL11.glRotatef(scriptCustomItem.getRotationZ(), 0, 0, 1);
+            }
+
+            GL11.glRotatef(scriptCustomItem.getRotationXRate() * entityRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationYRate() * entityRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZRate() * entityRenderTicks %360, 0, 0, 1);
 
             if (!renderInFrame) {
+                if(!scriptCustomItem.isNormalItem()){
+                    GL11.glScalef(scriptCustomItem.getScaleX(), scriptCustomItem.getScaleY(), scriptCustomItem.getScaleZ());
+                    GL11.glTranslatef(0.0F, (Math.max(scriptCustomItem.getScaleY(), 1) - 1) * (1.0F / 4), 0.0F);
+                }
                 GL11.glTranslatef(0.0F, -bobbing, 0.0F);
             }
 
-            renderEntityCustomItem(itemStack, entityItem, PAINTBRUSH_HANDLE);
-            int color = ItemNpcTool.getColor(itemStack.getTagCompound());
-            float red = ((color >> 16) & 0xFF) / 255.0F;
-            float green = ((color >> 8) & 0xFF) / 255.0F;
-            float blue = (color & 0xFF) / 255.0F;
-            GL11.glColor3f(red, green, blue);
-            renderEntityCustomItem(itemStack, entityItem, PAINTBRUSH_BRUSH);
+            int color = scriptCustomItem.getColor();
+            float itemRed = (color >> 16 & 255) / 255f;
+            float itemGreen = (color >> 8  & 255) / 255f;
+            float itemBlue = (color & 255) / 255f;
+            GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
+
+            renderEntityCustomItem(scriptCustomItem, itemStack, entityItem);
 
             GL11.glPopMatrix();
             return;
         }
+
+        if (type == ItemRenderType.EQUIPPED_FIRST_PERSON && scriptCustomItem.isNormalItem()) {
+            GL11.glPushMatrix();
+            GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
+            GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
+            GL11.glTranslatef(0.135F, 0.2F, 0.07F);
+
+            int color = scriptCustomItem.getColor();
+            float itemRed = (color >> 16 & 255) / 255f;
+            float itemGreen = (color >> 8  & 255) / 255f;
+            float itemBlue = (color & 255) / 255f;
+            GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
+
+            GL11.glRotatef(-20.0F, 0.0F, 0.0F, 1.0F);
+            GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
+            GL11.glTranslatef(-0.09375F, 0.0625F, 0.0F);
+
+            EntityLivingBase entityLivingBase = (EntityLivingBase) data[1];
+            renderItem3d(scriptCustomItem, entityLivingBase, itemStack);
+
+            GL11.glPopMatrix();
+            return;
+        }
+
         GL11.glPushMatrix();
 
         GL11.glTranslatef(0.9375F, 0.0625F, 0.0F);
         GL11.glRotatef(-315.0F, 0.0F, 0.0F, 1.0F);
-        GL11.glTranslatef(0.135F * 1, 0.2F * 1, 0.07F * 1);
 
-        GL11.glScalef(1, 1, 1);
+        ((ItemCustomizable) itemStack.getItem()).renderOffset(scriptCustomItem);
+        if(scriptCustomItem.isNormalItem()){
+            GL11.glTranslatef(-0.05F, 0.3F, 0.3F);
+            GL11.glRotatef(50, 1, 0, 0);
+            GL11.glRotatef(-80, 0, 1, 0);
+            GL11.glRotatef(80, 0, 0, 1);
+
+            GL11.glRotatef(scriptCustomItem.getRotationXRate() * item3dRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationYRate() * item3dRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZRate() * item3dRenderTicks %360, 0, 0, 1);
+
+            GL11.glScalef(0.6F, 0.6F,0.6F);
+        }
+        else {
+            GL11.glTranslatef(scriptCustomItem.getTranslateX(), scriptCustomItem.getTranslateY(), scriptCustomItem.getTranslateZ());
+            GL11.glRotatef(scriptCustomItem.getRotationX(), 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationY(), 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZ(), 0, 0, 1);
+
+            GL11.glRotatef(scriptCustomItem.getRotationXRate() * item3dRenderTicks %360, 1, 0, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationYRate() * item3dRenderTicks %360, 0, 1, 0);
+            GL11.glRotatef(scriptCustomItem.getRotationZRate() * item3dRenderTicks %360, 0, 0, 1);
+
+            GL11.glScalef(scriptCustomItem.getScaleX(), scriptCustomItem.getScaleY(), scriptCustomItem.getScaleZ());
+        }
+
+        int color = scriptCustomItem.getColor();
+        float itemRed = (color >> 16 & 255) / 255f;
+        float itemGreen = (color >> 8  & 255) / 255f;
+        float itemBlue = (color & 255) / 255f;
+        GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
+
         GL11.glRotatef(-20.0F, 0.0F, 0.0F, 1.0F);
         GL11.glRotatef(-50.0F, 0.0F, 1.0F, 0.0F);
         GL11.glTranslatef(-0.09375F, 0.0625F, 0.0F);
 
-
         EntityLivingBase entityLivingBase = (EntityLivingBase) data[1];
-
-        GL11.glPushMatrix();
-        renderItem3d(entityLivingBase, itemStack, PAINTBRUSH_HANDLE);
-        GL11.glPopMatrix();
-
-        int color = ItemNpcTool.getColor(itemStack.getTagCompound());
-        float red = ((color >> 16) & 0xFF) / 255.0F;
-        float green = ((color >> 8) & 0xFF) / 255.0F;
-        float blue = (color & 0xFF) / 255.0F;
-        GL11.glColor3f(red, green, blue);
-
-        GL11.glPushMatrix();
-        renderItem3d(entityLivingBase, itemStack, PAINTBRUSH_BRUSH);
-        GL11.glPopMatrix();
+        renderItem3d(scriptCustomItem, entityLivingBase, itemStack);
 
         GL11.glPopMatrix();
     }
@@ -176,176 +231,181 @@ public class ToolItemRenderer implements IItemRenderer {
         }
     }
 
-    public void renderEntityCustomItem(ItemStack itemStack, EntityItem entityItem, ResourceLocation location) {
+    public void renderEntityCustomItem(IItemCustomizable scriptCustomItem, ItemStack itemStack, EntityItem entityItem) {
         int pass = 0;
 
         GL11.glPushMatrix();
-        TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
-        textureManager.bindTexture(location);
+            ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
 
-        if (renderInFrame)
-        {
-            GL11.glTranslatef(0.0F, -0.05F, 0.0F);
-            GL11.glScalef(1.025641F,1.025641F,1.025641F);
-            GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
-        }
-
-        Tessellator tessellator = Tessellator.instance;
-
-        float f14 = 0.0F;
-        float f15 = 1.0F;
-        float f4 = 0.0F;
-        float f5 = 1.0F;
-        float f6 = 1.0F;
-        float f7 = 0.5F;
-        float f8 = 0.25F;
-        float f10;
-
-        if (RenderManager.instance.options.fancyGraphics)
-        {
-            GL11.glPushMatrix();
-
-            float f9 = 0.0625F;
-            f10 = 0.021875F;
-            int j = itemStack.stackSize;
-            byte b0;
-
-            if (j < 2)
+            if (renderInFrame)
             {
-                b0 = 1;
-            }
-            else if (j < 16)
-            {
-                b0 = 2;
-            }
-            else if (j < 32)
-            {
-                b0 = 3;
-            }
-            else
-            {
-                b0 = 4;
+                GL11.glTranslatef(0.0F, -0.05F, 0.0F);
+                GL11.glScalef(1.025641F,1.025641F,1.025641F);
+                GL11.glRotatef(180.0F, 0.0F, 1.0F, 0.0F);
+                GL11.glTranslatef(scriptCustomItem.getTranslateX(), scriptCustomItem.getTranslateY(), scriptCustomItem.getTranslateZ());
             }
 
-            GL11.glTranslatef(-f7, -f8, -((f9 + f10) * (float)b0 / 2.0F));
+            Tessellator tessellator = Tessellator.instance;
 
-            for (int k = 0; k < b0; ++k)
-            {
-                GL11.glTranslatef(0f, 0f, f9 + f10);
-                // TODO: May need to rebind here
-                ItemRenderer.renderItemIn2D(tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 16, 16, f9);
-                if (itemStack.hasEffect(pass))
-                {
-                    GL11.glDepthFunc(GL11.GL_EQUAL);
-                    GL11.glDisable(GL11.GL_LIGHTING);
-                    RenderManager.instance.renderEngine.bindTexture(RES_ITEM_GLINT);
-                    GL11.glEnable(GL11.GL_BLEND);
-                    GL11.glBlendFunc(GL11.GL_SRC_COLOR, GL11.GL_ONE);
-                    float f11 = 0.76F;
-                    GL11.glColor4f(0.5F * f11, 0.25F * f11, 0.8F * f11, 1.0F);
-                    GL11.glMatrixMode(GL11.GL_TEXTURE);
-                    GL11.glPushMatrix();
-                    float f12 = 0.125F;
-                    GL11.glScalef(f12, f12, f12);
-                    float f13 = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F * 8.0F;
-                    GL11.glTranslatef(f13, 0.0F, 0.0F);
-                    GL11.glRotatef(-50.0F, 0.0F, 0.0F, 1.0F);
-                    ItemRenderer.renderItemIn2D(tessellator, 0.0F, 0.0F, 1.0F, 1.0F, 255, 255, f9);
-                    GL11.glPopMatrix();
-                    GL11.glPushMatrix();
-                    GL11.glScalef(f12, f12, f12);
-                    f13 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F * 8.0F;
-                    GL11.glTranslatef(-f13, 0.0F, 0.0F);
-                    GL11.glRotatef(10.0F, 0.0F, 0.0F, 1.0F);
-                    ItemRenderer.renderItemIn2D(tessellator, 0.0F, 0.0F, 1.0F, 1.0F, 255, 255, f9);
-                    GL11.glPopMatrix();
-                    GL11.glMatrixMode(GL11.GL_MODELVIEW);
-                    GL11.glDisable(GL11.GL_BLEND);
-                    GL11.glEnable(GL11.GL_LIGHTING);
-                    GL11.glDepthFunc(GL11.GL_LEQUAL);
-                }
-            }
+            float f14 = 0.0F;
+            float f15 = 1.0F;
+            float f4 = 0.0F;
+            float f5 = 1.0F;
+            float f6 = 1.0F;
+            float f7 = 0.5F;
+            float f8 = 0.25F;
+            float f10;
 
-            GL11.glPopMatrix();
-        }
-        else
-        {
-            int j = itemStack.stackSize;
-            int b0;
-
-            if (j < 2)
-            {
-                b0 = 1;
-            }
-            else if (j < 16)
-            {
-                b0 = 2;
-            }
-            else if (j < 32)
-            {
-                b0 = 3;
-            }
-            else
-            {
-                b0 = 4;
-            }
-
-            for (int l = 0; l < b0; ++l)
+            if (RenderManager.instance.options.fancyGraphics)
             {
                 GL11.glPushMatrix();
 
-                if (l > 0)
+                float f9 = 0.0625F;
+                f10 = 0.021875F;
+                int j = itemStack.stackSize;
+                byte b0;
+
+                if (j < 2)
                 {
-                    f10 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.3F;
-                    float f16 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.3F;
-                    float f17 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.3F;
-                    GL11.glTranslatef(f10, f16, f17);
+                    b0 = 1;
+                }
+                else if (j < 16)
+                {
+                    b0 = 2;
+                }
+                else if (j < 32)
+                {
+                    b0 = 3;
+                }
+                else
+                {
+                    b0 = 4;
                 }
 
-                if (!renderInFrame)
+                if(!scriptCustomItem.isNormalItem())
+                    GL11.glScalef(scriptCustomItem.getScaleX(), scriptCustomItem.getScaleY(), scriptCustomItem.getScaleZ());
+                GL11.glTranslatef(-f7, -f8, -((f9 + f10) * (float)b0 / 2.0F));
+
+                for (int k = 0; k < b0; ++k)
                 {
-                    GL11.glRotatef(180.0F - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
+                    // Makes items offset when in 3D, like when in 2D, looks much better. Considered a vanilla bug...
+                    GL11.glTranslatef(0f, 0f, f9 + f10);
+                    /*if (renderInFrame) {
+                        GL11.glTranslatef(0.5F, 0.0F, 0.0F);
+                        GL11.glRotatef(-90.0F, 0.0F, 0.0F, 1.0F);
+                    }*/
+
+                    ImageData imageData = ClientCacheHandler.getImageData(scriptCustomItem.getTexture());
+                    ItemRenderer.renderItemIn2D(tessellator, f15, f4, f14, f5, imageData.getTotalWidth(), imageData.getTotalHeight(), f9);
+
+                    if (itemStack.hasEffect(pass))
+                    {
+                        GL11.glDepthFunc(GL11.GL_EQUAL);
+                        GL11.glDisable(GL11.GL_LIGHTING);
+                        RenderManager.instance.renderEngine.bindTexture(RES_ITEM_GLINT);
+                        GL11.glEnable(GL11.GL_BLEND);
+                        GL11.glBlendFunc(GL11.GL_SRC_COLOR, GL11.GL_ONE);
+                        float f11 = 0.76F;
+                        GL11.glColor4f(0.5F * f11, 0.25F * f11, 0.8F * f11, 1.0F);
+                        GL11.glMatrixMode(GL11.GL_TEXTURE);
+                        GL11.glPushMatrix();
+                        float f12 = 0.125F;
+                        GL11.glScalef(f12, f12, f12);
+                        float f13 = (float)(Minecraft.getSystemTime() % 3000L) / 3000.0F * 8.0F;
+                        GL11.glTranslatef(f13, 0.0F, 0.0F);
+                        GL11.glRotatef(-50.0F, 0.0F, 0.0F, 1.0F);
+                        ItemRenderer.renderItemIn2D(tessellator, 0.0F, 0.0F, 1.0F, 1.0F, 255, 255, f9);
+                        GL11.glPopMatrix();
+                        GL11.glPushMatrix();
+                        GL11.glScalef(f12, f12, f12);
+                        f13 = (float)(Minecraft.getSystemTime() % 4873L) / 4873.0F * 8.0F;
+                        GL11.glTranslatef(-f13, 0.0F, 0.0F);
+                        GL11.glRotatef(10.0F, 0.0F, 0.0F, 1.0F);
+                        ItemRenderer.renderItemIn2D(tessellator, 0.0F, 0.0F, 1.0F, 1.0F, 255, 255, f9);
+                        GL11.glPopMatrix();
+                        GL11.glMatrixMode(GL11.GL_MODELVIEW);
+                        GL11.glDisable(GL11.GL_BLEND);
+                        GL11.glEnable(GL11.GL_LIGHTING);
+                        GL11.glDepthFunc(GL11.GL_LEQUAL);
+                    }
                 }
 
-                tessellator.startDrawingQuads();
-                tessellator.setNormal(0.0F, 1.0F, 0.0F);
-                tessellator.addVertexWithUV((double)(0.0F - f7), (double)(0.0F - f8), 0.0D, (double)f14, (double)f5);
-                tessellator.addVertexWithUV((double)(f6 - f7), (double)(0.0F - f8), 0.0D, (double)f15, (double)f5);
-                tessellator.addVertexWithUV((double)(f6 - f7), (double)(1.0F - f8), 0.0D, (double)f15, (double)f4);
-                tessellator.addVertexWithUV((double)(0.0F - f7), (double)(1.0F - f8), 0.0D, (double)f14, (double)f4);
-                tessellator.draw();
                 GL11.glPopMatrix();
             }
-        }
+            else
+            {
+                int j = itemStack.stackSize;
+                int b0;
+
+                if (j < 2)
+                {
+                    b0 = 1;
+                }
+                else if (j < 16)
+                {
+                    b0 = 2;
+                }
+                else if (j < 32)
+                {
+                    b0 = 3;
+                }
+                else
+                {
+                    b0 = 4;
+                }
+
+                for (int l = 0; l < b0; ++l)
+                {
+                    GL11.glPushMatrix();
+
+                    if (l > 0)
+                    {
+                        f10 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.3F;
+                        float f16 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.3F;
+                        float f17 = (this.random.nextFloat() * 2.0F - 1.0F) * 0.3F;
+                        GL11.glTranslatef(f10, f16, f17);
+                    }
+
+                    if (!renderInFrame)
+                    {
+                        GL11.glRotatef(180.0F - RenderManager.instance.playerViewY, 0.0F, 1.0F, 0.0F);
+                    }
+
+                    tessellator.startDrawingQuads();
+                    tessellator.setNormal(0.0F, 1.0F, 0.0F);
+                    tessellator.addVertexWithUV((double)(0.0F - f7), (double)(0.0F - f8), 0.0D, (double)f14, (double)f5);
+                    tessellator.addVertexWithUV((double)(f6 - f7), (double)(0.0F - f8), 0.0D, (double)f15, (double)f5);
+                    tessellator.addVertexWithUV((double)(f6 - f7), (double)(1.0F - f8), 0.0D, (double)f15, (double)f4);
+                    tessellator.addVertexWithUV((double)(0.0F - f7), (double)(1.0F - f8), 0.0D, (double)f14, (double)f4);
+                    tessellator.draw();
+                    GL11.glPopMatrix();
+                }
+            }
         GL11.glPopMatrix();
     }
 
-    public void renderInventoryCustomItem(ItemStack itemStack) {
+    public void renderInventoryCustomItem(IItemCustomizable scriptCustomItem) {
         GL11.glPushMatrix();
-        TextureManager textureManager = Minecraft.getMinecraft().getTextureManager();
+            int color = scriptCustomItem.getColor();
+            float itemRed = (color >> 16 & 255) / 255f;
+            float itemGreen = (color >> 8  & 255) / 255f;
+            float itemBlue = (color & 255) / 255f;
+            GL11.glColor4f(itemRed, itemGreen, itemBlue, 1.0F);
 
-        GL11.glDisable(GL11.GL_LIGHTING);
-        GL11.glEnable(GL11.GL_ALPHA_TEST);
+            GL11.glDisable(GL11.GL_LIGHTING); //Forge: Make sure that render states are reset, a renderEffect can derp them up.
+            GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-        textureManager.bindTexture(PAINTBRUSH_HANDLE);
-        renderCustomItemSlot(0,0,16,16, 1.0f, 1.0f, 1.0f);
+            ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
+            renderCustomItemSlot(0,0,16,16, itemRed, itemGreen, itemBlue);
 
-        int color = ItemNpcTool.getColor(itemStack.getTagCompound());
-        float red = ((color >> 16) & 0xFF) / 255.0F;
-        float green = ((color >> 8) & 0xFF) / 255.0F;
-        float blue = (color & 0xFF) / 255.0F;
-        textureManager.bindTexture(PAINTBRUSH_BRUSH);
-        renderCustomItemSlot(0,0,16,16, red, green, blue);
+            GL11.glEnable(GL11.GL_LIGHTING);
+            GL11.glDisable(GL11.GL_ALPHA_TEST);
 
-        GL11.glEnable(GL11.GL_LIGHTING);
-        GL11.glDisable(GL11.GL_ALPHA_TEST);
-
-        if (itemStack.hasEffect(0))
-        {
-            renderEffect(Minecraft.getMinecraft().getTextureManager(), 0, 0);
-        }
-
-        GL11.glEnable(GL11.GL_LIGHTING);
+            if (scriptCustomItem.getMCItemStack().hasEffect(0))
+            {
+                renderEffect(Minecraft.getMinecraft().getTextureManager(), 0, 0);
+            }
+            GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glPopMatrix();
     }
 
@@ -403,14 +463,14 @@ public class ToolItemRenderer implements IItemRenderer {
         tessellator.draw();
     }
 
-    public void renderItem3d(EntityLivingBase entityLivingBase, ItemStack itemStack, ResourceLocation location) {
+    public void renderItem3d(IItemCustomizable scriptCustomItem, EntityLivingBase entityLivingBase, ItemStack itemStack) {
         item3dRenderTicks++;
 
         Minecraft mc = Minecraft.getMinecraft();
         TextureManager texturemanager = mc.getTextureManager();
         int par3 = 0;
 
-        texturemanager.bindTexture(location);
+        ClientCacheHandler.getImageData(scriptCustomItem.getTexture()).bindTexture();
 
         Tessellator tessellator = Tessellator.instance;
         IIcon icon = entityLivingBase.getItemIcon(itemStack, par3);
@@ -428,12 +488,12 @@ public class ToolItemRenderer implements IItemRenderer {
         GL11.glRotatef(335.0F, 0.0F, 0.0F, 1.0F);
         GL11.glTranslatef(-0.9375F, -0.0625F, 0.0F);
 
-        renderCustomItemIn2D(tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 0.0625F);
+        renderCustomItemIn2D(scriptCustomItem, tessellator, 1.0F, 0.0F, 0.0F, 1.0F, 0.0625F);
 
         if (itemStack.hasEffect(par3)) {
             GL11.glDepthFunc(GL11.GL_EQUAL);
             GL11.glDisable(GL11.GL_LIGHTING);
-            texturemanager.bindTexture(RES_ITEM_GLINT);
+            texturemanager.bindTexture(enchant);
             GL11.glEnable(GL11.GL_BLEND);
             GL11.glBlendFunc(GL11.GL_SRC_COLOR, GL11.GL_ONE);
             float f7 = 0.76F;
@@ -463,10 +523,11 @@ public class ToolItemRenderer implements IItemRenderer {
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
     }
 
-    public static void renderCustomItemIn2D(Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
+    public static void renderCustomItemIn2D(IItemCustomizable wrapper, Tessellator p_78439_0_, float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, float p_78439_7_)
     {
-        int width = 16;
-        int height = 16;
+        ImageData imageData = ClientCacheHandler.getImageData(wrapper.getTexture());
+        int width = imageData.getTotalWidth();
+        int height = imageData.getTotalHeight();
 
         p_78439_0_.startDrawingQuads();
         p_78439_0_.setNormal(0.0F, 0.0F, 1.0F);
