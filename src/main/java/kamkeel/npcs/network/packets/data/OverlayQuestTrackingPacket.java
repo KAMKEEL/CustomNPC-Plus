@@ -12,7 +12,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.OverlayQuestTracking;
+import noppes.npcs.client.gui.hud.OverlayQuestTracking;
 
 import java.io.IOException;
 

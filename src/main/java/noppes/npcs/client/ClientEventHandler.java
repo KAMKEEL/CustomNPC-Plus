@@ -91,7 +91,7 @@ public class ClientEventHandler {
             }
 
             if (ClientCacheHandler.questTrackingOverlay != null) {
-                ClientCacheHandler.questTrackingOverlay.renderGameOverlay(event.partialTicks);
+                ClientCacheHandler.questTrackingOverlay.renderOverlay(event.partialTicks);
             }
         }
     }

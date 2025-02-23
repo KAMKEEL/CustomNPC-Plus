@@ -597,7 +597,7 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	public static class FontContainer {
-		private StringCache textFont = null;
+		public StringCache textFont = null;
 		public boolean useCustomFont = true;
 
 		private FontContainer(){

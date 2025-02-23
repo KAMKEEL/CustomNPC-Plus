@@ -77,6 +77,20 @@ public class ConfigClient
     public static Property BannerAlertsProperty;
     public static boolean BannerAlerts = true;
 
+    // New Quest Overlay configuration properties
+    public static Property QuestOverlayXProperty;
+    public static int QuestOverlayX = 100;
+
+    public static Property QuestOverlayYProperty;
+    public static int QuestOverlayY = 100;
+
+    public static Property QuestOverlayScaleProperty;
+    public static int QuestOverlayScale = 100;
+
+    public static Property QuestOverlayTextAlignProperty;
+    public static int QuestOverlayTextAlign = 1; // 0: Left, 1: Center, 2: Right
+
+
     /**
      *  Texture Properties
      **/
@@ -106,6 +120,20 @@ public class ConfigClient
         try
         {
             config.load();
+
+            // Load new Quest Overlay settings
+            QuestOverlayXProperty = config.get(QUESTING, "QuestOverlayX", 100, "X position of the quest overlay.");
+            QuestOverlayX = QuestOverlayXProperty.getInt(100);
+
+            QuestOverlayYProperty = config.get(QUESTING, "QuestOverlayY", 100, "Y position of the quest overlay.");
+            QuestOverlayY = QuestOverlayYProperty.getInt(100);
+
+            QuestOverlayScaleProperty = config.get(QUESTING, "QuestOverlayScale", 100, "Scale percentage of the quest overlay.");
+            QuestOverlayScale = QuestOverlayScaleProperty.getInt(100);
+
+            QuestOverlayTextAlignProperty = config.get(QUESTING, "QuestOverlayTextAlign", 1, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
+            QuestOverlayTextAlign = QuestOverlayTextAlignProperty.getInt(1);
+
 
             // General
             CacheLifeProperty = config.get(GENERAL, "Cache Life", 10, "How long should downloaded imagery data be saved client side? (In minutes)");

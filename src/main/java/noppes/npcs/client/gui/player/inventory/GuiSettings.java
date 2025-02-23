@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.gui.hud.GuiOverlayQuestEditor;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
@@ -82,6 +83,9 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         this.addButton(new GuiNpcButton(8, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.HideEffectsBar?1:0));
 
         y += 22;
+
+        this.addLabel(new GuiNpcLabel(90, "overlayer", guiLeft + 8, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(90, guiLeft + 105, guiTop + 9 + y, "EDIT"));
 
         y += 22;
         this.addButton(new GuiNpcButton(5, guiLeft + 8, guiTop + 9 + y, 150, 20, "settings.clearSkin"));
@@ -161,6 +165,9 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         if(button.id == 8){
             ConfigClient.HideEffectsBar = button.getValue() == 1;
             ConfigClient.HideEffectsBarProperty.set(ConfigClient.HideEffectsBar);
+        }
+        if(button.id == 90){
+            mc.displayGuiScreen(new GuiOverlayQuestEditor(this));
         }
 
         ConfigClient.config.save();
