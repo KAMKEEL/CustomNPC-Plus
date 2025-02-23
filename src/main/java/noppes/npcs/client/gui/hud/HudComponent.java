@@ -1,7 +1,8 @@
 package noppes.npcs.client.gui.hud;
 
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.nbt.NBTTagCompound;
 import java.util.List;
 
 public abstract class HudComponent {
@@ -40,15 +41,30 @@ public abstract class HudComponent {
 
     /**
      * Allows the component to add its own editor buttons.
+     * The default implementation adds a toggle button for enabling/disabling the component.
      */
     public void addEditorButtons(List<GuiButton> buttonList) {
-        // Default: do nothing.
+        // Toggle enabled/disabled button (id 999 reserved for toggle)
+        String label = enabled ? "Enabled" : "Disabled";
+        buttonList.add(new GuiButton(999, 0, 0, 120, 20, label));
     }
 
     /**
      * Handles editor button actions specific to this HUD component.
+     * The default implementation toggles the enabled state if button id is 999.
      */
     public void onEditorButtonPressed(GuiButton button) {
-        // Default: do nothing.
+        if(button.id == 999){
+            enabled = !enabled;
+            button.displayString = enabled ? "Enabled" : "Disabled";
+        }
+    }
+
+    /**
+     * Computes the effective scale factor for rendering and hitbox calculations.
+     * Uses the current resolution (with 1920 as the base width).
+     */
+    public float getEffectiveScale(ScaledResolution res) {
+        return (scale / 100.0F) * (res.getScaledWidth() / 1920.0F);
     }
 }

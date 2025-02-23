@@ -52,7 +52,6 @@ public class QuestTrackingComponent extends HudComponent {
         NBTTagList objectiveList = compound.getTagList("ObjectiveList", 8);
         for (int i = 0; i < objectiveList.tagCount(); i++) {
             String objective = objectiveList.getStringTagAt(i);
-            // Process objective if needed.
             objectives.add(objective);
         }
         String turnIn = "";
@@ -107,14 +106,13 @@ public class QuestTrackingComponent extends HudComponent {
             return;
 
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)((float) posX / 100F * res.getScaledWidth());
-        int actualY = (int)((float) posY / 100F * res.getScaledHeight());
-        // Use base scaling: effective scale = scale/100.0F
-        float s = (scale / 100.0F);
+        int actualX = (int)(posX / 100F * res.getScaledWidth());
+        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(actualX, actualY, 0);
-        GL11.glScalef(s, s, s);
+        GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
         // Draw background (semi-transparent).
         drawRect(0, 0, overlayWidth, overlayHeight, 0x40FFFFFF);
@@ -142,13 +140,13 @@ public class QuestTrackingComponent extends HudComponent {
     public void renderEditing() {
         isEditting = true;
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)((float) posX / 100F * res.getScaledWidth());
-        int actualY = (int)((float) posY / 100F * res.getScaledHeight());
-        float s = (scale / 100.0F);
+        int actualX = (int)(posX / 100F * res.getScaledWidth());
+        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(actualX, actualY, 0);
-        GL11.glScalef(s, s, s);
+        GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
         // Draw editing background, border, and resize handle.
         drawRect(0, 0, overlayWidth, overlayHeight, 0x40FFFFFF);
@@ -172,9 +170,11 @@ public class QuestTrackingComponent extends HudComponent {
 
     @Override
     public void addEditorButtons(List<GuiButton> buttonList) {
-        // Add buttons similar to the original editor: ID 1 for alignment, ID 3 for reset.
-        buttonList.add(new GuiButton(1, 100, Minecraft.getMinecraft().displayHeight - 70, 120, 20, getAlignText()));
-        buttonList.add(new GuiButton(3, 100, Minecraft.getMinecraft().displayHeight - 95, 120, 20, "Reset to Center"));
+        // First add the default toggle button.
+        super.addEditorButtons(buttonList);
+        // Then add other custom buttons.
+        buttonList.add(new GuiButton(1, 100, 0, 120, 20, getAlignText()));
+        buttonList.add(new GuiButton(3, 100, 0, 120, 20, "Reset to Center"));
     }
 
     @Override
@@ -185,6 +185,8 @@ public class QuestTrackingComponent extends HudComponent {
         } else if (button.id == 3) { // Reset to center.
             posX = 50;
             posY = 50;
+        } else {
+            super.onEditorButtonPressed(button);
         }
     }
 

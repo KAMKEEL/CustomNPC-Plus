@@ -22,7 +22,11 @@ public class CompassHudComponent extends HudComponent {
     private final int SCALE_DISTANCE_MIN = 10;
     private final int SCALE_DISTANCE_MAX = 40;
     private static final int HANDLE_SIZE = 10;
+    private static final int WIDTH_BAR_SIZE = 6; // Width adjust bar width
     private final int SCAN_RANGE = 128;
+
+    // Flag to indicate if the width bar is being dragged in editing mode.
+    public boolean resizingWidth = false;
 
     public static class MarkTargetEntry {
         public int x, z;
@@ -79,16 +83,17 @@ public class CompassHudComponent extends HudComponent {
 
     @Override
     public void renderOnScreen(float partialTicks) {
-//        if (!hasData || isEditting) return;
+        // If no mark data or in edit mode, skip normal rendering.
+        if (!hasData || isEditting) return;
 
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)((float) posX / 100F * res.getScaledWidth());
-        int actualY = (int)((float) posY / 100F * res.getScaledHeight());
-        float scaleFactor = scale / 100.0F;
+        int actualX = (int)(posX / 100F * res.getScaledWidth());
+        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(actualX, actualY, 0);
-        GL11.glScalef(scaleFactor, scaleFactor, scaleFactor);
+        GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
         // Draw background bar
         drawRect(0, 0, overlayWidth, BAR_HEIGHT, 0x80000000);
@@ -194,20 +199,27 @@ public class CompassHudComponent extends HudComponent {
     public void renderEditing() {
         isEditting = true;
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)((float) posX / 100F * res.getScaledWidth());
-        int actualY = (int)((float) posY / 100F * res.getScaledHeight());
-        float scaleFactor = scale / 100.0F;
+        int actualX = (int)(posX / 100F * res.getScaledWidth());
+        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(actualX, actualY, 0);
-        GL11.glScalef(scaleFactor, scaleFactor, scaleFactor);
+        GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
+        // Draw background bar and border.
         drawRect(0, 0, overlayWidth, overlayHeight, 0x80000000);
         drawRectOutline(0, 0, overlayWidth, overlayHeight, 0xFF00FF00);
+        // Resize handle (bottom-right for scale)
         drawRect(overlayWidth - HANDLE_SIZE, overlayHeight - HANDLE_SIZE,
             overlayWidth, overlayHeight, 0xFFCCCCCC);
+        // Width adjust bar on right side (centered vertically)
+        int margin = 5;
+        int barX = overlayWidth + margin;
+        int barY = (overlayHeight - BAR_HEIGHT) / 2;
+        drawRect(barX, barY, barX + WIDTH_BAR_SIZE, barY + BAR_HEIGHT, 0xFF888888);
 
-        // Demo marks
+        // Demo marks for preview.
         renderDemoIcon(overlayWidth * 0.25f, MarkType.EXCLAMATION, 0xFF00FF00);
         renderDemoIcon(overlayWidth * 0.75f, MarkType.QUESTION, 0xFFFF0000);
 
@@ -227,6 +239,11 @@ public class CompassHudComponent extends HudComponent {
         }
     }
 
+    /**
+     * Updates the mark targets directly.
+     * (This method assumes external code (CNPC+ mark data) supplies the new marks
+     * without having to loop through all loaded entities.)
+     */
     public void updateMarkTargets(List<MarkTargetEntry> newMarks) {
         markTargets.clear();
         markTargets.addAll(newMarks);

@@ -141,12 +141,23 @@ public class ClientTickHandler{
     private void updateCompassMarks() {
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = mc.thePlayer;
+
+        // Update compass
+        HudComponent compass = ClientHudManager.getInstance()
+            .getHudComponents().get(EnumHudComponent.QuestCompass);
+
+        if(!compass.enabled || mc.thePlayer == null)
+            return;
+
         ArrayList<CompassHudComponent.MarkTargetEntry> marks = new ArrayList<>();
 
         // Scan entities in loaded chunks
         for(Object entity : mc.theWorld.loadedEntityList) {
             if(entity instanceof EntityNPCInterface) {
                 EntityNPCInterface npc = (EntityNPCInterface) entity;
+
+                if(npc.dimension != player.dimension)
+                    continue;
 
                 // Check distance
                 if(player.getDistanceToEntity(npc) > SCAN_RANGE)
@@ -169,11 +180,6 @@ public class ClientTickHandler{
             }
         }
 
-        // Update compass
-        HudComponent compass = ClientHudManager.getInstance()
-            .getHudComponents().get(EnumHudComponent.QuestCompass);
-        if(compass != null) {
-            ((CompassHudComponent) compass).updateMarkTargets(marks);
-        }
+        ((CompassHudComponent) compass).updateMarkTargets(marks);
     }
 }
