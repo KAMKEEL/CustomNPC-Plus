@@ -11,16 +11,26 @@ import kamkeel.npcs.network.packets.player.InputDevicePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.CompassHudComponent;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.HudComponent;
 import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.renderer.RenderNPCInterface;
+import noppes.npcs.constants.MarkType;
+import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
+
+import java.util.ArrayList;
 
 import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
@@ -77,6 +87,13 @@ public class ClientTickHandler{
 			prevHeight = mc.displayHeight;
             PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth,mc.displayHeight));
 		}
+
+        if(mc.theWorld == null)
+            return;
+
+        if(mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
+            updateCompassMarks();
+        }
 	}
 
 	@SubscribeEvent
@@ -119,4 +136,44 @@ public class ClientTickHandler{
 
 		return false;
 	}
+
+    private final int SCAN_RANGE = 128;
+    private void updateCompassMarks() {
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayer player = mc.thePlayer;
+        ArrayList<CompassHudComponent.MarkTargetEntry> marks = new ArrayList<>();
+
+        // Scan entities in loaded chunks
+        for(Object entity : mc.theWorld.loadedEntityList) {
+            if(entity instanceof EntityNPCInterface) {
+                EntityNPCInterface npc = (EntityNPCInterface) entity;
+
+                // Check distance
+                if(player.getDistanceToEntity(npc) > SCAN_RANGE)
+                    continue;
+
+                // Get marks
+                MarkData markData = MarkData.get(npc);
+                for(MarkData.Mark mark : markData.marks) {
+                    if(mark.getType() != MarkType.NONE &&
+                        mark.availability.isAvailable(player)) {
+                        marks.add(new CompassHudComponent.MarkTargetEntry(
+                            (int)npc.posX,
+                            (int)npc.posZ,
+                            mark.getType(),
+                            mark.color
+                        ));
+                        break; // Only show first valid mark per NPC
+                    }
+                }
+            }
+        }
+
+        // Update compass
+        HudComponent compass = ClientHudManager.getInstance()
+            .getHudComponents().get(EnumHudComponent.QuestCompass);
+        if(compass != null) {
+            ((CompassHudComponent) compass).updateMarkTargets(marks);
+        }
+    }
 }
