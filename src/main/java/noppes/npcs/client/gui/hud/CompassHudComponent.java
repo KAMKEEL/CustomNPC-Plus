@@ -66,6 +66,7 @@ public class CompassHudComponent extends HudComponent {
 
     @Override
     public void load() {
+        enabled = ConfigClient.CompassEnabled;
         posX = ConfigClient.CompassOverlayX;
         posY = ConfigClient.CompassOverlayY;
         scale = ConfigClient.CompassOverlayScale;
@@ -74,11 +75,23 @@ public class CompassHudComponent extends HudComponent {
 
     @Override
     public void save() {
+        ConfigClient.CompassEnabled = enabled;
+        ConfigClient.CompassEnabledProperty.set(ConfigClient.CompassEnabled);
+
         ConfigClient.CompassOverlayX = posX;
+        ConfigClient.CompassOverlayXProperty.set(ConfigClient.CompassOverlayX);
+
         ConfigClient.CompassOverlayY = posY;
+        ConfigClient.CompassOverlayYProperty.set(ConfigClient.CompassOverlayY);
+
         ConfigClient.CompassOverlayScale = scale;
+        ConfigClient.CompassOverlayScaleProperty.set(ConfigClient.CompassOverlayScale);
+
         ConfigClient.CompassOverlayWidth = overlayWidth;
-        ConfigClient.config.save();
+        ConfigClient.CompassOverlayWidthProperty.set(ConfigClient.CompassOverlayWidth);
+
+        if(ConfigClient.config.hasChanged())
+            ConfigClient.config.save();
     }
 
     @Override

@@ -15,7 +15,6 @@ public class ConfigClient
 
     public final static String GENERAL = "General";
     public final static String VISUAL = "Visual";
-    public final static String QUESTING = "Questing";
     public final static String MODEL = "Model";
     public final static String TEXTURE = "Texture";
     public final static String HUD = "Hud";
@@ -79,16 +78,20 @@ public class ConfigClient
     public static Property QuestOverlayTextAlignProperty;
     public static int QuestOverlayTextAlign = 1; // 0: Left, 1: Center, 2: Right
 
+    public static Property CompassEnabledProperty;
+    public static boolean CompassEnabled;
+
     public static Property CompassOverlayXProperty;
-    public static Property CompassOverlayYProperty;
-    public static Property CompassOverlayScaleProperty;
-    public static Property CompassOverlayWidthProperty;
-
     public static int CompassOverlayX;
-    public static int CompassOverlayY;
-    public static int CompassOverlayScale;
-    public static int CompassOverlayWidth;
 
+    public static Property CompassOverlayYProperty;
+    public static int CompassOverlayY;
+
+    public static Property CompassOverlayScaleProperty;
+    public static int CompassOverlayScale;
+
+    public static Property CompassOverlayWidthProperty;
+    public static int CompassOverlayWidth;
 
     /**
      *  Texture Properties
@@ -132,6 +135,14 @@ public class ConfigClient
 
             QuestOverlayTextAlignProperty = config.get(HUD, "Quest Hud Text Alignment", 1, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
             QuestOverlayTextAlign = QuestOverlayTextAlignProperty.getInt(1);
+
+            CompassEnabledProperty = config.get(
+                HUD,
+                "Compass Hud Enabled",
+                true,
+                "Enable Compass Hud Component"
+            );
+            CompassEnabled = CompassEnabledProperty.getBoolean();
 
             // Compass HUD Configs
             CompassOverlayXProperty = config.get(
