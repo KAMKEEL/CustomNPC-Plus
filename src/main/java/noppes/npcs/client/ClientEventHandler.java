@@ -16,6 +16,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.QuestTrackingComponent;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -90,9 +93,15 @@ public class ClientEventHandler {
                 overlayCustom.renderGameOverlay(event.partialTicks);
             }
 
-            if (ClientCacheHandler.questTrackingOverlay != null) {
-                ClientCacheHandler.questTrackingOverlay.renderOverlay(event.partialTicks);
+            if(ClientHudManager.getInstance().getHudComponents().isEmpty()){
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestTracker, new QuestTrackingComponent(Minecraft.getMinecraft()));
             }
+
+            ClientHudManager.getInstance().renderAllHUDs(event.partialTicks);
+
+//            if (ClientCacheHandler.questTrackingOverlay != null) {
+//                ClientCacheHandler.questTrackingOverlay.renderOverlay(event.partialTicks);
+//            }
         }
     }
 

@@ -1,7 +1,6 @@
 package noppes.npcs.client;
 
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.gui.hud.OverlayQuestTracking;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.select.GuiTextureSelection;
@@ -19,7 +18,6 @@ import java.util.UUID;
 public class ClientCacheHandler {
     private static final CacheHashMap<String, CacheHashMap.CachedObject<ImageData>> imageDataCache = new CacheHashMap<>((long) ConfigClient.CacheLife * 60 * 1000);
     public static PlayerData playerData = new PlayerData();
-    public static OverlayQuestTracking questTrackingOverlay = null;
     public static HashMap<Integer, OverlayCustom> customOverlays = new HashMap<>();
     public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
     public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
@@ -56,7 +54,6 @@ public class ClientCacheHandler {
 
     public static void clearCache() {
         ClientCacheHandler.imageDataCache.clear();
-        ClientCacheHandler.questTrackingOverlay = null;
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
         ClientCacheHandler.playerAnimations.clear();

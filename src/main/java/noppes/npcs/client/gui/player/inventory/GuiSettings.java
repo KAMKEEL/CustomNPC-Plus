@@ -8,7 +8,7 @@ import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.hud.GuiOverlayQuestEditor;
+import noppes.npcs.client.gui.hud.GuiHudEditor;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
@@ -167,7 +167,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
             ConfigClient.HideEffectsBarProperty.set(ConfigClient.HideEffectsBar);
         }
         if(button.id == 90){
-            mc.displayGuiScreen(new GuiOverlayQuestEditor(this));
+            mc.displayGuiScreen(new GuiHudEditor(this));
         }
 
         ConfigClient.config.save();
