@@ -9,9 +9,11 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.config.ConfigMain;
 
 import java.io.IOException;
 
@@ -52,11 +54,13 @@ public final class ProfileChangePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
+        if(!ConfigMain.ProfilesEnabled)
+            return;
+
         int slot = in.readInt();
         ProfileOperation operation = ProfileController.Instance.changeSlot(player, slot);
-        // TODO: Check Operation and Send Message
-
         ProfileGetPacket.sendProfileNBT(player);
         ProfileGetInfoPacket.sendProfileInfo(player);
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, operation.getMessage());
     }
 }

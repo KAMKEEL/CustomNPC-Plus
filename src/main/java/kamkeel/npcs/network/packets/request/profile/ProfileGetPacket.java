@@ -13,6 +13,7 @@ import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.config.ConfigMain;
 
 import java.io.IOException;
 
@@ -38,6 +39,9 @@ public final class ProfileGetPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if(!ConfigMain.ProfilesEnabled)
             return;
 
         sendProfileNBT(player);

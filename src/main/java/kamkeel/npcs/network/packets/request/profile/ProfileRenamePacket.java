@@ -9,10 +9,12 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.config.ConfigMain;
 
 import java.io.IOException;
 
@@ -56,12 +58,15 @@ public final class ProfileRenamePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
+        if(!ConfigMain.ProfilesEnabled)
+            return;
+
         int slot = in.readInt();
         String newName = ByteBufUtils.readString(in);
 
         Profile profile = ProfileController.Instance.getProfile(player);
         if(!profile.getSlots().containsKey(slot)) {
-            // TODO: Check Operation and Send Message
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "No slot found");
             return;
         }
 

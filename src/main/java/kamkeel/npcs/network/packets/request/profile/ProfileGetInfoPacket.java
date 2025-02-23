@@ -17,6 +17,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraftforge.common.util.Constants;
+import noppes.npcs.config.ConfigMain;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,6 +46,9 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
+            return;
+
+        if(!ConfigMain.ProfilesEnabled)
             return;
 
         sendProfileInfo(player);
