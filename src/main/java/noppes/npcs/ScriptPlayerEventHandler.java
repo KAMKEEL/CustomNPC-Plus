@@ -30,6 +30,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -153,6 +154,11 @@ public class ScriptPlayerEventHandler {
     public void invoke(BlockEvent.BreakEvent event) {
         if(event.getPlayer() == null || event.getPlayer().worldObj == null)
             return;
+
+        if(event.getPlayer().getHeldItem() != null && event.getPlayer().getHeldItem().getItem() instanceof ItemNpcTool){
+            event.setCanceled(true);
+            return;
+        }
 
         if(!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;

@@ -115,7 +115,7 @@ public class QuestTrackingComponent extends HudComponent {
         GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
         // Draw background (semi-transparent).
-        drawRect(0, 0, overlayWidth, overlayHeight, 0x40FFFFFF);
+        drawRect(0, 0, overlayWidth, overlayHeight, 0x40000000);
 
         int currentY = 5;
         currentY = renderTextBlock(questTitleLines, currentY, textAlign, 0xFFFFFF);
