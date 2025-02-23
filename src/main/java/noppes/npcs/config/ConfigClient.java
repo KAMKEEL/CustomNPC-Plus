@@ -18,6 +18,7 @@ public class ConfigClient
     public final static String QUESTING = "Questing";
     public final static String MODEL = "Model";
     public final static String TEXTURE = "Texture";
+    public final static String HUD = "Hud";
 
 
     /**
@@ -53,18 +54,6 @@ public class ConfigClient
     /**
      *  Questing Properties
      **/
-    public static Property TrackingInfoAlignmentProperty;
-    public static int TrackingInfoAlignment = 3;
-
-    public static Property TrackingInfoXProperty;
-    public static int TrackingInfoX = 0;
-
-    public static Property TrackingInfoYProperty;
-    public static int TrackingInfoY = 0;
-
-    public static Property TrackingScaleProperty;
-    public static int TrackingScale = 100;
-
     public static Property DialogSpeedProperty;
     public static int DialogSpeed = 10;
 
@@ -77,7 +66,7 @@ public class ConfigClient
     public static Property BannerAlertsProperty;
     public static boolean BannerAlerts = true;
 
-    // New Quest Overlay configuration properties
+    // HUD PROPERTIES
     public static Property QuestOverlayXProperty;
     public static int QuestOverlayX = 100;
 
@@ -89,6 +78,16 @@ public class ConfigClient
 
     public static Property QuestOverlayTextAlignProperty;
     public static int QuestOverlayTextAlign = 1; // 0: Left, 1: Center, 2: Right
+
+    public static Property CompassOverlayXProperty;
+    public static Property CompassOverlayYProperty;
+    public static Property CompassOverlayScaleProperty;
+    public static Property CompassOverlayWidthProperty;
+
+    public static int CompassOverlayX;
+    public static int CompassOverlayY;
+    public static int CompassOverlayScale;
+    public static int CompassOverlayWidth;
 
 
     /**
@@ -121,18 +120,59 @@ public class ConfigClient
         {
             config.load();
 
-            // Load new Quest Overlay settings
-            QuestOverlayXProperty = config.get(QUESTING, "QuestOverlayX", 100, "X position of the quest overlay.");
+            // Hud Quest Overlay settings
+            QuestOverlayXProperty = config.get(HUD, "Quest Hud X", 100, "X position of the quest overlay.");
             QuestOverlayX = QuestOverlayXProperty.getInt(100);
 
-            QuestOverlayYProperty = config.get(QUESTING, "QuestOverlayY", 100, "Y position of the quest overlay.");
+            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 100, "Y position of the quest overlay.");
             QuestOverlayY = QuestOverlayYProperty.getInt(100);
 
-            QuestOverlayScaleProperty = config.get(QUESTING, "QuestOverlayScale", 100, "Scale percentage of the quest overlay.");
+            QuestOverlayScaleProperty = config.get(HUD, "Quest Hud Scale", 100, "Scale percentage of the quest overlay.");
             QuestOverlayScale = QuestOverlayScaleProperty.getInt(100);
 
-            QuestOverlayTextAlignProperty = config.get(QUESTING, "QuestOverlayTextAlign", 1, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
+            QuestOverlayTextAlignProperty = config.get(HUD, "Quest Hud Text Alignment", 1, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
             QuestOverlayTextAlign = QuestOverlayTextAlignProperty.getInt(1);
+
+            // Compass HUD Configs
+            CompassOverlayXProperty = config.get(
+                HUD,
+                "Compass Hud X",
+                50,
+                "Horizontal position of compass overlay (0-100 percentage)",
+                0,
+                100
+            );
+            CompassOverlayX = CompassOverlayXProperty.getInt();
+
+            CompassOverlayYProperty = config.get(
+                HUD,
+                "Compass Hud Y",
+                5,
+                "Vertical position of compass overlay (0-100 percentage)",
+                0,
+                100
+            );
+            CompassOverlayY = CompassOverlayYProperty.getInt();
+
+            CompassOverlayScaleProperty = config.get(
+                HUD,
+                "Compass Hud Scale",
+                100,
+                "Scale percentage of compass overlay",
+                50,
+                300
+            );
+            CompassOverlayScale = CompassOverlayScaleProperty.getInt();
+
+            CompassOverlayWidthProperty = config.get(
+                HUD,
+                "Compass Hud Width",
+                200,
+                "Base width of compass bar in pixels",
+                100,
+                1000
+            );
+            CompassOverlayWidth = CompassOverlayWidthProperty.getInt();
 
 
             // General
@@ -160,19 +200,6 @@ public class ConfigClient
 
             HideEffectsBarProperty = config.get(VISUAL, "Hide Effects Bar", false, "Hides CNPC+ Inventory Effects Bar");
             HideEffectsBar = HideEffectsBarProperty.getBoolean(false);
-
-            // Questing
-            TrackingInfoAlignmentProperty = config.get(QUESTING, "Tracking Info Alignment", 3, "Client sided! Determines where tracking quest info shows up on the screen based on a number from 0 to 8. Default: 3");
-            TrackingInfoAlignment = TrackingInfoAlignmentProperty.getInt(3);
-
-            TrackingInfoXProperty = config.get(QUESTING, "Tracking Info X", 0, "Client sided! Offsets the tracking info GUI by this amount in the X direction.");
-            TrackingInfoX = TrackingInfoXProperty.getInt(0);
-
-            TrackingInfoYProperty = config.get(QUESTING, "Tracking Info Y", 0, "Client sided! Offsets the tracking info GUI by this amount in the Y direction.");
-            TrackingInfoY = TrackingInfoYProperty.getInt(0);
-
-            TrackingScaleProperty = config.get(QUESTING, "Tracking Scale", 100, "Client sided! Adjusts the scaling of the Quest Tracking");
-            TrackingScale = TrackingScaleProperty.getInt(100);
 
             DialogSpeedProperty = config.get(VISUAL, "Dialog Speed", true, "Only set for gradual dialogs");
             DialogSpeed = DialogSpeedProperty.getInt(10);
@@ -215,21 +242,7 @@ public class ConfigClient
 
                 FontSize = LegacyConfig.FontSize;
                 FontSizeProperty.set(FontSize);
-
-                TrackingInfoAlignment = LegacyConfig.TrackingInfoAlignment;
-                TrackingInfoAlignmentProperty.set(TrackingInfoAlignment);
-
-                TrackingInfoX = LegacyConfig.TrackingInfoX;
-                TrackingInfoXProperty.set(TrackingInfoX);
-
-                TrackingInfoY = LegacyConfig.TrackingInfoY;
-                TrackingInfoYProperty.set(TrackingInfoY);
             }
-
-            if (TrackingInfoAlignment < 0)
-                TrackingInfoAlignment = 0;
-            if (TrackingInfoAlignment > 8)
-                TrackingInfoAlignment = 8;
         }
         catch (Exception e)
         {

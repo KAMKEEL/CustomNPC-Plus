@@ -11,8 +11,7 @@ public abstract class HudComponent {
     public boolean enabled = true;
     public boolean hasData = false;
     public boolean isEditting = false;
-
-    protected final int overlayWidth = 200, overlayHeight = 120;
+    public int overlayWidth = 200, overlayHeight = 120;
 
     /**
      * Loads custom HUD data from an NBT compound.

@@ -17,6 +17,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.QuestTrackingComponent;
 import noppes.npcs.client.renderer.MarkRenderer;
@@ -95,6 +96,7 @@ public class ClientEventHandler {
 
             if(ClientHudManager.getInstance().getHudComponents().isEmpty()){
                 ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestTracker, new QuestTrackingComponent(Minecraft.getMinecraft()));
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestCompass, new CompassHudComponent(Minecraft.getMinecraft()));
             }
 
             ClientHudManager.getInstance().renderAllHUDs(event.partialTicks);
