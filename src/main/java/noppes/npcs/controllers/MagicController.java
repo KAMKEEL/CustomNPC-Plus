@@ -57,213 +57,213 @@ public class MagicController {
             } catch (Exception ee) { }
         }
         magics.clear();
-        if (false) {
-            // Create default Pokémon types
-            Magic normal   = new Magic(0, "Normal", 0xA8A878);
-            normal.setIconItem(new ItemStack(net.minecraft.init.Items.paper));  // using paper for Normal
-
-            Magic fire     = new Magic(1, "Fire", 0xF08030);
-            fire.setIconItem(new ItemStack(net.minecraft.init.Items.flint));    // flint for Fire
-
-            Magic water    = new Magic(2, "Water", 0x6890F0);
-            water.setIconItem(new ItemStack(net.minecraft.init.Items.water_bucket)); // water bucket
-
-            Magic electric = new Magic(3, "Electric", 0xF8D030);
-            electric.setIconItem(new ItemStack(net.minecraft.init.Items.redstone)); // redstone
-
-            Magic grass    = new Magic(4, "Grass", 0x78C850);
-            grass.setIconItem(new ItemStack(net.minecraft.init.Items.wheat_seeds));  // wheat seeds
-
-            Magic ice      = new Magic(5, "Ice", 0x98D8D8);
-            ice.setIconItem(new ItemStack(net.minecraft.init.Items.snowball));       // snowball for Ice
-
-            Magic fighting = new Magic(6, "Fighting", 0xC03028);
-            fighting.setIconItem(new ItemStack(net.minecraft.init.Items.iron_sword));  // sword for Fighting
-
-            Magic poison   = new Magic(7, "Poison", 0xA040A0);
-            poison.setIconItem(new ItemStack(net.minecraft.init.Items.potionitem));    // potion item for Poison
-
-            Magic ground   = new Magic(8, "Ground", 0xE0C068);
-            ground.setIconItem(new ItemStack(Blocks.dirt));          // dirt for Ground
-
-            Magic flying   = new Magic(9, "Flying", 0xA890F0);
-            flying.setIconItem(new ItemStack(net.minecraft.init.Items.feather));       // feather for Flying
-
-            Magic psychic  = new Magic(10, "Psychic", 0xF85888);
-            psychic.setIconItem(new ItemStack(net.minecraft.init.Items.ender_pearl));  // ender pearl for Psychic
-
-            Magic bug      = new Magic(11, "Bug", 0xA8B820);
-            bug.setIconItem(new ItemStack(net.minecraft.init.Items.spider_eye));       // spider eye for Bug
-
-            Magic rock     = new Magic(12, "Rock", 0xB8A038);
-            rock.setIconItem(new ItemStack(Blocks.cobblestone));     // cobblestone for Rock
-
-            Magic ghost    = new Magic(13, "Ghost", 0x705898);
-            ghost.setIconItem(new ItemStack(net.minecraft.init.Items.skull));          // skull for Ghost
-
-            Magic dragon   = new Magic(14, "Dragon", 0x7038F8);
-            dragon.setIconItem(new ItemStack(Blocks.dragon_egg));    // dragon egg
-
-            Magic dark     = new Magic(15, "Dark", 0x705848);
-            dark.setIconItem(new ItemStack(net.minecraft.init.Items.coal));            // coal for Dark
-
-            Magic steel    = new Magic(16, "Steel", 0xB8B8D0);
-            steel.setIconItem(new ItemStack(net.minecraft.init.Items.iron_ingot));     // iron ingot for Steel
-
-            Magic fairy    = new Magic(17, "Fairy", 0xEE99AC);
-            fairy.setIconItem(new ItemStack(net.minecraft.init.Items.sugar));          // sugar for Fairy
-
-            // Now set weaknesses (using a multiplier of 2.0f to indicate “double damage”).
-            // The following is based on a common Pokémon type chart.
-            normal.weaknesses.put(fighting.id, 2.0f);
-
-            fire.weaknesses.put(water.id, 2.0f);
-            fire.weaknesses.put(ground.id, 2.0f);
-            fire.weaknesses.put(rock.id, 2.0f);
-
-            water.weaknesses.put(electric.id, 2.0f);
-            water.weaknesses.put(grass.id, 2.0f);
-
-            electric.weaknesses.put(ground.id, 2.0f);
-
-            grass.weaknesses.put(fire.id, 2.0f);
-            grass.weaknesses.put(ice.id, 2.0f);
-            grass.weaknesses.put(poison.id, 2.0f);
-            grass.weaknesses.put(flying.id, 2.0f);
-            grass.weaknesses.put(bug.id, 2.0f);
-
-            ice.weaknesses.put(fire.id, 2.0f);
-            ice.weaknesses.put(fighting.id, 2.0f);
-            ice.weaknesses.put(rock.id, 2.0f);
-            ice.weaknesses.put(steel.id, 2.0f);
-
-            fighting.weaknesses.put(flying.id, 2.0f);
-            fighting.weaknesses.put(psychic.id, 2.0f);
-            fighting.weaknesses.put(fairy.id, 2.0f);
-
-            poison.weaknesses.put(ground.id, 2.0f);
-            poison.weaknesses.put(psychic.id, 2.0f);
-
-            ground.weaknesses.put(water.id, 2.0f);
-            ground.weaknesses.put(grass.id, 2.0f);
-            ground.weaknesses.put(ice.id, 2.0f);
-
-            flying.weaknesses.put(electric.id, 2.0f);
-            flying.weaknesses.put(ice.id, 2.0f);
-            flying.weaknesses.put(rock.id, 2.0f);
-
-            psychic.weaknesses.put(bug.id, 2.0f);
-            psychic.weaknesses.put(ghost.id, 2.0f);
-            psychic.weaknesses.put(dark.id, 2.0f);
-
-            bug.weaknesses.put(fire.id, 2.0f);
-            bug.weaknesses.put(flying.id, 2.0f);
-            bug.weaknesses.put(rock.id, 2.0f);
-
-            rock.weaknesses.put(water.id, 2.0f);
-            rock.weaknesses.put(grass.id, 2.0f);
-            rock.weaknesses.put(fighting.id, 2.0f);
-            rock.weaknesses.put(ground.id, 2.0f);
-            rock.weaknesses.put(steel.id, 2.0f);
-
-            ghost.weaknesses.put(ghost.id, 2.0f);
-            ghost.weaknesses.put(dark.id, 2.0f);
-
-            dragon.weaknesses.put(ice.id, 2.0f);
-            dragon.weaknesses.put(dragon.id, 2.0f);
-            dragon.weaknesses.put(fairy.id, 2.0f);
-
-            dark.weaknesses.put(fighting.id, 2.0f);
-            dark.weaknesses.put(bug.id, 2.0f);
-            dark.weaknesses.put(fairy.id, 2.0f);
-
-            steel.weaknesses.put(fire.id, 2.0f);
-            steel.weaknesses.put(fighting.id, 2.0f);
-            steel.weaknesses.put(ground.id, 2.0f);
-
-            fairy.weaknesses.put(poison.id, 2.0f);
-            fairy.weaknesses.put(steel.id, 2.0f);
-
-            // Register the types.
-            magics.put(normal.id, normal);
-            magics.put(fire.id, fire);
-            magics.put(water.id, water);
-            magics.put(electric.id, electric);
-            magics.put(grass.id, grass);
-            magics.put(ice.id, ice);
-            magics.put(fighting.id, fighting);
-            magics.put(poison.id, poison);
-            magics.put(ground.id, ground);
-            magics.put(flying.id, flying);
-            magics.put(psychic.id, psychic);
-            magics.put(bug.id, bug);
-            magics.put(rock.id, rock);
-            magics.put(ghost.id, ghost);
-            magics.put(dragon.id, dragon);
-            magics.put(dark.id, dark);
-            magics.put(steel.id, steel);
-            magics.put(fairy.id, fairy);
-        }
-
-        if (true) {
-            // Create default magics
-            Magic earth = new Magic(0, "Earth", 0x00DD00, 1, 1);
-            earth.setIconItem(new ItemStack(CustomItems.earthElement));
-
-            Magic water = new Magic(1, "Water", 0xF2DD00, 1, 2);
-            water.setIconItem(new ItemStack(CustomItems.waterElement));
-
-            Magic fire    = new Magic(2, "Fire", 0xDD0000, 1, 3);
-            fire.setIconItem(new ItemStack(CustomItems.spellFire));
-
-            Magic air   = new Magic(3, "Air", 0xDD0000, 1, 0);
-            air.setIconItem(new ItemStack(CustomItems.airElement));
-
-            Magic dark   = new Magic(4, "Dark", 0xDD0000, 0, 3);
-            dark.setIconItem(new ItemStack(CustomItems.spellDark));
-
-            Magic holy   = new Magic(5, "Holy", 0xDD0000, 0, 1);
-            holy.setIconItem(new ItemStack(CustomItems.spellHoly));
-
-            Magic nature   = new Magic(6, "Nature", 0xDD0000, 0, 0);
-            nature.setIconItem(new ItemStack(CustomItems.spellNature));
-
-            Magic arcane   = new Magic(7, "Arcane", 0xDD0000, 0, 2);
-            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
-
-            // Insiders
-            earth.weaknesses.put(air.id, 0.60f);
-            water.weaknesses.put(earth.id, 0.60f);
-            fire.weaknesses.put(water.id, 0.60f);
-            air.weaknesses.put(fire.id, 0.60f);
-
-            // Outsiders
-            dark.weaknesses.put(nature.id, 0.60f);
-            nature.weaknesses.put(holy.id, 0.60f);
-            holy.weaknesses.put(arcane.id, 0.60f);
-            arcane.weaknesses.put(dark.id, 0.60f);
-
-            // Cross Interactions
-            earth.weaknesses.put(nature.id, 0.30f);
-            water.weaknesses.put(holy.id, 0.30f);
-            fire.weaknesses.put(arcane.id, 0.30f);
-            air.weaknesses.put(dark.id, 0.30f);
-            dark.weaknesses.put(fire.id, 0.30f);
-            nature.weaknesses.put(air.id, 0.30f);
-            holy.weaknesses.put(earth.id, 0.30f);
-            arcane.weaknesses.put(water.id, 0.30f);
-
-            // Add them to the registry
-            magics.put(earth.id, earth);
-            magics.put(water.id, water);
-            magics.put(fire.id, fire);
-            magics.put(air.id, air);
-            magics.put(dark.id, dark);
-            magics.put(holy.id, holy);
-            magics.put(nature.id, nature);
-            magics.put(arcane.id, arcane);
-        }
-        printAllMagicInteractions();
+//        if (false) {
+//            // Create default Pokémon types
+//            Magic normal   = new Magic(0, "Normal", 0xA8A878);
+//            normal.setIconItem(new ItemStack(net.minecraft.init.Items.paper));  // using paper for Normal
+//
+//            Magic fire     = new Magic(1, "Fire", 0xF08030);
+//            fire.setIconItem(new ItemStack(net.minecraft.init.Items.flint));    // flint for Fire
+//
+//            Magic water    = new Magic(2, "Water", 0x6890F0);
+//            water.setIconItem(new ItemStack(net.minecraft.init.Items.water_bucket)); // water bucket
+//
+//            Magic electric = new Magic(3, "Electric", 0xF8D030);
+//            electric.setIconItem(new ItemStack(net.minecraft.init.Items.redstone)); // redstone
+//
+//            Magic grass    = new Magic(4, "Grass", 0x78C850);
+//            grass.setIconItem(new ItemStack(net.minecraft.init.Items.wheat_seeds));  // wheat seeds
+//
+//            Magic ice      = new Magic(5, "Ice", 0x98D8D8);
+//            ice.setIconItem(new ItemStack(net.minecraft.init.Items.snowball));       // snowball for Ice
+//
+//            Magic fighting = new Magic(6, "Fighting", 0xC03028);
+//            fighting.setIconItem(new ItemStack(net.minecraft.init.Items.iron_sword));  // sword for Fighting
+//
+//            Magic poison   = new Magic(7, "Poison", 0xA040A0);
+//            poison.setIconItem(new ItemStack(net.minecraft.init.Items.potionitem));    // potion item for Poison
+//
+//            Magic ground   = new Magic(8, "Ground", 0xE0C068);
+//            ground.setIconItem(new ItemStack(Blocks.dirt));          // dirt for Ground
+//
+//            Magic flying   = new Magic(9, "Flying", 0xA890F0);
+//            flying.setIconItem(new ItemStack(net.minecraft.init.Items.feather));       // feather for Flying
+//
+//            Magic psychic  = new Magic(10, "Psychic", 0xF85888);
+//            psychic.setIconItem(new ItemStack(net.minecraft.init.Items.ender_pearl));  // ender pearl for Psychic
+//
+//            Magic bug      = new Magic(11, "Bug", 0xA8B820);
+//            bug.setIconItem(new ItemStack(net.minecraft.init.Items.spider_eye));       // spider eye for Bug
+//
+//            Magic rock     = new Magic(12, "Rock", 0xB8A038);
+//            rock.setIconItem(new ItemStack(Blocks.cobblestone));     // cobblestone for Rock
+//
+//            Magic ghost    = new Magic(13, "Ghost", 0x705898);
+//            ghost.setIconItem(new ItemStack(net.minecraft.init.Items.skull));          // skull for Ghost
+//
+//            Magic dragon   = new Magic(14, "Dragon", 0x7038F8);
+//            dragon.setIconItem(new ItemStack(Blocks.dragon_egg));    // dragon egg
+//
+//            Magic dark     = new Magic(15, "Dark", 0x705848);
+//            dark.setIconItem(new ItemStack(net.minecraft.init.Items.coal));            // coal for Dark
+//
+//            Magic steel    = new Magic(16, "Steel", 0xB8B8D0);
+//            steel.setIconItem(new ItemStack(net.minecraft.init.Items.iron_ingot));     // iron ingot for Steel
+//
+//            Magic fairy    = new Magic(17, "Fairy", 0xEE99AC);
+//            fairy.setIconItem(new ItemStack(net.minecraft.init.Items.sugar));          // sugar for Fairy
+//
+//            // Now set weaknesses (using a multiplier of 2.0f to indicate “double damage”).
+//            // The following is based on a common Pokémon type chart.
+//            normal.weaknesses.put(fighting.id, 2.0f);
+//
+//            fire.weaknesses.put(water.id, 2.0f);
+//            fire.weaknesses.put(ground.id, 2.0f);
+//            fire.weaknesses.put(rock.id, 2.0f);
+//
+//            water.weaknesses.put(electric.id, 2.0f);
+//            water.weaknesses.put(grass.id, 2.0f);
+//
+//            electric.weaknesses.put(ground.id, 2.0f);
+//
+//            grass.weaknesses.put(fire.id, 2.0f);
+//            grass.weaknesses.put(ice.id, 2.0f);
+//            grass.weaknesses.put(poison.id, 2.0f);
+//            grass.weaknesses.put(flying.id, 2.0f);
+//            grass.weaknesses.put(bug.id, 2.0f);
+//
+//            ice.weaknesses.put(fire.id, 2.0f);
+//            ice.weaknesses.put(fighting.id, 2.0f);
+//            ice.weaknesses.put(rock.id, 2.0f);
+//            ice.weaknesses.put(steel.id, 2.0f);
+//
+//            fighting.weaknesses.put(flying.id, 2.0f);
+//            fighting.weaknesses.put(psychic.id, 2.0f);
+//            fighting.weaknesses.put(fairy.id, 2.0f);
+//
+//            poison.weaknesses.put(ground.id, 2.0f);
+//            poison.weaknesses.put(psychic.id, 2.0f);
+//
+//            ground.weaknesses.put(water.id, 2.0f);
+//            ground.weaknesses.put(grass.id, 2.0f);
+//            ground.weaknesses.put(ice.id, 2.0f);
+//
+//            flying.weaknesses.put(electric.id, 2.0f);
+//            flying.weaknesses.put(ice.id, 2.0f);
+//            flying.weaknesses.put(rock.id, 2.0f);
+//
+//            psychic.weaknesses.put(bug.id, 2.0f);
+//            psychic.weaknesses.put(ghost.id, 2.0f);
+//            psychic.weaknesses.put(dark.id, 2.0f);
+//
+//            bug.weaknesses.put(fire.id, 2.0f);
+//            bug.weaknesses.put(flying.id, 2.0f);
+//            bug.weaknesses.put(rock.id, 2.0f);
+//
+//            rock.weaknesses.put(water.id, 2.0f);
+//            rock.weaknesses.put(grass.id, 2.0f);
+//            rock.weaknesses.put(fighting.id, 2.0f);
+//            rock.weaknesses.put(ground.id, 2.0f);
+//            rock.weaknesses.put(steel.id, 2.0f);
+//
+//            ghost.weaknesses.put(ghost.id, 2.0f);
+//            ghost.weaknesses.put(dark.id, 2.0f);
+//
+//            dragon.weaknesses.put(ice.id, 2.0f);
+//            dragon.weaknesses.put(dragon.id, 2.0f);
+//            dragon.weaknesses.put(fairy.id, 2.0f);
+//
+//            dark.weaknesses.put(fighting.id, 2.0f);
+//            dark.weaknesses.put(bug.id, 2.0f);
+//            dark.weaknesses.put(fairy.id, 2.0f);
+//
+//            steel.weaknesses.put(fire.id, 2.0f);
+//            steel.weaknesses.put(fighting.id, 2.0f);
+//            steel.weaknesses.put(ground.id, 2.0f);
+//
+//            fairy.weaknesses.put(poison.id, 2.0f);
+//            fairy.weaknesses.put(steel.id, 2.0f);
+//
+//            // Register the types.
+//            magics.put(normal.id, normal);
+//            magics.put(fire.id, fire);
+//            magics.put(water.id, water);
+//            magics.put(electric.id, electric);
+//            magics.put(grass.id, grass);
+//            magics.put(ice.id, ice);
+//            magics.put(fighting.id, fighting);
+//            magics.put(poison.id, poison);
+//            magics.put(ground.id, ground);
+//            magics.put(flying.id, flying);
+//            magics.put(psychic.id, psychic);
+//            magics.put(bug.id, bug);
+//            magics.put(rock.id, rock);
+//            magics.put(ghost.id, ghost);
+//            magics.put(dragon.id, dragon);
+//            magics.put(dark.id, dark);
+//            magics.put(steel.id, steel);
+//            magics.put(fairy.id, fairy);
+//        }
+//
+//        if (true) {
+//            // Create default magics
+//            Magic earth = new Magic(0, "Earth", 0x00DD00, 1, 1);
+//            earth.setIconItem(new ItemStack(CustomItems.earthElement));
+//
+//            Magic water = new Magic(1, "Water", 0xF2DD00, 1, 2);
+//            water.setIconItem(new ItemStack(CustomItems.waterElement));
+//
+//            Magic fire    = new Magic(2, "Fire", 0xDD0000, 1, 3);
+//            fire.setIconItem(new ItemStack(CustomItems.spellFire));
+//
+//            Magic air   = new Magic(3, "Air", 0xDD0000, 1, 0);
+//            air.setIconItem(new ItemStack(CustomItems.airElement));
+//
+//            Magic dark   = new Magic(4, "Dark", 0xDD0000, 0, 3);
+//            dark.setIconItem(new ItemStack(CustomItems.spellDark));
+//
+//            Magic holy   = new Magic(5, "Holy", 0xDD0000, 0, 1);
+//            holy.setIconItem(new ItemStack(CustomItems.spellHoly));
+//
+//            Magic nature   = new Magic(6, "Nature", 0xDD0000, 0, 0);
+//            nature.setIconItem(new ItemStack(CustomItems.spellNature));
+//
+//            Magic arcane   = new Magic(7, "Arcane", 0xDD0000, 0, 2);
+//            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
+//
+//            // Insiders
+//            earth.weaknesses.put(air.id, 0.60f);
+//            water.weaknesses.put(earth.id, 0.60f);
+//            fire.weaknesses.put(water.id, 0.60f);
+//            air.weaknesses.put(fire.id, 0.60f);
+//
+//            // Outsiders
+//            dark.weaknesses.put(nature.id, 0.60f);
+//            nature.weaknesses.put(holy.id, 0.60f);
+//            holy.weaknesses.put(arcane.id, 0.60f);
+//            arcane.weaknesses.put(dark.id, 0.60f);
+//
+//            // Cross Interactions
+//            earth.weaknesses.put(nature.id, 0.30f);
+//            water.weaknesses.put(holy.id, 0.30f);
+//            fire.weaknesses.put(arcane.id, 0.30f);
+//            air.weaknesses.put(dark.id, 0.30f);
+//            dark.weaknesses.put(fire.id, 0.30f);
+//            nature.weaknesses.put(air.id, 0.30f);
+//            holy.weaknesses.put(earth.id, 0.30f);
+//            arcane.weaknesses.put(water.id, 0.30f);
+//
+//            // Add them to the registry
+//            magics.put(earth.id, earth);
+//            magics.put(water.id, water);
+//            magics.put(fire.id, fire);
+//            magics.put(air.id, air);
+//            magics.put(dark.id, dark);
+//            magics.put(holy.id, holy);
+//            magics.put(nature.id, nature);
+//            magics.put(arcane.id, arcane);
+//        }
+//        printAllMagicInteractions();
     }
 
     private void loadMagicFile(File file) throws IOException {
