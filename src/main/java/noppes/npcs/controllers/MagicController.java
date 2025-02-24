@@ -22,11 +22,12 @@ public class MagicController {
     public HashMap<Integer, Magic> magics = new HashMap<>();
     public HashMap<Integer, Magic> magicSync = new HashMap<>();
 
-    public HashMap<Integer, MagicCategory> categoriesSync = new HashMap<>();
     public HashMap<Integer, MagicCategory> categories = new HashMap<>();
-    public int lastUsedCategoryID = 0;
+    public HashMap<Integer, MagicCategory> categoriesSync = new HashMap<>();
 
+    public int lastUsedCategoryID = 0;
     private int lastUsedID = 0;
+
     private static MagicController instance;
 
     public MagicController() {
@@ -74,6 +75,7 @@ public class MagicController {
     public void loadMagic(DataInputStream stream) throws IOException {
         NBTTagCompound compound = CompressedStreamTools.read(stream);
         lastUsedID = compound.getInteger("lastID");
+        lastUsedCategoryID = compound.getInteger("lastCatID");
 
         // Load magics
         magics.clear();
@@ -111,6 +113,7 @@ public class MagicController {
         }
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("lastID", lastUsedID);
+        compound.setInteger("lastCatID", lastUsedCategoryID);
         compound.setTag("Magics", magicList);
         compound.setTag("Categories", catList);
         return compound;
