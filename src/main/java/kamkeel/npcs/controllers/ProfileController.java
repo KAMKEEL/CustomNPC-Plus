@@ -162,6 +162,8 @@ public class ProfileController implements IProfileHandler {
                 backupProfile(uuid, compound);
             } catch (Exception e) {
                 LogWriter.except(e);
+            }  finally {
+                profile.setLocked(false);
             }
         });
     }
