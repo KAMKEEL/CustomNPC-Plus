@@ -601,8 +601,11 @@ public class ProfileController implements IProfileHandler {
         Profile profile = getProfile(player);
         if (profile == null)
             return infoList;
+
+        List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
+        dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
         if (slotId == profile.getCurrentSlotId()) {
-            for (IProfileData pd : profileTypes.values()) {
+            for (IProfileData pd : dataList) {
                 NBTTagCompound currentNBT = pd.getCurrentNBT(player);
                 List<InfoEntry> subInfo = pd.getInfo(player, currentNBT);
                 infoList.addAll(subInfo);
@@ -611,7 +614,7 @@ public class ProfileController implements IProfileHandler {
             if (!profile.getSlots().containsKey(slotId))
                 return infoList;
             ISlot slot = profile.getSlots().get(slotId);
-            for (IProfileData pd : profileTypes.values()) {
+            for (IProfileData pd : dataList) {
                 if (slot.getComponents().containsKey(pd.getTagName())) {
                     NBTTagCompound sub = slot.getComponentData(pd.getTagName());
                     List<InfoEntry> subInfo = pd.getInfo(player, sub);
