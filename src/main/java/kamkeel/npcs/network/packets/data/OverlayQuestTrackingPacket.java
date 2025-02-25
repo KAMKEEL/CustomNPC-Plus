@@ -12,7 +12,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.OverlayQuestTracking;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.HudComponent;
 
 import java.io.IOException;
 
@@ -46,12 +48,14 @@ public final class OverlayQuestTrackingPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        HudComponent component = ClientHudManager.getInstance().getHudComponents().get(EnumHudComponent.QuestTracker);
         try {
             NBTTagCompound nbt = ByteBufUtils.readNBT(in);
-            ClientCacheHandler.questTrackingOverlay = new OverlayQuestTracking(Minecraft.getMinecraft());
-            ClientCacheHandler.questTrackingOverlay.setOverlayData(nbt);
+            component.loadData(nbt);
+            if(nbt.hasNoTags())
+                component.hasData = false;
         } catch (IOException e) {
-            ClientCacheHandler.questTrackingOverlay = null;
+            component.hasData = false;
         }
     }
 }

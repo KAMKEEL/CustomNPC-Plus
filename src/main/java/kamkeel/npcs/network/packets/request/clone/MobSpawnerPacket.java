@@ -1,6 +1,5 @@
 package kamkeel.npcs.network.packets.request.clone;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -11,18 +10,13 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 

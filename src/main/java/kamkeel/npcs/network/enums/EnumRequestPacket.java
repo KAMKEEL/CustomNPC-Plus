@@ -136,7 +136,9 @@ public enum EnumRequestPacket {
 
     QuestCategoryGet,
 
-    PlayerDataGet,
+    PlayerDataInfo,
+    PlayerDataGetNames,
+    PlayerDataDelete,
     PlayerDataRemove,
     PlayerDataMapRegen,
 
@@ -185,5 +187,13 @@ public enum EnumRequestPacket {
     EffectSave,
 
     ColorSet,
-    ColorBrush
+    ColorBrush,
+
+    ProfileGet,
+    ProfileGetAll,
+    ProfileGetInfo,
+    ProfileCreate,
+    ProfileRemove,
+    ProfileRename,
+    ProfileChange
 }

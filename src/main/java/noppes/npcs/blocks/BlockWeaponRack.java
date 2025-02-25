@@ -13,8 +13,8 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileWeaponRack;
 
 import java.util.List;

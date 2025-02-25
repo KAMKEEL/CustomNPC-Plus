@@ -1,14 +1,16 @@
 package noppes.npcs.client.gui.util;
 
-import java.awt.Point;
-import java.util.*;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+
+import java.awt.*;
+import java.util.List;
+import java.util.Queue;
+import java.util.*;
 
 /**
  * Abstract GUI class for drawing diagrams with icons (nodes) and connections (arrows).

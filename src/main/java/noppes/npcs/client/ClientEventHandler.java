@@ -1,9 +1,7 @@
 package noppes.npcs.client;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityClientPlayerMP;
@@ -17,13 +15,18 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.client.event.*;
-import net.minecraftforge.event.entity.living.LivingEvent;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.CompassHudComponent;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.QuestTrackingComponent;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.MarkType;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.reflect.Field;
@@ -91,9 +94,16 @@ public class ClientEventHandler {
                 overlayCustom.renderGameOverlay(event.partialTicks);
             }
 
-            if (ClientCacheHandler.questTrackingOverlay != null) {
-                ClientCacheHandler.questTrackingOverlay.renderGameOverlay(event.partialTicks);
+            if(ClientHudManager.getInstance().getHudComponents().isEmpty()){
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestTracker, new QuestTrackingComponent(Minecraft.getMinecraft()));
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestCompass, new CompassHudComponent(Minecraft.getMinecraft()));
             }
+
+            ClientHudManager.getInstance().renderAllHUDs(event.partialTicks);
+
+//            if (ClientCacheHandler.questTrackingOverlay != null) {
+//                ClientCacheHandler.questTrackingOverlay.renderOverlay(event.partialTicks);
+//            }
         }
     }
 

@@ -6,11 +6,14 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.controllers.data.PlayerData;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class CNPCData implements IProfileData {
 
     @Override
     public String getTagName() {
-        return "CustomNPC+";
+        return "CNPC+";
     }
 
     @Override
@@ -38,5 +41,32 @@ public class CNPCData implements IProfileData {
             customNPCData.setNBT(replace);
         }
         customNPCData.updateClient = true;
+    }
+
+    @Override
+    public int getSwitchPriority() {
+        return 0;
+    }
+
+    @Override
+    public ProfileOperation verifySwitch(EntityPlayer player) {
+        PlayerData playerData = PlayerData.get(player);
+        if(playerData.partyUUID != null)
+            return ProfileOperation.error("Cannot switch while in Party");
+
+        return ProfileOperation.success("");
+    }
+
+    @Override
+    public List<InfoEntry> getInfo(EntityPlayer player, NBTTagCompound compound) {
+        PlayerData playerData = new PlayerData();
+        playerData.player = player;
+        playerData.setNBT(compound);
+
+        List<InfoEntry> info = new ArrayList<>();
+        info.add(new InfoEntry("profile.info.quest.finished", 0x60fa57, playerData.questData.finishedQuests.size(), 0xFFFFFF));
+        info.add(new InfoEntry("profile.info.quest.active", 0xf75336, playerData.questData.activeQuests.size(), 0xFFFFFF));
+        info.add(new InfoEntry("profile.info.dialog.read", 0x47acf5, playerData.dialogData.dialogsRead.size(), 0xFFFFFF));
+        return info;
     }
 }

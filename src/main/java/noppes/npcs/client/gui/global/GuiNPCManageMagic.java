@@ -26,7 +26,7 @@ public class GuiNPCManageMagic extends GuiNPCInterface2 {
     }
 
     @Override
-    protected void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (magicMap != null) {
             magicMap.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
         }

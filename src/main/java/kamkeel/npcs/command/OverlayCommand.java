@@ -9,6 +9,9 @@ import noppes.npcs.controllers.data.SkinOverlay;
 
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class OverlayCommand extends CommandKamkeelBase {
 
 	@Override

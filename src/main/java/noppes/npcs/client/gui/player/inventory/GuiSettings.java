@@ -1,21 +1,20 @@
 package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.request.quest.QuestUntrackPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-
 import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.gui.hud.GuiHudEditor;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.config.ConfigClient;
-
+import noppes.npcs.config.ConfigMain;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
@@ -40,17 +39,14 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         this.addLabel(new GuiNpcLabel(1, "settings.chatBubbles", guiLeft + 8, guiTop + 14 + y));
         this.addButton(new GuiNpcButton(1, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.EnableChatBubbles?1:0));
 
-        this.addLabel(new GuiNpcLabel(3, "settings.trackAlignment", guiLeft + 8 + 155, guiTop + 14 + y));
-        this.addButton(new GuiNpcButton(3, guiLeft + 105 + 160, guiTop + 9 + y, 50, 20, new String[]{"TLeft", "TCenter", "TRight", "Left", "Center", "Right", "BLeft", "BCenter", "BRight"}, ConfigClient.TrackingInfoAlignment));
-
         y += 22;
         this.addLabel(new GuiNpcLabel(2, "settings.dialogSound", guiLeft + 8, guiTop + 14 + y));
         this.addButton(new GuiNpcButton(2, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.DialogSound?1:0));
 
-        this.addLabel(new GuiNpcLabel(12,"settings.alignmentX", guiLeft + 8 + 155, guiTop + 14 + y));
-        this.addTextField(new GuiNpcTextField(12, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingInfoX + ""));
-        getTextField(12).integersOnly = true;
-        getTextField(12).setMinMaxDefault(-2000, 2000, 0);
+//        this.addLabel(new GuiNpcLabel(12,"settings.alignmentX", guiLeft + 8 + 155, guiTop + 14 + y));
+//        this.addTextField(new GuiNpcTextField(12, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingInfoX + ""));
+//        getTextField(12).integersOnly = true;
+//        getTextField(12).setMinMaxDefault(-2000, 2000, 0);
 
         y += 22;
         this.addLabel(new GuiNpcLabel(10,"settings.dialogSpeed", guiLeft + 8, guiTop + 14 + y));
@@ -58,20 +54,11 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         getTextField(10).integersOnly = true;
         getTextField(10).setMinMaxDefault(1, 20, 10);
 
-        this.addLabel(new GuiNpcLabel(13,"settings.alignmentY", guiLeft + 8 + 155, guiTop + 14 + y));
-        this.addTextField(new GuiNpcTextField(13, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingInfoY + ""));
-        getTextField(13).integersOnly = true;
-        getTextField(13).setMinMaxDefault(-2000, 2000, 0);
 
         y += 22;
 
         this.addLabel(new GuiNpcLabel(6, "settings.chatAlerts", guiLeft + 8, guiTop + 14 + y));
         this.addButton(new GuiNpcButton(6, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.ChatAlerts?1:0));
-
-        this.addLabel(new GuiNpcLabel(14,"settings.trackScale", guiLeft + 8 + 155, guiTop + 14 + y));
-        this.addTextField(new GuiNpcTextField(14, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingScale + ""));
-        getTextField(14).integersOnly = true;
-        getTextField(14).setMinMaxDefault(0, 300, 100);
 
         y += 22;
 
@@ -80,7 +67,13 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
 
         y += 22;
 
+        this.addLabel(new GuiNpcLabel(8, "settings.effectsBar", guiLeft + 8, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(8, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.HideEffectsBar?1:0));
+
         y += 22;
+
+        this.addLabel(new GuiNpcLabel(90, "overlayer", guiLeft + 8, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(90, guiLeft + 105, guiTop + 9 + y, "EDIT"));
 
         y += 22;
         this.addButton(new GuiNpcButton(5, guiLeft + 8, guiTop + 9 + y, 150, 20, "settings.clearSkin"));
@@ -122,7 +115,7 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         if(btn instanceof AbstractTab)
             return;
 
-        if (btn.id >= 100 && btn.id <= 105) {
+        if (btn.id <= -100) {
             super.actionPerformed(btn);
             return;
         }
@@ -136,10 +129,6 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         if(button.id == 2){
             ConfigClient.DialogSound = button.getValue() == 1;
             ConfigClient.DialogSoundProperty.set(ConfigClient.DialogSound);
-        }
-        if(button.id == 3){
-            ConfigClient.TrackingInfoAlignment = button.getValue();
-            ConfigClient.TrackingInfoAlignmentProperty.set(ConfigClient.TrackingInfoAlignment);
         }
         if(button.id == 4){
             GuiYesNo yesNoTrack = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("settings.confirmClearTrack"), 0);
@@ -157,6 +146,15 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
             ConfigClient.BannerAlerts = button.getValue() == 1;
             ConfigClient.BannerAlertsProperty.set(ConfigClient.BannerAlerts);
         }
+        if(button.id == 8){
+            ConfigClient.HideEffectsBar = button.getValue() == 1;
+            ConfigClient.HideEffectsBarProperty.set(ConfigClient.HideEffectsBar);
+        }
+        if(button.id == 90){
+            mc.displayGuiScreen(new GuiHudEditor(this));
+        }
+
+        ConfigClient.config.save();
     }
 
 
@@ -179,20 +177,6 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         if(textfield.id == 10){
             ConfigClient.DialogSpeed = textfield.getInteger();
             ConfigClient.DialogSpeedProperty.set(ConfigClient.DialogSound);
-        }
-
-        // Quest Tracking
-        if(textfield.id == 12){
-            ConfigClient.TrackingInfoX = textfield.getInteger();
-            ConfigClient.TrackingInfoXProperty.set(ConfigClient.TrackingInfoX);
-        }
-        if(textfield.id == 13){
-            ConfigClient.TrackingInfoY = textfield.getInteger();
-            ConfigClient.TrackingInfoYProperty.set(ConfigClient.TrackingInfoY);
-        }
-        if(textfield.id == 14){
-            ConfigClient.TrackingScale = textfield.getInteger();
-            ConfigClient.TrackingScaleProperty.set(ConfigClient.TrackingScale);
         }
     }
 }

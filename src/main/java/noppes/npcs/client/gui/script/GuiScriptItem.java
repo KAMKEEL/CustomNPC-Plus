@@ -1,16 +1,11 @@
 package noppes.npcs.client.gui.script;
 
-import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.script.item.ItemScriptErrorPacket;
 import kamkeel.npcs.network.packets.request.script.item.ItemScriptPacket;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
-
-
 import noppes.npcs.NBTTags;
-import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.util.Date;

@@ -23,8 +23,10 @@ public class CommandProfile extends CommandBase {
 	public CommandProfile(){
 		registerCommand(help);
         registerCommand(new CommandProfileChange());
+        registerCommand(new CommandProfileCreate());
         registerCommand(new CommandProfileRemove());
         registerCommand(new CommandProfileAdmin());
+        registerCommand(new CommandProfileRegion());
         registerCommand(new CommandProfileList());
         registerCommand(new CommandProfileRename());
 	}
@@ -99,7 +101,8 @@ public class CommandProfile extends CommandBase {
 		if(args.length <= useArgs.length + 2) {
 			if(args.length - 3 >= 0){
 				String usage = useArgs[args.length - 3];
-				if(usage.equals("<player>") || usage.equals("[player]")) {
+				if(usage.equals("<player>") || usage.equals("[player]") || usage.equals("<targetPlayer>")
+                || usage.equals("<sourcePlayer>") || usage.equals("<destinationPlayer>")) {
 					return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
 				}
 			}
@@ -115,7 +118,7 @@ public class CommandProfile extends CommandBase {
 
     @Override
     public int getRequiredPermissionLevel(){
-        return 0;
+        return 4;
     }
 
 	public static String getCommandPermission(String command){

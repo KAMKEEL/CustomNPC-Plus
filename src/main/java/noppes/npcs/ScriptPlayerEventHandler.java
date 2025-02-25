@@ -23,6 +23,7 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.attribute.PlayerAttributeManager;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -30,9 +31,9 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -47,7 +48,7 @@ public class ScriptPlayerEventHandler {
         if (event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
 
-            if (player.ticksExisted%10 == 0) {
+            if (player.ticksExisted % 10 == 0) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
                 EventHooks.onPlayerTick(handler, scriptPlayer);
@@ -59,6 +60,8 @@ public class ScriptPlayerEventHandler {
                         EventHooks.onScriptItemUpdate(isw, player);
                     }
                 }
+
+                PlayerAttributeManager.getTracker(player.getUniqueID()).updateIfChanged(player);
             }
 
             if (PlayerDataController.Instance != null) {
@@ -154,6 +157,11 @@ public class ScriptPlayerEventHandler {
     public void invoke(BlockEvent.BreakEvent event) {
         if(event.getPlayer() == null || event.getPlayer().worldObj == null)
             return;
+
+        if(event.getPlayer().getHeldItem() != null && event.getPlayer().getHeldItem().getItem() instanceof ItemNpcTool){
+            event.setCanceled(true);
+            return;
+        }
 
         if(!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;

@@ -17,8 +17,6 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.GlobalNPCDataScript;
-import noppes.npcs.controllers.data.IScriptHandler;
 
 import java.io.IOException;
 

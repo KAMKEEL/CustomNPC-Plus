@@ -1,74 +1,114 @@
 package kamkeel.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.ISlot;
 
-public class Slot {
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
+public class Slot implements ISlot {
     private int id;
     private String name;
     private long lastLoaded;
-    private NBTTagCompound compound;
-    private boolean temporary = false;
+    private boolean temporary;
+    private Map<String, NBTTagCompound> components = new HashMap<>();
 
     public Slot(int id, String name) {
         this.id = id;
         this.name = name;
     }
 
-    public Slot(int id, String name, NBTTagCompound compound, long last, boolean temporary) {
+    public Slot(int id, String name, long lastLoaded, boolean temporary, Map<String, NBTTagCompound> components) {
         this.id = id;
         this.name = name;
-        this.compound = compound;
-        this.lastLoaded = last;
+        this.lastLoaded = lastLoaded;
         this.temporary = temporary;
+        this.components = components;
     }
 
-    // Getters and setters
+    @Override
     public int getId() {
         return id;
     }
+
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
     public String getName() {
         return name;
     }
+
+    @Override
     public void setName(String name) {
         this.name = name;
     }
+
+    @Override
     public long getLastLoaded() {
         return lastLoaded;
     }
-    public void setLastLoaded(long lastLoaded) {
-        this.lastLoaded = lastLoaded;
+
+    @Override
+    public void setLastLoaded(long time) {
+        this.lastLoaded = time;
     }
-    public NBTTagCompound getCompound() {
-        return compound;
-    }
-    public void setCompound(NBTTagCompound compound) {
-        this.compound = compound;
-    }
+
+    @Override
     public boolean isTemporary() {
         return temporary;
     }
+
+    @Override
     public void setTemporary(boolean temporary) {
         this.temporary = temporary;
     }
 
+    @Override
+    public Map<String, NBTTagCompound> getComponents() {
+        return components;
+    }
+
+    @Override
+    public void setComponentData(String key, NBTTagCompound data) {
+        components.put(key, data);
+    }
+
+    @Override
+    public NBTTagCompound getComponentData(String key) {
+        return components.get(key);
+    }
+
+    @Override
     public NBTTagCompound toNBT() {
         NBTTagCompound slotNBT = new NBTTagCompound();
         slotNBT.setString("Name", name);
         slotNBT.setLong("LastLoaded", lastLoaded);
-        slotNBT.setTag("Data", compound);
         slotNBT.setBoolean("Temporary", temporary);
+        NBTTagCompound compCompound = new NBTTagCompound();
+        for (Map.Entry<String, NBTTagCompound> entry : components.entrySet()) {
+            compCompound.setTag(entry.getKey(), entry.getValue());
+        }
+        slotNBT.setTag("Components", compCompound);
         return slotNBT;
     }
 
     public static Slot fromNBT(int id, NBTTagCompound slotNBT) {
         String name = slotNBT.getString("Name");
         long lastLoaded = slotNBT.getLong("LastLoaded");
-        NBTTagCompound compound = slotNBT.getCompoundTag("Data");
-        boolean temporary = slotNBT.hasKey("Temporary") && slotNBT.getBoolean("Temporary");
-        return new Slot(id, name, compound, lastLoaded, temporary);
+        boolean temporary = slotNBT.getBoolean("Temporary");
+        Slot slot = new Slot(id, name);
+        slot.setLastLoaded(lastLoaded);
+        slot.setTemporary(temporary);
+        if (slotNBT.hasKey("Components")) {
+            NBTTagCompound compCompound = slotNBT.getCompoundTag("Components");
+            Set<String> keys = compCompound.func_150296_c();
+            for (String key : keys) {
+                slot.setComponentData(key, compCompound.getCompoundTag(key));
+            }
+        }
+        return slot;
     }
 }

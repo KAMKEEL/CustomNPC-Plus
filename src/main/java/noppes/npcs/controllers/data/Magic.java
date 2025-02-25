@@ -5,7 +5,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IMagic;
 import noppes.npcs.controllers.MagicController;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,16 +13,9 @@ public class Magic implements IMagic {
     public int color = Integer.parseInt("FF00", 16);
     public int id = -1;
 
-    public int index;
-    public int priority;
-
-    // Icon as an ItemStack or as a texture file
     public ItemStack iconItem = null;
     public String iconTexture = "";
-
-    // Weaknesses mapping: key = magic ID this magic is weak against,
-    // value = extra damage percentage (as a fraction, e.g. 0.2 for 20% extra damage)
-    public Map<Integer, Float> weaknesses = new HashMap<Integer, Float>();
+    public Map<Integer, Float> weaknesses = new HashMap<>();
 
     public Magic() {}
 
@@ -31,14 +23,6 @@ public class Magic implements IMagic {
         this.name = name;
         this.color = color;
         this.id = id;
-    }
-
-    public Magic(int id, String name, int color, int index, int priority) {
-        this.name = name;
-        this.color = color;
-        this.id = id;
-        this.index = index;
-        this.priority = priority;
     }
 
     public static String formatName(String name) {
@@ -50,19 +34,15 @@ public class Magic implements IMagic {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
-        index = compound.getInteger("Index");
-        priority = compound.getInteger("Priority");
-
+        // No longer reading index/priority here.
         if(compound.hasKey("IconItem")){
             NBTTagCompound itemTag = compound.getCompoundTag("IconItem");
             iconItem = ItemStack.loadItemStackFromNBT(itemTag);
         }
         iconTexture = compound.getString("IconTexture");
-
-        // Read the weaknesses mapping from NBT.
         weaknesses.clear();
         if(compound.hasKey("Weaknesses")) {
-            NBTTagList weaknessList = compound.getTagList("Weaknesses", 10); // compound tags
+            NBTTagList weaknessList = compound.getTagList("Weaknesses", 10);
             for(int i = 0; i < weaknessList.tagCount(); i++){
                 NBTTagCompound weaknessTag = weaknessList.getCompoundTagAt(i);
                 int weakMagicId = weaknessTag.getInteger("MagicID");
@@ -76,9 +56,7 @@ public class Magic implements IMagic {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
         compound.setInteger("Color", color);
-        compound.setInteger("Index", index);
-        compound.setInteger("Priority", priority);
-
+        // No longer writing index/priority here.
         if(iconItem != null) {
             NBTTagCompound itemTag = new NBTTagCompound();
             iconItem.writeToNBT(itemTag);
@@ -87,8 +65,6 @@ public class Magic implements IMagic {
         if(iconTexture != null && !iconTexture.isEmpty()){
             compound.setString("IconTexture", iconTexture);
         }
-
-        // Write the weaknesses mapping.
         NBTTagList weaknessList = new NBTTagList();
         for(Map.Entry<Integer, Float> entry : weaknesses.entrySet()){
             NBTTagCompound weaknessTag = new NBTTagCompound();
@@ -111,26 +87,11 @@ public class Magic implements IMagic {
         this.name = name;
     }
 
-    public int getPriority() {
-        return priority;
+    public void setColor(int c) {
+        this.color = c;
     }
 
-    public void setPriority(int priority) {
-        this.priority = priority;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    public void setIndex(int index) {
-        this.index = index;
-    }
-
-    public void setColor(int color) {
-        this.color = color;
-    }
-
+    @Override
     public int getColor() {
         return this.color;
     }

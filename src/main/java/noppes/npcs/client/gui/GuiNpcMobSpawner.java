@@ -11,11 +11,9 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
-
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.controllers.ClientTagMapController;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
 

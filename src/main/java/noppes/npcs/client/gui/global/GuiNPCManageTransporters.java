@@ -6,7 +6,6 @@ import kamkeel.npcs.network.packets.request.transport.TransportCategoryRemovePac
 import kamkeel.npcs.network.packets.request.transport.TransportRemovePacket;
 import kamkeel.npcs.network.packets.request.transport.TransportsGetPacket;
 import net.minecraft.client.gui.GuiButton;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.GuiNPCTransportCategoryEdit;
 import noppes.npcs.client.gui.mainmenu.GuiNPCGlobalMainMenu;
@@ -14,7 +13,6 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IScrollData;
-
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;

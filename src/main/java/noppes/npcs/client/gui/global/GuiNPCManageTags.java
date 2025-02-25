@@ -2,15 +2,13 @@ package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.tags.TagGetPacket;
-import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
 import kamkeel.npcs.network.packets.request.tags.TagRemovePacket;
 import kamkeel.npcs.network.packets.request.tags.TagSavePacket;
+import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 

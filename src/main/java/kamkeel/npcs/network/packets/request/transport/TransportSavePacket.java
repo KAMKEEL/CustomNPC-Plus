@@ -9,18 +9,14 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.constants.EnumJobType;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.data.TransportLocation;
-import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.roles.RoleTransporter;
 
 import java.io.IOException;

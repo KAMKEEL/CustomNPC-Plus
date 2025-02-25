@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.IItemRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
-import noppes.npcs.client.renderer.blocks.BlockShortLampRenderer;
 import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 

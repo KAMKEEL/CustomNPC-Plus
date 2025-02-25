@@ -1,14 +1,9 @@
 package noppes.npcs.client.renderer.items;
 
 import kamkeel.npcs.util.ColorUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.IItemRenderer;
-import noppes.npcs.client.renderer.blocks.BlockRendererInterface;
 import noppes.npcs.client.renderer.blocks.BlockShortLampRenderer;
-import noppes.npcs.client.renderer.blocks.BlockTallLampRenderer;
-import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 
 public class ItemShortLampRenderer implements IItemRenderer {

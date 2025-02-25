@@ -5,7 +5,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
-import noppes.npcs.controllers.data.Availability;
 
 public class RecipeAnvil implements IAnvilRecipe {
     public int id = -1;

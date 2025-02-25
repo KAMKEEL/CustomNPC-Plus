@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -18,7 +19,10 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.*;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
@@ -31,7 +35,9 @@ import noppes.npcs.api.handler.data.ISound;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
 import noppes.npcs.compat.PixelmonHelper;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -281,10 +287,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         if (quest == null)
         	return;
 		PlayerData data = PlayerData.get(player);
-		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
-			data.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
-		else
-			data.questData.finishedQuests.put(quest.id, player.worldObj.getTotalWorldTime());
+        PlayerQuestController.setQuestFinishedUtil(player, quest, data.questData);
         data.updateClient = true;
 	}
 

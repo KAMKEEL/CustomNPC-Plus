@@ -10,10 +10,7 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.PlayerEvent;
 
-import javax.script.ScriptEngine;
 import java.io.IOException;
 import java.util.*;
 

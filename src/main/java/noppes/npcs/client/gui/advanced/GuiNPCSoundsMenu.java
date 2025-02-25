@@ -4,10 +4,8 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCSoundsMenu extends GuiNPCInterface2 implements  ITextfieldListener, ISubGuiListener

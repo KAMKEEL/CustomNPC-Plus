@@ -12,8 +12,8 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileBanner;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileSign;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 

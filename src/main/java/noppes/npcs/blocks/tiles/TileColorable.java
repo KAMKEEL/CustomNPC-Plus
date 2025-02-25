@@ -1,11 +1,8 @@
 package noppes.npcs.blocks.tiles;
 
-import net.minecraft.block.BlockColored;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.items.ItemNpcTool;
 
 import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;

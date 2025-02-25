@@ -4,11 +4,9 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.dialog.DialogSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
-
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogImage;
 

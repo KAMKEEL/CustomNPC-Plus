@@ -11,12 +11,7 @@ import noppes.npcs.client.gui.util.GuiNpcSquareButton;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.HashMap;
+import java.util.*;
 
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
@@ -88,7 +83,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         tagButton.setIconPos(24, 24, 192, 32).setIconTexture(specialIcons);
 
         registerButton(effectsButton = new GuiNpcSquareButton(19, 0, 0, 20, "global.customeffects", 0xFF333333));
-        effectsButton.setIconPos(24, 24, 192, 32).setIconTexture(specialIcons);
+        effectsButton.setIconPos(24, 24, 24, 56).setIconTexture(specialIcons);
 
         // Layout composite buttons optimally.
         layoutButtons();

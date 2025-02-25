@@ -7,10 +7,8 @@ import net.minecraft.nbt.NBTSizeTracker;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.village.MerchantRecipeList;
-import noppes.npcs.LogWriter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -102,7 +100,7 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
         int length = buffer.readInt();
         byte[] bytes = new byte[length];
         buffer.readBytes(bytes);
-        return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(15728640L));
+        return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(31457280L));
     }
 
     public static void writeString(ByteBuf buffer, String s){

@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;

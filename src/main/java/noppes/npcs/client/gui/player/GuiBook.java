@@ -17,8 +17,6 @@ import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.constants.EnumPlayerPacket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.lwjgl.input.Keyboard;

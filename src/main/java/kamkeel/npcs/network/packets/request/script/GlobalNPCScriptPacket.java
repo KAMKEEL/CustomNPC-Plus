@@ -13,7 +13,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 

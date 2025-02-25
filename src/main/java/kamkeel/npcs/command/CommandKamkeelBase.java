@@ -4,7 +4,6 @@ import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.CustomNpcsPermissions;
 
 import java.lang.annotation.ElementType;
@@ -53,18 +52,6 @@ public abstract class CommandKamkeelBase extends CommandBase{
 
 	public boolean runSubCommands(){
 		return !subcommands.isEmpty();
-	}
-
-	protected static void sendMessage(ICommandSender sender, String message, Object... obs) {
-		sender.addChatMessage(new ChatComponentTranslation(message, obs));
-	}
-
-	protected static void sendResult(ICommandSender sender, String message, Object... obs) {
-		sender.addChatMessage(new ChatComponentTranslation("\u00A76[\u00A7eCNPC+\u00A76]\u00A77 " + message, obs));
-	}
-
-	protected static void sendError(ICommandSender sender, String message, Object... obs) {
-		sender.addChatMessage(new ChatComponentTranslation("\u00A76[\u00A7eCNPC+\u00A76]\u00A74 Error:\u00A7c " + message, obs));
 	}
 
 	@Retention(value = RetentionPolicy.RUNTIME)

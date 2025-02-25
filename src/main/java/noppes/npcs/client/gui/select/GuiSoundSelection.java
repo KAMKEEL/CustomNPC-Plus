@@ -7,10 +7,8 @@ import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.client.audio.SoundRegistry;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.StatCollector;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;

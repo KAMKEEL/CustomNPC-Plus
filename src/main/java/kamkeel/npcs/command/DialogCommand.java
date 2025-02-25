@@ -20,6 +20,9 @@ import noppes.npcs.entity.EntityDialogNpc;
 import java.util.Collection;
 import java.util.List;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
+
 public class DialogCommand extends CommandKamkeelBase {
 
 	@Override

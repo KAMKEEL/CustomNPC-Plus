@@ -10,6 +10,9 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.CustomNPCsEvent;
 
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendMessage;
+
 public class CommandCommand extends CommandKamkeelBase {
 
     @Override

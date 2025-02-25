@@ -1,5 +1,6 @@
 package kamkeel.npcs.command;
 
+import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -8,6 +9,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.api.handler.data.IQuestObjective;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
@@ -20,6 +23,9 @@ import noppes.npcs.util.ValueUtil;
 
 import java.util.Collection;
 import java.util.List;
+
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class QuestCommand extends CommandKamkeelBase {
 
@@ -100,14 +106,18 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
         for(PlayerData playerdata : data){
-            if(playerdata.questData.activeQuests.containsKey(questid)){
-                playerdata.questData.activeQuests.remove(questid);
+            playerdata.questData.activeQuests.remove(questid);
+            long completeTime;
+            if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY || quest.repeat == EnumQuestRepeat.RLCUSTOM){
+                completeTime = System.currentTimeMillis();
+                playerdata.questData.finishedQuests.put(quest.id, completeTime);
+            } else {
+                completeTime = sender.getEntityWorld().getTotalWorldTime();
+                playerdata.questData.finishedQuests.put(quest.id, completeTime);
             }
 
-            if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
-                playerdata.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
-            else
-                playerdata.questData.finishedQuests.put(quest.id, sender.getEntityWorld().getTotalWorldTime());
+            if(ConfigMain.ProfilesEnabled && playerdata.player != null && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
+                ProfileController.Instance.shareQuestCompletion(playerdata.player, quest.id, completeTime);
 
             playerdata.save();
             if(playerdata.player != null){

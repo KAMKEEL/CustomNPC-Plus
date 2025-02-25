@@ -31,7 +31,7 @@ public class ItemNpcTool extends Item {
 
     // Define our tool types based on metadata:
     // meta 0: Hammer, meta 1: Paintbrush, meta 2: Wrench
-    public static final String[] toolTypes = new String[] {"hammer", "paintbrush", "wrench"};
+    public static final String[] toolTypes = new String[] {"hammer", "paintbrush"};
     public static String BRUSH_COLOR_TAG = "BrushColor";
 
     @SideOnly(Side.CLIENT)
@@ -84,7 +84,7 @@ public class ItemNpcTool extends Item {
         if(world.isRemote)
             return stack;
 
-        if(isPaintbrush(stack) && !player.isSneaking()){
+        if(isPaintbrush(stack) && player.isSneaking()){
             if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.PAINTBRUSH_GUI)){
                 NoppesUtil.requestOpenGUI(EnumGuiType.Paintbrush);
             }
@@ -107,13 +107,7 @@ public class ItemNpcTool extends Item {
 
             TileEntity tile = world.getTileEntity(x, y, z);
             if(tile instanceof TileColorable) {
-                if(player.isSneaking()){
-                    int color = ((TileColorable) tile).color;
-                    PacketClient.sendClient(new ColorBrushPacket(color));
-                }
-                else {
-                    PacketClient.sendClient(new ColorSetPacket(x, y, z));
-                }
+                PacketClient.sendClient(new ColorSetPacket(x, y, z));
                 return true;
             }
         }
@@ -121,6 +115,28 @@ public class ItemNpcTool extends Item {
         return false;
     }
 
+    public boolean onBlockStartBreak(ItemStack itemstack, int x, int y, int z, EntityPlayer player)
+    {
+        if(!player.worldObj.isRemote)
+            return true;
+
+        if(isPaintbrush(itemstack)) {
+            Block block = player.worldObj.getBlock(x, y, z);
+            if(block instanceof BlockTallLamp || block instanceof BlockBanner){
+                int meta = player.worldObj.getBlockMetadata(x, y, z);
+                if(meta >= 7)
+                    y--;
+            }
+
+            TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+            if(tile instanceof TileColorable) {
+                int color = ((TileColorable) tile).color;
+                PacketClient.sendClient(new ColorBrushPacket(color));
+            }
+        }
+
+        return true;
+    }
 
     public static boolean isPaintbrush(ItemStack itemStack){
         return itemStack.getItemDamage() == 1;

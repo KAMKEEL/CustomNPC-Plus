@@ -1,7 +1,6 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.IPlayerEffect;
 import noppes.npcs.controllers.CustomEffectController;

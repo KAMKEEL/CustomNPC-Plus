@@ -38,6 +38,7 @@ public enum EnumDataPacket {
     GUI_TELEPORTER,
     GUI_BOOK,
     GUI_DATA,
+    PLAYER_DATA,
     GUI_ERROR,
     GUI_CLOSE,
     ISGUIOPEN,

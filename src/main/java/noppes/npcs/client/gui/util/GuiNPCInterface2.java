@@ -1,11 +1,8 @@
 package noppes.npcs.client.gui.util;
 
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
-
-import java.util.List;
 
 public abstract class GuiNPCInterface2 extends GuiNPCInterface
 {

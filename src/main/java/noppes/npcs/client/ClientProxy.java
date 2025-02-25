@@ -21,7 +21,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemTool;
 import net.minecraft.stats.Achievement;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ReportedException;
@@ -69,8 +68,8 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
-import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemLinked;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -146,7 +145,7 @@ public class ClientProxy extends CommonProxy {
 		}
 		Minecraft mc = Minecraft.getMinecraft();
 
-		NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_L, "key.categories.customnpc");
+		NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
 
 		ClientRegistry.registerKeyBinding(NPCButton);
 		mc.gameSettings.loadOptions();
@@ -534,9 +533,9 @@ public class ClientProxy extends CommonProxy {
 	@Override
 	public void registerItem(Item item) {
         if (item instanceof ItemScripted || item instanceof ItemLinked) {
-			MinecraftForgeClient.registerItemRenderer(item, new CustomItemRenderer());
+			MinecraftForgeClient.registerItemRenderer(item, new ItemCustomRenderer());
 		} else if (item instanceof ItemNpcTool) {
-            MinecraftForgeClient.registerItemRenderer(item, new NpcItemToolRenderer());
+            MinecraftForgeClient.registerItemRenderer(item, new ItemToolRenderer());
         }else {
 			MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());
 		}
@@ -598,7 +597,7 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	public static class FontContainer {
-		private StringCache textFont = null;
+		public StringCache textFont = null;
 		public boolean useCustomFont = true;
 
 		private FontContainer(){

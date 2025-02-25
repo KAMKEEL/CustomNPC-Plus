@@ -42,8 +42,8 @@ public class BlockChairRenderer extends BlockRendererInterface{
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.65f, (float)var6 + 0.5f);
-        GL11.glScalef(1.2f, 1.1f, 1.2f);
+        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
+        // GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);

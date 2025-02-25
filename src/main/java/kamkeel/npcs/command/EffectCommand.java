@@ -2,8 +2,8 @@ package kamkeel.npcs.command;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.event.PlayerEvent.EffectEvent.ExpirationType;
@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class EffectCommand extends CommandKamkeelBase {
 
@@ -26,7 +29,7 @@ public class EffectCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(desc = "Lists all Effects")
-    public void infoAll(ICommandSender sender, String[] args) throws CommandException {
+    public void list(ICommandSender sender, String[] args) throws CommandException {
         CustomEffectController controller = CustomEffectController.getInstance();
         if (controller.indexMapper.isEmpty()) {
             sendError(sender, "No effects found.");

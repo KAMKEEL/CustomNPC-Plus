@@ -14,10 +14,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.data.Tag;
-import noppes.npcs.controllers.data.TagMap;
 
 import java.io.IOException;
 import java.util.HashSet;

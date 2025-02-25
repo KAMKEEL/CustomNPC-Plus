@@ -16,8 +16,8 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.blocks.tiles.TileStool;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 

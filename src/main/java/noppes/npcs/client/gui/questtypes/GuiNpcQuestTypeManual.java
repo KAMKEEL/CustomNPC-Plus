@@ -7,7 +7,6 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestManual;
 
-import java.util.HashMap;
 import java.util.TreeMap;
 
 public class GuiNpcQuestTypeManual extends SubGuiInterface implements ITextfieldListener

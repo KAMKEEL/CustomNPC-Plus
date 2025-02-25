@@ -16,10 +16,8 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.compat.PixelmonHelper;
-
 import noppes.npcs.entity.*;
 
 import java.lang.reflect.Method;

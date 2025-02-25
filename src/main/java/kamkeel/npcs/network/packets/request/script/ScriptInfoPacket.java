@@ -1,6 +1,5 @@
 package kamkeel.npcs.network.packets.request.script;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
@@ -13,10 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.LogWriter;
-import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
 

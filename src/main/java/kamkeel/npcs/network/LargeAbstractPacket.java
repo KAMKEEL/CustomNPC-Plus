@@ -5,7 +5,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.LogWriter;
-import org.lwjgl.Sys;
 
 import java.io.IOException;
 import java.util.ArrayList;

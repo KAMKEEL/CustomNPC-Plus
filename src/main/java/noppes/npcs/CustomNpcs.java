@@ -267,7 +267,8 @@ public class CustomNpcs {
     public void serverstart(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandNoppes());
         event.registerServerCommand(new CommandKamkeel());
-        event.registerServerCommand(new CommandProfile());
+        if(ConfigMain.ProfilesEnabled)
+            event.registerServerCommand(new CommandProfile());
     }
 
     private void registerNpc(Class<? extends Entity> cl, String name) {

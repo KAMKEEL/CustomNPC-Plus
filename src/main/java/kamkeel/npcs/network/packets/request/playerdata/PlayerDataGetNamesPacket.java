@@ -17,22 +17,22 @@ import noppes.npcs.constants.EnumPlayerData;
 
 import java.io.IOException;
 
-public final class PlayerDataGetPacket extends AbstractPacket {
+public final class PlayerDataGetNamesPacket extends AbstractPacket {
     public static String packetName = "Request|PlayerDataGet";
 
     private EnumPlayerData playerData;
     private String name;
 
-    public PlayerDataGetPacket() {}
+    public PlayerDataGetNamesPacket() {}
 
-    public PlayerDataGetPacket(EnumPlayerData playerData, String name) {
+    public PlayerDataGetNamesPacket(EnumPlayerData playerData, String name) {
         this.playerData = playerData;
         this.name = name;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PlayerDataGet;
+        return EnumRequestPacket.PlayerDataGetNames;
     }
 
     @Override

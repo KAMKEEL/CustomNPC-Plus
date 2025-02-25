@@ -3,11 +3,9 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.packets.request.quest.QuestGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAvailabilityQuest;
-
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Quest;
 

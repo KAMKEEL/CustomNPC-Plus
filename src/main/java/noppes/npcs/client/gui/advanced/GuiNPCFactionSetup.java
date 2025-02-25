@@ -6,10 +6,8 @@ import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import kamkeel.npcs.network.packets.request.mainmenu.MainmenuAdvancedSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
 import noppes.npcs.client.gui.util.*;
-
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;

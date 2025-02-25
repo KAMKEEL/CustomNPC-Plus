@@ -5,9 +5,7 @@ import kamkeel.npcs.network.packets.player.TransportPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 

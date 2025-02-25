@@ -4,7 +4,6 @@ import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.gui.global.GuiNPCManageDialogs;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -15,7 +14,7 @@ import static noppes.npcs.client.gui.util.GuiNPCInterface.resizingActive;
 public class GuiCustomScroll extends GuiScreen
 {
 	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/misc.png");
-    protected List<String> list;
+    public List<String> list;
     public final HashMap<String,Integer> colors = new HashMap<>();
 
     public int id;

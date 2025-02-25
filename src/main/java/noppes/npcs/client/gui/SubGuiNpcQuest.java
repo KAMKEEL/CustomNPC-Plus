@@ -5,7 +5,6 @@ import kamkeel.npcs.network.packets.request.quest.QuestOpenGuiPacket;
 import kamkeel.npcs.network.packets.request.quest.QuestSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-
 import noppes.npcs.client.gui.global.GuiNPCManageQuest;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeDialog;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeKill;
@@ -13,7 +12,10 @@ import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeLocation;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeManual;
 import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.*;
+import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.constants.EnumQuestCompletion;
+import noppes.npcs.constants.EnumQuestRepeat;
+import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.controllers.data.Quest;
 
@@ -67,7 +69,10 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		addLabel(new GuiNpcLabel(17, "party.options", guiLeft + 180, guiTop + 135));
 		addButton(new GuiNpcButton(18, guiLeft + 303, guiTop + 130, 50, 20, "selectServer.edit"));
 
-		this.addButton(new GuiNpcButton(9, guiLeft + 7, guiTop + 102,90, 20, new String[]{"quest.npc","quest.instant"},quest.completion.ordinal()));
+        addLabel(new GuiNpcLabel(33, "quest.profile", guiLeft + 180, guiTop + 159));
+        addButton(new GuiNpcButton(33, guiLeft + 303, guiTop + 154, 50, 20, "selectServer.edit"));
+
+        this.addButton(new GuiNpcButton(9, guiLeft + 7, guiTop + 102,90, 20, new String[]{"quest.npc","quest.instant"},quest.completion.ordinal()));
 		if(quest.completerNpc.isEmpty() && npc != null)
 			quest.completerNpc = npc.display.name;
 		this.addTextField(new GuiNpcTextField(2,this, this.fontRendererObj, guiLeft + 104, guiTop + 102, 154, 20, quest.completerNpc));
@@ -83,9 +88,12 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		if(!quest.mail.subject.isEmpty())
 			getButton(13).setDisplayText(quest.mail.subject);
 
-		addLabel(new GuiNpcLabel(8, "quest.repeatable", guiLeft + 7, guiTop + 178 + 5));
-		this.addButton(new GuiNpcButton(8, guiLeft + 100, guiTop + 178,70, 20, new String[]{"gui.no","gui.yes","quest.mcdaily","quest.mcweekly","quest.rldaily","quest.rlweekly"}, quest.repeat.ordinal()));
-
+        addLabel(new GuiNpcLabel(8, "quest.repeatable", guiLeft + 7, guiTop + 178 + 5));
+        this.addButton(new GuiNpcButton(8, guiLeft + 100, guiTop + 178, 70, 20,
+            new String[]{"gui.no", "gui.yes", "quest.mcdaily", "quest.mcweekly", "quest.rldaily", "quest.rlweekly", "quest.mccustom", "quest.rlcustom"}, quest.repeat.ordinal()));
+        if(quest.repeat == EnumQuestRepeat.MCCUSTOM || quest.repeat == EnumQuestRepeat.RLCUSTOM) {
+            addButton(new GuiNpcButton(19, guiLeft + 175, guiTop + 178, 90, 20, "Set Cooldown"));
+        }
 		addButton(new GuiNpcButton(16, guiLeft + 303, guiTop + 192, 50, 20, "gui.done"));
 
 		if(!quest.mail.subject.isEmpty())
@@ -132,6 +140,7 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		if(button.id == 8)
 		{
 			quest.repeat = EnumQuestRepeat.values()[button.getValue()];
+            initGui();
 		}
 		if(button.id == 9)
 		{
@@ -159,14 +168,18 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		}
 		if(button.id == 15 && quest.id >= 0){
             setSubGui(new GuiQuestSelection(quest.nextQuestid));
-//			questSelection = new GuiNPCQuestSelection(npc, getParent(), quest.nextQuestid);
-//			questSelection.listener = this;
-//			NoppesUtil.openGUI(player, questSelection);
 		}
 		if(button.id == 18)
 		{
 			setSubGui(new SubGuiNpcPartyOptions(quest.partyOptions));
 		}
+        if(button.id == 19) {
+            boolean isMCCustom = (quest.repeat == EnumQuestRepeat.MCCUSTOM);
+            setSubGui(new SubGuiNpcCooldownPicker(isMCCustom, quest.customCooldown));
+        }
+        if(button.id == 33){
+            setSubGui(new SubGuiNpcProfileOptions(quest.profileOptions));
+        }
 		if(button.id == 16){
 			close();
 		}
@@ -209,7 +222,13 @@ public class SubGuiNpcQuest extends SubGuiInterface implements ISubGuiListener, 
 		else if(subgui instanceof SubGuiNpcCommand){
 			SubGuiNpcCommand sub = (SubGuiNpcCommand) subgui;
 			quest.command = sub.command;
-		}
+            initGui();
+
+        } else if(subgui instanceof SubGuiNpcCooldownPicker){
+            SubGuiNpcCooldownPicker cooldownGui = (SubGuiNpcCooldownPicker) subgui;
+            quest.customCooldown = cooldownGui.cooldownValue;
+            initGui();
+        }
 		else {
 			initGui();
 		}

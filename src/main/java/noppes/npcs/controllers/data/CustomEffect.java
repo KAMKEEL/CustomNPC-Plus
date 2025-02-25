@@ -22,7 +22,6 @@ public class CustomEffect implements ICustomEffect {
     public int everyXTick = 20;
 
     public String icon = "";
-    // CustomNpcPlusDBC.ID + ":textures/gui/icons.png";
     public int iconX = 0, iconY = 0;
 
     /**

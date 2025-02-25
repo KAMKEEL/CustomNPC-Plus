@@ -16,6 +16,8 @@ import org.lwjgl.opengl.GL11;
 import java.util.ArrayList;
 import java.util.List;
 
+import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
+
 public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldListener {
     private final GuiNPCManageEffects parent;
     public CustomEffect effect;
@@ -128,10 +130,8 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                     func_152125_a(x, y, 0, 0, 1, 1, iconRenderSize, iconRenderSize, 1, 1);
                 }
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
-
-                // TODO: FIX TEXTURE
-                // textureManager.bindTexture(new ResourceLocation(CustomNpcPlusDBC.ID + ":textures/gui/icons.png"));
-                // func_152125_a(x, y, 0, 240, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
+                textureManager.bindTexture(specialIcons);
+                func_152125_a(x, y, 0, 224, 16, 16, iconRenderSize, iconRenderSize, 256, 256);
                 GL11.glEnable(GL11.GL_DEPTH_TEST);
             }
         };

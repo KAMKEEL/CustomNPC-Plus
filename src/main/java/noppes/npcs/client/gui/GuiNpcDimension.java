@@ -6,10 +6,8 @@ import kamkeel.npcs.network.packets.request.feather.DimensionTeleportPacket;
 import kamkeel.npcs.network.packets.request.npc.RemoteDeletePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
-
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-
 
 import java.util.HashMap;
 import java.util.Vector;

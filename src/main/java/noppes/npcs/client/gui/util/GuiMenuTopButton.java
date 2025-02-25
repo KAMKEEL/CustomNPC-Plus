@@ -40,6 +40,9 @@ public class GuiMenuTopButton extends GuiNpcButton
     public int getHoverState(boolean flag)
     {
         byte byte0 = 1;
+        if(!enabled)
+            return byte0;
+
         if (active)
         {
             byte0 = 0;
@@ -57,7 +60,7 @@ public class GuiMenuTopButton extends GuiNpcButton
         if (!getVisible())
         {
             return;
-        }        
+        }
         GL11.glPushMatrix();
         minecraft.renderEngine.bindTexture(resource);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -74,7 +77,7 @@ public class GuiMenuTopButton extends GuiNpcButton
         {
             drawCenteredString(fontrenderer, displayString, xPosition + getWidth() / 2, yPosition + (height - 8) / 2, 0xffffa0);
         }
-        else if (hover)
+        else if (hover && enabled)
         {
             drawCenteredString(fontrenderer, displayString, xPosition + getWidth() / 2, yPosition + (height - 8) / 2, 0xffffa0);
         }

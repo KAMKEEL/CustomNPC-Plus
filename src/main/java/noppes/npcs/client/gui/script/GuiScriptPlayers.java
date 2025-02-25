@@ -4,8 +4,6 @@ import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
-
-
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
