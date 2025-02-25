@@ -124,7 +124,7 @@ public class GuiMagicMap extends GuiDiagram {
     private class MagicIcon extends DiagramIcon {
         public Magic magic;
         public MagicIcon(Magic magic) {
-            super(magic.id, magic.index, magic.priority);
+            super(magic.id, 0, 0);
             this.magic = magic;
         }
     }
