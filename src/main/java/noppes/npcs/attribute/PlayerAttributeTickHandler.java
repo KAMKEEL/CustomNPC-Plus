@@ -4,7 +4,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
- * Tick handler that runs every tick and, every 10 ticks, checks all players for equipment changes.
+ * Tick handler that runs every tick and, every 10 ticks, checks all players
+ * for equipment changes to update their attribute trackers.
  */
 public class PlayerAttributeTickHandler {
     private int tickCount = 0;

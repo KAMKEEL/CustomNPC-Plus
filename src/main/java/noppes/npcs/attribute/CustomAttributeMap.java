@@ -5,7 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Holds a collection of attribute instances (for a weapon, item, or aggregated for a player).
+ * CustomAttributeMap holds a set of attribute instances for an entity (or item).
  */
 public class CustomAttributeMap {
     private final Map<AttributeDefinition, IAttributeInstance> map = new HashMap<>();

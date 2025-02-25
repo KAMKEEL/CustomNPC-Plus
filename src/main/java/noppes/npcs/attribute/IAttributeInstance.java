@@ -3,8 +3,7 @@ package noppes.npcs.attribute;
 import java.util.Collection;
 
 /**
- * Represents an attribute instance – a value (plus any applied modifiers)
- * corresponding to a given AttributeDefinition.
+ * IAttributeInstance represents an instance of an attribute (with a base value and applied modifiers).
  */
 public interface IAttributeInstance {
     AttributeDefinition getAttribute();
@@ -13,5 +12,5 @@ public interface IAttributeInstance {
     void applyModifier(AttributeModifier modifier);
     void removeModifier(AttributeModifier modifier);
     Collection<AttributeModifier> getModifiers();
-    double getAttributeValue(); // Final value after modifiers.
+    double getAttributeValue(); // Final computed value after modifiers
 }

@@ -5,19 +5,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Central registry for valid attribute definitions.
- * Other mods can register new attributes here so that items only need to store a
- * small namespaced key.
+ * AttributeController is the central registry for attribute definitions.
+ * It ensures that keys are unique.
  */
 public class AttributeController {
     private static final Map<String, AttributeDefinition> definitions = new HashMap<>();
-    private static int nextId = 0;
 
-    public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType op) {
+    public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType valueType) {
         if (definitions.containsKey(key)) {
-            return definitions.get(key);
+            throw new IllegalArgumentException("Attribute already registered with key: " + key);
         }
-        AttributeDefinition def = new AttributeDefinition(nextId++, key, displayName, op);
+        AttributeDefinition def = new AttributeDefinition(key, displayName, valueType);
         definitions.put(key, def);
         return def;
     }

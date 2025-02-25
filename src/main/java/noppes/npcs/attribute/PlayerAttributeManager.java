@@ -6,7 +6,7 @@ import java.util.UUID;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
- * Central manager mapping player UUIDs to their attribute trackers.
+ * PlayerAttributeManager maps player UUIDs to their attribute trackers.
  */
 public class PlayerAttributeManager {
     private static final Map<UUID, PlayerAttributeTracker> trackers = new HashMap<>();
@@ -20,7 +20,7 @@ public class PlayerAttributeManager {
     }
 
     /**
-     * Should be called every 10 ticks for all online players.
+     * Update all trackers (e.g. called every 10 ticks for all online players).
      */
     public static void updateAllTrackers(Iterable<EntityPlayer> players) {
         for (EntityPlayer player : players) {
