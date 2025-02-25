@@ -3,23 +3,16 @@ package noppes.npcs.mixin;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.client.model.ModelBase;
-import net.minecraft.client.model.ModelBiped;
 import net.minecraft.client.model.ModelRenderer;
-import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.AnimationMixinFunctions;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.controllers.data.FramePart;
 import org.lwjgl.opengl.GL11;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Overwrite;
 import org.spongepowered.asm.mixin.Shadow;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 @Mixin(value = ModelRenderer.class)
 public abstract class MixinModelRenderer {
@@ -81,56 +74,10 @@ public abstract class MixinModelRenderer {
                 float prevAngleY = this.rotateAngleY;
                 float prevAngleZ = this.rotateAngleZ;
 
-                FramePart currentPart = null;
-                if (ClientEventHandler.renderingNpc != null && ClientEventHandler.renderingNpc.display.animationData.isActive()) {
-                    AnimationData animData = ClientEventHandler.renderingNpc.display.animationData;
-                    EnumAnimationPart partType = this.getPartType((ModelRenderer) (Object) this);
-
-                    if (partType != null && animData != null) {
-                        Frame frame = (Frame) animData.animation.currentFrame();
-                        if (frame.frameParts.containsKey(partType)) {
-                            currentPart = frame.frameParts.get(partType);
-                            currentPart.interpolateOffset();
-                            currentPart.interpolateAngles();
-                            this.rotationPointX += currentPart.prevPivots[0];
-                            this.rotationPointY += currentPart.prevPivots[1];
-                            this.rotationPointZ += currentPart.prevPivots[2];
-                            this.rotateAngleX = currentPart.prevRotations[0];
-                            this.rotateAngleY = currentPart.prevRotations[1];
-                            this.rotateAngleZ = currentPart.prevRotations[2];
-                        }
-                    }
-                }
-
-                if (ClientEventHandler.renderingPlayer != null) {
-                    ClientEventHandler.playerModel = ((ModelRenderer) (Object) this).baseModel;
-                }
-                if (ClientEventHandler.renderingPlayer != null && ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
-                    ClientEventHandler.playerModel = ((ModelRenderer) (Object) this).baseModel;
-                    AnimationData animData = ClientCacheHandler.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
-
-                    EnumAnimationPart mainPartType = this.getPlayerPartType((ModelRenderer) (Object) this);
-                    EnumAnimationPart partType = mainPartType != null ? mainPartType : this.pivotEqualPart((ModelRenderer) (Object) this);
-                    if (partType != null && animData != null && animData.animation != null && animData.isActive()) {
-                        FramePart originalPart = ClientEventHandler.originalValues.get((ModelRenderer) (Object) this);
-                        Frame frame = (Frame) animData.animation.currentFrame();
-                        if (originalPart != null && frame != null && frame.frameParts.containsKey(partType)) {
-                            FramePart part = frame.frameParts.get(partType);
-                            if (partType == mainPartType) {
-                                part.interpolateAngles();
-                                part.interpolateOffset();
-                                this.rotationPointX = originalPart.pivot[0] + part.prevPivots[0];
-                                this.rotationPointY = originalPart.pivot[1] + part.prevPivots[1];
-                                this.rotationPointZ = originalPart.pivot[2] + part.prevPivots[2];
-                                this.rotateAngleX = part.prevRotations[0];
-                                this.rotateAngleY = part.prevRotations[1];
-                                this.rotateAngleZ = part.prevRotations[2];
-                            } else {
-                                currentPart = part;
-                                this.rotateAngleZ += part.prevRotations[2];
-                            }
-                        }
-                    }
+                boolean changedAngles = false;
+                try {
+                    changedAngles = AnimationMixinFunctions.applyValues((ModelRenderer) (Object) this);
+                } catch (Exception ignored) {
                 }
 
                 GL11.glTranslatef(this.offsetX, this.offsetY, this.offsetZ);
@@ -204,7 +151,7 @@ public abstract class MixinModelRenderer {
                     GL11.glPopMatrix();
                 }
 
-                if (currentPart != null) {
+                if (changedAngles) {
                     this.rotationPointX = prevPointX;
                     this.rotationPointY = prevPointY;
                     this.rotationPointZ = prevPointZ;
@@ -214,128 +161,5 @@ public abstract class MixinModelRenderer {
                 }
             }
         }
-    }
-
-    public EnumAnimationPart getPlayerPartType(ModelRenderer renderer) {
-        if (renderer.baseModel instanceof ModelBiped) {
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedHead
-                    || renderer == ((ModelBiped) renderer.baseModel).bipedHeadwear) {
-                return EnumAnimationPart.HEAD;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedBody) {
-                return EnumAnimationPart.BODY;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightArm) {
-                return EnumAnimationPart.RIGHT_ARM;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftArm) {
-                return EnumAnimationPart.LEFT_ARM;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedRightLeg) {
-                return EnumAnimationPart.RIGHT_LEG;
-            }
-            if (renderer == ((ModelBiped) renderer.baseModel).bipedLeftLeg) {
-                return EnumAnimationPart.LEFT_LEG;
-            }
-        }
-
-        try {
-            Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
-            Object model = renderer.baseModel;
-            if(!(model instanceof ModelBiped))
-                return null;
-
-            Field[] declared;
-            if (ClientEventHandler.declaredFieldCache.containsKey(ModelBipedBody)) {
-                declared = ClientEventHandler.declaredFieldCache.get(ModelBipedBody);
-            } else {
-                declared = ModelBipedBody.getDeclaredFields();
-                ClientEventHandler.declaredFieldCache.put(ModelBipedBody,declared);
-            }
-            Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
-            for (Field f : declared) {
-                f.setAccessible(true);
-                for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {
-                    String[] names = entry.getValue();
-                    for (String partName : names) {
-                        try {
-                            if (partName.equals(f.getName()) && renderer == f.get(model)) {
-                                return entry.getKey();
-                            }
-                        } catch (IllegalAccessException ignored) {}
-                    }
-                }
-            }
-        } catch (ClassNotFoundException ignored) {}
-
-        return null;
-    }
-
-    public EnumAnimationPart pivotEqualPart(ModelRenderer renderer) {
-        if(renderer.baseModel instanceof ModelBiped){
-            ModelRenderer head = ((ModelBiped) renderer.baseModel).bipedHead;
-            ModelRenderer body = ((ModelBiped) renderer.baseModel).bipedBody;
-            ModelRenderer larm = ((ModelBiped) renderer.baseModel).bipedLeftArm;
-            ModelRenderer rarm = ((ModelBiped) renderer.baseModel).bipedRightArm;
-            ModelRenderer lleg = ((ModelBiped) renderer.baseModel).bipedLeftLeg;
-            ModelRenderer rleg = ((ModelBiped) renderer.baseModel).bipedRightLeg;
-
-            if (pivotsEqual(renderer,head)) {
-                return EnumAnimationPart.HEAD;
-            }
-            if (pivotsEqual(renderer,body)) {
-                return EnumAnimationPart.BODY;
-            }
-            if (pivotsEqual(renderer,rarm)) {
-                return EnumAnimationPart.RIGHT_ARM;
-            }
-            if (pivotsEqual(renderer,larm)) {
-                return EnumAnimationPart.LEFT_ARM;
-            }
-            if (pivotsEqual(renderer,rleg)) {
-                return EnumAnimationPart.RIGHT_LEG;
-            }
-            if (pivotsEqual(renderer,lleg)) {
-                return EnumAnimationPart.LEFT_LEG;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean pivotsEqual(ModelRenderer m1, ModelRenderer m2) {
-        return m1.rotationPointX == m2.rotationPointX && m1.rotationPointY == m2.rotationPointY && m1.rotationPointZ == m2.rotationPointZ;
-    }
-
-    public EnumAnimationPart getPartType(ModelRenderer renderer) {
-        Class<?> RenderClass = renderer.baseModel.getClass();
-        Object model = renderer.baseModel;
-
-        Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
-        while (RenderClass != Object.class) {
-            Field[] declared;
-            if (ClientEventHandler.declaredFieldCache.containsKey(RenderClass)) {
-                declared = ClientEventHandler.declaredFieldCache.get(RenderClass);
-            } else {
-                declared = RenderClass.getDeclaredFields();
-                ClientEventHandler.declaredFieldCache.put(RenderClass,declared);
-            }
-            for (Field f : declared) {
-                f.setAccessible(true);
-                for (Map.Entry<EnumAnimationPart, String[]> entry : entrySet) {
-                    String[] names = entry.getValue();
-                    for (String partName : names) {
-                        try {
-                            if (partName.equals(f.getName()) && renderer == f.get(model)) {
-                                return entry.getKey();
-                            }
-                        } catch (IllegalAccessException ignored) {}
-                    }
-                }
-            }
-            RenderClass = RenderClass.getSuperclass();
-        }
-
-        return null;
     }
 }

@@ -1,5 +1,6 @@
 package kamkeel.npcs.addon;
 
+import cpw.mods.fml.common.Loader;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -19,6 +20,10 @@ public class DBCAddon {
      */
     public DBCAddon(){
         instance = this;
+    }
+
+    public static boolean IsAvailable() {
+        return Loader.isModLoaded("npcdbc");
     }
 
     public void dbcCopyData(EntityLivingBase copied, EntityLivingBase entity){}
