@@ -8,27 +8,29 @@ import net.minecraft.item.ItemStack;
 import java.util.Map.Entry;
 
 /**
- * Aggregates a player's attributes based on their held item and armor.
- * Non‑magic attributes are stored in a CustomAttributeMap.
- * Magic–based attributes (offense and defense) are aggregated as maps:
- * for each magic type, we sum the FLAT and PERCENT values.
- *
- * This tracker is updated (for example, every 10 ticks) if the player's equipment changes.
+ * Aggregates a player's attributes based on the attributes found on their held item and armor.
+ * Non–magic attributes are stored in a CustomAttributeMap (using string keys via AttributeController).
+ * Magic attributes (offense and defense) are aggregated as maps, keyed by magic type.
+ * This tracker uses a PlayerEquipmentTracker to keep track of the player's equipment,
+ * and recalculates only when the player's held item or armor changes.
  */
 public class PlayerAttributeTracker {
     private final UUID playerId;
     private CustomAttributeMap aggregatedAttributes = new CustomAttributeMap();
-    // Aggregated magic offensive values from items (weapon, etc.)
+
+    // Aggregated magic offensive values:
     private final Map<Integer, Double> aggregatedMagicDamageFlat = new HashMap<>();
     private final Map<Integer, Double> aggregatedMagicDamagePercent = new HashMap<>();
-    // Aggregated magic defensive values from armor
+    // Aggregated magic defensive values:
     private final Map<Integer, Double> aggregatedMagicDefenseFlat = new HashMap<>();
     private final Map<Integer, Double> aggregatedMagicResistancePercent = new HashMap<>();
 
-    private String equipmentSnapshot = "";
+    // Stores the last-known equipment.
+    private PlayerEquipmentTracker equipmentTracker = new PlayerEquipmentTracker();
 
     public PlayerAttributeTracker(UUID playerId) {
         this.playerId = playerId;
+        // Initialize equipmentTracker from a null player (will be updated on first tick).
         recalcAttributes(null);
     }
 
@@ -37,124 +39,114 @@ public class PlayerAttributeTracker {
     }
 
     /**
-     * Builds a snapshot string from the player's held item and armor.
-     */
-    private String computeEquipmentSnapshot(EntityPlayer player) {
-        StringBuilder sb = new StringBuilder();
-        ItemStack held = player.getHeldItem();
-        if (held != null) {
-            sb.append(held.getItem().toString()).append(held.getItemDamage());
-        }
-        for (ItemStack armor : player.inventory.armorInventory) {
-            if (armor != null) {
-                sb.append(armor.getItem().toString()).append(armor.getItemDamage());
-            }
-        }
-        return sb.toString();
-    }
-
-    /**
      * Recalculates the aggregated attributes from the player's equipment.
-     * Non‑magic attributes are processed into a CustomAttributeMap,
-     * while magic attributes (offense and defense) are aggregated into separate maps.
+     * Non–magic attributes are read from each item's CNPCAttributes, and magic attributes
+     * are aggregated by summing values from their NBT maps.
      */
     public void recalcAttributes(EntityPlayer player) {
-        // Reinitialize non-magic attributes:
+        // Start with a fresh attribute map.
         CustomAttributeMap newMap = new CustomAttributeMap();
+        // Pre-register core non-magic attributes (if they appear on items).
         newMap.registerAttribute(ModAttributes.MAIN_ATTACK_FLAT, 0.0);
         newMap.registerAttribute(ModAttributes.MAIN_ATTACK_PERCENT, 0.0);
-        newMap.registerAttribute(ModAttributes.HEALTH, 20.0);
         newMap.registerAttribute(ModAttributes.CRITICAL_CHANCE_PERCENT, 0.0);
         newMap.registerAttribute(ModAttributes.CRITICAL_DAMAGE_FLAT, 0.0);
+        // (HEALTH is handled separately.)
         aggregatedAttributes = newMap;
 
-        // Reset magic aggregates:
+        // Reset magic aggregates.
         aggregatedMagicDamageFlat.clear();
         aggregatedMagicDamagePercent.clear();
         aggregatedMagicDefenseFlat.clear();
         aggregatedMagicResistancePercent.clear();
 
         if (player != null) {
-            // Process held item (assumed to be offense—weapon):
-            ItemStack held = player.getHeldItem();
+            // Update equipmentTracker with the player's current equipment.
+            PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
+            currentEquip.updateFrom(player);
+
+            // Process held item (offense).
+            ItemStack held = currentEquip.heldItem;
             if (held != null) {
-                // Non-magic:
+                // Process non-magic attributes.
                 for (Entry<String, Double> entry : CNPCItemAttributeHelper.readAttributes(held).entrySet()) {
                     String key = entry.getKey();
                     double value = entry.getValue();
-                    if (AttributeKeys.MAIN_ATTACK_FLAT.equals(key)) {
-                        IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(ModAttributes.MAIN_ATTACK_FLAT);
-                        inst.setBaseValue(inst.getBaseValue() + value);
-                    } else if (AttributeKeys.MAIN_ATTACK_PERCENT.equals(key)) {
-                        IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(ModAttributes.MAIN_ATTACK_PERCENT);
-                        inst.setBaseValue(inst.getBaseValue() + value);
-                    } else if (AttributeKeys.CRITICAL_CHANCE_PERCENT.equals(key)) {
-                        IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(ModAttributes.CRITICAL_CHANCE_PERCENT);
-                        inst.setBaseValue(inst.getBaseValue() + value);
-                    } else if (AttributeKeys.CRITICAL_DAMAGE_FLAT.equals(key)) {
-                        IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(ModAttributes.CRITICAL_DAMAGE_FLAT);
+                    AttributeDefinition def = AttributeController.getAttribute(key);
+                    if (def != null) {
+                        IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(def);
+                        if (inst == null) {
+                            inst = aggregatedAttributes.registerAttribute(def, 0.0);
+                        }
                         inst.setBaseValue(inst.getBaseValue() + value);
                     }
                 }
-                // Magic offense:
-                Map<Integer, Double> weaponMagicFlat = CNPCItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_FLAT);
-                for (Entry<Integer, Double> entry : weaponMagicFlat.entrySet()) {
+                // Process magic offense.
+                Map<Integer, Double> magicFlat = CNPCItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_FLAT);
+                for (Entry<Integer, Double> entry : magicFlat.entrySet()) {
                     int magicId = entry.getKey();
                     double value = entry.getValue();
                     aggregatedMagicDamageFlat.put(magicId, aggregatedMagicDamageFlat.getOrDefault(magicId, 0.0) + value);
                 }
-                Map<Integer, Double> weaponMagicPercent = CNPCItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_PERCENT);
-                for (Entry<Integer, Double> entry : weaponMagicPercent.entrySet()) {
+                Map<Integer, Double> magicPercent = CNPCItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_PERCENT);
+                for (Entry<Integer, Double> entry : magicPercent.entrySet()) {
                     int magicId = entry.getKey();
                     double value = entry.getValue();
                     aggregatedMagicDamagePercent.put(magicId, aggregatedMagicDamagePercent.getOrDefault(magicId, 0.0) + value);
                 }
             }
-            // Process armor (assumed to contribute defense):
-            for (ItemStack armor : player.inventory.armorInventory) {
-                if (armor != null) {
-                    // Non-magic:
-                    for (Entry<String, Double> entry : CNPCItemAttributeHelper.readAttributes(armor).entrySet()) {
+            // Process armor (defense).
+            // Assuming armor order: 0: boots, 1: leggings, 2: chestplate, 3: helmet.
+            ItemStack[] armor = new ItemStack[] { currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet };
+            for (ItemStack piece : armor) {
+                if (piece != null) {
+                    // Process non-magic attributes.
+                    for (Entry<String, Double> entry : CNPCItemAttributeHelper.readAttributes(piece).entrySet()) {
                         String key = entry.getKey();
                         double value = entry.getValue();
-                        if (AttributeKeys.HEALTH.equals(key)) {
-                            IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(ModAttributes.HEALTH);
+                        AttributeDefinition def = AttributeController.getAttribute(key);
+                        if (def != null) {
+                            IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(def);
+                            if (inst == null) {
+                                inst = aggregatedAttributes.registerAttribute(def, 0.0);
+                            }
                             inst.setBaseValue(inst.getBaseValue() + value);
                         }
-                        // Could add other non-magic defensive bonuses here.
                     }
-                    // Magic defense:
-                    Map<Integer, Double> armorMagicFlat = CNPCItemAttributeHelper.readMagicAttributeMap(armor, AttributeKeys.MAGIC_DEFENSE_FLAT);
-                    for (Entry<Integer, Double> entry : armorMagicFlat.entrySet()) {
+                    // Process magic defense.
+                    Map<Integer, Double> magicDefFlat = CNPCItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_DEFENSE_FLAT);
+                    for (Entry<Integer, Double> entry : magicDefFlat.entrySet()) {
                         int magicId = entry.getKey();
                         double value = entry.getValue();
                         aggregatedMagicDefenseFlat.put(magicId, aggregatedMagicDefenseFlat.getOrDefault(magicId, 0.0) + value);
                     }
-                    Map<Integer, Double> armorMagicPercent = CNPCItemAttributeHelper.readMagicAttributeMap(armor, AttributeKeys.MAGIC_RESISTANCE_PERCENT);
-                    for (Entry<Integer, Double> entry : armorMagicPercent.entrySet()) {
+                    Map<Integer, Double> magicResist = CNPCItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_RESISTANCE_PERCENT);
+                    for (Entry<Integer, Double> entry : magicResist.entrySet()) {
                         int magicId = entry.getKey();
                         double value = entry.getValue();
                         aggregatedMagicResistancePercent.put(magicId, aggregatedMagicResistancePercent.getOrDefault(magicId, 0.0) + value);
                     }
                 }
             }
+            // Update our stored equipment.
+            equipmentTracker = currentEquip;
         }
     }
 
     /**
-     * Checks if the player's equipment has changed (using a snapshot) and recalculates if so.
-     * Should be called periodically (e.g. every 10 ticks).
+     * Checks if the player's equipment has changed by comparing stored equipment with the current equipment.
+     * This should be called periodically (e.g., every 10 ticks).
      */
     public void updateIfChanged(EntityPlayer player) {
-        String currentSnapshot = computeEquipmentSnapshot(player);
-        if (!currentSnapshot.equals(equipmentSnapshot)) {
-            equipmentSnapshot = currentSnapshot;
+        PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
+        currentEquip.updateFrom(player);
+        if (!equipmentTracker.equals(player)) {
             recalcAttributes(player);
         }
     }
 
     /**
-     * Returns the aggregated non-magic value for a given attribute.
+     * Returns the aggregated non-magic value for a given attribute definition.
      */
     public double getAttributeValue(AttributeDefinition def) {
         IAttributeInstance inst = aggregatedAttributes.getAttributeInstance(def);
@@ -162,14 +154,19 @@ public class PlayerAttributeTracker {
     }
 
     /**
-     * Returns overall offensive rating:
+     * Overall offense is calculated as:
      * Non-magic offense (MAIN_ATTACK_FLAT*(1+MAIN_ATTACK_PERCENT))
      * plus the sum over all magic offense: for each magic type, flat*(1+percent).
      */
     public double getOffense() {
-        double nonMagic = getAttributeValue(ModAttributes.MAIN_ATTACK_FLAT) * (1 + getAttributeValue(ModAttributes.MAIN_ATTACK_PERCENT));
+        double nonMagic = 0.0;
+        AttributeDefinition atkFlat = AttributeController.getAttribute(AttributeKeys.MAIN_ATTACK_FLAT);
+        AttributeDefinition atkPercent = AttributeController.getAttribute(AttributeKeys.MAIN_ATTACK_PERCENT);
+        if (atkFlat != null && atkPercent != null) {
+            nonMagic = getAttributeValue(atkFlat) * (1 + getAttributeValue(atkPercent));
+        }
         double magicOffense = 0.0;
-        for (Map.Entry<Integer, Double> entry : aggregatedMagicDamageFlat.entrySet()) {
+        for (Entry<Integer, Double> entry : aggregatedMagicDamageFlat.entrySet()) {
             int magicId = entry.getKey();
             double flat = entry.getValue();
             double percent = aggregatedMagicDamagePercent.getOrDefault(magicId, 0.0);
@@ -179,7 +176,7 @@ public class PlayerAttributeTracker {
     }
 
     /**
-     * Returns offensive value for a specific magic type.
+     * Returns offense for a specific magic type.
      */
     public double getOffense(int magicId) {
         double flat = aggregatedMagicDamageFlat.getOrDefault(magicId, 0.0);
@@ -188,24 +185,22 @@ public class PlayerAttributeTracker {
     }
 
     /**
-     * Returns overall defensive rating:
-     * Non-magic defense is given by HEALTH.
-     * Plus sum over all magic defense: for each magic type, flat*(1+percent).
+     * Overall defense is calculated solely from magic defensive attributes.
+     * (HEALTH is managed separately.)
      */
     public double getDefense() {
-        double nonMagic = getAttributeValue(ModAttributes.HEALTH);
         double magicDefense = 0.0;
-        for (Map.Entry<Integer, Double> entry : aggregatedMagicDefenseFlat.entrySet()) {
+        for (Entry<Integer, Double> entry : aggregatedMagicDefenseFlat.entrySet()) {
             int magicId = entry.getKey();
             double flat = entry.getValue();
             double percent = aggregatedMagicResistancePercent.getOrDefault(magicId, 0.0);
             magicDefense += flat * (1 + percent);
         }
-        return nonMagic + magicDefense;
+        return magicDefense;
     }
 
     /**
-     * Returns defensive value for a specific magic type.
+     * Returns defense for a specific magic type.
      */
     public double getDefense(int magicId) {
         double flat = aggregatedMagicDefenseFlat.getOrDefault(magicId, 0.0);
