@@ -44,15 +44,7 @@ public class PlayerAttributeTracker {
      * are aggregated by summing values from their NBT maps.
      */
     public void recalcAttributes(EntityPlayer player) {
-        // Start with a fresh attribute map.
-        CustomAttributeMap newMap = new CustomAttributeMap();
-        // Pre-register core non-magic attributes (if they appear on items).
-        newMap.registerAttribute(ModAttributes.MAIN_ATTACK_FLAT, 0.0);
-        newMap.registerAttribute(ModAttributes.MAIN_ATTACK_PERCENT, 0.0);
-        newMap.registerAttribute(ModAttributes.CRITICAL_CHANCE_PERCENT, 0.0);
-        newMap.registerAttribute(ModAttributes.CRITICAL_DAMAGE_FLAT, 0.0);
-        // (HEALTH is handled separately.)
-        aggregatedAttributes = newMap;
+        aggregatedAttributes = new CustomAttributeMap();
 
         // Reset magic aggregates.
         aggregatedMagicDamageFlat.clear();
