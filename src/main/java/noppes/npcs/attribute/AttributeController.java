@@ -13,7 +13,7 @@ public class AttributeController {
     private static final Map<String, AttributeDefinition> definitions = new HashMap<>();
     private static int nextId = 0;
 
-    public static AttributeDefinition registerAttribute(String key, String displayName, Operation op) {
+    public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType op) {
         if (definitions.containsKey(key)) {
             return definitions.get(key);
         }

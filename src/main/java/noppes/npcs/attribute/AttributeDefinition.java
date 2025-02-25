@@ -9,13 +9,13 @@ public class AttributeDefinition {
     private final int id;
     private final String key;         // e.g., "cnpc:main_attack_flat"
     private final String displayName; // Human‑readable name
-    private final Operation operation;
+    private final AttributeValueType attributeValueType;
 
-    public AttributeDefinition(int id, String key, String displayName, Operation operation) {
+    public AttributeDefinition(int id, String key, String displayName, AttributeValueType attributeValueType) {
         this.id = id;
         this.key = key;
         this.displayName = displayName;
-        this.operation = operation;
+        this.attributeValueType = attributeValueType;
     }
 
     public int getId() {
@@ -30,7 +30,7 @@ public class AttributeDefinition {
         return displayName;
     }
 
-    public Operation getOperation() {
-        return operation;
+    public AttributeValueType getOperation() {
+        return attributeValueType;
     }
 }

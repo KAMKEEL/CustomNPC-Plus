@@ -49,14 +49,14 @@ public class ModifiableAttributeInstance implements IAttributeInstance {
         double finalValue = baseValue;
         // Apply flat modifiers first:
         for (AttributeModifier mod : modifiers) {
-            if (mod.getOperation() == Operation.FLAT) {
+            if (mod.getOperation() == AttributeValueType.FLAT) {
                 finalValue += mod.getAmount();
             }
         }
         // Then apply percentage modifiers additively:
         double percentSum = 0;
         for (AttributeModifier mod : modifiers) {
-            if (mod.getOperation() == Operation.PERCENT) {
+            if (mod.getOperation() == AttributeValueType.PERCENT) {
                 percentSum += mod.getAmount();
             }
         }

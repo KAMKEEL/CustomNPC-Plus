@@ -11,13 +11,13 @@ public class AttributeModifier {
     private final UUID id;
     private final String name;
     private final double amount;
-    private final Operation operation;
+    private final AttributeValueType attributeValueType;
 
-    public AttributeModifier(UUID id, String name, double amount, Operation operation) {
+    public AttributeModifier(UUID id, String name, double amount, AttributeValueType attributeValueType) {
         this.id = id;
         this.name = name;
         this.amount = amount;
-        this.operation = operation;
+        this.attributeValueType = attributeValueType;
     }
 
     public UUID getId() {
@@ -32,7 +32,7 @@ public class AttributeModifier {
         return amount;
     }
 
-    public Operation getOperation() {
-        return operation;
+    public AttributeValueType getOperation() {
+        return attributeValueType;
     }
 }
