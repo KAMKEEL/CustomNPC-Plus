@@ -11,6 +11,9 @@ import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPartyHandler;
+import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.data.Party;
@@ -27,7 +30,7 @@ import java.util.Vector;
 
 import static kamkeel.npcs.network.packets.request.party.PartyInvitePacket.sendInviteData;
 
-public class PartyController {
+public class PartyController implements IPartyHandler {
     private static PartyController Instance;
 
     private HashMap<UUID, Party> parties = new HashMap<>();
@@ -45,6 +48,42 @@ public class PartyController {
         Party party = new Party();
         this.parties.put(party.getPartyUUID(), party);
         return party;
+    }
+
+    @Override
+    public IParty createParty(IPlayer player){
+        if(player == null)
+            return null;
+
+        if(player.getMCEntity() == null)
+            return null;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
+        if(playerData.partyUUID != null)
+            return getParty(playerData.partyUUID);
+
+        Party party = new Party();
+        party.addPlayer(entityPlayer);
+        party.setLeader(entityPlayer);
+        this.parties.put(party.getPartyUUID(), party);
+        return party;
+    }
+
+    @Override
+    public void disbandParty(IPlayer player){
+        if(player == null)
+            return;
+
+        if(player.getMCEntity() == null)
+            return;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
+        if(playerData.partyUUID != null)
+            disbandParty(playerData.partyUUID);
+
+        return;
     }
 
     public Party getParty(UUID partyUUID) {

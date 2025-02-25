@@ -246,6 +246,8 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public ICustomEffectHandler getCustomEffectHandler() { return CustomEffectController.Instance; }
 
+    public IPartyHandler getPartyHandler() { return PartyController.Instance(); }
+
     public ITransportHandler getLocations() {
         return TransportController.getInstance();
     }
