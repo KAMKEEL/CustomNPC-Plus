@@ -6,7 +6,7 @@ package noppes.npcs.attribute;
  * once in the AttributeController.
  */
 public class AttributeDefinition {
-    private final String key;         // e.g., "rpgcore:main_attack_flat"
+    private final String key;         // e.g., "main_attack_flat"
     private final String displayName; // Human‑readable name
     private final AttributeValueType attributeValueType;
 
@@ -24,7 +24,7 @@ public class AttributeDefinition {
         return displayName;
     }
 
-    public AttributeValueType getOperation() {
+    public AttributeValueType getValueType() {
         return attributeValueType;
     }
 }

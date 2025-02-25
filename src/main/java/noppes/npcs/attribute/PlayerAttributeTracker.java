@@ -61,7 +61,7 @@ public class PlayerAttributeTracker {
             ItemStack held = currentEquip.heldItem;
             if (held != null) {
                 // Process non-magic attributes.
-                for (Entry<String, Double> entry : CNPCItemAttributeHelper.readAttributes(held).entrySet()) {
+                for (Entry<String, Double> entry : ItemAttributeHelper.readAttributes(held).entrySet()) {
                     String key = entry.getKey();
                     double value = entry.getValue();
                     AttributeDefinition def = AttributeController.getAttribute(key);
@@ -74,13 +74,13 @@ public class PlayerAttributeTracker {
                     }
                 }
                 // Process magic offense.
-                Map<Integer, Double> magicFlat = CNPCItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_FLAT);
+                Map<Integer, Double> magicFlat = ItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_FLAT);
                 for (Entry<Integer, Double> entry : magicFlat.entrySet()) {
                     int magicId = entry.getKey();
                     double value = entry.getValue();
                     aggregatedMagicDamageFlat.put(magicId, aggregatedMagicDamageFlat.getOrDefault(magicId, 0.0) + value);
                 }
-                Map<Integer, Double> magicPercent = CNPCItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_PERCENT);
+                Map<Integer, Double> magicPercent = ItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE_PERCENT);
                 for (Entry<Integer, Double> entry : magicPercent.entrySet()) {
                     int magicId = entry.getKey();
                     double value = entry.getValue();
@@ -93,7 +93,7 @@ public class PlayerAttributeTracker {
             for (ItemStack piece : armor) {
                 if (piece != null) {
                     // Process non-magic attributes.
-                    for (Entry<String, Double> entry : CNPCItemAttributeHelper.readAttributes(piece).entrySet()) {
+                    for (Entry<String, Double> entry : ItemAttributeHelper.readAttributes(piece).entrySet()) {
                         String key = entry.getKey();
                         double value = entry.getValue();
                         AttributeDefinition def = AttributeController.getAttribute(key);
@@ -106,13 +106,13 @@ public class PlayerAttributeTracker {
                         }
                     }
                     // Process magic defense.
-                    Map<Integer, Double> magicDefFlat = CNPCItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_DEFENSE_FLAT);
+                    Map<Integer, Double> magicDefFlat = ItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_DEFENSE_FLAT);
                     for (Entry<Integer, Double> entry : magicDefFlat.entrySet()) {
                         int magicId = entry.getKey();
                         double value = entry.getValue();
                         aggregatedMagicDefenseFlat.put(magicId, aggregatedMagicDefenseFlat.getOrDefault(magicId, 0.0) + value);
                     }
-                    Map<Integer, Double> magicResist = CNPCItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_RESISTANCE_PERCENT);
+                    Map<Integer, Double> magicResist = ItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_RESISTANCE_PERCENT);
                     for (Entry<Integer, Double> entry : magicResist.entrySet()) {
                         int magicId = entry.getKey();
                         double value = entry.getValue();
