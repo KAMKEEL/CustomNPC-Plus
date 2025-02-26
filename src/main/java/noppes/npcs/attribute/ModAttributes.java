@@ -16,15 +16,15 @@ public class ModAttributes {
     public static AttributeDefinition MAGIC_RESISTANCE_PERCENT;
 
     public ModAttributes(){
-        MAIN_ATTACK_FLAT = AttributeController.registerAttribute(AttributeKeys.MAIN_ATTACK_FLAT, "Main Attack Damage", AttributeValueType.FLAT);
-        MAIN_ATTACK_PERCENT = AttributeController.registerAttribute(AttributeKeys.MAIN_ATTACK_PERCENT, "Main Attack Damage (%)", AttributeValueType.PERCENT);
+        MAIN_ATTACK_FLAT = AttributeController.registerAttribute(AttributeKeys.MAIN_ATTACK, "Main Attack Damage", AttributeValueType.FLAT);
+        MAIN_ATTACK_PERCENT = AttributeController.registerAttribute(AttributeKeys.MAIN_ATTACK_BOOST, "Main Attack Damage (%)", AttributeValueType.PERCENT);
         HEALTH = AttributeController.registerAttribute(AttributeKeys.HEALTH, "Health", AttributeValueType.FLAT);
-        CRITICAL_CHANCE_PERCENT = AttributeController.registerAttribute(AttributeKeys.CRITICAL_CHANCE_PERCENT, "Critical Chance (%)", AttributeValueType.PERCENT);
+        CRITICAL_CHANCE_PERCENT = AttributeController.registerAttribute(AttributeKeys.CRITICAL_CHANCE, "Critical Chance (%)", AttributeValueType.PERCENT);
         CRITICAL_DAMAGE_FLAT = AttributeController.registerAttribute(AttributeKeys.CRITICAL_DAMAGE_FLAT, "Critical Damage Bonus", AttributeValueType.FLAT);
 
-        MAGIC_DAMAGE_FLAT = AttributeController.registerAttribute(AttributeKeys.MAGIC_DAMAGE_FLAT, "Magic Damage", AttributeValueType.MAGIC);
-        MAGIC_DAMAGE_PERCENT = AttributeController.registerAttribute(AttributeKeys.MAGIC_DAMAGE_PERCENT, "Magic Damage (%)", AttributeValueType.MAGIC);
-        MAGIC_DEFENSE_FLAT = AttributeController.registerAttribute(AttributeKeys.MAGIC_DEFENSE_FLAT, "Magic Defense", AttributeValueType.MAGIC);
-        MAGIC_RESISTANCE_PERCENT = AttributeController.registerAttribute(AttributeKeys.MAGIC_RESISTANCE_PERCENT, "Magic Resistance (%)", AttributeValueType.MAGIC);
+        MAGIC_DAMAGE_FLAT = AttributeController.registerAttribute(AttributeKeys.MAGIC_DAMAGE, "Magic Damage", AttributeValueType.MAGIC);
+        MAGIC_DAMAGE_PERCENT = AttributeController.registerAttribute(AttributeKeys.MAGIC_BOOST, "Magic Damage (%)", AttributeValueType.MAGIC);
+        MAGIC_DEFENSE_FLAT = AttributeController.registerAttribute(AttributeKeys.MAGIC_DEFENSE, "Magic Defense", AttributeValueType.MAGIC);
+        MAGIC_RESISTANCE_PERCENT = AttributeController.registerAttribute(AttributeKeys.MAGIC_RESISTANCE, "Magic Resistance (%)", AttributeValueType.MAGIC);
     }
 }

@@ -1,8 +1,9 @@
-package noppes.npcs.attribute;
+package noppes.npcs.attribute.player;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.attribute.ItemAttributeHelper;
 
 public class PlayerEquipmentTracker {
     public ItemStack heldItem;

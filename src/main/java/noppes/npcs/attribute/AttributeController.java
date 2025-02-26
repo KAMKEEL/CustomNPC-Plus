@@ -1,8 +1,12 @@
 package noppes.npcs.attribute;
 
+import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.attribute.player.PlayerAttributeTracker;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * AttributeController is the central registry for attribute definitions.
@@ -13,11 +17,14 @@ public class AttributeController {
     public AttributeController Instance;
     public ModAttributes attributes;
 
+    // Tracking Player Attributes
+    private static final Map<UUID, PlayerAttributeTracker> trackers = new HashMap<>();
     private static final Map<String, AttributeDefinition> definitions = new HashMap<>();
 
     public AttributeController(){
         this.Instance = this;
         definitions.clear();
+        trackers.clear();
         attributes = new ModAttributes();
     }
 
@@ -37,5 +44,23 @@ public class AttributeController {
 
     public static Collection<AttributeDefinition> getAllAttributes() {
         return definitions.values();
+    }
+
+    public static PlayerAttributeTracker getTracker(UUID playerId) {
+        return trackers.computeIfAbsent(playerId, id -> new PlayerAttributeTracker(id));
+    }
+
+    public static void removeTracker(UUID playerId) {
+        trackers.remove(playerId);
+    }
+
+    /**
+     * Update all trackers (e.g. called every 10 ticks for all online players).
+     */
+    public static void updateAllTrackers(Iterable<EntityPlayer> players) {
+        for (EntityPlayer player : players) {
+            PlayerAttributeTracker tracker = getTracker(player.getUniqueID());
+            tracker.updateIfChanged(player);
+        }
     }
 }

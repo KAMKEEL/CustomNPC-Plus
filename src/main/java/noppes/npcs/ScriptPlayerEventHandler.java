@@ -23,7 +23,7 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
-import noppes.npcs.attribute.PlayerAttributeManager;
+import noppes.npcs.attribute.AttributeController;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -61,7 +61,7 @@ public class ScriptPlayerEventHandler {
                     }
                 }
 
-                PlayerAttributeManager.getTracker(player.getUniqueID()).updateIfChanged(player);
+                AttributeController.getTracker(player.getUniqueID()).updateIfChanged(player);
             }
 
             if (PlayerDataController.Instance != null) {
