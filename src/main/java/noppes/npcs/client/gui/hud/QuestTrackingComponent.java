@@ -49,9 +49,37 @@ public class QuestTrackingComponent extends HudComponent {
         String category = compound.getString("CategoryName");
 
         ArrayList<String> objectives = new ArrayList<>();
-        NBTTagList objectiveList = compound.getTagList("ObjectiveList", 8);
-        for (int i = 0; i < objectiveList.tagCount(); i++) {
-            String objective = objectiveList.getStringTagAt(i);
+        NBTTagList nbtTagList = compound.getTagList("ObjectiveList",8);
+        for (int i = 0; i < nbtTagList.tagCount(); i++) {
+            String objective = nbtTagList.getStringTagAt(i);
+
+            String[] split = objective.split(":");
+            split = split[split.length-1].split("/");
+
+            boolean completed = false;
+
+            try {
+                if(split.length < 2)
+                    throw new NumberFormatException("catch");
+
+                int killed = Integer.parseInt(split[0].trim());
+                int total = Integer.parseInt(split[1].trim());
+
+                if (killed/total == 1) {
+                    completed = true;
+                }
+            } catch (NumberFormatException e) {
+                if (objective.endsWith("(Done)") || objective.endsWith("(read)") || (objective.endsWith("Found") && !objective.endsWith("Not Found"))) {
+                    completed = true;
+                }
+            }
+
+            if (completed) {
+                objective = "&a&m" + objective;
+            } else {
+                objective = "&6" + objective;
+            }
+
             objectives.add(objective);
         }
         String turnIn = "";

@@ -100,10 +100,6 @@ public class ClientEventHandler {
             }
 
             ClientHudManager.getInstance().renderAllHUDs(event.partialTicks);
-
-//            if (ClientCacheHandler.questTrackingOverlay != null) {
-//                ClientCacheHandler.questTrackingOverlay.renderOverlay(event.partialTicks);
-//            }
         }
     }
 
