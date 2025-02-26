@@ -9,7 +9,18 @@ import java.util.Map;
  * It ensures that keys are unique.
  */
 public class AttributeController {
+
+    public AttributeController Instance;
+    public ModAttributes attributes;
+
     private static final Map<String, AttributeDefinition> definitions = new HashMap<>();
+
+    public AttributeController(){
+        this.Instance = this;
+        definitions.clear();
+        attributes = new ModAttributes();
+    }
+
 
     public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType valueType) {
         if (definitions.containsKey(key)) {

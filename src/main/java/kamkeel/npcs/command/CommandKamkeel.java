@@ -6,13 +6,12 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.attribute.AttributeController;
+import noppes.npcs.attribute.AttributeDefinition;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CommandKamkeel extends CommandBase{
 
@@ -111,6 +110,13 @@ public class CommandKamkeel extends CommandBase{
                 String usage = useArgs[args.length - 3];
                 if(usage.equals("<player>") || usage.equals("[player]")) {
                     return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
+                }
+                else if(usage.equals("<attribute>")) {
+                    List<String> keys = new ArrayList<>();
+                    for (AttributeDefinition def : AttributeController.getAllAttributes()) {
+                        keys.add(def.getKey());
+                    }
+                    return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 }
             }
         }

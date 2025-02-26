@@ -47,7 +47,7 @@ public class CommandHelpProfile extends CommandProfileBase {
         }
 
         if(command.subcommands.isEmpty()){
-            sender.addChatMessage(new ChatComponentTranslation(command.getCommandUsage(sender)));
+            sendMessage(sender, (command.getCommandUsage(sender)));
             return;
         }
 
@@ -63,7 +63,7 @@ public class CommandHelpProfile extends CommandProfileBase {
                 SubCommand sc = entry.getValue().getAnnotation(SubCommand.class);
                 // For players, only list subcommands if they have permission; for console, show all.
                 if(!(sender instanceof EntityPlayer) || command.canSendCommand(sender, sc, entry.getKey())){
-                    sender.addChatMessage(new ChatComponentTranslation("\u00A77> "
+                    sendMessage(sender, ("\u00A77> "
                         + "\u00A7e" + entry.getKey()
                         + "\u00A78: \u00A77" + sc.desc()));
                 }
@@ -71,7 +71,7 @@ public class CommandHelpProfile extends CommandProfileBase {
             // Show permission node only if sender is console or has permission.
             if(!(sender instanceof EntityPlayer) ||
                 CustomNpcsPermissions.hasPermission((EntityPlayer)sender, CustomNpcsPermissions.PROFILE_ADMIN)){
-                sender.addChatMessage(new ChatComponentTranslation("\u00A78Permission:\u00A77 "
+                sendMessage(sender, ("\u00A78Permission:\u00A77 "
                     + CommandProfile.getCommandPermission(command.getCommandName())));
             }
         }
@@ -79,13 +79,13 @@ public class CommandHelpProfile extends CommandProfileBase {
             sendMessage(sender, "\u00A78------ \u00A7b" + command.getCommandName().toUpperCase()
                 + "." + args[1].toUpperCase() + " Command \u00A78------");
             SubCommand sc = m.getAnnotation(SubCommand.class);
-            sender.addChatMessage(new ChatComponentTranslation("\u00A77" + sc.desc()));
+            sendMessage(sender, ("\u00A77" + sc.desc()));
             if(!sc.usage().isEmpty()){
-                sender.addChatMessage(new ChatComponentTranslation("\u00A77Usage: \u00A76" + sc.usage()));
+                sendMessage(sender, ("\u00A77Usage: \u00A76" + sc.usage()));
             }
             if(!(sender instanceof EntityPlayer) ||
                 CustomNpcsPermissions.hasPermission((EntityPlayer)sender, CustomNpcsPermissions.PROFILE_ADMIN)){
-                sender.addChatMessage(new ChatComponentTranslation("\u00A78Permission:\u00A77 "
+                sendMessage(sender, ("\u00A78Permission:\u00A77 "
                     + getSubCommandPermission(args[1])));
             }
         }

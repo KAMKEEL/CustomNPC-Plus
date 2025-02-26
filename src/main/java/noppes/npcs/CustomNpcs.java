@@ -27,6 +27,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
+import noppes.npcs.attribute.AttributeController;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
@@ -217,6 +218,8 @@ public class CustomNpcs {
         // Profile Controller
         new ProfileController();
         ProfileController.registerProfileType(new CNPCData());
+
+        new AttributeController();
 
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();
