@@ -5,7 +5,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IMagic;
 import noppes.npcs.controllers.MagicController;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 public class Magic implements IMagic {
@@ -16,7 +19,8 @@ public class Magic implements IMagic {
 
     public ItemStack iconItem = null;
     public String iconTexture = "";
-    public Map<Integer, Float> weaknesses = new HashMap<>();
+    public Map<Integer, Float> interactions = new HashMap<>();
+    public HashSet<Integer> cycles = new HashSet<>();
 
     public Magic() {}
 
@@ -37,20 +41,30 @@ public class Magic implements IMagic {
         displayName = compound.getString("DisplayName");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
-        // No longer reading index/priority here.
+        // Read icon item.
         if(compound.hasKey("IconItem")){
             NBTTagCompound itemTag = compound.getCompoundTag("IconItem");
             iconItem = ItemStack.loadItemStackFromNBT(itemTag);
         }
         iconTexture = compound.getString("IconTexture");
-        weaknesses.clear();
-        if(compound.hasKey("Weaknesses")) {
-            NBTTagList weaknessList = compound.getTagList("Weaknesses", 10);
-            for(int i = 0; i < weaknessList.tagCount(); i++){
-                NBTTagCompound weaknessTag = weaknessList.getCompoundTagAt(i);
-                int weakMagicId = weaknessTag.getInteger("MagicID");
-                float percentage = weaknessTag.getFloat("Percentage");
-                weaknesses.put(weakMagicId, percentage);
+
+        interactions.clear();
+        if(compound.hasKey("Interactions")) {
+            NBTTagList interactionsList = compound.getTagList("Interactions", 10);
+            for (int i = 0; i < interactionsList.tagCount(); i++){
+                NBTTagCompound interactionTag = interactionsList.getCompoundTagAt(i);
+                int magicId = interactionTag.getInteger("MagicID");
+                float percentage = interactionTag.getFloat("Percentage");
+                interactions.put(magicId, percentage);
+            }
+        }
+
+        cycles.clear();
+        if(compound.hasKey("Cycles")) {
+            NBTTagList cyclesList = compound.getTagList("Cycles", 10);
+            for (int i = 0; i < cyclesList.tagCount(); i++){
+                NBTTagCompound cycleTag = cyclesList.getCompoundTagAt(i);
+                cycles.add(cycleTag.getInteger("Cycle"));
             }
         }
     }
@@ -60,7 +74,7 @@ public class Magic implements IMagic {
         compound.setString("Name", name);
         compound.setString("DisplayName", displayName);
         compound.setInteger("Color", color);
-        // No longer writing index/priority here.
+        // Write icon item.
         if(iconItem != null) {
             NBTTagCompound itemTag = new NBTTagCompound();
             iconItem.writeToNBT(itemTag);
@@ -69,14 +83,23 @@ public class Magic implements IMagic {
         if(iconTexture != null && !iconTexture.isEmpty()){
             compound.setString("IconTexture", iconTexture);
         }
-        NBTTagList weaknessList = new NBTTagList();
-        for(Map.Entry<Integer, Float> entry : weaknesses.entrySet()){
-            NBTTagCompound weaknessTag = new NBTTagCompound();
-            weaknessTag.setInteger("MagicID", entry.getKey());
-            weaknessTag.setFloat("Percentage", entry.getValue());
-            weaknessList.appendTag(weaknessTag);
+
+        NBTTagList interactionsList = new NBTTagList();
+        for (Map.Entry<Integer, Float> entry : interactions.entrySet()){
+            NBTTagCompound interactionTag = new NBTTagCompound();
+            interactionTag.setInteger("MagicID", entry.getKey());
+            interactionTag.setFloat("Percentage", entry.getValue());
+            interactionsList.appendTag(interactionTag);
         }
-        compound.setTag("Weaknesses", weaknessList);
+        compound.setTag("Interactions", interactionsList);
+
+        NBTTagList cyclesList = new NBTTagList();
+        for (Integer cycle : cycles) {
+            NBTTagCompound cycleTag = new NBTTagCompound();
+            cycleTag.setInteger("Cycle", cycle);
+            cyclesList.appendTag(cycleTag);
+        }
+        compound.setTag("Cycles", cyclesList);
     }
 
     public int getId() {
@@ -128,11 +151,11 @@ public class Magic implements IMagic {
         return this.iconTexture;
     }
 
-    public void setWeaknesses(Map<Integer, Float> weaknesses) {
-        this.weaknesses = weaknesses;
+    public void setInteractions(Map<Integer, Float> interactions) {
+        this.interactions = interactions;
     }
 
-    public Map<Integer, Float> getWeaknesses() {
-        return this.weaknesses;
+    public Map<Integer, Float> getInteractions() {
+        return this.interactions;
     }
 }

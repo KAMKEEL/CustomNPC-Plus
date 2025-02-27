@@ -55,9 +55,9 @@ public class GuiMagicMap extends GuiDiagram {
         List<DiagramConnection> conns = new ArrayList<>();
         // For each Magic, generate connections from each weakness (attacker) to this magic.
         for (Magic magic : magics) {
-            if (magic.weaknesses == null)
+            if (magic.interactions == null)
                 continue;
-            for (Map.Entry<Integer, Float> entry : magic.weaknesses.entrySet()) {
+            for (Map.Entry<Integer, Float> entry : magic.interactions.entrySet()) {
                 int attackerId = entry.getKey();
                 float percent = entry.getValue();
                 String hover = "+" + (int) (percent * 100) + "%";
