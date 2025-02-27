@@ -8,6 +8,7 @@ import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.attribute.AttributeController;
 import noppes.npcs.attribute.AttributeDefinition;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.lang.reflect.Method;
@@ -35,7 +36,8 @@ public class CommandKamkeel extends CommandBase{
         registerCommand(new OverlayCommand());
         registerCommand(new CommandCommand());
         registerCommand(new EffectCommand());
-        registerCommand(new AttributeCommand());
+        if(ConfigMain.AttributesEnabled)
+            registerCommand(new AttributeCommand());
     }
 
     public void registerCommand(CommandKamkeelBase command){

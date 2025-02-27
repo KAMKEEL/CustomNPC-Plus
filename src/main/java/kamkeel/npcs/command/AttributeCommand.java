@@ -108,13 +108,13 @@ public class AttributeCommand extends CommandKamkeelBase {
         // Check if this is a magic attribute.
         if(def.getValueType() == AttributeValueType.MAGIC) {
             if(args.length < 3){
-                sendError(sender, "Usage for magic attribute: apply <attribute> <magicID> <value>");
+                sendError(sender, "Usage for magic attribute: apply <attribute> <value> <magicID>");
                 return;
             }
             int magicId;
-            double value;
+            float value;
             try {
-                value = Double.parseDouble(args[1]);
+                value = Float.parseFloat(args[1]);
                 magicId = Integer.parseInt(args[2]);
             } catch(NumberFormatException e) {
                 sendError(sender, "Invalid number format for magicID or value.");
@@ -133,9 +133,9 @@ public class AttributeCommand extends CommandKamkeelBase {
                 sendError(sender, "Usage: <attribute> <value>");
                 return;
             }
-            double value;
+            float value;
             try {
-                value = Double.parseDouble(args[1]);
+                value = Float.parseFloat(args[1]);
             } catch(NumberFormatException e) {
                 sendError(sender, "Invalid number format for value.");
                 return;
