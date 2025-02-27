@@ -473,12 +473,6 @@ public class ScriptPlayerEventHandler {
             }
 
             if(event.source.getEntity() instanceof EntityPlayer) {
-                if(event.entityLiving instanceof EntityPlayer){
-                    event.ammount = AttributeAttackHelper.calculateDamagePlayer((EntityPlayer) event.source.getEntity(), (EntityPlayer) event.entityLiving, event.ammount);
-                } else if (event.entityLiving instanceof EntityNPCInterface){
-
-                }
-
                 noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
