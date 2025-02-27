@@ -1332,4 +1332,7 @@ profile.individual=Individual
 
 rpgcore:tooltip=Hold %key% to view attributes
 rpgcore:attribute.damage=Damage
-rpgcore:attribute.neutral=Neutral
+rpgcore:attribute.defense=Defense
+rpgcore:attribute.resistance=Resistance
+rpgcore:attribute.neutral=Neutral Damage
+

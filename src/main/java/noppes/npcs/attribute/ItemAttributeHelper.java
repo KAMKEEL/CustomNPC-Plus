@@ -231,7 +231,7 @@ public class ItemAttributeHelper {
                         double value = magicTag.getDouble(key);
                         Magic magic = MagicController.getInstance().getMagic(magicId);
                         if (magic != null) {
-                            String magicDisplayName = magic.getDisplayName();
+                            String magicDisplayName = magic.getDisplayName() + " " + EnumChatFormatting.GRAY + getMagicAppendix(magicKey);
                             // Format using the magic attribute's definition and the magic's display name.
                             String line = formatAttributeLine(def, section, value, magicDisplayName);
                             switch (section) {
@@ -257,9 +257,22 @@ public class ItemAttributeHelper {
         }
     }
 
+    @SideOnly(Side.CLIENT)
+    private static String getMagicAppendix(String type){
+        switch(type){
+            case ModAttributes.MAGIC_DEFENSE_KEY:
+                return StatCollector.translateToLocal("rpgcore:attribute.defense");
+            case ModAttributes.MAGIC_RESISTANCE_KEY:
+                return StatCollector.translateToLocal("rpgcore:attribute.resistance");
+            default:
+                return StatCollector.translateToLocal("rpgcore:attribute.damage");
+        }
+    }
+
     /**
      * Returns a translated attribute name.
      */
+    @SideOnly(Side.CLIENT)
     private static String getTranslatedAttributeName(String key, AttributeDefinition def) {
         String translation = null;
         if (key.contains(":")) {
