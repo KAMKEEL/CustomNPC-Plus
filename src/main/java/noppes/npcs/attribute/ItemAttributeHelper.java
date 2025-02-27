@@ -28,7 +28,7 @@ public class ItemAttributeHelper {
     /**
      * Applies a non–magic attribute to an item.
      */
-    public static void applyAttribute(ItemStack item, String attributeKey, double value) {
+    public static void applyAttribute(ItemStack item, String attributeKey, Float value) {
         if (item == null) return;
         if (item.stackTagCompound == null) {
             item.stackTagCompound = new NBTTagCompound();
@@ -40,7 +40,7 @@ public class ItemAttributeHelper {
         } else {
             attrTag = new NBTTagCompound();
         }
-        attrTag.setDouble(attributeKey, value);
+        attrTag.setFloat(attributeKey, value);
         root.setTag(RPGItemAttributes, attrTag);
     }
 
@@ -63,15 +63,15 @@ public class ItemAttributeHelper {
     /**
      * Reads non–magic attributes from an item.
      */
-    public static Map<String, Double> readAttributes(ItemStack item) {
-        Map<String, Double> map = new HashMap<>();
+    public static Map<String, Float> readAttributes(ItemStack item) {
+        Map<String, Float> map = new HashMap<>();
         if (item == null || item.stackTagCompound == null) return map;
         NBTTagCompound root = item.stackTagCompound;
         if (root.hasKey(RPGItemAttributes)) {
             NBTTagCompound attrTag = root.getCompoundTag(RPGItemAttributes);
             Set<String> keys = attrTag.func_150296_c();
             for (String key : keys) {
-                map.put(key, attrTag.getDouble(key));
+                map.put(key, attrTag.getFloat(key));
             }
         }
         return map;
@@ -81,8 +81,8 @@ public class ItemAttributeHelper {
      * Reads a magic attribute map from an item.
      * The given attributeTag is the key under which the compound is stored (e.g., MAGIC_DAMAGE_FLAT).
      */
-    public static Map<Integer, Double> readMagicAttributeMap(ItemStack item, String attributeTag) {
-        Map<Integer, Double> map = new HashMap<>();
+    public static Map<Integer, Float> readMagicAttributeMap(ItemStack item, String attributeTag) {
+        Map<Integer, Float> map = new HashMap<>();
         if (item == null || item.stackTagCompound == null) return map;
         if (item.stackTagCompound.hasKey(attributeTag)) {
             NBTTagCompound magicMap = item.stackTagCompound.getCompoundTag(attributeTag);
@@ -90,7 +90,7 @@ public class ItemAttributeHelper {
             for (String key : keys) {
                 try {
                     int magicId = Integer.parseInt(key);
-                    map.put(magicId, magicMap.getDouble(key));
+                    map.put(magicId, magicMap.getFloat(key));
                 } catch (NumberFormatException e) {
                     // Skip invalid key.
                 }
@@ -103,14 +103,14 @@ public class ItemAttributeHelper {
      * Applies (writes) a magic attribute to an item.
      * This is essentially the same as writeMagicAttribute.
      */
-    public static void applyMagicAttribute(ItemStack item, String attributeTag, int magicId, double value) {
+    public static void applyMagicAttribute(ItemStack item, String attributeTag, int magicId, Float value) {
         writeMagicAttribute(item, attributeTag, magicId, value);
     }
 
     /**
      * Writes a magic attribute value to the given attributeTag.
      */
-    public static void writeMagicAttribute(ItemStack item, String attributeTag, int magicId, double value) {
+    public static void writeMagicAttribute(ItemStack item, String attributeTag, int magicId, Float value) {
         if (item == null) return;
         if (item.stackTagCompound == null)
             item.stackTagCompound = new NBTTagCompound();
@@ -120,7 +120,7 @@ public class ItemAttributeHelper {
         } else {
             magicMap = new NBTTagCompound();
         }
-        magicMap.setDouble(String.valueOf(magicId), value);
+        magicMap.setFloat(String.valueOf(magicId), value);
         item.stackTagCompound.setTag(attributeTag, magicMap);
     }
 
@@ -165,7 +165,7 @@ public class ItemAttributeHelper {
                     || key.equals(ModAttributes.MAGIC_DEFENSE_KEY) || key.equals(ModAttributes.MAGIC_RESISTANCE_KEY)) {
                     continue;
                 }
-                double value = attrTag.getDouble(key);
+                Float value = attrTag.getFloat(key);
                 AttributeDefinition def = AttributeController.getAttribute(key);
                 AttributeDefinition.AttributeSection section = def != null ? def.getSection() : AttributeDefinition.AttributeSection.EXTRA;
                 String displayName = getTranslatedAttributeName(key, def);
@@ -228,7 +228,7 @@ public class ItemAttributeHelper {
                     String key = magicIter.next();
                     try {
                         int magicId = Integer.parseInt(key);
-                        double value = magicTag.getDouble(key);
+                        Float value = magicTag.getFloat(key);
                         Magic magic = MagicController.getInstance().getMagic(magicId);
                         if (magic != null) {
                             String magicDisplayName = magic.getDisplayName() + " " + EnumChatFormatting.GRAY + getMagicAppendix(magicKey);
@@ -293,8 +293,8 @@ public class ItemAttributeHelper {
      * Formats the attribute line based on its section and value type.
      */
     private static String formatAttributeLine(AttributeDefinition def, AttributeDefinition.AttributeSection section,
-                                              double value, String displayName) {
-        String formattedValue = formatDouble(value);
+                                              Float value, String displayName) {
+        String formattedValue = formatFloat(value);
         if (section == AttributeDefinition.AttributeSection.MODIFIER || section == AttributeDefinition.AttributeSection.INFO) {
             String sign = value >= 0 ? "+" : "";
             String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
@@ -327,9 +327,9 @@ public class ItemAttributeHelper {
     }
 
     /**
-     * Helper to format a double by removing trailing zeros.
+     * Helper to format a Float by removing trailing zeros.
      */
-    private static String formatDouble(double value) {
-        return new java.math.BigDecimal(Double.toString(value)).stripTrailingZeros().toPlainString();
+    private static String formatFloat(Float value) {
+        return new java.math.BigDecimal(Float.toString(value)).stripTrailingZeros().toPlainString();
     }
 }

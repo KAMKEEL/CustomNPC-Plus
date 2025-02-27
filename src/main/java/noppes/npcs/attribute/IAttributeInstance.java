@@ -5,6 +5,6 @@ package noppes.npcs.attribute;
  */
 public interface IAttributeInstance {
     AttributeDefinition getAttribute();
-    double getValue();
-    void setValue(double value);
+    float getValue();
+    void setValue(float value);
 }

@@ -13,7 +13,7 @@ import java.util.Map;
 public class PlayerAttributeMap {
     private final Map<AttributeDefinition, IAttributeInstance> map = new HashMap<>();
 
-    public IAttributeInstance registerAttribute(AttributeDefinition attribute, double baseValue) {
+    public IAttributeInstance registerAttribute(AttributeDefinition attribute, float baseValue) {
         if (map.containsKey(attribute)) {
             throw new IllegalArgumentException("Attribute already registered: " + attribute.getKey());
         }
