@@ -1,6 +1,5 @@
 package noppes.npcs.attribute;
 
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.attribute.player.PlayerAttributeTracker;
 import noppes.npcs.controllers.MagicController;
@@ -9,7 +8,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.Map;
 import java.util.Random;
 
-public class DamageCalculator {
+public class AttributeAttackHelper {
     private static final Random random = new Random();
 
     public static float calculateDamagePlayer(EntityPlayer attacker, EntityPlayer defender, float base){

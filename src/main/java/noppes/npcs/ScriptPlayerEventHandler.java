@@ -24,7 +24,7 @@ import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.attribute.AttributeController;
-import noppes.npcs.attribute.DamageCalculator;
+import noppes.npcs.attribute.AttributeAttackHelper;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -474,7 +474,7 @@ public class ScriptPlayerEventHandler {
 
             if(event.source.getEntity() instanceof EntityPlayer) {
                 if(event.entityLiving instanceof EntityPlayer){
-                    event.ammount = DamageCalculator.calculateDamagePlayer((EntityPlayer) event.source.getEntity(), (EntityPlayer) event.entityLiving, event.ammount);
+                    event.ammount = AttributeAttackHelper.calculateDamagePlayer((EntityPlayer) event.source.getEntity(), (EntityPlayer) event.entityLiving, event.ammount);
                 } else if (event.entityLiving instanceof EntityNPCInterface){
 
                 }
