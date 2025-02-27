@@ -1329,3 +1329,7 @@ profile.enableOptions=Enable Options
 profile.completion=Completion
 profile.cooldown=Cooldown
 profile.individual=Individual
+
+rpgcore:tooltip=Hold %key% to view attributes
+rpgcore:attribute.damage=Damage
+rpgcore:attribute.neutral=Neutral

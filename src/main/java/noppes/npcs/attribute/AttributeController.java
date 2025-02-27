@@ -29,11 +29,11 @@ public class AttributeController {
     }
 
 
-    public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType valueType) {
+    public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType valueType, AttributeDefinition.AttributeSection section) {
         if (definitions.containsKey(key)) {
             throw new IllegalArgumentException("Attribute already registered with key: " + key);
         }
-        AttributeDefinition def = new AttributeDefinition(key, displayName, valueType);
+        AttributeDefinition def = new AttributeDefinition(key, displayName, valueType, section);
         definitions.put(key, def);
         return def;
     }
@@ -46,8 +46,8 @@ public class AttributeController {
         return definitions.values();
     }
 
-    public static PlayerAttributeTracker getTracker(UUID playerId) {
-        return trackers.computeIfAbsent(playerId, id -> new PlayerAttributeTracker(id));
+    public static PlayerAttributeTracker getTracker(EntityPlayer player) {
+        return trackers.computeIfAbsent(player.getUniqueID(), id -> new PlayerAttributeTracker(id));
     }
 
     public static void removeTracker(UUID playerId) {
@@ -59,7 +59,7 @@ public class AttributeController {
      */
     public static void updateAllTrackers(Iterable<EntityPlayer> players) {
         for (EntityPlayer player : players) {
-            PlayerAttributeTracker tracker = getTracker(player.getUniqueID());
+            PlayerAttributeTracker tracker = getTracker(player);
             tracker.updateIfChanged(player);
         }
     }

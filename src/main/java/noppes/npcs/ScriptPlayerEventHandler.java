@@ -61,7 +61,7 @@ public class ScriptPlayerEventHandler {
                     }
                 }
 
-                AttributeController.getTracker(player.getUniqueID()).updateIfChanged(player);
+                AttributeController.getTracker(player).updateIfChanged(player);
             }
 
             if (PlayerDataController.Instance != null) {

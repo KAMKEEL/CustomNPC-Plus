@@ -10,40 +10,28 @@ import noppes.npcs.attribute.*;
 
 public class PlayerAttributeTracker {
 
-    public static final int BASE_ID = -100;
-
     private final UUID playerId;
     private PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
 
-    private final Map<Integer, Double> damageMap = new HashMap<>();
-    private final Map<Integer, Double> defenseMap = new HashMap<>();
-
-    private final Map<Integer, Double> magicDamage = new HashMap<>();
-    private final Map<Integer, Double> magicBoost = new HashMap<>();
-    private final Map<Integer, Double> magicDefense = new HashMap<>();
-    private final Map<Integer, Double> magicResistance = new HashMap<>();
+    public final int extraHealth = 0;
+    public final Map<Integer, Double> magicDamage = new HashMap<>();
+    public final Map<Integer, Double> magicBoost = new HashMap<>();
+    public final Map<Integer, Double> magicDefense = new HashMap<>();
+    public final Map<Integer, Double> magicResistance = new HashMap<>();
 
     private PlayerEquipmentTracker equipmentTracker = new PlayerEquipmentTracker();
 
     public PlayerAttributeTracker(UUID playerId) {
         this.playerId = playerId;
         // Initial recalc with base damage 0.
-        recalcAttributes(null, 0);
+        recalcAttributes(null);
     }
 
     public PlayerAttributeMap getPlayerAttributes() {
         return playerAttributes;
     }
 
-    public Map<Integer, Double> getOffenseMap() {
-        return damageMap;
-    }
-
-    public Map<Integer, Double> getDefenseMap() {
-        return defenseMap;
-    }
-
-    public void recalcAttributes(EntityPlayer player, int baseDamage) {
+    public void recalcAttributes(EntityPlayer player) {
         // Reset aggregated attributes and magic maps.
         playerAttributes = new PlayerAttributeMap();
         magicDamage.clear();
@@ -55,42 +43,9 @@ public class PlayerAttributeTracker {
             // Update equipment tracker.
             PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
             currentEquip.updateFrom(player);
-
-            // Process held item (offense).
-            ItemStack held = currentEquip.heldItem;
-            if (held != null) {
-                // Process non-magic attributes.
-                for (Entry<String, Double> entry : ItemAttributeHelper.readAttributes(held).entrySet()) {
-                    String key = entry.getKey();
-                    double value = entry.getValue();
-                    AttributeDefinition def = AttributeController.getAttribute(key);
-                    if (def != null) {
-                        IAttributeInstance inst = playerAttributes.getAttributeInstance(def);
-                        if (inst == null) {
-                            inst = playerAttributes.registerAttribute(def, 0.0);
-                        }
-                        inst.setValue(inst.getValue() + value);
-                    }
-                }
-                // Process magic offense.
-                Map<Integer, Double> magicFlat = ItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_DAMAGE);
-                for (Entry<Integer, Double> entry : magicFlat.entrySet()) {
-                    int magicId = entry.getKey();
-                    double value = entry.getValue();
-                    magicDamage.put(magicId, magicDamage.getOrDefault(magicId, 0.0) + value);
-                }
-                Map<Integer, Double> magicPercent = ItemAttributeHelper.readMagicAttributeMap(held, AttributeKeys.MAGIC_BOOST);
-                for (Entry<Integer, Double> entry : magicPercent.entrySet()) {
-                    int magicId = entry.getKey();
-                    double value = entry.getValue();
-                    magicBoost.put(magicId, magicBoost.getOrDefault(magicId, 0.0) + value);
-                }
-            }
-            // Process armor (defense).
-            ItemStack[] armor = new ItemStack[] { currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet };
-            for (ItemStack piece : armor) {
+            ItemStack[] equipment = new ItemStack[] { currentEquip.heldItem, currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet };
+            for (ItemStack piece : equipment) {
                 if (piece != null) {
-                    // Process non-magic attributes.
                     for (Entry<String, Double> entry : ItemAttributeHelper.readAttributes(piece).entrySet()) {
                         String key = entry.getKey();
                         double value = entry.getValue();
@@ -103,14 +58,30 @@ public class PlayerAttributeTracker {
                             inst.setValue(inst.getValue() + value);
                         }
                     }
-                    // Process magic defense.
-                    Map<Integer, Double> magicDefFlat = ItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_DEFENSE);
+                    // Process Magic
+
+                    // OFFENSIVE MAGIC
+                    Map<Integer, Double> magicFlat = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_DAMAGE_KEY);
+                    for (Entry<Integer, Double> entry : magicFlat.entrySet()) {
+                        int magicId = entry.getKey();
+                        double value = entry.getValue();
+                        magicDamage.put(magicId, magicDamage.getOrDefault(magicId, 0.0) + value);
+                    }
+                    Map<Integer, Double> magicPercent = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_BOOST_KEY);
+                    for (Entry<Integer, Double> entry : magicPercent.entrySet()) {
+                        int magicId = entry.getKey();
+                        double value = entry.getValue();
+                        magicBoost.put(magicId, magicBoost.getOrDefault(magicId, 0.0) + value);
+                    }
+
+                    // DEFENSIVE MAGIC
+                    Map<Integer, Double> magicDefFlat = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_DEFENSE_KEY);
                     for (Entry<Integer, Double> entry : magicDefFlat.entrySet()) {
                         int magicId = entry.getKey();
                         double value = entry.getValue();
                         magicDefense.put(magicId, magicDefense.getOrDefault(magicId, 0.0) + value);
                     }
-                    Map<Integer, Double> magicResist = ItemAttributeHelper.readMagicAttributeMap(piece, AttributeKeys.MAGIC_RESISTANCE);
+                    Map<Integer, Double> magicResist = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_RESISTANCE_KEY);
                     for (Entry<Integer, Double> entry : magicResist.entrySet()) {
                         int magicId = entry.getKey();
                         double value = entry.getValue();
@@ -120,41 +91,6 @@ public class PlayerAttributeTracker {
             }
             equipmentTracker = currentEquip;
         }
-        // Recalculate the maps using the provided baseDamage.
-        recalcOffenseMap(baseDamage);
-        recalcDefenseMap();
-    }
-
-    private void recalcOffenseMap(int baseDamage) {
-        damageMap.clear();
-        // Compute non-magic offense = (baseDamage + MAIN_ATTACK_FLAT) * (1 + MAIN_ATTACK_PERCENT)
-        double mainFlat = getAttributeValue(ModAttributes.MAIN_ATTACK_FLAT);
-        double mainPercent = getAttributeValue(ModAttributes.MAIN_ATTACK_PERCENT);
-        double nonMagicOffense = (baseDamage + mainFlat) * (1 + mainPercent);
-        damageMap.put(BASE_ID, nonMagicOffense);
-
-        // For each magic type: offense = (magicDamageFlat) * (1 + magicDamagePercent)
-        for (Entry<Integer, Double> entry : magicDamage.entrySet()) {
-            int magicId = entry.getKey();
-            double flat = entry.getValue();
-            double percent = magicBoost.getOrDefault(magicId, 0.0);
-            double magicOffense = flat * (1 + percent);
-            damageMap.put(magicId, magicOffense);
-        }
-    }
-
-    private void recalcDefenseMap() {
-        defenseMap.clear();
-        // For each magic type: defense = (magicDefenseFlat) * (1 + magicResistancePercent)
-        for (Entry<Integer, Double> entry : magicDefense.entrySet()) {
-            int magicId = entry.getKey();
-            double flat = entry.getValue();
-            double percent = magicResistance.getOrDefault(magicId, 0.0);
-            double magicDef = flat * (1 + percent);
-            defenseMap.put(magicId, magicDef);
-        }
-        // Set non-magic defense to 0.
-        defenseMap.put(BASE_ID, 0.0);
     }
 
     /**
@@ -164,7 +100,7 @@ public class PlayerAttributeTracker {
         PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
         currentEquip.updateFrom(player);
         if (!equipmentTracker.equals(player)) {
-            recalcAttributes(player, 0);
+            recalcAttributes(player);
         }
     }
 

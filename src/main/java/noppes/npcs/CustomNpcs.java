@@ -175,6 +175,7 @@ public class CustomNpcs {
         // Load Mod Support
         PixelmonHelper.load();
         new AddonManager();
+        new AttributeController();
     }
 
     @EventHandler
@@ -218,8 +219,6 @@ public class CustomNpcs {
         // Profile Controller
         new ProfileController();
         ProfileController.registerProfileType(new CNPCData());
-
-        new AttributeController();
 
         ScriptController.Instance.loadStoredData();
         ScriptController.Instance.loadForgeScripts();

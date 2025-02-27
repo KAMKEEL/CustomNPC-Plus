@@ -57,10 +57,10 @@ public class PlayerEquipmentTracker {
         if (a.getItem() != b.getItem()) return false;
         NBTTagCompound tagA = a.stackTagCompound;
         NBTTagCompound tagB = b.stackTagCompound;
-        String attrA = (tagA != null && tagA.hasKey(ItemAttributeHelper.TAG_ROOT))
-            ? tagA.getCompoundTag(ItemAttributeHelper.TAG_ROOT).toString() : "";
-        String attrB = (tagB != null && tagB.hasKey(ItemAttributeHelper.TAG_ROOT))
-            ? tagB.getCompoundTag(ItemAttributeHelper.TAG_ROOT).toString() : "";
+        String attrA = (tagA != null && tagA.hasKey(ItemAttributeHelper.RPGItemAttributes))
+            ? tagA.getCompoundTag(ItemAttributeHelper.RPGItemAttributes).toString() : "";
+        String attrB = (tagB != null && tagB.hasKey(ItemAttributeHelper.RPGItemAttributes))
+            ? tagB.getCompoundTag(ItemAttributeHelper.RPGItemAttributes).toString() : "";
         return attrA.equals(attrB);
     }
 }
