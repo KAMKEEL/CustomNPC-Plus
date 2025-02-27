@@ -29,11 +29,11 @@ public class AttributeController {
     }
 
 
-    public static AttributeDefinition registerAttribute(String key, String displayName, AttributeValueType valueType, AttributeDefinition.AttributeSection section) {
+    public static AttributeDefinition registerAttribute(String key, String displayName, char colorCode, AttributeValueType valueType, AttributeDefinition.AttributeSection section) {
         if (definitions.containsKey(key)) {
             throw new IllegalArgumentException("Attribute already registered with key: " + key);
         }
-        AttributeDefinition def = new AttributeDefinition(key, displayName, valueType, section);
+        AttributeDefinition def = new AttributeDefinition(key, displayName, colorCode, valueType, section);
         definitions.put(key, def);
         return def;
     }

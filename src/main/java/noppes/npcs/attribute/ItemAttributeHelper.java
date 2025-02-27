@@ -8,6 +8,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.data.Magic;
 import org.lwjgl.input.Keyboard;
 
 import java.util.*;
@@ -140,105 +142,175 @@ public class ItemAttributeHelper {
 
     @SideOnly(Side.CLIENT)
     public static List<String> getToolTip(List<String> original, NBTTagCompound compound) {
-        List<String> tooltip = original;
+        List<String> tooltip = new ArrayList<>(original);
         NBTTagCompound attrTag = compound.getCompoundTag(RPGItemAttributes);
         if (Keyboard.isKeyDown(ClientProxy.NPCButton.getKeyCode())) {
             List<String> newTooltips = new ArrayList<>();
             if (!tooltip.isEmpty()) {
-                newTooltips.add((String) tooltip.get(0));
+                newTooltips.add(tooltip.get(0));
                 newTooltips.add("");
             }
 
-            // Create lists for each section
+            // Lists for non–magic attributes
             List<String> baseList = new ArrayList<>();
             List<String> modifierList = new ArrayList<>();
             List<String> infoList = new ArrayList<>();
             List<String> extraList = new ArrayList<>();
 
-            Iterator iterator = attrTag.func_150296_c().iterator();
-            while (iterator.hasNext()) {
-                String key = (String) iterator.next();
+            // Process non–magic attributes (order maintained)
+            Iterator<String> iter = attrTag.func_150296_c().iterator();
+            while (iter.hasNext()) {
+                String key = iter.next();
+                // Skip magic attribute keys; they are handled separately.
+                if(key.equals(ModAttributes.MAGIC_DAMAGE_KEY) || key.equals(ModAttributes.MAGIC_BOOST_KEY)
+                    || key.equals(ModAttributes.MAGIC_DEFENSE_KEY) || key.equals(ModAttributes.MAGIC_RESISTANCE_KEY)) {
+                    continue;
+                }
                 double value = attrTag.getDouble(key);
                 AttributeDefinition def = AttributeController.getAttribute(key);
-                // Default section is EXTRA if not defined
                 AttributeDefinition.AttributeSection section = def != null ? def.getSection() : AttributeDefinition.AttributeSection.EXTRA;
-                String line;
-                String translation = null;
-                if (key.contains(":")) {
-                    if (StatCollector.canTranslate(key)) {
-                        translation = StatCollector.translateToLocal(key);
-                    }
-                } else {
-                    if (StatCollector.canTranslate("rpgcore:attribute." + key)) {
-                        translation = StatCollector.translateToLocal("rpgcore:attribute." + key);
-                    }
-                }
-                if (translation == null && def != null) {
-                    translation = def.getDisplayName();
-                } else if (translation == null) {
-                    translation = key;
-                }
-                translation = EnumChatFormatting.AQUA + translation;
-                String formattedValue = formatDouble(value);
-                if (section == MODIFIER || section == INFO) {
-                    String sign = (value >= 0) ? "+" : "";
-                    String valueColor = (value >= 0) ? EnumChatFormatting.GREEN + "" : EnumChatFormatting.RED + "";
-                    String valueString = valueColor + sign + formattedValue + EnumChatFormatting.GRAY;
-                    switch (section) {
-                        case MODIFIER:
-                            line = valueString + " " + translation;
-                            modifierList.add(line);
-                            break;
-                        case INFO:
-                            line = valueString + " " + translation;
-                            infoList.add(line);
-                            break;
-                        default:
-                            line = translation + ": " + formattedValue;
-                            break;
-                    }
-                } else {
-                    formattedValue = EnumChatFormatting.GRAY + formattedValue;
-                    switch (section) {
-                        case BASE:
-                            line = translation + ": " + formattedValue;
-                            baseList.add(line);
-                            break;
-                        case EXTRA:
-                            line = translation + ": " + formattedValue;
-                            extraList.add(line);
-                            break;
-                        default:
-                            line = translation + ": " + formattedValue;
-                            break;
-                    }
+                String displayName = getTranslatedAttributeName(key, def);
+                String line = formatAttributeLine(def, section, value, displayName);
+                switch (section) {
+                    case BASE:
+                        baseList.add(line);
+                        break;
+                    case MODIFIER:
+                        modifierList.add(line);
+                        break;
+                    case INFO:
+                        infoList.add(line);
+                        break;
+                    default:
+                        extraList.add(line);
+                        break;
                 }
             }
 
-            if (!baseList.isEmpty()) {
-                newTooltips.add("");
-                newTooltips.addAll(baseList);
-            }
-            if (!modifierList.isEmpty()) {
-                newTooltips.add("");
-                newTooltips.addAll(modifierList);
-            }
-            if (!infoList.isEmpty()) {
-                newTooltips.add("");
-                newTooltips.addAll(infoList);
-            }
-            if (!extraList.isEmpty()) {
-                newTooltips.add("");
-                newTooltips.addAll(extraList);
-            }
+            // Process magic attributes and merge them into the proper lists.
+            processMagicAttributes(compound, baseList, modifierList, infoList, extraList);
+
+            // Append sections (adds an empty line before each if not empty)
+            newTooltips.addAll(buildSection(baseList));
+            newTooltips.addAll(buildSection(modifierList));
+            newTooltips.addAll(buildSection(infoList));
+            newTooltips.addAll(buildSection(extraList));
+
             tooltip = newTooltips;
         } else {
-            // Inform the user to hold the NPCButton key for attribute details
             String keyName = Keyboard.getKeyName(ClientProxy.NPCButton.getKeyCode());
             tooltip.add(EnumChatFormatting.YELLOW + "" + EnumChatFormatting.ITALIC +
                 StatCollector.translateToLocal("rpgcore:tooltip").replace("%key%", keyName));
         }
         return tooltip;
+    }
+
+    /**
+     * Processes magic attributes from the compound.
+     * For each magic key (from ModAttributes), it retrieves the stored magic attributes,
+     * formats each line (using the magic's display name) and adds it to the proper section list.
+     */
+    private static void processMagicAttributes(NBTTagCompound compound, List<String> baseList, List<String> modifierList,
+                                               List<String> infoList, List<String> extraList) {
+        String[] magicKeys = {
+            ModAttributes.MAGIC_DAMAGE_KEY,
+            ModAttributes.MAGIC_BOOST_KEY,
+            ModAttributes.MAGIC_DEFENSE_KEY,
+            ModAttributes.MAGIC_RESISTANCE_KEY
+        };
+        for (String magicKey : magicKeys) {
+            if (compound.hasKey(magicKey)) {
+                NBTTagCompound magicTag = compound.getCompoundTag(magicKey);
+                // Use the attribute definition for this magic key to determine its section.
+                AttributeDefinition def = AttributeController.getAttribute(magicKey);
+                AttributeDefinition.AttributeSection section = def != null ? def.getSection() : AttributeDefinition.AttributeSection.EXTRA;
+                Iterator<String> magicIter = magicTag.func_150296_c().iterator();
+                while (magicIter.hasNext()) {
+                    String key = magicIter.next();
+                    try {
+                        int magicId = Integer.parseInt(key);
+                        double value = magicTag.getDouble(key);
+                        Magic magic = MagicController.getInstance().getMagic(magicId);
+                        if (magic != null) {
+                            String magicDisplayName = magic.getDisplayName();
+                            // Format using the magic attribute's definition and the magic's display name.
+                            String line = formatAttributeLine(def, section, value, magicDisplayName);
+                            switch (section) {
+                                case BASE:
+                                    baseList.add(line);
+                                    break;
+                                case MODIFIER:
+                                    modifierList.add(line);
+                                    break;
+                                case INFO:
+                                    infoList.add(line);
+                                    break;
+                                default:
+                                    extraList.add(line);
+                                    break;
+                            }
+                        }
+                    } catch (NumberFormatException e) {
+                        // Skip invalid key.
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns a translated attribute name.
+     */
+    private static String getTranslatedAttributeName(String key, AttributeDefinition def) {
+        String translation = null;
+        if (key.contains(":")) {
+            if (StatCollector.canTranslate(key))
+                translation = StatCollector.translateToLocal(key);
+        } else {
+            if (StatCollector.canTranslate("rpgcore:attribute." + key))
+                translation = StatCollector.translateToLocal("rpgcore:attribute." + key);
+        }
+        if (translation == null && def != null)
+            translation = def.getDisplayName();
+        else if (translation == null)
+            translation = key;
+        return translation;
+    }
+
+    /**
+     * Formats the attribute line based on its section and value type.
+     */
+    private static String formatAttributeLine(AttributeDefinition def, AttributeDefinition.AttributeSection section,
+                                              double value, String displayName) {
+        String formattedValue = formatDouble(value);
+        if (section == AttributeDefinition.AttributeSection.MODIFIER || section == AttributeDefinition.AttributeSection.INFO) {
+            String sign = value >= 0 ? "+" : "";
+            String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
+            String valueString = color + sign + formattedValue + EnumChatFormatting.GRAY;
+            if (def != null && def.getValueType() == AttributeValueType.PERCENT)
+                valueString += "%";
+            return valueString + " " + displayName;
+        } else {
+            if (def != null)
+                displayName = "\u00A7" + def.getColorCode() + displayName;
+            else
+                displayName = EnumChatFormatting.AQUA + displayName;
+            formattedValue = EnumChatFormatting.GRAY + formattedValue;
+            return displayName + "\u00A77: " + formattedValue;
+        }
+    }
+
+    /**
+     * Builds a section from a list of tooltip lines.
+     * Adds an empty line before the section if it contains lines.
+     */
+    private static List<String> buildSection(List<String> lines) {
+        List<String> section = new ArrayList<>();
+        if (!lines.isEmpty()) {
+            section.add("");
+            section.addAll(lines);
+        }
+        return section;
     }
 
     /**

@@ -10,6 +10,7 @@ import java.util.Map;
 
 public class Magic implements IMagic {
     public String name = "";
+    public String displayName = "";
     public int color = Integer.parseInt("FF00", 16);
     public int id = -1;
 
@@ -21,6 +22,7 @@ public class Magic implements IMagic {
 
     public Magic(int id, String name, int color) {
         this.name = name;
+        this.displayName = name;
         this.color = color;
         this.id = id;
     }
@@ -32,6 +34,7 @@ public class Magic implements IMagic {
 
     public void readNBT(NBTTagCompound compound) {
         name = compound.getString("Name");
+        displayName = compound.getString("DisplayName");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
         // No longer reading index/priority here.
@@ -55,6 +58,7 @@ public class Magic implements IMagic {
     public void writeNBT(NBTTagCompound compound) {
         compound.setInteger("Slot", id);
         compound.setString("Name", name);
+        compound.setString("DisplayName", displayName);
         compound.setInteger("Color", color);
         // No longer writing index/priority here.
         if(iconItem != null) {
@@ -94,6 +98,14 @@ public class Magic implements IMagic {
     @Override
     public int getColor() {
         return this.color;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 
     public void save() {

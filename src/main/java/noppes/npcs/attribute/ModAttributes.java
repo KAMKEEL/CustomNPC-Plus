@@ -32,21 +32,21 @@ public class ModAttributes {
     public static AttributeDefinition MAGIC_RESISTANCE;
 
     public ModAttributes(){
-        HEALTH = AttributeController.registerAttribute(HEALTH_KEY, "Health", AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
+        HEALTH = AttributeController.registerAttribute(HEALTH_KEY, "Health", 'c', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
 
-        MAIN_ATTACK = AttributeController.registerAttribute(MAIN_ATTACK_KEY, "Main Attack Damage", AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
-        MAIN_BOOST = AttributeController.registerAttribute(MAIN_ATTACK_BOOST_KEY, "Main Attack Damage (%)", AttributeValueType.PERCENT, AttributeDefinition.AttributeSection.MODIFIER);
+        MAIN_ATTACK = AttributeController.registerAttribute(MAIN_ATTACK_KEY, "Main Attack Damage", '4', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
+        MAIN_BOOST = AttributeController.registerAttribute(MAIN_ATTACK_BOOST_KEY, "Main Attack Damage", '4', AttributeValueType.PERCENT, AttributeDefinition.AttributeSection.MODIFIER);
 
-        NEUTRAL_ATTACK = AttributeController.registerAttribute(NEUTRAL_KEY, "Neutral Damage", AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
-        NEUTRAL_BOOST = AttributeController.registerAttribute(NEUTRAL_BOOST_KEY, "Neutral Damage (%)", AttributeValueType.PERCENT, AttributeDefinition.AttributeSection.MODIFIER);
+        NEUTRAL_ATTACK = AttributeController.registerAttribute(NEUTRAL_KEY, "Neutral Damage", '6', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
+        NEUTRAL_BOOST = AttributeController.registerAttribute(NEUTRAL_BOOST_KEY, "Neutral Damage", '6', AttributeValueType.PERCENT, AttributeDefinition.AttributeSection.MODIFIER);
 
-        CRITICAL_CHANCE = AttributeController.registerAttribute(CRITICAL_CHANCE_KEY, "Critical Chance (%)", AttributeValueType.PERCENT, AttributeDefinition.AttributeSection.INFO);
-        CRITICAL_DAMAGE = AttributeController.registerAttribute(CRITICAL_DAMAGE_KEY, "Critical Damage Bonus", AttributeValueType.FLAT, AttributeDefinition.AttributeSection.INFO);
+        CRITICAL_CHANCE = AttributeController.registerAttribute(CRITICAL_CHANCE_KEY, "Critical Chance", '6', AttributeValueType.PERCENT, AttributeDefinition.AttributeSection.INFO);
+        CRITICAL_DAMAGE = AttributeController.registerAttribute(CRITICAL_DAMAGE_KEY, "Critical Damage", '6', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.INFO);
 
-        MAGIC_DAMAGE = AttributeController.registerAttribute(MAGIC_DAMAGE_KEY, "Magic Damage", AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.BASE);
-        MAGIC_BOOST = AttributeController.registerAttribute(MAGIC_BOOST_KEY, "Magic Damage (%)", AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.MODIFIER);
+        MAGIC_DAMAGE = AttributeController.registerAttribute(MAGIC_DAMAGE_KEY, "Magic Damage", '3', AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.BASE);
+        MAGIC_BOOST = AttributeController.registerAttribute(MAGIC_BOOST_KEY, "Magic Damage", '3', AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.MODIFIER);
 
-        MAGIC_DEFENSE = AttributeController.registerAttribute(MAGIC_DEFENSE_KEY, "Magic Defense", AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.BASE);
-        MAGIC_RESISTANCE = AttributeController.registerAttribute(MAGIC_RESISTANCE_KEY, "Magic Resistance (%)", AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.MODIFIER);
+        MAGIC_DEFENSE = AttributeController.registerAttribute(MAGIC_DEFENSE_KEY, "Magic Defense", 'b', AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.BASE);
+        MAGIC_RESISTANCE = AttributeController.registerAttribute(MAGIC_RESISTANCE_KEY, "Magic Resistance", 'b', AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.MODIFIER);
     }
 }
