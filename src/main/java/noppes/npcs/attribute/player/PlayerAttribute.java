@@ -2,9 +2,9 @@ package noppes.npcs.attribute.player;
 
 
 import noppes.npcs.attribute.AttributeDefinition;
-import noppes.npcs.attribute.IAttributeInstance;
+import noppes.npcs.attribute.ICustomAttribute;
 
-public class PlayerAttribute implements IAttributeInstance {
+public class PlayerAttribute implements ICustomAttribute {
     private final AttributeDefinition attribute;
     private float baseValue;
 

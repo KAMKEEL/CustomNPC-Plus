@@ -1,7 +1,7 @@
 package noppes.npcs.attribute.player;
 
 import noppes.npcs.attribute.AttributeDefinition;
-import noppes.npcs.attribute.IAttributeInstance;
+import noppes.npcs.attribute.ICustomAttribute;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -11,22 +11,22 @@ import java.util.Map;
  * CustomAttributeMap holds a set of attribute instances for an entity (or item).
  */
 public class PlayerAttributeMap {
-    private final Map<AttributeDefinition, IAttributeInstance> map = new HashMap<>();
+    private final Map<AttributeDefinition, ICustomAttribute> map = new HashMap<>();
 
-    public IAttributeInstance registerAttribute(AttributeDefinition attribute, float baseValue) {
+    public ICustomAttribute registerAttribute(AttributeDefinition attribute, float baseValue) {
         if (map.containsKey(attribute)) {
             throw new IllegalArgumentException("Attribute already registered: " + attribute.getKey());
         }
-        IAttributeInstance instance = new PlayerAttribute(attribute, baseValue);
+        ICustomAttribute instance = new PlayerAttribute(attribute, baseValue);
         map.put(attribute, instance);
         return instance;
     }
 
-    public IAttributeInstance getAttributeInstance(AttributeDefinition attribute) {
+    public ICustomAttribute getAttributeInstance(AttributeDefinition attribute) {
         return map.get(attribute);
     }
 
-    public Collection<IAttributeInstance> getAllAttributes() {
+    public Collection<ICustomAttribute> getAllAttributes() {
         return map.values();
     }
 }

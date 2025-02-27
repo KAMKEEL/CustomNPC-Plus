@@ -4,16 +4,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
+
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.attribute.*;
 
 public class PlayerAttributeTracker {
 
+    public  static UUID healthUUID = UUID.fromString("48a0ad75-2cf8-4838-ad2f-9a0aadc57dfe");
+
+
     private final UUID playerId;
     private PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
 
-    public int extraHealth = 0;
+    public float extraHealth = 0;
     public float maximumOutput = 0.0f;
 
     public final Map<Integer, Float> magicDamage = new HashMap<>();
@@ -41,6 +48,7 @@ public class PlayerAttributeTracker {
         magicDefense.clear();
         magicResistance.clear();
 
+        int newExtraHealth = 0;
         if (player != null) {
             // Update equipment tracker.
             PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
@@ -53,7 +61,7 @@ public class PlayerAttributeTracker {
                         float value = entry.getValue();
                         AttributeDefinition def = AttributeController.getAttribute(key);
                         if (def != null) {
-                            IAttributeInstance inst = playerAttributes.getAttributeInstance(def);
+                            ICustomAttribute inst = playerAttributes.getAttributeInstance(def);
                             if (inst == null) {
                                 inst = playerAttributes.registerAttribute(def, 0.0f);
                             }
@@ -93,6 +101,34 @@ public class PlayerAttributeTracker {
             }
             equipmentTracker = currentEquip;
             maximumOutput = AttributeAttackHelper.calculateMaximumOutput(this);
+            extraHealth = getAttributeValue(ModAttributes.HEALTH);
+
+            updatePlayerMaxHealth(player);
+        }
+    }
+
+    /**
+     * Updates the player's maximum health attribute by applying a custom attribute modifier.
+     * In this system, the aggregated HEALTH attribute is treated as bonus health on top of a base of 20.
+     *
+     * @param player The EntityPlayer whose max health should be updated.
+     */
+    public void updatePlayerMaxHealth(EntityPlayer player) {
+        float bonusHealth = extraHealth;
+        IAttributeInstance maxHealthAttr = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.maxHealth);
+        try {
+            AttributeModifier old = maxHealthAttr.getModifier(healthUUID);
+            if (old != null) {
+                maxHealthAttr.removeModifier(old);
+            }
+        } catch (Exception ignored) {}
+        if (bonusHealth != 0) {
+            maxHealthAttr.applyModifier(new AttributeModifier(healthUUID, "RPGCoreHealthBonus", bonusHealth, 0));
+        }
+        // Ensure the player's current health does not exceed the new maximum.
+        float currentHealth = player.getHealth();
+        if (currentHealth > maxHealthAttr.getAttributeValue()) {
+            player.setHealth((float) maxHealthAttr.getAttributeValue());
         }
     }
 
@@ -108,7 +144,7 @@ public class PlayerAttributeTracker {
     }
 
     public float getAttributeValue(AttributeDefinition def) {
-        IAttributeInstance inst = playerAttributes.getAttributeInstance(def);
+        ICustomAttribute inst = playerAttributes.getAttributeInstance(def);
         return inst != null ? inst.getValue() : 0.0f;
     }
 }
