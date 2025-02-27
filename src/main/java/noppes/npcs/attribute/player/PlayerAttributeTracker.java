@@ -13,7 +13,9 @@ public class PlayerAttributeTracker {
     private final UUID playerId;
     private PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
 
-    public final int extraHealth = 0;
+    public int extraHealth = 0;
+    public float maximumOutput = 0.0f;
+
     public final Map<Integer, Float> magicDamage = new HashMap<>();
     public final Map<Integer, Float> magicBoost = new HashMap<>();
     public final Map<Integer, Float> magicDefense = new HashMap<>();
@@ -90,6 +92,7 @@ public class PlayerAttributeTracker {
                 }
             }
             equipmentTracker = currentEquip;
+            maximumOutput = AttributeAttackHelper.calculateMaximumOutput(this);
         }
     }
 

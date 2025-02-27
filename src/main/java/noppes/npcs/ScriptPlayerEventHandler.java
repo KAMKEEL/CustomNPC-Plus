@@ -25,6 +25,8 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.attribute.AttributeController;
 import noppes.npcs.attribute.AttributeAttackHelper;
+import noppes.npcs.attribute.player.PlayerAttributeTracker;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
@@ -62,7 +64,8 @@ public class ScriptPlayerEventHandler {
                     }
                 }
 
-                AttributeController.getTracker(player).updateIfChanged(player);
+                if(ConfigMain.AttributesEnabled)
+                    AttributeController.getTracker(player).updateIfChanged(player);
             }
 
             if (PlayerDataController.Instance != null) {
@@ -473,7 +476,11 @@ public class ScriptPlayerEventHandler {
             }
 
             if(event.source.getEntity() instanceof EntityPlayer) {
-                noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
+                float attackAmount = event.ammount;
+                if(ConfigMain.AttributesEnabled)
+                    attackAmount = AttributeAttackHelper.calculateOutgoing((EntityPlayer) event.source.getEntity(), event.ammount);
+
+                noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
             event.setCanceled(cancel);
@@ -489,6 +496,16 @@ public class ScriptPlayerEventHandler {
             boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
+
+            // Player to Player Interaction
+            if(ConfigMain.AttributesEnabled){
+                if(event.entityLiving instanceof EntityPlayer && source instanceof EntityPlayer){
+                    event.ammount = AttributeAttackHelper.calculateDamagePlayer((EntityPlayer) event.entityLiving, (EntityPlayer) source, event.ammount);
+                } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer){
+                    event.ammount = AttributeAttackHelper.calculateOutgoing((EntityPlayer) event.entityLiving, event.ammount);
+                }
+            }
+
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
                 cancel = EventHooks.onPlayerDamaged(handler, pevent);

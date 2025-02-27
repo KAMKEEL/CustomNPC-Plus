@@ -20,6 +20,7 @@ public class ConfigMain
     public final static String UPDATE = "Update";
     public final static String PARTY = "PARTY";
     public final static String PROFILES = "Profile";
+    public final static String ATTRIBUTES = "Attributes";
 
     /**
      *  General Main Properties
@@ -81,6 +82,11 @@ public class ConfigMain
 
     public static Property DefaultMaxPartySizeProperty;
     public static int DefaultMaxPartySize = 4;
+
+    /**
+     *  Attribute Properties
+     **/
+    public static boolean AttributesEnabled = true;
 
     /**
      *  Profile Properties
