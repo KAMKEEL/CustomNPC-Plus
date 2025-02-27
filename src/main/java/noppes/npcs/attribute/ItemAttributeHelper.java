@@ -148,7 +148,6 @@ public class ItemAttributeHelper {
             List<String> newTooltips = new ArrayList<>();
             if (!tooltip.isEmpty()) {
                 newTooltips.add(tooltip.get(0));
-                newTooltips.add("");
             }
 
             // Lists for non–magic attributes
@@ -286,9 +285,10 @@ public class ItemAttributeHelper {
         if (section == AttributeDefinition.AttributeSection.MODIFIER || section == AttributeDefinition.AttributeSection.INFO) {
             String sign = value >= 0 ? "+" : "";
             String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
-            String valueString = color + sign + formattedValue + EnumChatFormatting.GRAY;
+            String valueString = color + sign + formattedValue;
             if (def != null && def.getValueType() == AttributeValueType.PERCENT)
                 valueString += "%";
+            valueString += EnumChatFormatting.GRAY;
             return valueString + " " + displayName;
         } else {
             if (def != null)

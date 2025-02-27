@@ -1,8 +1,10 @@
 package noppes.npcs.controllers;
 
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.Magic;
@@ -61,6 +63,65 @@ public class MagicController {
                     loadMagicFile(file);
                 }
             } catch (Exception ee) { }
+        }
+
+        if (magics.isEmpty()) {
+            // Create default magics
+            Magic earth  = new Magic(0, "Earth", 0x00DD00);
+            earth.setIconItem(new ItemStack(CustomItems.earthElement));
+
+            Magic water  = new Magic(1, "Water", 0xF2DD00);
+            water.setIconItem(new ItemStack(CustomItems.waterElement));
+
+            Magic fire   = new Magic(2, "Fire", 0xDD0000);
+            fire.setIconItem(new ItemStack(CustomItems.spellFire));
+
+            Magic air    = new Magic(3, "Air", 0xDD0000);
+            air.setIconItem(new ItemStack(CustomItems.airElement));
+
+            Magic dark   = new Magic(4, "Dark", 0xDD0000);
+            dark.setIconItem(new ItemStack(CustomItems.spellDark));
+
+            Magic holy   = new Magic(5, "Holy", 0xDD0000);
+            holy.setIconItem(new ItemStack(CustomItems.spellHoly));
+
+            Magic nature = new Magic(6, "Nature", 0xDD0000);
+            nature.setIconItem(new ItemStack(CustomItems.spellNature));
+
+            Magic arcane = new Magic(7, "Arcane", 0xDD0000);
+            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
+
+            // Insiders
+            earth.interactions.put(air.id, 0.60f);
+            water.interactions.put(earth.id, 0.60f);
+            fire.interactions.put(water.id, 0.60f);
+            air.interactions.put(fire.id, 0.60f);
+
+            // Outsiders
+            dark.interactions.put(nature.id, 0.60f);
+            nature.interactions.put(holy.id, 0.60f);
+            holy.interactions.put(arcane.id, 0.60f);
+            arcane.interactions.put(dark.id, 0.60f);
+
+            // Cross Interactions
+            earth.interactions.put(nature.id, 0.30f);
+            water.interactions.put(holy.id, 0.30f);
+            fire.interactions.put(arcane.id, 0.30f);
+            air.interactions.put(dark.id, 0.30f);
+            dark.interactions.put(fire.id, 0.30f);
+            nature.interactions.put(air.id, 0.30f);
+            holy.interactions.put(earth.id, 0.30f);
+            arcane.interactions.put(water.id, 0.30f);
+
+            // Add them to the registry
+            magics.put(earth.id, earth);
+            magics.put(water.id, water);
+            magics.put(fire.id, fire);
+            magics.put(air.id, air);
+            magics.put(dark.id, dark);
+            magics.put(holy.id, holy);
+            magics.put(nature.id, nature);
+            magics.put(arcane.id, arcane);
         }
     }
 
