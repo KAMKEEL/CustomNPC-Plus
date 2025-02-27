@@ -3,7 +3,7 @@ package noppes.npcs.mixin;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.attribute.ItemAttributeHelper;
+import kamkeel.npcs.util.AttributeItemUtil;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
-import static noppes.npcs.attribute.ItemAttributeHelper.RPGItemAttributes;
+import static kamkeel.npcs.util.AttributeItemUtil.RPGItemAttributes;
 
 @Mixin(ItemStack.class)
 public abstract class MixinItemStack {
@@ -29,7 +29,7 @@ public abstract class MixinItemStack {
     public void getAttributeTooltip(EntityPlayer player, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
         List<String> tooltip = cir.getReturnValue();
         if (hasTagCompound() && getTagCompound().hasKey(RPGItemAttributes)) {
-            cir.setReturnValue(ItemAttributeHelper.getToolTip(tooltip, getTagCompound()));
+            cir.setReturnValue(AttributeItemUtil.getToolTip(tooltip, getTagCompound()));
         }
     }
 }

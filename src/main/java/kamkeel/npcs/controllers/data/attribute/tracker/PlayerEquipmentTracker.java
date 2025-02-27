@@ -1,9 +1,9 @@
-package noppes.npcs.attribute.player;
+package kamkeel.npcs.controllers.data.attribute.tracker;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.attribute.ItemAttributeHelper;
+import kamkeel.npcs.util.AttributeItemUtil;
 
 public class PlayerEquipmentTracker {
     public ItemStack heldItem;
@@ -57,10 +57,10 @@ public class PlayerEquipmentTracker {
         if (a.getItem() != b.getItem()) return false;
         NBTTagCompound tagA = a.stackTagCompound;
         NBTTagCompound tagB = b.stackTagCompound;
-        String attrA = (tagA != null && tagA.hasKey(ItemAttributeHelper.RPGItemAttributes))
-            ? tagA.getCompoundTag(ItemAttributeHelper.RPGItemAttributes).toString() : "";
-        String attrB = (tagB != null && tagB.hasKey(ItemAttributeHelper.RPGItemAttributes))
-            ? tagB.getCompoundTag(ItemAttributeHelper.RPGItemAttributes).toString() : "";
+        String attrA = (tagA != null && tagA.hasKey(AttributeItemUtil.RPGItemAttributes))
+            ? tagA.getCompoundTag(AttributeItemUtil.RPGItemAttributes).toString() : "";
+        String attrB = (tagB != null && tagB.hasKey(AttributeItemUtil.RPGItemAttributes))
+            ? tagB.getCompoundTag(AttributeItemUtil.RPGItemAttributes).toString() : "";
         return attrA.equals(attrB);
     }
 }

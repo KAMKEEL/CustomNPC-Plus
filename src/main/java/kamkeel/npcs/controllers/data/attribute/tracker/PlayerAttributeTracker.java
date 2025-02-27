@@ -1,16 +1,22 @@
-package noppes.npcs.attribute.player;
+package kamkeel.npcs.controllers.data.attribute.tracker;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.Map.Entry;
 
+import kamkeel.npcs.CustomAttributes;
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.data.attribute.ICustomAttribute;
+import kamkeel.npcs.controllers.data.attribute.PlayerAttributeMap;
+import kamkeel.npcs.util.AttributeAttackUtil;
+import kamkeel.npcs.util.AttributeItemUtil;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
-import noppes.npcs.attribute.*;
 
 public class PlayerAttributeTracker {
 
@@ -56,7 +62,7 @@ public class PlayerAttributeTracker {
             ItemStack[] equipment = new ItemStack[] { currentEquip.heldItem, currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet };
             for (ItemStack piece : equipment) {
                 if (piece != null) {
-                    for (Entry<String, Float> entry : ItemAttributeHelper.readAttributes(piece).entrySet()) {
+                    for (Entry<String, Float> entry : AttributeItemUtil.readAttributes(piece).entrySet()) {
                         String key = entry.getKey();
                         float value = entry.getValue();
                         AttributeDefinition def = AttributeController.getAttribute(key);
@@ -71,13 +77,13 @@ public class PlayerAttributeTracker {
                     // Process Magic
 
                     // OFFENSIVE MAGIC
-                    Map<Integer, Float> magicFlat = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_DAMAGE_KEY);
+                    Map<Integer, Float> magicFlat = AttributeItemUtil.readMagicAttributeMap(piece, CustomAttributes.MAGIC_DAMAGE_KEY);
                     for (Entry<Integer, Float> entry : magicFlat.entrySet()) {
                         int magicId = entry.getKey();
                         float value = entry.getValue();
                         magicDamage.put(magicId, magicDamage.getOrDefault(magicId, 0.0f) + value);
                     }
-                    Map<Integer, Float> magicPercent = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_BOOST_KEY);
+                    Map<Integer, Float> magicPercent = AttributeItemUtil.readMagicAttributeMap(piece, CustomAttributes.MAGIC_BOOST_KEY);
                     for (Entry<Integer, Float> entry : magicPercent.entrySet()) {
                         int magicId = entry.getKey();
                         float value = entry.getValue();
@@ -85,13 +91,13 @@ public class PlayerAttributeTracker {
                     }
 
                     // DEFENSIVE MAGIC
-                    Map<Integer, Float> magicDefFlat = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_DEFENSE_KEY);
+                    Map<Integer, Float> magicDefFlat = AttributeItemUtil.readMagicAttributeMap(piece, CustomAttributes.MAGIC_DEFENSE_KEY);
                     for (Entry<Integer, Float> entry : magicDefFlat.entrySet()) {
                         int magicId = entry.getKey();
                         float value = entry.getValue();
                         magicDefense.put(magicId, magicDefense.getOrDefault(magicId, 0.0f) + value);
                     }
-                    Map<Integer, Float> magicResist = ItemAttributeHelper.readMagicAttributeMap(piece, ModAttributes.MAGIC_RESISTANCE_KEY);
+                    Map<Integer, Float> magicResist = AttributeItemUtil.readMagicAttributeMap(piece, CustomAttributes.MAGIC_RESISTANCE_KEY);
                     for (Entry<Integer, Float> entry : magicResist.entrySet()) {
                         int magicId = entry.getKey();
                         float value = entry.getValue();
@@ -100,8 +106,8 @@ public class PlayerAttributeTracker {
                 }
             }
             equipmentTracker = currentEquip;
-            maximumOutput = AttributeAttackHelper.calculateMaximumOutput(this);
-            extraHealth = getAttributeValue(ModAttributes.HEALTH);
+            maximumOutput = AttributeAttackUtil.calculateMaximumOutput(this);
+            extraHealth = getAttributeValue(CustomAttributes.HEALTH);
 
             updatePlayerMaxHealth(player);
         }

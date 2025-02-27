@@ -1,16 +1,17 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs.util;
 
+import kamkeel.npcs.CustomAttributes;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.attribute.player.PlayerAttributeTracker;
+import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.Map;
 import java.util.Random;
 
-import static noppes.npcs.attribute.AttributeController.getTracker;
+import static kamkeel.npcs.controllers.AttributeController.getTracker;
 
-public class AttributeAttackHelper {
+public class AttributeAttackUtil {
     private static final Random random = new Random();
 
     public static float calculateDamagePlayer(EntityPlayer attacker, EntityPlayer defender, float base){
@@ -20,13 +21,13 @@ public class AttributeAttackHelper {
     public static float calculateDamagePlayer(PlayerAttributeTracker attacker, PlayerAttributeTracker defender, float baseDamage) {
 
         // Calculate physical damage
-        float mainAttack = attacker.getAttributeValue(ModAttributes.MAIN_ATTACK);
-        float mainBoost = attacker.getAttributeValue(ModAttributes.MAIN_BOOST) + 1;
+        float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+        float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
         float physicalDamage = (baseDamage * mainBoost) + mainAttack;
 
         // Calculate neutral damage
-        float neutralDamage = attacker.getAttributeValue(ModAttributes.NEUTRAL_ATTACK);
-        float neutralBoost = attacker.getAttributeValue(ModAttributes.NEUTRAL_BOOST) + 1;
+        float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
+        float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
         float neutralTotal = neutralDamage * neutralBoost;
 
         // Calculate magic damage
@@ -53,8 +54,8 @@ public class AttributeAttackHelper {
         float totalDamage = physicalDamage + neutralTotal + magicTotal;
 
         // Critical hit: if critical, float damage and add bonus
-        float criticalChance = attacker.getAttributeValue(ModAttributes.CRITICAL_CHANCE);
-        float criticalBonus = attacker.getAttributeValue(ModAttributes.CRITICAL_DAMAGE);
+        float criticalChance = attacker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
+        float criticalBonus = attacker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
         if (random.nextFloat() < (criticalChance / 100)) {
             totalDamage = (totalDamage * 2) + criticalBonus;
         }
@@ -65,13 +66,13 @@ public class AttributeAttackHelper {
     public static float calculateDamageNPC(PlayerAttributeTracker attacker, EntityNPCInterface defender, float baseDamage) {
 
         // Calculate physical damage
-        float mainAttack = attacker.getAttributeValue(ModAttributes.MAIN_ATTACK);
-        float mainBoost = attacker.getAttributeValue(ModAttributes.MAIN_BOOST) + 1;
+        float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+        float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
         float physicalDamage = (baseDamage * mainBoost) + mainAttack;
 
         // Calculate neutral damage
-        float neutralDamage = attacker.getAttributeValue(ModAttributes.NEUTRAL_ATTACK);
-        float neutralBoost = attacker.getAttributeValue(ModAttributes.NEUTRAL_BOOST) + 1;
+        float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
+        float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
         float neutralTotal = neutralDamage * neutralBoost;
 
         // Calculate magic damage
@@ -117,8 +118,8 @@ public class AttributeAttackHelper {
      */
     public static float calculateMaximumOutput(PlayerAttributeTracker attacker) {
         // Neutral damage remains unchanged.
-        float neutralDamage = attacker.getAttributeValue(ModAttributes.NEUTRAL_ATTACK);
-        float neutralBoost = attacker.getAttributeValue(ModAttributes.NEUTRAL_BOOST) + 1;
+        float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
+        float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
         float neutralTotal = neutralDamage * neutralBoost;
 
         // For magic damage, we ignore any defensive values.
@@ -145,8 +146,8 @@ public class AttributeAttackHelper {
     public static float calculateOutgoing(EntityPlayer entityPlayer, float baseDamage) {
         PlayerAttributeTracker attacker = getTracker(entityPlayer);
 
-        float mainAttack = attacker.getAttributeValue(ModAttributes.MAIN_ATTACK);
-        float mainBoost = attacker.getAttributeValue(ModAttributes.MAIN_BOOST) + 1;
+        float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+        float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
         float physicalDamage = (baseDamage * mainBoost) + mainAttack;
         return attacker.maximumOutput + physicalDamage;
     }

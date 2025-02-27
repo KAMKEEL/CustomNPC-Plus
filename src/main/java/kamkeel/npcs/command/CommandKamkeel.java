@@ -6,8 +6,8 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.attribute.AttributeController;
-import noppes.npcs.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.scripted.CustomNPCsException;
 

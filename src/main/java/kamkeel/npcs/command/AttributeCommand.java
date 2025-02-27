@@ -10,10 +10,10 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.attribute.AttributeController;
-import noppes.npcs.attribute.AttributeDefinition;
-import noppes.npcs.attribute.AttributeValueType;
-import noppes.npcs.attribute.ItemAttributeHelper;
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
+import kamkeel.npcs.util.AttributeItemUtil;
 import noppes.npcs.controllers.MagicController;
 
 import static kamkeel.npcs.util.ColorUtil.sendError;
@@ -126,7 +126,7 @@ public class AttributeCommand extends CommandKamkeelBase {
                 return;
             }
 
-            ItemAttributeHelper.writeMagicAttribute(held, attrKey, magicId, value);
+            AttributeItemUtil.writeMagicAttribute(held, attrKey, magicId, value);
             sendResult(sender, "Applied magic attribute " + attrKey + " with magicID " + magicId + " and value " + value + " to held item.");
         } else {
             if(args.length < 2){
@@ -140,7 +140,7 @@ public class AttributeCommand extends CommandKamkeelBase {
                 sendError(sender, "Invalid number format for value.");
                 return;
             }
-            ItemAttributeHelper.applyAttribute(held, attrKey, value);
+            AttributeItemUtil.applyAttribute(held, attrKey, value);
             sendResult(sender, "Applied attribute " + attrKey + " with value " + value + " to held item.");
         }
     }
@@ -187,10 +187,10 @@ public class AttributeCommand extends CommandKamkeelBase {
                 return;
             }
 
-            ItemAttributeHelper.removeMagicAttribute(held, attrKey, magicId);
+            AttributeItemUtil.removeMagicAttribute(held, attrKey, magicId);
             sendResult(sender, "Removed magic attribute " + attrKey + " (magicID " + magicId + ") from held item.");
         } else {
-            ItemAttributeHelper.removeAttribute(held, attrKey);
+            AttributeItemUtil.removeAttribute(held, attrKey);
             sendResult(sender, "Removed attribute " + attrKey + " from held item.");
         }
     }

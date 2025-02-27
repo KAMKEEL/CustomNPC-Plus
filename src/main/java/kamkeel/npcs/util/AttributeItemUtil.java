@@ -1,12 +1,15 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs.util;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.minecraft.client.Minecraft;
+import kamkeel.npcs.controllers.AttributeController;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
+import kamkeel.npcs.CustomAttributes;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
@@ -14,15 +17,12 @@ import org.lwjgl.input.Keyboard;
 
 import java.util.*;
 
-import static noppes.npcs.attribute.AttributeDefinition.AttributeSection.INFO;
-import static noppes.npcs.attribute.AttributeDefinition.AttributeSection.MODIFIER;
-
 /**
  * Provides helper functions to write/read item attributes to/from NBT.
  * Non–magic attributes are stored under a compound tag (TAG_ROOT),
  * and magic attributes are stored as a compound mapping (by magic ID) under specific keys.
  */
-public class ItemAttributeHelper {
+public class AttributeItemUtil {
     public static final String RPGItemAttributes = "RPGCoreAttributes";
 
     /**
@@ -161,8 +161,8 @@ public class ItemAttributeHelper {
             while (iter.hasNext()) {
                 String key = iter.next();
                 // Skip magic attribute keys; they are handled separately.
-                if(key.equals(ModAttributes.MAGIC_DAMAGE_KEY) || key.equals(ModAttributes.MAGIC_BOOST_KEY)
-                    || key.equals(ModAttributes.MAGIC_DEFENSE_KEY) || key.equals(ModAttributes.MAGIC_RESISTANCE_KEY)) {
+                if(key.equals(CustomAttributes.MAGIC_DAMAGE_KEY) || key.equals(CustomAttributes.MAGIC_BOOST_KEY)
+                    || key.equals(CustomAttributes.MAGIC_DEFENSE_KEY) || key.equals(CustomAttributes.MAGIC_RESISTANCE_KEY)) {
                     continue;
                 }
                 Float value = attrTag.getFloat(key);
@@ -212,10 +212,10 @@ public class ItemAttributeHelper {
     private static void processMagicAttributes(NBTTagCompound compound, List<String> baseList, List<String> modifierList,
                                                List<String> infoList, List<String> extraList) {
         String[] magicKeys = {
-            ModAttributes.MAGIC_DAMAGE_KEY,
-            ModAttributes.MAGIC_BOOST_KEY,
-            ModAttributes.MAGIC_DEFENSE_KEY,
-            ModAttributes.MAGIC_RESISTANCE_KEY
+            CustomAttributes.MAGIC_DAMAGE_KEY,
+            CustomAttributes.MAGIC_BOOST_KEY,
+            CustomAttributes.MAGIC_DEFENSE_KEY,
+            CustomAttributes.MAGIC_RESISTANCE_KEY
         };
         for (String magicKey : magicKeys) {
             if (compound.hasKey(magicKey)) {
@@ -260,9 +260,9 @@ public class ItemAttributeHelper {
     @SideOnly(Side.CLIENT)
     private static String getMagicAppendix(String type){
         switch(type){
-            case ModAttributes.MAGIC_DEFENSE_KEY:
+            case CustomAttributes.MAGIC_DEFENSE_KEY:
                 return StatCollector.translateToLocal("rpgcore:attribute.defense");
-            case ModAttributes.MAGIC_RESISTANCE_KEY:
+            case CustomAttributes.MAGIC_RESISTANCE_KEY:
                 return StatCollector.translateToLocal("rpgcore:attribute.resistance");
             default:
                 return StatCollector.translateToLocal("rpgcore:attribute.damage");

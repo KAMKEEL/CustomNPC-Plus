@@ -1,7 +1,4 @@
-package noppes.npcs.attribute.player;
-
-import noppes.npcs.attribute.AttributeDefinition;
-import noppes.npcs.attribute.ICustomAttribute;
+package kamkeel.npcs.controllers.data.attribute;
 
 import java.util.Collection;
 import java.util.HashMap;

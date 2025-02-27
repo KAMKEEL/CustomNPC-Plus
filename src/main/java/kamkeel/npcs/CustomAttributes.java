@@ -1,9 +1,13 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs;
+
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
 
 /**
  * ModAttributes registers the core attributes (both non–magic and magic–based).
  */
-public class ModAttributes {
+public class CustomAttributes {
     public static final String HEALTH_KEY = "health";
     public static final String MAIN_ATTACK_KEY = "main_attack";
     public static final String MAIN_ATTACK_BOOST_KEY = "main_attack_boost";
@@ -31,7 +35,7 @@ public class ModAttributes {
     public static AttributeDefinition MAGIC_DEFENSE;
     public static AttributeDefinition MAGIC_RESISTANCE;
 
-    public ModAttributes(){
+    public CustomAttributes(){
         HEALTH = AttributeController.registerAttribute(HEALTH_KEY, "Health", 'c', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
 
         MAIN_ATTACK = AttributeController.registerAttribute(MAIN_ATTACK_KEY, "Main Attack Damage", '4', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);

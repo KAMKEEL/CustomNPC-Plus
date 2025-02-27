@@ -1,4 +1,4 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs.controllers.data.attribute;
 
 /**
  * IAttributeInstance represents an instance of an attribute (with a base value and applied modifiers).

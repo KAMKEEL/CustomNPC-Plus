@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data;
+package kamkeel.npcs.controllers.data.profile;
 
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.ISlot;

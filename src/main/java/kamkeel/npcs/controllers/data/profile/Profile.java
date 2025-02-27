@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data;
+package kamkeel.npcs.controllers.data.profile;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;

@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data;
+package kamkeel.npcs.controllers.data.profile;
 
 public class ProfileOperation {
     private final EnumProfileOperation result;

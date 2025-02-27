@@ -2,7 +2,7 @@ package noppes.npcs.controllers.data;
 
 import kamkeel.npcs.controllers.ProfileController;
 import noppes.npcs.api.handler.data.ISlot;
-import kamkeel.npcs.controllers.data.Profile;
+import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;

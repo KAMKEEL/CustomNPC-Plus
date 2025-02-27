@@ -1,10 +1,10 @@
 package kamkeel.npcs.command.profile;
 
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.EnumProfileOperation;
+import kamkeel.npcs.controllers.data.profile.EnumProfileOperation;
 import noppes.npcs.api.handler.data.ISlot;
-import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.ProfileOperation;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.controllers.data.profile.ProfileOperation;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 

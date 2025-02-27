@@ -1,4 +1,4 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs.controllers.data.attribute;
 
 public class AttributeDefinition {
     private final String key;         // e.g., "main_attack_flat"

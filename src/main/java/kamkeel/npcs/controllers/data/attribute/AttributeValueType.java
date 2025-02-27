@@ -1,4 +1,4 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs.controllers.data.attribute;
 
 public enum AttributeValueType {
     FLAT,       // e.g., +10 Health or +3 Damage

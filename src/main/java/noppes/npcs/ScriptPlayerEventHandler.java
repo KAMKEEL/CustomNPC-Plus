@@ -23,9 +23,8 @@ import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
-import noppes.npcs.attribute.AttributeController;
-import noppes.npcs.attribute.AttributeAttackHelper;
-import noppes.npcs.attribute.player.PlayerAttributeTracker;
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.util.AttributeAttackUtil;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
@@ -478,7 +477,7 @@ public class ScriptPlayerEventHandler {
             if(event.source.getEntity() instanceof EntityPlayer) {
                 float attackAmount = event.ammount;
                 if(ConfigMain.AttributesEnabled)
-                    attackAmount = AttributeAttackHelper.calculateOutgoing((EntityPlayer) event.source.getEntity(), event.ammount);
+                    attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), event.ammount);
 
                 noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
@@ -500,9 +499,9 @@ public class ScriptPlayerEventHandler {
             // Player to Player Interaction
             if(ConfigMain.AttributesEnabled){
                 if(event.entityLiving instanceof EntityPlayer && source instanceof EntityPlayer){
-                    event.ammount = AttributeAttackHelper.calculateDamagePlayer((EntityPlayer) event.entityLiving, (EntityPlayer) source, event.ammount);
+                    event.ammount = AttributeAttackUtil.calculateDamagePlayer((EntityPlayer) event.entityLiving, (EntityPlayer) source, event.ammount);
                 } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer){
-                    event.ammount = AttributeAttackHelper.calculateOutgoing((EntityPlayer) event.entityLiving, event.ammount);
+                    event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.entityLiving, event.ammount);
                 }
             }
 

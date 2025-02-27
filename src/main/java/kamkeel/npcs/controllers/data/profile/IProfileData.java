@@ -1,4 +1,4 @@
-package kamkeel.npcs.controllers.data;
+package kamkeel.npcs.controllers.data.profile;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -48,5 +48,5 @@ public interface IProfileData {
      * @param compound The NBT data from the slot under this profile data's tag.
      * @return A list of InfoEntry with information
      */
-    public List<InfoEntry> getInfo(EntityPlayer player, NBTTagCompound compound);
+    public List<ProfileInfoEntry> getInfo(EntityPlayer player, NBTTagCompound compound);
 }

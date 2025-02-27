@@ -1,8 +1,5 @@
-package noppes.npcs.attribute.player;
+package kamkeel.npcs.controllers.data.attribute;
 
-
-import noppes.npcs.attribute.AttributeDefinition;
-import noppes.npcs.attribute.ICustomAttribute;
 
 public class PlayerAttribute implements ICustomAttribute {
     private final AttributeDefinition attribute;

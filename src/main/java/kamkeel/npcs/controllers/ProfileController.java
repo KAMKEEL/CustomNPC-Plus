@@ -1,6 +1,6 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.*;
+import kamkeel.npcs.controllers.data.profile.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -596,8 +596,8 @@ public class ProfileController implements IProfileHandler {
         }
     }
 
-    public List<InfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
-        List<InfoEntry> infoList = new ArrayList<>();
+    public List<ProfileInfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
+        List<ProfileInfoEntry> infoList = new ArrayList<>();
         Profile profile = getProfile(player);
         if (profile == null)
             return infoList;
@@ -607,7 +607,7 @@ public class ProfileController implements IProfileHandler {
         if (slotId == profile.getCurrentSlotId()) {
             for (IProfileData pd : dataList) {
                 NBTTagCompound currentNBT = pd.getCurrentNBT(player);
-                List<InfoEntry> subInfo = pd.getInfo(player, currentNBT);
+                List<ProfileInfoEntry> subInfo = pd.getInfo(player, currentNBT);
                 infoList.addAll(subInfo);
             }
         } else {
@@ -617,7 +617,7 @@ public class ProfileController implements IProfileHandler {
             for (IProfileData pd : dataList) {
                 if (slot.getComponents().containsKey(pd.getTagName())) {
                     NBTTagCompound sub = slot.getComponentData(pd.getTagName());
-                    List<InfoEntry> subInfo = pd.getInfo(player, sub);
+                    List<ProfileInfoEntry> subInfo = pd.getInfo(player, sub);
                     infoList.addAll(subInfo);
                 }
             }

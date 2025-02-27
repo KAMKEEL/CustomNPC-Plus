@@ -1,9 +1,9 @@
 package noppes.npcs.client.gui.player.inventory;
 
 import noppes.npcs.api.handler.data.ISlot;
-import kamkeel.npcs.controllers.data.InfoEntry;
-import kamkeel.npcs.controllers.data.Profile;
-import kamkeel.npcs.controllers.data.Slot;
+import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.controllers.data.profile.Slot;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.profile.*;
 import net.minecraft.client.gui.GuiButton;
@@ -36,7 +36,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     private String rename;
     private Profile profile;
     private Slot slot;
-    private HashMap<Integer, List<InfoEntry>> slotInfoMap = new HashMap<>();
+    private HashMap<Integer, List<ProfileInfoEntry>> slotInfoMap = new HashMap<>();
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm");
 
     private int scrollY = 0; // Vertical scrolling position
@@ -182,8 +182,8 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             }
 
             if (slotInfoMap.containsKey(slot.getId())) {
-                List<InfoEntry> infoEntries = slotInfoMap.get(slot.getId());
-                for (InfoEntry entry : infoEntries) {
+                List<ProfileInfoEntry> infoEntries = slotInfoMap.get(slot.getId());
+                for (ProfileInfoEntry entry : infoEntries) {
                     label = StatCollector.translateToLocal(entry.getLabel());
                     result = StatCollector.translateToLocal(entry.getResult());
                     labelColor = entry.getLabelColor();

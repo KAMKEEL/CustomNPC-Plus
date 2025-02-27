@@ -1,7 +1,10 @@
-package noppes.npcs.attribute;
+package kamkeel.npcs.controllers;
 
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.attribute.player.PlayerAttributeTracker;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
+import kamkeel.npcs.CustomAttributes;
+import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,7 +18,7 @@ import java.util.UUID;
 public class AttributeController {
 
     public AttributeController Instance;
-    public ModAttributes attributes;
+    public CustomAttributes attributes;
 
     // Tracking Player Attributes
     private static final Map<UUID, PlayerAttributeTracker> trackers = new HashMap<>();
@@ -25,7 +28,7 @@ public class AttributeController {
         this.Instance = this;
         definitions.clear();
         trackers.clear();
-        attributes = new ModAttributes();
+        attributes = new CustomAttributes();
     }
 
 

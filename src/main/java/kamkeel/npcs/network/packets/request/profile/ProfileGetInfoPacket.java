@@ -5,8 +5,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
 import noppes.npcs.api.handler.data.ISlot;
-import kamkeel.npcs.controllers.data.InfoEntry;
-import kamkeel.npcs.controllers.data.Profile;
+import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
+import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
@@ -64,9 +64,9 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
                 NBTTagCompound slotCompound = new NBTTagCompound();
                 NBTTagList infoList = new NBTTagList();
                 slotCompound.setInteger("ID", slot.getId());
-                List<InfoEntry> profileInfo = ProfileController.Instance.getProfileInfo(player, slot.getId());
-                for(InfoEntry infoEntry : profileInfo){
-                    infoList.appendTag(infoEntry.writeToNBT());
+                List<ProfileInfoEntry> profileInfo = ProfileController.Instance.getProfileInfo(player, slot.getId());
+                for(ProfileInfoEntry profileInfoEntry : profileInfo){
+                    infoList.appendTag(profileInfoEntry.writeToNBT());
                 }
                 slotCompound.setTag("INFO", infoList);
                 slotList.appendTag(slotCompound);
@@ -76,8 +76,8 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 
-    public static HashMap<Integer, List<InfoEntry>> readProfileInfo(NBTTagCompound compound) {
-        HashMap<Integer, List<InfoEntry>> slotInfoMap = new HashMap<>();
+    public static HashMap<Integer, List<ProfileInfoEntry>> readProfileInfo(NBTTagCompound compound) {
+        HashMap<Integer, List<ProfileInfoEntry>> slotInfoMap = new HashMap<>();
 
         if (!compound.getBoolean("PROFILE_INFO")) return slotInfoMap;
 
@@ -89,10 +89,10 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
             int slotId = slotCompound.getInteger("ID");
             NBTTagList infoList = slotCompound.getTagList("INFO", Constants.NBT.TAG_COMPOUND);
 
-            List<InfoEntry> infoEntries = new ArrayList<>();
+            List<ProfileInfoEntry> infoEntries = new ArrayList<>();
             for (int j = 0; j < infoList.tagCount(); j++) {
                 NBTTagCompound infoTag = infoList.getCompoundTagAt(j);
-                infoEntries.add(InfoEntry.readFromNBT(infoTag)); // Convert back to InfoEntry
+                infoEntries.add(ProfileInfoEntry.readFromNBT(infoTag)); // Convert back to InfoEntry
             }
 
             slotInfoMap.put(slotId, infoEntries);
