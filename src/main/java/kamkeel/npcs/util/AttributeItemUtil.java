@@ -16,6 +16,7 @@ import noppes.npcs.controllers.data.Magic;
 import org.lwjgl.input.Keyboard;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Provides helper functions to write/read item attributes to/from NBT.
@@ -177,6 +178,11 @@ public class AttributeItemUtil {
         }
     }
 
+    // ----------------- Tooltip Generation with Custom Sorting -------------------
+
+    /**
+     * Returns the item tooltip.
+     */
     @SideOnly(Side.CLIENT)
     public static List<String> getToolTip(List<String> original, NBTTagCompound compound) {
         List<String> tooltip = new ArrayList<>(original);
@@ -189,36 +195,38 @@ public class AttributeItemUtil {
                 newTooltips.add(tooltip.get(0));
             }
 
-            // Lists for non–magic attributes.
-            List<String> baseList = new ArrayList<>();
-            List<String> modifierList = new ArrayList<>();
-            List<String> statsList = new ArrayList<>();
-            List<String> infoList = new ArrayList<>();
-            List<String> extraList = new ArrayList<>();
+            // Instead of storing plain strings, we wrap each line in a TooltipEntry
+            List<TooltipEntry> baseList = new ArrayList<>();
+            List<TooltipEntry> modifierList = new ArrayList<>();
+            List<TooltipEntry> statsList = new ArrayList<>();
+            List<TooltipEntry> infoList = new ArrayList<>();
+            List<TooltipEntry> extraList = new ArrayList<>();
 
             // Process non–magic attributes.
             Set<String> keys = attrTag.func_150296_c();
             for (String key : keys) {
+                // For non–magic we include everything.
                 Float value = attrTag.getFloat(key);
                 AttributeDefinition def = AttributeController.getAttribute(key);
                 AttributeDefinition.AttributeSection section = def != null ? def.getSection() : AttributeDefinition.AttributeSection.EXTRA;
-                String displayName = getTranslatedAttributeName(key, def);
-                String line = formatAttributeLine(def, section, value, displayName);
+                String plainName = getTranslatedAttributeName(key, def); // unformatted name
+                String formattedLine = formatAttributeLine(def, section, value, plainName);
+                TooltipEntry entry = new TooltipEntry(plainName, formattedLine);
                 switch (section) {
                     case BASE:
-                        baseList.add(line);
+                        baseList.add(entry);
                         break;
                     case MODIFIER:
-                        modifierList.add(line);
+                        modifierList.add(entry);
                         break;
                     case STATS:
-                        statsList.add(line);
+                        statsList.add(entry);
                         break;
                     case INFO:
-                        infoList.add(line);
+                        infoList.add(entry);
                         break;
                     default:
-                        extraList.add(line);
+                        extraList.add(entry);
                         break;
                 }
             }
@@ -226,11 +234,23 @@ public class AttributeItemUtil {
             // Process magic attributes.
             processMagicAttributes(compound, baseList, modifierList, infoList, extraList);
 
-            newTooltips.addAll(buildSection(baseList));
-            newTooltips.addAll(buildSection(modifierList));
-            newTooltips.addAll(buildSection(statsList));
-            newTooltips.addAll(buildSection(infoList));
-            newTooltips.addAll(buildSection(extraList));
+            // Define custom order maps for Base and Modifier sections.
+            // For Base: Health, Main Attack Damage, Neutral Damage come first.
+            Map<String, Integer> baseOrder = new HashMap<>();
+            baseOrder.put("Health", 1);
+            baseOrder.put("Main Attack Damage", 2);
+            baseOrder.put("Neutral Damage", 3);
+            // For Modifier: Main Attack Damage then Neutral Damage.
+            Map<String, Integer> modOrder = new HashMap<>();
+            modOrder.put("Main Attack Damage", 1);
+            modOrder.put("Neutral Damage", 2);
+
+            // Build sections using our custom sorting.
+            newTooltips.addAll(buildSection(baseList, baseOrder));
+            newTooltips.addAll(buildSection(modifierList, modOrder));
+            newTooltips.addAll(buildSection(statsList)); // alphabetical
+            newTooltips.addAll(buildSection(infoList));  // alphabetical
+            newTooltips.addAll(buildSection(extraList)); // alphabetical
 
             tooltip = newTooltips;
         } else {
@@ -246,8 +266,8 @@ public class AttributeItemUtil {
      * For each magic key, it retrieves the stored magic attributes from the "Magic" compound,
      * formats each line and adds it to the proper section list.
      */
-    private static void processMagicAttributes(NBTTagCompound compound, List<String> baseList, List<String> modifierList,
-                                               List<String> infoList, List<String> extraList) {
+    private static void processMagicAttributes(NBTTagCompound compound, List<TooltipEntry> baseList, List<TooltipEntry> modifierList,
+                                               List<TooltipEntry> infoList, List<TooltipEntry> extraList) {
         if (!compound.hasKey(TAG_RPGCORE)) return;
         NBTTagCompound rpgCore = compound.getCompoundTag(TAG_RPGCORE);
         if (!rpgCore.hasKey(TAG_MAGIC)) return;
@@ -270,20 +290,23 @@ public class AttributeItemUtil {
                         Float value = magicTag.getFloat(key);
                         Magic magic = MagicController.getInstance().getMagic(magicId);
                         if (magic != null) {
-                            String magicDisplayName = magic.getDisplayName() + " " + EnumChatFormatting.GRAY + getMagicAppendix(magicKey);
-                            String line = formatAttributeLine(def, section, value, magicDisplayName);
+                            // Build the magic display name without formatting for sorting.
+                            String rawMagicName = magic.getDisplayName() + " " + getMagicAppendix(magicKey);
+                            String plainName = stripFormatting(rawMagicName);
+                            String formattedLine = formatAttributeLine(def, section, value, rawMagicName);
+                            TooltipEntry entry = new TooltipEntry(plainName, formattedLine);
                             switch (section) {
                                 case BASE:
-                                    baseList.add(line);
+                                    baseList.add(entry);
                                     break;
                                 case MODIFIER:
-                                    modifierList.add(line);
+                                    modifierList.add(entry);
                                     break;
                                 case INFO:
-                                    infoList.add(line);
+                                    infoList.add(entry);
                                     break;
                                 default:
-                                    extraList.add(line);
+                                    extraList.add(entry);
                                     break;
                             }
                         }
@@ -353,16 +376,55 @@ public class AttributeItemUtil {
         }
     }
 
-    private static List<String> buildSection(List<String> lines) {
+    private static String formatFloat(Float value) {
+        return new java.math.BigDecimal(Float.toString(value)).stripTrailingZeros().toPlainString();
+    }
+
+    // ---------------- Helper Methods for Sorting Tooltip Entries ----------------
+
+    // A small container to hold a tooltip line and its plain sort key.
+    private static class TooltipEntry {
+        public String sortKey;
+        public String line;
+        public TooltipEntry(String sortKey, String line) {
+            this.sortKey = sortKey;
+            this.line = line;
+        }
+    }
+
+    // Removes formatting codes (e.g., '§') from a string.
+    private static String stripFormatting(String input) {
+        return input == null ? "" : Pattern.compile("(?i)§[0-9A-FK-OR]").matcher(input).replaceAll("");
+    }
+
+    // Build a section with default alphabetical order.
+    private static List<String> buildSection(List<TooltipEntry> entries) {
+        Collections.sort(entries, (a, b) -> a.sortKey.compareToIgnoreCase(b.sortKey));
         List<String> section = new ArrayList<>();
-        if (!lines.isEmpty()) {
+        if (!entries.isEmpty()) {
             section.add("");
-            section.addAll(lines);
+            for (TooltipEntry entry : entries) {
+                section.add(entry.line);
+            }
         }
         return section;
     }
 
-    private static String formatFloat(Float value) {
-        return new java.math.BigDecimal(Float.toString(value)).stripTrailingZeros().toPlainString();
+    // Build a section using a custom order map.
+    private static List<String> buildSection(List<TooltipEntry> entries, Map<String, Integer> orderMap) {
+        Collections.sort(entries, (a, b) -> {
+            int pa = orderMap.containsKey(a.sortKey) ? orderMap.get(a.sortKey) : Integer.MAX_VALUE;
+            int pb = orderMap.containsKey(b.sortKey) ? orderMap.get(b.sortKey) : Integer.MAX_VALUE;
+            if (pa != pb) return Integer.compare(pa, pb);
+            return a.sortKey.compareToIgnoreCase(b.sortKey);
+        });
+        List<String> section = new ArrayList<>();
+        if (!entries.isEmpty()) {
+            section.add("");
+            for (TooltipEntry entry : entries) {
+                section.add(entry.line);
+            }
+        }
+        return section;
     }
 }
