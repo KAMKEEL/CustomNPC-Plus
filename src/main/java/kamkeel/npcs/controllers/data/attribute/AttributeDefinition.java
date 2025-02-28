@@ -1,7 +1,8 @@
 package kamkeel.npcs.controllers.data.attribute;
 
 public class AttributeDefinition {
-    private final String key;         // e.g., "main_attack_flat"
+    private final String key;
+    private String translationKey;// e.g., "main_attack_flat"
     private final String displayName; // Human‑readable name
     private final char colorCode;
     private final AttributeValueType attributeValueType;
@@ -9,6 +10,7 @@ public class AttributeDefinition {
 
     public AttributeDefinition(String key, String displayName, char colorCode, AttributeValueType attributeValueType, AttributeSection section) {
         this.key = key;
+        this.translationKey = "rpgcore:attribute." + key;
         this.displayName = displayName;
         this.attributeValueType = attributeValueType;
         this.section = section;
@@ -21,6 +23,14 @@ public class AttributeDefinition {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String getTranslationKey() {
+        return translationKey;
+    }
+
+    public void setTranslationKey(String translationKey) {
+        this.translationKey = translationKey;
     }
 
     public AttributeValueType getValueType() {

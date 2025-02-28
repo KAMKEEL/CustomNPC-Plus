@@ -279,14 +279,12 @@ public class AttributeItemUtil {
      */
     @SideOnly(Side.CLIENT)
     private static String getTranslatedAttributeName(String key, AttributeDefinition def) {
+        key = def != null ? def.getTranslationKey() : key;
+
         String translation = null;
-        if (key.contains(":")) {
-            if (StatCollector.canTranslate(key))
-                translation = StatCollector.translateToLocal(key);
-        } else {
-            if (StatCollector.canTranslate("rpgcore:attribute." + key))
-                translation = StatCollector.translateToLocal("rpgcore:attribute." + key);
-        }
+        if (StatCollector.canTranslate(key))
+            translation = StatCollector.translateToLocal(key);
+
         if (translation == null && def != null)
             translation = def.getDisplayName();
         else if (translation == null)

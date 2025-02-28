@@ -110,6 +110,9 @@ public class PlayerAttributeTracker {
             extraHealth = getAttributeValue(CustomAttributes.HEALTH);
 
             updatePlayerMaxHealth(player);
+
+            // Post Recalculation Event to Listeners
+            AttributeRecalcEvent.post(player, this);
         }
     }
 
