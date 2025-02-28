@@ -4,13 +4,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class RequirementCheckerRegistry {
     private static final Map<String, IRequirementChecker> checkers = new HashMap<>();
 
-    public static void registerChecker(String key, IRequirementChecker checker) {
-        if (!checkers.containsKey(key)) {
-            checkers.put(key, checker);
+    public static void registerChecker(IRequirementChecker checker) {
+        if (!checkers.containsKey(checker.getKey())) {
+            checkers.put(checker.getKey(), checker);
         }
     }
 
@@ -28,5 +29,13 @@ public class RequirementCheckerRegistry {
             }
         }
         return true;
+    }
+
+    public static Set<String> getAllKeys() {
+        return checkers.keySet();
+    }
+
+    public static IRequirementChecker getChecker(String key) {
+        return checkers.get(key);
     }
 }

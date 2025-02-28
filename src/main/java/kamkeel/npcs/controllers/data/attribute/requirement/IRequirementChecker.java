@@ -7,6 +7,11 @@ public interface IRequirementChecker {
 
     public String getKey();
 
+    public String getTranslation();
+
+    String getTooltipValue(NBTTagCompound nbt);
+
+    void apply(NBTTagCompound nbt, Object value);
 
     /**
      * Checks the requirement in the provided NBT.

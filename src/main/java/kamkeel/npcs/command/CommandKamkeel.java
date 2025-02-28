@@ -1,5 +1,6 @@
 package kamkeel.npcs.command;
 
+import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
@@ -118,6 +119,9 @@ public class CommandKamkeel extends CommandBase{
                     for (AttributeDefinition def : AttributeController.getAllAttributes()) {
                         keys.add(def.getKey());
                     }
+                    return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
+                } else if (usage.equals("<requirement>")) {
+                    List<String> keys = new ArrayList<>(RequirementCheckerRegistry.getAllKeys());
                     return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 }
             }

@@ -10,6 +10,7 @@ import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.ICustomAttribute;
 import kamkeel.npcs.controllers.data.attribute.PlayerAttributeMap;
+import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.AttributeItemUtil;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -17,6 +18,7 @@ import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 
 public class PlayerAttributeTracker {
 
@@ -60,6 +62,16 @@ public class PlayerAttributeTracker {
             ItemStack[] equipment = new ItemStack[] { currentEquip.heldItem, currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet };
             for (ItemStack piece : equipment) {
                 if (piece != null) {
+                    if (piece.stackTagCompound != null && piece.stackTagCompound.hasKey(AttributeItemUtil.TAG_RPGCORE)) {
+                        NBTTagCompound rpgCore = piece.stackTagCompound.getCompoundTag(AttributeItemUtil.TAG_RPGCORE);
+                        if (rpgCore.hasKey(AttributeItemUtil.TAG_REQUIREMENTS)) {
+                            NBTTagCompound reqTag = rpgCore.getCompoundTag(AttributeItemUtil.TAG_REQUIREMENTS);
+                            if (!RequirementCheckerRegistry.checkRequirements(player, reqTag)) {
+                                continue;
+                            }
+                        }
+                    }
+
                     for (Entry<String, Float> entry : AttributeItemUtil.readAttributes(piece).entrySet()) {
                         String key = entry.getKey();
                         float value = entry.getValue();

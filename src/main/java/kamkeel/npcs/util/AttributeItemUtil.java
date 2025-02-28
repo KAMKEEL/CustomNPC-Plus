@@ -3,6 +3,10 @@ package kamkeel.npcs.util;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
+import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
+import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
@@ -178,6 +182,43 @@ public class AttributeItemUtil {
         }
     }
 
+
+    public static void applyRequirement(ItemStack item, String reqKey, Object value) {
+        if (item == null) return;
+        if (item.stackTagCompound == null)
+            item.stackTagCompound = new NBTTagCompound();
+        NBTTagCompound root = item.stackTagCompound;
+        // Get (or create) the RPGCore compound.
+        NBTTagCompound rpgCore = root.hasKey(TAG_RPGCORE) ? root.getCompoundTag(TAG_RPGCORE) : new NBTTagCompound();
+        // Get (or create) the Requirements compound.
+        NBTTagCompound reqTag = rpgCore.hasKey(TAG_REQUIREMENTS) ? rpgCore.getCompoundTag(TAG_REQUIREMENTS) : new NBTTagCompound();
+        // Retrieve the checker from the registry.
+        IRequirementChecker checker = RequirementCheckerRegistry.getChecker(reqKey);
+        if (checker != null) {
+            checker.apply(reqTag, value);
+        }
+        rpgCore.setTag(TAG_REQUIREMENTS, reqTag);
+        root.setTag(TAG_RPGCORE, rpgCore);
+    }
+
+    public static void removeRequirement(ItemStack item, String reqKey) {
+        if (item == null || item.stackTagCompound == null) return;
+        NBTTagCompound root = item.stackTagCompound;
+        if (root.hasKey(TAG_RPGCORE)) {
+            NBTTagCompound rpgCore = root.getCompoundTag(TAG_RPGCORE);
+            if (rpgCore.hasKey(TAG_REQUIREMENTS)) {
+                NBTTagCompound reqTag = rpgCore.getCompoundTag(TAG_REQUIREMENTS);
+                reqTag.removeTag(reqKey);
+                if (reqTag.func_150296_c().isEmpty()) {
+                    rpgCore.removeTag(TAG_REQUIREMENTS);
+                } else {
+                    rpgCore.setTag(TAG_REQUIREMENTS, reqTag);
+                }
+                root.setTag(TAG_RPGCORE, rpgCore);
+            }
+        }
+    }
+
     // ----------------- Tooltip Generation with Custom Sorting -------------------
 
     /**
@@ -251,6 +292,26 @@ public class AttributeItemUtil {
             newTooltips.addAll(buildSection(statsList)); // alphabetical
             newTooltips.addAll(buildSection(infoList));  // alphabetical
             newTooltips.addAll(buildSection(extraList)); // alphabetical
+
+            if (rpgCore.hasKey(TAG_REQUIREMENTS)) {
+                NBTTagCompound reqTag = rpgCore.getCompoundTag(TAG_REQUIREMENTS);
+                List<TooltipEntry> reqEntries = new ArrayList<>();
+
+                Minecraft mc = Minecraft.getMinecraft();
+                EntityPlayer clientPlayer = mc.thePlayer;
+                Set<String> requirements = reqTag.func_150296_c();
+                for (String reqKey : requirements) {
+                    IRequirementChecker checker = RequirementCheckerRegistry.getChecker(reqKey);
+                    if (checker != null) {
+                        boolean met = clientPlayer != null && checker.check(clientPlayer, reqTag);
+                        String tooltipValue = checker.getTooltipValue(reqTag);
+                        String color = met ? EnumChatFormatting.GRAY.toString() : EnumChatFormatting.RED.toString();
+                        String line = EnumChatFormatting.GRAY + StatCollector.translateToLocal(checker.getTranslation()) + ": " + color + tooltipValue;
+                        reqEntries.add(new TooltipEntry(stripFormatting(StatCollector.translateToLocal(checker.getTranslation())), line));
+                    }
+                }
+                newTooltips.addAll(buildSection(reqEntries));
+            }
 
             tooltip = newTooltips;
         } else {

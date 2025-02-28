@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import net.minecraft.command.CommandBase;
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.item.ItemStack;
@@ -195,17 +194,52 @@ public class AttributeCommand extends CommandKamkeelBase {
         }
     }
 
-    @Override
-    public List addTabCompletionOptions(ICommandSender sender, String[] args) {
-        // For the first parameter of the subcommand (apply or remove), list available attribute keys.
-        if(args.length == 1) {
-            List<String> keys = new ArrayList<>();
-            for (AttributeDefinition def : AttributeController.getAllAttributes()) {
-                keys.add(def.getKey());
-            }
-            return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
+    @SubCommand(
+        name = "requirement",
+        usage = "<apply|remove> <requirement> [value]",
+        desc = "Apply or remove a requirement from your held item."
+    )
+    public void requirement(ICommandSender sender, String[] args) throws CommandException {
+        if (!(sender instanceof EntityPlayer)) {
+            sendError(sender, "Only players can use this command.");
+            return;
         }
-        // If the attribute is magic and we are completing the magicID parameter, you could return dummy numbers.
-        return super.addTabCompletionOptions(sender, args);
+        EntityPlayer player = (EntityPlayer) sender;
+        ItemStack held = player.getHeldItem();
+        if (held == null) {
+            sendError(sender, "You are not holding an item.");
+            return;
+        }
+        if (args.length < 2) {
+            sendError(sender, "Usage: requirement <apply|remove> <requirementKey> [value]");
+            return;
+        }
+        String action = args[0];
+        String reqKey = args[1];
+        if (action.equalsIgnoreCase("apply")) {
+            if (args.length < 3) {
+                sendError(sender, "Usage: requirement apply <requirementKey> <value>");
+                return;
+            }
+            String valueStr = args[2];
+            Object value;
+            try {
+                value = Integer.parseInt(valueStr);
+            } catch (NumberFormatException e1) {
+                try {
+                    value = Float.parseFloat(valueStr);
+                } catch (NumberFormatException e2) {
+                    value = valueStr;
+                }
+            }
+
+            AttributeItemUtil.applyRequirement(held, reqKey, value);
+            sendResult(sender, "Applied requirement " + reqKey + " with value " + value + " to held item.");
+        } else if (action.equalsIgnoreCase("remove")) {
+            AttributeItemUtil.removeRequirement(held, reqKey);
+            sendResult(sender, "Removed requirement " + reqKey + " from held item.");
+        } else {
+            sendError(sender, "Invalid action. Use apply or remove.");
+        }
     }
 }
