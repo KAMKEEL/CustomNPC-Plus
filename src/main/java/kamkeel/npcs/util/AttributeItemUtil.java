@@ -153,6 +153,7 @@ public class AttributeItemUtil {
             // Lists for non–magic attributes
             List<String> baseList = new ArrayList<>();
             List<String> modifierList = new ArrayList<>();
+            List<String> statsList = new ArrayList<>();
             List<String> infoList = new ArrayList<>();
             List<String> extraList = new ArrayList<>();
 
@@ -177,6 +178,9 @@ public class AttributeItemUtil {
                     case MODIFIER:
                         modifierList.add(line);
                         break;
+                    case STATS:
+                        statsList.add(line);
+                        break;
                     case INFO:
                         infoList.add(line);
                         break;
@@ -192,6 +196,7 @@ public class AttributeItemUtil {
             // Append sections (adds an empty line before each if not empty)
             newTooltips.addAll(buildSection(baseList));
             newTooltips.addAll(buildSection(modifierList));
+            newTooltips.addAll(buildSection(statsList));
             newTooltips.addAll(buildSection(infoList));
             newTooltips.addAll(buildSection(extraList));
 
@@ -295,7 +300,19 @@ public class AttributeItemUtil {
     private static String formatAttributeLine(AttributeDefinition def, AttributeDefinition.AttributeSection section,
                                               Float value, String displayName) {
         String formattedValue = formatFloat(value);
-        if (section == AttributeDefinition.AttributeSection.MODIFIER || section == AttributeDefinition.AttributeSection.INFO) {
+        if (section == AttributeDefinition.AttributeSection.STATS) {
+            String sign = value >= 0 ? "+" : "";
+            String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
+            String valueString = color + sign + formattedValue;
+            if (def != null && def.getValueType() == AttributeValueType.PERCENT)
+                valueString += "%";
+            valueString += EnumChatFormatting.GRAY;
+            if (def != null)
+                displayName = "\u00A7" + def.getColorCode() + displayName;
+            else
+                displayName = EnumChatFormatting.AQUA + displayName;
+            return valueString + " " + displayName;
+        } else if (section == AttributeDefinition.AttributeSection.MODIFIER || section == AttributeDefinition.AttributeSection.INFO) {
             String sign = value >= 0 ? "+" : "";
             String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
             String valueString = color + sign + formattedValue;

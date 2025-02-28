@@ -38,6 +38,7 @@ public class AttributeDefinition {
     public enum AttributeSection {
         BASE,
         MODIFIER,
+        STATS,
         INFO,
         EXTRA;
     }
