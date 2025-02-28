@@ -648,6 +648,7 @@ dialog.titleColor=Title Color
 dialog.titlePos=Title Position
 
 quest.quest=Quest
+quest.active=Active Quest
 quest.quests=Quests
 quest.item=Item
 quest.kill=Kill

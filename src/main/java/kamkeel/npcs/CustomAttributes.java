@@ -3,6 +3,7 @@ package kamkeel.npcs;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
+import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestActiveRequirement;
 import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestCompletedRequirement;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 
@@ -58,5 +59,6 @@ public class CustomAttributes {
 
         // Requirement
         RequirementCheckerRegistry.registerChecker(new QuestCompletedRequirement());
+        RequirementCheckerRegistry.registerChecker(new QuestActiveRequirement());
     }
 }
