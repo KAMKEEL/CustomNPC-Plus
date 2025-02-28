@@ -454,6 +454,9 @@ public class ProfileController implements IProfileHandler {
             PlayerData pdata = PlayerData.get(profile.player);
             pdata.profileSlot = newSlotId;
             pdata.save();
+
+            if(ConfigMain.AttributesEnabled)
+                AttributeController.getTracker(profile.player).recalcAttributes(profile.player);
         } else {
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         }
