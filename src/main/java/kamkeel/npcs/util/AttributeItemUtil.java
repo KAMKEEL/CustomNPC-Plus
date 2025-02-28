@@ -28,7 +28,7 @@ public class AttributeItemUtil {
     /**
      * Applies a non–magic attribute to an item.
      */
-    public static void applyAttribute(ItemStack item, String attributeKey, Float value) {
+    public static void applyAttribute(ItemStack item, String attributeKey, float value) {
         if (item == null) return;
         if (item.stackTagCompound == null) {
             item.stackTagCompound = new NBTTagCompound();
@@ -42,6 +42,10 @@ public class AttributeItemUtil {
         }
         attrTag.setFloat(attributeKey, value);
         root.setTag(RPGItemAttributes, attrTag);
+    }
+
+    public static void applyAttribute(ItemStack item, AttributeDefinition definition, float value) {
+        applyAttribute(item, definition.getKey(), value);
     }
 
     /**
@@ -103,14 +107,14 @@ public class AttributeItemUtil {
      * Applies (writes) a magic attribute to an item.
      * This is essentially the same as writeMagicAttribute.
      */
-    public static void applyMagicAttribute(ItemStack item, String attributeTag, int magicId, Float value) {
+    public static void applyMagicAttribute(ItemStack item, String attributeTag, int magicId, float value) {
         writeMagicAttribute(item, attributeTag, magicId, value);
     }
 
     /**
      * Writes a magic attribute value to the given attributeTag.
      */
-    public static void writeMagicAttribute(ItemStack item, String attributeTag, int magicId, Float value) {
+    public static void writeMagicAttribute(ItemStack item, String attributeTag, int magicId, float value) {
         if (item == null) return;
         if (item.stackTagCompound == null)
             item.stackTagCompound = new NBTTagCompound();
