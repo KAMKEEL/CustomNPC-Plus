@@ -53,8 +53,6 @@ public class PlayerAttributeTracker {
         magicBoost.clear();
         magicDefense.clear();
         magicResistance.clear();
-
-        int newExtraHealth = 0;
         if (player != null) {
             // Update equipment tracker.
             PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();

@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.List;
 
-import static kamkeel.npcs.util.AttributeItemUtil.RPGItemAttributes;
+import static kamkeel.npcs.util.AttributeItemUtil.TAG_RPGCORE;
 
 @Mixin(ItemStack.class)
 public abstract class MixinItemStack {
@@ -28,7 +28,7 @@ public abstract class MixinItemStack {
     @Inject(method = "getTooltip", at = @At("TAIL"), cancellable = true)
     public void getAttributeTooltip(EntityPlayer player, boolean advanced, CallbackInfoReturnable<List<String>> cir) {
         List<String> tooltip = cir.getReturnValue();
-        if (hasTagCompound() && getTagCompound().hasKey(RPGItemAttributes)) {
+        if (hasTagCompound() && getTagCompound().hasKey(TAG_RPGCORE)) {
             cir.setReturnValue(AttributeItemUtil.getToolTip(tooltip, getTagCompound()));
         }
     }
