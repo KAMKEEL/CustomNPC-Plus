@@ -24,7 +24,7 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	protected static final ResourceLocation PlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
 	protected static final ResourceLocation PlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
 
-	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/Steel.png");
+	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/legacy/Steel.png");
 
     protected static final ResourceLocation Logs = new ResourceLocation("textures/blocks/log_oak.png");
     protected static final ResourceLocation Cobble = new ResourceLocation("textures/blocks/cobblestone.png");
