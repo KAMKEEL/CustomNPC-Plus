@@ -3,7 +3,7 @@ package kamkeel.npcs;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
-import kamkeel.npcs.controllers.data.attribute.requirement.QuestCompletedRequirement;
+import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestCompletedRequirement;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 
 /**
