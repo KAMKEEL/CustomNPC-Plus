@@ -205,10 +205,10 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             }
 
             maxScrollY = Math.max(0, y - (guiTop + ySize - 35));
-        }
 
-        GL11.glPopMatrix();
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            GL11.glPopMatrix();
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        }
 
         // Draw scrollbar only if needed
         if (maxScrollY > 0) {
