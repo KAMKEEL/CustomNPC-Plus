@@ -41,6 +41,15 @@ public class AttributeController {
         return def;
     }
 
+    public static AttributeDefinition registerAttribute(AttributeDefinition definition) {
+        if (definitions.containsKey(definition.getKey())) {
+            throw new IllegalArgumentException("Attribute already registered with key: " + definition.getKey());
+        } else {
+            definitions.put(definition.getKey(), definition);
+            return definition;
+        }
+    }
+
     public static AttributeDefinition getAttribute(String key) {
         return definitions.get(key);
     }
