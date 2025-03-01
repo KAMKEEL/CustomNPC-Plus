@@ -57,8 +57,16 @@ public class CustomAttributes {
         MAGIC_RESISTANCE = AttributeController.registerAttribute(MAGIC_RESISTANCE_KEY, "Magic Resistance", 'b', AttributeValueType.MAGIC, AttributeDefinition.AttributeSection.MODIFIER);
 
 
+        // TODO: Attributes
+        // Durability Attribute
+        // Unique Name Attribute
+
         // Requirement
         RequirementCheckerRegistry.registerChecker(new QuestCompletedRequirement());
         RequirementCheckerRegistry.registerChecker(new QuestActiveRequirement());
+
+        // TODO: Requirements
+        // Player Requirement : Soulbound UUID
+        // Profile Requirement : Slot Number
     }
 }
