@@ -5,6 +5,7 @@ import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.FactionOptions;
 
 import java.util.HashMap;
@@ -130,7 +131,7 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		GuiCustomScroll scroll = getScroll(0);
 		String name = scroll.getSelected();
 		this.data = data;

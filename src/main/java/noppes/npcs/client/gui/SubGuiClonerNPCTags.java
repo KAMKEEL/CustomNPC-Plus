@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -103,7 +104,7 @@ public class SubGuiClonerNPCTags extends SubGuiInterface implements IGuiData,ISc
     }
 
     @Override
-    public void setData(Vector<String> list, HashMap<String, Integer> data)
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type)
     {
         allTags.addAll(data.keySet());
         allTags.sort(String.CASE_INSENSITIVE_ORDER);

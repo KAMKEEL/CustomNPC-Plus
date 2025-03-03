@@ -9,6 +9,7 @@ import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleBank;
@@ -46,7 +47,7 @@ public class GuiNpcBankSetup extends GuiNPCInterface2 implements IScrollData,ICu
     }
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data)
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type)
 	{
 		String name = null;
 		Bank bank = role.getBank();

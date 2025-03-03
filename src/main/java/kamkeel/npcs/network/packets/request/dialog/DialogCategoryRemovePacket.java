@@ -13,6 +13,7 @@ import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.DialogController;
 
 import java.io.IOException;
@@ -59,6 +60,6 @@ public final class DialogCategoryRemovePacket extends AbstractPacket {
             return;
         int id = in.readInt();
         DialogController.Instance.removeCategory(id);
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll());
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
 }

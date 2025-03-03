@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.SubGuiNpcFactionOptions;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -65,7 +66,7 @@ public class GuiNPCFactionSetup extends GuiNPCInterface2 implements IScrollData,
     }
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data)
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type)
 	{
 		String name = npc.getFaction().name;
 		this.data = data;

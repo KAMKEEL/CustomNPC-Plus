@@ -14,6 +14,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.LinkedNpcController;
 
 import java.io.IOException;
@@ -65,6 +66,6 @@ public final class LinkedNPCRemovePacket extends AbstractPacket {
         for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
             list.add(d.name);
         }
-        ScrollListPacket.sendList((EntityPlayerMP) player, list);
+        ScrollListPacket.sendList((EntityPlayerMP) player, list, EnumScrollData.OPTIONAL);
     }
 }

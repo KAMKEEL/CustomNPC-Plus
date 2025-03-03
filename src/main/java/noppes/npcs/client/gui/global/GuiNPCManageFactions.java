@@ -14,6 +14,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.SubGuiNpcFactionPoints;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -167,7 +168,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		String name = scrollFactions.getSelected();
 		this.data = data;
 		scrollFactions.setList(getSearchList());

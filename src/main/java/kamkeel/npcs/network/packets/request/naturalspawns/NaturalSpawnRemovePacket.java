@@ -13,6 +13,7 @@ import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.SpawnController;
 
 import java.io.IOException;
@@ -57,6 +58,6 @@ public final class NaturalSpawnRemovePacket extends AbstractPacket {
             return;
         int id = in.readInt();
         SpawnController.Instance.removeSpawnData(id);
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll());
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
 }

@@ -12,6 +12,7 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.DialogController;
 
 import java.io.IOException;
@@ -43,6 +44,6 @@ public final class DialogCategoriesGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll());
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
 }

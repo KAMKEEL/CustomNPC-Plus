@@ -10,6 +10,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.constants.EnumScrollData;
 
 import java.io.IOException;
 import java.util.Map;
@@ -18,16 +19,18 @@ public final class ScrollDataPacket extends LargeAbstractPacket {
     public static final String packetName = "Large|ScrollData";
 
     private Map<String, Integer> data;
+    private EnumScrollData dataType;
 
     public ScrollDataPacket() {
     }
 
-    public ScrollDataPacket(Map<String, Integer> data) {
+    public ScrollDataPacket(Map<String, Integer> data, EnumScrollData dataType) {
         this.data = data;
+        this.dataType = dataType;
     }
 
-    public static void sendScrollData(EntityPlayerMP player, Map<String, Integer> map) {
-        ScrollDataPacket packet = new ScrollDataPacket(map);
+    public static void sendScrollData(EntityPlayerMP player, Map<String, Integer> map, EnumScrollData type) {
+        ScrollDataPacket packet = new ScrollDataPacket(map, type);
         PacketHandler.Instance.sendToPlayer(packet, player);
     }
 
@@ -44,6 +47,7 @@ public final class ScrollDataPacket extends LargeAbstractPacket {
     @Override
     protected byte[] getData() throws IOException {
         ByteBuf buffer = Unpooled.buffer();
+        buffer.writeInt(this.dataType.ordinal());
         buffer.writeInt(data.size());
         for (Map.Entry<String, Integer> entry : data.entrySet()) {
             buffer.writeInt(entry.getValue());

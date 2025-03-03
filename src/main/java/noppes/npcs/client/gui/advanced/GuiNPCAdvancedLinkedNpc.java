@@ -6,6 +6,7 @@ import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -51,7 +52,7 @@ public class GuiNPCAdvancedLinkedNpc extends GuiNPCInterface2 implements IScroll
     }
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		this.data = new ArrayList<String>(list);
 		initGui();
 	}

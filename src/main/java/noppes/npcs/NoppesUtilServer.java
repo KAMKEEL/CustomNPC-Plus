@@ -45,6 +45,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.controllers.*;
@@ -62,7 +63,6 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import static kamkeel.npcs.network.packets.data.large.ScrollDataPacket.sendScrollData;
-import static kamkeel.npcs.network.packets.data.large.ScrollGroupPacket.sendScrollGroup;
 
 public class NoppesUtilServer {
 	private static HashMap<String,Quest> editingQuests = new HashMap<String,Quest>();
@@ -114,7 +114,7 @@ public class NoppesUtilServer {
 		for(Faction faction : FactionController.getInstance().factions.values()){
 			map.put(faction.name, faction.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendAnimationDataAll(EntityPlayerMP player) {
@@ -122,7 +122,7 @@ public class NoppesUtilServer {
 		for(Animation animation : AnimationController.getInstance().animations.values()){
 			map.put(animation.name, animation.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendTagDataAll(EntityPlayerMP player) {
@@ -130,7 +130,7 @@ public class NoppesUtilServer {
 		for(Tag tag : TagController.getInstance().tags.values()){
 			map.put(tag.name, tag.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendBankDataAll(EntityPlayerMP player) {
@@ -138,7 +138,7 @@ public class NoppesUtilServer {
 		for(Bank bank : BankController.getInstance().banks.values()){
 			map.put(bank.name, bank.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
     public static NBTTagCompound writeItem(ItemStack item, NBTTagCompound nbt){
@@ -322,7 +322,7 @@ public class NoppesUtilServer {
 		if(list == null || list.isEmpty())
 			return;
 
-        ScrollListPacket.sendList((EntityPlayerMP)player, list);
+        ScrollListPacket.sendList((EntityPlayerMP)player, list, EnumScrollData.OPTIONAL);
     }
 
 	public static void sendOpenGuiNoDelay(final EntityPlayer player,
@@ -344,7 +344,7 @@ public class NoppesUtilServer {
 		if(list == null || list.isEmpty())
 			return;
 
-        ScrollListPacket.sendList((EntityPlayerMP)player, list);
+        ScrollListPacket.sendList((EntityPlayerMP)player, list, EnumScrollData.OPTIONAL);
 	}
 
 
@@ -454,7 +454,7 @@ public class NoppesUtilServer {
 		for(QuestCategory category : QuestController.Instance.categories.values()){
 			map.put(category.title, category.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendPlayerData(EnumPlayerData type, EntityPlayerMP player, String name) throws IOException {
@@ -527,7 +527,7 @@ public class NoppesUtilServer {
 			}
 		}
 
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void removePlayerData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
@@ -616,7 +616,7 @@ public class NoppesUtilServer {
                 map.put(recipe.name, recipe.id);
             }
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendDialogData(EntityPlayerMP player, DialogCategory category) {
@@ -626,7 +626,7 @@ public class NoppesUtilServer {
 		for(Dialog dialog : category.dialogs.values()){
 			map.put(dialog.title, dialog.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendDialogGroup(EntityPlayerMP player, DialogCategory category) {
@@ -637,7 +637,7 @@ public class NoppesUtilServer {
 			map.put(dialog.title, dialog.id);
 		}
 
-		sendScrollGroup(player, map);
+        sendScrollData(player, map, EnumScrollData.DIALOG_GROUP);
 	}
 
 	public static void sendQuestData(EntityPlayerMP player, QuestCategory category) {
@@ -647,7 +647,7 @@ public class NoppesUtilServer {
 		for(Quest quest : category.quests.values()){
 			map.put(quest.title, quest.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendQuestGroup(EntityPlayerMP player, QuestCategory category) {
@@ -658,7 +658,7 @@ public class NoppesUtilServer {
 			map.put(quest.title, quest.id);
 		}
 
-		sendScrollGroup(player, map);
+        sendScrollData(player, map, EnumScrollData.QUEST_GROUP);
 	}
 
     public static void sendCustomEffectDataAll(EntityPlayerMP player) {
@@ -666,7 +666,7 @@ public class NoppesUtilServer {
         for (CustomEffect effect : CustomEffectController.getInstance().getCustomEffects().values()) {
             map.put(effect.name, effect.id);
         }
-        ScrollDataPacket.sendScrollData(player, map);
+        ScrollDataPacket.sendScrollData(player, map, EnumScrollData.OPTIONAL);
     }
 
     public static void sendLinkedItemDataAll(EntityPlayerMP player) {
@@ -674,7 +674,7 @@ public class NoppesUtilServer {
         for (LinkedItem linkedItem : LinkedItemController.getInstance().linkedItems.values()) {
             map.put(linkedItem.name, linkedItem.id);
         }
-        ScrollDataPacket.sendScrollData(player, map);
+        ScrollDataPacket.sendScrollData(player, map, EnumScrollData.OPTIONAL);
     }
 
 	public static void sendTransportCategoryData(EntityPlayerMP player) {
@@ -682,7 +682,7 @@ public class NoppesUtilServer {
 		for(TransportCategory category : TransportController.getInstance().categories.values()){
 			map.put(category.title, category.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendTransportData(EntityPlayerMP player, int categoryid) {
@@ -693,7 +693,7 @@ public class NoppesUtilServer {
 		for(TransportLocation transport : category.locations.values()){
 			map.put(transport.name, transport.id);
 		}
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 
@@ -800,7 +800,7 @@ public class NoppesUtilServer {
 			map.put(s + " : " + npc.display.name, npc.getEntityId());
 		}
 
-		sendScrollData(player, map);
+		sendScrollData(player, map, EnumScrollData.OPTIONAL);
 	}
 
 	public static void sendGuiError(EntityPlayer player, int i) {

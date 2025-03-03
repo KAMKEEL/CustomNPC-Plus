@@ -13,6 +13,7 @@ import noppes.npcs.client.gui.SubGuiNpcBiomes;
 import noppes.npcs.client.gui.SubGuiNpcDimensions;
 import noppes.npcs.client.gui.SubGuiSpawningOptions;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -211,7 +212,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		String name = scrollNaturalSpawns.getSelected();
 		this.data = data;
 		scrollNaturalSpawns.setList(getSearchList());

@@ -10,6 +10,7 @@ import kamkeel.npcs.network.packets.data.ScrollSelectedPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.data.LinkedItem;
@@ -56,7 +57,7 @@ public final class LinkedGetAllPacket extends AbstractPacket {
             for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
                 list.put(d.name, 0);
             }
-            ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list);
+            ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list, EnumScrollData.OPTIONAL);
             if (npc != null) {
                 ScrollSelectedPacket.setSelectedList((EntityPlayerMP) player, npc.linkedName);
             }
@@ -65,7 +66,7 @@ public final class LinkedGetAllPacket extends AbstractPacket {
             for (LinkedItem linkedItem : LinkedItemController.getInstance().linkedItems.values()) {
                 list.put(linkedItem.name, linkedItem.id);
             }
-            ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list);
+            ScrollDataPacket.sendScrollData((EntityPlayerMP) player, list, EnumScrollData.OPTIONAL);
         }
     }
 

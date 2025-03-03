@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.data.SpawnData;
 
@@ -62,6 +63,6 @@ public final class NaturalSpawnSavePacket extends AbstractPacket {
         SpawnData data = new SpawnData();
         data.readNBT(compound);
         SpawnController.Instance.saveSpawnData(data);
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll());
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
 }

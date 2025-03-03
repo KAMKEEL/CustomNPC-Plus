@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -81,7 +82,7 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		this.data = data;
 		this.slot.setList(list);
 		if(factionId >= 0)

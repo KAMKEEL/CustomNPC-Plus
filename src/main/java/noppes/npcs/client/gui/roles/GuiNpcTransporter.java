@@ -7,6 +7,7 @@ import kamkeel.npcs.network.packets.request.transport.TransportSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -66,7 +67,7 @@ public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, 
         PacketClient.sendClient(new TransportSavePacket(cat, location.writeNBT()));
 	}
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		this.data = data;
 		this.scroll.setList(list);
 	}

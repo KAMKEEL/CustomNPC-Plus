@@ -11,6 +11,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.SubGuiNpcDialog;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -20,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGroup, IScrollData, ISubGuiListener,ICustomScrollListener, IGuiData, GuiYesNoCallback
+public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollData, ISubGuiListener,ICustomScrollListener, IGuiData, GuiYesNoCallback
 {
 	private GuiCustomScroll catScroll;
 	public GuiCustomScroll dialogScroll;
@@ -483,40 +484,35 @@ public class GuiNPCManageDialogs extends GuiNPCInterface2 implements IScrollGrou
 	public void save() {}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
-		String name = catScroll.getSelected();
-		this.catData = data;
-		catScroll.setList(getCatSearch());
-		if(name != null){
-			catScroll.setSelected(name);
-			getCategory(false);
-		} else {
-			catScroll.setSelected(prevCatName);
-			getCategory(true);
-		}
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        if(type == EnumScrollData.DIALOG_GROUP){
+            String name = dialogScroll.getSelected();
+            this.dialogData = data;
+            dialogScroll.setList(getDiagSearch());
+            if(name != null){
+                dialogScroll.setSelected(name);
+                getDialog(false);
+            } else {
+                dialogScroll.setSelected(prevDialogName);
+                getDialog(true);
+            }
+        } else {
+            String name = catScroll.getSelected();
+            this.catData = data;
+            catScroll.setList(getCatSearch());
+            if(name != null){
+                catScroll.setSelected(name);
+                getCategory(false);
+            } else {
+                catScroll.setSelected(prevCatName);
+                getCategory(true);
+            }
+        }
 		initGui();
 	}
 
 	@Override
 	public void setSelected(String selected) {}
-
-	@Override
-	public void setScrollGroup(Vector<String> list, HashMap<String, Integer> data) {
-		String name = dialogScroll.getSelected();
-		this.dialogData = data;
-		dialogScroll.setList(getDiagSearch());
-		if(name != null){
-			dialogScroll.setSelected(name);
-			getDialog(false);
-		} else {
-			dialogScroll.setSelected(prevDialogName);
-			getDialog(true);
-		}
-		initGui();
-	}
-
-	@Override
-	public void setSelectedGroup(String selected) {}
 
     @Override
     public void confirmClicked(boolean result, int id) {

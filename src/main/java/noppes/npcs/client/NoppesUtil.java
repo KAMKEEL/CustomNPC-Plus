@@ -19,6 +19,7 @@ import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
@@ -138,6 +139,8 @@ public class NoppesUtil {
 		Vector<String> data = new Vector<String>();
 		String line;
 
+        EnumScrollData dataType = EnumScrollData.values()[buffer.readInt()];
+
 		try {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
@@ -147,23 +150,11 @@ public class NoppesUtil {
 
 		}
 
-		((IScrollData)gui).setData(data,null);
+		((IScrollData)gui).setData(data,null, dataType);
 	}
 
 	private static HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private static HashMap<String,Integer> group = new HashMap<String,Integer>();
-
-	public static void addScrollGroup(ByteBuf buffer) {
-		try {
-			int size = buffer.readInt();
-			for(int i = 0; i < size; i++){
-				int id = buffer.readInt();
-				String name = ByteBufUtils.readString(buffer);
-				group.put(name, id);
-			}
-		} catch (Exception ignored) {
-		}
-	}
 
 	public static void setScrollGroup(ByteBuf buffer) {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
@@ -193,6 +184,8 @@ public class NoppesUtil {
 		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
 		if(gui == null)
 			return;
+
+        EnumScrollData dataType = EnumScrollData.values()[buffer.readInt()];
 		try {
 			int size = buffer.readInt();
 			for(int i = 0; i < size; i++){
@@ -209,7 +202,7 @@ public class NoppesUtil {
 			gui = (GuiScreen) ((GuiContainerNPCInterface)gui).getSubGui();
 		}
 		if(gui instanceof IScrollData)
-			((IScrollData)gui).setData(new Vector<String>(data.keySet()), data);
+			((IScrollData)gui).setData(new Vector<String>(data.keySet()), data, dataType);
 		data = new HashMap<String,Integer>();
 	}
 

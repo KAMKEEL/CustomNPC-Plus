@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -136,7 +137,7 @@ public class GuiNPCManageTags extends GuiNPCInterface2 implements IScrollData,IC
 
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		String name = scrollTags.getSelected();
 		this.data = data;
 		scrollTags.setList(getSearchList());

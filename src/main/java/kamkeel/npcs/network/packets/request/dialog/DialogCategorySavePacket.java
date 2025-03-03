@@ -15,6 +15,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.DialogController;
 import noppes.npcs.controllers.data.DialogCategory;
 
@@ -61,6 +62,6 @@ public final class DialogCategorySavePacket extends AbstractPacket {
         DialogCategory category = new DialogCategory();
         category.readNBT(compound);
         DialogController.Instance.saveCategory(category);
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll());
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
 }

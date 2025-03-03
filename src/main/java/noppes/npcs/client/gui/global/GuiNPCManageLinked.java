@@ -21,6 +21,7 @@ import noppes.npcs.client.gui.SubGuiEditText;
 import noppes.npcs.client.gui.item.SubGuiLinkedItem;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -529,7 +530,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
 	}
 
     @Override
-    public void setData(Vector<String> list, HashMap<String, Integer> data) {
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         String name = scroll.getSelected();
         this.data = data;
         scroll.setList(getSearchList());

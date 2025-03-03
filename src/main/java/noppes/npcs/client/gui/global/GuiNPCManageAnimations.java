@@ -12,6 +12,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
@@ -215,7 +216,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     }
 
     @Override
-    public void setData(Vector<String> list, HashMap<String, Integer> data) {
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         String name = scrollAnimations.getSelected();
         this.data = data;
         scrollAnimations.setList(getSearchList());

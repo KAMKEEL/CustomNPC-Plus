@@ -4,6 +4,7 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.SpawnData;
 
 import java.util.*;
@@ -96,7 +97,7 @@ public class SubGuiNpcDimensions extends SubGuiInterface implements IScrollData
     }
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		this.allDimensions.setList(list);
 		this.dimensionMap = data;
 

@@ -11,6 +11,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.SubGuiPlayerData;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -128,7 +129,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
 
     // IScrollData interface.
     @Override
-    public void setData(Vector<String> list, HashMap<String, Integer> data) {
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         playerData.clear();
         playerData.putAll(data);
         playerScroll.setList(getSearchList());

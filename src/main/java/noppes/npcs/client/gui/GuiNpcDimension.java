@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 
 import java.util.HashMap;
 import java.util.Vector;
@@ -82,7 +83,7 @@ public class GuiNpcDimension extends GuiNPCInterface implements IScrollData{
 
 	}
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		scroll.setList(list);
 		this.data = data;
 	}

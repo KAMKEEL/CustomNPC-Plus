@@ -400,7 +400,6 @@ public class PacketHandler {
 
         // Data | Large Packets
         DATA_PACKET.registerPacket(new ClonerPacket());
-        DATA_PACKET.registerPacket(new ScrollGroupPacket());
         DATA_PACKET.registerPacket(new ScrollDataPacket());
         DATA_PACKET.registerPacket(new ScrollListPacket());
         DATA_PACKET.registerPacket(new SyncPacket());

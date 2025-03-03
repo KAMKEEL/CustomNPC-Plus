@@ -12,6 +12,7 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.SpawnController;
 
 import java.io.IOException;
@@ -43,6 +44,6 @@ public final class NaturalSpawnGetAllPacket extends AbstractPacket {
             return;
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll());
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
 }

@@ -12,6 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldProvider;
 import net.minecraftforge.common.DimensionManager;
+import noppes.npcs.constants.EnumScrollData;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public final class DimensionsGetPacket extends AbstractPacket {
             WorldProvider provider = DimensionManager.createProviderFor(id);
             map.put(provider.getDimensionName(), id);
         }
-        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, map);
+        ScrollDataPacket.sendScrollData((EntityPlayerMP) player, map, EnumScrollData.OPTIONAL);
     }
 
 

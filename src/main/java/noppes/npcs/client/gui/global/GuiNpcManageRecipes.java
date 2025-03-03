@@ -14,6 +14,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.containers.ContainerManageRecipes;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
@@ -312,7 +313,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         }
     }
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		String name = scroll.getSelected();
 		this.data = data;
 		scroll.setList(getSearchList());

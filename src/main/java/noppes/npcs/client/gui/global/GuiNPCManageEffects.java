@@ -18,6 +18,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEffectGeneral;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -221,7 +222,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
     }
 
     @Override
-    public void setData(Vector<String> list, HashMap<String, Integer> data) {
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
         String name = scrollEffects.getSelected();
         this.data = data;
         scrollEffects.setList(getSearchList());

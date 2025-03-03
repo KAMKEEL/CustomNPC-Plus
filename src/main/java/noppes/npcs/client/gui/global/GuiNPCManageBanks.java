@@ -9,6 +9,7 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.containers.ContainerManageBanks;
 import noppes.npcs.controllers.data.Bank;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -172,7 +173,7 @@ public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScr
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		String name = scroll.getSelected();
 		this.data = data;
 		scroll.setList(getSearchList());
