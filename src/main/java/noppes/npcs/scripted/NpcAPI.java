@@ -493,15 +493,8 @@ public class NpcAPI extends AbstractNpcAPI {
                 } else {
                     scriptStack = new ScriptItemStack(itemstack);
                 }
+                scriptItemCache.put(itemstack, new CacheHashMap.CachedObject<>(scriptStack));
             }
-
-            // Version Check Linked Item
-//            if(scriptStack instanceof ScriptLinkedItem && CustomNpcs.side() == Side.SERVER){
-//                ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) scriptStack;
-//                LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
-//
-//
-//            }
             return scriptStack;
         }
     }

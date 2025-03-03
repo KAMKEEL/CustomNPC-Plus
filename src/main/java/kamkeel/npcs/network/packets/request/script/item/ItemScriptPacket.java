@@ -84,6 +84,7 @@ public final class ItemScriptPacket extends AbstractPacket {
             wrapper.setMCNbt(compound);
             wrapper.saveScriptData();
             wrapper.loaded = false;
+            wrapper.errored.clear();
             wrapper.lastInited = -1;
             ((EntityPlayerMP) player).sendContainerToPlayer(player.inventoryContainer);
         }
