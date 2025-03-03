@@ -501,7 +501,7 @@ public class ScriptPlayerEventHandler {
                 if(event.entityLiving instanceof EntityPlayer && source instanceof EntityPlayer){
                     event.ammount = AttributeAttackUtil.calculateDamagePlayer((EntityPlayer) event.entityLiving, (EntityPlayer) source, event.ammount);
                 } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer){
-                    event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.entityLiving, event.ammount);
+                    event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) source, event.ammount);
                 }
             }
 
