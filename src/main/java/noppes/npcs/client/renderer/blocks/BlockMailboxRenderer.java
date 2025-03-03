@@ -10,18 +10,23 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockMailbox;
-import noppes.npcs.client.model.blocks.ModelMailboxUS;
+import noppes.npcs.client.model.blocks.ModelMailbox;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyMailboxUS;
 import noppes.npcs.client.model.blocks.ModelMailboxWow;
+import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 
 public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
 
-	private final ModelMailboxUS model = new ModelMailboxUS();
+    private final ModelMailbox mailbox = new ModelMailbox();
+    private static final ResourceLocation mailbox_texture = new ResourceLocation("customnpcs","textures/models/mailbox.png");
+
+	private final ModelLegacyMailboxUS model = new ModelLegacyMailboxUS();
 	private final ModelMailboxWow model2 = new ModelMailboxWow();
 
-    private static final ResourceLocation text1 = new ResourceLocation("customnpcs","textures/models/mailbox1.png");
+    private static final ResourceLocation text1 = new ResourceLocation("customnpcs","textures/models/legacy/mailbox1.png");
     private static final ResourceLocation text2 = new ResourceLocation("customnpcs","textures/models/mailbox2.png");
-	
+
     public BlockMailboxRenderer(){
 		((BlockMailbox)CustomItems.mailbox).renderId = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(this);
@@ -35,8 +40,14 @@ public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements I
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * meta, 0, 1, 0);
         if(type == 0){
-	        this.bindTexture(text1);
-	        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            if(ConfigClient.LegacyMailbox){
+                this.bindTexture(text1);
+                model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            } else {
+                GL11.glScalef(0.99f, 1f, 0.99f);
+                this.bindTexture(mailbox_texture);
+                mailbox.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
         }
         if(type == 1){
 	        this.bindTexture(text2);
@@ -54,8 +65,13 @@ public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements I
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(180, 0, 1, 0);
         if(metadata == 0){
-	        this.bindTexture(text1);
-	        model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            if(ConfigClient.LegacyMailbox){
+                this.bindTexture(text1);
+                model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            } else {
+                this.bindTexture(mailbox_texture);
+                mailbox.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+            }
         }
         if(metadata == 1){
 	        this.bindTexture(text2);

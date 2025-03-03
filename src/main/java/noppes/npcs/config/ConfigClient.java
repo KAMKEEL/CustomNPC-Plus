@@ -114,6 +114,7 @@ public class ConfigClient
     public static boolean LegacyCandle = false;
     public static boolean LegacyTallLamp = false;
     public static boolean LegacyPedestal = false;
+    public static boolean LegacyMailbox = false;
 
     public static void init(File configFile)
     {
@@ -239,6 +240,7 @@ public class ConfigClient
             LegacyCandle = config.get(MODEL, "Legacy Candle Model", false).getBoolean(false);
             LegacyTallLamp = config.get(MODEL, "Legacy Tall Lamp Model", false).getBoolean(false);
             LegacyPedestal = config.get(MODEL, "Legacy Pedestal Model", false).getBoolean(false);
+            LegacyMailbox = config.get(MODEL, "Legacy Mailbox Model", false).getBoolean(false);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){
