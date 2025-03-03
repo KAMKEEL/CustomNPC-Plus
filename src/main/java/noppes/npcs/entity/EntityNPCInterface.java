@@ -74,6 +74,7 @@ import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.*;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptedActionManager;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
@@ -96,7 +97,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public DataTimers timers;
 
     public CombatHandler combatHandler = new CombatHandler(this);
-    //public ScriptedActionManager actionManager = new ScriptedActionManager();
+    public ScriptedActionManager actionManager = new ScriptedActionManager();
 
     public String linkedName = "";
     public long linkedLast = 0;
@@ -362,7 +363,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             combatHandler.update();
             onCollide();
 
-            // actionManager.tick(ticksExisted);
+            actionManager.tick(ticksExisted);
         }
 
         if (wasKilled != isKilled() && wasKilled) {
@@ -1150,7 +1151,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         setHealth(getMaxHealth());
         dataWatcher.updateObject(14, 0); // animation Normal
         dataWatcher.updateObject(15, 0);
-        //actionManager.clear();
+        actionManager.clear();
         combatHandler.reset();
         this.setAttackTarget(null);
         this.setRevengeTarget(null);
