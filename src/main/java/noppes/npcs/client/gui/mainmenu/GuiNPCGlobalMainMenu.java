@@ -32,6 +32,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
     private GuiNpcSquareButton animationButton;
     private GuiNpcSquareButton tagButton;
     private GuiNpcSquareButton effectsButton;
+    private GuiNpcSquareButton magicsButton;
 
     public GuiNPCGlobalMainMenu(EntityNPCInterface npc) {
         super(npc, 5);
@@ -84,6 +85,10 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
 
         registerButton(effectsButton = new GuiNpcSquareButton(19, 0, 0, 20, "global.customeffects", 0xFF333333));
         effectsButton.setIconPos(24, 24, 24, 56).setIconTexture(specialIcons);
+
+        registerButton(magicsButton = new GuiNpcSquareButton(20, 0, 0, 20, "global.magic", 0xFF333333));
+        magicsButton.setIconPos(24, 24, 48, 56).setIconTexture(specialIcons);
+
 
         // Layout composite buttons optimally.
         layoutButtons();
@@ -219,6 +224,9 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         }
         if (id == 16) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageLinked);
+        }
+        if (id == 20) {
+            NoppesUtil.requestOpenGUI(EnumGuiType.ManageMagic);
         }
         if (id == 19) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageEffects);

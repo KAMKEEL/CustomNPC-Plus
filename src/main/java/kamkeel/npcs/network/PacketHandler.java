@@ -44,6 +44,7 @@ import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.*;
+import kamkeel.npcs.network.packets.request.magic.*;
 import kamkeel.npcs.network.packets.request.mainmenu.*;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetAllPacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
@@ -333,6 +334,13 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ProfileRemovePacket());
         REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
         REQUEST_PACKET.registerPacket(new ProfileChangePacket());
+
+        // Job Packets
+        REQUEST_PACKET.registerPacket(new MagicCycleRemovePacket());
+        REQUEST_PACKET.registerPacket(new MagicCycleSavePacket());
+        REQUEST_PACKET.registerPacket(new MagicGetAllPacket());
+        REQUEST_PACKET.registerPacket(new MagicSavePacket());
+        REQUEST_PACKET.registerPacket(new MagicRemovePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

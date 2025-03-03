@@ -195,5 +195,5 @@ public enum EnumRequestPacket {
     ProfileCreate,
     ProfileRemove,
     ProfileRename,
-    ProfileChange
+    MagicCycleRemove, MagicCycleSave, MagicGetAll, MagicRemove, MagicSave, ProfileChange
 }

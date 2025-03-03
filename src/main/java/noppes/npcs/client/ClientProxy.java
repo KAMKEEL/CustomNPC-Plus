@@ -297,6 +297,9 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ManageLinked)
 			return new GuiNPCManageLinked(npc);
 
+        else if (gui == EnumGuiType.ManageMagic)
+            return new GuiNpcManageMagic(npc);
+
 		else if (gui == EnumGuiType.ManageTransport)
 			return new GuiNPCManageTransporters(npc);
 

@@ -8,7 +8,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.Magic;
-import noppes.npcs.controllers.data.MagicCategory;
+import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.controllers.data.MagicAssociation;
 
 import java.io.BufferedInputStream;
@@ -24,10 +24,10 @@ public class MagicController {
     public HashMap<Integer, Magic> magics = new HashMap<>();
     public HashMap<Integer, Magic> magicSync = new HashMap<>();
 
-    public HashMap<Integer, MagicCategory> categories = new HashMap<>();
-    public HashMap<Integer, MagicCategory> categoriesSync = new HashMap<>();
+    public HashMap<Integer, MagicCycle> cycles = new HashMap<>();
+    public HashMap<Integer, MagicCycle> cyclesSync = new HashMap<>();
 
-    public int lastUsedCategoryID = 0;
+    public int lastUsedCycleID = 0;
     private int lastUsedID = 0;
 
     private static MagicController instance;
@@ -44,8 +44,8 @@ public class MagicController {
         return magics.get(magicId);
     }
 
-    public MagicCategory getCategory(int categoryId) {
-        return categories.get(categoryId);
+    public MagicCycle getCycle(int cycleID) {
+        return cycles.get(cycleID);
     }
 
     public void load() {
@@ -136,7 +136,7 @@ public class MagicController {
     public void loadMagic(DataInputStream stream) throws IOException {
         NBTTagCompound compound = CompressedStreamTools.read(stream);
         lastUsedID = compound.getInteger("lastID");
-        lastUsedCategoryID = compound.getInteger("lastCatID");
+        lastUsedCycleID = compound.getInteger("lastCatID");
 
         // Load magics
         magics.clear();
@@ -149,13 +149,13 @@ public class MagicController {
         }
 
         // Load categories
-        categories.clear();
-        NBTTagList catList = compound.getTagList("Categories", 10);
+        cycles.clear();
+        NBTTagList catList = compound.getTagList("Cycles", 10);
         for (int i = 0; i < catList.tagCount(); i++) {
             NBTTagCompound catCompound = catList.getCompoundTagAt(i);
-            MagicCategory cat = new MagicCategory();
+            MagicCycle cat = new MagicCycle();
             cat.readNBT(catCompound);
-            categories.put(cat.id, cat);
+            cycles.put(cat.id, cat);
         }
     }
 
@@ -167,16 +167,16 @@ public class MagicController {
             magicList.appendTag(magCompound);
         }
         NBTTagList catList = new NBTTagList();
-        for (MagicCategory cat : categories.values()) {
+        for (MagicCycle cat : cycles.values()) {
             NBTTagCompound catCompound = new NBTTagCompound();
             cat.writeNBT(catCompound);
             catList.appendTag(catCompound);
         }
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("lastID", lastUsedID);
-        compound.setInteger("lastCatID", lastUsedCategoryID);
+        compound.setInteger("lastCycleID", lastUsedCycleID);
         compound.setTag("Magics", magicList);
-        compound.setTag("Categories", catList);
+        compound.setTag("Cycles", catList);
         return compound;
     }
 
@@ -232,21 +232,21 @@ public class MagicController {
 
     // === Category management methods ===
 
-    public void addCategory(MagicCategory category) {
+    public void addCycle(MagicCycle category) {
         if (category.id < 0) {
-            lastUsedCategoryID++;
-            category.id = lastUsedCategoryID;
+            lastUsedCycleID++;
+            category.id = lastUsedCycleID;
         } else {
             while (containsCategoryName(category.title))
                 category.title += "_";
         }
-        categories.put(category.id, category);
+        cycles.put(category.id, category);
         saveMagicData();
     }
 
     public boolean containsCategoryName(String title) {
         title = title.toLowerCase();
-        for (MagicCategory cat : categories.values()) {
+        for (MagicCycle cat : cycles.values()) {
             if (cat.title.toLowerCase().equals(title))
                 return true;
         }
@@ -254,8 +254,8 @@ public class MagicController {
     }
 
     public void removeCategory(int categoryId) {
-        if (categories.containsKey(categoryId)) {
-            categories.remove(categoryId);
+        if (cycles.containsKey(categoryId)) {
+            cycles.remove(categoryId);
             saveMagicData();
         }
     }
@@ -263,8 +263,8 @@ public class MagicController {
     /**
      * Associates a magic with a category along with its per-category ordering data.
      */
-    public void addMagicToCategory(int magicId, int categoryId, int index, int priority) {
-        MagicCategory cat = categories.get(categoryId);
+    public void addMagicToCycle(int magicId, int categoryId, int index, int priority) {
+        MagicCycle cat = cycles.get(categoryId);
         if (cat == null) return;
         MagicAssociation assoc = new MagicAssociation();
         assoc.magicId = magicId;
@@ -274,8 +274,8 @@ public class MagicController {
         saveMagicData();
     }
 
-    public void removeMagicFromCategory(int magicId, int categoryId) {
-        MagicCategory cat = categories.get(categoryId);
+    public void removeMagicFromCycle(int magicId, int categoryId) {
+        MagicCycle cat = cycles.get(categoryId);
         if (cat == null) return;
         cat.associations.remove(magicId);
         saveMagicData();

@@ -1,5 +1,7 @@
 package noppes.npcs.constants;
 
+import noppes.npcs.scripted.ScriptBlock;
+
 public enum EnumGuiType {
 	MainMenuDisplay,
 	MainMenuInv,
@@ -58,6 +60,7 @@ public enum EnumGuiType {
 	CompanionTalent,
 	CompanionTrader,
 	ManageLinked,
+    ManageMagic,
 	CustomGui,
 	ScriptItem,
 	ScriptBlock,

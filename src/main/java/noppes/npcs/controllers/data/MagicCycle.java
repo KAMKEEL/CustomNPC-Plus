@@ -8,12 +8,12 @@ import java.util.HashMap;
  * Holds category information for magic.
  * Each category can have many magic associations.
  */
-public class MagicCategory {
+public class MagicCycle {
     public int id = -1;
     public String title = "";
     public HashMap<Integer, MagicAssociation> associations = new HashMap<>();
 
-    public MagicCategory() {}
+    public MagicCycle() {}
 
     public void readNBT(NBTTagCompound compound) {
         id = compound.getInteger("CategoryID");
