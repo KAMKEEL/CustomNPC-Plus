@@ -550,6 +550,8 @@ menu.role=Role
 menu.animations=Animations
 menu.tags=Tags
 menu.general=General
+menu.magics=Magics
+menu.cycles=Cycles
 
 cloner.tagFilters=Tag Filters
 cloner.tagVisibility=Tag Visibility
