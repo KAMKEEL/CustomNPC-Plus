@@ -392,7 +392,23 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         return editingFrame.frameParts.get(this.editingPart);
     }
 
-    @Override
+    public boolean isMouseOverRenderer(int x, int y) {
+        if (!allowRotate) {
+            return false;
+        }
+        // Center of the entity rendering
+        int centerX = guiLeft + 190 + xOffset; // Matches l in drawScreen()
+        int centerY = guiTop + 80 + yOffset; // Matches i1 in drawScreen()
+
+        // Define separate buffers for X and Y axes
+        int xBuffer = 75; // Horizontal buffer
+        int yBuffer = 120; // Vertical buffer
+
+        // Check if the mouse is within the buffer area
+        return mouseX >= centerX - xBuffer && mouseX <= centerX + xBuffer && mouseY >= centerY - yBuffer && mouseY <= centerY + yBuffer;
+    }
+
+        @Override
     protected void actionPerformed(GuiButton guibutton){
         super.actionPerformed(guibutton);
         Frame editingFrame = this.editingFrame();
