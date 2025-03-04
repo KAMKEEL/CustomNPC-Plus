@@ -102,21 +102,21 @@ public class GuiToggleButton extends GuiNpcButton {
         // Determine which half is the non-head (static background) area.
         // When toggled ON, the knob (head) is on the right so non-head is the left half.
         // When toggled OFF, the knob is on the left so non-head is the right half.
-        int nonHeadX, nonHeadWidth;
+        int nonHeadX, nonHeadWidth, nonHeadTexX;
         if (animProgress > 0.5f) {
-            // ON: knob on right, non-head = left half.
+            // ON: knob on right, darken left half.
             nonHeadX = this.xPosition;
             nonHeadWidth = FIXED_WIDTH / 2;
+            nonHeadTexX = 0;
         } else {
-            // OFF: knob on left, non-head = right half.
+            // OFF: knob on left, darken right half.
             nonHeadX = this.xPosition + FIXED_WIDTH / 2;
             nonHeadWidth = FIXED_WIDTH / 2;
+            nonHeadTexX = 200 - FIXED_WIDTH / 2;
         }
 
-        // Tint the non-head area darker.
         GL11.glColor4f(0.6f, 0.6f, 0.6f, 1.0F);
-        // Redraw that half to simulate a darker tone.
-        this.drawTexturedModalRect(nonHeadX, this.yPosition, 0, 46 + k * 20, nonHeadWidth, FIXED_HEIGHT);
+        this.drawTexturedModalRect(nonHeadX, this.yPosition, nonHeadTexX, 46 + k * 20, nonHeadWidth, FIXED_HEIGHT);
 
         // Now draw the knob ("head") that slides.
         // Knob width equals half of the button (20 pixels).
@@ -127,7 +127,9 @@ public class GuiToggleButton extends GuiNpcButton {
 
         // Draw the knob with no tint.
         GL11.glColor4f(1F, 1F, 1F, 1F);
+        // Draw left half of knob
         this.drawTexturedModalRect(knobX, knobY, 0, 46 + k * 20, knobWidth / 2, FIXED_HEIGHT);
+        // Draw right half of knob
         this.drawTexturedModalRect(knobX + knobWidth / 2, knobY, 200 - knobWidth / 2, 46 + k * 20, knobWidth / 2, FIXED_HEIGHT);
 
         // Draw the icon on the knob (always 16×16, centered on the knob).
