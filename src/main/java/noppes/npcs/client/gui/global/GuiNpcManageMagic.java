@@ -7,9 +7,8 @@ import java.util.Vector;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.*;
-import noppes.npcs.client.gui.magic.SubGuiMagicCycleEdit;
+import noppes.npcs.client.gui.magic.SubGuiMagicCycle;
 import noppes.npcs.client.gui.magic.SubGuiMagic;
-import noppes.npcs.client.gui.magic.SubGuiMagicInteractionsEdit;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Magic;
@@ -390,7 +389,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 break;
             case 6: // Edit Cycle.
                 if (selectedCycle != null) {
-                    setSubGui(new SubGuiMagicCycleEdit(selectedCycle));
+                    setSubGui(new SubGuiMagicCycle(this, selectedCycle));
                 }
                 break;
             // --- Magic Management Buttons ---
@@ -410,11 +409,6 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             case 2: // Edit Magic.
                 if (selectedMagic != null) {
                     setSubGui(new SubGuiMagic(this, selectedMagic));
-                }
-                break;
-            case 3: // Edit Interactions.
-                if (selectedMagic != null) {
-                    setSubGui(new SubGuiMagicInteractionsEdit(selectedMagic));
                 }
                 break;
         }

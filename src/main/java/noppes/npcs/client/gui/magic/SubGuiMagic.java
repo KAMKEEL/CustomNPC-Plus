@@ -50,8 +50,8 @@ public class SubGuiMagic extends SubGuiInterface implements ITextfieldListener, 
         addLabel(new GuiNpcLabel(1,"gui.name", guiLeft + 4, y + 5));
         addTextField(new GuiNpcTextField(1, this, this.fontRendererObj, guiLeft + 80, y, 200, 20, magic.name));
 
-        addLabel(new GuiNpcLabel(100,"ID", guiLeft + 200 + 105, guiTop + 4));
-        addLabel(new GuiNpcLabel(100, magic.id + "", + 200 + 105, guiTop + 14));
+        addLabel(new GuiNpcLabel(-10,"ID", guiLeft + 200 + 80 + 5, y + 2));
+        addLabel(new GuiNpcLabel(-11, magic.id + "", guiLeft + 200 + 80 + 5, y + 12));
 
         y += 25;
 

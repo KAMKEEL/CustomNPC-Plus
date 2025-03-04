@@ -1339,6 +1339,19 @@ profile.cooldown=Cooldown
 profile.individual=Individual
 
 magic.interaction=Interaction
+magic.diagram=Diagram Type
+magic.index=Index
+magic.priority=Priority
+
+diagram.circular=Circular
+diagram.square=Square
+diagram.tree=Tree
+diagram.generated=Generated
+diagram.circular_manual=Circular [Manual]
+diagram.square_manual=Square [Manual]
+diagram.tree_manual=Tree [Manual]
+diagram.chart=Chart
+diagram.info=Manual: Index is the level, Priority is the order.
 
 rpgcore:tooltip=Hold %key% to view attributes
 rpgcore:attribute.damage=Damage

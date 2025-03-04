@@ -1,5 +1,7 @@
 package noppes.npcs.constants;
 
+import java.util.ArrayList;
+
 public enum EnumDiagramLayout {
     CIRCULAR("diagram.circular"),
     SQUARE("diagram.square"),
@@ -17,5 +19,13 @@ public enum EnumDiagramLayout {
 
     public String getLang(){
         return lang;
+    }
+
+    public static String[] names(){
+        ArrayList<String> list = new ArrayList<String>();
+        for(EnumDiagramLayout e : values())
+            list.add(e.lang);
+
+        return list.toArray(new String[list.size()]);
     }
 }
