@@ -6,11 +6,7 @@ import java.util.List;
 import java.util.Vector;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.magic.MagicCycleRemovePacket;
-import kamkeel.npcs.network.packets.request.magic.MagicCycleSavePacket;
-import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
-import kamkeel.npcs.network.packets.request.magic.MagicRemovePacket;
-import kamkeel.npcs.network.packets.request.magic.MagicSavePacket;
+import kamkeel.npcs.network.packets.request.magic.*;
 import noppes.npcs.client.gui.magic.SubGuiMagicCycleEdit;
 import noppes.npcs.client.gui.magic.SubGuiMagicEdit;
 import noppes.npcs.client.gui.magic.SubGuiMagicInteractionsEdit;
@@ -25,7 +21,7 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
-public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListener, ICustomScrollListener, IScrollData {
+public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListener, ICustomScrollListener, IScrollData, IGuiData {
 
     private GuiCustomScroll leftScroll;   // left scroll for cycles (viewByCycle)
     private GuiCustomScroll rightScroll;  // right scroll for magics
@@ -104,7 +100,9 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             getButton(33).setEnabled(false);
 
             addButton(new GuiNpcButton(0, guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
+            getButton(0).setEnabled(false);
             addButton(new GuiNpcButton(1, guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
+            getButton(1).setEnabled(false);
 
             addButton(new GuiNpcButton(2, guiLeft + 358, guiTop + 94, 58, 20, "gui.edit"));
         } else {
@@ -258,14 +256,18 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
         switch (button.id) {
             case 50:
                 viewByCycle = !viewByCycle;
+                selectedMagic = null;
+                selectedCycle = null;
                 initGui();
                 return;
             // Left side: Cycle management
             case 4: // Add Cycle
             {
-                NBTTagCompound cycleCompound = new NBTTagCompound();
-                cycleCompound.setString("Title", "New Cycle");
-                PacketClient.sendClient(new MagicCycleSavePacket(cycleCompound));
+                MagicCycle magicCycle = new MagicCycle();
+                magicCycle.name = "New";
+                NBTTagCompound compound = new NBTTagCompound();
+                magicCycle.writeNBT(compound);
+                PacketClient.sendClient(new MagicCycleSavePacket(compound));
             }
             break;
             case 5: // Remove Cycle
@@ -279,42 +281,30 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 }
                 break;
             // Right side: Magic management (in viewByCycle)
-            case 0: // Add Magic to selected cycle
+            case 0: // Add Magic
                 if (selectedCycle != null) {
-                    NBTTagCompound magicCompound = new NBTTagCompound();
-                    magicCompound.setString("Name", "New Magic");
-                    magicCompound.setInteger("CycleID", selectedCycle.id);
-                    magicCompound.setInteger("Index", 0);
-                    magicCompound.setInteger("Priority", 0);
-                    PacketClient.sendClient(new MagicSavePacket(magicCompound));
+                    Magic magic = new Magic();
+                    magic.name = "New";
+                    magic.displayName = "New";
+                    NBTTagCompound compound = new NBTTagCompound();
+                    magic.writeNBT(compound);
+                    PacketClient.sendClient(new MagicSavePacket(compound));
                 }
                 break;
             case 1: // Edit Magic
-                if (selectedMagic != null) {
-                    setSubGui(new SubGuiMagicEdit(selectedMagic));
-                }
-                break;
-            case 2: // Remove Magic
-                if (selectedMagic != null) {
-                    PacketClient.sendClient(new MagicRemovePacket(selectedMagic.id));
-                }
-                break;
-            case 3: // Edit Interactions
-                if (selectedMagic != null) {
-                    setSubGui(new SubGuiMagicInteractionsEdit(selectedMagic));
-                }
-                break;
-            // Default mode buttons (global view)
+                // Default mode buttons (global view)
             case 21:
                 if (selectedMagic != null) {
                     setSubGui(new SubGuiMagicEdit(selectedMagic));
                 }
                 break;
+            case 2: // Remove Magic
             case 22:
                 if (selectedMagic != null) {
                     PacketClient.sendClient(new MagicRemovePacket(selectedMagic.id));
                 }
                 break;
+            case 3: // Edit Interactions
             case 23:
                 if (selectedMagic != null) {
                     setSubGui(new SubGuiMagicInteractionsEdit(selectedMagic));
@@ -327,41 +317,24 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
     public void customScrollClicked(int id, int index, int clickType, GuiCustomScroll scroll) {
         if (!viewByCycle) {
             if (scroll.id == 0) { // Left scroll: cycles
+                selectedCycle = null;
                 String cycleName = scroll.getSelected();
-                for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
-                    if (cycle.name.equals(cycleName)) {
-                        selectedCycle = cycle;
-                        break;
-                    }
-                }
-                // Update right scroll with magics in selected cycle
-                if (selectedCycle != null) {
-                    List<String> magicNames = new ArrayList<>();
-                    for (Integer magicId : selectedCycle.associations.keySet()) {
-                        Magic m = MagicController.getInstance().magics.get(magicId);
-                        if (m != null) {
-                            magicNames.add(m.name);
-                        }
-                    }
-                    rightScroll.setList(magicNames);
+                if(cycleData.containsKey(cycleName)){
+                    MagicGetPacket.GetCycle(cycleData.get(cycleName));
                 }
             } else if (scroll.id == 1) { // Right scroll: magics
+                selectedMagic = null;
                 String magicName = scroll.getSelected();
-                for (Magic m : MagicController.getInstance().magics.values()) {
-                    if (m.name.equals(magicName)) {
-                        selectedMagic = m;
-                        break;
-                    }
+                if(magicData.containsKey(magicName)){
+                    MagicGetPacket.GetMagic(magicData.get(magicName));
                 }
             }
         } else {
             if (scroll.id == 1) {
+                selectedMagic = null;
                 String magicName = scroll.getSelected();
-                for (Magic m : MagicController.getInstance().magics.values()) {
-                    if (m.name.equals(magicName)) {
-                        selectedMagic = m;
-                        break;
-                    }
+                if(magicData.containsKey(magicName)){
+                    MagicGetPacket.GetMagic(magicData.get(magicName));
                 }
             }
         }
@@ -392,11 +365,40 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
         initGui();
     }
 
-    /**
-     * @param selected
-     */
     @Override
-    public void setSelected(String selected) {
+    public void setSelected(String selected) {}
 
+    public void updateMagicList(){
+        List<String> magicNames = new ArrayList<>();
+        if(selectedCycle == null)
+            return;
+
+        for (int magicId : selectedCycle.associations.keySet()) {
+            for(String magicName : magicData.keySet()){
+                if(magicData.containsKey(magicName) && magicData.get(magicName) == magicId){
+                    magicNames.add(magicName);
+                    break;
+                }
+            }
+        }
+
+        if(rightScroll != null)
+            rightScroll.setList(magicNames);
+    }
+
+    @Override
+    public void setGuiData(NBTTagCompound compound) {
+        if(compound.hasKey("Magic")){
+            selectedMagic = new Magic();
+            selectedMagic.readNBT(compound.getCompoundTag("Magic"));
+        } else if (compound.hasKey("MagicCycle")) {
+            selectedCycle = new MagicCycle();
+            selectedCycle.readNBT(compound.getCompoundTag("MagicCycle"));
+
+            updateMagicList();
+            selectedMagic = null;
+            if(rightScroll != null)
+                rightScroll.selected = -1;
+        }
     }
 }

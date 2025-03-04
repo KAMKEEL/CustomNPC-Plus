@@ -341,6 +341,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new MagicGetAllPacket());
         REQUEST_PACKET.registerPacket(new MagicSavePacket());
         REQUEST_PACKET.registerPacket(new MagicRemovePacket());
+        REQUEST_PACKET.registerPacket(new MagicGetPacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

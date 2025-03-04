@@ -201,5 +201,5 @@ public enum EnumRequestPacket {
     MagicCycleSave,
     MagicGetAll,
     MagicRemove,
-    MagicSave
+    MagicGet, MagicSave
 }
