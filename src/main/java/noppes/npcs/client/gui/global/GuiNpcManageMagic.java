@@ -7,8 +7,8 @@ import java.util.Vector;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.*;
-import noppes.npcs.client.gui.magic.SubGuiMagicCycle;
-import noppes.npcs.client.gui.magic.SubGuiMagic;
+import noppes.npcs.client.gui.SubGuiMagicCycle;
+import noppes.npcs.client.gui.SubGuiMagic;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Magic;

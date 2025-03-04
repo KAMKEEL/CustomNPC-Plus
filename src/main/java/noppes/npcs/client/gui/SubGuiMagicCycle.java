@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.magic;
+package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleSavePacket;
