@@ -1,5 +1,7 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
@@ -217,12 +219,18 @@ public class MagicController {
                     mag.name += "_";
         }
         magics.put(mag.id, mag);
+
+        NBTTagCompound magicCompound = new NBTTagCompound();
+        mag.writeNBT(magicCompound);
+        SyncController.syncUpdate(EnumSyncType.MAGIC, -1, magicCompound);
+
         saveMagicData();
     }
 
     public void removeMagic(int magicID) {
         if (magics.containsKey(magicID)) {
             magics.remove(magicID);
+            SyncController.syncRemove(EnumSyncType.MAGIC, magicID);
             saveMagicData();
         }
     }
@@ -281,17 +289,18 @@ public class MagicController {
                     cycle.name += "_";
         }
         cycles.put(cycle.id, cycle);
-        saveMagicData();
-    }
 
-    // Alternatively, if you prefer an addCycle method:
-    public void addCycle(MagicCycle cycle) {
-        saveCycle(cycle);
+        NBTTagCompound cycleCompound = new NBTTagCompound();
+        cycle.writeNBT(cycleCompound);
+        SyncController.syncUpdate(EnumSyncType.MAGIC_CYCLE, -1, cycleCompound);
+
+        saveMagicData();
     }
 
     public void removeCycle(int categoryId) {
         if (cycles.containsKey(categoryId)) {
             cycles.remove(categoryId);
+            SyncController.syncRemove(EnumSyncType.MAGIC_CYCLE, categoryId);
             saveMagicData();
         }
     }
@@ -313,13 +322,15 @@ public class MagicController {
         assoc.index = index;
         assoc.priority = priority;
         cat.associations.put(magicId, assoc);
-        saveMagicData();
+
+        saveCycle(cat);
     }
 
     public void removeMagicFromCycle(int magicId, int cycleId) {
         MagicCycle cat = cycles.get(cycleId);
         if (cat == null) return;
         cat.associations.remove(magicId);
-        saveMagicData();
+
+        saveCycle(cat);
     }
 }
