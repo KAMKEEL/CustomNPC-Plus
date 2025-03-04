@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.global;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Vector;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleRemovePacket;
@@ -14,6 +15,7 @@ import noppes.npcs.client.gui.magic.SubGuiMagicCycleEdit;
 import noppes.npcs.client.gui.magic.SubGuiMagicEdit;
 import noppes.npcs.client.gui.magic.SubGuiMagicInteractionsEdit;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
@@ -23,13 +25,11 @@ import net.minecraft.nbt.NBTTagCompound;
 
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
-public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListener, ICustomScrollListener, IGuiData {
+public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListener, ICustomScrollListener, IScrollData {
 
     private GuiCustomScroll leftScroll;   // left scroll for cycles (viewByCycle)
     private GuiCustomScroll rightScroll;  // right scroll for magics
-
-    // Toggle mode: false = view all magics; true = view by cycle
-    private boolean viewByCycle = false;
+    private boolean viewByCycle = true;
 
     private HashMap<String, Integer> cycleData = new HashMap<>();
     private HashMap<String, Integer> magicData = new HashMap<>();
@@ -377,33 +377,26 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
     }
 
     @Override
-    public void setGuiData(NBTTagCompound compound) {
-        cycleData.clear();
-        magicData.clear();
-        if (compound.hasKey("CycleNames")) {
-            String cyclesStr = compound.getString("CycleNames");
-            String[] names = cyclesStr.split(",");
-            int id = 0;
-            for (String name : names) {
-                if (!name.trim().isEmpty()) {
-                    cycleData.put(name.trim(), id++);
-                }
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        if(type == EnumScrollData.MAGIC_CYCLES){
+            cycleData.clear();
+            cycleData = data;
+            if (!viewByCycle) {
+                leftScroll.setList(new ArrayList<>(cycleData.keySet()));
             }
+        } else if (type == EnumScrollData.MAGIC) {
+            magicData.clear();
+            magicData = data;
+            rightScroll.setList(new ArrayList<>(magicData.keySet()));
         }
-        if (compound.hasKey("MagicNames")) {
-            String magicsStr = compound.getString("MagicNames");
-            String[] names = magicsStr.split(",");
-            int id = 0;
-            for (String name : names) {
-                if (!name.trim().isEmpty()) {
-                    magicData.put(name.trim(), id++);
-                }
-            }
-        }
-        if (!viewByCycle) {
-            leftScroll.setList(new ArrayList<>(cycleData.keySet()));
-        }
-        rightScroll.setList(new ArrayList<>(magicData.keySet()));
         initGui();
+    }
+
+    /**
+     * @param selected
+     */
+    @Override
+    public void setSelected(String selected) {
+
     }
 }
