@@ -43,20 +43,20 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
         this.linkedItem = linkedItem;
         this.scriptHandler = new LinkedItemScript();
 
-        hookList.add(EnumScriptType.LINKED_ITEM_BUILD.name());
-        hookList.add(EnumScriptType.LINKED_ITEM_VERSION.name());
-        hookList.add(EnumScriptType.INIT.name());
-        hookList.add(EnumScriptType.TICK.name());
-        hookList.add(EnumScriptType.TOSSED.name());
-        hookList.add(EnumScriptType.PICKEDUP.name());
-        hookList.add(EnumScriptType.SPAWN.name());
-        hookList.add(EnumScriptType.INTERACT.name());
-        hookList.add(EnumScriptType.RIGHT_CLICK.name());
-        hookList.add(EnumScriptType.ATTACK.name());
-        hookList.add(EnumScriptType.START_USING_ITEM.name());
-        hookList.add(EnumScriptType.USING_ITEM.name());
-        hookList.add(EnumScriptType.STOP_USING_ITEM.name());
-        hookList.add(EnumScriptType.FINISH_USING_ITEM.name());
+        hookList.add(EnumScriptType.LINKED_ITEM_BUILD.function);
+        hookList.add(EnumScriptType.LINKED_ITEM_VERSION.function);
+        hookList.add(EnumScriptType.INIT.function);
+        hookList.add(EnumScriptType.TICK.function);
+        hookList.add(EnumScriptType.TOSSED.function);
+        hookList.add(EnumScriptType.PICKEDUP.function);
+        hookList.add(EnumScriptType.SPAWN.function);
+        hookList.add(EnumScriptType.INTERACT.function);
+        hookList.add(EnumScriptType.RIGHT_CLICK.function);
+        hookList.add(EnumScriptType.ATTACK.function);
+        hookList.add(EnumScriptType.START_USING_ITEM.function);
+        hookList.add(EnumScriptType.USING_ITEM.function);
+        hookList.add(EnumScriptType.STOP_USING_ITEM.function);
+        hookList.add(EnumScriptType.FINISH_USING_ITEM.function);
 
         LinkedItemScriptPacket.Get(linkedItem.id);
     }
