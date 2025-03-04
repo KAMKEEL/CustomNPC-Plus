@@ -575,6 +575,7 @@ global.recipes=Recipes
 global.naturalspawn=Spawns
 global.linked=Linked
 global.customeffects=Effects
+global.magic=Magic
 
 bank.slot=Slot
 bank.unlock=Unlock

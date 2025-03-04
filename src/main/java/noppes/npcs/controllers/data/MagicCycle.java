@@ -19,7 +19,7 @@ public class MagicCycle {
     public MagicCycle() {}
 
     public void readNBT(NBTTagCompound compound) {
-        id = compound.getInteger("CategoryID");
+        id = compound.getInteger("ID");
         name = compound.getString("Name");
         displayName = compound.getString("DisplayName");
         layout = EnumDiagramLayout.values()[compound.getInteger("Layout")];
@@ -36,8 +36,8 @@ public class MagicCycle {
     }
 
     public void writeNBT(NBTTagCompound compound) {
-        compound.setInteger("CategoryID", id);
-        compound.setString("Title", name);
+        compound.setInteger("ID", id);
+        compound.setString("Name", name);
         compound.setString("DisplayName", displayName);
         compound.setInteger("Layout", layout.ordinal());
         NBTTagList list = new NBTTagList();
