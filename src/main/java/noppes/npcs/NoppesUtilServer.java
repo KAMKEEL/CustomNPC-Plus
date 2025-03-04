@@ -712,6 +712,21 @@ public class NoppesUtilServer {
 		}
 	}
 
+    public static void sendMagicInfo(EntityPlayerMP player, boolean cycles) {
+        HashMap<String,Integer> map = new HashMap<String,Integer>();
+        if(cycles){
+            for(Magic magic : MagicController.getInstance().magics.values()){
+                map.put(magic.name, magic.id);
+            }
+            sendScrollData(player, map, EnumScrollData.MAGIC);
+        } else {
+            for(MagicCycle magicCycle : MagicController.getInstance().cycles.values()){
+                map.put(magicCycle.name, magicCycle.id);
+            }
+            sendScrollData(player, map, EnumScrollData.MAGIC_CYCLES);
+        }
+    }
+
 	public static DialogOption setNpcDialog(int slot, int dialogId, EntityPlayer player) throws IOException {
 		return setNpcDialog(slot, dialogId, getEditingNpc(player));
 	}

@@ -9,6 +9,7 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.MagicCycle;
 import net.minecraft.entity.player.EntityPlayer;
@@ -57,5 +58,8 @@ public class MagicCycleSavePacket extends AbstractPacket {
         MagicCycle cycle = new MagicCycle();
         cycle.readNBT(comp);
         MagicController.getInstance().saveCycle(cycle);
+
+        NoppesUtilServer.sendMagicInfo((EntityPlayerMP) player, true);
+        NoppesUtilServer.sendMagicInfo((EntityPlayerMP) player, false);
     }
 }
