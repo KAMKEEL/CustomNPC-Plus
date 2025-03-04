@@ -9,6 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiDiagram;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.constants.EnumDiagramLayout;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import org.lwjgl.opengl.GL11;
@@ -32,7 +33,7 @@ public class GuiMagicMap extends GuiDiagram {
         for (Magic magic : MagicController.getInstance().magics.values()) {
             magics.add(magic);
         }
-        setLayout(DiagramLayout.CIRCULAR_MANUAL);
+        setLayout(EnumDiagramLayout.CIRCULAR_MANUAL);
         this.setCurvedArrows(true);
         this.setCurveAngle(-20);
     }

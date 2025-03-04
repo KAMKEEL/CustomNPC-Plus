@@ -20,7 +20,6 @@ import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.entity.EntityNPCInterface;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import org.lwjgl.input.Mouse;
 
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
@@ -330,7 +329,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             if (scroll.id == 0) { // Left scroll: cycles
                 String cycleName = scroll.getSelected();
                 for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
-                    if (cycle.title.equals(cycleName)) {
+                    if (cycle.name.equals(cycleName)) {
                         selectedCycle = cycle;
                         break;
                     }

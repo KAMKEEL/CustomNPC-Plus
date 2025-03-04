@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.MagicController;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -30,6 +31,11 @@ public class MagicCycleRemovePacket extends AbstractPacket {
     }
 
     @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_MAGIC;
+    }
+
+    @Override
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;
     }
@@ -46,7 +52,6 @@ public class MagicCycleRemovePacket extends AbstractPacket {
             return;
 
         int id = in.readInt();
-        MagicController.getInstance().cycles.remove(id);
-        MagicController.getInstance().saveMagicData();
+        MagicController.getInstance().removeCycle(id);
     }
 }

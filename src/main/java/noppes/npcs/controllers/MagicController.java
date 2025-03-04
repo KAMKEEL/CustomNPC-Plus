@@ -142,9 +142,8 @@ public class MagicController {
     public void loadMagic(DataInputStream stream) throws IOException {
         NBTTagCompound compound = CompressedStreamTools.read(stream);
         lastUsedMagicID = compound.getInteger("lastID");
-        lastUsedCycleID = compound.getInteger("lastCatID");
+        lastUsedCycleID = compound.getInteger("lastCycleID");
 
-        // Load magics
         magics.clear();
         NBTTagList magicList = compound.getTagList("Magics", 10);
         for (int i = 0; i < magicList.tagCount(); i++) {
@@ -154,14 +153,13 @@ public class MagicController {
             magics.put(mag.id, mag);
         }
 
-        // Load categories
         cycles.clear();
-        NBTTagList catList = compound.getTagList("Cycles", 10);
-        for (int i = 0; i < catList.tagCount(); i++) {
-            NBTTagCompound catCompound = catList.getCompoundTagAt(i);
-            MagicCycle cat = new MagicCycle();
-            cat.readNBT(catCompound);
-            cycles.put(cat.id, cat);
+        NBTTagList cycleList = compound.getTagList("Cycles", 10);
+        for (int i = 0; i < cycleList.tagCount(); i++) {
+            NBTTagCompound catCompound = cycleList.getCompoundTagAt(i);
+            MagicCycle cycle = new MagicCycle();
+            cycle.readNBT(catCompound);
+            cycles.put(cycle.id, cycle);
         }
     }
 
@@ -193,9 +191,12 @@ public class MagicController {
             File fileOld = new File(saveDir, "magic.dat_old");
             File fileCurrent = new File(saveDir, "magic.dat");
             CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(fileNew));
-            if (fileOld.exists()) fileOld.delete();
+            if (fileOld.exists())
+                fileOld.delete();
             fileCurrent.renameTo(fileOld);
-            if (fileCurrent.exists()) fileCurrent.delete();
+
+            if (fileCurrent.exists())
+                fileCurrent.delete();
             fileNew.renameTo(fileCurrent);
             if (fileNew.exists()) fileNew.delete();
         } catch (Exception e) {
@@ -203,6 +204,7 @@ public class MagicController {
         }
     }
 
+    // Enforce unique names and IDs for Magics
     public void saveMagic(Magic mag) {
         if (mag.id < 0) {
             mag.id = getUnusedId();
@@ -218,6 +220,13 @@ public class MagicController {
         saveMagicData();
     }
 
+    public void removeMagic(int magicID) {
+        if (magics.containsKey(magicID)) {
+            magics.remove(magicID);
+            saveMagicData();
+        }
+    }
+
     public int getUnusedId() {
         if (lastUsedMagicID == 0) {
             for (int id : magics.keySet())
@@ -231,35 +240,56 @@ public class MagicController {
     public boolean hasName(String newName) {
         if (newName.trim().isEmpty()) return true;
         for (Magic mag : magics.values())
-            if (mag.name.equals(newName))
+            if (mag.name.equalsIgnoreCase(newName))
                 return true;
         return false;
     }
 
-    // === Category management methods ===
+    // === Cycle Management Methods ===
 
-    public void addCycle(MagicCycle category) {
-        if (category.id < 0) {
-            lastUsedCycleID++;
-            category.id = lastUsedCycleID;
-        } else {
-            while (containsCategoryName(category.title))
-                category.title += "_";
+    // Returns a new unique cycle ID
+    public int getUnusedCycleId() {
+        if (lastUsedCycleID == 0) {
+            for (int id : cycles.keySet())
+                if (id > lastUsedCycleID)
+                    lastUsedCycleID = id;
         }
-        cycles.put(category.id, category);
-        saveMagicData();
+        lastUsedCycleID++;
+        return lastUsedCycleID;
     }
 
+    // Checks if a cycle title already exists (case-insensitive)
     public boolean containsCategoryName(String title) {
         title = title.toLowerCase();
         for (MagicCycle cat : cycles.values()) {
-            if (cat.title.toLowerCase().equals(title))
+            if (cat.name.toLowerCase().equals(title))
                 return true;
         }
         return false;
     }
 
-    public void removeCategory(int categoryId) {
+    // Saves a cycle ensuring a unique title and ID
+    public void saveCycle(MagicCycle cycle) {
+        if (cycle.id < 0) {
+            cycle.id = getUnusedCycleId();
+            while (containsCategoryName(cycle.name))
+                cycle.name += "_";
+        } else {
+            MagicCycle existing = cycles.get(cycle.id);
+            if (existing != null && !existing.name.equals(cycle.name))
+                while (containsCategoryName(cycle.name))
+                    cycle.name += "_";
+        }
+        cycles.put(cycle.id, cycle);
+        saveMagicData();
+    }
+
+    // Alternatively, if you prefer an addCycle method:
+    public void addCycle(MagicCycle cycle) {
+        saveCycle(cycle);
+    }
+
+    public void removeCycle(int categoryId) {
         if (cycles.containsKey(categoryId)) {
             cycles.remove(categoryId);
             saveMagicData();
@@ -269,9 +299,15 @@ public class MagicController {
     /**
      * Associates a magic with a category along with its per-category ordering data.
      */
-    public void addMagicToCycle(int magicId, int categoryId, int index, int priority) {
-        MagicCycle cat = cycles.get(categoryId);
-        if (cat == null) return;
+    public void addMagicToCycle(int magicId, int cycleId, int index, int priority) {
+        MagicCycle cat = cycles.get(cycleId);
+        if (cat == null)
+            return;
+
+        Magic magic = magics.get(magicId);
+        if(magic == null)
+            return;
+
         MagicAssociation assoc = new MagicAssociation();
         assoc.magicId = magicId;
         assoc.index = index;
@@ -280,8 +316,8 @@ public class MagicController {
         saveMagicData();
     }
 
-    public void removeMagicFromCycle(int magicId, int categoryId) {
-        MagicCycle cat = cycles.get(categoryId);
+    public void removeMagicFromCycle(int magicId, int cycleId) {
+        MagicCycle cat = cycles.get(cycleId);
         if (cat == null) return;
         cat.associations.remove(magicId);
         saveMagicData();

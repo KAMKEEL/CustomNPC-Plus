@@ -44,7 +44,7 @@ public class MagicGetAllPacket extends AbstractPacket {
         NBTTagCompound compound = new NBTTagCompound();
         StringBuilder cycleNames = new StringBuilder();
         for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
-            cycleNames.append(cycle.title).append(",");
+            cycleNames.append(cycle.name).append(",");
         }
         compound.setString("CycleNames", cycleNames.toString());
         // Build comma-separated list of magic names.

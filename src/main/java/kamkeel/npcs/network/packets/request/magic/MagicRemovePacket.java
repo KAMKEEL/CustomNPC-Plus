@@ -7,6 +7,7 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.MagicController;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -34,6 +35,11 @@ public class MagicRemovePacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_MAGIC;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
@@ -46,7 +52,6 @@ public class MagicRemovePacket extends AbstractPacket {
             return;
 
         int id = in.readInt();
-        MagicController.getInstance().magics.remove(id);
-        MagicController.getInstance().saveMagicData();
+        MagicController.getInstance().removeMagic(id);
     }
 }

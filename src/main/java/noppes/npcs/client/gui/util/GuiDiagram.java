@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import noppes.npcs.constants.EnumDiagramLayout;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -54,17 +55,12 @@ public abstract class GuiDiagram extends Gui {
     protected boolean useColorScaling = true;    // Scale connection color based on a percentage
 
     // --- Layout Options ---
-    public enum DiagramLayout {
-        CIRCULAR, SQUARE, TREE, GENERATED,
-        CIRCULAR_MANUAL, SQUARE_MANUAL, TREE_MANUAL,
-        CHART
-    }
-    protected DiagramLayout layout = DiagramLayout.CIRCULAR; // Default layout
+    protected EnumDiagramLayout layout = EnumDiagramLayout.CIRCULAR; // Default layout
 
     /**
      * Sets the layout type and invalidates caches.
      */
-    public void setLayout(DiagramLayout layout) {
+    public void setLayout(EnumDiagramLayout layout) {
         this.layout = layout;
         invalidateCache();
     }
@@ -160,7 +156,7 @@ public abstract class GuiDiagram extends Gui {
      */
     protected Map<Integer, Point> calculatePositions() {
         if (cachedPositions != null) return cachedPositions;
-        if (layout == DiagramLayout.CHART) {
+        if (layout == EnumDiagramLayout.CHART) {
             return new HashMap<>();
         }
         switch (layout) {
@@ -964,7 +960,7 @@ public abstract class GuiDiagram extends Gui {
         boolean allowInput = (parent == null || !parent.hasSubGui());
         if (allowInput && isWithin(mouseX, mouseY) && !subGui)
             handleMouseScroll(Mouse.getDWheel());
-        if (layout == DiagramLayout.CHART) {
+        if (layout == EnumDiagramLayout.CHART) {
             drawChartDiagram(mouseX, mouseY, subGui);
             return;
         }

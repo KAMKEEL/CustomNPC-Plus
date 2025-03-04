@@ -8,6 +8,7 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import net.minecraft.entity.player.EntityPlayer;
@@ -35,6 +36,11 @@ public class MagicSavePacket extends AbstractPacket {
     @Override
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;
+    }
+
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_MAGIC;
     }
 
     @SideOnly(Side.CLIENT)

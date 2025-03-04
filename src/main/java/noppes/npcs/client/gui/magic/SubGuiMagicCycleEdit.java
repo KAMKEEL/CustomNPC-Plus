@@ -28,7 +28,7 @@ public class SubGuiMagicCycleEdit extends SubGuiInterface implements ITextfieldL
     @Override
     public void initGui() {
         super.initGui();
-        addLabel(new GuiNpcLabel(0, "Cycle: " + cycle.title, guiLeft + 4, guiTop + 4));
+        addLabel(new GuiNpcLabel(0, "Cycle: " + cycle.name, guiLeft + 4, guiTop + 4));
 
         // Build list of associations in the cycle (format: "MagicID: X | Index: Y | Priority: Z")
         assocList.clear();

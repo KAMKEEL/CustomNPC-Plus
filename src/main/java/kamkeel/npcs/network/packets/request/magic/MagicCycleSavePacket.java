@@ -8,6 +8,7 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.MagicCycle;
 import net.minecraft.entity.player.EntityPlayer;
@@ -37,6 +38,11 @@ public class MagicCycleSavePacket extends AbstractPacket {
         return PacketHandler.REQUEST_PACKET;
     }
 
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_MAGIC;
+    }
+
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
@@ -50,7 +56,6 @@ public class MagicCycleSavePacket extends AbstractPacket {
         NBTTagCompound comp = ByteBufUtils.readNBT(in);
         MagicCycle cycle = new MagicCycle();
         cycle.readNBT(comp);
-        MagicController.getInstance().cycles.put(cycle.id, cycle);
-        MagicController.getInstance().saveMagicData();
+        MagicController.getInstance().saveCycle(cycle);
     }
 }
