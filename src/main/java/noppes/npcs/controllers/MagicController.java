@@ -28,7 +28,7 @@ public class MagicController {
     public HashMap<Integer, MagicCycle> cyclesSync = new HashMap<>();
 
     public int lastUsedCycleID = 0;
-    private int lastUsedID = 0;
+    private int lastUsedMagicID = 0;
 
     private static MagicController instance;
 
@@ -49,6 +49,12 @@ public class MagicController {
     }
 
     public void load() {
+        magics.clear();
+        cycles.clear();
+
+        lastUsedCycleID = 0;
+        lastUsedMagicID = 0;
+
         File saveDir = CustomNpcs.getWorldSaveDirectory();
         if (saveDir == null) return;
         try {
@@ -135,7 +141,7 @@ public class MagicController {
 
     public void loadMagic(DataInputStream stream) throws IOException {
         NBTTagCompound compound = CompressedStreamTools.read(stream);
-        lastUsedID = compound.getInteger("lastID");
+        lastUsedMagicID = compound.getInteger("lastID");
         lastUsedCycleID = compound.getInteger("lastCatID");
 
         // Load magics
@@ -173,7 +179,7 @@ public class MagicController {
             catList.appendTag(catCompound);
         }
         NBTTagCompound compound = new NBTTagCompound();
-        compound.setInteger("lastID", lastUsedID);
+        compound.setInteger("lastID", lastUsedMagicID);
         compound.setInteger("lastCycleID", lastUsedCycleID);
         compound.setTag("Magics", magicList);
         compound.setTag("Cycles", catList);
@@ -213,13 +219,13 @@ public class MagicController {
     }
 
     public int getUnusedId() {
-        if (lastUsedID == 0) {
+        if (lastUsedMagicID == 0) {
             for (int id : magics.keySet())
-                if (id > lastUsedID)
-                    lastUsedID = id;
+                if (id > lastUsedMagicID)
+                    lastUsedMagicID = id;
         }
-        lastUsedID++;
-        return lastUsedID;
+        lastUsedMagicID++;
+        return lastUsedMagicID;
     }
 
     public boolean hasName(String newName) {

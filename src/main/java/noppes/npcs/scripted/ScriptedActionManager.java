@@ -1,7 +1,8 @@
 package noppes.npcs.scripted;
 
-import noppes.npcs.api.IAction;
-import noppes.npcs.api.IActionManager;
+
+import noppes.npcs.api.handler.IActionManager;
+import noppes.npcs.api.handler.data.IAction;
 
 import java.util.HashMap;
 import java.util.LinkedList;
