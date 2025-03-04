@@ -20,7 +20,6 @@ import org.lwjgl.opengl.GL11;
 
 public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListener, GuiYesNoCallback, ISubGuiListener {
 
-    private final GuiNPCManageLinked parent;
     public LinkedItem linkedItem;
     private final String originalName;
 
@@ -283,7 +282,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             return;
         } else if (id == -3) {
             PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
-            GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem(this.parent, linkedItem);
+            GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem((GuiNPCManageLinked) this.parent, linkedItem);
             scriptGUI.setWorldAndResolution(mc, width, height);
             scriptGUI.initGui();
             mc.currentScreen = scriptGUI;

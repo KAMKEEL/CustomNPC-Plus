@@ -74,28 +74,28 @@ public class MagicController {
         if (magics.isEmpty()) {
             // Create default magics
             Magic earth  = new Magic(0, "Earth", 0x00DD00);
-            earth.setIconItem(new ItemStack(CustomItems.earthElement));
+            earth.setItem(new ItemStack(CustomItems.earthElement));
 
             Magic water  = new Magic(1, "Water", 0xF2DD00);
-            water.setIconItem(new ItemStack(CustomItems.waterElement));
+            water.setItem(new ItemStack(CustomItems.waterElement));
 
             Magic fire   = new Magic(2, "Fire", 0xDD0000);
-            fire.setIconItem(new ItemStack(CustomItems.spellFire));
+            fire.setItem(new ItemStack(CustomItems.spellFire));
 
             Magic air    = new Magic(3, "Air", 0xDD0000);
-            air.setIconItem(new ItemStack(CustomItems.airElement));
+            air.setItem(new ItemStack(CustomItems.airElement));
 
             Magic dark   = new Magic(4, "Dark", 0xDD0000);
-            dark.setIconItem(new ItemStack(CustomItems.spellDark));
+            dark.setItem(new ItemStack(CustomItems.spellDark));
 
             Magic holy   = new Magic(5, "Holy", 0xDD0000);
-            holy.setIconItem(new ItemStack(CustomItems.spellHoly));
+            holy.setItem(new ItemStack(CustomItems.spellHoly));
 
             Magic nature = new Magic(6, "Nature", 0xDD0000);
-            nature.setIconItem(new ItemStack(CustomItems.spellNature));
+            nature.setItem(new ItemStack(CustomItems.spellNature));
 
             Magic arcane = new Magic(7, "Arcane", 0xDD0000);
-            arcane.setIconItem(new ItemStack(CustomItems.spellArcane));
+            arcane.setItem(new ItemStack(CustomItems.spellArcane));
 
             // Insiders
             earth.interactions.put(air.id, 0.60f);

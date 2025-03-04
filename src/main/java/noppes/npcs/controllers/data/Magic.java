@@ -1,14 +1,15 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.common.registry.GameRegistry;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.handler.data.IMagic;
+import noppes.npcs.constants.EnumTextureType;
 import noppes.npcs.controllers.MagicController;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 public class Magic implements IMagic {
@@ -17,10 +18,11 @@ public class Magic implements IMagic {
     public int color = Integer.parseInt("FF00", 16);
     public int id = -1;
 
-    public ItemStack iconItem = null;
+    public ItemStack item = null;
+
+    public EnumTextureType type = EnumTextureType.BASE;
     public String iconTexture = "";
     public Map<Integer, Float> interactions = new HashMap<>();
-    public HashSet<Integer> cycles = new HashSet<>();
 
     public Magic() {}
 
@@ -41,12 +43,18 @@ public class Magic implements IMagic {
         displayName = compound.getString("DisplayName");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
-        // Read icon item.
-        if(compound.hasKey("IconItem")){
-            NBTTagCompound itemTag = compound.getCompoundTag("IconItem");
-            iconItem = ItemStack.loadItemStackFromNBT(itemTag);
-        }
+
+        type = EnumTextureType.values()[compound.getInteger("Type")];
         iconTexture = compound.getString("IconTexture");
+        if(type == EnumTextureType.ITEM && !iconTexture.isEmpty()){
+            String[] parts = iconTexture.split(":");
+            if (parts.length == 2) {
+                String modID = parts[0];
+                String itemName = parts[1];
+                Item item = GameRegistry.findItem(modID, itemName);
+                this.item = (item != null) ? new ItemStack(item) : null;
+            }
+        }
 
         interactions.clear();
         if(compound.hasKey("Interactions")) {
@@ -58,15 +66,6 @@ public class Magic implements IMagic {
                 interactions.put(magicId, percentage);
             }
         }
-
-        cycles.clear();
-        if(compound.hasKey("Cycles")) {
-            NBTTagList cyclesList = compound.getTagList("Cycles", 10);
-            for (int i = 0; i < cyclesList.tagCount(); i++){
-                NBTTagCompound cycleTag = cyclesList.getCompoundTagAt(i);
-                cycles.add(cycleTag.getInteger("Cycle"));
-            }
-        }
     }
 
     public void writeNBT(NBTTagCompound compound) {
@@ -74,16 +73,8 @@ public class Magic implements IMagic {
         compound.setString("Name", name);
         compound.setString("DisplayName", displayName);
         compound.setInteger("Color", color);
-        // Write icon item.
-        if(iconItem != null) {
-            NBTTagCompound itemTag = new NBTTagCompound();
-            iconItem.writeToNBT(itemTag);
-            compound.setTag("IconItem", itemTag);
-        }
-        if(iconTexture != null && !iconTexture.isEmpty()){
-            compound.setString("IconTexture", iconTexture);
-        }
-
+        compound.setString("IconTexture", iconTexture);
+        compound.setInteger("Type", type.ordinal());
         NBTTagList interactionsList = new NBTTagList();
         for (Map.Entry<Integer, Float> entry : interactions.entrySet()){
             NBTTagCompound interactionTag = new NBTTagCompound();
@@ -93,13 +84,15 @@ public class Magic implements IMagic {
         }
         compound.setTag("Interactions", interactionsList);
 
-        NBTTagList cyclesList = new NBTTagList();
-        for (Integer cycle : cycles) {
-            NBTTagCompound cycleTag = new NBTTagCompound();
-            cycleTag.setInteger("Cycle", cycle);
-            cyclesList.appendTag(cycleTag);
+        if(type == EnumTextureType.ITEM && !iconTexture.isEmpty()){
+            String[] parts = iconTexture.split(":");
+            if (parts.length == 2) {
+                String modID = parts[0];
+                String itemName = parts[1];
+                Item item = GameRegistry.findItem(modID, itemName);
+                this.item = (item != null) ? new ItemStack(item) : null;
+            }
         }
-        compound.setTag("Cycles", cyclesList);
     }
 
     public int getId() {
@@ -135,12 +128,17 @@ public class Magic implements IMagic {
         MagicController.getInstance().saveMagic(this);
     }
 
-    public void setIconItem(ItemStack item) {
-        this.iconItem = item;
+    public void setItem(ItemStack item) {
+        GameRegistry.UniqueIdentifier identifier = GameRegistry.findUniqueIdentifierFor(item.getItem());
+        if(identifier != null){
+            this.item = item;
+            this.type = EnumTextureType.ITEM;
+            this.iconTexture = identifier.modId + ":" + identifier.name;
+        }
     }
 
-    public ItemStack getIconItem() {
-        return this.iconItem;
+    public ItemStack getItem() {
+        return this.item;
     }
 
     public void setIconTexture(String texture) {

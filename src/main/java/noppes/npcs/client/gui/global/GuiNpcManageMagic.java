@@ -8,7 +8,7 @@ import java.util.Vector;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.*;
 import noppes.npcs.client.gui.magic.SubGuiMagicCycleEdit;
-import noppes.npcs.client.gui.magic.SubGuiMagicEdit;
+import noppes.npcs.client.gui.magic.SubGuiMagic;
 import noppes.npcs.client.gui.magic.SubGuiMagicInteractionsEdit;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
@@ -23,16 +23,16 @@ import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIc
 public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListener, ICustomScrollListener, IScrollData, IGuiData {
 
     // Left scroll (for cycles) and right scroll (for magics).
-    private GuiCustomScroll leftScroll;   // Only used in cycle view.
-    private GuiCustomScroll rightScroll;  // Displays the magics list.
+    public GuiCustomScroll leftScroll;   // Only used in cycle view.
+    public GuiCustomScroll rightScroll;  // Displays the magics list.
 
     // When true, we are in global magic view (single list with all magics).
     // When false, we are in cycle view (two lists: left for cycles and right for associated magics).
     private boolean viewByCycle = true;
 
     // Data maps for cycles and magics. (Keys are display names)
-    private HashMap<String, Integer> cycleData = new HashMap<>();
-    private HashMap<String, Integer> magicData = new HashMap<>();
+    public HashMap<String, Integer> cycleData = new HashMap<>();
+    public HashMap<String, Integer> magicData = new HashMap<>();
 
     // currentMagicList is the subset shown in the right scroll.
     // In global view it contains all magic names; in cycle view it contains only those associated with the selected cycle.
@@ -409,7 +409,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 break;
             case 2: // Edit Magic.
                 if (selectedMagic != null) {
-                    setSubGui(new SubGuiMagicEdit(selectedMagic));
+                    setSubGui(new SubGuiMagic(this, selectedMagic));
                 }
                 break;
             case 3: // Edit Interactions.

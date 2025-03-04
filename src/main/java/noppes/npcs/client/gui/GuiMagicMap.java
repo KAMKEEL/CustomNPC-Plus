@@ -79,8 +79,8 @@ public class GuiMagicMap extends GuiDiagram {
 
         RenderHelper.enableGUIStandardItemLighting();
 
-        if (magic.iconItem != null) {
-            renderItem.renderItemAndEffectIntoGUI(fontRenderer, mc.getTextureManager(), magic.iconItem, iconX, iconY);
+        if (magic.item != null) {
+            renderItem.renderItemAndEffectIntoGUI(fontRenderer, mc.getTextureManager(), magic.item, iconX, iconY);
         } else if (magic.iconTexture != null && !magic.iconTexture.isEmpty()) {
             mc.getTextureManager().bindTexture(new ResourceLocation(magic.iconTexture));
             this.drawTexturedModalRect(iconX, iconY, 0, 0, size, size);
