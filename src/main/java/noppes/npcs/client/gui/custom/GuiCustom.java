@@ -1,10 +1,10 @@
 package noppes.npcs.client.gui.custom;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.customgui.CustomGuiButtonPacket;
-import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
-import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
-import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;

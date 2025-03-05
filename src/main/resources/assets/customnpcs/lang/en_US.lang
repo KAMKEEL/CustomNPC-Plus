@@ -62,6 +62,7 @@ gui.view=View
 gui.remove=Remove
 gui.save=Save
 gui.name=Name
+gui.displayName=Display Name
 gui.color=Color
 gui.none=None
 gui.time=Time
@@ -550,6 +551,8 @@ menu.role=Role
 menu.animations=Animations
 menu.tags=Tags
 menu.general=General
+menu.magics=Magics
+menu.cycles=Cycles
 
 cloner.tagFilters=Tag Filters
 cloner.tagVisibility=Tag Visibility
@@ -1306,6 +1309,9 @@ hitbox.hitbox=Hitbox
 hitbox.width=Width Scale
 hitbox.height=Height Scale
 
+texture.item=Item
+texture.base=Base
+
 general.menuName=Menu Name
 
 effect.runsEveryX=Runs every X tick
@@ -1331,6 +1337,21 @@ profile.enableOptions=Enable Options
 profile.completion=Completion
 profile.cooldown=Cooldown
 profile.individual=Individual
+
+magic.interaction=Interaction
+magic.diagram=Diagram Type
+magic.index=Index
+magic.priority=Priority
+
+diagram.circular=Circular
+diagram.square=Square
+diagram.tree=Tree
+diagram.generated=Generated
+diagram.circular_manual=Circular [Manual]
+diagram.square_manual=Square [Manual]
+diagram.tree_manual=Tree [Manual]
+diagram.chart=Chart
+diagram.info=Manual: Index is the level, Priority is the order.
 
 rpgcore:tooltip=Hold %key% to view attributes
 rpgcore:attribute.damage=Damage

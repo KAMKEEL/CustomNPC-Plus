@@ -81,6 +81,20 @@ public class SyncController {
             customEffectsNBT()
         ), player);
 
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
+            EnumSyncType.MAGIC,
+            EnumSyncAction.RELOAD,
+            -1,
+            magicsNBT()
+        ), player);
+
+        PacketHandler.Instance.sendToPlayer(new SyncPacket(
+            EnumSyncType.MAGIC_CYCLE,
+            EnumSyncAction.RELOAD,
+            -1,
+            magicCyclesNBT()
+        ), player);
+
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
     }
@@ -171,6 +185,30 @@ public class SyncController {
         NBTTagCompound compound = new NBTTagCompound();
         for (CustomEffect effect : CustomEffectController.getInstance().getCustomEffects().values()) {
             list.appendTag(effect.writeToNBT(false));
+        }
+        compound.setTag("Data", list);
+        return compound;
+    }
+
+    public static NBTTagCompound magicsNBT(){
+        NBTTagList list = new NBTTagList();
+        NBTTagCompound compound = new NBTTagCompound();
+        for (Magic magic : MagicController.getInstance().magics.values()) {
+            NBTTagCompound magicCompound = new NBTTagCompound();
+            magic.writeNBT(magicCompound);
+            list.appendTag(magicCompound);
+        }
+        compound.setTag("Data", list);
+        return compound;
+    }
+
+    public static NBTTagCompound magicCyclesNBT(){
+        NBTTagList list = new NBTTagList();
+        NBTTagCompound compound = new NBTTagCompound();
+        for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
+            NBTTagCompound cycleCompound = new NBTTagCompound();
+            cycle.writeNBT(cycleCompound);
+            list.appendTag(cycleCompound);
         }
         compound.setTag("Data", list);
         return compound;
@@ -353,6 +391,36 @@ public class SyncController {
                 ClientCacheHandler.playerData.setSyncNBTFull(fullCompound);
                 break;
             }
+            case MAGIC: {
+                NBTTagList list = fullCompound.getTagList("Data", 10);
+                MagicController mc = MagicController.getInstance();
+                mc.magicSync.clear();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    Magic magic = new Magic();
+                    magic.readNBT(list.getCompoundTagAt(i));
+                    mc.magicSync.put(magic.id, magic);
+                }
+
+                mc.magics.clear();
+                mc.magics.putAll(mc.magicSync);
+                mc.magicSync.clear();
+                break;
+            }
+            case MAGIC_CYCLE: {
+                NBTTagList list = fullCompound.getTagList("Data", 10);
+                MagicController mc = MagicController.getInstance();
+                mc.cyclesSync.clear();
+                for (int i = 0; i < list.tagCount(); i++) {
+                    MagicCycle cycle = new MagicCycle();
+                    cycle.readNBT(list.getCompoundTagAt(i));
+                    mc.cyclesSync.put(cycle.id, cycle);
+                }
+
+                mc.cycles.clear();
+                mc.cycles.putAll(mc.cyclesSync);
+                mc.cyclesSync.clear();
+                break;
+            }
             case WORKBENCH_RECIPES: {
                 NBTTagList list = fullCompound.getTagList("recipes", 10);
                 if(list == null)
@@ -483,6 +551,18 @@ public class SyncController {
                 DialogController.Instance.categories.put(category.id, category);
                 break;
             }
+            case MAGIC_CYCLE: {
+                MagicCycle cycle = new MagicCycle();
+                cycle.readNBT(compound);
+                MagicController.getInstance().cycles.put(cycle.id, cycle);
+                break;
+            }
+            case MAGIC: {
+                Magic magic = new Magic();
+                magic.readNBT(compound);
+                MagicController.getInstance().magics.put(magic.id, magic);
+                break;
+            }
             case PLAYERDATA: {
                 ClientCacheHandler.playerData.setSyncNBT(compound);
                 break;
@@ -563,6 +643,13 @@ public class SyncController {
                 }
                 break;
             case MAGIC:
+                for(MagicCycle cycle : MagicController.getInstance().cycles.values()){
+                    cycle.associations.remove(id);
+                }
+                MagicController.getInstance().cycles.remove(id);
+                break;
+            case MAGIC_CYCLE:
+                MagicController.getInstance().cycles.remove(id);
                 break;
             case CUSTOM_EFFECTS:
                 CustomEffectController.Instance.getCustomEffects().remove(id);

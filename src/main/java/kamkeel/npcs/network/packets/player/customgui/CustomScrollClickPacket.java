@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request.customgui;
+package kamkeel.npcs.network.packets.player.customgui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
@@ -39,12 +40,12 @@ public final class CustomScrollClickPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.CustomGuiScrollClick;
+        return EnumPlayerPacket.CustomGuiScrollClick;
     }
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
 

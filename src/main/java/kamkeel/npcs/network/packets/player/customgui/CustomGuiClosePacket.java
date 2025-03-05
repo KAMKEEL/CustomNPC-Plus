@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request.customgui;
+package kamkeel.npcs.network.packets.player.customgui;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -6,6 +6,7 @@ import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,38 +15,36 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.gui.ScriptGui;
 
 import java.io.IOException;
 
-public final class CustomGuiButtonPacket extends AbstractPacket {
-    public static final String packetName = "Request|CustomGuiButton";
+public final class CustomGuiClosePacket extends AbstractPacket {
+    public static final String packetName = "Request|CustomGuiClose";
 
     private NBTTagCompound compound;
-    private int id;
 
-    public CustomGuiButtonPacket() {
+    public CustomGuiClosePacket() {
     }
 
-    public CustomGuiButtonPacket(int id, NBTTagCompound comp) {
+    public CustomGuiClosePacket(NBTTagCompound comp) {
         this.compound = comp;
-        this.id = id;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.CustomGuiButton;
+        return EnumPlayerPacket.CustomGuiClose;
     }
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
 
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(id);
         ByteBufUtils.writeNBT(out, compound);
     }
 
@@ -54,10 +53,7 @@ public final class CustomGuiButtonPacket extends AbstractPacket {
         if (!(player.openContainer instanceof ContainerCustomGui))
             return;
 
-        int id = in.readInt();
         NBTTagCompound comp = ByteBufUtils.readNBT(in);
-
-        ((ContainerCustomGui) player.openContainer).customGui.fromNBT(comp);
-        EventHooks.onCustomGuiButton((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui, id);
+        EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(comp));
     }
 }

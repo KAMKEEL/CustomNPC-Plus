@@ -7,9 +7,9 @@ import java.util.Vector;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.*;
-import noppes.npcs.client.gui.magic.SubGuiMagicCycleEdit;
-import noppes.npcs.client.gui.magic.SubGuiMagicEdit;
-import noppes.npcs.client.gui.magic.SubGuiMagicInteractionsEdit;
+import noppes.npcs.client.gui.SubGuiMagicCycle;
+import noppes.npcs.client.gui.SubGuiMagic;
+import noppes.npcs.client.gui.SubGuiMagicCycleViewer;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Magic;
@@ -23,16 +23,16 @@ import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIc
 public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListener, ICustomScrollListener, IScrollData, IGuiData {
 
     // Left scroll (for cycles) and right scroll (for magics).
-    private GuiCustomScroll leftScroll;   // Only used in cycle view.
-    private GuiCustomScroll rightScroll;  // Displays the magics list.
+    public GuiCustomScroll leftScroll;   // Only used in cycle view.
+    public GuiCustomScroll rightScroll;  // Displays the magics list.
 
     // When true, we are in global magic view (single list with all magics).
     // When false, we are in cycle view (two lists: left for cycles and right for associated magics).
     private boolean viewByCycle = true;
 
     // Data maps for cycles and magics. (Keys are display names)
-    private HashMap<String, Integer> cycleData = new HashMap<>();
-    private HashMap<String, Integer> magicData = new HashMap<>();
+    public HashMap<String, Integer> cycleData = new HashMap<>();
+    public HashMap<String, Integer> magicData = new HashMap<>();
 
     // currentMagicList is the subset shown in the right scroll.
     // In global view it contains all magic names; in cycle view it contains only those associated with the selected cycle.
@@ -67,7 +67,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
         int y = guiTop + 5;
 
         // Toggle button to switch between global and cycle views.
-        addButton(new GuiToggleButton(50, guiLeft + 368, guiTop + ySize - 10, viewByCycle));
+        addButton(new GuiToggleButton(50, guiLeft + 368, guiTop + ySize - 60, viewByCycle));
         ((GuiToggleButton) getButton(50)).setTextureOff(specialIcons).setTextureOffPos(16, 0);
         ((GuiToggleButton) getButton(50)).setIconTexture(specialIcons).setIconPos(16, 16, 16, 0);
 
@@ -103,20 +103,25 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             addTextField(new GuiNpcTextField(66, this, fontRendererObj, dividerX + dividerWidth, y + 185 + 3, regionRight - (dividerX + dividerWidth), 20, magicSearch));
 
             // Left side cycle management buttons.
-            addButton(new GuiNpcButton(10, guiLeft + 3, guiTop + 8, 58, 20, "Cycles"));
+            addButton(new GuiNpcButton(10, guiLeft + 3, guiTop + 8, 58, 20, "menu.cycles"));
             getButton(10).setEnabled(false);
             addButton(new GuiNpcButton(4, guiLeft + 3, guiTop + 38, 58, 20, "gui.add"));
             addButton(new GuiNpcButton(5, guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
             addButton(new GuiNpcButton(6, guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
+            addButton(new GuiNpcButton(20, guiLeft + 3, guiTop + 117, 58, 20, "gui.view"));
 
             // Right side magic management buttons.
-            addButton(new GuiNpcButton(33, guiLeft + 358, guiTop + 8, 58, 20, "Magics"));
+            addButton(new GuiNpcButton(33, guiLeft + 358, guiTop + 8, 58, 20, "menu.magics"));
             getButton(33).setEnabled(false);
+
             addButton(new GuiNpcButton(0, guiLeft + 358, guiTop + 38, 58, 20, "gui.add"));
             getButton(0).setEnabled(false);
             addButton(new GuiNpcButton(1, guiLeft + 358, guiTop + 61, 58, 20, "gui.remove"));
             getButton(1).setEnabled(false);
             addButton(new GuiNpcButton(2, guiLeft + 358, guiTop + 94, 58, 20, "gui.edit"));
+
+            addLabel(new GuiNpcLabel(200, "ID", guiLeft + 4, guiTop + 4 + 3 + 185));
+            addLabel(new GuiNpcLabel(201, "" + "", guiLeft + 4, guiTop + 4 + 3 + 195));
         } else {
             // --- Global Magic View: Single Scroll (all magics) ---
             if (rightScroll == null) {
@@ -128,7 +133,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             this.addScroll(rightScroll);
             addTextField(new GuiNpcTextField(66, this, fontRendererObj, guiLeft + 10, y + 185 + 3, xSize - 75, 20, magicSearch));
 
-            addButton(new GuiNpcButton(33, guiLeft + 358, guiTop + 8, 58, 20, "Magics"));
+            addButton(new GuiNpcButton(33, guiLeft + 358, guiTop + 8, 58, 20, "menu.magics"));
             getButton(33).setEnabled(false);
 
             // Global magic management buttons.
@@ -153,6 +158,11 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                     rightScroll.setList(applyMagicSearchFilter(currentMagicList));
             }
         }
+
+        addLabel(new GuiNpcLabel(100, "ID", guiLeft + 358, guiTop + 4 + 3 + 185));
+        addLabel(new GuiNpcLabel(101, "" + "", guiLeft + 358, guiTop + 4 + 3 + 195));
+
+        updateButtons();
     }
 
     @Override
@@ -187,6 +197,54 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             }
         }
         super.mouseClicked(mouseX, mouseY, mouseButton);
+
+
+    }
+
+    public void updateButtons(){
+        // Magic Buttons
+        GuiButton button = getButton(2);
+        if(button != null){
+            button.enabled = selectedMagic != null;
+        }
+
+        if(viewByCycle){
+            button = getButton(1);
+            if(button != null){
+                button.enabled = selectedMagic != null;
+            }
+        }
+
+        button = getButton(5);
+        if(button != null){
+            button.enabled = selectedCycle != null;
+        }
+
+        button = getButton(6);
+        if(button != null){
+            button.enabled = selectedCycle != null;
+        }
+
+        button = getButton(20);
+        if(button != null){
+            button.enabled = selectedCycle != null;
+        }
+
+        if(getLabel(201) != null){
+            if(selectedCycle != null){
+                getLabel(201).label = selectedCycle.id + "";
+            } else {
+                getLabel(201).label = "";
+            }
+        }
+
+        if(getLabel(101) != null){
+            if(selectedMagic != null){
+                getLabel(101).label = selectedMagic.id + "";
+            } else {
+                getLabel(101).label = "";
+            }
+        }
     }
 
     @Override
@@ -307,6 +365,13 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                     // Cycle view: start with an empty magic list.
                     currentMagicList.clear();
                 }
+
+                if(rightScroll != null)
+                    rightScroll.selected = -1;
+
+                if(leftScroll != null)
+                    leftScroll.selected = -1;
+
                 initGui();
                 return;
             // --- Cycle Management Buttons ---
@@ -330,7 +395,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 break;
             case 6: // Edit Cycle.
                 if (selectedCycle != null) {
-                    setSubGui(new SubGuiMagicCycleEdit(selectedCycle));
+                    setSubGui(new SubGuiMagicCycle(this, selectedCycle));
                 }
                 break;
             // --- Magic Management Buttons ---
@@ -349,15 +414,17 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 break;
             case 2: // Edit Magic.
                 if (selectedMagic != null) {
-                    setSubGui(new SubGuiMagicEdit(selectedMagic));
+                    setSubGui(new SubGuiMagic(this, selectedMagic));
                 }
                 break;
-            case 3: // Edit Interactions.
-                if (selectedMagic != null) {
-                    setSubGui(new SubGuiMagicInteractionsEdit(selectedMagic));
+            case 20:
+                if (selectedCycle != null) {
+                    setSubGui(new SubGuiMagicCycleViewer(selectedCycle));
                 }
                 break;
         }
+
+        updateButtons();
     }
 
     @Override
@@ -461,5 +528,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             if (rightScroll != null)
                 rightScroll.selected = -1;
         }
+
+        updateButtons();
     }
 }

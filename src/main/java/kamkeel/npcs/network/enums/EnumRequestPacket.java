@@ -102,11 +102,6 @@ public enum EnumRequestPacket {
     IsGuiOpen,
     CacheAnimation,
 
-    CustomGuiButton,
-    CustomGuiScrollClick,
-    CustomGuiClose,
-    CustomGuiUnfocused,
-
     PartyLogToServer,
     PartySave,
     PartyInfo,

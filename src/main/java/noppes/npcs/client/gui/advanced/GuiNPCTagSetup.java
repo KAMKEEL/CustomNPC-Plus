@@ -113,8 +113,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 	}
 
 	@Override
-	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-	}
+	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {}
 
 	public void save() {
 		NBTTagCompound tagCompound = new NBTTagCompound();

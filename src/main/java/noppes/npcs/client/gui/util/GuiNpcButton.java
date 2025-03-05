@@ -157,10 +157,10 @@ public class GuiNpcButton extends GuiButton {
             oldHover = hoverState;
             hoverCount = 0;
         } else {
-            if (hoverCount < 110)
+            if (hoverCount < 65)
                 hoverCount++;
         }
-        if (hoverState == 2 && hoverCount > 100) {
+        if (hoverState == 2 && hoverCount > 60) {
             GL11.glPushMatrix();
             Minecraft mc = Minecraft.getMinecraft();
             String displayString = StatCollector.translateToLocal(hoverableText);

@@ -13,5 +13,10 @@ public enum EnumPlayerPacket {
     CompanionAction,
     GetRole,
     InputDevice,
-    ScreenSize
+    ScreenSize,
+
+    CustomGuiButton,
+    CustomGuiScrollClick,
+    CustomGuiClose,
+    CustomGuiUnfocused,
 }
