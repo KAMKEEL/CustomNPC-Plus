@@ -117,6 +117,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         } else if (data.isActive()) {
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
+                npc.display.animationData.increaseTime();
                 GuiNpcLabel label = this.getLabel(94);
                 if (label != null) {
                     label.label += ".";
