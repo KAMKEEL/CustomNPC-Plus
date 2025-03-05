@@ -2,16 +2,16 @@ package noppes.npcs.util;
 
 public enum Ease {
     LINEAR(0, f -> f), CONSTANT(1, f -> 0f),
-    INSINE(6, Easing::inSine), OUTSINE(7, Easing::outSine), INOUTSINE(8, Easing::inOutSine),
-    INCUBIC(9, Easing::inCubic), OUTCUBIC(10, Easing::outCubic), INOUTCUBIC(11, Easing::inOutCubic),
-    INQUAD(12, Easing::inQuad), OUTQUAD(13, Easing::outQuad), INOUTQUAD(14, Easing::inOutQuad),
-    INQUART(15, Easing::inQuart), OUTQUART(16, Easing::outQuart), INOUTQUART(17, Easing::inOutQuart),
-    INQUINT(18, Easing::inQuint), OUTQUINT(19, Easing::outQuint), INOUTQUINT(20, Easing::inOutQuint),
-    INEXPO(21, Easing::inExpo), OUTEXPO(22, Easing::outExpo), INOUTEXPO(23, Easing::inOutExpo),
-    INCIRC(24, Easing::inCirc), OUTCIRC(25, Easing::outCirc), INOUTCIRC(26, Easing::inOutCirc),
-    INBACK(27, Easing::inBack), OUTBACK(28, Easing::outBack), INOUTBACK(29, Easing::inOutBack),
-    INELASTIC(30, Easing::inElastic), OUTELASTIC(31, Easing::outElastic), INOUTELASTIC(32, Easing::inOutElastic),
-    INBOUNCE(33, Easing::inBounce), OUTBOUNCE(34, Easing::outBack), INOUTBOUNCE(35, Easing::inOutBounce);
+    INSINE(2, Easing::inSine), OUTSINE(3, Easing::outSine), INOUTSINE(4, Easing::inOutSine),
+    INCUBIC(5, Easing::inCubic), OUTCUBIC(6, Easing::outCubic), INOUTCUBIC(7, Easing::inOutCubic),
+    INQUAD(8, Easing::inQuad), OUTQUAD(9, Easing::outQuad), INOUTQUAD(10, Easing::inOutQuad),
+    INQUART(11, Easing::inQuart), OUTQUART(12, Easing::outQuart), INOUTQUART(13, Easing::inOutQuart),
+    INQUINT(14, Easing::inQuint), OUTQUINT(15, Easing::outQuint), INOUTQUINT(16, Easing::inOutQuint),
+    INEXPO(17, Easing::inExpo), OUTEXPO(18, Easing::outExpo), INOUTEXPO(19, Easing::inOutExpo),
+    INCIRC(20, Easing::inCirc), OUTCIRC(21, Easing::outCirc), INOUTCIRC(22, Easing::inOutCirc),
+    INBACK(23, Easing::inBack), OUTBACK(24, Easing::outBack), INOUTBACK(25, Easing::inOutBack),
+    INELASTIC(26, Easing::inElastic), OUTELASTIC(27, Easing::outElastic), INOUTELASTIC(28, Easing::inOutElastic),
+    INBOUNCE(29, Easing::inBounce), OUTBOUNCE(30, Easing::outBack), INOUTBOUNCE(31, Easing::inOutBounce);
 
     final byte id;
     private final EasingFunction impl;
