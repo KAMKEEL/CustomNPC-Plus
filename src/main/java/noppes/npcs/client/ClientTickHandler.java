@@ -142,11 +142,20 @@ public class ClientTickHandler{
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = mc.thePlayer;
 
+        if(player == null || mc.theWorld == null)
+            return;
+
+        if(ClientHudManager.getInstance() == null || ClientHudManager.getInstance().getHudComponents() == null)
+            return;
+
         // Update compass
         HudComponent compass = ClientHudManager.getInstance()
             .getHudComponents().get(EnumHudComponent.QuestCompass);
 
-        if(!compass.enabled || mc.thePlayer == null)
+        if(!(compass instanceof CompassHudComponent))
+            return;
+
+        if(!compass.enabled)
             return;
 
         ArrayList<CompassHudComponent.MarkTargetEntry> marks = new ArrayList<>();
