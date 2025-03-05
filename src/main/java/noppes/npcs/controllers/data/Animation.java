@@ -199,8 +199,8 @@ public class Animation implements IAnimation {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound item = list.getCompoundTagAt(i);
             Frame frame = new Frame();
-            frame.readFromNBT(item);
             frame.setParent(this);
+            frame.readFromNBT(item);
             frames.add(frame);
         }
         this.frames = frames;

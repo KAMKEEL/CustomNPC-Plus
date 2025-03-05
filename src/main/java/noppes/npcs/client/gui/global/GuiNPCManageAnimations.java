@@ -77,8 +77,8 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
 
             if (this.animation.frames.size() > 0) {
                 Frame firstFrame = new Frame();
-                firstFrame.readFromNBT(this.animation.frames.get(0).writeToNBT());
                 data.animation.addFrame(firstFrame);
+                firstFrame.readFromNBT(this.animation.frames.get(0).writeToNBT());
             }
         }
 

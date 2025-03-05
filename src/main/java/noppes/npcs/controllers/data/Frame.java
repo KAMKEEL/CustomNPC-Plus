@@ -46,13 +46,17 @@ public class Frame implements IFrame {
         return frameParts;
     }
 
+    public void addPart(EnumAnimationPart key, FramePart frame) {
+        frame.setParent(parent);
+        frameParts.put(key, frame);
+    }
     public IFramePart[] getParts() {
         return frameParts.values().toArray(new IFramePart[0]);
     }
 
     public IFrame addPart(IFramePart partConfig) {
         ((FramePart) partConfig).setParent(parent);
-        this.frameParts.put(((FramePart) partConfig).getPart(), (FramePart) partConfig);
+        addPart(((FramePart) partConfig).getPart(), (FramePart) partConfig);
         return this;
     }
 
@@ -156,6 +160,7 @@ public class Frame implements IFrame {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound item = list.getCompoundTagAt(i);
             FramePart framePart = new FramePart();
+            framePart.setParent(parent);
             framePart.readFromNBT(item);
             if (!framePart.customized) {
                 framePart.smooth = this.smooth;
@@ -190,7 +195,7 @@ public class Frame implements IFrame {
         Frame frame = new Frame(this.duration);
         HashMap<EnumAnimationPart, FramePart> frameParts = this.frameParts;
         for (Map.Entry<EnumAnimationPart, FramePart> entry : frameParts.entrySet()) {
-            frame.frameParts.put(entry.getKey(), entry.getValue().copy());
+            frame.addPart(entry.getKey(), entry.getValue().copy());
         }
         frame.parent = this.parent;
         frame.duration = this.duration;
