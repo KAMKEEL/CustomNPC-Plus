@@ -26,10 +26,10 @@ import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import kamkeel.npcs.network.packets.request.clone.*;
-import kamkeel.npcs.network.packets.request.customgui.CustomGuiButtonPacket;
-import kamkeel.npcs.network.packets.request.customgui.CustomGuiClosePacket;
-import kamkeel.npcs.network.packets.request.customgui.CustomGuiUnfocusedPacket;
-import kamkeel.npcs.network.packets.request.customgui.CustomScrollClickPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
@@ -269,12 +269,6 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new RemoteResetPacket());
         REQUEST_PACKET.registerPacket(new RemoteTpToNpcPacket());
 
-        // CustomGUI Packets
-        REQUEST_PACKET.registerPacket(new CustomGuiButtonPacket());
-        REQUEST_PACKET.registerPacket(new CustomGuiClosePacket());
-        REQUEST_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
-        REQUEST_PACKET.registerPacket(new CustomScrollClickPacket());
-
         // Job Packets
         REQUEST_PACKET.registerPacket(new JobGetPacket());
         REQUEST_PACKET.registerPacket(new JobSavePacket());
@@ -433,6 +427,12 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
 
         PLAYER_PACKET.registerPacket(new ScreenSizePacket());
+
+        // CustomGUI Packets
+        PLAYER_PACKET.registerPacket(new CustomGuiButtonPacket());
+        PLAYER_PACKET.registerPacket(new CustomGuiClosePacket());
+        PLAYER_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
+        PLAYER_PACKET.registerPacket(new CustomScrollClickPacket());
     }
 
     public void registerChannels() {
