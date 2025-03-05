@@ -34,6 +34,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     private final GuiScreen parent;
     private long prevTick;
 
+
     private final GuiNpcSlider[] rotationSliders = new GuiNpcSlider[3];
     private final GuiNpcSlider[] pivotSliders = new GuiNpcSlider[3];
 
@@ -527,7 +528,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     @Override
     public void drawScreen(int par1, int par2, float par3) {
-        super.drawScreen(par1, par2, par3);
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -546,6 +546,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             }
             prevTick = time;
         }
+
+        super.drawScreen(par1, par2, par3);
 
         for (int i = 0; i < this.visibleFrames; i++) {
             if (getButton(300 + i) != null) {

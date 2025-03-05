@@ -109,7 +109,6 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     @Override
     public void drawScreen(int par1, int par2, float partialTicks)
     {
-        super.drawScreen(par1,par2, partialTicks);
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -128,6 +127,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
             }
             prevTick = time;
         }
+        super.drawScreen(par1, par2, partialTicks);
     }
 
     @Override
