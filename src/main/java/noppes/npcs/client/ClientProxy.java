@@ -6,6 +6,7 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
 import kamkeel.npcs.addon.client.DBCClient;
+import kamkeel.npcs.editorgui.GuiCustomGuiEditor;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -267,7 +268,9 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNpcPather(npc);
 
 		else if (gui == EnumGuiType.ManageFactions)
-            return new GuiNPCManageFactions(npc);
+            return new GuiCustomGuiEditor();
+        // TODO: CHANGE BACK
+            // return new GuiNPCManageFactions(npc);
 
         else if (gui == EnumGuiType.ManageCustomForms)
             return DBCClient.Instance.manageCustomForms(npc);
