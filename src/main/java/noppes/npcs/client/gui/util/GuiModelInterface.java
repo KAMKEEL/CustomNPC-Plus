@@ -98,16 +98,16 @@ public class GuiModelInterface extends GuiNPCInterface {
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3) {
+    public void drawScreen(int par1, int par2, float partialTicks) {
         if (Mouse.isButtonDown(0)) {
             if (this.left.mousePressed(this.mc, par1, par2)) {
-                rotation += par3 * 1.5F;
+                rotation += partialTicks * 1.5F;
             } else if (this.right.mousePressed(this.mc, par1, par2)) {
-                rotation -= par3 * 1.5F;
+                rotation -= partialTicks * 1.5F;
             } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxZoom) {
-                zoomed += par3 * 1.0F;
+                zoomed += partialTicks * 1.0F;
             } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minZoom) {
-                zoomed -= par3 * 1.0F;
+                zoomed -= partialTicks * 1.0F;
             }
         }
 
@@ -156,13 +156,13 @@ public class GuiModelInterface extends GuiNPCInterface {
         GL11.glRotatef(-(float) Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
         entity.prevRotationYaw = entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
+        entity.rotationPitch = entity.prevRotationPitch =followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
         entity.prevRotationYawHead = entity.rotationYawHead = followMouse ? entity.rotationYaw : rotation;
         GL11.glTranslatef(0.0F, entity.yOffset, 1F);
         RenderManager.instance.playerViewY = 180F;
 
         try {
-            RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+            RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, partialTicks);
         } catch (Exception e) {
             playerdata.setEntityClass(null);
         }
@@ -178,7 +178,7 @@ public class GuiModelInterface extends GuiNPCInterface {
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0F, 0f, 500.065F);
-        super.drawScreen(par1, par2, par3);
+        super.drawScreen(par1, par2, partialTicks);
         GL11.glPopMatrix();
 
         postRender(entity);
