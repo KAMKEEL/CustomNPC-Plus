@@ -224,8 +224,6 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new TagRemovePacket());
 
         // PlayerData Packets
-
-
         REQUEST_PACKET.registerPacket(new PlayerDataGetNamesPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
         REQUEST_PACKET.registerPacket(new PlayerDataGetInfoPacket());
