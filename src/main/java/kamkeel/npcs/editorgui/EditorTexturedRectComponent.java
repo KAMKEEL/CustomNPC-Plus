@@ -3,15 +3,9 @@ package kamkeel.npcs.editorgui;
 import noppes.npcs.scripted.gui.ScriptGuiTexturedRect;
 import noppes.npcs.client.gui.custom.components.CustomGuiTexturedRect;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import java.util.List;
 
-/**
- * EditorTexturedRectComponent wraps a ScriptGuiTexturedRect.
- * It renders the actual textured rectangle and provides editing buttons for width, height, scale, alpha,
- * rotation, texture string, texture X/Y offsets, and ID.
- */
 public class EditorTexturedRectComponent extends AbstractEditorComponent {
     private ScriptGuiTexturedRect texturedRect;
 
@@ -35,8 +29,8 @@ public class EditorTexturedRectComponent extends AbstractEditorComponent {
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if(mouseX >= posX && mouseX < posX + width &&
-           mouseY >= posY && mouseY < posY + height) {
+        if (mouseX >= posX && mouseX < posX + width &&
+            mouseY >= posY && mouseY < posY + height) {
             selected = true;
             return true;
         }
@@ -46,7 +40,7 @@ public class EditorTexturedRectComponent extends AbstractEditorComponent {
 
     @Override
     public void mouseDragged(int mouseX, int mouseY, int mouseButton) {
-        if(selected) {
+        if (selected) {
             texturedRect.setPos(posX, posY);
         }
     }
@@ -76,6 +70,7 @@ public class EditorTexturedRectComponent extends AbstractEditorComponent {
 
     @Override
     public void onEditorButtonPressed(GuiButton button) {
+        GuiCustomGuiEditor editor = (GuiCustomGuiEditor) Minecraft.getMinecraft().currentScreen;
         switch(button.id) {
             case 401:
                 width += 5;
@@ -94,98 +89,82 @@ public class EditorTexturedRectComponent extends AbstractEditorComponent {
                 texturedRect.setSize(width, height);
                 break;
             case 405:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Scale", Float.toString(texturedRect.getScale()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Scale", Float.toString(texturedRect.getScale()),
+                    newValue -> {
                         try {
                             float newScale = Float.parseFloat(newValue);
                             texturedRect.setScale(newScale);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 406:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Alpha", Float.toString(texturedRect.getAlpha()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Alpha", Float.toString(texturedRect.getAlpha()),
+                    newValue -> {
                         try {
                             float newAlpha = Float.parseFloat(newValue);
                             texturedRect.setAlpha(newAlpha);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 407:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Rotation", Float.toString(texturedRect.getRotation()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Rotation", Float.toString(texturedRect.getRotation()),
+                    newValue -> {
                         try {
                             float newRot = Float.parseFloat(newValue);
                             texturedRect.setRotation(newRot);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 408:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Texture", texturedRect.getTexture(), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
-                        texturedRect.setTexture(newValue);
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Texture", texturedRect.getTexture(),
+                    newValue -> texturedRect.setTexture(newValue), () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 409:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("TxX", Integer.toString(texturedRect.getTextureX()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("TxX", Integer.toString(texturedRect.getTextureX()),
+                    newValue -> {
                         try {
                             int newX = Integer.parseInt(newValue);
                             texturedRect.setTextureOffset(newX, texturedRect.getTextureY());
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 410:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("TxY", Integer.toString(texturedRect.getTextureY()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("TxY", Integer.toString(texturedRect.getTextureY()),
+                    newValue -> {
                         try {
                             int newY = Integer.parseInt(newValue);
                             texturedRect.setTextureOffset(texturedRect.getTextureX(), newY);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 411:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("ID", Integer.toString(texturedRect.getID()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("ID", Integer.toString(texturedRect.getID()),
+                    newValue -> {
                         try {
                             int newID = Integer.parseInt(newValue);
                             texturedRect.setID(newID);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
         }

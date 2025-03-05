@@ -3,7 +3,6 @@ package kamkeel.npcs.editorgui;
 import noppes.npcs.scripted.gui.ScriptGuiButton;
 import noppes.npcs.client.gui.custom.components.CustomGuiButton;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import java.util.List;
 
@@ -43,7 +42,7 @@ public class EditorButtonComponent extends AbstractEditorComponent {
 
     @Override
     public void mouseDragged(int mouseX, int mouseY, int mouseButton) {
-        if(selected) {
+        if (selected) {
             buttonComponent.setPos(posX, posY);
         }
     }
@@ -71,6 +70,7 @@ public class EditorButtonComponent extends AbstractEditorComponent {
 
     @Override
     public void onEditorButtonPressed(GuiButton button) {
+        GuiCustomGuiEditor editor = (GuiCustomGuiEditor) Minecraft.getMinecraft().currentScreen;
         switch (button.id) {
             case 101:
                 width += 5;
@@ -89,72 +89,58 @@ public class EditorButtonComponent extends AbstractEditorComponent {
                 buttonComponent.setSize(width, height);
                 break;
             case 105:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Scale", Float.toString(buttonComponent.getScale()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Scale", Float.toString(buttonComponent.getScale()),
+                    newValue -> {
                         try {
                             float newScale = Float.parseFloat(newValue);
                             buttonComponent.setScale(newScale);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() {
-                        // Return to editor: do nothing extra.
-                    }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 106:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Alpha", Float.toString(buttonComponent.getAlpha()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Alpha", Float.toString(buttonComponent.getAlpha()),
+                    newValue -> {
                         try {
                             float newAlpha = Float.parseFloat(newValue);
                             buttonComponent.setAlpha(newAlpha);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 107:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Rotation", Float.toString(buttonComponent.getRotation()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Rotation", Float.toString(buttonComponent.getRotation()),
+                    newValue -> {
                         try {
-                            float newRotation = Float.parseFloat(newValue);
-                            buttonComponent.setRotation(newRotation);
+                            float newRot = Float.parseFloat(newValue);
+                            buttonComponent.setRotation(newRot);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 108:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Label", buttonComponent.getLabel(), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
-                        buttonComponent.setLabel(newValue);
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Label", buttonComponent.getLabel(),
+                    newValue -> buttonComponent.setLabel(newValue), () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 110:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("ID", Integer.toString(buttonComponent.getID()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("ID", Integer.toString(buttonComponent.getID()),
+                    newValue -> {
                         try {
                             int newID = Integer.parseInt(newValue);
                             buttonComponent.setID(newID);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
         }

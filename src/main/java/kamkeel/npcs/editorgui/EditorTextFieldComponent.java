@@ -3,7 +3,6 @@ package kamkeel.npcs.editorgui;
 import noppes.npcs.scripted.gui.ScriptGuiTextField;
 import noppes.npcs.client.gui.custom.components.CustomGuiTextField;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import java.util.List;
 
@@ -15,6 +14,7 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
     private ScriptGuiTextField textFieldComponent;
 
     public EditorTextFieldComponent(ScriptGuiTextField textField) {
+        // TextField uses its original width, height, and position.
         super(textField.getPosX(), textField.getPosY(), textField.getWidth(), textField.getHeight());
         this.textFieldComponent = textField;
         this.id = textField.getID();
@@ -31,8 +31,8 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if(mouseX >= posX && mouseX < posX + width &&
-           mouseY >= posY && mouseY < posY + height) {
+        if (mouseX >= posX && mouseX < posX + width &&
+            mouseY >= posY && mouseY < posY + height) {
             selected = true;
             return true;
         }
@@ -42,7 +42,7 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
 
     @Override
     public void mouseDragged(int mouseX, int mouseY, int mouseButton) {
-        if(selected) {
+        if (selected) {
             textFieldComponent.setPos(posX, posY);
         }
     }
@@ -67,6 +67,7 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
 
     @Override
     public void onEditorButtonPressed(GuiButton button) {
+        GuiCustomGuiEditor editor = (GuiCustomGuiEditor) Minecraft.getMinecraft().currentScreen;
         switch(button.id) {
             case 301:
                 width += 5;
@@ -85,28 +86,22 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
                 textFieldComponent.setSize(width, height);
                 break;
             case 307:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Default Text", textFieldComponent.getText(), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
-                        textFieldComponent.setText(newValue);
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Default Text", textFieldComponent.getText(),
+                    newValue -> textFieldComponent.setText(newValue), () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 310:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("ID", Integer.toString(textFieldComponent.getID()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("ID", Integer.toString(textFieldComponent.getID()),
+                    newValue -> {
                         try {
                             int newID = Integer.parseInt(newValue);
                             textFieldComponent.setID(newID);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () ->{
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
         }

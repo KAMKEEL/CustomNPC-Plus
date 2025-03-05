@@ -3,13 +3,9 @@ package kamkeel.npcs.editorgui;
 import noppes.npcs.scripted.gui.ScriptGuiLabel;
 import noppes.npcs.client.gui.custom.components.CustomGuiLabel;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
 import java.util.List;
 
-/**
- * EditorLabelComponent wraps a ScriptGuiLabel.
- */
 public class EditorLabelComponent extends AbstractEditorComponent {
     private ScriptGuiLabel labelComponent;
 
@@ -44,7 +40,7 @@ public class EditorLabelComponent extends AbstractEditorComponent {
 
     @Override
     public void mouseDragged(int mouseX, int mouseY, int mouseButton) {
-        if(selected) {
+        if (selected) {
             labelComponent.setPos(posX, posY);
         }
     }
@@ -72,6 +68,7 @@ public class EditorLabelComponent extends AbstractEditorComponent {
 
     @Override
     public void onEditorButtonPressed(GuiButton button) {
+        GuiCustomGuiEditor editor = (GuiCustomGuiEditor) Minecraft.getMinecraft().currentScreen;
         switch(button.id) {
             case 201:
                 width += 5;
@@ -90,70 +87,58 @@ public class EditorLabelComponent extends AbstractEditorComponent {
                 labelComponent.setSize(width, height);
                 break;
             case 205:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Scale", Float.toString(labelComponent.getScale()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Scale", Float.toString(labelComponent.getScale()),
+                    newValue -> {
                         try {
                             float newScale = Float.parseFloat(newValue);
                             labelComponent.setScale(newScale);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () -> {
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 206:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Alpha", Float.toString(labelComponent.getAlpha()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Alpha", Float.toString(labelComponent.getAlpha()),
+                    newValue -> {
                         try {
                             float newAlpha = Float.parseFloat(newValue);
                             labelComponent.setAlpha(newAlpha);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () -> {
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 207:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Rotation", Float.toString(labelComponent.getRotation()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Rotation", Float.toString(labelComponent.getRotation()),
+                    newValue -> {
                         try {
                             float newRot = Float.parseFloat(newValue);
                             labelComponent.setRotation(newRot);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () -> {
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 208:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Text", labelComponent.getText(), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
-                        labelComponent.setText(newValue);
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                editor.setSubGuiOverlay(new SubGuiEditProperty("Text", labelComponent.getText(),
+                    newValue -> labelComponent.setText(newValue), () -> {
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
             case 210:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("ID", Integer.toString(labelComponent.getID()), new IPropertyEditorCallback() {
-                    @Override
-                    public void propertyUpdated(String newValue) {
+                editor.setSubGuiOverlay(new SubGuiEditProperty("ID", Integer.toString(labelComponent.getID()),
+                    newValue -> {
                         try {
                             int newID = Integer.parseInt(newValue);
                             labelComponent.setID(newID);
                         } catch (NumberFormatException e) { }
-                    }
-                }, new ISubGuiCallback() {
-                    @Override
-                    public void onSubGuiClosed() { }
+                    }, () -> {
+                    editor.clearSubGuiOverlay();
+                    editor.setSelectedComponent(this);
                 }));
                 break;
         }

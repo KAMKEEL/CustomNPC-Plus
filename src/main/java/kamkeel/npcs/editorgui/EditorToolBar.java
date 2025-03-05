@@ -52,7 +52,7 @@ public class EditorToolBar extends Gui {
     }
 
     private int getDefaultId() {
-        return -1;
+        return 1;
     }
 
     public void actionPerformed(GuiButton button, GuiCustomGuiEditor editor) {

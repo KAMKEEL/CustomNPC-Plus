@@ -1,17 +1,18 @@
 package kamkeel.npcs.editorgui;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.opengl.GL11;
 
 /**
  * SubGuiEditProperty is a modal overlay for editing a single property.
- * It overlays on top of the current screen rather than switching screens.
- *
- * Usage: Pass the property name, the current value (as a string),
- * an IPropertyEditorCallback to receive the updated value,
- * and an ISubGuiCallback to notify when the overlay is closed.
+ * It overlays on top of the current editor screen.
+ * When "Done" is pressed, the provided property callback is invoked and the overlay is closed.
+ * All overridden methods are declared public.
  */
 public class SubGuiEditProperty extends GuiScreen {
     private ISubGuiCallback subGuiCallback;
@@ -28,7 +29,7 @@ public class SubGuiEditProperty extends GuiScreen {
      * @param propertyName the name of the property being edited
      * @param initialValue the current value (as String)
      * @param propCallback callback for when the property is updated
-     * @param subGuiCallback callback for when the overlay closes
+     * @param subGuiCallback callback for when the overlay is closed
      */
     public SubGuiEditProperty(String propertyName, String initialValue, IPropertyEditorCallback propCallback, ISubGuiCallback subGuiCallback) {
         this.propertyName = propertyName;
@@ -40,16 +41,25 @@ public class SubGuiEditProperty extends GuiScreen {
     @Override
     public void initGui() {
         Keyboard.enableRepeatEvents(true);
+        this.mc = Minecraft.getMinecraft();
+        ScaledResolution res = new ScaledResolution(this.mc, this.mc.displayWidth, this.mc.displayHeight);
+        if (this.fontRendererObj == null) {
+            this.fontRendererObj = Minecraft.getMinecraft().fontRenderer;
+        }
+
+        // Use the current width/height from this screen.
+        this.width = res.getScaledWidth();
+        this.height = res.getScaledHeight();
         overlayWidth = 150;
         overlayHeight = 20;
-        overlayX = (width - overlayWidth) / 2;
-        overlayY = (height - overlayHeight) / 2;
-        textField = new GuiTextField(fontRendererObj, overlayX, overlayY, overlayWidth, overlayHeight);
+        overlayX = (this.width - overlayWidth) / 2;
+        overlayY = (this.height - overlayHeight) / 2;
+        textField = new GuiTextField(this.fontRendererObj, overlayX, overlayY, overlayWidth, overlayHeight);
         textField.setText(initialValue);
         textField.setFocused(true);
         buttonList.clear();
-        // "Done" button below the text field.
-        buttonList.add(new GuiButton(0, overlayX, overlayY + overlayHeight + 5, overlayWidth, 20, "Done"));
+        // "Done" button positioned below the text field.
+        buttonList.add(new GuiButton(1000000, overlayX, overlayY + overlayHeight + 5, overlayWidth, 20, "Done"));
     }
 
     @Override
@@ -59,15 +69,25 @@ public class SubGuiEditProperty extends GuiScreen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        // Draw a semi-transparent dark overlay over the whole screen.
-        drawRect(0, 0, width, height, 0x88000000);
-        drawCenteredString(fontRendererObj, "Edit " + propertyName, width / 2, overlayY - 30, 0xFFFFFF);
+        if (this.fontRendererObj == null) {
+            this.fontRendererObj = Minecraft.getMinecraft().fontRenderer;
+        }
+
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+
+        // Draw semi-transparent background and overlay elements
+        drawRect(0, 0, this.width, this.height, 0x88000000);
+        drawCenteredString(this.fontRendererObj, "Edit " + propertyName, this.width / 2, overlayY - 30, 0xFFFFFF);
         textField.drawTextBox();
+
+        GL11.glEnable(GL11.GL_DEPTH_TEST);
+        GL11.glPopMatrix();
+
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     @Override
-    protected void keyTyped(char typedChar, int keyCode) {
+    public void keyTyped(char typedChar, int keyCode) {
         textField.textboxKeyTyped(typedChar, keyCode);
         if (keyCode == Keyboard.KEY_ESCAPE) {
             closeOverlay();
@@ -75,8 +95,8 @@ public class SubGuiEditProperty extends GuiScreen {
     }
 
     @Override
-    protected void actionPerformed(GuiButton button) {
-        if (button.id == 0) {
+    public void actionPerformed(GuiButton button) {
+        if (button.id == 1000000) {
             if (propCallback != null) {
                 propCallback.propertyUpdated(textField.getText());
             }
@@ -99,7 +119,7 @@ public class SubGuiEditProperty extends GuiScreen {
         super.mouseClickMove(mouseX, mouseY, mouseButton, timeSinceLastClick);
     }
 
-    private void closeOverlay() {
+    public void closeOverlay() {
         Keyboard.enableRepeatEvents(false);
         if (subGuiCallback != null) {
             subGuiCallback.onSubGuiClosed();

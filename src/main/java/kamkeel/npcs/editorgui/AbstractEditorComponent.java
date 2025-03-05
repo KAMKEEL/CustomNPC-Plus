@@ -37,19 +37,19 @@ public abstract class AbstractEditorComponent extends Gui implements IEditorComp
     }
 
     /**
-     * Draws a 2-pixel thick yellow border if selected.
+     * Draws an outline around the component.
+     * Yellow if selected; grey if not.
      */
     protected void renderSelectionOutline() {
-        if (!selected)
-            return;
-        // Top
-        drawRect(posX - 2, posY - 2, posX + width + 2, posY - 1, 0xFFFFFF00);
-        // Bottom
-        drawRect(posX - 2, posY + height + 1, posX + width + 2, posY + height + 2, 0xFFFFFF00);
-        // Left
-        drawRect(posX - 2, posY - 2, posX - 1, posY + height + 2, 0xFFFFFF00);
-        // Right
-        drawRect(posX + width + 1, posY - 2, posX + width + 2, posY + height + 2, 0xFFFFFF00);
+        int outlineColor = selected ? 0xFFFFFF00 : 0xFF888888;
+        // Top border
+        drawRect(posX - 1, posY - 1, posX + width + 1, posY, outlineColor);
+        // Bottom border
+        drawRect(posX - 1, posY + height, posX + width + 1, posY + height + 1, outlineColor);
+        // Left border
+        drawRect(posX - 1, posY - 1, posX, posY + height + 1, outlineColor);
+        // Right border
+        drawRect(posX + width, posY - 1, posX + width + 1, posY + height + 1, outlineColor);
     }
 
     @Override

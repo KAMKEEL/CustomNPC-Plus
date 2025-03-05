@@ -20,7 +20,7 @@ import java.util.List;
  * The toolbar is positioned at the bottom.
  * Custom editing buttons (IDs 101–500) are arranged in a single row at the top.
  * Components are sorted by ID so that higher IDs render on top.
- * A SubGuiEditProperty overlay is used (instead of changing screens) for property editing.
+ * A SubGuiEditProperty overlay is used for property editing.
  */
 public class GuiCustomGuiEditor extends GuiScreen {
     // Full-screen canvas.
@@ -67,28 +67,28 @@ public class GuiCustomGuiEditor extends GuiScreen {
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         drawDefaultBackground();
         // Sort components by ID ascending so that higher IDs render on top.
-        Collections.sort(editorComponents, new Comparator<IEditorComponent>() {
-            @Override
-            public int compare(IEditorComponent o1, IEditorComponent o2) {
-                int id1 = ((AbstractEditorComponent) o1).getID();
-                int id2 = ((AbstractEditorComponent) o2).getID();
-                return Integer.compare(id1, id2);
-            }
-        });
-        for (IEditorComponent comp : editorComponents) {
-            comp.render(mouseX, mouseY, partialTicks);
-        }
         toolBar.render(mouseX, mouseY, partialTicks);
+        super.drawScreen(mouseX, mouseY, partialTicks);
         // If a sub–GUI overlay is open, draw it on top.
         if (subGuiOverlay != null) {
             subGuiOverlay.drawScreen(mouseX, mouseY, partialTicks);
+        } else {
+            Collections.sort(editorComponents, new Comparator<IEditorComponent>() {
+                @Override
+                public int compare(IEditorComponent o1, IEditorComponent o2) {
+                    int id1 = ((AbstractEditorComponent) o1).getID();
+                    int id2 = ((AbstractEditorComponent) o2).getID();
+                    return Integer.compare(id1, id2);
+                }
+            });
+            for (IEditorComponent comp : editorComponents) {
+                comp.render(mouseX, mouseY, partialTicks);
+            }
         }
-        super.drawScreen(mouseX, mouseY, partialTicks);
     }
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // If a sub–GUI overlay is open, forward the click to it.
         if (subGuiOverlay != null) {
             subGuiOverlay.mouseClicked(mouseX, mouseY, mouseButton);
             return;
@@ -146,7 +146,6 @@ public class GuiCustomGuiEditor extends GuiScreen {
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick) {
         if (subGuiOverlay != null) {
-            // Optionally forward dragging events to the overlay.
             subGuiOverlay.mouseClickMove(mouseX, mouseY, mouseButton, timeSinceLastClick);
             return;
         }
@@ -242,6 +241,13 @@ public class GuiCustomGuiEditor extends GuiScreen {
     }
 
     /**
+     * Sets the selected editor component.
+     */
+    public void setSelectedComponent(IEditorComponent comp) {
+        this.selectedComponent = comp;
+    }
+
+    /**
      * Builds a ScriptGui from the editor components, saves it, and closes the editor.
      */
     public void saveAndClose() {
@@ -258,6 +264,7 @@ public class GuiCustomGuiEditor extends GuiScreen {
      * Sets the current sub–GUI overlay (for property editing) and forwards events to it.
      */
     public void setSubGuiOverlay(SubGuiEditProperty overlay) {
+        overlay.initGui();
         this.subGuiOverlay = overlay;
     }
 
