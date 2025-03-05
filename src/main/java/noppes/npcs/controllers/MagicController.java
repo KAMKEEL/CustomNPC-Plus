@@ -73,30 +73,30 @@ public class MagicController {
             } catch (Exception ee) { }
         }
 
-        if (magics.isEmpty()) {
+        if (magics.isEmpty() && cycles.isEmpty()) {
             // Create default magics
-            Magic earth  = new Magic(0, "Earth", 0x00DD00);
+            Magic earth  = new Magic(getUnusedId(), "Earth", 0x00DD00);
             earth.setItem(new ItemStack(CustomItems.earthElement));
 
-            Magic water  = new Magic(1, "Water", 0xF2DD00);
+            Magic water  = new Magic(getUnusedId(), "Water", 0xF2DD00);
             water.setItem(new ItemStack(CustomItems.waterElement));
 
-            Magic fire   = new Magic(2, "Fire", 0xDD0000);
+            Magic fire   = new Magic(getUnusedId(), "Fire", 0xDD0000);
             fire.setItem(new ItemStack(CustomItems.spellFire));
 
-            Magic air    = new Magic(3, "Air", 0xDD0000);
+            Magic air    = new Magic(getUnusedId(), "Air", 0xDD0000);
             air.setItem(new ItemStack(CustomItems.airElement));
 
-            Magic dark   = new Magic(4, "Dark", 0xDD0000);
+            Magic dark   = new Magic(getUnusedId(), "Dark", 0xDD0000);
             dark.setItem(new ItemStack(CustomItems.spellDark));
 
-            Magic holy   = new Magic(5, "Holy", 0xDD0000);
+            Magic holy   = new Magic(getUnusedId(), "Holy", 0xDD0000);
             holy.setItem(new ItemStack(CustomItems.spellHoly));
 
-            Magic nature = new Magic(6, "Nature", 0xDD0000);
+            Magic nature = new Magic(getUnusedId(), "Nature", 0xDD0000);
             nature.setItem(new ItemStack(CustomItems.spellNature));
 
-            Magic arcane = new Magic(7, "Arcane", 0xDD0000);
+            Magic arcane = new Magic(getUnusedId(), "Arcane", 0xDD0000);
             arcane.setItem(new ItemStack(CustomItems.spellArcane));
 
             // Insiders
@@ -130,6 +130,24 @@ public class MagicController {
             magics.put(holy.id, holy);
             magics.put(nature.id, nature);
             magics.put(arcane.id, arcane);
+
+            MagicCycle defaultCycle = new MagicCycle();
+            defaultCycle.id = getUnusedCycleId();
+            defaultCycle.name = "Universal";
+            defaultCycle.displayName = "Elementa Cycle";
+            cycles.put(defaultCycle.id, defaultCycle);
+
+            // Add magic associations using your old index and priority values:
+            addMagicToCycle(earth.id, defaultCycle.id, 1, 1); // Earth: index 1, priority 1
+            addMagicToCycle(water.id, defaultCycle.id, 1, 2); // Water: index 1, priority 2
+            addMagicToCycle(fire.id, defaultCycle.id, 1, 3); // Fire: index 1, priority 3
+            addMagicToCycle(air.id, defaultCycle.id, 1, 0); // Air: index 1, priority 0
+            addMagicToCycle(dark.id, defaultCycle.id, 0, 3); // Dark: index 0, priority 3
+            addMagicToCycle(holy.id, defaultCycle.id, 0, 1); // Holy: index 0, priority 1
+            addMagicToCycle(nature.id, defaultCycle.id, 0, 0); // Nature: index 0, priority 0
+            addMagicToCycle(arcane.id, defaultCycle.id, 0, 2); // Arcane: index 0, priority 2
+
+            saveMagicData();
         }
     }
 
