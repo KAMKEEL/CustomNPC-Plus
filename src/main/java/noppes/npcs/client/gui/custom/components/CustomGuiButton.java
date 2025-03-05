@@ -23,9 +23,9 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
     String label;
     String[] hoverText;
 
-    int color;
-    float alpha;
-    float scale = 1.0F;
+    public int color;
+    public float alpha;
+    public float scale = 1.0F;
 
     public CustomGuiButton(int id, String buttonText, int x, int y) {
         super(id, x, y, buttonText);

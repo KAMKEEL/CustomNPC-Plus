@@ -1,6 +1,7 @@
 package kamkeel.npcs.editorgui;
 
 import noppes.npcs.scripted.gui.ScriptGuiTextField;
+import noppes.npcs.client.gui.custom.components.CustomGuiTextField;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
@@ -8,8 +9,7 @@ import java.util.List;
 
 /**
  * EditorTextFieldComponent wraps a ScriptGuiTextField.
- * Since ScriptGuiTextField only supports width, height, and default text,
- * this editor only provides editing buttons for width, height, and default text.
+ * It renders the actual text field and provides editing buttons for width, height, default text, and ID.
  */
 public class EditorTextFieldComponent extends AbstractEditorComponent {
     private ScriptGuiTextField textFieldComponent;
@@ -17,22 +17,22 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
     public EditorTextFieldComponent(ScriptGuiTextField textField) {
         super(textField.getPosX(), textField.getPosY(), textField.getWidth(), textField.getHeight());
         this.textFieldComponent = textField;
+        this.id = textField.getID();
     }
 
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
-        FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
-        drawRect(posX, posY, posX + width, posY + height, 0xFFFFFFFF);
-        String text = textFieldComponent.getText();
-        if(text != null)
-            fr.drawStringWithShadow(text, posX + 2, posY + (height - 8) / 2, textFieldComponent.getColor());
+        CustomGuiTextField renderField = CustomGuiTextField.fromComponent(textFieldComponent);
+        renderField.xPosition = this.posX;
+        renderField.yPosition = this.posY;
+        renderField.drawTextBox();
         renderSelectionOutline();
     }
 
     @Override
     public boolean mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        if(mouseX >= posX && mouseX <= posX + width &&
-           mouseY >= posY && mouseY <= posY + height) {
+        if(mouseX >= posX && mouseX < posX + width &&
+           mouseY >= posY && mouseY < posY + height) {
             selected = true;
             return true;
         }
@@ -57,12 +57,12 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
 
     @Override
     public void addEditorButtons(List<GuiButton> buttonList) {
-        buttonList.add(new GuiButton(301, 0, 0, 0, 0, "W+"));
-        buttonList.add(new GuiButton(302, 0, 0, 0, 0, "W-"));
-        buttonList.add(new GuiButton(303, 0, 0, 0, 0, "H+"));
-        buttonList.add(new GuiButton(304, 0, 0, 0, 0, "H-"));
-        buttonList.add(new GuiButton(307, 0, 0, 0, 0, "Text"));
-        buttonList.add(new GuiButton(310, 0, 0, 0, 0, "ID"));
+        buttonList.add(new GuiButton(301, 0, 0, 30, 20, "W+"));
+        buttonList.add(new GuiButton(302, 0, 0, 30, 20, "W-"));
+        buttonList.add(new GuiButton(303, 0, 0, 30, 20, "H+"));
+        buttonList.add(new GuiButton(304, 0, 0, 30, 20, "H-"));
+        buttonList.add(new GuiButton(307, 0, 0, 30, 20, "Txt"));
+        buttonList.add(new GuiButton(310, 0, 0, 30, 20, "ID"));
     }
 
     @Override
@@ -85,15 +85,18 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
                 textFieldComponent.setSize(width, height);
                 break;
             case 307:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty(Minecraft.getMinecraft().currentScreen, "Default Text", textFieldComponent.getText(), new IPropertyEditorCallback() {
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Default Text", textFieldComponent.getText(), new IPropertyEditorCallback() {
                     @Override
                     public void propertyUpdated(String newValue) {
                         textFieldComponent.setText(newValue);
                     }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() { }
                 }));
                 break;
             case 310:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty(Minecraft.getMinecraft().currentScreen, "ID", Integer.toString(textFieldComponent.getID()), new IPropertyEditorCallback() {
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("ID", Integer.toString(textFieldComponent.getID()), new IPropertyEditorCallback() {
                     @Override
                     public void propertyUpdated(String newValue) {
                         try {
@@ -101,6 +104,9 @@ public class EditorTextFieldComponent extends AbstractEditorComponent {
                             textFieldComponent.setID(newID);
                         } catch (NumberFormatException e) { }
                     }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() { }
                 }));
                 break;
         }

@@ -3,11 +3,12 @@ package kamkeel.npcs.editorgui;
 import net.minecraft.client.gui.Gui;
 
 /**
- * AbstractEditorComponent provides common position/size fields and a method to draw
- * a yellow selection outline when the component is selected.
+ * AbstractEditorComponent provides common fields and methods for all editor components.
  */
 public abstract class AbstractEditorComponent extends Gui implements IEditorComponent {
-    // These fields are public for easy access.
+    // Store the editor component's ID.
+    protected int id;
+    // Position and size.
     public int posX, posY, width, height;
     protected boolean selected = false;
 
@@ -16,6 +17,13 @@ public abstract class AbstractEditorComponent extends Gui implements IEditorComp
         this.posY = posY;
         this.width = width;
         this.height = height;
+    }
+
+    /**
+     * Returns the ID for this editor component.
+     */
+    public int getID() {
+        return id;
     }
 
     @Override
@@ -29,18 +37,18 @@ public abstract class AbstractEditorComponent extends Gui implements IEditorComp
     }
 
     /**
-     * Draws a 2–pixel thick yellow border if this component is selected.
+     * Draws a 2-pixel thick yellow border if selected.
      */
     protected void renderSelectionOutline() {
         if (!selected)
             return;
-        // Top edge
+        // Top
         drawRect(posX - 2, posY - 2, posX + width + 2, posY - 1, 0xFFFFFF00);
-        // Bottom edge
+        // Bottom
         drawRect(posX - 2, posY + height + 1, posX + width + 2, posY + height + 2, 0xFFFFFF00);
-        // Left edge
+        // Left
         drawRect(posX - 2, posY - 2, posX - 1, posY + height + 2, 0xFFFFFF00);
-        // Right edge
+        // Right
         drawRect(posX + width + 1, posY - 2, posX + width + 2, posY + height + 2, 0xFFFFFF00);
     }
 

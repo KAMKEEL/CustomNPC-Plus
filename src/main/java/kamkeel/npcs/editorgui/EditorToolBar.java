@@ -7,8 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * EditorToolBar renders a toolbar with buttons for adding new components and saving the GUI.
- * Its dimensions are provided by the editor (full-screen canvas).
+ * EditorToolBar renders a toolbar at the bottom with buttons to add components or save the GUI.
  */
 public class EditorToolBar extends Gui {
     private List<GuiButton> buttons = new ArrayList<>();
@@ -33,7 +32,7 @@ public class EditorToolBar extends Gui {
     }
 
     public void render(int mouseX, int mouseY, float partialTicks) {
-        // Optionally, uncomment the background draw.
+        // Optionally draw a background (commented out if undesired).
         // drawRect(x, y, x + width, y + height, 0xAA333333);
         for (GuiButton btn : buttons) {
             btn.drawButton(Minecraft.getMinecraft(), mouseX, mouseY);

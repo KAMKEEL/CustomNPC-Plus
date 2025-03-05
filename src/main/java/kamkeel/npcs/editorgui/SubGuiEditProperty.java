@@ -6,37 +6,50 @@ import net.minecraft.client.gui.GuiTextField;
 import org.lwjgl.input.Keyboard;
 
 /**
- * SubGuiEditProperty is a pop-up for editing a property.
- * It accepts a parent screen and returns to that parent when “Done” is pressed.
+ * SubGuiEditProperty is a modal overlay for editing a single property.
+ * It overlays on top of the current screen rather than switching screens.
+ *
+ * Usage: Pass the property name, the current value (as a string),
+ * an IPropertyEditorCallback to receive the updated value,
+ * and an ISubGuiCallback to notify when the overlay is closed.
  */
 public class SubGuiEditProperty extends GuiScreen {
-    private GuiScreen parent;
-    private IPropertyEditorCallback callback;
+    private ISubGuiCallback subGuiCallback;
+    private IPropertyEditorCallback propCallback;
     private GuiTextField textField;
     private String propertyName;
     private String initialValue;
 
-    public SubGuiEditProperty(GuiScreen parent, String propertyName, String initialValue, IPropertyEditorCallback callback) {
-        this.parent = parent;
+    // Overlay dimensions
+    private int overlayX, overlayY, overlayWidth, overlayHeight;
+
+    /**
+     * Creates a new property editor overlay.
+     * @param propertyName the name of the property being edited
+     * @param initialValue the current value (as String)
+     * @param propCallback callback for when the property is updated
+     * @param subGuiCallback callback for when the overlay closes
+     */
+    public SubGuiEditProperty(String propertyName, String initialValue, IPropertyEditorCallback propCallback, ISubGuiCallback subGuiCallback) {
         this.propertyName = propertyName;
-        // Ensure initialValue is not null
         this.initialValue = (initialValue == null ? "" : initialValue);
-        this.callback = callback;
+        this.propCallback = propCallback;
+        this.subGuiCallback = subGuiCallback;
     }
 
     @Override
     public void initGui() {
         Keyboard.enableRepeatEvents(true);
-        int w = 150;
-        int h = 20;
-        int x = (width - w) / 2;
-        int y = (height - h) / 2;
-        textField = new GuiTextField(fontRendererObj, x, y, w, h);
-        // Ensure the text field is set with a non-null string.
+        overlayWidth = 150;
+        overlayHeight = 20;
+        overlayX = (width - overlayWidth) / 2;
+        overlayY = (height - overlayHeight) / 2;
+        textField = new GuiTextField(fontRendererObj, overlayX, overlayY, overlayWidth, overlayHeight);
         textField.setText(initialValue);
         textField.setFocused(true);
         buttonList.clear();
-        buttonList.add(new GuiButton(0, x, y + h + 5, w, 20, "Done"));
+        // "Done" button below the text field.
+        buttonList.add(new GuiButton(0, overlayX, overlayY + overlayHeight + 5, overlayWidth, 20, "Done"));
     }
 
     @Override
@@ -46,8 +59,9 @@ public class SubGuiEditProperty extends GuiScreen {
 
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-        drawDefaultBackground();
-        drawCenteredString(fontRendererObj, "Edit " + propertyName, width / 2, height / 2 - 40, 0xFFFFFF);
+        // Draw a semi-transparent dark overlay over the whole screen.
+        drawRect(0, 0, width, height, 0x88000000);
+        drawCenteredString(fontRendererObj, "Edit " + propertyName, width / 2, overlayY - 30, 0xFFFFFF);
         textField.drawTextBox();
         super.drawScreen(mouseX, mouseY, partialTicks);
     }
@@ -56,22 +70,39 @@ public class SubGuiEditProperty extends GuiScreen {
     protected void keyTyped(char typedChar, int keyCode) {
         textField.textboxKeyTyped(typedChar, keyCode);
         if (keyCode == Keyboard.KEY_ESCAPE) {
-            mc.displayGuiScreen(parent);
+            closeOverlay();
         }
     }
 
     @Override
     protected void actionPerformed(GuiButton button) {
         if (button.id == 0) {
-            if (callback != null) {
-                callback.propertyUpdated(textField.getText());
+            if (propCallback != null) {
+                propCallback.propertyUpdated(textField.getText());
             }
-            mc.displayGuiScreen(parent);
+            closeOverlay();
         }
     }
 
     @Override
-    public void onGuiClosed() {
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        super.mouseClicked(mouseX, mouseY, mouseButton);
+    }
+
+    @Override
+    public void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+        super.mouseMovedOrUp(mouseX, mouseY, state);
+    }
+
+    @Override
+    public void mouseClickMove(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick) {
+        super.mouseClickMove(mouseX, mouseY, mouseButton, timeSinceLastClick);
+    }
+
+    private void closeOverlay() {
         Keyboard.enableRepeatEvents(false);
+        if (subGuiCallback != null) {
+            subGuiCallback.onSubGuiClosed();
+        }
     }
 }

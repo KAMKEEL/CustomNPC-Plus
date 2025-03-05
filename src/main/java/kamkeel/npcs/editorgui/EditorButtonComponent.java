@@ -1,16 +1,14 @@
 package kamkeel.npcs.editorgui;
 
 import noppes.npcs.scripted.gui.ScriptGuiButton;
+import noppes.npcs.client.gui.custom.components.CustomGuiButton;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiButton;
-import org.lwjgl.input.Mouse;
 import java.util.List;
 
 /**
- * EditorButtonComponent wraps a ScriptGuiButton.
- * It supports dragging and provides custom editing buttons to modify width, height,
- * scale, label text, and the component ID.
+ * EditorButtonComponent wraps a ScriptGuiButton for editing.
  */
 public class EditorButtonComponent extends AbstractEditorComponent {
     private ScriptGuiButton buttonComponent;
@@ -18,15 +16,17 @@ public class EditorButtonComponent extends AbstractEditorComponent {
     public EditorButtonComponent(ScriptGuiButton button) {
         super(button.getPosX(), button.getPosY(), button.getWidth(), button.getHeight());
         this.buttonComponent = button;
+        this.id = button.getID();
     }
 
     @Override
     public void render(int mouseX, int mouseY, float partialTicks) {
-        FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
-        drawRect(posX, posY, posX + width, posY + height, 0xFF888888);
-        String label = buttonComponent.getLabel();
-        if (label != null)
-            fr.drawStringWithShadow(label, posX + (width - fr.getStringWidth(label)) / 2, posY + (height - 8) / 2, buttonComponent.getColor());
+        CustomGuiButton renderBtn = CustomGuiButton.fromComponent(buttonComponent);
+        renderBtn.xPosition = this.posX;
+        renderBtn.yPosition = this.posY;
+        renderBtn.scale = buttonComponent.getScale();
+        renderBtn.alpha = buttonComponent.getAlpha();
+        renderBtn.onRender(Minecraft.getMinecraft(), mouseX, mouseY, 0, partialTicks);
         renderSelectionOutline();
     }
 
@@ -43,7 +43,7 @@ public class EditorButtonComponent extends AbstractEditorComponent {
 
     @Override
     public void mouseDragged(int mouseX, int mouseY, int mouseButton) {
-        if (selected) {
+        if(selected) {
             buttonComponent.setPos(posX, posY);
         }
     }
@@ -58,15 +58,15 @@ public class EditorButtonComponent extends AbstractEditorComponent {
 
     @Override
     public void addEditorButtons(List<GuiButton> buttonList) {
-        // Create custom editing buttons with dummy positions.
-        // The updateCustomButtons() in the editor repositions them to the top row.
-        buttonList.add(new GuiButton(101, 0, 0, 0, 0, "W+"));
-        buttonList.add(new GuiButton(102, 0, 0, 0, 0, "W-"));
-        buttonList.add(new GuiButton(103, 0, 0, 0, 0, "H+"));
-        buttonList.add(new GuiButton(104, 0, 0, 0, 0, "H-"));
-        buttonList.add(new GuiButton(105, 0, 0, 0, 0, "Sc"));
-        buttonList.add(new GuiButton(107, 0, 0, 0, 0, "Lbl"));
-        buttonList.add(new GuiButton(110, 0, 0, 0, 0, "ID"));
+        buttonList.add(new GuiButton(101, 0, 0, 30, 20, "W+"));
+        buttonList.add(new GuiButton(102, 0, 0, 30, 20, "W-"));
+        buttonList.add(new GuiButton(103, 0, 0, 30, 20, "H+"));
+        buttonList.add(new GuiButton(104, 0, 0, 30, 20, "H-"));
+        buttonList.add(new GuiButton(105, 0, 0, 30, 20, "Sc"));
+        buttonList.add(new GuiButton(106, 0, 0, 30, 20, "Al"));
+        buttonList.add(new GuiButton(107, 0, 0, 30, 20, "Rt"));
+        buttonList.add(new GuiButton(108, 0, 0, 30, 20, "Lbl"));
+        buttonList.add(new GuiButton(110, 0, 0, 30, 20, "ID"));
     }
 
     @Override
@@ -89,7 +89,7 @@ public class EditorButtonComponent extends AbstractEditorComponent {
                 buttonComponent.setSize(width, height);
                 break;
             case 105:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty(Minecraft.getMinecraft().currentScreen, "Scale", Float.toString(buttonComponent.getScale()), new IPropertyEditorCallback() {
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Scale", Float.toString(buttonComponent.getScale()), new IPropertyEditorCallback() {
                     @Override
                     public void propertyUpdated(String newValue) {
                         try {
@@ -97,18 +97,54 @@ public class EditorButtonComponent extends AbstractEditorComponent {
                             buttonComponent.setScale(newScale);
                         } catch (NumberFormatException e) { }
                     }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() {
+                        // Return to editor: do nothing extra.
+                    }
+                }));
+                break;
+            case 106:
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Alpha", Float.toString(buttonComponent.getAlpha()), new IPropertyEditorCallback() {
+                    @Override
+                    public void propertyUpdated(String newValue) {
+                        try {
+                            float newAlpha = Float.parseFloat(newValue);
+                            buttonComponent.setAlpha(newAlpha);
+                        } catch (NumberFormatException e) { }
+                    }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() { }
                 }));
                 break;
             case 107:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty(Minecraft.getMinecraft().currentScreen, "Label", buttonComponent.getLabel(), new IPropertyEditorCallback() {
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Rotation", Float.toString(buttonComponent.getRotation()), new IPropertyEditorCallback() {
+                    @Override
+                    public void propertyUpdated(String newValue) {
+                        try {
+                            float newRotation = Float.parseFloat(newValue);
+                            buttonComponent.setRotation(newRotation);
+                        } catch (NumberFormatException e) { }
+                    }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() { }
+                }));
+                break;
+            case 108:
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("Label", buttonComponent.getLabel(), new IPropertyEditorCallback() {
                     @Override
                     public void propertyUpdated(String newValue) {
                         buttonComponent.setLabel(newValue);
                     }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() { }
                 }));
                 break;
             case 110:
-                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty(Minecraft.getMinecraft().currentScreen, "ID", Integer.toString(buttonComponent.getID()), new IPropertyEditorCallback() {
+                Minecraft.getMinecraft().displayGuiScreen(new SubGuiEditProperty("ID", Integer.toString(buttonComponent.getID()), new IPropertyEditorCallback() {
                     @Override
                     public void propertyUpdated(String newValue) {
                         try {
@@ -116,6 +152,9 @@ public class EditorButtonComponent extends AbstractEditorComponent {
                             buttonComponent.setID(newID);
                         } catch (NumberFormatException e) { }
                     }
+                }, new ISubGuiCallback() {
+                    @Override
+                    public void onSubGuiClosed() { }
                 }));
                 break;
         }

@@ -6,8 +6,6 @@ import java.util.List;
 
 /**
  * IEditorComponent defines the methods that all editor wrappers must implement.
- * It handles rendering (with optional editing buttons), mouse events, updating,
- * conversion to the underlying ScriptGui component, and adding custom editor buttons.
  */
 public interface IEditorComponent {
     void render(int mouseX, int mouseY, float partialTicks);
@@ -20,13 +18,12 @@ public interface IEditorComponent {
     boolean isSelected();
 
     /**
-     * Adds custom editing buttons to the provided list.
-     * (IDs 101–500 are reserved for custom editing.)
+     * Add custom editing buttons (IDs 101–500) to the provided list.
      */
     default void addEditorButtons(List<GuiButton> buttonList) { }
 
     /**
-     * Called when a custom editing button is pressed.
+     * Called when one of the custom editing buttons is pressed.
      */
     default void onEditorButtonPressed(GuiButton button) { }
 

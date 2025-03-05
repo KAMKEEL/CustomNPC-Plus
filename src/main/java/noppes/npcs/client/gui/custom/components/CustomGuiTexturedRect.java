@@ -15,20 +15,20 @@ public class CustomGuiTexturedRect extends Gui implements IGuiComponent {
     GuiCustom parent;
 
     ImageData imageData = null;
-    String texture;
-    int id;
-    int x;
-    int y;
-    int width;
-    int height;
-    int textureX;
-    int textureY;
-    float scale;
+    public String texture;
+    public int id;
+    public int x;
+    public int y;
+    public int width;
+    public int height;
+    public int textureX;
+    public int textureY;
+    public float scale;
     String[] hoverText;
 
-    int color;
-    float alpha;
-    float rotation;
+    public int color;
+    public float alpha;
+    public float rotation;
 
     public CustomGuiTexturedRect(int id, String texture, int x, int y, int width, int height) {
         this(id, texture, x, y, width, height, 0, 0);

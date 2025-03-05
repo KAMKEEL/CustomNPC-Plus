@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class CustomGuiLabel extends Gui implements IGuiComponent {
-    int x, y, width, height;
+    public int x, y, width, height;
     GuiCustom parent;
     String fullLabel;
     String[] hoverText;
@@ -30,9 +30,9 @@ public class CustomGuiLabel extends Gui implements IGuiComponent {
     boolean labelBgEnabled = true;
     boolean labelShadowEnabled = false;
 
-    int color;
-    float alpha;
-    float rotation;
+    public int color;
+    public float alpha;
+    public float rotation;
 
     protected int field_146167_a;
     protected int field_146161_f;
