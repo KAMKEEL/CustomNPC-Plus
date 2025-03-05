@@ -28,4 +28,8 @@ public enum EnumDiagramLayout {
 
         return list.toArray(new String[list.size()]);
     }
+
+    public boolean isManual(){
+        return this == CIRCULAR_MANUAL || this == SQUARE_MANUAL || this == TREE_MANUAL;
+    }
 }

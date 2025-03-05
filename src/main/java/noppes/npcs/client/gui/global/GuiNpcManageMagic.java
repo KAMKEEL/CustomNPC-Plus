@@ -9,6 +9,7 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.*;
 import noppes.npcs.client.gui.SubGuiMagicCycle;
 import noppes.npcs.client.gui.SubGuiMagic;
+import noppes.npcs.client.gui.SubGuiMagicCycleViewer;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Magic;
@@ -107,6 +108,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             addButton(new GuiNpcButton(4, guiLeft + 3, guiTop + 38, 58, 20, "gui.add"));
             addButton(new GuiNpcButton(5, guiLeft + 3, guiTop + 61, 58, 20, "gui.remove"));
             addButton(new GuiNpcButton(6, guiLeft + 3, guiTop + 94, 58, 20, "gui.edit"));
+            addButton(new GuiNpcButton(20, guiLeft + 3, guiTop + 117, 58, 20, "gui.view"));
 
             // Right side magic management buttons.
             addButton(new GuiNpcButton(33, guiLeft + 358, guiTop + 8, 58, 20, "menu.magics"));
@@ -223,6 +225,10 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             button.enabled = selectedCycle != null;
         }
 
+        button = getButton(20);
+        if(button != null){
+            button.enabled = selectedCycle != null;
+        }
 
         if(getLabel(201) != null){
             if(selectedCycle != null){
@@ -409,6 +415,11 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             case 2: // Edit Magic.
                 if (selectedMagic != null) {
                     setSubGui(new SubGuiMagic(this, selectedMagic));
+                }
+                break;
+            case 20:
+                if (selectedCycle != null) {
+                    setSubGui(new SubGuiMagicCycleViewer(selectedCycle));
                 }
                 break;
         }

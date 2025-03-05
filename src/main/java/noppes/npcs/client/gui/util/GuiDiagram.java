@@ -4,9 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.entity.RenderItem;
 import noppes.npcs.constants.EnumDiagramLayout;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import java.awt.*;
 import java.util.List;
@@ -32,6 +35,8 @@ import java.util.*;
  * </ul>
  */
 public abstract class GuiDiagram extends Gui {
+
+    protected RenderItem renderItem = new RenderItem();
 
     // --- Diagram Area & Controls ---
     protected int x, y, width, height;         // Drawing area for the diagram
@@ -179,7 +184,7 @@ public abstract class GuiDiagram extends Gui {
         Map<Integer, Point> positions = new HashMap<>();
         int count = icons.size();
         int centerX = x + width/2, centerY = y + height/2;
-        int radius = Math.min(width, height)/2 - iconSize - 10;
+        int radius = Math.min(width, height)/2 - (int)(0.8 * slotSize);
         for (int i = 0; i < count; i++) {
             double angle = 2 * Math.PI * i / count;
             int posX = centerX + (int)(radius * Math.cos(angle));
@@ -1248,7 +1253,7 @@ public abstract class GuiDiagram extends Gui {
     /**
      * Override to render tooltips.
      */
-    protected void drawHoveringText(List<String> text, int mouseX, int mouseY, FontRenderer fontRenderer) {}
+    protected void drawHoveringText(List<String> textLines, int mouseX, int mouseY, FontRenderer font) {}
 
     // --- Flag Setters ---
     public void setShowArrowHeads(boolean showArrowHeads) {
@@ -1262,31 +1267,21 @@ public abstract class GuiDiagram extends Gui {
     /**
      * Called when an icon is clicked.
      */
-    protected void onIconClick(DiagramIcon icon) {
-        System.out.println("Icon " + icon.id + " clicked.");
-    }
+    protected void onIconClick(DiagramIcon icon) {}
     /**
      * Called when an icon is held.
      */
-    protected void onIconHeld(DiagramIcon icon) {
-        System.out.println("Icon " + icon.id + " held.");
-    }
+    protected void onIconHeld(DiagramIcon icon) {}
     /**
      * Called when an icon is released.
      */
-    protected void onIconRelease(DiagramIcon icon) {
-        System.out.println("Icon " + icon.id + " released.");
-    }
+    protected void onIconRelease(DiagramIcon icon) {}
     /**
      * Called when an icon is hovered over.
      */
-    protected void onIconHover(DiagramIcon icon) {
-        // Override to handle icon hovering events.
-    }
+    protected void onIconHover(DiagramIcon icon) {}
     /**
      * Called when a connection is hovered over.
      */
-    protected void onConnectionHover(DiagramConnection conn) {
-        // Override to handle connection hovering events.
-    }
+    protected void onConnectionHover(DiagramConnection conn) {}
 }
