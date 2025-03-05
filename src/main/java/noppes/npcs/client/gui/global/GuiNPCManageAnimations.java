@@ -40,6 +40,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         this.setSave(save);
         this.xOffset = -148 + 70;
         this.yOffset = -170 + 137;
+        maxZoom = 120;
         PacketClient.sendClient(new AnimationsGetPacket());
 
         AnimationData data = npc.display.animationData;
@@ -106,9 +107,9 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3)
+    public void drawScreen(int par1, int par2, float partialTicks)
     {
-        super.drawScreen(par1,par2,par3);
+        super.drawScreen(par1,par2, partialTicks);
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -280,5 +281,21 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
                 initGui();
             }
         }
+    }
+
+    public boolean isMouseOverRenderer(int x, int y) {
+        if (!allowRotate) {
+            return false;
+        }
+        // Center of the entity rendering
+        int centerX = guiLeft + 190 + xOffset; // Matches l in drawScreen()
+        int centerY = guiTop + 130 + yOffset; // Matches i1 in drawScreen()
+
+        // Define separate buffers for X and Y axes
+        int xBuffer = 100; // Horizontal buffer
+        int yBuffer = 90; // Vertical buffer
+
+        // Check if the mouse is within the buffer area
+        return mouseX >= centerX - xBuffer && mouseX <= centerX + xBuffer && mouseY >= centerY - yBuffer && mouseY <= centerY + yBuffer;
     }
 }

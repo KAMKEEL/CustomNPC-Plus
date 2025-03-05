@@ -21,7 +21,7 @@ public class GuiModelInterface extends GuiNPCInterface {
     private GuiNpcButton left, right, zoom, unzoom;
 
     private static float zoomed = 60;
-    public float minSize = 10, maxSize = 100;
+    public float minZoom = 10, maxZoom = 100;
 
     public int xOffset = 0, xOffsetButton = 0;
     public int yOffset = 0, yOffsetButton = 0;
@@ -104,9 +104,9 @@ public class GuiModelInterface extends GuiNPCInterface {
                 rotation += par3 * 1.5F;
             } else if (this.right.mousePressed(this.mc, par1, par2)) {
                 rotation -= par3 * 1.5F;
-            } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxSize) {
+            } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxZoom) {
                 zoomed += par3 * 1.0F;
-            } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minSize) {
+            } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minZoom) {
                 zoomed -= par3 * 1.0F;
             }
         }
@@ -118,10 +118,10 @@ public class GuiModelInterface extends GuiNPCInterface {
             }
         }
 
-        if (zoomed > maxSize)
-            zoomed = maxSize;
-        if (zoomed < minSize)
-            zoomed = minSize;
+        if (zoomed > maxZoom)
+            zoomed = maxZoom;
+        if (zoomed < minZoom)
+            zoomed = minZoom;
 
         if (hasSubGui() && !drawNPConSub)
             return;

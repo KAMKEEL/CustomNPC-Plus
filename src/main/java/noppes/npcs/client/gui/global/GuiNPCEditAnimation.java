@@ -48,6 +48,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         this.followMouse = false;
         xOffset = 0;
         yOffset = -21;
+        maxZoom = 120;
 
         this.animation = animation;
         AnimationData data = npc.display.animationData;
