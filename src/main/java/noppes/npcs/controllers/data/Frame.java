@@ -34,6 +34,18 @@ public class Frame implements IFrame {
         this.customized = true;
     }
 
+    public int getStartTick() {
+        int time = 0;
+        for (int i = 0; i < parent.frames.size(); i++) {
+            Frame f = parent.frames.get(i);
+            if (f == this)
+                break;
+
+            time += f.getDuration();
+        }
+        return time;
+    }
+
     public void setParent(Animation parent) {
         this.parent = parent;
     }

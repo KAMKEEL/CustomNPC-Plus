@@ -13,6 +13,7 @@ import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
 
+
 public class Animation implements IAnimation {
     public AnimationData parent; //Client-sided only
     public int id = -1; // Only for internal usage
@@ -50,6 +51,14 @@ public class Animation implements IAnimation {
 
     public IAnimationData getParent() {
         return this.parent;
+    }
+
+    public boolean hasFrame(int index) {
+        return index >= 0 && index < frames.size();
+    }
+
+    public IFrame getFrame(int index) {
+        return hasFrame(index) ? frames.get(index) : null;
     }
 
     public IFrame currentFrame() {
@@ -235,6 +244,18 @@ public class Animation implements IAnimation {
         compound.setInteger("CurrentFrame", currentFrame);
         compound.setInteger("CurrentFrameTime", currentFrameTime);
         return compound;
+    }
+
+    public int getCurrentTick() {
+        int time = 0;
+        for (int i = 0; i < this.frames.size(); i++) {
+            if (i >= this.currentFrame) {
+                break;
+            }
+            time += this.frames.get(i).getDuration();
+        }
+        time += this.currentFrameTime;
+        return time;
     }
 
     public boolean increaseTime() {

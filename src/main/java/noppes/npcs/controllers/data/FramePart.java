@@ -6,9 +6,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.util.Ease;
+import noppes.npcs.util.ValueUtil;
 
 public class FramePart implements IFramePart {
-    private Animation parent;
+    public Animation parent;
     public EnumAnimationPart part;
     public float[] rotation = {0, 0, 0};
     public float[] pivot = {0, 0, 0};
@@ -171,30 +173,70 @@ public class FramePart implements IFramePart {
             return;
 
         float pi = (float) Math.PI / 180;
-        if (this.smooth == 2) {
-            this.prevRotations[0] = this.rotation[0] * pi;
-            this.prevRotations[1] = this.rotation[1] * pi;
-            this.prevRotations[2] = this.rotation[2] * pi;
-        } else if (this.partialRotationTick != ClientEventHandler.partialRenderTick) {
+        if (this.partialRotationTick != ClientEventHandler.partialRenderTick) {
             this.partialRotationTick = ClientEventHandler.partialRenderTick;
-            if (this.smooth == 0) {
-                this.prevRotations[0] = (this.rotation[0] * pi - this.prevRotations[0]) * Math.abs(this.speed) / 10f + this.prevRotations[0];
-                this.prevRotations[1] = (this.rotation[1] * pi - this.prevRotations[1]) * Math.abs(this.speed) / 10f + this.prevRotations[1];
-                this.prevRotations[2] = (this.rotation[2] * pi - this.prevRotations[2]) * Math.abs(this.speed) / 10f + this.prevRotations[2];
-            } else {
-                int directionX = Float.compare(this.rotation[0] * pi, this.prevRotations[0]);
-                this.prevRotations[0] += directionX * this.speed / 10f;
-                this.prevRotations[0] = directionX == 1 ? Math.min(this.rotation[0] * pi, this.prevRotations[0]) : Math.max(this.rotation[0] * pi, this.prevRotations[0]);
-                int directionY = Float.compare(this.rotation[1] * pi, this.prevRotations[1]);
-                this.prevRotations[1] += directionY * this.speed / 10f;
-                this.prevRotations[1] = directionY == 1 ? Math.min(this.rotation[1] * pi, this.prevRotations[1]) : Math.max(this.rotation[1] * pi, this.prevRotations[1]);
-                int directionZ = Float.compare(this.rotation[2] * pi, this.prevRotations[2]);
-                this.prevRotations[2] += directionZ * this.speed / 10f;
-                this.prevRotations[2] = directionZ == 1 ? Math.min(this.rotation[2] * pi, this.prevRotations[2]) : Math.max(this.rotation[2] * pi, this.prevRotations[2]);
+            boolean newLogic = true;
+            if (newLogic && parent != null) {
+                Frame next = (Frame) parent.getFrame(parent.currentFrame + 1);
+                if (next != null) {
+                    FramePart nextPart = next.frameParts.get(part);
+                    if (nextPart != null) {
+                        float value = Ease.OUTQUINT.apply(getInterpolationValue());
+                        this.prevRotations[0] = ValueUtil.lerp(this.rotation[0] * pi, nextPart.rotation[0] * pi, value);
+                        this.prevRotations[1] = ValueUtil.lerp(this.rotation[1] * pi, nextPart.rotation[1] * pi, value);
+                        this.prevRotations[2] = ValueUtil.lerp(this.rotation[2] * pi, nextPart.rotation[2] * pi, value);
+                    }
+                }
+            } else { /**
+             * Smoothing 0 - Interpolated => equivalent to {@link Ease#INSINE}
+             */
+                float value = Math.abs(speed) / 20f;
+                this.prevRotations[0] = ValueUtil.lerp(this.prevRotations[0], this.rotation[0] * pi, value);
+                this.prevRotations[1] = ValueUtil.lerp(this.prevRotations[1], this.rotation[1] * pi, value);
+                this.prevRotations[2] = ValueUtil.lerp(this.prevRotations[2], this.rotation[2] * pi, value);
             }
         }
     }
 
+    public float getInterpolationValue() { // a 0-1 that lerps between currentFrame startTick and nextFrame startTick
+        float currentTick = parent.getCurrentTick();
+        if (currentTick == 0)
+            return 0;
+
+        Frame current = parent.frames.get(parent.currentFrame);
+        float partialTicks = parent.paused ? 0 : partialRotationTick;
+        currentTick += partialTicks;
+        float ratio = (currentTick - current.getStartTick()) / current.duration; //
+
+        System.out.println("currentTick " + currentTick + ", interp_value " + ratio);
+        return ratio;
+    }
+
+    /**
+     * Smoothing 2 - None => equivalent to {@link Ease#CONSTANT}
+     */
+    public void constant() {
+        float pi = (float) Math.PI / 180;
+        this.prevRotations[0] = this.rotation[0] * pi;
+        this.prevRotations[1] = this.rotation[1] * pi;
+        this.prevRotations[2] = this.rotation[2] * pi;
+    }
+
+    /**
+     * Smoothing 1 - Linear => equivalent to {@link Ease#LINEAR}
+     */
+    public void linear() {
+        float pi = (float) Math.PI / 180;
+        int directionX = Float.compare(this.rotation[0] * pi, this.prevRotations[0]);
+        this.prevRotations[0] += directionX * this.speed / 10f;
+        this.prevRotations[0] = directionX == 1 ? Math.min(this.rotation[0] * pi, this.prevRotations[0]) : Math.max(this.rotation[0] * pi, this.prevRotations[0]);
+        int directionY = Float.compare(this.rotation[1] * pi, this.prevRotations[1]);
+        this.prevRotations[1] += directionY * this.speed / 10f;
+        this.prevRotations[1] = directionY == 1 ? Math.min(this.rotation[1] * pi, this.prevRotations[1]) : Math.max(this.rotation[1] * pi, this.prevRotations[1]);
+        int directionZ = Float.compare(this.rotation[2] * pi, this.prevRotations[2]);
+        this.prevRotations[2] += directionZ * this.speed / 10f;
+        this.prevRotations[2] = directionZ == 1 ? Math.min(this.rotation[2] * pi, this.prevRotations[2]) : Math.max(this.rotation[2] * pi, this.prevRotations[2]);
+    }
     @SideOnly(Side.CLIENT)
     public void interpolateOffset() {
         if (parent != null && parent.paused)
