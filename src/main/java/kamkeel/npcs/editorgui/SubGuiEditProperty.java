@@ -121,6 +121,9 @@ public class SubGuiEditProperty extends GuiScreen {
 
     public void closeOverlay() {
         Keyboard.enableRepeatEvents(false);
+        if(textField != null) {
+            textField.setFocused(false);
+        }
         if (subGuiCallback != null) {
             subGuiCallback.onSubGuiClosed();
         }
