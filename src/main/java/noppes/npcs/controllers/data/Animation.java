@@ -13,7 +13,6 @@ import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
 
-
 public class Animation implements IAnimation {
     public AnimationData parent; //Client-sided only
     public int id = -1; // Only for internal usage
@@ -36,12 +35,12 @@ public class Animation implements IAnimation {
 
     public Animation(){}
 
-    public Animation(int id, String name){
+    public Animation(int id, String name) {
         this.name = name;
         this.id = id;
     }
 
-    public Animation(int id, String name, float speed, byte smooth){
+    public Animation(int id, String name, float speed, byte smooth) {
         this.name = name;
         this.speed = speed;
         this.smooth = smooth;
@@ -75,15 +74,24 @@ public class Animation implements IAnimation {
     }
 
     public IAnimation addFrame(IFrame frame) {
-        this.frames.add((Frame) frame);
-        return this;
+        return addFrame((Frame) frame);
     }
 
     public IAnimation addFrame(int index, IFrame frame) {
-        this.frames.add(index, (Frame) frame);
+        return addFrame(index, (Frame) frame);
+    }
+
+    public IAnimation addFrame(Frame frame) {
+        frame.setParent(this);
+        this.frames.add(frame);
         return this;
     }
 
+    public IAnimation addFrame(int index, Frame frame) {
+        frame.setParent(this);
+        this.frames.add(index, frame);
+        return this;
+    }
     public IAnimation removeFrame(IFrame frame) {
         this.frames.remove((Frame) frame);
         return this;
@@ -174,11 +182,10 @@ public class Animation implements IAnimation {
         return time;
     }
 
-    public void readFromNBT(NBTTagCompound compound){
-        if(compound.hasKey("ID")){
+    public void readFromNBT(NBTTagCompound compound) {
+        if (compound.hasKey("ID")) {
             id = compound.getInteger("ID");
-        }
-        else if (AnimationController.Instance != null) {
+        } else if (AnimationController.Instance != null) {
             id = AnimationController.Instance.getUnusedId();
         }
 
@@ -192,8 +199,8 @@ public class Animation implements IAnimation {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound item = list.getCompoundTagAt(i);
             Frame frame = new Frame();
-            frame.parent = this;
             frame.readFromNBT(item);
+            frame.setParent(this);
             frames.add(frame);
         }
         this.frames = frames;
@@ -206,16 +213,16 @@ public class Animation implements IAnimation {
         this.currentFrameTime = compound.getInteger("CurrentFrameTime");
     }
 
-    public NBTTagCompound writeToNBT(){
+    public NBTTagCompound writeToNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("ID", id);
         compound.setString("Name", name);
         compound.setFloat("Speed", speed);
         compound.setByte("Smooth", smooth);
-        compound.setInteger("Loop",loop);
+        compound.setInteger("Loop", loop);
 
         NBTTagList list = new NBTTagList();
-        for(Frame frame : frames){
+        for (Frame frame : frames) {
             NBTTagCompound item = frame.writeToNBT();
             list.appendTag(item);
         }
@@ -284,9 +291,9 @@ public class Animation implements IAnimation {
         this.currentFrameTime = time;
 
         Frame frame = (Frame) this.currentFrame();
-        if(frame != null){
+        if (frame != null) {
             for (EnumAnimationPart part : EnumAnimationPart.values()) {
-                if(part != null){
+                if (part != null) {
                     if (frame.frameParts.containsKey(part)) {
                         frame.frameParts.get(part).jumpToCurrentFrame();
                     }

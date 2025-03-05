@@ -68,7 +68,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     public void initGui() {
         super.initGui();
 
-        if (animation == null) return;
+        if (animation == null)
+            return;
 
         frameIndex = !animation.frames.isEmpty() ? frameIndex % animation.frames.size() : 0;
         this.updateSliders();
@@ -98,20 +99,18 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             data.animation.smooth = animation.smooth;
             data.animation.loop = 0;
             if (editingFrame != null) {
-                data.animation.frames.add(editingFrame);
+                data.animation.addFrame(editingFrame);
             }
         }
 
 
         for (Frame frame : animation.frames) {
-            frame.parent = animation;
             if (!frame.isCustomized()) {
                 frame.speed = animation.speed;
                 frame.smooth = animation.smooth;
             }
             for (Map.Entry<EnumAnimationPart, FramePart> entry : frame.frameParts.entrySet()) {
                 FramePart part = entry.getValue();
-                part.parent = animation;
                 if (!part.isCustomized()) {
                     part.speed = frame.speed;
                     part.smooth = frame.smooth;
@@ -280,8 +279,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                         this.addLabel(new GuiNpcLabel(90, "X", guiLeft + bodyPartX - 10, guiTop + bodyPartY + 112, 0xFFFFFF));
                         this.addLabel(new GuiNpcLabel(91, "Y", guiLeft + bodyPartX - 10, guiTop + bodyPartY + 135, 0xFFFFFF));
                         this.addLabel(new GuiNpcLabel(92, "Z", guiLeft + bodyPartX - 10, guiTop + bodyPartY + 157, 0xFFFFFF));
-                    }
-                    else {
+                    } else {
                         for (int i = 0; i < 3; i++) {
                             this.pivotSliders[i].width = 122;
                             this.pivotSliders[i].height = 20;
@@ -362,7 +360,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     private void updateSliders() {
         FramePart part = this.editingPart();
-        if (part == null) return;
+        if (part == null)
+            return;
 
         float[] rotations = part.getRotations();
         float[] pivots = part.getPivots();
@@ -423,9 +422,9 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             updateFrameSlider();
         } else if (guibutton.id == 13 && editingFrame != null) {
             if (frameIndex < animation.frames.size() - 1) {
-                animation.frames.add(frameIndex + 1, editingFrame.copy());
+                animation.addFrame(frameIndex + 1, editingFrame.copy());
             } else {
-                animation.frames.add(editingFrame.copy());
+                animation.addFrame(editingFrame.copy());
             }
             this.frameIndex = frameIndex + 1;
             updateFrameSlider();
@@ -517,18 +516,17 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     private void addFrame(Frame frame) {
         if (frameIndex < animation.frames.size() - 1) {
-            animation.frames.add(frameIndex + 1, frame);
+            animation.addFrame(frameIndex + 1, frame);
         } else {
-            animation.frames.add(frame);
+            animation.addFrame(frame);
         }
         this.frameIndex = frameIndex + 1;
         updateFrameSlider();
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3)
-    {
-        super.drawScreen(par1,par2,par3);
+    public void drawScreen(int par1, int par2, float par3) {
+        super.drawScreen(par1, par2, par3);
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -583,7 +581,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             animation.name = text.replaceAll("[^a-zA-Z0-9_-]", "_");
         } else if (textfield.id == 15 && animation != null && animation.frames.size() > 0) {
             animation.frames.remove(frameIndex);
-            animation.frames.add(textfield.getInteger(), frame);
+            animation.addFrame(textfield.getInteger(), frame);
             frameIndex = textfield.getInteger();
             overrideFrame = true;
             initGui();
@@ -679,7 +677,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 case 47:
                     if (copiedFrame != null) {
                         Frame frame = new Frame(10);
-                        frame.parent = this.animation;
                         frame.readFromNBT(copiedFrame.writeToNBT());
                         this.addFrame(frame);
                         this.initGui();
