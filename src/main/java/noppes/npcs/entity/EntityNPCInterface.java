@@ -248,6 +248,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public boolean attackEntityAsMob(Entity receiver) {
         float f = stats.getAttackStrength();
 
+        if (receiver instanceof EntityPlayer && !isRemote())
+            f = AttributeAttackUtil.calculateDamageNPCtoPlayer(this, (EntityPlayer) receiver, f);
+
         if (stats.attackSpeed < 10) {
             receiver.hurtResistantTime = 0;
         }
