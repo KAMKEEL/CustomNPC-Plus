@@ -1,3 +1,5 @@
+TODO List
+
 Magic:
 - Create MagicData Class
 -- Magic Data: Magic ID, % Split, Bonus Damage
@@ -5,10 +7,14 @@ Magic:
 - Store Magic on PlayerData and NPCs
 
 Profile:
-- On Profile Change Event
-- On Profile Create Event
-- On Profile Delete Event
-
+- On Profile Slot Change Event
+- On Profile Slot Create Event
+- On Profile Slot Delete Event
 
 ScriptPlayer and ScriptNPC
 -- Apply, Removing and Checking Magic Types
+
+Interfaces:
+- IMagic
+- IProfile
+- ISlot
