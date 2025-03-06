@@ -1,0 +1,14 @@
+Magic:
+- Create MagicData Class
+-- Magic Data: Magic ID, % Split, Bonus Damage
+
+- Store Magic on PlayerData and NPCs
+
+Profile:
+- On Profile Change Event
+- On Profile Create Event
+- On Profile Delete Event
+
+
+ScriptPlayer and ScriptNPC
+-- Apply, Removing and Checking Magic Types
