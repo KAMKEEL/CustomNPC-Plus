@@ -31,13 +31,13 @@ public class JobHealer extends JobInterface{
 		speed = nbttagcompound.getInteger("HealerSpeed");
 	}
 	private List<EntityLivingBase> toHeal = new ArrayList<EntityLivingBase>();
-
+  
 	public boolean aiShouldExecute() {
 		healTicks++;
 		if (healTicks < speed * 10)
 			return false;
 
-		for(Object plObj:  npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(range, range/2, range))){
+		for(Object plObj:  npc.worldObj.getEntitiesWithinAABB(EntityLivingBase.class, npc.boundingBox.expand(range, range/2.0, range))){
 			EntityLivingBase entity = (EntityLivingBase) plObj;
 
 			if(entity instanceof EntityPlayer){

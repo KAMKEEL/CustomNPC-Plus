@@ -120,7 +120,7 @@ public class LinkedNpcController {
 		}
 		else{
 			npc.linkedData = data;
-			if(npc.posX == 0 && npc.posY == 0 && npc.posX == 0)
+			if(npc.posX == 0 && npc.posY == 0 && npc.posZ == 0)
 				return;
 			npc.linkedLast = data.time;
 			List<int[]> points = npc.ais.getMovingPath();
@@ -137,7 +137,6 @@ public class LinkedNpcController {
 			npc.ais.readToNBT(compound);
 			npc.transform.readToNBT(compound);
 			npc.ais.setMovingPath(points);
-
 			npc.updateClient = true;
 		}
 	}

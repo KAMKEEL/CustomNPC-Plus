@@ -345,7 +345,6 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         public final IDialog dialogObj;
 
         public final int dialog;
-        public final int option;
 
         public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
@@ -355,7 +354,6 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
             this.dialogObj = dialog;
 
             this.dialog = id;
-            this.option = optionId;
         }
 
         public String getHookName() {
@@ -375,7 +373,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         }
 
         public int getOptionId() {
-            return option;
+            return optionId;
         }
 
         /**

@@ -65,7 +65,7 @@ public class EventGuiScriptList extends SubGuiInterface{
             if(scroll1.hasSelected()){
                 container.scripts.add(scroll1.getSelected());
                 scroll1.selected = -1;
-                scroll1.selected = -1;
+                scroll2.selected = -1;
                 initGui();
             }
         }
@@ -82,13 +82,13 @@ public class EventGuiScriptList extends SubGuiInterface{
                 container.scripts.add(script);
             }
             scroll1.selected = -1;
-            scroll1.selected = -1;
+            scroll2.selected = -1;
             initGui();
         }
         if(button.id == 4){
             container.scripts.clear();
             scroll1.selected = -1;
-            scroll1.selected = -1;
+            scroll2.selected = -1;
             initGui();
         }
         if(button.id == 66){

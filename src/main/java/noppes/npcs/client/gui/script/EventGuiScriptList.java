@@ -65,7 +65,7 @@ public class EventGuiScriptList extends SubGuiInterface {
         if(button.id == 1 && this.scroll1.hasSelected()) {
             this.container.scripts.add(this.scroll1.getSelected());
             this.scroll1.selected = -1;
-            this.scroll1.selected = -1;
+            this.scroll2.selected = -1;
             this.initGui();
         }
 
@@ -85,14 +85,14 @@ public class EventGuiScriptList extends SubGuiInterface {
             }
 
             this.scroll1.selected = -1;
-            this.scroll1.selected = -1;
+            this.scroll2.selected = -1;
             this.initGui();
         }
 
         if(button.id == 4) {
             this.container.scripts.clear();
             this.scroll1.selected = -1;
-            this.scroll1.selected = -1;
+            this.scroll2.selected = -1;
             this.initGui();
         }
 
