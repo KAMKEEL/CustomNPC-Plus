@@ -130,7 +130,7 @@ public class AttributeAttackUtil {
         }
 
         AllocationResult result = allocateMagicDamage(physicalDamage, attackerData.magicData.getMagics());
-        float leftover = result.leftover;
+        float leftover = applyNeutral(result.leftover, attacker);
         addAttributeMagicDamage(result.allocation, attacker.magicDamage, attacker.magicBoost);
 
         MagicController magicController = MagicController.getInstance();
@@ -158,7 +158,7 @@ public class AttributeAttackUtil {
         }
 
         AllocationResult result = allocateMagicDamage(physicalDamage, attackerData.magicData.getMagics());
-        float leftover = result.leftover;
+        float leftover = applyNeutral(result.leftover, attacker);
 
         addAttributeMagicDamage(result.allocation, attacker.magicDamage, attacker.magicBoost);
 
@@ -183,6 +183,15 @@ public class AttributeAttackUtil {
                 damage = (damage * 2) + critBonus;
         }
         return damage;
+    }
+
+    public static float applyNeutral(float leftover, PlayerAttributeTracker tracker){
+        if (ConfigMain.AttributesEnabled) {
+            float neutralDamage = tracker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
+            float neutralBoost = tracker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST);
+            leftover += neutralDamage * (1 + (neutralBoost / 100));
+        }
+        return leftover;
     }
 
     /**
