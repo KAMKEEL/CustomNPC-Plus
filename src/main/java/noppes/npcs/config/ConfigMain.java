@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Level;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ConfigMain
@@ -87,6 +88,7 @@ public class ConfigMain
      *  Attribute Properties
      **/
     public static boolean AttributesEnabled = true;
+    public static int AttributesCriticalBoost = 100;
 
     /**
      *  Profile Properties
@@ -100,6 +102,7 @@ public class ConfigMain
 
     public static Property RestrictedProfileRegionsProperty;
     public static List<List<Integer>> RestrictedProfileRegions = new ArrayList<>();
+
 
     /**
      *  General NPC Properties
@@ -260,6 +263,14 @@ public class ConfigMain
                 }
                 RestrictedProfileRegions.add(regionList);
             }
+
+            config.setCategoryPropertyOrder(ATTRIBUTES, new ArrayList<>(Arrays.asList(new String[]{
+                "Enable Attributes",
+                "Critical Amount"
+            })));
+            // Attributes
+            AttributesEnabled = config.get(ATTRIBUTES, "Enable Attributes", true, "Allows Attributes to be applied to Items and Armors").getBoolean(true);
+            AttributesCriticalBoost = config.get(ATTRIBUTES, "Critical Amount", 100, "The boost in damage received by achieving a critical hit. Takes an number so 100 is 100% extra damage").getInt(100);
 
             // Convert to Legacy
             if(CustomNpcs.legacyExist){

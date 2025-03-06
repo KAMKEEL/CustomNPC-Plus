@@ -164,7 +164,7 @@ public class AttributeAttackUtil {
             float critChance = tracker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
             float critBonus = tracker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
             if (random.nextFloat() < (critChance / 100))
-                damage = (damage * 2) + critBonus;
+                damage = (damage * (1 + (float) ConfigMain.AttributesCriticalBoost / 100)) + critBonus;
         }
         return damage;
     }
