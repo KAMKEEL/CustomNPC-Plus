@@ -79,6 +79,11 @@ public class NoppesUtil {
 	}
 
 	public static void openFolder(File dir){
+        if (dir == null || !dir.exists() || !dir.isDirectory()) {
+            // Log an error or simply return if there's nothing to open
+            return;
+        }
+
         String s = dir.getAbsolutePath();
 
         if (Util.getOSType() == Util.EnumOS.OSX)
