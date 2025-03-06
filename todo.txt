@@ -1,10 +1,10 @@
 TODO List
 
 Magic:
-- Create MagicData Class
+- Create MagicData Class -- Done
 -- Magic Data: Magic ID, % Split, Bonus Damage
 
-- Store Magic on PlayerData and NPCs
+- Store Magic on PlayerData and NPCs -- Done
 
 Profile:
 - On Profile Slot Change Event
@@ -16,5 +16,5 @@ ScriptPlayer and ScriptNPC
 
 Interfaces:
 - IMagic
-- IProfile
-- ISlot
+- IProfile -- Need Work
+- ISlot -- Done
