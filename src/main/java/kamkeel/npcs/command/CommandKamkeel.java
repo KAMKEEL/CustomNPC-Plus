@@ -15,6 +15,8 @@ import noppes.npcs.scripted.CustomNPCsException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static kamkeel.npcs.command.EffectCommand.getSortedEffectNames;
+
 public class CommandKamkeel extends CommandBase{
 
     public Map<String, CommandKamkeelBase> map = new HashMap<String, CommandKamkeelBase>();
@@ -123,6 +125,9 @@ public class CommandKamkeel extends CommandBase{
                 } else if (usage.equals("<requirement>")) {
                     List<String> keys = new ArrayList<>(RequirementCheckerRegistry.getAllKeys());
                     return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
+                } else if(usage.equals("<effectName>")){
+                    List<String> keys = getSortedEffectNames();
+                    return CommandBase.getListOfStringsMatchingLastWord(args, keys.toArray(new String[keys.size()]));
                 }
             }
         }
@@ -163,5 +168,6 @@ public class CommandKamkeel extends CommandBase{
 
         return false;
     }
+
 }
 
