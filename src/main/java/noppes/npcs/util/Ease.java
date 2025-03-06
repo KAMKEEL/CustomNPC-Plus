@@ -1,28 +1,29 @@
 package noppes.npcs.util;
 
 public enum Ease {
-    LINEAR(0, f -> f), CONSTANT(1, f -> 0f),
-    INSINE(2, Easing::inSine), OUTSINE(3, Easing::outSine), INOUTSINE(4, Easing::inOutSine),
-    INCUBIC(5, Easing::inCubic), OUTCUBIC(6, Easing::outCubic), INOUTCUBIC(7, Easing::inOutCubic),
-    INQUAD(8, Easing::inQuad), OUTQUAD(9, Easing::outQuad), INOUTQUAD(10, Easing::inOutQuad),
-    INQUART(11, Easing::inQuart), OUTQUART(12, Easing::outQuart), INOUTQUART(13, Easing::inOutQuart),
-    INQUINT(14, Easing::inQuint), OUTQUINT(15, Easing::outQuint), INOUTQUINT(16, Easing::inOutQuint),
-    INEXPO(17, Easing::inExpo), OUTEXPO(18, Easing::outExpo), INOUTEXPO(19, Easing::inOutExpo),
-    INCIRC(20, Easing::inCirc), OUTCIRC(21, Easing::outCirc), INOUTCIRC(22, Easing::inOutCirc),
-    INBACK(23, Easing::inBack), OUTBACK(24, Easing::outBack), INOUTBACK(25, Easing::inOutBack),
-    INELASTIC(26, Easing::inElastic), OUTELASTIC(27, Easing::outElastic), INOUTELASTIC(28, Easing::inOutElastic),
-    INBOUNCE(29, Easing::inBounce), OUTBOUNCE(30, Easing::outBack), INOUTBOUNCE(31, Easing::inOutBounce);
+    LINEAR(0, f -> f, "ease."), CONSTANT(1, f -> 0f, "ease."),
+    INSINE(2, Easing::inSine, "ease."), OUTSINE(3, Easing::outSine, "ease."), INOUTSINE(4, Easing::inOutSine, "ease."),
+    INCUBIC(5, Easing::inCubic, "ease."), OUTCUBIC(6, Easing::outCubic, "ease."), INOUTCUBIC(7, Easing::inOutCubic, "ease."),
+    INQUAD(8, Easing::inQuad, "ease."), OUTQUAD(9, Easing::outQuad, "ease."), INOUTQUAD(10, Easing::inOutQuad, "ease."),
+    INQUART(11, Easing::inQuart, "ease."), OUTQUART(12, Easing::outQuart, "ease."), INOUTQUART(13, Easing::inOutQuart, "ease."),
+    INQUINT(14, Easing::inQuint, "ease."), OUTQUINT(15, Easing::outQuint, "ease."), INOUTQUINT(16, Easing::inOutQuint, "ease."),
+    INEXPO(17, Easing::inExpo, "ease."), OUTEXPO(18, Easing::outExpo, "ease."), INOUTEXPO(19, Easing::inOutExpo, "ease."),
+    INCIRC(20, Easing::inCirc, "ease."), OUTCIRC(21, Easing::outCirc, "ease."), INOUTCIRC(22, Easing::inOutCirc, "ease."),
+    INBACK(23, Easing::inBack, "ease."), OUTBACK(24, Easing::outBack, "ease."), INOUTBACK(25, Easing::inOutBack, "ease."),
+    INELASTIC(26, Easing::inElastic, "ease."), OUTELASTIC(27, Easing::outElastic, "ease."), INOUTELASTIC(28, Easing::inOutElastic, "ease."),
+    INBOUNCE(29, Easing::inBounce, "ease."), OUTBOUNCE(30, Easing::outBack, "ease."), INOUTBOUNCE(31, Easing::inOutBounce, "ease.");
 
     final byte id;
     private final EasingFunction impl;
+    public String lang;
 
-    Ease(byte id, EasingFunction impl){
+    Ease(byte id, EasingFunction impl, String lang){
         this.id = id;
         this.impl = impl;
     }
 
-    Ease(int id, EasingFunction impl) {
-        this((byte) id, impl);
+    Ease(int id, EasingFunction impl, String lang) {
+        this((byte) id, impl, "ease.");
     }
 
     /**
@@ -42,7 +43,18 @@ public enum Ease {
         return LINEAR;
     }
 
-    private interface EasingFunction {
+    public static Ease getFromOld(byte smoothing) {
+        switch (smoothing) {
+            case 1:
+                return LINEAR;
+            case 2:
+                return CONSTANT;
+            default:
+                return INSINE;
+        }
+    }
+
+        private interface EasingFunction {
         float invoke(float f);
     }
 }
