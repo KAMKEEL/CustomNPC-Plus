@@ -41,7 +41,8 @@ public class ItemCustomRenderer implements IItemRenderer {
 
     @Override
     public boolean shouldUseRenderHelper(ItemRenderType type, ItemStack item, ItemRendererHelper helper) {
-        return helper == ItemRendererHelper.ENTITY_ROTATION || helper == ItemRendererHelper.ENTITY_BOBBING;
+        return helper == ItemRendererHelper.ENTITY_ROTATION && Minecraft.getMinecraft().gameSettings.fancyGraphics
+            || helper == ItemRendererHelper.ENTITY_BOBBING;
     }
 
     @Override
@@ -84,15 +85,16 @@ public class ItemCustomRenderer implements IItemRenderer {
             float entityRenderTicks = Minecraft.getMinecraft().timer.renderPartialTicks;
             float bobbing = MathHelper.sin(((float)entityItem.age + entityRenderTicks) / 10.0F + entityItem.hoverStart) * 0.1F + 0.1F;
 
-            if(!scriptCustomItem.isNormalItem()){
-                GL11.glRotatef(scriptCustomItem.getRotationX(), 1, 0, 0);
-                GL11.glRotatef(scriptCustomItem.getRotationY(), 0, 1, 0);
-                GL11.glRotatef(scriptCustomItem.getRotationZ(), 0, 0, 1);
+            if (Minecraft.getMinecraft().gameSettings.fancyGraphics) {
+                if(!scriptCustomItem.isNormalItem()){
+                    GL11.glRotatef(scriptCustomItem.getRotationX(), 1, 0, 0);
+                    GL11.glRotatef(scriptCustomItem.getRotationY(), 0, 1, 0);
+                    GL11.glRotatef(scriptCustomItem.getRotationZ(), 0, 0, 1);
+                }
+                GL11.glRotatef(scriptCustomItem.getRotationXRate() * entityRenderTicks %360, 1, 0, 0);
+                GL11.glRotatef(scriptCustomItem.getRotationYRate() * entityRenderTicks %360, 0, 1, 0);
+                GL11.glRotatef(scriptCustomItem.getRotationZRate() * entityRenderTicks %360, 0, 0, 1);
             }
-
-            GL11.glRotatef(scriptCustomItem.getRotationXRate() * entityRenderTicks %360, 1, 0, 0);
-            GL11.glRotatef(scriptCustomItem.getRotationYRate() * entityRenderTicks %360, 0, 1, 0);
-            GL11.glRotatef(scriptCustomItem.getRotationZRate() * entityRenderTicks %360, 0, 0, 1);
 
             if (!renderInFrame) {
                 if(!scriptCustomItem.isNormalItem()){
