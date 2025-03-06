@@ -68,10 +68,8 @@ public class ClientTickHandler{
 			otherContainer = true;
 		CustomNpcs.ticks++;
 		RenderNPCInterface.LastTextureTick++;
-		if(prevWorld != mc.theWorld){
-			prevWorld = mc.theWorld;
-			MusicController.Instance.stopAllSounds();
-		} else if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
+
+        if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
             Entity entity = MusicController.Instance.getEntity();
             if (MusicController.Instance.getOffRange() > 0 &&
                 (Minecraft.getMinecraft().thePlayer == null ||
@@ -80,6 +78,7 @@ public class ClientTickHandler{
                 MusicController.Instance.stopMusic();
             }
         }
+
         MusicController.Instance.onUpdate();
 		ScriptSoundController.Instance.onUpdate();
 		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
