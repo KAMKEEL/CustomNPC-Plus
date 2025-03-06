@@ -49,6 +49,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public PlayerEffectData effectData = new PlayerEffectData(this);
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
+    public MagicData magicData = new MagicData();
 
 	public EntityNPCInterface editingNpc;
 	public NBTTagCompound cloned;
@@ -115,6 +116,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		skinOverlays.readFromNBT(data);
 		animationData.readFromNBT(data);
         effectData.readFromNBT(data);
+        magicData.readToNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -156,6 +158,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         skinOverlays.writeToNBT(compound);
         animationData.writeToNBT(compound);
         effectData.writeToNBT(compound);
+        magicData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);

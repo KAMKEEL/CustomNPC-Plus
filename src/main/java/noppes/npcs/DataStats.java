@@ -2,11 +2,15 @@ package noppes.npcs;
 
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.*;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
+import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.util.ValueUtil;
+
+import java.util.HashSet;
+import java.util.UUID;
 
 public class DataStats {
 
@@ -27,6 +31,7 @@ public class DataStats {
 	public boolean playerSetCanDespawn = false;
 
 	public Resistances resistances = new Resistances();
+    public MagicData magicData = new MagicData();
 
 	public boolean ignoreCobweb = false;
 	public boolean immuneToFire = false;
@@ -119,75 +124,79 @@ public class DataStats {
 		compound.setBoolean("PlayerSetCanDespawn", playerSetCanDespawn);
         compound.setInteger("CollidesWith",collidesWith);
 
+        magicData.writeToNBT(compound);
+
 		return compound;
 	}
 
 	public void readToNBT(NBTTagCompound compound) {
-		resistances.readToNBT(compound.getCompoundTag("Resistances"));
-		setMaxHealth(compound.getDouble("MaxHealth"));
-		hideKilledBody = compound.getBoolean("HideBodyWhenKilled");
-		aggroRange = compound.getInteger("AggroRange");
-		respawnTime = compound.getInteger("RespawnTime");
-		spawnCycle = compound.getInteger("SpawnCycle");
-		creatureType = EnumCreatureAttribute.values()[compound.getInteger("CreatureType") % EnumPotionType.values().length];
-		ignoreCobweb = compound.getBoolean("IgnoreCobweb");
-		healthRegen = compound.getFloat("HealthRegen");
-		combatRegen = compound.getFloat("CombatRegen");
+        resistances.readToNBT(compound.getCompoundTag("Resistances"));
+        setMaxHealth(compound.getDouble("MaxHealth"));
+        hideKilledBody = compound.getBoolean("HideBodyWhenKilled");
+        aggroRange = compound.getInteger("AggroRange");
+        respawnTime = compound.getInteger("RespawnTime");
+        spawnCycle = compound.getInteger("SpawnCycle");
+        creatureType = EnumCreatureAttribute.values()[compound.getInteger("CreatureType") % EnumPotionType.values().length];
+        ignoreCobweb = compound.getBoolean("IgnoreCobweb");
+        healthRegen = compound.getFloat("HealthRegen");
+        combatRegen = compound.getFloat("CombatRegen");
 
-		setAttackStrength(compound.getFloat("AttackStrenght"));
-		attackSpeed = compound.getInteger("AttackSpeed");
-		swingWarmUp = ValueUtil.clamp(compound.getInteger("SwingWarmup"), 0, 1000);
-		attackRange = compound.getInteger("AttackRange");
-		knockback = compound.getInteger("KnockBack");
-		potionType = EnumPotionType.values()[compound.getInteger("PotionEffect") % EnumPotionType.values().length];
-		potionDuration = compound.getInteger("PotionDuration");
-		potionAmp = compound.getInteger("PotionAmp");
+        setAttackStrength(compound.getFloat("AttackStrenght"));
+        attackSpeed = compound.getInteger("AttackSpeed");
+        swingWarmUp = ValueUtil.clamp(compound.getInteger("SwingWarmup"), 0, 1000);
+        attackRange = compound.getInteger("AttackRange");
+        knockback = compound.getInteger("KnockBack");
+        potionType = EnumPotionType.values()[compound.getInteger("PotionEffect") % EnumPotionType.values().length];
+        potionDuration = compound.getInteger("PotionDuration");
+        potionAmp = compound.getInteger("PotionAmp");
 
-		rangedRange = compound.getInteger("MaxFiringRange");
-		fireRate = compound.getInteger("FireRate");
-		minDelay = ValueUtil.clamp(compound.getInteger("minDelay"), 1, 9999);
-		maxDelay = ValueUtil.clamp(compound.getInteger("maxDelay"), 1, 9999);
-		burstCount = compound.getInteger("BurstCount");
-		shotCount = ValueUtil.clamp(compound.getInteger("ShotCount"), 1, 10);
-		accuracy = compound.getInteger("Accuracy");
+        rangedRange = compound.getInteger("MaxFiringRange");
+        fireRate = compound.getInteger("FireRate");
+        minDelay = ValueUtil.clamp(compound.getInteger("minDelay"), 1, 9999);
+        maxDelay = ValueUtil.clamp(compound.getInteger("maxDelay"), 1, 9999);
+        burstCount = compound.getInteger("BurstCount");
+        shotCount = ValueUtil.clamp(compound.getInteger("ShotCount"), 1, 10);
+        accuracy = compound.getInteger("Accuracy");
 
-		pDamage = compound.getFloat("pDamage");
-		pImpact = compound.getInteger("pImpact");
-		pSize = compound.getInteger("pSize");
-		pSpeed = compound.getInteger("pSpeed");
-		pArea = compound.getInteger("pArea");
-		pDur = compound.getInteger("pDur");
-		pPhysics = compound.getBoolean("pPhysics");
-		pXlr8 = compound.getBoolean("pXlr8");
-		pGlows = compound.getBoolean("pGlows");
-		pExplode = compound.getBoolean("pExplode");
-		pRender3D = compound.getBoolean("pRender3D");
-		pSpin = compound.getBoolean("pSpin");
-		pStick = compound.getBoolean("pStick");
-		pEffect = EnumPotionType.values()[compound.getInteger("pEffect") % EnumPotionType.values().length];
-		pTrail = EnumParticleType.values()[compound.getInteger("pTrail") % EnumParticleType.values().length];
-		pEffAmp = compound.getInteger("pEffAmp");
-		fireSound = compound.getString("FiringSound");
-		aimWhileShooting = compound.getBoolean("AimWhileShooting");
-		projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
+        pDamage = compound.getFloat("pDamage");
+        pImpact = compound.getInteger("pImpact");
+        pSize = compound.getInteger("pSize");
+        pSpeed = compound.getInteger("pSpeed");
+        pArea = compound.getInteger("pArea");
+        pDur = compound.getInteger("pDur");
+        pPhysics = compound.getBoolean("pPhysics");
+        pXlr8 = compound.getBoolean("pXlr8");
+        pGlows = compound.getBoolean("pGlows");
+        pExplode = compound.getBoolean("pExplode");
+        pRender3D = compound.getBoolean("pRender3D");
+        pSpin = compound.getBoolean("pSpin");
+        pStick = compound.getBoolean("pStick");
+        pEffect = EnumPotionType.values()[compound.getInteger("pEffect") % EnumPotionType.values().length];
+        pTrail = EnumParticleType.values()[compound.getInteger("pTrail") % EnumParticleType.values().length];
+        pEffAmp = compound.getInteger("pEffAmp");
+        fireSound = compound.getString("FiringSound");
+        aimWhileShooting = compound.getBoolean("AimWhileShooting");
+        projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
 
-		immuneToFire = compound.getBoolean("ImmuneToFire");
-		potionImmune = compound.getBoolean("PotionImmune");
-		drowningType = compound.getInteger("DrowningType");
+        immuneToFire = compound.getBoolean("ImmuneToFire");
+        potionImmune = compound.getBoolean("PotionImmune");
+        drowningType = compound.getInteger("DrowningType");
 
-		burnInSun = compound.getBoolean("BurnInSun");
-		noFallDamage = compound.getBoolean("NoFallDamage");
-		attackInvisible = compound.getBoolean("AttackInvisible");
-		canDespawn = compound.getBoolean("CanDespawn");
-		playerSetCanDespawn = compound.getBoolean("PlayerSetCanDespawn");
+        burnInSun = compound.getBoolean("BurnInSun");
+        noFallDamage = compound.getBoolean("NoFallDamage");
+        attackInvisible = compound.getBoolean("AttackInvisible");
+        canDespawn = compound.getBoolean("CanDespawn");
+        playerSetCanDespawn = compound.getBoolean("PlayerSetCanDespawn");
+        magicData.readToNBT(compound);
 
-		npc.setImmuneToFire(immuneToFire);
+        npc.setImmuneToFire(immuneToFire);
 
-        if(compound.hasKey("CollidesWith"))
+        if (compound.hasKey("CollidesWith"))
             collidesWith = compound.getInteger("CollidesWith");
         else
             collidesWith = 1;
-	}
+    }
+
 
 	public float getAttackStrength(){
 		return attackStrength;
