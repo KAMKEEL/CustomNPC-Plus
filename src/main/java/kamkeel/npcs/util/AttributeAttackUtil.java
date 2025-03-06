@@ -120,15 +120,7 @@ public class AttributeAttackUtil {
         PlayerAttributeTracker defender = getTracker(defendPlayer);
 
         // Calculate physical damage.
-        float physicalDamage;
-        if (ConfigMain.AttributesEnabled) {
-            float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-            float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-            physicalDamage = (baseDamage * mainBoost) + mainAttack;
-        } else {
-            physicalDamage = baseDamage;
-        }
-
+        float physicalDamage = applyMainAttack(baseDamage, attacker);
         AllocationResult result = allocateMagicDamage(physicalDamage, attackerData.magicData.getMagics());
         float leftover = applyNeutral(result.leftover, attacker);
         addAttributeMagicDamage(result.allocation, attacker.magicDamage, attacker.magicBoost);
@@ -148,15 +140,7 @@ public class AttributeAttackUtil {
         PlayerData attackerData = PlayerData.get(attackPlayer);
         PlayerAttributeTracker attacker = getTracker(attackPlayer);
 
-        float physicalDamage;
-        if (ConfigMain.AttributesEnabled) {
-            float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-            float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-            physicalDamage = (baseDamage * mainBoost) + mainAttack;
-        } else {
-            physicalDamage = baseDamage;
-        }
-
+        float physicalDamage = applyMainAttack(baseDamage, attacker);
         AllocationResult result = allocateMagicDamage(physicalDamage, attackerData.magicData.getMagics());
         float leftover = applyNeutral(result.leftover, attacker);
 
@@ -181,6 +165,15 @@ public class AttributeAttackUtil {
             float critBonus = tracker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
             if (random.nextFloat() < (critChance / 100))
                 damage = (damage * 2) + critBonus;
+        }
+        return damage;
+    }
+
+    public static float applyMainAttack(float damage, PlayerAttributeTracker tracker){
+        if (ConfigMain.AttributesEnabled) {
+            float mainAttack = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+            float mainBoost = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
+            damage = (damage * mainBoost) + mainAttack;
         }
         return damage;
     }
