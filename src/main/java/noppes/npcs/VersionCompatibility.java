@@ -46,7 +46,7 @@ public class VersionCompatibility {
 		}
 		if(npc.npcVersion < 12){
 			CompatabilityFix(compound, npc.advanced.writeToNBT(new NBTTagCompound()));
-			CompatabilityFix(compound, npc.ai.writeToNBT(new NBTTagCompound()));
+			CompatabilityFix(compound, npc.ais.writeToNBT(new NBTTagCompound()));
 			CompatabilityFix(compound, npc.stats.writeToNBT(new NBTTagCompound()));
 			CompatabilityFix(compound, npc.display.writeToNBT(new NBTTagCompound()));
 			CompatabilityFix(compound, npc.inventory.writeEntityToNBT(new NBTTagCompound()));
@@ -101,7 +101,7 @@ public class VersionCompatibility {
 				int z = ((NBTTagInt) list.removeTag(2)).func_150287_d();
 				int y = ((NBTTagInt) list.removeTag(1)).func_150287_d();
 				int x = ((NBTTagInt) list.removeTag(0)).func_150287_d();
-				
+
 				compound.setIntArray("StartPosNew", new int[]{x,y,z});
 			}
 		}
@@ -112,7 +112,7 @@ public class VersionCompatibility {
 			bo = comp.getBoolean("HealthRegen");
 			comp.setInteger("HealthRegen", bo?1:0);
     		compound.setTag("TransformStats", comp);
-			
+
 		}
 		npc.npcVersion = ModRev;
 	}
@@ -200,7 +200,7 @@ public class VersionCompatibility {
 		if(compatibilty.getVersion() == ModRev)
 			return;
 		CompatabilityFix(compound, compatibilty.writeToNBT(new NBTTagCompound()));
-		
+
 		compatibilty.setVersion(ModRev);
 	}
 	private static void CompatabilityFix(NBTTagCompound compound,

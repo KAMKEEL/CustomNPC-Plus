@@ -5,7 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
-import kamkeel.controllers.ProfileController;
+import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -22,17 +22,20 @@ import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.api.item.IItemCustomizable;
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.util.AttributeAttackUtil;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.constants.SyncType;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -47,25 +50,28 @@ public class ScriptPlayerEventHandler {
         if (event.side == Side.SERVER && event.phase == TickEvent.Phase.START) {
             EntityPlayer player = event.player;
 
-            if (player.ticksExisted%10 == 0) {
+            if (player.ticksExisted % 10 == 0) {
                 PlayerDataScript handler = ScriptController.Instance.playerScripts;
                 IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(player);
                 EventHooks.onPlayerTick(handler, scriptPlayer);
 
                 for(int i = 0; i < player.inventory.getSizeInventory(); i++){
                     ItemStack item = player.inventory.getStackInSlot(i);
-                    if(item != null && item.getItem() == CustomItems.scripted_item){
-                        ScriptCustomItem isw = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(item);
+                    if(item != null && NoppesUtilServer.isScriptableItem(item.getItem())){
+                        IItemCustomizable isw = (IItemCustomizable) NpcAPI.Instance().getIItemStack(item);
                         EventHooks.onScriptItemUpdate(isw, player);
                     }
                 }
+
+                if(ConfigMain.AttributesEnabled)
+                    AttributeController.getTracker(player).updateIfChanged(player);
             }
 
             if (PlayerDataController.Instance != null) {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
                 if(playerData.updateClient) {
-                    NoppesUtilServer.sendPlayerDataCompound((EntityPlayerMP)player, playerData.getSyncNBT(), true);
+                    SyncController.syncPlayerData((EntityPlayerMP)player, true);
                     playerData.updateClient = false;
                 }
 
@@ -73,6 +79,16 @@ public class ScriptPlayerEventHandler {
                     playerData.timers.update();
                 }
 
+                if(player.ticksExisted % 10 == 0)
+                    SyncController.syncEffects((EntityPlayerMP) player);
+
+                // TODO: Fix Config
+                // player.ticksExisted % ConfigDBCGameplay.CheckEffectsTick == 0
+                if (player.ticksExisted % 10 == 0)
+                    CustomEffectController.Instance.runEffects(player);
+
+                if (player.ticksExisted % 20 == 0)
+                    CustomEffectController.Instance.decrementEffects(player);
 
                 Party party = playerData.getPlayerParty();
                 boolean trackingPartyQuest = playerData.questData.getTrackedQuest() != null && party != null && party.getQuest() != null && party.getQuest().getId() == playerData.questData.getTrackedQuest().getId();
@@ -144,6 +160,11 @@ public class ScriptPlayerEventHandler {
     public void invoke(BlockEvent.BreakEvent event) {
         if(event.getPlayer() == null || event.getPlayer().worldObj == null)
             return;
+
+        if(event.getPlayer().getHeldItem() != null && event.getPlayer().getHeldItem().getItem() instanceof ItemNpcTool){
+            event.setCanceled(true);
+            return;
+        }
 
         if(!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
@@ -424,6 +445,8 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if(event.entityLiving instanceof EntityPlayer) {
                 try {
+                    CustomEffectController.getInstance().killEffects((EntityPlayer) event.entityLiving);
+
                     IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityLiving);
                     EventHooks.onPlayerDeath(handler,scriptPlayer, event.source, source);
                 } catch (Exception ignored) {}
@@ -452,7 +475,11 @@ public class ScriptPlayerEventHandler {
             }
 
             if(event.source.getEntity() instanceof EntityPlayer) {
-                noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, event.ammount, event.source);
+                float attackAmount = event.ammount;
+                if(ConfigMain.AttributesEnabled)
+                    attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), event.ammount);
+
+                noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
             event.setCanceled(cancel);
@@ -468,6 +495,16 @@ public class ScriptPlayerEventHandler {
             boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
+
+            // Player to Player Interaction
+            if(ConfigMain.AttributesEnabled){
+                if(event.entityLiving instanceof EntityPlayer && source instanceof EntityPlayer){
+                    event.ammount = AttributeAttackUtil.calculateDamagePlayer((EntityPlayer) event.entityLiving, (EntityPlayer) source, event.ammount);
+                } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer){
+                    event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) source, event.ammount);
+                }
+            }
+
             if(event.entityLiving instanceof EntityPlayer) {
                 noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent((IPlayer)NpcAPI.Instance().getIEntity((EntityPlayer)event.entityLiving), source, event.ammount, event.source);
                 cancel = EventHooks.onPlayerDamaged(handler, pevent);

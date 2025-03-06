@@ -2,9 +2,9 @@ package noppes.npcs.blocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,6 +14,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.blocks.tiles.TileBlockAnvil;
@@ -26,15 +27,35 @@ public class BlockCarpentryBench extends BlockContainer
 	public int renderId = -1;
     public BlockCarpentryBench()
     {
-        super(Material.wood);
-        setStepSound(soundTypeWood);
+        super(Material.rock);
+        setStepSound(soundTypePiston);
+    }
+
+    @Override
+    public int getLightValue(IBlockAccess world, int x, int y, int z)
+    {
+        Block block = world.getBlock(x, y, z);
+        int meta = world.getBlockMetadata(x, y, z);
+        if (block != this)
+        {
+            return block.getLightValue(world, x, y, z);
+        }
+        if(meta >= 4)
+            return 5;
+
+        return getLightValue();
     }
 
     @Override
     public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9)
-    {//onBlockActivated
+    {
     	if(!par1World.isRemote){
-    		player.openGui(CustomNpcs.instance, EnumGuiType.PlayerAnvil.ordinal(), par1World, i, j, k);
+            int meta = par1World.getBlockMetadata(i, j, k);
+            if(meta >= 4){
+                player.openGui(CustomNpcs.instance, EnumGuiType.PlayerAnvil.ordinal(), par1World, i, j, k);
+            } else {
+                player.openGui(CustomNpcs.instance, EnumGuiType.PlayerCarpentryBench.ordinal(), par1World, i, j, k);
+            }
     	}
 		return true;
     }
@@ -63,6 +84,9 @@ public class BlockCarpentryBench extends BlockContainer
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int side, int meta)
     {
+        if(meta >= 4){
+            return Blocks.anvil.getIcon(side, 0);
+        }
         return Blocks.planks.getIcon(side, 0);
     }
 

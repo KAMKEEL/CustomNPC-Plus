@@ -18,11 +18,8 @@ import org.lwjgl.opengl.GL12;
 public class BlockCouchWoodRenderer extends BlockRendererInterface{
 
 	private final ModelBase model = new ModelCouchWoodMiddle();
-
 	private final ModelBase modelLeft = new ModelCouchWoodLeft();
-
 	private final ModelBase modelRight = new ModelCouchWoodRight();
-
 	private final ModelBase modelCorner = new ModelCouchWoodSingle();
 
     public BlockCouchWoodRenderer(){

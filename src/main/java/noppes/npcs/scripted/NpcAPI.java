@@ -2,6 +2,7 @@ package noppes.npcs.scripted;
 
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
+import kamkeel.npcs.controllers.ProfileController;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
 import net.minecraft.entity.Entity;
@@ -55,6 +56,7 @@ import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
+import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.scripted.entity.*;
 import noppes.npcs.scripted.gui.ScriptGui;
@@ -64,7 +66,6 @@ import noppes.npcs.util.*;
 
 import java.io.*;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -240,6 +241,12 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.Instance; }
+
+    public IProfileHandler getProfileHandler() { return ProfileController.Instance; }
+
+    public ICustomEffectHandler getCustomEffectHandler() { return CustomEffectController.Instance; }
+
+    public IPartyHandler getPartyHandler() { return PartyController.Instance(); }
 
     public ITransportHandler getLocations() {
         return TransportController.getInstance();
@@ -473,7 +480,9 @@ public class NpcAPI extends AbstractNpcAPI {
             if (scriptItemCache.containsKey(itemstack)) {
                 scriptStack = scriptItemCache.get(itemstack).getObject();
             } else {
-                if (itemstack.getItem() instanceof ItemScripted) {
+                if (itemstack.getItem() instanceof ItemLinked) {
+                    scriptStack = new ScriptLinkedItem(itemstack);
+                } else if (itemstack.getItem() instanceof ItemScripted) {
                     scriptStack = new ScriptCustomItem(itemstack);
                 } else if (itemstack.getItem() instanceof ItemArmor) {
                     scriptStack = new ScriptItemArmor(itemstack);
@@ -486,7 +495,6 @@ public class NpcAPI extends AbstractNpcAPI {
                 }
                 scriptItemCache.put(itemstack, new CacheHashMap.CachedObject<>(scriptStack));
             }
-
             return scriptStack;
         }
     }

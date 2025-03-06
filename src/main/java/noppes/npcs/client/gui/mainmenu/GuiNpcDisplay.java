@@ -1,18 +1,20 @@
 package noppes.npcs.client.gui.mainmenu;
 
 import com.mojang.authlib.GameProfile;
-import kamkeel.addon.client.GeckoAddonClient;
+import kamkeel.npcs.addon.client.GeckoAddonClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuDisplayGetPacket;
+import kamkeel.npcs.network.packets.request.mainmenu.MainmenuDisplaySavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.DataDisplay;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.model.GuiCreationScreen;
 import noppes.npcs.client.gui.select.GuiTextureSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -25,7 +27,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     public GuiNpcDisplay(EntityNPCInterface npc) {
         super(npc,1);
         display = npc.display;
-        Client.sendData(EnumPacketServer.MainmenuDisplayGet);
+        PacketClient.sendClient(new MainmenuDisplayGetPacket());
     }
 
     public void initGui(){
@@ -38,6 +40,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         this.addButton(new GuiNpcButton(0, guiLeft + 253+52, y , 110, 20, new String[]{"display.show","display.hide","display.showAttacking"} ,display.showName));
 
         this.addButton(new GuiNpcButton(14, guiLeft + 259, y , 20, 20, Character.toString('\u21bb')));
+        getButton(14).setIconTexture(new ResourceLocation("customnpcs", "textures/gui/slot.png"));
+
         this.addButton(new GuiNpcButton(15, guiLeft + 259 + 22, y , 20, 20, Character.toString('\u22EE')));
 
         y+=23;
@@ -209,11 +213,11 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
     public void save() {
         if(display.skinType == 1)
             display.loadProfile();
+
         npc.textureLocation = null;
         mc.renderGlobal.onEntityDestroy(npc);
         mc.renderGlobal.onEntityCreate(npc);
-        Client.sendData(EnumPacketServer.MainmenuDisplaySave, display.writeToNBT(new NBTTagCompound()));
-
+        PacketClient.sendClient(new MainmenuDisplaySavePacket(display.writeToNBT(new NBTTagCompound())));
     }
 
     @Override

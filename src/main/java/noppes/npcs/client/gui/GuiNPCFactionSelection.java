@@ -1,12 +1,12 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -28,7 +28,7 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
     	this.parent = parent;
     	this.factionId = dialog;
 
-    	Client.sendData(EnumPacketServer.FactionsGet);
+        PacketClient.sendClient(new FactionsGetPacket());
 
     	if(parent instanceof GuiSelectionListener){
     		listener = (GuiSelectionListener) parent;
@@ -82,7 +82,7 @@ public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollDa
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		this.data = data;
 		this.slot.setList(list);
 		if(factionId >= 0)

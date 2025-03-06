@@ -3,7 +3,7 @@ package noppes.npcs.blocks;
 import net.minecraft.block.Block;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 public abstract class BlockTrigger extends BlockRotated{
 
@@ -23,7 +23,7 @@ public abstract class BlockTrigger extends BlockRotated{
 
 	@Override
     public int isProvidingWeakPower(IBlockAccess world, int x, int y, int z, int p_149709_5_){
-		TileColorable tile = (TileColorable)world.getTileEntity(x, y, z);
+		TileVariant tile = (TileVariant)world.getTileEntity(x, y, z);
 		if(tile != null)
 			return tile.powerProvided();
         return 0;

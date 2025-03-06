@@ -14,6 +14,8 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IPlayerEvent;
+import noppes.npcs.api.handler.data.IPlayerEffect;
+import noppes.npcs.api.handler.data.IProfile;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
@@ -947,6 +949,130 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
 
         public String getHookName() {
             return EnumScriptType.RANGED_LAUNCHED.function;
+        }
+    }
+
+    public static class EffectEvent extends PlayerEvent implements IPlayerEvent.EffectEvent {
+
+        public final IPlayerEffect effect;
+
+        public EffectEvent(IPlayer player, IPlayerEffect statusEffect) {
+            super(player);
+            this.effect = statusEffect;
+        }
+
+        @Override
+        public IPlayerEffect getEffect() {
+            return this.effect;
+        }
+
+        public static class Added extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Added {
+
+            public Added(IPlayer player, IPlayerEffect statusEffect) {
+                super(player, statusEffect);
+            }
+
+        }
+        public static class Ticked extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Ticked {
+
+            public Ticked(IPlayer player, IPlayerEffect statusEffect) {
+                super(player, statusEffect);
+            }
+
+        }
+        public static class Removed extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Removed {
+
+            private final ExpirationType type;
+
+            public Removed(IPlayer player, IPlayerEffect statusEffect, ExpirationType type) {
+                super(player, statusEffect);
+                this.type = type;
+            }
+
+            @Override
+            public boolean hasTimerRunOut() {
+                return type == ExpirationType.RUN_OUT;
+            }
+
+            @Override
+            public boolean causedByDeath() {
+                return type == ExpirationType.DEATH;
+            }
+        }
+
+        public enum ExpirationType {
+            REMOVED,
+            RUN_OUT,
+            DEATH
+        }
+    }
+
+    @Cancelable
+    public static class ProfileEvent extends PlayerEvent implements IPlayerEvent.ProfileEvent {
+        public final IProfile profile;
+        public final int slot;
+
+        public ProfileEvent(IPlayer player, IProfile profile, int slot) {
+            super(player);
+            this.profile = profile;
+            this.slot = slot;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.PROFILE.function;
+        }
+
+        @Override
+        public IProfile getProfile() {
+            return this.profile;
+        }
+
+        @Override
+        public int getSlot() {
+            return this.slot;
+        }
+
+        @Cancelable
+        public static class Changed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Changed {
+            public final int prevSlot;
+
+            public Changed(IPlayer player, IProfile profile, int slot, int prevSlot) {
+                super(player, profile, slot);
+                this.prevSlot = prevSlot;
+            }
+
+            @Override
+            public int getPrevSlot() {
+                return this.prevSlot;
+            }
+
+            public String getHookName() {
+                return EnumScriptType.PROFILE_CHANGE.function;
+            }
+        }
+
+        @Cancelable
+        public static class Removed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Removed {
+
+            public Removed(IPlayer player, IProfile profile, int slot) {
+                super(player, profile, slot);
+            }
+
+            public String getHookName() {
+                return EnumScriptType.PROFILE_REMOVE.function;
+            }
+        }
+
+        @Cancelable
+        public static class Create extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Create {
+
+            public Create(IPlayer player, IProfile profile, int slot) {
+                super(player, profile, slot);
+            }
+
+            public String getHookName() {
+                return EnumScriptType.PROFILE_CREATE.function;
+            }
         }
     }
 }

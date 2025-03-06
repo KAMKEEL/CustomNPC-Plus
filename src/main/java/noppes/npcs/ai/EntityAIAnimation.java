@@ -24,21 +24,21 @@ public class EntityAIAnimation extends EntityAIBase
     	isDead = !npc.isEntityAlive();
     	if(isDead)
     		return npc.currentAnimation != EnumAnimation.LYING;
-    	
+
     	if(npc.stats.aimWhileShooting && npc.isAttacking())
     		return npc.currentAnimation != EnumAnimation.AIMING;
-    	if(npc.ai.animationType == EnumAnimation.NONE)
+    	if(npc.ais.animationType == EnumAnimation.NONE)
     		return npc.currentAnimation != EnumAnimation.NONE;
     	isAttacking = npc.isAttacking();
-    	if(npc.ai.returnToStart)
+    	if(npc.ais.returnToStart)
     		isAtStartpoint = npc.isVeryNearAssignedPlace();
     	hasPath = !npc.getNavigator().noPath();
-    	
-    	if(npc.ai.movingType == EnumMovingType.Standing && hasNavigation() && npc.currentAnimation.getWalkingAnimation() == 0){
+
+    	if(npc.ais.movingType == EnumMovingType.Standing && hasNavigation() && npc.currentAnimation.getWalkingAnimation() == 0){
     		return npc.currentAnimation != EnumAnimation.NONE;
     	}
-    	
-    	return npc.currentAnimation != npc.ai.animationType;
+
+    	return npc.currentAnimation != npc.ais.animationType;
     }
 
     @Override
@@ -47,21 +47,21 @@ public class EntityAIAnimation extends EntityAIBase
     		setAnimation(EnumAnimation.AIMING);
     		return;
     	}
-    	EnumAnimation type = npc.ai.animationType;
+    	EnumAnimation type = npc.ais.animationType;
     	if(isDead)
     		type = EnumAnimation.LYING;
-    	else if(npc.ai.movingType == EnumMovingType.Standing && npc.ai.animationType.getWalkingAnimation() == 0 && hasNavigation())
+    	else if(npc.ais.movingType == EnumMovingType.Standing && npc.ais.animationType.getWalkingAnimation() == 0 && hasNavigation())
     		type = EnumAnimation.NONE;
 		setAnimation(type);
     }
-    
+
     private void setAnimation(EnumAnimation animation){
     	npc.setCurrentAnimation(animation);
     	npc.updateHitbox();
     	npc.setPosition(npc.posX, npc.posY, npc.posZ);
     }
-    
+
     private boolean hasNavigation() {
-    	return (isAttacking || npc.ai.returnToStart && !isAtStartpoint && !npc.isFollower() || hasPath);
+    	return (isAttacking || npc.ais.returnToStart && !isAtStartpoint && !npc.isFollower() || hasPath);
     }
 }

@@ -9,11 +9,11 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 
 
-public abstract class TileNpcContainer extends TileColorable implements IInventory {
+public abstract class TileNpcContainer extends TileVariant implements IInventory {
     private ItemStack[] chestContents;
     public String customName = "";
     public int playerUsing = 0;
-    
+
     public TileNpcContainer(){
     	chestContents = new ItemStack[getSizeInventory()];
     }
@@ -66,7 +66,7 @@ public abstract class TileNpcContainer extends TileColorable implements IInvento
             compound.setString("CustomName", this.customName);
         }
     }
-	
+
     public boolean receiveClientEvent(int p_145842_1_, int p_145842_2_)
     {
         if (p_145842_1_ == 1)
@@ -152,7 +152,7 @@ public abstract class TileNpcContainer extends TileColorable implements IInvento
 	public String getInventoryName() {
 		return hasCustomInventoryName()?customName:getName();
 	}
-	
+
 	public abstract String getName();
 
 	@Override
@@ -190,7 +190,7 @@ public abstract class TileNpcContainer extends TileColorable implements IInvento
             ItemStack itemstack = this.getStackInSlot(i1);
             if (itemstack == null)
             	continue;
-            
+
             float f = world.rand.nextFloat() * 0.8F + 0.1F;
             float f1 = world.rand.nextFloat() * 0.8F + 0.1F;
             EntityItem entityitem;
@@ -212,11 +212,11 @@ public abstract class TileNpcContainer extends TileColorable implements IInvento
                 if (itemstack.hasTagCompound()){
                     entityitem.getEntityItem().setTagCompound((NBTTagCompound)itemstack.getTagCompound().copy());
                 }
-                
+
             }
         }
 
 	}
 
-	
+
 }

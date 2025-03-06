@@ -1,13 +1,16 @@
 package noppes.npcs.client.gui.advanced;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.tags.TagSetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagsGetPacket;
+import kamkeel.npcs.network.packets.request.tags.TagsNpcGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -26,8 +29,8 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
     public GuiNPCTagSetup(EntityNPCInterface npc)
     {
     	super(npc);
-    	Client.sendData(EnumPacketServer.TagsGet);
-		Client.sendData(EnumPacketServer.NpcTagsGet);
+        PacketClient.sendClient(new TagsGetPacket());
+        PacketClient.sendClient(new TagsNpcGetPacket());
     }
 
     public void initGui()
@@ -80,7 +83,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
     }
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data)
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type)
 	{
 		allTags.addAll(data.keySet());
 		allTags.sort(String.CASE_INSENSITIVE_ORDER);
@@ -110,8 +113,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 	}
 
 	@Override
-	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-	}
+	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {}
 
 	public void save() {
 		NBTTagCompound tagCompound = new NBTTagCompound();
@@ -120,7 +122,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData,ICus
 			tagList.appendTag(new NBTTagString(string));
 		}
 		tagCompound.setTag("TagNames",tagList);
-		Client.sendData(EnumPacketServer.TagSet, tagCompound);
+        PacketClient.sendClient(new TagSetPacket(tagCompound));
 	}
 
 	public void keyTyped(char c, int i)

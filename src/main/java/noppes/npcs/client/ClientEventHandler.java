@@ -1,9 +1,7 @@
 package noppes.npcs.client;
 
-import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.relauncher.Side;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityClientPlayerMP;
@@ -13,27 +11,28 @@ import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.entity.RendererLivingEntity;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.client.event.MouseEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.client.event.RenderLivingEvent;
-import net.minecraftforge.client.event.RenderPlayerEvent;
-import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.client.event.*;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.CompassHudComponent;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.QuestTrackingComponent;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.MarkType;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.FramePart;
+import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.lang.reflect.Field;
 import java.util.*;
 
 public class ClientEventHandler {
-
-
     public static final RenderCNPCPlayer renderCNPCSelf = new RenderCNPCPlayer();
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
     public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
@@ -95,9 +94,12 @@ public class ClientEventHandler {
                 overlayCustom.renderGameOverlay(event.partialTicks);
             }
 
-            if (ClientCacheHandler.questTrackingOverlay != null) {
-                ClientCacheHandler.questTrackingOverlay.renderGameOverlay(event.partialTicks);
+            if(ClientHudManager.getInstance().getHudComponents().isEmpty()){
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestTracker, new QuestTrackingComponent(Minecraft.getMinecraft()));
+                ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestCompass, new CompassHudComponent(Minecraft.getMinecraft()));
             }
+
+            ClientHudManager.getInstance().renderAllHUDs(event.partialTicks);
         }
     }
 
@@ -109,8 +111,17 @@ public class ClientEventHandler {
         ClientEventHandler.renderer = event.renderer;
         ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
 
-        if (event.entity instanceof EntityClientPlayerMP) {
-            Render render = RenderManager.instance.getEntityClassRenderObject(event.entity.getClass());
+        this.setOriginalPlayerParts(event.entity);
+    }
+
+    @SubscribeEvent
+    public void renderHand(RenderHandEvent event) {
+        this.setOriginalPlayerParts(Minecraft.getMinecraft().thePlayer);
+    }
+
+    private void setOriginalPlayerParts(Entity entity) {
+        if (entity instanceof EntityClientPlayerMP) {
+            Render render = RenderManager.instance.getEntityClassRenderObject(entity.getClass());
             if (!processedPlayerRenderers.contains(render)) {
                 processedPlayerRenderers.add(render);
                 Collection<ModelRenderer> modelRenderers = getAllModelRenderers(render);
@@ -128,10 +139,7 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderEntity(RenderLivingEvent.Post event) {
-        AnimationData data = null;
         if (event.entity instanceof EntityNPCInterface) {
-            data = ClientEventHandler.renderingNpc.display.animationData;
-
             MarkData markData = MarkData.get((EntityNPCInterface) event.entity);
             EntityPlayer player = Minecraft.getMinecraft().thePlayer;
             if(PlayerData.get(player) != null){
@@ -143,10 +151,6 @@ public class ClientEventHandler {
                 }
             }
         } else if (event.entity instanceof EntityPlayer) {
-            if (ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
-            }
-
             for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
                 ModelRenderer renderer = entry.getKey();
                 FramePart part = entry.getValue();
@@ -161,33 +165,7 @@ public class ClientEventHandler {
             ClientEventHandler.playerModel = null;
         }
 
-        if (data != null && data.isActive() && !Minecraft.getMinecraft().isGamePaused()) {
-            Animation animation = data.animation;
-            if (data.isActive() && animation.currentFrame().useRenderTicks()) {
-                animation.increaseTime();
-            }
-        }
-
         ClientEventHandler.renderingNpc = null;
-    }
-
-    @SubscribeEvent
-    public void onUpdateEntity(LivingEvent.LivingUpdateEvent event) {
-        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-            AnimationData data = null;
-            if (event.entity instanceof EntityNPCInterface) {
-                data = ((EntityNPCInterface) event.entity).display.animationData;
-            } else if (event.entity instanceof EntityPlayer && ClientCacheHandler.playerAnimations.containsKey(event.entity.getUniqueID())) {
-                data = ClientCacheHandler.playerAnimations.get(event.entity.getUniqueID());
-            }
-
-            if (data != null && data.isActive()) {
-                Animation animation = data.animation;
-                if (data.isActive() && !animation.currentFrame().useRenderTicks()) {
-                    animation.increaseTime();
-                }
-            }
-        }
     }
 
     @SubscribeEvent

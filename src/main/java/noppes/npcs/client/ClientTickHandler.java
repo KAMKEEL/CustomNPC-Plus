@@ -5,23 +5,32 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.InputEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
-import kamkeel.addon.DBCAddon;
-import kamkeel.addon.client.DBCClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
+import kamkeel.npcs.network.packets.player.InputDevicePacket;
+import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.client.audio.SoundManager;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ContainerPlayer;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
-import noppes.npcs.client.gui.player.inventory.*;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.CompassHudComponent;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.HudComponent;
+import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.renderer.RenderNPCInterface;
-import noppes.npcs.constants.EnumPlayerPacket;
+import noppes.npcs.constants.MarkType;
+import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import tconstruct.client.tabs.InventoryTabCustomNpc;
+
+import java.util.ArrayList;
 
 import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
@@ -38,7 +47,9 @@ public class ClientTickHandler{
 	public void onClientTick(TickEvent.ClientTickEvent event){
 		Minecraft mc = Minecraft.getMinecraft();
 		if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
-			ClientCacheHandler.clearCache();
+            if (mc.theWorld == null) {
+                ClientCacheHandler.clearCache();
+            }
 			this.prevWorld = mc.theWorld;
 		}
 		if(event.phase == Phase.END) {
@@ -49,7 +60,7 @@ public class ClientTickHandler{
 		}
 		if(mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer){
 			if(otherContainer){
-		    	NoppesUtilPlayer.sendData(EnumPlayerPacket.CheckQuestCompletion);
+                PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
 				otherContainer = false;
 			}
 		}
@@ -57,10 +68,8 @@ public class ClientTickHandler{
 			otherContainer = true;
 		CustomNpcs.ticks++;
 		RenderNPCInterface.LastTextureTick++;
-		if(prevWorld != mc.theWorld){
-			prevWorld = mc.theWorld;
-			MusicController.Instance.stopAllSounds();
-		} else if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
+
+        if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
             Entity entity = MusicController.Instance.getEntity();
             if (MusicController.Instance.getOffRange() > 0 &&
                 (Minecraft.getMinecraft().thePlayer == null ||
@@ -69,13 +78,21 @@ public class ClientTickHandler{
                 MusicController.Instance.stopMusic();
             }
         }
+
         MusicController.Instance.onUpdate();
 		ScriptSoundController.Instance.onUpdate();
 		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
 			prevWidth = mc.displayWidth;
 			prevHeight = mc.displayHeight;
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.ScreenSize,mc.displayWidth,mc.displayHeight);
+            PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth,mc.displayHeight));
 		}
+
+        if(mc.theWorld == null)
+            return;
+
+        if(mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
+            updateCompassMarks();
+        }
 	}
 
 	@SubscribeEvent
@@ -83,22 +100,7 @@ public class ClientTickHandler{
 		if(Mouse.getEventButton() == -1 && Mouse.getEventDWheel() == 0)
 			return;
 
-		boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
-		boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
-		boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
-		boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
-
-		StringBuilder keysDownString = new StringBuilder();
-		for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
-			if (Keyboard.isKeyDown(i)) {
-				keysDownString.append(Integer.valueOf(i)).append(",");
-			}
-		}
-		if (keysDownString.length() > 0) {//Removes last comma for later parsing
-			keysDownString.deleteCharAt(keysDownString.length() - 1);
-		}
-
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.MouseClicked, Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()), isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keysDownString.toString());
+		InputDevicePacket.sendMouse(Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()));
 	}
 
 	@SubscribeEvent
@@ -106,23 +108,7 @@ public class ClientTickHandler{
 		if(ClientProxy.NPCButton.isPressed()){
 			Minecraft mc = Minecraft.getMinecraft();
 			if(mc.currentScreen == null){
-                switch (GuiCNPCInventory.activeTab){
-                    case 0:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiQuestLog());
-                        break;
-                    case 1:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiParty());
-                        break;
-                    case 2:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiFaction());
-                        break;
-                    case 3:
-                        NoppesUtil.openGUI(mc.thePlayer, new GuiSettings());
-                        break;
-                    case 4:
-                        NoppesUtil.openGUI(mc.thePlayer, DBCClient.Instance.inventoryGUI());
-                        break;
-                }
+                InventoryTabCustomNpc.tabHelper();
             }
 			else if(mc.currentScreen instanceof GuiCNPCInventory)
 				mc.setIngameFocus();
@@ -130,23 +116,9 @@ public class ClientTickHandler{
 
 		if(!Keyboard.isRepeatEvent()) {
 			int key = Keyboard.getEventKey();
-			boolean isCtrlPressed = Keyboard.isKeyDown(157) || Keyboard.isKeyDown(29);
-			boolean isShiftPressed = Keyboard.isKeyDown(54) || Keyboard.isKeyDown(42);
-			boolean isAltPressed = Keyboard.isKeyDown(184) || Keyboard.isKeyDown(56);
-			boolean isMetaPressed = Keyboard.isKeyDown(220) || Keyboard.isKeyDown(219);
 			boolean keyDown = Keyboard.isKeyDown(key);
 
-			StringBuilder keysDownString = new StringBuilder();
-			for (int i = 0; i < Keyboard.getKeyCount(); i++) {//Creates a comma separated string of the integer IDs of held keys
-				if (Keyboard.isKeyDown(i)) {
-					keysDownString.append(Integer.valueOf(i)).append(",");
-				}
-			}
-			if (keysDownString.length() > 0) {//Removes last comma for later parsing
-				keysDownString.deleteCharAt(keysDownString.length() - 1);
-			}
-
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.KeyPressed, key, isCtrlPressed, isShiftPressed, isAltPressed, isMetaPressed, keyDown, keysDownString.toString());
+            InputDevicePacket.sendKeyboard(key, keyDown);
 		}
 	}
 
@@ -163,4 +135,59 @@ public class ClientTickHandler{
 
 		return false;
 	}
+
+    private final int SCAN_RANGE = 128;
+    private void updateCompassMarks() {
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayer player = mc.thePlayer;
+
+        if(player == null || mc.theWorld == null)
+            return;
+
+        if(ClientHudManager.getInstance() == null || ClientHudManager.getInstance().getHudComponents() == null)
+            return;
+
+        // Update compass
+        HudComponent compass = ClientHudManager.getInstance()
+            .getHudComponents().get(EnumHudComponent.QuestCompass);
+
+        if(!(compass instanceof CompassHudComponent))
+            return;
+
+        if(!compass.enabled)
+            return;
+
+        ArrayList<CompassHudComponent.MarkTargetEntry> marks = new ArrayList<>();
+
+        // Scan entities in loaded chunks
+        for(Object entity : mc.theWorld.loadedEntityList) {
+            if(entity instanceof EntityNPCInterface) {
+                EntityNPCInterface npc = (EntityNPCInterface) entity;
+
+                if(npc.dimension != player.dimension)
+                    continue;
+
+                // Check distance
+                if(player.getDistanceToEntity(npc) > SCAN_RANGE)
+                    continue;
+
+                // Get marks
+                MarkData markData = MarkData.get(npc);
+                for(MarkData.Mark mark : markData.marks) {
+                    if(mark.getType() != MarkType.NONE &&
+                        mark.availability.isAvailable(player)) {
+                        marks.add(new CompassHudComponent.MarkTargetEntry(
+                            (int)npc.posX,
+                            (int)npc.posZ,
+                            mark.getType(),
+                            mark.color
+                        ));
+                        break; // Only show first valid mark per NPC
+                    }
+                }
+            }
+        }
+
+        ((CompassHudComponent) compass).updateMarkTargets(marks);
+    }
 }

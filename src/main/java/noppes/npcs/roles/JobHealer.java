@@ -31,8 +31,7 @@ public class JobHealer extends JobInterface{
 		speed = nbttagcompound.getInteger("HealerSpeed");
 	}
 	private List<EntityLivingBase> toHeal = new ArrayList<EntityLivingBase>();
-
-	//TODO heal food, heal potion effects, heal more types of entities besides just the player and npcs
+  
 	public boolean aiShouldExecute() {
 		healTicks++;
 		if (healTicks < speed * 10)

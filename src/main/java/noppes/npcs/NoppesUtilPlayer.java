@@ -1,8 +1,14 @@
 package noppes.npcs;
 
-import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumSoundOperation;
+import kamkeel.npcs.network.packets.data.*;
+import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -133,11 +139,11 @@ public class NoppesUtilPlayer {
 			}
 		}
 
-		Server.sendData(player, EnumPacketClient.DISABLE_MOUSE_INPUT, time, stringedIds.toString());
+        PacketHandler.Instance.sendToPlayer(new DisableMouseInputPacket(time, stringedIds.toString()), player);
 	}
 
 	public static void swingPlayerArm(EntityPlayerMP player){
-		Server.sendData(player, EnumPacketClient.SWING_PLAYER_ARM);
+        PacketHandler.Instance.sendToPlayer(new SwingPlayerArmPacket(), player);
 	}
 
 	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
@@ -251,16 +257,6 @@ public class NoppesUtilPlayer {
 
 		bankData.openBankGui(player, npc, bank.id, container.slot);
 	}
-	public static void sendData(EnumPlayerPacket enu, Object... obs) {
-		ByteBuf buffer = Unpooled.buffer();
-		try {
-			if(!Server.fillBuffer(buffer, enu, obs))
-				return;
-			CustomNpcs.ChannelPlayer.sendToServer(new FMLProxyPacket(buffer,"CustomNPCsPlayer"));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
 
 	public static void dialogSelected(int dialogId, int optionId, EntityPlayerMP player, EntityNPCInterface npc) {
 		Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
@@ -286,23 +282,23 @@ public class NoppesUtilPlayer {
     		if(npc.roleInterface != null)
     			npc.roleInterface.interact(player);
     		else
-    			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
+                GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
     	}
     	else if(option.optionType == EnumOptionType.DialogOption){
     		NoppesUtilServer.openDialog(player, npc, option.getDialog(), optionId+1);
     	}
     	else if(option.optionType == EnumOptionType.CommandBlock){
-			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
+            GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
     		NoppesUtilServer.runCommand(player, npc.getCommandSenderName(), option.command);
     	}
     	else
-			Server.sendData(player, EnumPacketClient.GUI_CLOSE);
+            GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
 		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
-		NBTTagCompound compound = Server.readNBT(buffer);
+		NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
 		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
 		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
 			Quest quest = getQuestFromStringKey(entry.getKey());
@@ -311,7 +307,7 @@ public class NoppesUtilPlayer {
 			}
 		}
 
-		String trackedQuestString = Server.readString(buffer);
+		String trackedQuestString = ByteBufUtils.readString(buffer);
 		Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
 		if (trackedQuest != null) {
 			playerData.questData.trackQuest(trackedQuest);
@@ -328,7 +324,7 @@ public class NoppesUtilPlayer {
 
     public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
         PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-        String trackedQuestString = Server.readString(buffer);
+        String trackedQuestString = ByteBufUtils.readString(buffer);
         Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
         if (trackedQuest != null) {
             playerData.questData.trackParty(playerData.getPlayerParty());
@@ -384,7 +380,7 @@ public class NoppesUtilPlayer {
 			}
 			compound.setTag("ObjectiveList",nbtTagList);
 
-			Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+            PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(compound), player);
 		}
 	}
 
@@ -407,8 +403,7 @@ public class NoppesUtilPlayer {
                     nbtTagList.appendTag(new NBTTagString(objective.getAdditionalText()));
             }
             compound.setTag("ObjectiveList",nbtTagList);
-
-            Server.sendData(player, EnumPacketClient.OVERLAY_QUEST_TRACKING, compound);
+            PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(compound), player);
         }
     }
 
@@ -418,13 +413,14 @@ public class NoppesUtilPlayer {
         }
         QuestLogData data = new QuestLogData();
         data.setData(player);
-        Server.sendData(player, EnumPacketClient.GUI_DATA, data.writeNBT());
+        GuiDataPacket.sendGuiData(player, data.writeNBT());
 	}
 
     public static void sendTrackedQuest(EntityPlayerMP player) {
         QuestLogData data = new QuestLogData();
         data.setTrackedQuestKey(player);
-        Server.sendData(player, EnumPacketClient.PARTY_DATA, data.writeTrackedQuest());
+
+        PartyDataPacket.sendPartyData(player, data.writeTrackedQuest());
     }
 
 	public static boolean questCompletion(EntityPlayerMP player, int questId) {
@@ -626,7 +622,7 @@ public class NoppesUtilPlayer {
             }
 
             playerData.save();
-            Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+            QuestCompletionPacket.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
         }
 
         if(quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared){
@@ -740,7 +736,7 @@ public class NoppesUtilPlayer {
 		}
 	}
 	public static void isGUIOpen(EntityPlayerMP player){
-		Server.sendData(player, EnumPacketClient.ISGUIOPEN);
+        PacketHandler.Instance.sendToPlayer(new IsGuiOpenPacket(), player);
 	}
 
 	public static List<ItemStack> countStacks(IInventory inv, boolean ignoreDamage, boolean ignoreNBT) {
@@ -773,30 +769,30 @@ public class NoppesUtilPlayer {
 	public static void playSoundTo(EntityPlayerMP player, int id, ScriptSound sound) {
 		NBTTagCompound compound = sound.writeToNBT();
 		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
-			Server.sendData(player, EnumPacketClient.PLAY_SOUND_TO, id, compound);
+            PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_SOUND_TO, id, compound), player);
 		}
 	}
 
 	public static void playSoundTo(EntityPlayerMP player, ScriptSound sound) {
 		NBTTagCompound compound = sound.writeToNBT();
 		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
-			Server.sendData(player, EnumPacketClient.PLAY_SOUND_TO_NO_ID, compound);
+            PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_SOUND_TO_NO_ID, compound), player);
 		}
 	}
 
 	public static void stopSoundFor(EntityPlayerMP player, int id) {
-		Server.sendData(player, EnumPacketClient.STOP_SOUND_FOR, id);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.STOP_SOUND_FOR, id), player);
 	}
 
 	public static void pauseSoundsFor(EntityPlayerMP player) {
-		Server.sendData(player, EnumPacketClient.PAUSE_SOUNDS);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PAUSE_SOUNDS), player);
 	}
 
 	public static void continueSoundsFor(EntityPlayerMP player) {
-		Server.sendData(player, EnumPacketClient.CONTINUE_SOUNDS);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.CONTINUE_SOUNDS), player);
 	}
 
 	public static void stopSoundsFor(EntityPlayerMP player) {
-		Server.sendData(player, EnumPacketClient.STOP_SOUNDS);
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.STOP_SOUNDS), player);
 	}
 }

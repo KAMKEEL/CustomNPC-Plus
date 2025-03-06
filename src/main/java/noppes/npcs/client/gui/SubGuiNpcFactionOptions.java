@@ -1,10 +1,11 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.faction.FactionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.FactionOptions;
 
 import java.util.HashMap;
@@ -15,9 +16,9 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
 	private FactionOptions options;
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
 	private GuiCustomScroll scrollFactions;
-	
+
 	private int selected = -1;
-	
+
     public SubGuiNpcFactionOptions(FactionOptions options)
     {
     	this.options = options;
@@ -25,7 +26,7 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
 		xSize = 256;
 		ySize = 216;
 		closeOnEsc = true;
-    	Client.sendData(EnumPacketServer.FactionsGet);
+        PacketClient.sendClient(new FactionsGetPacket());
     }
 
     public void initGui()
@@ -42,7 +43,7 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
         addLabel(new GuiNpcLabel(0, "1: ", guiLeft + 4,  guiTop + 12));
         if(data.containsValue(options.factionId)){
             addLabel(new GuiNpcLabel(1, getFactionName(options.factionId), guiLeft + 12,  guiTop + 8));
-            
+
             String label = "";
             if(options.decreaseFactionPoints)
             	label += StatCollector.translateToLocal("gui.decrease");
@@ -69,14 +70,14 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
             addButton(new GuiNpcButton(1, guiLeft + 110, guiTop + 35, 20, 20, "X"));
         }
 
-        
+
         if(selected >= 0 && (!data.containsValue(options.faction2Id) || !data.containsValue(options.factionId)) && !options.hasFaction(selected)){
             addButton(new GuiNpcButton(2, guiLeft + 4, guiTop + 60, 90, 20, new String[]{"gui.increase","gui.decrease"},0));
-            
+
             addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 82, 110, 20, "10"));
             getTextField(1).integersOnly = true;
             getTextField(1).setMinMaxDefault(1, 100000, 10);
-            
+
             addButton(new GuiNpcButton(3, guiLeft + 4, guiTop + 104, 60, 20, "gui.add"));
         }
 
@@ -88,7 +89,7 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
     			return s;
     	return null;
     }
-    
+
 	protected void actionPerformed(GuiButton guibutton)
     {
 		int id = guibutton.id;
@@ -130,21 +131,21 @@ public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollD
 	}
 
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		GuiCustomScroll scroll = getScroll(0);
 		String name = scroll.getSelected();
 		this.data = data;
 		scroll.setList(list);
-		
+
 		if(name != null)
 			scroll.setSelected(name);
-		
+
 		initGui();
 	}
 
 	@Override
 	public void setSelected(String selected) {
-		
+
 	}
 
 }

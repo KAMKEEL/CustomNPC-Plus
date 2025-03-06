@@ -29,25 +29,25 @@ public class EntityAIReturn extends EntityAIBase
      * Returns whether the EntityAIBase should begin execution.
      */
     public boolean shouldExecute() {
-		if (!npc.ai.returnToStart){
+		if (!npc.ais.returnToStart){
 			return false;
 		}
 
 		if(npc.hasOwner() || npc.isKilled() || npc.isInteracting()){
 			return false;
 		}
-    	
-    	if (npc.ai.findShelter == 0 && (!npc.worldObj.isDaytime() || npc.worldObj.isRaining()) && !npc.worldObj.provider.hasNoSky){
+
+    	if (npc.ais.findShelter == 0 && (!npc.worldObj.isDaytime() || npc.worldObj.isRaining()) && !npc.worldObj.provider.hasNoSky){
     		if (npc.worldObj.canBlockSeeTheSky((int)npc.getStartXPos(), (int)npc.getStartYPos(), (int)npc.getStartZPos()) || npc.worldObj.getFullBlockLightValue((int)npc.getStartXPos(), (int)npc.getStartYPos(), (int)npc.getStartZPos()) <= 8){
                 return false;
             }
         }
-    	else if (npc.ai.findShelter == 1 && npc.worldObj.isDaytime()){
+    	else if (npc.ais.findShelter == 1 && npc.worldObj.isDaytime()){
     		if (npc.worldObj.canBlockSeeTheSky((int)npc.getStartXPos(), (int)npc.getStartYPos(), (int)npc.getStartZPos())){
                 return false;
             }
     	}
-    	
+
     	if(npc.isAttacking()){
     		if(!wasAttacked){
 	    		wasAttacked = true;
@@ -56,33 +56,33 @@ public class EntityAIReturn extends EntityAIBase
     		return false;
     	}
 
-    	if(npc.ai.movingType == EnumMovingType.MovingPath && npc.ai.getDistanceSqToPathPoint() < ConfigMain.NpcNavRange * ConfigMain.NpcNavRange)
+    	if(npc.ais.movingType == EnumMovingType.MovingPath && npc.ais.getDistanceSqToPathPoint() < ConfigMain.NpcNavRange * ConfigMain.NpcNavRange)
     		return false;
 
 		if (npc.getNavigator().noPath() || (!npc.isAttacking() && wasAttacked)) {
 			return true;
 		}
 
-    	if(npc.ai.movingType == EnumMovingType.Wandering)
-    		return this.npc.getDistanceSq(npc.getStartXPos(), npc.getStartYPos(), npc.getStartZPos()) > npc.ai.walkingRange * npc.ai.walkingRange;
+    	if(npc.ais.movingType == EnumMovingType.Wandering)
+    		return this.npc.getDistanceSq(npc.getStartXPos(), npc.getStartYPos(), npc.getStartZPos()) > npc.ais.walkingRange * npc.ais.walkingRange;
 
-        if(npc.ai.movingType == EnumMovingType.Standing)
+        if(npc.ais.movingType == EnumMovingType.Standing)
         	return !this.npc.isVeryNearAssignedPlace();
-        
+
         return false;
     }
     public boolean continueExecuting(){
         return !npc.isFollower() && !npc.isKilled() && !npc.isAttacking() && !npc.isVeryNearAssignedPlace() && totalTicks <= MaxTotalTicks && !npc.isInteracting();
     }
-    
+
     public void updateTask(){
     	totalTicks++;
     	if(totalTicks > MaxTotalTicks){
 			npc.setPosition(endPosX, endPosY, endPosZ);
     		npc.getNavigator().clearPathEntity();
 			return;
-    	}	
-    	
+    	}
+
     	if(stuckTicks > 0){
     		stuckTicks--;
     	}
@@ -95,19 +95,19 @@ public class EntityAIReturn extends EntityAIBase
     		}
     		else
             	navigate(stuckCount % 2 == 1);
-    	}  
+    	}
     	else{
     		stuckCount = 0;
     	}
     }
     private boolean isTooFar(){
     	int allowedDistance = npc.stats.aggroRange * 2;
-    	if(npc.ai.movingType == EnumMovingType.Wandering)
-    		allowedDistance += npc.ai.walkingRange;
+    	if(npc.ais.movingType == EnumMovingType.Wandering)
+    		allowedDistance += npc.ais.walkingRange;
     	return npc.getDistanceSq(endPosX, endPosY, endPosZ) > allowedDistance * allowedDistance;
     }
-    
-    public void startExecuting() 
+
+    public void startExecuting()
     {
     	stuckTicks = 0;
     	totalTicks = 0;
@@ -133,7 +133,7 @@ public class EntityAIReturn extends EntityAIBase
     		int distance = (int) range;
     		if(distance > ConfigMain.NpcNavRange)
     			distance = ConfigMain.NpcNavRange / 2;
-    		else 
+    		else
     			distance /= 2;
     		if(distance > 2){
 	    		Vec3 start = Vec3.createVectorHelper(posX, posY, posZ);

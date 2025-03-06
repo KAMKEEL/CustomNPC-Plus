@@ -1,15 +1,13 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobGuard;
 
@@ -136,7 +134,7 @@ public class GuiNpcGuard extends GuiNPCInterface2{
     }
 
 	public void save() {
-		Client.sendData(EnumPacketServer.JobSave, role.writeToNBT(new NBTTagCompound()));
+        JobSavePacket.saveJob(role);
 	}
 
 }

@@ -20,7 +20,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
-    private int activeTab = 0;
+    protected int activeTab = 0;
     public IScriptHandler handler;
     public Map<String, List<String>> languages = new HashMap();
     private int scriptLimit = 1;
@@ -113,7 +113,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addScroll(scroll);
         } else {
             GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int)((float)this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
-            var8.enabled = false;
+            var8.canEdit = false;
+            var8.setFocused(true);
             this.addTextField(var8);
             int var9 = this.guiLeft + this.xSize - 150;
             this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
@@ -159,7 +160,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     }
 
-    private String getConsoleText() {
+    protected String getConsoleText() {
         Map<Long, String> map = this.handler.getConsoleText();
         StringBuilder builder = new StringBuilder();
         Iterator var3 = map.entrySet().iterator();

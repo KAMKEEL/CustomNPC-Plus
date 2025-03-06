@@ -1,10 +1,13 @@
 package noppes.npcs.client.gui.roles;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.transport.TransportCategoriesGetPacket;
+import kamkeel.npcs.network.packets.request.transport.TransportGetLocationPacket;
+import kamkeel.npcs.network.packets.request.transport.TransportSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -15,25 +18,25 @@ public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, 
 	private GuiCustomScroll scroll;
 	public TransportLocation location = new TransportLocation();
 	private HashMap<String,Integer> data = new HashMap<String,Integer>();
-	
+
     public GuiNpcTransporter(EntityNPCInterface npc){
-    	super(npc);	
-    	Client.sendData(EnumPacketServer.TransportCategoriesGet);
-    	Client.sendData(EnumPacketServer.TransportGetLocation);
+    	super(npc);
+        PacketClient.sendClient(new TransportCategoriesGetPacket());
+        PacketClient.sendClient(new TransportGetLocationPacket());
     }
-    
+
     public void initGui(){
         super.initGui();
         Vector<String> list = new Vector<String>();
         list.addAll(data.keySet());
-        
+
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0);
 	        scroll.setSize(143, 208);
         }
         scroll.guiLeft = guiLeft + 214;
         scroll.guiTop = guiTop + 4;
-        
+
         addScroll(scroll);
         addLabel(new GuiNpcLabel(0,"gui.name", guiLeft + 4, height + 8));
         addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 60, guiTop + 3, 140, 20, location.name));
@@ -45,7 +48,7 @@ public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, 
     	GuiNpcButton button = (GuiNpcButton) guibutton;
     	if(button.id == 0){
     		location.type = button.getValue();
-    	}    	
+    	}
     }
 	@Override
 	public void save() {
@@ -54,17 +57,17 @@ public class GuiNpcTransporter extends GuiNPCInterface2 implements IScrollData, 
 		String name = getTextField(0).getText();
 		if(!name.isEmpty())
 			location.name = name;
-		
+
 		location.posX = player.posX;
 		location.posY = player.posY;
 		location.posZ = player.posZ;
 		location.dimension = player.dimension;
-		
+
 		int cat = data.get(scroll.getSelected());
-		Client.sendData(EnumPacketServer.TransportSave,cat, location.writeNBT());
+        PacketClient.sendClient(new TransportSavePacket(cat, location.writeNBT()));
 	}
 	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data) {
+	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
 		this.data = data;
 		this.scroll.setList(list);
 	}

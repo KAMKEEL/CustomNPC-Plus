@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui.model;
 
-import kamkeel.addon.client.GeckoAddonClient;
+import kamkeel.npcs.addon.client.GeckoAddonClient;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.npc.ModelDataSavePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
@@ -14,10 +16,8 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.compat.PixelmonHelper;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.entity.*;
 
 import java.lang.reflect.Method;
@@ -380,7 +380,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
 	@Override
 	public void close(){
-		Client.sendData(EnumPacketServer.ModelDataSave, playerdata.writeToNBT());
+        PacketClient.sendClient(new ModelDataSavePacket(playerdata.writeToNBT()));
 		displayGuiScreen(parent);
 	}
 

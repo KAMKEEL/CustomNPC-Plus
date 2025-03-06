@@ -1,15 +1,15 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiButtonNextPage;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Faction;
 import noppes.npcs.controllers.data.PlayerFactionData;
 import org.lwjgl.opengl.GL11;
@@ -35,7 +35,7 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData {
 		ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.FactionsGet);
+        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.Faction));
 	}
 
 	@Override
@@ -131,7 +131,7 @@ public class GuiFaction extends GuiCNPCInventory implements IGuiData {
         if(guibutton instanceof AbstractTab)
             return;
 
-        if (guibutton.id >= 100 && guibutton.id <= 105) {
+        if (guibutton.id <= -100) {
             super.actionPerformed(guibutton);
             return;
         }

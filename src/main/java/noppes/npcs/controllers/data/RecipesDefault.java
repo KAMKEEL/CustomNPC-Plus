@@ -19,16 +19,20 @@ public class RecipesDefault {
 		else
 			item = (ItemStack) ob;
 
-		RecipeCarpentry recipeAnvil = new RecipeCarpentry(name);
-		recipeAnvil.isGlobal = isGlobal;
-		recipeAnvil = RecipeCarpentry.saveRecipe(recipeAnvil, item, recipe);
-		RecipeController.Instance.addRecipe(recipeAnvil);
+		RecipeCarpentry recipeCarpentry = new RecipeCarpentry(name);
+		recipeCarpentry.isGlobal = isGlobal;
+		recipeCarpentry = RecipeCarpentry.saveRecipe(recipeCarpentry, item, recipe);
+		RecipeController.Instance.addRecipe(recipeCarpentry);
 	}
 	public static void loadDefaultRecipes(int i) {
 		if(i < 0){
 			addRecipe("Npc Wand", CustomItems.wand, true, "XX"," Y"," Y",'X', Items.bread,'Y', Items.stick);
 			addRecipe("Mob Cloner", CustomItems.cloner, true, "XX","XY"," Y",'X', Items.bread,'Y', Items.stick);
 			addRecipe("Carpentry Bench", CustomItems.carpentyBench, true, "XYX","Z Z","Z Z", 'X', Blocks.planks, 'Z', Items.stick, 'Y', Blocks.crafting_table);
+
+            ItemStack anvil = new ItemStack(CustomItems.carpentyBench);
+            anvil.setItemDamage(1);
+            addRecipe("Anvil", anvil, true, "XXX","Z Z","Z Z", 'X', Blocks.iron_block, 'Z', Items.iron_ingot);
 
 			if(!ConfigMain.DisableExtraItems){
 				addRecipe("Mana", CustomItems.mana, true, "XY",'X',Items.redstone,'Y',Items.glowstone_dust);
@@ -146,7 +150,7 @@ public class RecipesDefault {
 				addRecipe("Sign Wood5", new ItemStack(CustomItems.sign, 1, 4), false, "YYY", "XXX", "XXX", 'X', new ItemStack(Blocks.planks,1,4), 'Y', Items.iron_ingot);
 				addRecipe("Sign Wood6", new ItemStack(CustomItems.sign, 1, 5), false, "YYY", "XXX", "XXX", 'X', new ItemStack(Blocks.planks,1,5), 'Y', Items.iron_ingot);
 
-				addRecipe("Lamp", new ItemStack(CustomItems.lamp), false, "XXX","YZY","XXX", 'X', Items.iron_ingot, 'Y', Blocks.glass, 'Z', Blocks.torch);
+				addRecipe("Lamp", new ItemStack(CustomItems.lantern), false, "XXX","YZY","XXX", 'X', Items.iron_ingot, 'Y', Blocks.glass, 'Z', Blocks.torch);
 				addRecipe("Candle", new ItemStack(CustomItems.candle), false, "XZX"," X ", 'X', Items.iron_ingot, 'Z', Blocks.torch);
 				addRecipe("BigSign", new ItemStack(CustomItems.bigsign, 2), false, "XXX","XXX","XXX", 'X', Blocks.planks);
 

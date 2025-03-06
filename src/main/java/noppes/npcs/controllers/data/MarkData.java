@@ -1,15 +1,15 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.MarkDataPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
-import noppes.npcs.Server;
 import noppes.npcs.api.entity.data.IMark;
 import noppes.npcs.api.handler.data.IAvailability;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -102,7 +102,7 @@ public class MarkData implements IExtendedEntityProperties {
     public void init(Entity entity, World world) {}
 
     public void syncClients() {
-        Server.sendToAll(EnumPacketClient.MARK_DATA, entity.getEntityId(), getNBT());
+        PacketHandler.Instance.sendToAll(new MarkDataPacket(entity.getEntityId(), getNBT()));
     }
 
     public class Mark implements IMark {

@@ -1,17 +1,18 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.FollowerPacket;
+import kamkeel.npcs.network.packets.player.GetNPCRole;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.containers.ContainerNPCFollower;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
@@ -22,14 +23,14 @@ public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiDat
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/follower.png");
 	private EntityNPCInterface npc;
 	private RoleFollower role;
-	
+
     public GuiNpcFollower(EntityNPCInterface npc,ContainerNPCFollower container){
         super(npc, container);
         this.npc = npc;
         role = (RoleFollower) npc.roleInterface;
         closeOnEsc = true;
-        
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.RoleGet);
+
+        PacketClient.sendClient(new GetNPCRole());
     }
     @Override
     public void initGui(){
@@ -44,10 +45,10 @@ public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiDat
     	super.actionPerformed(guibutton);
     	int id = guibutton.id;
         if(id == 4){
-        	NoppesUtilPlayer.sendData(EnumPlayerPacket.FollowerState);
+            PacketClient.sendClient(new FollowerPacket(FollowerPacket.Action.State));
         }
         if(id == 5){
-        	NoppesUtilPlayer.sendData(EnumPlayerPacket.FollowerExtend);
+            PacketClient.sendClient(new FollowerPacket(FollowerPacket.Action.Extend));
         }
     }
 
@@ -58,7 +59,7 @@ public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiDat
 	       if(role.getDaysLeft() <= 1)
 	    	   fontRendererObj.drawString(StatCollector.translateToLocal("follower.daysleft")+": " + StatCollector.translateToLocal("follower.lastday"), 62, 94, CustomNpcResourceListener.DefaultTextColor);
 	       else
-	    	   fontRendererObj.drawString(StatCollector.translateToLocal("follower.daysleft") + ": " + (role.getDaysLeft()-1), 62, 94, CustomNpcResourceListener.DefaultTextColor);   
+	    	   fontRendererObj.drawString(StatCollector.translateToLocal("follower.daysleft") + ": " + (role.getDaysLeft()-1), 62, 94, CustomNpcResourceListener.DefaultTextColor);
     	}
     }
 
@@ -78,9 +79,9 @@ public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiDat
 	            int days = 1;
 	            if(role.rates.containsKey(id))
 	            	days = role.rates.get(id);
-	            
+
 				int yOffset = index * 20;
-				
+
 				int x = guiLeft +  68;
 				int y = guiTop + yOffset + 4;
 	            RenderHelper.enableGUIStandardItemLighting();
@@ -89,22 +90,22 @@ public class GuiNpcFollower extends GuiContainerNPCInterface  implements IGuiDat
 	            GL11.glEnable(GL11.GL_LIGHTING);
 	            itemRender.renderItemIntoGUI(fontRendererObj, mc.renderEngine, itemstack, x + 11,y);
 	            itemRender.renderItemOverlayIntoGUI(fontRendererObj, mc.renderEngine, itemstack, x+11,y);
-	            RenderHelper.disableStandardItemLighting(); 
+	            RenderHelper.disableStandardItemLighting();
 	            GL11.glDisable(32826 /*GL_RESCALE_NORMAL_EXT*/);
-	
+
 	            String daysS = days + " " + ((days == 1)?StatCollector.translateToLocal("follower.day"):StatCollector.translateToLocal("follower.days"));
 	            fontRendererObj.drawString(" = "+daysS, x + 27, y + 4, CustomNpcResourceListener.DefaultTextColor);
 		        //fontRenderer.drawString(quantity, x + 0 + (12-fontRenderer.getStringWidth(quantity))/2, y + 4, 0x404040);
-		        
+
 		        index++;
 	    	}
 		}
 		this.drawNpc(33, 131);
     }
-    
+
 	@Override
 	public void save() {
-		
+
 	}
 	@Override
 	public void setGuiData(NBTTagCompound compound) {

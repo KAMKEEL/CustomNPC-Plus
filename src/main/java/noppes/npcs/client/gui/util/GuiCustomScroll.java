@@ -1,6 +1,6 @@
 package noppes.npcs.client.gui.util;
 
-import kamkeel.util.TextSplitter;
+import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
@@ -9,10 +9,12 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.*;
 
+import static noppes.npcs.client.gui.util.GuiNPCInterface.resizingActive;
+
 public class GuiCustomScroll extends GuiScreen
 {
 	public static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/misc.png");
-    protected List<String> list;
+    public List<String> list;
     public final HashMap<String,Integer> colors = new HashMap<>();
 
     public int id;
@@ -127,7 +129,7 @@ public class GuiCustomScroll extends GuiScreen
         if(scrollHeight < ySize - 8){
         	i -= guiLeft;
         	j -= guiTop;
-            if(Mouse.isButtonDown(0)){
+            if(Mouse.isButtonDown(0) && !resizingActive){
                 if(i >= xSize-9 && i < xSize-4 && j >= 4 && j < ySize){
                     isScrolling = true;
                 }
@@ -263,6 +265,9 @@ public class GuiCustomScroll extends GuiScreen
 
     public void mouseClicked(int i, int j, int k)
     {
+        if(resizingActive)
+            return;
+
     	if(k != 0 || hover < 0)
     		return;
     	if(multipleSelection) {
@@ -302,7 +307,7 @@ public class GuiCustomScroll extends GuiScreen
         drawTexturedModalRect(i, k, xSize, 11, 5, 1);
     }
 	public boolean hasSelected() {
-		// TODO Auto-generated method stub
+
 		return selected >= 0;
 	}
 

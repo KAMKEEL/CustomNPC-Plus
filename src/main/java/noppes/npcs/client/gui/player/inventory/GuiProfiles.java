@@ -1,41 +1,58 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import noppes.npcs.api.handler.data.ISlot;
+import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.controllers.data.profile.Slot;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.profile.*;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.gui.util.GuiButtonNextPage;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.constants.EnumPlayerPacket;
-import noppes.npcs.controllers.data.Faction;
-import noppes.npcs.controllers.data.PlayerFactionData;
+import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.client.gui.SubGuiEditText;
+import noppes.npcs.client.gui.util.*;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
-public class GuiProfiles extends GuiCNPCInventory implements IGuiData {
+public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback {
 
 	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+    private GuiCustomScroll scroll;
+    public HashMap<String, Integer> data = new HashMap<>();
+    private String selected = null;
+    private String rename;
+    private Profile profile;
+    private Slot slot;
+    private HashMap<Integer, List<ProfileInfoEntry>> slotInfoMap = new HashMap<>();
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm");
 
-    private ArrayList<Faction> playerFactions = new ArrayList<Faction>();
+    private int scrollY = 0; // Vertical scrolling position
+    private int maxScrollY = 0; // Maximum scroll limit
 
-	private int page = 0;
-	private int pages = 1;
+    private boolean draggingScrollbar = false; // Track if user is dragging the scrollbar
+    private int lastMouseY = 0; // Last recorded mouse Y position when dragging
 
-	private GuiButtonNextPage buttonNextPage;
-	private GuiButtonNextPage buttonPreviousPage;
-
-	public GuiProfiles() {
+    public GuiProfiles() {
 		super();
 		xSize = 280;
 		ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.FactionsGet);
+        PacketClient.sendClient(new ProfileGetPacket());
+        PacketClient.sendClient(new ProfileGetInfoPacket());
 	}
 
 	@Override
@@ -43,155 +60,360 @@ public class GuiProfiles extends GuiCNPCInventory implements IGuiData {
     {
 		super.initGui();
 
-        this.buttonList.add(buttonNextPage = new GuiButtonNextPage(1, (guiLeft + (xSize + 35) / 2) + 25, guiTop + 170, true));
-        this.buttonList.add(buttonPreviousPage = new GuiButtonNextPage(2, (guiLeft + (xSize + 35) / 2) - 40, guiTop + 170, false));
-        updateButtons();
-    }
+        int y = guiTop + 4;
+        this.addButton(new GuiNpcButton(1,guiLeft + 4, y += 144, 60, 20, "gui.change"));
+        this.addButton(new GuiNpcButton(2,guiLeft + 4 + 63, y, 60, 20, "gui.rename"));
+        this.addButton(new GuiNpcButton(3,guiLeft + 4 + 63, y += 22, 60, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(4,guiLeft + 4, y, 60, 20, "gui.create"));
 
-	@Override
-    public void drawScreen(int i, int j, float f)
-    {
-    	drawDefaultBackground();
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		mc.renderEngine.bindTexture(resource);
-		drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
-		drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
-
-        if(playerFactions.isEmpty()){
-        	String noFaction = StatCollector.translateToLocal("faction.nostanding");
-            fontRendererObj.drawString(noFaction,guiLeft + (xSize - fontRendererObj.getStringWidth(noFaction)) / 2,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+        if(scroll == null){
+            scroll = new GuiCustomScroll(this,0);
+            scroll.setSize(123, 141);
         }
-        else
-        	renderScreen();
-
-        super.drawScreen(i, j, f);
-
+        scroll.guiLeft = guiLeft + 4;
+        scroll.guiTop = guiTop + 4;
+        scroll.setList(new ArrayList<String>(this.data.keySet()));
+        this.addScroll(scroll);
     }
 
-	private void renderScreen(){
-        int size = 10;
-        if(playerFactions.size() % 10 != 0 && page == pages)
-        	size = playerFactions.size() % 10;
+    @Override
+    protected void actionPerformed(GuiButton guibutton){
+        if(guibutton instanceof AbstractTab)
+            return;
 
-		int hLine = 5;
-		if(size < 5){
-			hLine = size;
-		}
+        if (guibutton.id <= -100) {
+            super.actionPerformed(guibutton);
+            return;
+        }
 
-		int count = -1;
-        for(int id = 0 ; id < size; id++){
-			count++;
+        if(guibutton.id == 4){
+            GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("profile.create.message"), StatCollector.translateToLocal("gui.sure"), 104);
+            displayGuiScreen(guiyesno);
+        }
 
-			Faction faction = playerFactions.get((page - 1) * 10 + id);
-			String name = faction.name;
-			String points = " : " + faction.defaultPoints;
+        if(this.slot == null)
+            return;
 
-			String standing = StatCollector.translateToLocal("faction.friendly");
-			int color = 0x00FF00;
-			if(faction.defaultPoints < faction.neutralPoints){
-				standing = StatCollector.translateToLocal("faction.unfriendly");
-				color = 0xFF0000;
-				points += "/" + faction.neutralPoints;
-			}
-			else if(faction.defaultPoints < faction.friendlyPoints){
-				standing = StatCollector.translateToLocal("faction.neutral");
-				color = 0xF2FF00;
-				points += "/" + faction.friendlyPoints;
-			}
-			else{
-				points += "/-";
-			}
-
-			drawVerticalLine(guiLeft + (xSize + 45) / 2, (guiTop + ySize - 15), guiTop + 13, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-			if(count < 5){
-				drawHorizontalLine(guiLeft + 2, guiLeft + xSize + 35, guiTop + 14 + count * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-				fontRendererObj.drawString(name, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(name)) / 4, guiTop + 19 + count * 30, faction.color);
-
-				fontRendererObj.drawString(standing,  (guiLeft + (xSize + 45) / 4) - fontRendererObj.getStringWidth(standing), guiTop + 33 + count * 30, color);
-				fontRendererObj.drawString(points, (guiLeft + (xSize + 45) / 4), guiTop + 33 + count * 30, CustomNpcResourceListener.DefaultTextColor);
-			}
-			else {
-				fontRendererObj.drawString(name, guiLeft + 3*(xSize + 45 - fontRendererObj.getStringWidth(name)) / 4, guiTop + 19 + (count - 5) * 30, faction.color);
-
-				fontRendererObj.drawString(standing, (guiLeft + 3*(xSize + 45) / 4) - fontRendererObj.getStringWidth(standing) - 10, guiTop + 33 + (count - 5) * 30, color);
-				fontRendererObj.drawString(points, (guiLeft + 3*(xSize + 45) / 4) - 10, guiTop + 33 + (count - 5) * 30, CustomNpcResourceListener.DefaultTextColor);
-			}
-
-			drawHorizontalLine(guiLeft + 2, guiLeft + xSize + 35, guiTop + 14 + hLine * 30, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
-		}
-
-        if(pages > 1){
-        	String s = page +"/" + pages;
-        	fontRendererObj.drawString(s, guiLeft + (xSize + 45 - fontRendererObj.getStringWidth(s)) / 2, guiTop + 175, CustomNpcResourceListener.DefaultTextColor);
+        if(guibutton.id == 1){
+            GuiYesNo guiyesno = new GuiYesNo(this, slot.getName(), StatCollector.translateToLocal("profile.change.message"), 101);
+            displayGuiScreen(guiyesno);
+        }
+        if(guibutton.id == 2){
+            setSubGui(new SubGuiEditText(slot.getName()));
+        }
+        if(guibutton.id == 3){
+            GuiYesNo guiyesno = new GuiYesNo(this, slot.getName(), StatCollector.translateToLocal("gui.delete"), 103);
+            displayGuiScreen(guiyesno);
         }
     }
 
     @Override
-	protected void actionPerformed(GuiButton guibutton){
-        if(guibutton instanceof AbstractTab)
-            return;
+    public void drawScreen(int mouseX, int mouseY, float f) {
+        drawDefaultBackground();
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        mc.renderEngine.bindTexture(resource);
+        drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
+        drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
 
-        if (guibutton.id >= 100 && guibutton.id <= 105) {
-            super.actionPerformed(guibutton);
-            return;
+        super.drawScreen(mouseX, mouseY, f);
+        if (hasSubGui()) return;
+
+        renderScrollableScreen(mouseX, mouseY);
+    }
+
+    /**
+     * Renders the scrollable area inside the background box.
+     */
+    private void renderScrollableScreen(int mouseX, int mouseY) {
+        drawGradientRect(guiLeft + 133, guiTop + 4, guiLeft + xSize + 33, guiTop + 24, 0xC0101010, 0xC0101010);
+        drawHorizontalLine(guiLeft + 133, guiLeft + xSize + 33, guiTop + 25, 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+        drawGradientRect(guiLeft + 133, guiTop + 27, guiLeft + xSize + 33, guiTop + ySize + 9, 0xA0101010, 0xA0101010);
+
+        if (this.profile != null && slot != null) {
+
+            String topBarText = slot.getName();
+            int textWidth = fontRendererObj.getStringWidth(topBarText);
+            int barCenterX = guiLeft + 133 + ((xSize + 33 - 133) / 2);
+            int textX = barCenterX - (textWidth / 2);
+            fontRendererObj.drawString(topBarText, textX, guiTop + 10, 0xFFFFFF, true);
+
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
+            ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+            int scaleFactor = sr.getScaleFactor();
+
+            // Define the SCISSOR RECTANGLE to restrict drawing to only within the background box
+            int scissorX = (guiLeft + 133) * scaleFactor;
+            int scissorY = (sr.getScaledHeight() - (guiTop + ySize + 6)) * scaleFactor;
+            int scissorW = (xSize + 33 - 133) * scaleFactor;
+            int scissorH = (ySize + 4 - 27) * scaleFactor; // The height from 27 to ySize+9
+            GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
+
+            GL11.glPushMatrix();
+            GL11.glTranslatef(0, -scrollY, 0); // Apply Scroll to Info
+
+            int spacing = 14;
+            int y = guiTop + 30;
+            int xLabel = guiLeft + 136;
+            int boxRightX = guiLeft + xSize + 30;
+
+            String label, result;
+            int labelColor, resultColor, resultWidth, resultX;
+
+            label = StatCollector.translateToLocal("profile.lastLoaded");
+            result = String.valueOf(DATE_FORMAT.format(new Date(slot.getLastLoaded())));
+            labelColor = 0xff9c2b;
+            resultColor = 0xffdb59;
+            fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+            resultWidth = fontRendererObj.getStringWidth(result);
+            resultX = boxRightX - resultWidth - 5;
+            fontRendererObj.drawString(result, resultX, y, resultColor, false);
+            y += spacing;
+
+            if(slot.isTemporary()){
+                label = StatCollector.translateToLocal("profile.temporary");
+                result = (String.valueOf(slot.isTemporary())).toUpperCase();
+                labelColor = 0xfc60dd;
+                resultColor = 0x35fc81;
+                fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+                resultWidth = fontRendererObj.getStringWidth(result);
+                resultX = boxRightX - resultWidth - 5;
+                fontRendererObj.drawString(result, resultX, y, resultColor, false);
+                y += spacing;
+            }
+
+            if (slotInfoMap.containsKey(slot.getId())) {
+                List<ProfileInfoEntry> infoEntries = slotInfoMap.get(slot.getId());
+                for (ProfileInfoEntry entry : infoEntries) {
+                    label = StatCollector.translateToLocal(entry.getLabel());
+                    result = StatCollector.translateToLocal(entry.getResult());
+                    labelColor = entry.getLabelColor();
+                    resultColor = entry.getResultColor();
+
+                    // Draw Label
+                    fontRendererObj.drawString(label, xLabel, y, labelColor, false);
+
+                    // Calculate Result X Position (Right-Aligned)
+                    resultWidth = fontRendererObj.getStringWidth(result);
+                    resultX = boxRightX - resultWidth - 5;
+
+                    // Draw Result at Right-Aligned Position
+                    fontRendererObj.drawString(result, resultX, y, resultColor, false);
+
+                    // Move to next line
+                    y += spacing;
+                }
+            }
+
+            maxScrollY = Math.max(0, y - (guiTop + ySize - 35));
+
+            GL11.glPopMatrix();
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
         }
-    	if(!(guibutton instanceof GuiButtonNextPage))
-    		return;
-		int id = guibutton.id;
-		if(id == 1){
-			page++;
-		}
-		if(id == 2){
-			page--;
-		}
-		updateButtons();
-    }
-    private void updateButtons(){
-		buttonNextPage.setVisible(page < pages);
-		buttonPreviousPage.setVisible(page > 1);
-    }
-    protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
-    {
 
+        // Draw scrollbar only if needed
+        if (maxScrollY > 0) {
+            drawScrollbar();
+        }
+    }
+
+    /**
+     * Handles mouse scroll input **only inside the background box**.
+     */
+    @Override
+    public void handleMouseInput() {
+        super.handleMouseInput();
+        if(isMouseOverScrollBox(mouseX, mouseY)){
+            int delta = Mouse.getEventDWheel();
+            if (delta != 0) {
+                scrollY -= delta / 7;
+                if (scrollY < 0) scrollY = 0;
+                if (scrollY > maxScrollY) scrollY = maxScrollY;
+            }
+        }
+
+        if (draggingScrollbar) {
+            if (Mouse.isButtonDown(0)) {
+                int mouseDiff = mouseY - lastMouseY;
+                scrollY += (mouseDiff * maxScrollY) / (ySize - 70);
+                scrollY = Math.max(0, Math.min(scrollY, maxScrollY));
+                lastMouseY = mouseY;
+            } else {
+                draggingScrollbar = false;
+            }
+        }
+    }
+
+    /**
+     * Draws the vertical scrollbar (only if needed).
+     */
+    private void drawScrollbar() {
+        int scrollbarX = guiLeft + xSize + 30;
+        int scrollbarY = guiTop + 27;
+        int scrollbarHeight = ySize - 18;
+        int thumbHeight = Math.max(10, (scrollbarHeight * scrollbarHeight) / (maxScrollY + scrollbarHeight));
+        int thumbY = scrollbarY + ((scrollY * (scrollbarHeight - thumbHeight)) / maxScrollY);
+
+        drawRect(scrollbarX, scrollbarY, scrollbarX + 5, scrollbarY + scrollbarHeight, 0xFF333333);
+        drawRect(scrollbarX, thumbY, scrollbarX + 5, thumbY + thumbHeight, 0xFFAAAAAA);
+    }
+
+    /**
+     * Checks if the mouse is inside the background box for scrolling.
+     */
+    private boolean isMouseOverScrollBox(int mouseX, int mouseY) {
+        return (mouseX >= guiLeft + 133 && mouseX <= guiLeft + xSize + 33 &&
+            mouseY >= guiTop + 27 && mouseY <= guiTop + ySize + 9);
     }
 
     @Override
     public void keyTyped(char c, int i)
     {
-        if (i == 1 || isInventoryKey(i))
+        super.keyTyped(c, i);
+        if (i == 1 || (!hasSubGui() && isInventoryKey(i)))
         {
             close();
         }
     }
 	@Override
-	public void save() {
-	}
-	@Override
-	public void setGuiData(NBTTagCompound compound) {
-		playerFactions = new ArrayList<Faction>();
+	public void save() {}
 
-		NBTTagList list = compound.getTagList("FactionList", 10);
-		for(int i = 0; i < list.tagCount(); i++){
-			Faction faction = new Faction();
-			faction.readNBT(list.getCompoundTagAt(i));
-			playerFactions.add(faction);
-		}
-		PlayerFactionData data = new PlayerFactionData();
-		data.loadNBTData(compound);
-		for(int id : data.factionData.keySet()){
-			int points = data.factionData.get(id);
-			for(Faction faction : playerFactions){
-				if(faction.id == id)
-					faction.defaultPoints = points;
-			}
-		}
+    @Override
+    public void confirmClicked(boolean result, int id) {
+        NoppesUtil.openGUI(player, this);
+        if (!result)
+            return;
+        if (id == 104) {
+            // Create Slot
+            PacketClient.sendClient(new ProfileCreatePacket());
+        }
+        if(slot == null)
+            return;
 
-		pages = (playerFactions.size() - 1) / 10 ;
-		pages++;
+        if(id == 101){
+            // Change Slot
+            PacketClient.sendClient(new ProfileChangePacket(slot.getId()));
+        }
+        if(id == 102 && rename != null && !rename.equalsIgnoreCase(slot.getName())){
+            // Rename Slot
+            PacketClient.sendClient(new ProfileRenamePacket(slot.getId(), rename));
+        }
+        if(id == 103){
+            // Delete Slot
+            PacketClient.sendClient(new ProfileRemovePacket(slot.getId()));
+        }
+    }
 
-		page = 1;
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if(subgui instanceof SubGuiEditText){
+            if(!((SubGuiEditText)subgui).cancelled){
+                rename = ((SubGuiEditText)subgui).text;
+                GuiYesNo guiyesno = new GuiYesNo(this, rename, StatCollector.translateToLocal("profile.rename.message"), 102);
+                displayGuiScreen(guiyesno);
+            }
+        }
+    }
 
-		updateButtons();
-	}
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        if (guiCustomScroll.id == 0) {
+            slot = null;
+            selected = scroll.getSelected();
+            if (profile != null && selected != null && !selected.isEmpty()){
+                for(ISlot checkSlot : profile.getSlots().values()){
+                    if(checkSlot.getId() == data.get(selected)){
+                        slot = (Slot) checkSlot;
+                        break;
+                    }
+                }
+            }
+        }
+    }
 
+    @Override
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+
+    public void setGuiData(NBTTagCompound compound) {
+        this.slot = null;
+        if(compound.hasKey("PROFILE")){
+            // Load Profile
+            this.profile = new Profile(mc.thePlayer, compound);
+            this.data = new HashMap<>();
+            String currentSlot = "\u00A7e";
+            String otherSlot = "\u00A7f";
+            for(ISlot slot1 : profile.getSlots().values()){
+                String name = slot1.getId() + " - " + slot1.getName();
+                if(profile.currentSlotId == slot1.getId())
+                    name = currentSlot + name;
+                else
+                    name = otherSlot + name;
+                this.data.put(name, slot1.getId());
+            }
+        } else if(compound.hasKey("PROFILE_INFO")){
+            slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
+        }
+        if(scroll != null){
+            scroll.setSelected("");
+        }
+        initGui();
+    }
+
+    /**
+     * Handles mouse clicks for the scrollbar.
+     */
+    @Override
+    public void mouseClicked(int mouseX, int mouseY, int button) {
+        super.mouseClicked(mouseX, mouseY, button);
+
+        if (button == 0) { // Left mouse button
+            if (isMouseOverScrollbar(mouseX, mouseY)) {
+                int scrollbarY = guiTop + 27;
+                int scrollbarHeight = ySize - 35;
+                int thumbHeight = Math.max(10, (scrollbarHeight * scrollbarHeight) / (maxScrollY + scrollbarHeight));
+                int thumbY = scrollbarY + ((scrollY * (scrollbarHeight - thumbHeight)) / maxScrollY);
+
+                // If clicking on scrollbar thumb, start dragging
+                if (mouseY >= thumbY && mouseY <= thumbY + thumbHeight) {
+                    draggingScrollbar = true;
+                    lastMouseY = mouseY;
+                } else {
+                    // Click anywhere on scrollbar background to jump position
+                    scrollY = ((mouseY - scrollbarY) * maxScrollY) / scrollbarHeight;
+                    scrollY = Math.max(0, Math.min(scrollY, maxScrollY));
+                }
+            }
+        }
+    }
+
+    /**
+     * Handles mouse dragging while clicking.
+     */
+    @Override
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
+        if (draggingScrollbar) {
+            int mouseDiff = mouseY - lastMouseY;
+            scrollY += (mouseDiff * maxScrollY) / (ySize - 70);
+            scrollY = Math.max(0, Math.min(scrollY, maxScrollY));
+            lastMouseY = mouseY;
+        }
+    }
+
+    /**
+     * Handles mouse release.
+     */
+    @Override
+    protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+        super.mouseMovedOrUp(mouseX, mouseY, state);
+        if (state == 0) {
+            draggingScrollbar = false;
+        }
+    }
+
+    private boolean isMouseOverScrollbar(int mouseX, int mouseY) {
+        int scrollbarX = guiLeft + xSize + 30;
+        int scrollbarY = guiTop + 27;
+        int scrollbarHeight = ySize - 35;
+        return (mouseX >= scrollbarX && mouseX <= scrollbarX + 5 &&
+            mouseY >= scrollbarY && mouseY <= scrollbarY + scrollbarHeight);
+    }
 }

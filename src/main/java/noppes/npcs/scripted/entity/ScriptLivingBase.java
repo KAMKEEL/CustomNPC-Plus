@@ -225,6 +225,16 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
 		return getMCEntity();
 	}
 
+    @Override
+    public float getRotation(){
+        return entity.renderYawOffset;
+    }
+
+    @Override
+    public void setRotation(float rotation){
+        entity.renderYawOffset = rotation;
+    }
+
 	/**
 	 * Makes the entity swing its hand
 	 */

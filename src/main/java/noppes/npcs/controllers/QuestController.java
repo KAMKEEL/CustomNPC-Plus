@@ -1,17 +1,17 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.handler.data.IQuestCategory;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.SyncType;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.util.NBTJsonUtil;
@@ -24,6 +24,7 @@ public class QuestController implements IQuestHandler {
     public HashMap<Integer,QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
 	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
+    public HashMap<Integer, Quest> sharedQuests = new HashMap<>();
 
 	public static QuestController Instance = new QuestController();;
 
@@ -76,6 +77,9 @@ public class QuestController implements IQuestHandler {
 					}
 					else{
 						quests.put(id, quest);
+                        if(quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared){
+                            sharedQuests.put(id, quest);
+                        }
 					}
 				}
 				lastUsedCatID++;
@@ -146,7 +150,7 @@ public class QuestController implements IQuestHandler {
 		for(int dia : cat.quests.keySet())
 			quests.remove(dia);
 		categories.remove(category);
-        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.QUEST_CATEGORY, category);
+        SyncController.syncRemove(EnumSyncType.QUEST_CATEGORY, category);
 	}
 
 	public void saveCategory(QuestCategory category){
@@ -177,7 +181,7 @@ public class QuestController implements IQuestHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        SyncController.updateQuestCat(category);
+        SyncController.syncUpdate(EnumSyncType.QUEST_CATEGORY, -1, SyncController.updateQuestCat(category));
     }
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -210,8 +214,14 @@ public class QuestController implements IQuestHandler {
 			lastUsedQuestID++;
 			quest.id = lastUsedQuestID;
 		}
+
     	quests.put(quest.id, quest);
     	category.quests.put(quest.id, quest);
+
+        sharedQuests.remove(quest.id);
+        if(quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared){
+            sharedQuests.put(quest.id, quest);
+        }
 
     	File dir = new File(getDir(), category.title);
     	if(!dir.exists())
@@ -225,7 +235,7 @@ public class QuestController implements IQuestHandler {
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.QUEST, quest.writeToNBT(new NBTTagCompound()), category.id);
+            SyncController.syncUpdate(EnumSyncType.QUEST, category.id, quest.writeToNBT(new NBTTagCompound()));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

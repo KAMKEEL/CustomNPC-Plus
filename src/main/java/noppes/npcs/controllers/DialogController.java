@@ -1,18 +1,17 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.IDialogHandler;
 import noppes.npcs.api.handler.data.IDialog;
 import noppes.npcs.api.handler.data.IDialogCategory;
 import noppes.npcs.constants.EnumOptionType;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.SyncType;
 import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogCategory;
 import noppes.npcs.controllers.data.DialogOption;
@@ -92,6 +91,7 @@ public class DialogController implements IDialogHandler {
 			}
 		}
 	}
+
 	private DialogCategory loadCategoryDir(File dir) {
 		DialogCategory category = new DialogCategory();
 		category.title = dir.getName();
@@ -104,6 +104,11 @@ public class DialogController implements IDialogHandler {
 				dialog.readNBTPartial(NBTJsonUtil.LoadFile(file));
 				category.dialogs.put(dialog.id, dialog);
 				dialog.category = category;
+
+                if (dialog.text != null && dialog.text.length() > 15000) {
+                    LogWriter.error("Extremely big dialog loaded: [ID: " + dialog.id + "] Title: "
+                        + dialog.title + " (Length: " + dialog.text.length() + " chars)");
+                }
 			}
 			catch(Exception e){
 				LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
@@ -230,7 +235,7 @@ public class DialogController implements IDialogHandler {
 				dir.mkdirs();
 		}
 		categories.put(category.id, category);
-        SyncController.updateDialogCat(category);
+        SyncController.syncUpdate(EnumSyncType.DIALOG_CATEGORY, -1, SyncController.updateDialogCat(category));
 	}
 
 	public void removeCategory(int category){
@@ -243,8 +248,8 @@ public class DialogController implements IDialogHandler {
 		for(int dia : cat.dialogs.keySet())
 			dialogs.remove(dia);
 		categories.remove(category);
-        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.DIALOG_CATEGORY, category);
-	}
+        SyncController.syncRemove(EnumSyncType.DIALOG_CATEGORY, category);
+    }
 
 	private boolean containsCategoryName(String name) {
 		name = name.toLowerCase();
@@ -291,7 +296,7 @@ public class DialogController implements IDialogHandler {
 			if(file2.exists())
 				file2.delete();
 			file.renameTo(file2);
-            Server.sendToAll(EnumPacketClient.SYNC_UPDATE, SyncType.DIALOG, dialog.writeToNBT(new NBTTagCompound()), category.id);
+            SyncController.syncUpdate(EnumSyncType.DIALOG, category.id, dialog.writeToNBT(new NBTTagCompound()));
 		} catch (Exception e) {
 			LogWriter.except(e);
 		}
@@ -305,7 +310,7 @@ public class DialogController implements IDialogHandler {
 			return;
 		category.dialogs.remove(dialog.id);
 		dialogs.remove(dialog.id);
-        Server.sendToAll(EnumPacketClient.SYNC_REMOVE, SyncType.DIALOG, dialog.id);
+        SyncController.syncRemove(EnumSyncType.DIALOG, dialog.id);
 	}
 
 	private File getDir(){

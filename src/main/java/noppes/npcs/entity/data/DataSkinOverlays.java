@@ -1,12 +1,12 @@
 package noppes.npcs.entity.data;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.PlayerUpdateSkinOverlaysPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.Server;
 import noppes.npcs.api.ISkinOverlay;
 import noppes.npcs.api.handler.IOverlayHandler;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -54,7 +54,7 @@ public class DataSkinOverlays implements IOverlayHandler {
             if (parent instanceof PlayerData && ((PlayerData) parent).player != null) {
                 NBTTagCompound compound = this.writeToNBT(new NBTTagCompound());
                 ((PlayerData) parent).player.getEntityData().setTag("SkinOverlayData", compound.getTagList("SkinOverlayData", 10));
-                Server.sendToAll(EnumPacketClient.PLAYER_UPDATE_SKIN_OVERLAYS, ((PlayerData) parent).player.getCommandSenderName(), compound);
+                PacketHandler.Instance.sendToAll(new PlayerUpdateSkinOverlaysPacket(((PlayerData) parent).player.getCommandSenderName(), compound));
             } else if (parent instanceof EntityNPCInterface) {
                 ((EntityNPCInterface) parent).updateClient = true;
             }

@@ -1,26 +1,28 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.controllers.ProfileController;
+import noppes.npcs.api.handler.data.ISlot;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.*;
 import noppes.npcs.api.IContainer;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPlayerData;
+import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.*;
-import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.quests.*;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.quests.QuestDialog;
-import noppes.npcs.quests.QuestInterface;
-import noppes.npcs.quests.QuestItem;
-import noppes.npcs.quests.QuestKill;
-import noppes.npcs.quests.QuestLocation;
-import noppes.npcs.quests.QuestManual;
 
 public class Quest implements ICompatibilty, IQuest {
 	public int version = VersionCompatibility.ModRev;
@@ -39,13 +41,14 @@ public class Quest implements ICompatibilty, IQuest {
 	public String command = "";
 
 	public QuestInterface questInterface = new QuestItem();
+    public long customCooldown = 0;
 
 	public int rewardExp = 0;
 	public NpcMiscInventory rewardItems = new NpcMiscInventory(9);
 	public boolean randomReward = false;
 	public FactionOptions factionOptions = new FactionOptions();
 	public PartyOptions partyOptions = new PartyOptions();
-
+    public ProfileOptions profileOptions = new ProfileOptions();
 
 	public void readNBT(NBTTagCompound compound) {
 		id = compound.getInteger("Id");
@@ -73,11 +76,12 @@ public class Quest implements ICompatibilty, IQuest {
 
 		completion = EnumQuestCompletion.values()[compound.getInteger("QuestCompletion")];
 		repeat = EnumQuestRepeat.values()[compound.getInteger("QuestRepeat")];
-
+        customCooldown = compound.getLong("CustomCooldown");
 		questInterface.readEntityFromNBT(compound);
 
 		factionOptions.readFromNBT(compound.getCompoundTag("QuestFactionPoints"));
 		partyOptions.readFromNBT(compound.getCompoundTag("PartyOptions"));
+        profileOptions.readFromNBT(compound.getCompoundTag("ProfileOptions"));
 
 		mail.readNBT(compound.getCompoundTag("QuestMail"));
 	}
@@ -116,6 +120,7 @@ public class Quest implements ICompatibilty, IQuest {
 		compound.setTag("Rewards", rewardItems.getToNBT());
 		compound.setString("QuestCommand", command);
 		compound.setBoolean("RandomReward", randomReward);
+        compound.setLong("CustomCooldown", customCooldown);
 
 		compound.setInteger("QuestCompletion", completion.ordinal());
 		compound.setInteger("QuestRepeat", repeat.ordinal());
@@ -123,6 +128,7 @@ public class Quest implements ICompatibilty, IQuest {
 		this.questInterface.writeEntityToNBT(compound);
 		compound.setTag("QuestFactionPoints", factionOptions.writeToNBT(new NBTTagCompound()));
 		compound.setTag("PartyOptions", partyOptions.writeToNBT());
+        compound.setTag("ProfileOptions", profileOptions.writeToNBT());
 		compound.setTag("QuestMail", mail.writeNBT());
 
 		return compound;
@@ -139,7 +145,7 @@ public class Quest implements ICompatibilty, IQuest {
 
 	public boolean instantComplete(EntityPlayer player, QuestData data) {
 		if(completion == EnumQuestCompletion.Instant && NoppesUtilPlayer.questCompletion((EntityPlayerMP) player, data.quest.id)){
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.QUEST_COMPLETION, data.quest.writeToNBT(new NBTTagCompound()));
+            QuestCompletionPacket.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
 			return true;
 		}
 		return false;
@@ -155,23 +161,96 @@ public class Quest implements ICompatibilty, IQuest {
 		return quest;
 	}
 
-	public long getTimeUntilRepeat(EntityPlayer player) {
-		long questTime = PlayerDataController.Instance.getPlayerData(player).getQuestData().getLastCompletedTime(this.id);
+    public long getTimeUntilRepeat(EntityPlayer player) {
+        if(ConfigMain.ProfilesEnabled && profileOptions.enableOptions && profileOptions.cooldownControl == EnumProfileSync.Shared){
+            Profile profile = ProfileController.Instance.getProfile(player);
+            IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
+            long timeRemaining = 0L;
+            for(ISlot slot : profile.getSlots().values()){
+                IPlayerData playerData = ProfileController.Instance.getSlotPlayerData(iPlayer, slot.getId());
+                IPlayerQuestData iPlayerQuestData = playerData.getQuestData();
+                timeRemaining = Math.max(timeRemaining, getTimeUntilRepeatQuestData(player, iPlayerQuestData));
+            }
+            return timeRemaining;
+        }
+        IPlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).getQuestData();
+        return getTimeUntilRepeatQuestData(player, questData);
+    }
 
-		switch (repeat) {
-			case MCDAILY:
-				return Math.max(0, (questTime + 24000 - player.worldObj.getTotalWorldTime()) * 50);
-			case MCWEEKLY:
-				return Math.max(0, (questTime + 168000 - player.worldObj.getTotalWorldTime()) * 50);
-			case RLDAILY:
-				return Math.max(0, questTime + 86400000  - System.currentTimeMillis());
-			case RLWEEKLY:
-				return Math.max(0, questTime + 604800000 - System.currentTimeMillis());
-		}
-		return 0L;
-	}
+    public long getTimeUntilRepeatQuestData(EntityPlayer player, IPlayerQuestData questData){
+        long questTime = questData.getLastCompletedTime(this.id);
 
-	@Override
+        switch (repeat) {
+            case MCDAILY: {
+                long now = player.worldObj.getTotalWorldTime();
+                long allowedTicks = 24000;
+                // If questTime is in the future and the excess is greater than allowed, reset it.
+                if (questTime > now && (questTime - now) > allowedTicks) {
+                    questTime = now;
+                    questData.setLastCompletedTime(this.id, questTime);
+                }
+                long remainingTicks = questTime + allowedTicks - now;
+                return Math.max(0, remainingTicks * 50);
+            }
+            case MCWEEKLY: {
+                long now = player.worldObj.getTotalWorldTime();
+                long allowedTicks = 168000;
+                if (questTime > now && (questTime - now) > allowedTicks) {
+                    questTime = now;
+                    questData.setLastCompletedTime(this.id, questTime);
+                }
+                long remainingTicks = questTime + allowedTicks - now;
+                return Math.max(0, remainingTicks * 50);
+            }
+            case RLDAILY: {
+                long now = System.currentTimeMillis();
+                long allowedMillis = 86400000;
+                if (questTime > now && (questTime - now) > allowedMillis) {
+                    questTime = now;
+                    questData.setLastCompletedTime(this.id, questTime);
+                }
+                long remainingMillis = questTime + allowedMillis - now;
+                return Math.max(0, remainingMillis);
+            }
+            case RLWEEKLY: {
+                long now = System.currentTimeMillis();
+                long allowedMillis = 604800000;
+                if (questTime > now && (questTime - now) > allowedMillis) {
+                    questTime = now;
+                    questData.setLastCompletedTime(this.id, questTime);
+                }
+                long remainingMillis = questTime + allowedMillis - now;
+                return Math.max(0, remainingMillis);
+            }
+            case MCCUSTOM: {
+                // For MCCUSTOM, customCooldown is assumed to be defined in ticks.
+                long now = player.worldObj.getTotalWorldTime();
+                long allowedTicks = this.customCooldown;
+                if (questTime > now && (questTime - now) > allowedTicks) {
+                    questTime = now;
+                    questData.setLastCompletedTime(this.id, questTime);
+                }
+                long remainingTicks = questTime + allowedTicks - now;
+                return Math.max(0, remainingTicks * 50);
+            }
+            case RLCUSTOM: {
+                // For RLCUSTOM, customCooldown is assumed to be in milliseconds.
+                long now = System.currentTimeMillis();
+                long allowedMillis = this.customCooldown;
+                if (questTime > now && (questTime - now) > allowedMillis) {
+                    questTime = now;
+                    questData.setLastCompletedTime(this.id, questTime);
+                }
+                long remainingMillis = questTime + allowedMillis - now;
+                return Math.max(0, remainingMillis);
+            }
+            default:
+                return 0L;
+        }
+    }
+
+
+    @Override
 	public int getVersion() {
 		return version;
 	}
@@ -289,4 +368,16 @@ public class Quest implements ICompatibilty, IQuest {
 	public IPartyOptions getPartyOptions() {
 		return this.partyOptions;
 	}
+
+    public IProfileOptions getProfileOptions() {
+        return this.profileOptions;
+    }
+
+    public long getCustomCooldown() {
+        return this.customCooldown;
+    }
+
+    public void setCustomCooldown(long newCooldown) {
+        this.customCooldown = newCooldown;
+    }
 }

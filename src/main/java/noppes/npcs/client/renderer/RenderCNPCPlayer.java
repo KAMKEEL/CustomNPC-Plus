@@ -19,13 +19,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraftforge.client.event.RenderPlayerEvent;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.controllers.data.SkinOverlay;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.util.glu.Project;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.UUID;
 
 public class RenderCNPCPlayer extends RenderPlayer {
     public static boolean hasMPM = false;
@@ -286,36 +287,56 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
     }
 
-    public void renderFirstPersonArmOverlay(EntityPlayer player)
-    {
-        float gender = -1;
+    public void renderFirstPersonArmOverlay(EntityPlayer player) {
+        // Check if player or model is null
+        if (player == null || this.modelBipedMain == null) {
+            return;
+        }
+
+        float gender = -1F;
         try {
             Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
             gender = (float) RenderPlayerJBRA.getMethod("genGet").invoke(null);
         } catch (Exception ignored) {}
 
-        if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
-            for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                if (((SkinOverlay)overlayData).texture.isEmpty())
-                    continue;
+        // Check if the skinOverlays map exists for this player's UUID
+        UUID uuid = player.getUniqueID();
+        if (uuid == null || !ClientCacheHandler.skinOverlays.containsKey(uuid)) {
+            return;
+        }
 
-                ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
-                if (!imageData.imageLoaded())
-                    continue;
-
-                if (!this.preRenderOverlay(overlayData, player))
-                    continue;
-
-                if (gender >= 2.0F) {
-                    GL11.glRotatef(7F, 0, 0, 1);
-                    GL11.glTranslatef(0.015F, 0.0375F, -0.0025F);
-                }
-                this.modelBipedMain.onGround = 0.0F;
-                this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
-                this.modelBipedMain.bipedRightArm.render(0.0625F);
-
-                postRenderOverlay();
+        Map<Integer, SkinOverlay> overlayMap = ClientCacheHandler.skinOverlays.get(uuid);
+        if (overlayMap == null || overlayMap.isEmpty()) {
+            return;
+        }
+        // Iterate through each SkinOverlay safely
+        for (SkinOverlay overlayData : overlayMap.values()) {
+            if (overlayData == null || overlayData.texture == null || overlayData.texture.isEmpty()) {
+                continue;
             }
+
+            ImageData imageData = ClientCacheHandler.getImageData(overlayData.texture);
+            if (imageData == null || !imageData.imageLoaded()) {
+                continue;
+            }
+
+            // Check your preRenderOverlay return
+            if (!this.preRenderOverlay(overlayData, player)) {
+                continue;
+            }
+
+            // Adjust arm rendering for gender if needed
+            if (gender >= 2.0F) {
+                GL11.glRotatef(7F, 0, 0, 1);
+                GL11.glTranslatef(0.015F, 0.0375F, -0.0025F);
+            }
+
+            // Render the arm
+            this.modelBipedMain.onGround = 0.0F;
+            this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
+            this.modelBipedMain.bipedRightArm.render(0.0625F);
+
+            postRenderOverlay();
         }
     }
 

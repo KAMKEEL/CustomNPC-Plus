@@ -9,17 +9,17 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import noppes.npcs.blocks.tiles.TileBeam;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 
 public class BlockBeam extends BlockRotated{
-	
+
 	public BlockBeam() {
         super(Blocks.planks);
 	}
-    
-    @Override   
+
+    @Override
     public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
@@ -29,18 +29,18 @@ public class BlockBeam extends BlockRotated{
         par3List.add(new ItemStack(par1, 1, 5));
     }
 
-    @Override   
+    @Override
     public int damageDropped(int par1){
         return par1;
     }
-    @Override 
+    @Override
     public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
     	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileColorable)){
+    	if(!(tileentity instanceof TileVariant)){
     		super.setBlockBoundsBasedOnState(world, x, y, z);
     		return;
     	}
-    	TileColorable tile = (TileColorable) tileentity;
+    	TileVariant tile = (TileVariant) tileentity;
     	if(tile.rotation == 0){
 	        setBlockBounds(0.33f, 0.33f, 0.25f, 0.67f, 0.67f, 1f );
 		}
@@ -55,7 +55,7 @@ public class BlockBeam extends BlockRotated{
 		}
     }
 
-    @Override   
+    @Override
     public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
         super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);
         par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);

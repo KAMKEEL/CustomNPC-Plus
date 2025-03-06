@@ -12,7 +12,6 @@ import noppes.npcs.quests.QuestKill;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;
 

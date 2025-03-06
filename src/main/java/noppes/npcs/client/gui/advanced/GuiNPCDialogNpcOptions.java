@@ -1,12 +1,14 @@
 package noppes.npcs.client.gui.advanced;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.dialog.DialogNpcGetPacket;
+import kamkeel.npcs.network.packets.request.dialog.DialogNpcRemovePacket;
+import kamkeel.npcs.network.packets.request.dialog.DialogNpcSetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.select.GuiDialogSelection;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -21,7 +23,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 		super(npc);
 		this.parent = parent;
 		this.drawDefaultBackground = true;
-		Client.sendData(EnumPacketServer.DialogNpcGet);
+        PacketClient.sendClient(new DialogNpcGetPacket());
 	}
 
 	public void initGui() {
@@ -55,7 +57,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 		if (id >= 20 && id < 40) {
 			int slot = id - 20;
 			data.remove(slot);
-			Client.sendData(EnumPacketServer.DialogNpcRemove,slot);
+            PacketClient.sendClient(new DialogNpcRemovePacket(slot));
 			initGui();
 		}
 	}
@@ -66,7 +68,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
 
 	@Override
 	public void selected(int id, String name) {
-		Client.sendData(EnumPacketServer.DialogNpcSet, selectedSlot, id);
+        PacketClient.sendClient(new DialogNpcSetPacket(selectedSlot, id));
 	}
 
 

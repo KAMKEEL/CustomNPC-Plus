@@ -2,7 +2,7 @@ package noppes.npcs.entity;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import kamkeel.addon.DBCAddon;
+import kamkeel.npcs.addon.DBCAddon;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -27,7 +27,6 @@ import net.minecraft.world.Explosion;
 import net.minecraft.world.World;
 import noppes.npcs.DataStats;
 import noppes.npcs.EventHooks;
-import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;

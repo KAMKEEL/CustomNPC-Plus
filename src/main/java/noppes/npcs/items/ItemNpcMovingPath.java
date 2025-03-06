@@ -46,7 +46,7 @@ public class ItemNpcMovingPath extends Item{
 		EntityNPCInterface npc = getNpc(par1ItemStack, par3World);
 		if(npc == null)
 			return false;
-		List<int[]> list = npc.ai.getMovingPath();
+		List<int[]> list = npc.ais.getMovingPath();
 		int[] pos = list.get(list.size() - 1);
 		list.add(new int[]{x,y,z});
 

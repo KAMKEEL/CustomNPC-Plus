@@ -172,7 +172,7 @@ public class CmdClone extends ChMcLogger {
         entity.setPosition(posX + 0.5, posY + 1, posZ + 0.5);
         if(entity instanceof EntityNPCInterface){
         	EntityNPCInterface npc = (EntityNPCInterface) entity;
-        	npc.ai.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
+        	npc.ais.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
         	if(newname != null && !newname.isEmpty())
         		npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way
         }
@@ -274,7 +274,7 @@ public class CmdClone extends ChMcLogger {
                 entity.setPosition(posX + 0.5 + x, yy + 1, posZ + 0.5 + z);
                 if(entity instanceof EntityNPCInterface){
                 	EntityNPCInterface npc = (EntityNPCInterface) entity;
-                	npc.ai.startPos = new int[]{xx, yy, zz};
+                	npc.ais.startPos = new int[]{xx, yy, zz};
                 	if(newname != null && !newname.isEmpty())
                 		npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way
                 }

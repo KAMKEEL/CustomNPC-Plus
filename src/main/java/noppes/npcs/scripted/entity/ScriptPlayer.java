@@ -1,5 +1,10 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiClosePacket;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.Item;
@@ -13,22 +18,20 @@ import net.minecraft.util.ChatStyle;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.WorldSettings;
-import noppes.npcs.*;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.NoppesStringUtils;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.IOverlayHandler;
-import noppes.npcs.api.handler.data.IAnimationData;
-import noppes.npcs.api.handler.data.IDialog;
-import noppes.npcs.api.handler.data.IQuest;
-import noppes.npcs.api.handler.data.ISound;
+import noppes.npcs.api.handler.data.*;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.overlay.ICustomOverlay;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.constants.EnumPacketClient;
-import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.controllers.*;
@@ -45,7 +48,6 @@ import noppes.npcs.util.ValueUtil;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> implements IPlayer {
 	public T player;
@@ -263,8 +265,9 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         	return;
         QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
+
+        AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", quest.title);
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", quest.title);
         data.updateClient = true;
 	}
 
@@ -277,10 +280,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         if (quest == null)
         	return;
 		PlayerData data = PlayerData.get(player);
-		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
-			data.questData.finishedQuests.put(quest.id, System.currentTimeMillis());
-		else
-			data.questData.finishedQuests.put(quest.id, player.worldObj.getTotalWorldTime());
+        PlayerQuestController.setQuestFinishedUtil(player, quest, data.questData);
         data.updateClient = true;
 	}
 
@@ -756,7 +756,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
 	public void closeGui() {
 		((EntityPlayerMP)this.entity).closeContainer();
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.GUI_CLOSE, -1, new NBTTagCompound());
+        GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
 	}
 
 	public void showCustomOverlay(ICustomOverlay overlay) {
@@ -764,8 +764,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	}
 
 	public void closeOverlay(int id) {
-		Server.sendData((EntityPlayerMP)this.entity, EnumPacketClient.SCRIPT_OVERLAY_CLOSE, id, new NBTTagCompound());
-	}
+        PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(id), (EntityPlayerMP)this.entity);
+    }
 
 	public IOverlayHandler getOverlays() {
 		return this.getData().skinOverlays;
@@ -798,4 +798,8 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 	public boolean conqueredEnd() {
 		return this.player.playerConqueredTheEnd;
 	}
+
+    public IMagicData getMagicData() {
+        return this.getData().magicData;
+    }
 }

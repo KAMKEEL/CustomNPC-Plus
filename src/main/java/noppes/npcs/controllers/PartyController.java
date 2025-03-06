@@ -1,5 +1,8 @@
 package noppes.npcs.controllers;
 
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -8,8 +11,9 @@ import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.Server;
-import noppes.npcs.constants.EnumPacketClient;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IPartyHandler;
+import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.data.Party;
@@ -24,9 +28,9 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.Vector;
 
-import static noppes.npcs.PacketHandlerServer.sendInviteData;
+import static kamkeel.npcs.network.packets.request.party.PartyInvitePacket.sendInviteData;
 
-public class PartyController {
+public class PartyController implements IPartyHandler {
     private static PartyController Instance;
 
     private HashMap<UUID, Party> parties = new HashMap<>();
@@ -44,6 +48,42 @@ public class PartyController {
         Party party = new Party();
         this.parties.put(party.getPartyUUID(), party);
         return party;
+    }
+
+    @Override
+    public IParty createParty(IPlayer player){
+        if(player == null)
+            return null;
+
+        if(player.getMCEntity() == null)
+            return null;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
+        if(playerData.partyUUID != null)
+            return getParty(playerData.partyUUID);
+
+        Party party = new Party();
+        party.addPlayer(entityPlayer);
+        party.setLeader(entityPlayer);
+        this.parties.put(party.getPartyUUID(), party);
+        return party;
+    }
+
+    @Override
+    public void disbandParty(IPlayer player){
+        if(player == null)
+            return;
+
+        if(player.getMCEntity() == null)
+            return;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
+        if(playerData.partyUUID != null)
+            disbandParty(playerData.partyUUID);
+
+        return;
     }
 
     public Party getParty(UUID partyUUID) {
@@ -68,8 +108,8 @@ public class PartyController {
                     playerData.partyUUID = null;
                     if(player != null){
                         sendInviteData((EntityPlayerMP) player);
-                        Server.sendData((EntityPlayerMP) player, EnumPacketClient.PARTY_MESSAGE,  "party.disbandAlert");
-                        Server.sendData((EntityPlayerMP) player, EnumPacketClient.CHAT, "\u00A7c", "party.disbandMessage", "!");
+                        AchievementPacket.sendAchievement((EntityPlayerMP) player, true,  "party.disbandAlert", "");
+                        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "\u00A7c", "party.disbandMessage", "!");
                     }
                 }
             }
@@ -84,14 +124,14 @@ public class PartyController {
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.kickOtherAlert", kickPlayerName);
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true,  "party.kickOtherAlert", kickPlayerName);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
             }
         }
 
         if(kickPlayer != null){
-            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.PARTY_MESSAGE, "party.kickYouAlert", "");
-            Server.sendData((EntityPlayerMP) kickPlayer, EnumPacketClient.CHAT, "\u00A74", "party.kickYouChat", "!");
+            AchievementPacket.sendAchievement((EntityPlayerMP) kickPlayer, true,  "party.kickYouAlert", "");
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) kickPlayer, "\u00A74", "party.kickYouChat", "!");
         }
     }
 
@@ -102,12 +142,12 @@ public class PartyController {
         for(String name : party.getPlayerNames()){
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if(playerMP != null){
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_MESSAGE,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
             }
         }
-        Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.PARTY_MESSAGE, "party.leaveYouAlert", "");
-        Server.sendData((EntityPlayerMP) leavingPlayer, EnumPacketClient.CHAT, "\u00A7c", "party.leaveYouChat", "!");
+        AchievementPacket.sendAchievement((EntityPlayerMP) leavingPlayer, true,  "party.leaveYouAlert", "");
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) leavingPlayer, "\u00A7c", "party.leaveYouChat", "!");
     }
 
     public void pingPartyUpdate(Party party){
@@ -134,7 +174,7 @@ public class PartyController {
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
+                    PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }
@@ -165,7 +205,7 @@ public class PartyController {
             if(playerMP != null){
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 if(playerData != null){
-                    Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.PARTY_DATA, compound);
+                    PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }
@@ -183,9 +223,7 @@ public class PartyController {
 
                 System.arraycopy(chatAlerts, 0, args, 1, chatAlerts.length);
                 args[args.length - 1] = "!"; // Add "!" at the end
-
-                // Pass args to Server.sendData using spread operator
-                Server.sendData((EntityPlayerMP) playerMP, EnumPacketClient.CHAT, args);
+                ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, args);
             }
         }
     }

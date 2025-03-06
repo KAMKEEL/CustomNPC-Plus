@@ -4,13 +4,13 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.Phase;
-import kamkeel.controllers.ProfileController;
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.SyncController;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.net.InetAddress;
@@ -53,7 +53,8 @@ public class ServerTickHandler {
 		}
 
         SyncController.syncPlayer(player);
-        ProfileController.login(player);
+        SyncController.syncEffects(player);
+        ProfileController.Instance.login(player);
 	}
 
 	@SubscribeEvent

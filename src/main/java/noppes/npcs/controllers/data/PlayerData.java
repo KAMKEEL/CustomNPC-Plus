@@ -1,6 +1,11 @@
 package noppes.npcs.controllers.data;
 
-import kamkeel.addon.DBCAddon;
+import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.request.party.PartyInvitePacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -10,13 +15,11 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
-import noppes.npcs.PacketHandlerServer;
-import noppes.npcs.Server;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.*;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityCustomNpc;
@@ -43,9 +46,10 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public PlayerItemGiverData itemgiverData = new PlayerItemGiverData(this);
 	public PlayerMailData mailData = new PlayerMailData(this);
 	public AnimationData animationData = new AnimationData(this);
-
+    public PlayerEffectData effectData = new PlayerEffectData(this);
 	public DataTimers timers = new DataTimers(this);
 	public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
+    public MagicData magicData = new MagicData();
 
 	public EntityNPCInterface editingNpc;
 	public NBTTagCompound cloned;
@@ -68,13 +72,28 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public ScreenSize screenSize = new ScreenSize(-1,-1);
 
+    public int profileSlot = 0;
+
 	public void onLogin() {
-        this.animationData.clearCache();
-	}
+        // Continue playing animation for self when re-logging
+        AnimationData animationData = this.animationData;
+        if (animationData != null && animationData.isClientAnimating()) {
+            Animation currentAnimation = animationData.currentClientAnimation;
+            NBTTagCompound compound = currentAnimation.writeToNBT();
+            animationData.viewAnimation(currentAnimation, animationData, compound,
+                animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+        }
+
+        CustomEffectController controller = CustomEffectController.getInstance();
+        UUID playerID = player.getPersistentID();
+        // Only add if there are saved effects and none are registered yet.
+        if (!controller.playerEffects.containsKey(playerID)) {
+            controller.playerEffects.put(playerID, effectData.getEffects());
+        }
+    }
 
 	public void onLogout() {
 		this.partyInvites.clear();
-        this.animationData.clearCache();
 	}
 
 	@Override
@@ -96,6 +115,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 		timers.readFromNBT(data);
 		skinOverlays.readFromNBT(data);
 		animationData.readFromNBT(data);
+        effectData.readFromNBT(data);
+        magicData.readToNBT(data);
 
 		if(player != null){
 			playername = player.getCommandSenderName();
@@ -106,6 +127,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 			uuid = data.getString("UUID");
 		}
 		companionID = data.getInteger("PlayerCompanionId");
+        profileSlot = data.getInteger("ProfileSlot");
 		if(data.hasKey("PlayerCompanion") && !hasCompanion()){
 			EntityCustomNpc npc = new EntityCustomNpc(player.worldObj);
 			npc.readEntityFromNBT(data.getCompoundTag("PlayerCompanion"));
@@ -135,11 +157,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         timers.writeToNBT(compound);
         skinOverlays.writeToNBT(compound);
         animationData.writeToNBT(compound);
+        effectData.writeToNBT(compound);
+        magicData.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
         compound.setInteger("PlayerCompanionId", companionID);
         compound.setBoolean("isGUIOpen",isGUIOpen);
+        compound.setInteger("ProfileSlot", profileSlot);
 
         if(hasCompanion()){
             NBTTagCompound nbt = new NBTTagCompound();
@@ -162,6 +187,16 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         dialogData.loadNBTData(data);
         questData.loadNBTData(data);
         factionData.loadNBTData(data);
+    }
+
+    public NBTTagCompound getPlayerEffects(){
+        NBTTagCompound compound = new NBTTagCompound();
+        effectData.writeToNBT(compound);
+        return compound;
+    }
+
+    public void setPlayerEffects(NBTTagCompound data){
+        effectData.readFromNBT(data);
     }
 
     public NBTTagCompound getSyncNBTFull() {
@@ -265,15 +300,16 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	public void inviteToParty(Party party) {
 		if (party != null && this.partyUUID == null && !this.partyInvites.contains(party.getPartyUUID())) {
 			this.partyInvites.add(party.getPartyUUID());
-			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.PARTY_MESSAGE, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
-			Server.sendData((EntityPlayerMP)this.player, EnumPacketClient.CHAT, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
+
+            AchievementPacket.sendAchievement((EntityPlayerMP) player, true, "party.inviteAlert", party.getPartyLeader().getCommandSenderName());
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "\u00A7a", "party.inviteChat", " ", party.getPartyLeader().getCommandSenderName(), "!");
 		}
 	}
 
 	public void ignoreInvite(UUID uuid) {
 		if (uuid != null) {
 			this.partyInvites.remove(uuid);
-			PacketHandlerServer.sendInviteData((EntityPlayerMP) player);
+			PartyInvitePacket.sendInviteData((EntityPlayerMP) player);
 		}
 	}
 
@@ -342,6 +378,13 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 	}
 
 	public synchronized void save() {
+        // Don't Save this is a Modification of a Profile's PlayerData
+        Profile profile = ProfileController.Instance.getProfile(UUID.fromString(uuid));
+        if(profile != null && profile.currentSlotId != this.profileSlot){
+            ProfileController.Instance.saveOffline(profile, UUID.fromString(uuid));
+            return;
+        }
+
 		final NBTTagCompound compound = getNBT();
 		final String filename;
 		if(ConfigMain.DatFormat){

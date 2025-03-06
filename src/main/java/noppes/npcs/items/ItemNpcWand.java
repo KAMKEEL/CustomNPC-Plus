@@ -49,7 +49,7 @@ public class ItemNpcWand extends Item{
 		}
 		else if(CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_CREATE)){
 			EntityCustomNpc npc = new EntityCustomNpc(par3World);
-	    	npc.ai.startPos = new int[]{par4,par5,par6};
+	    	npc.ais.startPos = new int[]{par4,par5,par6};
 
 			npc.setLocationAndAngles((float)par4 + 0.5F, npc.getStartYPos(), (float)par6 + 0.5F, player.rotationYaw, player.rotationPitch);
 

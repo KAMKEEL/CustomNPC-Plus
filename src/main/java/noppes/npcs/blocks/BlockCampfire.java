@@ -19,8 +19,6 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
 
-import static noppes.npcs.client.ClientProxy.RAND;
-
 public class BlockCampfire extends BlockLightable{
 
 	public BlockCampfire(boolean lit) {
@@ -43,8 +41,7 @@ public class BlockCampfire extends BlockLightable{
         int meta = world.getBlockMetadata(x, y, z);
 
     	if((item.getItem() == Items.flint || item.getItem() == Items.flint_and_steel) && unlitBlock() == this){
-    		if(world.rand.nextInt(3) == 0 && !world.isRemote)
-            	super.onBlockActivated(world, x, y, z, player, par6, par7, par8, par9);
+            super.onBlockActivated(world, x, y, z, player, par6, par7, par8, par9);
     		CustomNpcs.proxy.spawnParticle("largesmoke", x + 0.5f, y + 0.5f, z + 0.5f, 0.0D, 0.0D, 0.0D, 2);
     		if(item.getItem() == Items.flint)
     			NoppesUtilServer.consumeItemStack(1, player);

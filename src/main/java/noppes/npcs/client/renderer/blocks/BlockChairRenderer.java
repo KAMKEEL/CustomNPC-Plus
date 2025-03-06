@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockChair;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.chair.ModelChair;
 import noppes.npcs.client.model.blocks.chair.ModelChairSpoof;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyChair;
@@ -38,11 +38,12 @@ public class BlockChairRenderer extends BlockRendererInterface{
 	@Override
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
-		TileColorable tile = (TileColorable) var1;
+		TileVariant tile = (TileVariant) var1;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.65f, (float)var6 + 0.5f);
-        GL11.glScalef(1.2f, 1.1f, 1.2f);
+        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
+        // GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
@@ -60,7 +61,7 @@ public class BlockChairRenderer extends BlockRendererInterface{
             }
         }
         GL11.glDisable(GL11.GL_ALPHA_TEST);
-
+        GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 
@@ -69,15 +70,19 @@ public class BlockChairRenderer extends BlockRendererInterface{
 			RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 1f, 0);
-        GL11.glScalef(1.2f, 1.1f, 1.2f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-
-        setWoodTexture(metadata);
         GL11.glColor3f(1, 1, 1);
-        if(ConfigClient.LegacyChair)
+        if(ConfigClient.LegacyChair){
+            setWoodTexture(metadata);
+            GL11.glScalef(1.2f, 1.1f, 1.2f);
+            GL11.glRotatef(180, 0, 0, 1);
+            GL11.glRotatef(180, 0, 1, 0);
             legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        }
         else {
+            GL11.glTranslatef(0, -0.15f, 0);
+            GL11.glScalef(1f, 0.9f, 1f);
+            GL11.glRotatef(180, 0, 0, 1);
+            GL11.glRotatef(180, 0, 1, 0);
             if(ConfigClient.WoodTextures)
                 chairSpoof.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else {

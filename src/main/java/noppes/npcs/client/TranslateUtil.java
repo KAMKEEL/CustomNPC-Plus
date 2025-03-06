@@ -18,7 +18,7 @@ public class TranslateUtil {
 	private static final String AudioUrl = "http://translate.google.com/translate_tts?q=%s&tl=%s";
 
 	public static String Translate(String text){
-		
+
 		try {
 			String urlStr = String.format(TranslateUrl, URLEncoder.encode(text,"utf8"), "auto", "nl");
 			URL url = new URL(urlStr);
@@ -45,10 +45,10 @@ public class TranslateUtil {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
+
 		return text;
 	}
-	
+
 //	public static void PlayAudio(String text){
 //		try {
 //			String urlStr = String.format(AudioUrl, URLEncoder.encode(text,"utf8"), "en");
@@ -59,12 +59,12 @@ public class TranslateUtil {
 //		    //connection.setDoOutput(true);
 //		    connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-GB;     rv:1.9.2.13) Gecko/20101203 Firefox/3.6.13 (.NET CLR 3.5.30729)");
 //		    connection.setRequestProperty("X-HTTP-Method-Override", "GET");
-//		    
+//
 //	        InputStream audioSrc = new BufferedInputStream(connection.getInputStream());
 //	        //DataInputStream read = new DataInputStream(audioSrc);
 //	        AudioInputStream audioIn = AudioSystem.getAudioInputStream(audioSrc);
 //	        Clip clip = AudioSystem.getClip();
-//		    
+//
 //		} catch (UnsupportedEncodingException e) {
 //			e.printStackTrace();
 //		} catch (MalformedURLException e) {
@@ -72,10 +72,10 @@ public class TranslateUtil {
 //		} catch (IOException e) {
 //			e.printStackTrace();
 //		} catch (UnsupportedAudioFileException e) {
-//			// TODO Auto-generated catch block
+//
 //			e.printStackTrace();
 //		} catch (LineUnavailableException e) {
-//			// TODO Auto-generated catch block
+//
 //			e.printStackTrace();
 //		}
 //	}

@@ -123,7 +123,7 @@ public class LinkedNpcController {
 			if(npc.posX == 0 && npc.posY == 0 && npc.posZ == 0)
 				return;
 			npc.linkedLast = data.time;
-			List<int[]> points = npc.ai.getMovingPath();
+			List<int[]> points = npc.ais.getMovingPath();
 
 			NBTTagCompound compound = NBTTags.NBTMerge(readNpcData(npc), data.data);
 
@@ -134,10 +134,9 @@ public class LinkedNpcController {
 			if(compound.hasKey("ModelData"))
 				((EntityCustomNpc)npc).modelData.readFromNBT(compound.getCompoundTag("ModelData"));
 
-			npc.ai.readToNBT(compound);
+			npc.ais.readToNBT(compound);
 			npc.transform.readToNBT(compound);
-			npc.ai.setMovingPath(points);
-
+			npc.ais.setMovingPath(points);
 			npc.updateClient = true;
 		}
 	}
@@ -159,7 +158,7 @@ public class LinkedNpcController {
 		npc.display.writeToNBT(compound);
 		npc.inventory.writeEntityToNBT(compound);
 		npc.stats.writeToNBT(compound);
-		npc.ai.writeToNBT(compound);
+		npc.ais.writeToNBT(compound);
 		npc.advanced.writeToNBT(compound);
 		npc.transform.writeToNBT(compound);
 		compound.setTag("ModelData", ((EntityCustomNpc)npc).modelData.writeToNBT());

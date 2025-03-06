@@ -4,6 +4,7 @@ import com.google.common.reflect.ClassPath;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent;
+import kamkeel.npcs.network.packets.request.script.ForgeScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -12,8 +13,6 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.NBTTags;
-import noppes.npcs.client.Client;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import org.apache.commons.lang3.StringUtils;
@@ -62,7 +61,7 @@ public class GuiScriptForge extends GuiScriptInterface {
         hookList.add("onCNPCNaturalSpawn");
 
         this.handler = this.script;
-        Client.sendData(EnumPacketServer.ScriptForgeGet);
+        ForgeScriptPacket.Get();
     }
 
     public void setGuiData(NBTTagCompound compound) {
@@ -89,12 +88,12 @@ public class GuiScriptForge extends GuiScriptInterface {
         List<ScriptContainer> containers = this.script.getScripts();
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
-            Client.sendData(EnumPacketServer.ScriptForgeSave, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            ForgeScriptPacket.Save(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
         }
         NBTTagCompound scriptData = new NBTTagCompound();
         scriptData.setString("ScriptLanguage", this.script.getLanguage());
         scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
         scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
-        Client.sendData(EnumPacketServer.ScriptForgeSave, -1, containers.size(), scriptData);
+        ForgeScriptPacket.Save(-1, containers.size(), scriptData);
     }
 }

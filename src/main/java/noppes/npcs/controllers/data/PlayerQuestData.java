@@ -1,21 +1,24 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
+import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.OverlayQuestTrackingPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.Server;
 import noppes.npcs.api.handler.IPlayerQuestData;
 import noppes.npcs.api.handler.data.IParty;
 import noppes.npcs.api.handler.data.IQuest;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestInterface;
@@ -201,8 +204,8 @@ public class PlayerQuestData implements IPlayerQuestData {
 	public void untrackQuest() {
 		if (this.trackedQuest != null) {
 			this.trackedQuest = null;
-			Server.sendData((EntityPlayerMP) this.parent.player, EnumPacketClient.OVERLAY_QUEST_TRACKING);
-		}
+            PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(new NBTTagCompound()), (EntityPlayerMP) this.parent.player);
+        }
 	}
 
 	public IQuest getTrackedQuest() {
@@ -217,9 +220,9 @@ public class PlayerQuestData implements IPlayerQuestData {
 			return;
 		QuestData questdata = new QuestData(quest);
 		activeQuests.put(id, questdata);
-		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.MESSAGE, "quest.newquest", quest.title);
-		Server.sendData((EntityPlayerMP)parent.player, EnumPacketClient.CHAT, "quest.newquest", ": ", quest.title);
 
+        AchievementPacket.sendAchievement((EntityPlayerMP) parent.player, false, "quest.newquest", quest.title);
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) parent.player, "quest.newquest", ": ", quest.title);
         parent.updateClient = true;
 	}
 
@@ -227,12 +230,7 @@ public class PlayerQuestData implements IPlayerQuestData {
 		Quest quest = QuestController.Instance.quests.get(id);
 		if (quest == null)
 			return;
-
-		if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY)
-			finishedQuests.put(quest.id, System.currentTimeMillis());
-		else
-			finishedQuests.put(quest.id, parent.player.worldObj.getTotalWorldTime());
-
+        PlayerQuestController.setQuestFinished(quest, parent.player);
         parent.updateClient = true;
 	}
 

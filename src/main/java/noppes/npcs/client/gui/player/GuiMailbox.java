@@ -1,14 +1,13 @@
 package noppes.npcs.client.gui.player;
 
+import kamkeel.npcs.network.packets.player.MailActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.controllers.data.PlayerMailData;
 
@@ -27,7 +26,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
 		super();
         xSize = 256;
         setBackground("menubg.png");
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.MailGet);
+        MailActionPacket.RequestMailData();
 	}
     public void initGui()
     {
@@ -81,7 +80,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
     public void confirmClicked(boolean flag, int i)
     {
 		if(flag && selected != null){
-	        NoppesUtilPlayer.sendData(EnumPlayerPacket.MailDelete, selected.time, selected.sender);
+	        MailActionPacket.DeleteMail(selected.time, selected.sender);
 	        selected = null;
 		}
 		NoppesUtil.openGUI(player, this);
@@ -94,7 +93,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
     	if(id == 0){
     		GuiMailmanWrite.parent = this;
     		GuiMailmanWrite.mail = selected;
-    		NoppesUtilPlayer.sendData(EnumPlayerPacket.MailboxOpenMail, selected.time, selected.sender);
+    		MailActionPacket.OpenMail(selected.time, selected.sender);
     		selected = null;
     		scroll.selected = -1;
     	}
@@ -119,10 +118,8 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
         }
     }
 	@Override
-	public void save() {
-		// TODO Auto-generated method stub
-
-	}
+	public void save() {}
+  
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		PlayerMailData data = new PlayerMailData();
@@ -153,7 +150,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
 
 		if(selected != null && !selected.beenRead){
 			selected.beenRead = true;
-			NoppesUtilPlayer.sendData(EnumPlayerPacket.MailRead, selected.time, selected.sender);
+            MailActionPacket.ReadMail(selected.time, selected.sender);
 		}
 	}
 

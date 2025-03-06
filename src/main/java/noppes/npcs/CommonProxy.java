@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 import net.minecraft.client.model.ModelBiped;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -14,22 +15,24 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public abstract class CommonProxy implements IGuiHandler {
-
+public class CommonProxy implements IGuiHandler {
 	public boolean newVersionAvailable = false;
 	public int revision = 1;
 
 	public void load() {
-		CustomNpcs.Channel.register(new PacketHandlerServer());
-		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 	}
 
 	public PlayerData getPlayerData(EntityPlayer player) {
 		return null;
 	}
+
+    public AnimationData getClientAnimationData(Entity entity) {
+        return null;
+    }
 
 	@Override
 	public Object getServerGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
@@ -67,8 +70,11 @@ public abstract class CommonProxy implements IGuiHandler {
 		if(gui == EnumGuiType.PlayerTrader)
 			return  new ContainerNPCTrader(npc, player);
 
-		if(gui == EnumGuiType.PlayerAnvil)
+		if(gui == EnumGuiType.PlayerCarpentryBench)
 			return new ContainerCarpentryBench(player.inventory, player.worldObj, x, y, z);
+
+        if(gui == EnumGuiType.PlayerAnvil)
+            return new ContainerAnvilRepair(player.inventory, player.worldObj, x, y, z);
 
 		if(gui == EnumGuiType.SetupItemGiver)
 			return new ContainerNpcItemGiver(npc, player);
@@ -108,16 +114,16 @@ public abstract class CommonProxy implements IGuiHandler {
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
-		// TODO Auto-generated method stub
+
 		return null;
 	}
 
 	public void openGui(EntityNPCInterface npc, EnumGuiType gui) {
-		// TODO Auto-generated method stub
+
 	}
 
 	public void openGui(EntityNPCInterface npc, EnumGuiType gui, int x, int y, int z) {
-		// TODO Auto-generated method stub
+
 	}
 
 
@@ -126,12 +132,12 @@ public abstract class CommonProxy implements IGuiHandler {
 	}
 
 	public void openGui(EntityPlayer player, Object guiscreen) {
-		// TODO Auto-generated method stub
+
 
 	}
 
 	public void spawnParticle(EntityLivingBase player, String string, Object... ob) {
-		// TODO Auto-generated method stub
+
 
 	}
 
@@ -146,7 +152,7 @@ public abstract class CommonProxy implements IGuiHandler {
 	}
 
 	public void registerItem(Item item) {
-		// TODO Auto-generated method stub
+
 
 	}
 
@@ -159,7 +165,9 @@ public abstract class CommonProxy implements IGuiHandler {
 
 	}
 
-    public abstract void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire);
+    public void generateBigSmokeParticles(World world, int x, int y, int z, boolean signalFire){
+
+    }
 
     public String getAchievementDesc(Achievement achievement) {
 		return "";

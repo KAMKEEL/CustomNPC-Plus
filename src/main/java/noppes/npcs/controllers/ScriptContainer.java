@@ -132,7 +132,7 @@ public class ScriptContainer {
             var14.printStackTrace(pw);
         } finally {
             String errorString = sw.getBuffer().toString().trim();
-            this.appandConsole(errorString);
+            this.appendConsole(errorString);
             pw.close();
         }
     }
@@ -201,14 +201,14 @@ public class ScriptContainer {
                 e.printStackTrace(pw);
             }
             finally {
-                appandConsole(sw.getBuffer().toString().trim());
+                appendConsole(sw.getBuffer().toString().trim());
                 pw.close();
                 Current = null;
             }
         }
     }
 
-    public void appandConsole(String message) {
+    public void appendConsole(String message) {
         if (message != null && !message.isEmpty()) {
             long time = System.currentTimeMillis();
             if (this.console.containsKey(time)) {

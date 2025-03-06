@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.CheckPlayerValue;
+import kamkeel.npcs.network.packets.request.party.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -8,14 +11,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.QuestLogData;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
-import noppes.npcs.constants.EnumPlayerPacket;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
@@ -51,8 +50,8 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
-        NoppesUtilPlayer.sendData(EnumPlayerPacket.TrackedQuest);
-        Client.sendData(EnumPacketServer.GetPartyData);
+        PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.TrackedQuest));
+        PacketClient.sendClient(new PartyInfoPacket());
     }
 
     public void initGui(){
@@ -191,23 +190,23 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
             switch (i) {
                 case 0:
                     // Leader New Player
-                    Client.sendData(EnumPacketServer.SetPartyLeader, this.selectedPlayer);
+                    PacketClient.sendClient(new PartySetLeaderPacket(this.selectedPlayer));
                     break;
                 case 1:
                     // Kick Other Player
-                    Client.sendData(EnumPacketServer.KickPlayer, this.selectedPlayer);
+                    PacketClient.sendClient(new PartyKickPacket(this.selectedPlayer));
                     break;
                 case 2:
                     // Disband Party
-                    Client.sendData(EnumPacketServer.DisbandParty);
+                    PacketClient.sendClient(new PartyDisbandPacket());
                     break;
                 case 3:
                     // Leave Party
-                    Client.sendData(EnumPacketServer.LeavePlayer, this.player.getCommandSenderName());
+                    PacketClient.sendClient(new PartyLeavePacket(this.player.getCommandSenderName()));
                     break;
                 case 4:
                     // Drop Party Quest
-                    Client.sendData(EnumPacketServer.SetPartyQuest, -1);
+                    PacketClient.sendClient(new PartySetQuestPacket(-1));
                     break;
             }
             receivedData = false;
@@ -222,26 +221,26 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
             return;
 
         Party party = ClientCacheHandler.party;
-        if (guibutton.id >= 100 && guibutton.id <= 105) {
+        if (guibutton.id <= -100) {
             super.actionPerformed(guibutton);
             return;
         }
 
         switch (guibutton.id) {
             case 200:
-                Client.sendData(EnumPacketServer.CreateParty);
+                PacketClient.sendClient(new PartyInfoPacket(true));
                 receivedData = false;
                 break;
             case 215:
                 if (this.selectedInvite != null && !this.selectedInvite.isEmpty()) {
-                    Client.sendData(EnumPacketServer.AcceptInvite, this.selectedInvite);
+                    PacketClient.sendClient(new PartyAcceptInvitePacket(this.selectedInvite));
                     receivedData = false;
                     return;
                 }
                 break;
             case 220:
                 if (this.selectedInvite != null && !this.selectedInvite.isEmpty()) {
-                    Client.sendData(EnumPacketServer.IgnoreInvite, this.selectedInvite);
+                    PacketClient.sendClient(new PartyIgnoreInvitePacket(this.selectedInvite));
                     receivedData = false;
                     return;
                 }
@@ -267,7 +266,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
             case 330:
                 String inviteName = this.getTextField(325).getText();
                 if (!inviteName.isEmpty() && !party.getPlayerNames(true).contains(inviteName.toLowerCase())) {
-                    Client.sendData(EnumPacketServer.PartyInvite, inviteName);
+                    PacketClient.sendClient(new PartyInvitePacket(inviteName));
                     this.getTextField(325).setText("");
                 }
                 break;
@@ -455,10 +454,10 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
     public void save() {
         if (this.partyChanged) {
             if(ClientCacheHandler.party != null)
-                Client.sendData(EnumPacketServer.SavePartyData, ClientCacheHandler.party.writeClientNBT());
+                PacketClient.sendClient(new PartySavePacket(ClientCacheHandler.party.writeClientNBT()));
         }
         if (!Objects.equals(this.originalTracked, data.trackedQuestKey)) {
-            Client.sendData(EnumPacketServer.PartyLogToServer, this.data.trackedQuestKey);
+            PacketClient.sendClient(new PartyLogToServerPacket(this.data.trackedQuestKey));
         }
     }
 

@@ -1,9 +1,9 @@
 package noppes.npcs.client.gui.player;
 
-import noppes.npcs.NoppesUtilPlayer;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.SaveSignPacket;
 import noppes.npcs.blocks.tiles.TileBigSign;
 import noppes.npcs.client.gui.SubGuiNpcTextArea;
-import noppes.npcs.constants.EnumPlayerPacket;
 
 public class GuiBigSign extends SubGuiNpcTextArea{
 	public TileBigSign tile;
@@ -16,6 +16,6 @@ public class GuiBigSign extends SubGuiNpcTextArea{
 	@Override
     public void close(){
 		super.close();
-		NoppesUtilPlayer.sendData(EnumPlayerPacket.SignSave, tile.xCoord, tile.yCoord, tile.zCoord, text);
+		PacketClient.sendClient(new SaveSignPacket(tile.xCoord, tile.yCoord, tile.zCoord, text));
 	}
 }

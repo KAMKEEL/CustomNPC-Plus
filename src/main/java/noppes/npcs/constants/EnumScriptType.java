@@ -72,6 +72,8 @@ public enum EnumScriptType {
 	USING_ITEM("usingItem"),
 	STOP_USING_ITEM("stopItem"),
 	FINISH_USING_ITEM("finishItem"),
+    REPAIR_ITEM("repairItem"),
+    BREAK_ITEM("breakItem"),
 	USE_HOE("useHoe"),
 	SLEEP("sleep"),
 	WAKE_UP("wakeUp"),
@@ -99,7 +101,20 @@ public enum EnumScriptType {
     PARTY_INVITE("partyInvite"),
     PARTY_KICK("partyKick"),
     PARTY_LEAVE("partyLeave"),
-    PARTY_DISBAND("partyDisband");
+    PARTY_DISBAND("partyDisband"),
+
+    ANIMATION_START("animationStart"),
+    ANIMATION_END("animationEnd"),
+    ANIMATION_FRAME_ENTER("frameEnter"),
+    ANIMATION_FRAME_EXIT("frameExit"),
+
+    LINKED_ITEM_VERSION("versionChanged"),
+    LINKED_ITEM_BUILD("buildingItem"),
+
+    PROFILE("profile"),
+    PROFILE_CHANGE("profileChange"),
+    PROFILE_REMOVE("profileRemove"),
+    PROFILE_CREATE("profileCreate");
 
 	public String function;
 

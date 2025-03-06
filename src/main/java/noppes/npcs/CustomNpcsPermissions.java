@@ -2,7 +2,7 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
-import kamkeel.developer.Developer;
+import kamkeel.npcs.developer.Developer;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import org.apache.logging.log4j.LogManager;
@@ -17,6 +17,10 @@ import java.util.List;
 public class CustomNpcsPermissions{
     // Open GUI
     public static final Permission NPC_GUI = new Permission("customnpcs.npc.gui");
+    public static final Permission PAINTBRUSH_GUI = new Permission("customnpcs.npc.paintbrush");
+
+    // Builder
+    public static final Permission NPC_BUILD = new Permission("customnpcs.npc.build");
 
     // Modify NPC
     public static final Permission NPC_DELETE = new Permission("customnpcs.npc.delete");
@@ -49,6 +53,8 @@ public class CustomNpcsPermissions{
 	public static final Permission GLOBAL_NATURALSPAWN = new Permission("customnpcs.global.naturalspawn");
 	public static final Permission GLOBAL_TAG = new Permission("customnpcs.global.tag");
     public static final Permission GLOBAL_ANIMATION = new Permission("customnpcs.global.animation");
+    public static final Permission GLOBAL_MAGIC = new Permission("customnpcs.global.magic");
+    public static final Permission GLOBAL_EFFECT = new Permission("customnpcs.global.effect");
 
     public static final Permission SPAWNER_MOB = new Permission("customnpcs.spawner.mob");
 	public static final Permission SPAWNER_CREATE = new Permission("customnpcs.spawner.create");
@@ -81,6 +87,15 @@ public class CustomNpcsPermissions{
     public static final Permission SCRIPT_GLOBAL = new Permission("customnpcs.script.global");
     public static final Permission SCRIPT_ITEM = new Permission("customnpcs.script.item");
     public static final Permission SCRIPT_BLOCK = new Permission("customnpcs.script.block");
+
+    // Profiles
+    public static final Permission PROFILE_ADMIN = new Permission("customnpcs.profile.admin");
+    public static final Permission PROFILE_CREATE = new Permission("customnpcs.profile.create");
+    public static final Permission PROFILE_DELETE = new Permission("customnpcs.profile.delete");
+    public static final Permission PROFILE_RENAME = new Permission("customnpcs.profile.rename");
+    public static final Permission PROFILE_CHANGE = new Permission("customnpcs.profile.change");
+    public static final Permission PROFILE_REGION_BYPASS = new Permission("customnpcs.profile.region-bypass");
+    public static final Permission PROFILE_MAX = new Permission("customnpcs.profile.max.*");
 
 	public static CustomNpcsPermissions Instance;
 	private Class<?> bukkit;

@@ -24,7 +24,7 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	protected static final ResourceLocation PlanksAcacia = new ResourceLocation("customnpcs","textures/cache/planks_acacia.png");
 	protected static final ResourceLocation PlanksJungle = new ResourceLocation("customnpcs","textures/cache/planks_jungle.png");
 
-	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/Steel.png");
+	protected static final ResourceLocation Steel = new ResourceLocation("customnpcs","textures/models/legacy/Steel.png");
 
     protected static final ResourceLocation Logs = new ResourceLocation("textures/blocks/log_oak.png");
     protected static final ResourceLocation Cobble = new ResourceLocation("textures/blocks/cobblestone.png");
@@ -32,42 +32,43 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 
     protected static final RenderItem renderer = new RenderItem();
 
-    public static float colorTable[][] = {
-        {
-            1.0F, 1.0F, 1.0F
-        }, {
-            0.95F, 0.7F, 0.2F
-        }, {
-            0.9F, 0.5F, 0.85F
-        }, {
-            0.6F, 0.7F, 0.95F
-        }, {
-            0.9F, 0.9F, 0.2F
-        }, {
-            0.5F, 0.8F, 0.1F
-        }, {
-            0.95F, 0.7F, 0.8F
-        }, {
-            0.3F, 0.3F, 0.3F
-        }, {
-            0.6F, 0.6F, 0.6F
-        }, {
-            0.3F, 0.6F, 0.7F
-        }, {
-            0.7F, 0.4F, 0.9F
-        }, {
-            0.2F, 0.4F, 0.8F
-        }, {
-            0.5F, 0.4F, 0.3F
-        }, {
-            0.4F, 0.5F, 0.2F
-        }, {
-            0.8F, 0.3F, 0.3F
-        }, {
-            0.1F, 0.1F, 0.1F
-        }
-    };
-	@Override
+//    public static float colorTable[][] = {
+//        {
+//            1.0F, 1.0F, 1.0F
+//        }, {
+//            0.95F, 0.7F, 0.2F
+//        }, {
+//            0.9F, 0.5F, 0.85F
+//        }, {
+//            0.6F, 0.7F, 0.95F
+//        }, {
+//            0.9F, 0.9F, 0.2F
+//        }, {
+//            0.5F, 0.8F, 0.1F
+//        }, {
+//            0.95F, 0.7F, 0.8F
+//        }, {
+//            0.3F, 0.3F, 0.3F
+//        }, {
+//            0.6F, 0.6F, 0.6F
+//        }, {
+//            0.3F, 0.6F, 0.7F
+//        }, {
+//            0.7F, 0.4F, 0.9F
+//        }, {
+//            0.2F, 0.4F, 0.8F
+//        }, {
+//            0.5F, 0.4F, 0.3F
+//        }, {
+//            0.4F, 0.5F, 0.2F
+//        }, {
+//            0.8F, 0.3F, 0.3F
+//        }, {
+//            0.1F, 0.1F, 0.1F
+//        }
+//    };
+
+    @Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
 			Block block, int modelId, RenderBlocks renderer) {
 		return false;
@@ -92,7 +93,7 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
 	public int specialRenderDistance(){
 		return 20;
 	}
-    public void setWoodTexture(int meta){
+    public static void setWoodTexture(int meta){
     	TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
         	manager.bindTexture(PlanksSpruce);

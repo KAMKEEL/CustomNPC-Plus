@@ -27,7 +27,10 @@ public class CustomItems {
 	public static Item moving;
 	public static Item mount;
 	public static Item teleporter;
+    public static Item tool;
+
 	public static Item scripted_item;
+    public static Item linked_item;
 
 	public static Item soulstoneEmpty;
 	public static Item soulstoneFull;
@@ -123,6 +126,11 @@ public class CustomItems {
 	public static Item spellDark;
 	public static Item spellHoly;
 
+    public static Item earthElement;
+    public static Item fireElement;
+    public static Item waterElement;
+    public static Item airElement;
+
 	public static Item staffWood;
 	public static Item staffStone;
 	public static Item staffIron;
@@ -164,6 +172,7 @@ public class CustomItems {
 	public static Block banner;
 	public static Block wallBanner;
 	public static Block tallLamp;
+    public static Block shortLamp;
 	public static Block blood;
 	public static Block book;
 	public static Block chair;
@@ -182,11 +191,11 @@ public class CustomItems {
 	public static Block beam;
 	public static Block crystal;
 
-	public static Block lamp;
+	public static Block lantern;
 	public static Block campfire;
 	public static Block candle;
 
-	public static Block lamp_unlit;
+	public static Block lantern_unlit;
 	public static Block campfire_unlit;
 	public static Block candle_unlit;
 	public static Block scripted;
@@ -210,6 +219,7 @@ public class CustomItems {
 		if(!ConfigMain.DisableExtraBlock){
 			GameRegistry.registerTileEntity(TileWallBanner.class, "TileNPCWallBanner");
 			GameRegistry.registerTileEntity(TileTallLamp.class, "TileNPCTallLamp");
+            GameRegistry.registerTileEntity(TileShortLamp.class, "TileNPCShortLamp");
 			GameRegistry.registerTileEntity(TileChair.class, "TileNPCChair");
 			GameRegistry.registerTileEntity(TileCrate.class, "TileNPCCrate");
 			GameRegistry.registerTileEntity(TileWeaponRack.class, "TileNPCWeaponRack");
@@ -237,9 +247,11 @@ public class CustomItems {
 		mount = new ItemMounter().setUnlocalizedName("npcMounter").setFull3D();
 		teleporter = new ItemTeleporter().setUnlocalizedName("npcTeleporter").setFull3D();
 		scripted_item = new ItemScripted().setUnlocalizedName("scripted_item").setFull3D();
+        linked_item = new ItemLinked().setUnlocalizedName("linked_item").setFull3D();
+        tool = new ItemNpcTool().setUnlocalizedName("npcTool").setFull3D();
 
 		redstoneBlock = new BlockNpcRedstone().setHardness(50.0F).setResistance(2000).setBlockName("npcRedstoneBlock").setBlockTextureName("customnpcs:npcRedstoneBlock").setCreativeTab(tab);
-		carpentyBench = new BlockCarpentryBench().setBlockName("npcCarpentyBench").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
+		carpentyBench = new BlockCarpentryBench().setBlockName("npcCarpentyBench").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypePiston).setCreativeTab(tabBlocks);
 		mailbox = new BlockMailbox().setBlockName("npcMailbox").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
 		waypoint = new BlockWaypoint().setBlockName("npcLocationBlock").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setBlockTextureName("customnpcs:npcWaypoint").setCreativeTab(tab);
 		border = new BlockBorder().setBlockName("npcBorder").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tab).setBlockTextureName("customnpcs:npcBorder");
@@ -274,17 +286,18 @@ public class CustomItems {
 
 		if(!ConfigMain.DisableExtraBlock){
 			blood = new BlockBlood().setBlockName("npcBloodBlock").setBlockTextureName("customnpcs:npcBloodBlock").setCreativeTab(tabBlocks);
-			banner = new BlockBanner().setBlockName("npcBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
-			wallBanner = new BlockWallBanner().setBlockName("npcWallBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
+			banner = new BlockBanner().setBlockName("npcBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeCloth).setCreativeTab(tabBlocks);
+			wallBanner = new BlockWallBanner().setBlockName("npcWallBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeCloth).setCreativeTab(tabBlocks);
 			tallLamp = new BlockTallLamp().setBlockName("npcTallLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
-			chair = new BlockChair().setBlockName("npcChair").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
+            shortLamp = new BlockShortLamp().setBlockName("npcShortLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks);
+            chair = new BlockChair().setBlockName("npcChair").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			crate = new BlockCrate().setBlockName("npcCrate").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			weaponsRack = new BlockWeaponRack().setBlockName("npcWeaponRack").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			couchWool = new BlockCouchWool().setBlockName("npcCouchWool").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			table = new BlockTable().setBlockName("npcTable").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			couchWood = new BlockCouchWood().setBlockName("npcCouchWood").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
-			lamp = new BlockLamp(true).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
-			candle = new BlockCandle(true).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
+			lantern = new BlockLantern(true).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:lantern");;
+			candle = new BlockCandle(true).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:candle");;
 			stool = new BlockStool().setBlockName("npcStool").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			Block placeholder = new BlockPlaceholder().setBlockName("npcPlaceholder").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabMisc);
 			bigsign = new BlockBigSign().setBlockName("npcBigSign").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
@@ -299,13 +312,14 @@ public class CustomItems {
 			crystal = new BlockCrystal().setBlockName("npcCrystal").setBlockTextureName("customnpcs:npcCrystal").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeGlass).setCreativeTab(tabBlocks);
 
 			campfire_unlit = new BlockCampfire(false).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone);
-			lamp_unlit = new BlockLamp(false).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
-			candle_unlit = new BlockCandle(false).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood);
+			lantern_unlit = new BlockLantern(false).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setBlockTextureName("customnpcs:lantern");
+			candle_unlit = new BlockCandle(false).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setBlockTextureName("customnpcs:candle");
 
 			GameRegistry.registerBlock(blood, "npcBloodBlock");
 			GameRegistry.registerBlock(banner, ItemBlock.class, "npcBanner");
 			GameRegistry.registerBlock(wallBanner, ItemBlock.class, "npcWallBanner");
 			GameRegistry.registerBlock(tallLamp, ItemBlock.class, "npcTallLamp");
+            GameRegistry.registerBlock(shortLamp, ItemBlock.class, "npcShortLamp");
 			GameRegistry.registerBlock(chair, ItemBlock.class, "npcChair");
 			GameRegistry.registerBlock(crate, ItemBlock.class, "npcCrate");
 			GameRegistry.registerBlock(weaponsRack, ItemBlock.class, "npcWeaponRack");
@@ -324,15 +338,16 @@ public class CustomItems {
 			GameRegistry.registerBlock(pedestal, ItemBlock.class, "npcPedestal");
 			GameRegistry.registerBlock(crystal, ItemNpcColored.class, "npcCrystalBlock");
 			GameRegistry.registerBlock(campfire, "npcCampfire");
-			GameRegistry.registerBlock(lamp, "npcLamp");
+			GameRegistry.registerBlock(lantern, "npcLamp");
 			GameRegistry.registerBlock(candle, "npcCandle");
 			GameRegistry.registerBlock(campfire_unlit, "npcCampfireUnlit");
 			GameRegistry.registerBlock(candle_unlit, "npcLampUnlit");
-			GameRegistry.registerBlock(lamp_unlit, "npcCandleUnlit");
+			GameRegistry.registerBlock(lantern_unlit, "npcCandleUnlit");
 
 			Item.getItemFromBlock(banner).setHasSubtypes(true);
 			Item.getItemFromBlock(wallBanner).setHasSubtypes(true);
 			Item.getItemFromBlock(tallLamp).setHasSubtypes(true);
+            Item.getItemFromBlock(shortLamp).setHasSubtypes(true);
 			Item.getItemFromBlock(chair).setHasSubtypes(true);
 			Item.getItemFromBlock(crate).setHasSubtypes(true);
 			Item.getItemFromBlock(weaponsRack).setHasSubtypes(true);
@@ -743,10 +758,10 @@ public class CustomItems {
 
 			quest = new ItemNpcArmor(26957,ArmorMaterial.IRON,0,"mask").setMaxStackSize(64).setUnlocalizedName("npcBanditMask").setCreativeTab(CustomItems.tabArmor).setTextureName("customnpcs:npcBanditMask");
 			quest = new ItemNpcInterface(26958).setUnlocalizedName("npcBrokenArrow").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcBrokenArrow");
-			quest = new ItemNpcInterface(26959).setUnlocalizedName("npcEarthElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcEarthElement");
-			quest = new ItemNpcInterface(26960).setUnlocalizedName("npcWaterElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcWaterElement");
-			quest = new ItemNpcInterface(26961).setUnlocalizedName("npcFireElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcFireElement");
-			quest = new ItemNpcInterface(26962).setUnlocalizedName("npcAirElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAirElement");
+			earthElement = new ItemNpcInterface(26959).setUnlocalizedName("npcEarthElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcEarthElement");
+			waterElement = new ItemNpcInterface(26960).setUnlocalizedName("npcWaterElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcWaterElement");
+            fireElement = new ItemNpcInterface(26961).setUnlocalizedName("npcFireElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcFireElement");
+			airElement = new ItemNpcInterface(26962).setUnlocalizedName("npcAirElement").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcAirElement");
 
 			quest = new ItemNpcInterface(26963).setUnlocalizedName("npcCarKey").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcCarKey");
 			quest = new ItemNpcInterface(26964).setUnlocalizedName("npcKey").setCreativeTab(CustomItems.tabMisc).setTextureName("customnpcs:npcKey");

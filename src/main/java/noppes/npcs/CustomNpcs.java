@@ -5,17 +5,17 @@ import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.*;
-import cpw.mods.fml.common.network.FMLEventChannel;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
 import foxz.command.CommandNoppes;
-import kamkeel.addon.AddonManager;
-import kamkeel.command.CommandKamkeel;
-import kamkeel.command.profile.CommandProfile;
-import kamkeel.controllers.ProfileController;
-import kamkeel.controllers.data.CNPCData;
-import kamkeel.developer.Developer;
+import kamkeel.npcs.addon.AddonManager;
+import kamkeel.npcs.command.CommandKamkeel;
+import kamkeel.npcs.command.profile.CommandProfile;
+import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.profile.CNPCData;
+import kamkeel.npcs.developer.Developer;
+import kamkeel.npcs.network.PacketHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -27,6 +27,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
+import kamkeel.npcs.controllers.AttributeController;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
@@ -40,7 +41,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.9.4-beta1")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10-beta5")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -53,9 +54,6 @@ public class CustomNpcs {
     public static CustomNpcs instance;
 
     public static boolean FreezeNPCs = false;
-
-    public static FMLEventChannel Channel;
-    public static FMLEventChannel ChannelPlayer;
 
     public static final MarkovGenerator[] MARKOV_GENERATOR = new MarkovGenerator[10];
 
@@ -86,8 +84,7 @@ public class CustomNpcs {
 
     @EventHandler
     public void load(FMLPreInitializationEvent ev) {
-        Channel = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCs");
-        ChannelPlayer = NetworkRegistry.INSTANCE.newEventDrivenChannel("CustomNPCsPlayer");
+        PacketHandler.Instance = new PacketHandler();
 
         MinecraftServer server = MinecraftServer.getServer();
         String dir = "";
@@ -178,6 +175,7 @@ public class CustomNpcs {
         // Load Mod Support
         PixelmonHelper.load();
         new AddonManager();
+        new AttributeController();
     }
 
     @EventHandler
@@ -194,6 +192,7 @@ public class CustomNpcs {
         MARKOV_GENERATOR[8] = new MarkovCustomNPCsClassic(3);
         MARKOV_GENERATOR[9] = new MarkovSpanish(3);
 
+        PacketHandler.Instance.registerChannels();
     }
 
     @EventHandler
@@ -202,6 +201,8 @@ public class CustomNpcs {
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
         // VisibilityController.instance = new VisibilityController();
+        new MagicController();
+        MagicController.getInstance().load();
         new PlayerDataController();
         new TagController();
         new TransportController();
@@ -209,6 +210,11 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
+
+        LinkedItemController.getInstance().load();
+
+        // Custom Effects
+        CustomEffectController.getInstance().load();
 
         // Profile Controller
         new ProfileController();
@@ -249,6 +255,7 @@ public class CustomNpcs {
         ServerTagMapController.Instance = new ServerTagMapController();
     }
 
+
     @EventHandler
     public void stopped(FMLServerStoppedEvent event){
         ServerCloneController.Instance = null;
@@ -262,7 +269,8 @@ public class CustomNpcs {
     public void serverstart(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandNoppes());
         event.registerServerCommand(new CommandKamkeel());
-        event.registerServerCommand(new CommandProfile());
+        if(ConfigMain.ProfilesEnabled)
+            event.registerServerCommand(new CommandProfile());
     }
 
     private void registerNpc(Class<? extends Entity> cl, String name) {

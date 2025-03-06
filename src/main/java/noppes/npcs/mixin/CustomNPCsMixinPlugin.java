@@ -49,11 +49,13 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
             }
             if (ConfigMixin.AnimationMixin) {
                 mixins.add("MixinModelRenderer");
-                mixins.add("MixinModelBase");
+                mixins.add("MixinRendererLivingEntity");
             }
             if (ConfigMixin.FirstPersonAnimationMixin) {
                 mixins.add("MixinItemRenderer");
             }
+
+            mixins.add("MixinItemStack");
         }
         return mixins;
     }

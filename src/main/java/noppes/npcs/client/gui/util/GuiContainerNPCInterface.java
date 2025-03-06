@@ -261,9 +261,9 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 		float f6 = (float) ((guiTop + y) - 50) - mouseY;
 		int orientation = 0;
 		if(npc != null){
-			if(npc.ai != null){
-				orientation = npc.ai.orientation;
-				npc.ai.orientation = 0;
+			if(npc.ais != null){
+				orientation = npc.ais.orientation;
+				npc.ais.orientation = 0;
 			}
 		}
 		GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
@@ -282,8 +282,8 @@ public abstract class GuiContainerNPCInterface extends GuiContainer
 		npc.rotationPitch = f4;
 		npc.rotationYawHead = f7;
 		if(npc != null){
-			if(npc.ai != null){
-				npc.ai.orientation = orientation;
+			if(npc.ais != null){
+				npc.ais.orientation = orientation;
 			}
 		}
         npc.isDrawn = false;

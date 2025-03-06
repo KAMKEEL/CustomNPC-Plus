@@ -4,17 +4,18 @@ import cpw.mods.fml.common.eventhandler.Cancelable;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IItemEvent;
-import noppes.npcs.api.item.IItemCustom;
+import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 
 public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
-    public final IItemCustom item;
+    public final IItemCustomizable item;
 
-    public ItemEvent(IItemCustom item) {
+    public ItemEvent(IItemCustomizable item) {
         this.item = item;
     }
 
-    public IItemCustom getItem() {
+    public IItemCustomizable getItem() {
         return item;
     }
 
@@ -23,7 +24,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     }
 
     public static class InitEvent extends ItemEvent implements IItemEvent.InitEvent {
-        public InitEvent(IItemCustom item) {
+        public InitEvent(IItemCustomizable item) {
             super(item);
         }
 
@@ -35,7 +36,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     public static class UpdateEvent extends ItemEvent implements IItemEvent.UpdateEvent {
         public final IEntity entity;
 
-        public UpdateEvent(IItemCustom item, IEntity entity) {
+        public UpdateEvent(IItemCustomizable item, IEntity entity) {
             super(item);
             this.entity = entity;
         }
@@ -54,7 +55,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IEntity entity;
         public final IPlayer player;
 
-        public TossedEvent(IItemCustom item, IPlayer player, IEntity entity) {
+        public TossedEvent(IItemCustomizable item, IPlayer player, IEntity entity) {
             super(item);
             this.entity = entity;
             this.player = player;
@@ -76,7 +77,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     public static class PickedUpEvent extends ItemEvent implements IItemEvent.PickedUpEvent {
         public final IPlayer player;
 
-        public PickedUpEvent(IItemCustom item, IPlayer player) {
+        public PickedUpEvent(IItemCustomizable item, IPlayer player) {
             super(item);
             this.player = player;
         }
@@ -94,7 +95,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     public static class SpawnEvent extends ItemEvent implements IItemEvent.SpawnEvent {
         public final IEntity entity;
 
-        public SpawnEvent(IItemCustom item, IEntity entity){
+        public SpawnEvent(IItemCustomizable item, IEntity entity){
             super(item);
             this.entity = entity;
         }
@@ -114,7 +115,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IEntity target;
         public final IPlayer player;
 
-        public InteractEvent(IItemCustom item, IPlayer player, int type, IEntity target) {
+        public InteractEvent(IItemCustomizable item, IPlayer player, int type, IEntity target) {
             super(item);
             this.type = type;
             this.target = target;
@@ -148,7 +149,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final Object target;
         public final IPlayer player;
 
-        public RightClickEvent(IItemCustom item, IPlayer player, int type, Object target) {
+        public RightClickEvent(IItemCustomizable item, IPlayer player, int type, Object target) {
             super(item);
             this.type = type;
             this.target = target;
@@ -178,7 +179,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IEntity target;
         public final IEntity swingingEntity;
 
-        public AttackEvent(IItemCustom item, IEntity swingingEntity, int type, IEntity target) {
+        public AttackEvent(IItemCustomizable item, IEntity swingingEntity, int type, IEntity target) {
             super(item);
             this.type = type;
             this.target = target;
@@ -207,7 +208,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public StartUsingItem(IItemCustom item, IPlayer player, int duration){
+        public StartUsingItem(IItemCustomizable item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -231,7 +232,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public UsingItem(IItemCustom item, IPlayer player, int duration){
+        public UsingItem(IItemCustomizable item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -255,7 +256,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public StopUsingItem(IItemCustom item, IPlayer player, int duration){
+        public StopUsingItem(IItemCustomizable item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -279,7 +280,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public FinishUsingItem(IItemCustom item, IPlayer player, int duration){
+        public FinishUsingItem(IItemCustomizable item, IPlayer player, int duration){
             super(item);
             this.player = player;
             this.duration = duration;
@@ -295,6 +296,71 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
 
         public int getDuration() {
             return duration;
+        }
+    }
+
+    public static class BreakItem extends ItemEvent implements IItemEvent.BreakItem {
+        public final IPlayer player;
+
+        public BreakItem(IItemCustomizable item, IPlayer player) {
+            super(item);
+            this.player = player;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.BREAK_ITEM.function;
+        }
+
+        @Override
+        public IItemStack getBrokenStack() {
+            return this.item;
+        }
+
+        @Override
+        public IPlayer getPlayer() {
+            return this.player;
+        }
+    }
+
+    public static class RepairItem extends ItemEvent implements IItemEvent.RepairItem {
+        public final IPlayer player;
+        public final IItemStack left, right;
+        public final float anvilBreakChance;
+
+        public RepairItem(IItemCustomizable item, IPlayer player, IItemStack left, IItemStack right, float anvilBreakChance) {
+            super(item);
+            this.player = player;
+            this.left = left;
+            this.right = right;
+            this.anvilBreakChance = anvilBreakChance;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.REPAIR_ITEM.function;
+        }
+
+        public IPlayer getPlayer() {
+            return this.player;
+        }
+
+        @Override
+        public IItemStack getLeft() {
+            return this.left;
+        }
+
+        @Override
+        public IItemStack getRight() {
+            return this.right;
+        }
+
+        @Override
+        public IItemStack getOutput() {
+            return this.item;
+        }
+
+        @Override
+        public float getAnvilBreakChance() {
+            return this.anvilBreakChance;
         }
     }
 }

@@ -181,8 +181,8 @@ public class NPCSpawning {
 			if(spawnEntity instanceof EntityCustomNpc){
 				EntityCustomNpc npc = (EntityCustomNpc) spawnEntity;
 				npc.stats.spawnCycle = 3;
-				npc.ai.returnToStart = false;
-				npc.ai.startPos = new int[]{x,y, z};
+				npc.ais.returnToStart = false;
+				npc.ais.startPos = new int[]{x,y, z};
                 npc.updateAI = true;
                 npc.updateClient = true;
                 npc.getNavigator().clearPathEntity();

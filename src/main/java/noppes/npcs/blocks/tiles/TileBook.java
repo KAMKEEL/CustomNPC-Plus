@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 
-public class TileBook extends TileColorable {
+public class TileBook extends TileVariant {
 	public ItemStack book = new ItemStack(Items.writable_book);
     public void readFromNBT(NBTTagCompound compound){
         super.readFromNBT(compound);

@@ -1,36 +1,46 @@
 package noppes.npcs.client.renderer.blocks;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
+import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.blocks.BlockWallBanner;
 import noppes.npcs.blocks.tiles.TileWallBanner;
+import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.model.blocks.banner.ModelBannerWall;
 import noppes.npcs.client.model.blocks.banner.ModelBannerWallFlag;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyWallBanner;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyWallBannerFlag;
+import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 public class BlockWallBannerRenderer extends BlockRendererInterface{
 
-	private final ModelLegacyWallBanner modelLegacyWallBanner = new ModelLegacyWallBanner();
-	private final ModelLegacyWallBannerFlag modelLegacyWallBannerFlag = new ModelLegacyWallBannerFlag();
+	public static final ModelLegacyWallBanner modelLegacyWallBanner = new ModelLegacyWallBanner();
+    public static final ModelLegacyWallBannerFlag modelLegacyWallBannerFlag = new ModelLegacyWallBannerFlag();
 
-    private final ModelBannerWall model = new ModelBannerWall();
-    private final ModelBannerWallFlag flag = new ModelBannerWallFlag();
+    public static final ModelBannerWall model = new ModelBannerWall();
+    public static final ModelBannerWallFlag flag = new ModelBannerWallFlag();
 
     public BlockWallBannerRenderer(){
 		((BlockWallBanner)CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -41,6 +51,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
 		TileWallBanner tile = (TileWallBanner) var1;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
@@ -55,7 +66,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
             modelLegacyWallBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
             this.bindTexture(BlockBannerRenderer.legacyFlagResource);
-            float[] color = BlockBannerRenderer.colorTable[tile.color];
+            float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
             modelLegacyWallBannerFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
@@ -76,8 +87,8 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
             BlockBannerRenderer.setBannerMaterial(var1.getBlockMetadata());
             model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
-            BlockBannerRenderer.setFlagType(tile.variant);
-            float[] color = colorTable[tile.color];
+            BlockBannerRenderer.setFlagType(tile.bannerTrim);
+            float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glPushMatrix();
             GL11.glColor3f(color[0], color[1], color[2]);
             flag.render(null, 0, 0, 0, f3, 0.0F, 0.0625F);
@@ -89,34 +100,69 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
                 doRender(var2, var4, var6, tile.rotation, tile.icon, angle_x);
             }
         }
+        GL11.glPopAttrib();
 	}
-    public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon, float rotate)
-    {
+
+    public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon, float rotate) {
         GL11.glPushMatrix();
         bindTexture(TextureMap.locationItemsTexture);
         GL11.glTranslatef((float)par2 + 0.5f, (float)par4 + 0.2f, (float)par6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * meta, 0, 1, 0);
-
-        if(ConfigClient.LegacyBanner){
+        if (ConfigClient.LegacyBanner) {
             GL11.glTranslatef(0, 0, 0.26f);
-        }
-        else {
+        } else {
             GL11.glTranslatef(0, 0, 0.3f);
 
             GL11.glTranslatef(0, -0.6f, 0); // Translate to pivot point
             GL11.glRotatef((float) Math.toDegrees(rotate), 1, 0, 0); // Apply sway rotation
             GL11.glTranslatef(0, 0.6f, 0); // Translate to pivot point
         }
-
         GL11.glDepthMask(false);
         float f2 = 0.05f;
         Minecraft mc = Minecraft.getMinecraft();
         GL11.glScalef(f2, f2, f2);
-        renderItemBanner(mc.renderEngine, iicon, -8, -8, false);
+
+        // Check if the item is customizable.
+        IItemStack iItemStack = NpcAPI.Instance().getIItemStack(iicon);
+        if (iItemStack instanceof IItemCustomizable) {
+            IItemCustomizable custom = (IItemCustomizable) iItemStack;
+            ImageData imageData = ClientCacheHandler.getImageData(custom.getTexture());
+            if (imageData.imageLoaded()) {
+                imageData.bindTexture();
+                int color = custom.getColor();
+                float[] colors = ColorUtil.hexToRGB(color);
+                renderCustomItemInBanner(colors[0], colors[1], colors[2]);
+                GL11.glColor3f(1.0f, 1.0f, 1.0f);
+            } else {
+                renderItemBanner(mc.renderEngine, iicon, -8, -8, false);
+            }
+        } else {
+            renderItemBanner(mc.renderEngine, iicon, -8, -8, false);
+        }
+
         GL11.glDepthMask(true);
         GL11.glPopMatrix();
     }
+
+    private void renderCustomItemInBanner(float red, float green, float blue) {
+        // Ensure lighting isn't interfering
+        GL11.glDisable(GL11.GL_LIGHTING);
+        // Force the texture to use the current color
+        GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
+
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_F(red, green, blue, 1.0F);
+        tessellator.addVertexWithUV(-8, 8, 0, 0, 1);
+        tessellator.addVertexWithUV(8, 8, 0, 1, 1);
+        tessellator.addVertexWithUV(8, -8, 0, 1, 0);
+        tessellator.addVertexWithUV(-8, -8, 0, 0, 0);
+        tessellator.draw();
+
+        GL11.glEnable(GL11.GL_LIGHTING);
+    }
+
 
     public void renderItemBanner(TextureManager txtMng, ItemStack item, int p_77015_4_, int p_77015_5_, boolean renderEffect)
     {
@@ -185,34 +231,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0, 0.26f, 0.3f);
-        GL11.glScalef(0.95f, 0.85f, 0.95f);
-        GL11.glRotatef(180, 0, 0, 1);
-        GL11.glRotatef(180, 0, 1, 0);
-
-        if(ConfigClient.LegacyBanner){
-            setMaterialTexture(metadata);
-            GL11.glColor3f(1, 1, 1);
-            modelLegacyWallBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-            this.bindTexture(BlockBannerRenderer.legacyFlagResource);
-            float[] color = BlockBannerRenderer.colorTable[15 - metadata];
-            GL11.glColor3f(color[0], color[1], color[2]);
-            modelLegacyWallBannerFlag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-        else {
-            BlockBannerRenderer.setBannerMaterial(metadata);
-            model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-
-            this.bindTexture(BlockBannerRenderer.normalFlag);
-            float[] color = colorTable[15 - metadata];
-            GL11.glColor3f(color[0], color[1], color[2]);
-            flag.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-		GL11.glPopMatrix();
-	}
+			RenderBlocks renderer) {}
 
 	@Override
 	public int getRenderId() {

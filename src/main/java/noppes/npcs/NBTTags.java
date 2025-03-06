@@ -1,16 +1,26 @@
 package noppes.npcs;
 
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTBase;
-import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagDouble;
-import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.*;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.IScriptHandler;
 
 import java.util.*;
 
 public class NBTTags {
+
+    public static int TAG_End = 0;
+    public static int TAG_Byte = 1;
+    public static int TAG_Short = 2;
+    public static int TAG_Int = 3;
+    public static int TAG_Long = 4;
+    public static int TAG_Float = 5;
+    public static int TAG_Double = 6;
+    public static int TAG_Byte_Array = 7;
+    public static int TAG_String = 8;
+    public static int TAG_List = 9;
+    public static int TAG_Compound = 10;
+    public static int TAG_Int_Array = 11;
 
 	public static HashMap<Integer, ItemStack> getItemStackList(
 			NBTTagList tagList) {
@@ -585,4 +595,19 @@ public class NBTTags {
 
 		return list;
 	}
+
+    public static int getIntAt(NBTTagList tagList, int index)
+    {
+        if (index >= 0 && index < tagList.tagCount())
+        {
+            NBTBase nbtbase = tagList.getCompoundTagAt(index);
+
+            if (nbtbase.getId() == 3)
+            {
+                return ((NBTTagInt)nbtbase).func_150287_d();
+            }
+        }
+
+        return 0;
+    }
 }

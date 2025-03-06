@@ -1,9 +1,10 @@
 package noppes.npcs.client.gui.script;
 
+import kamkeel.npcs.network.packets.request.script.BlockScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileScripted;
-import noppes.npcs.client.Client;
-import noppes.npcs.constants.EnumPacketServer;
+
+
 
 public class GuiScriptBlock extends GuiScriptInterface {
     private TileScripted tileScripted;
@@ -24,7 +25,7 @@ public class GuiScriptBlock extends GuiScriptInterface {
         hookList.add("timer");
 
         this.handler = this.tileScripted = (TileScripted) player.worldObj.getTileEntity(x, y, z);
-        Client.sendData(EnumPacketServer.ScriptBlockDataGet, tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord);
+        BlockScriptPacket.Get(tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord);
     }
 
     public void setGuiData(NBTTagCompound compound) {
@@ -34,6 +35,6 @@ public class GuiScriptBlock extends GuiScriptInterface {
 
     public void save() {
         super.save();
-        Client.sendData(EnumPacketServer.ScriptBlockDataSave, tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord, this.tileScripted.getNBT(new NBTTagCompound()));
+        BlockScriptPacket.Save(tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord, this.tileScripted.getNBT(new NBTTagCompound()));
     }
 }

@@ -11,188 +11,185 @@ import java.util.Map;
 
 
 public class Frame implements IFrame {
-	public Animation parent;
-	public HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
-	public int duration = 0;
-	boolean customized = false;
-	public float speed = 1.0F;
-	public byte smooth = 0;
-	public boolean renderTicks = false; // If true, MC ticks are used. If false, render ticks are used.
+    public Animation parent;
+    public HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
+    public int duration = 0;
 
-	private int colorMarker = 0xFFFFFF;
+    boolean customized = false;
+    public float speed = 1.0F;
+    public byte smooth = 0;
 
-	public Frame(){}
+    private int colorMarker = 0xFFFFFF;
+    private String comment = "";
 
-	public Frame(int duration) {
-		this.duration = duration;
-	}
+    public Frame(){}
 
-	public Frame(int duration, float speed, byte smooth) {
-		this.duration = duration;
-		this.speed = speed;
-		this.smooth = smooth;
-		this.customized = true;
-	}
+    public Frame(int duration) {
+        this.duration = duration;
+    }
 
-	public HashMap<EnumAnimationPart,FramePart> getFrameMap() {
-		return frameParts;
-	}
+    public Frame(int duration, float speed, byte smooth) {
+        this.duration = duration;
+        this.speed = speed;
+        this.smooth = smooth;
+        this.customized = true;
+    }
 
-	public IFramePart[] getParts() {
-		return frameParts.values().toArray(new IFramePart[0]);
-	}
+    public HashMap<EnumAnimationPart,FramePart> getFrameMap() {
+        return frameParts;
+    }
 
-	public IFrame addPart(IFramePart partConfig) {
-		this.frameParts.put(((FramePart)partConfig).getPart(),(FramePart) partConfig);
-		return this;
-	}
+    public IFramePart[] getParts() {
+        return frameParts.values().toArray(new IFramePart[0]);
+    }
 
-	public IFrame removePart(String partName) {
-		try {
-			this.frameParts.remove(EnumAnimationPart.valueOf(partName));
-		} catch (IllegalArgumentException ignored) {}
-		return this;
-	}
+    public IFrame addPart(IFramePart partConfig) {
+        this.frameParts.put(((FramePart)partConfig).getPart(),(FramePart) partConfig);
+        return this;
+    }
 
-	public IFrame removePart(int partId) {
-		for (EnumAnimationPart part : EnumAnimationPart.values()) {
-			this.frameParts.remove(part);
-		}
-		return this;
-	}
+    public IFrame removePart(String partName) {
+        try {
+            this.frameParts.remove(EnumAnimationPart.valueOf(partName));
+        } catch (IllegalArgumentException ignored) {}
+        return this;
+    }
 
-	public IFrame clearParts() {
-		frameParts.clear();
-		return this;
-	}
+    public IFrame removePart(int partId) {
+        for (EnumAnimationPart part : EnumAnimationPart.values()) {
+            this.frameParts.remove(part);
+        }
+        return this;
+    }
 
-	public int getDuration() {
-		return duration;
-	}
+    public IFrame clearParts() {
+        frameParts.clear();
+        return this;
+    }
 
-	public IFrame setDuration(int duration) {
-		this.duration = duration;
-		return this;
-	}
+    public int getDuration() {
+        return duration;
+    }
 
-	public boolean isCustomized() {
-		return customized;
-	}
+    public IFrame setDuration(int duration) {
+        this.duration = duration;
+        return this;
+    }
 
-	public IFrame setCustomized(boolean customized) {
-		this.customized = customized;
-		return this;
-	}
+    public boolean isCustomized() {
+        return customized;
+    }
 
-	public float getSpeed() {
-		return speed;
-	}
+    public IFrame setCustomized(boolean customized) {
+        this.customized = customized;
+        return this;
+    }
 
-	public IFrame setSpeed(float speed) {
-		this.speed = speed;
-		return this;
-	}
+    public float getSpeed() {
+        return speed;
+    }
 
-	public byte smoothType() {
-		return smooth;
-	}
+    public IFrame setSpeed(float speed) {
+        this.speed = speed;
+        return this;
+    }
 
-	public IFrame setSmooth(byte smooth) {
-		this.smooth = smooth;
-		return this;
-	}
+    public byte smoothType() {
+        return smooth;
+    }
 
-	public IFrame useRenderTicks(boolean renderTicks) {
-		this.renderTicks = renderTicks;
-		return this;
-	}
+    public IFrame setSmooth(byte smooth) {
+        this.smooth = smooth;
+        return this;
+    }
 
-	public boolean useRenderTicks() {
-		return this.renderTicks;
-	}
+    public int getColorMarker() {
+        return this.colorMarker;
+    }
 
-	public int getColorMarker() {
-		return this.colorMarker;
-	}
+    public void setColorMarker(int color) {
+        this.colorMarker = color;
+    }
 
-	public void setColorMarker(int color) {
-		this.colorMarker = color;
-	}
+    public String getComment() {
+        return this.comment;
+    }
 
-	public void readFromNBT(NBTTagCompound compound){
-		duration = compound.getInteger("Duration");
-		if (compound.hasKey("ColorMarker")) {
-			this.setColorMarker(compound.getInteger("ColorMarker"));
-		}
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
 
-		// Customized = TRUE if Speed or Smooth Exist
-		if(compound.hasKey("Speed")){
-			customized = true;
-			speed = compound.getFloat("Speed");
-		}
-		if(compound.hasKey("Smooth")){
-			customized = true;
-			smooth = compound.getByte("Smooth");
-		}
-		if(compound.hasKey("RenderTicks")){
-			customized = true;
-			renderTicks = compound.getBoolean("RenderTicks");
-		}
+    public void readFromNBT(NBTTagCompound compound){
+        duration = compound.getInteger("Duration");
+        if (compound.hasKey("ColorMarker")) {
+            this.setColorMarker(compound.getInteger("ColorMarker"));
+        }
+        if (compound.hasKey("Comment")) {
+            this.comment = compound.getString("Comment");
+        }
 
-		if (!customized) {
-			this.speed = parent.speed;
-			this.smooth = parent.smooth;
-			this.renderTicks = parent.renderTicks;
-		}
+        // Customized = TRUE if Speed or Smooth Exist
+        if(compound.hasKey("Speed")){
+            customized = true;
+            speed = compound.getFloat("Speed");
+        }
+        if(compound.hasKey("Smooth")){
+            customized = true;
+            smooth = compound.getByte("Smooth");
+        }
 
-		HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
-		NBTTagList list = compound.getTagList("FrameParts", 10);
-		for (int i = 0; i < list.tagCount(); i++) {
-			NBTTagCompound item = list.getCompoundTagAt(i);
-			FramePart framePart = new FramePart();
-			framePart.readFromNBT(item);
-			if (!framePart.customized) {
-				framePart.smooth = this.smooth;
-				framePart.speed = this.speed;
-			}
-			frameParts.put(framePart.part,framePart);
-		}
-		this.frameParts = frameParts;
-	}
+        if (!customized && parent != null) {
+            this.speed = parent.speed;
+            this.smooth = parent.smooth;
+        }
 
-	public NBTTagCompound writeToNBT(){
-		NBTTagCompound compound = new NBTTagCompound();
-		compound.setInteger("Duration", duration);
-		compound.setInteger("ColorMarker", this.colorMarker);
+        HashMap<EnumAnimationPart,FramePart> frameParts = new HashMap<>();
+        NBTTagList list = compound.getTagList("FrameParts", 10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            NBTTagCompound item = list.getCompoundTagAt(i);
+            FramePart framePart = new FramePart();
+            framePart.readFromNBT(item);
+            if (!framePart.customized) {
+                framePart.smooth = this.smooth;
+                framePart.speed = this.speed;
+            }
+            frameParts.put(framePart.part,framePart);
+        }
+        this.frameParts = frameParts;
+    }
 
-		if(customized){
-			compound.setFloat("Speed", speed);
-			compound.setByte("Smooth", smooth);
-			compound.setBoolean("RenderTicks", renderTicks);
-		}
+    public NBTTagCompound writeToNBT(){
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setInteger("Duration", duration);
+        compound.setInteger("ColorMarker", this.colorMarker);
+        compound.setString("Comment", this.comment);
 
-		NBTTagList list = new NBTTagList();
-		for(FramePart framePart : frameParts.values()){
-			NBTTagCompound item = framePart.writeToNBT();
-			list.appendTag(item);
-		}
-		compound.setTag("FrameParts", list);
-		return compound;
-	}
+        if(customized){
+            compound.setFloat("Speed", speed);
+            compound.setByte("Smooth", smooth);
+        }
 
-	public Frame copy() {
-		Frame frame = new Frame(this.duration);
-		HashMap<EnumAnimationPart,FramePart> frameParts = this.frameParts;
-		for (Map.Entry<EnumAnimationPart,FramePart> entry : frameParts.entrySet()) {
-			frame.frameParts.put(entry.getKey(),entry.getValue().copy());
-		}
-		frame.parent = this.parent;
-		frame.duration = this.duration;
-		frame.customized = this.customized;
-		frame.speed = this.speed;
-		frame.smooth = this.smooth;
-		frame.renderTicks = this.renderTicks;
-		frame.colorMarker = this.colorMarker;
-		return frame;
-	}
+        NBTTagList list = new NBTTagList();
+        for(FramePart framePart : frameParts.values()){
+            NBTTagCompound item = framePart.writeToNBT();
+            list.appendTag(item);
+        }
+        compound.setTag("FrameParts", list);
+        return compound;
+    }
+
+    public Frame copy() {
+        Frame frame = new Frame(this.duration);
+        HashMap<EnumAnimationPart,FramePart> frameParts = this.frameParts;
+        for (Map.Entry<EnumAnimationPart,FramePart> entry : frameParts.entrySet()) {
+            frame.frameParts.put(entry.getKey(),entry.getValue().copy());
+        }
+        frame.parent = this.parent;
+        frame.duration = this.duration;
+        frame.customized = this.customized;
+        frame.speed = this.speed;
+        frame.smooth = this.smooth;
+        frame.colorMarker = this.colorMarker;
+        return frame;
+    }
 }

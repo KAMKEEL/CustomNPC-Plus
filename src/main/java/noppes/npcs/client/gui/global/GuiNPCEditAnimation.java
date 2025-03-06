@@ -1,14 +1,14 @@
 package noppes.npcs.client.gui.global;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Frame;
@@ -23,14 +23,16 @@ import java.util.Map;
 public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfieldListener, ISliderListener, ISubGuiListener {
     private final Animation animation;
 
+    private static int partEditMode;
+    private static int sliderSelection = 0;
+    private static Frame copiedFrame;
+
     private EnumAnimationPart editingPart = EnumAnimationPart.HEAD;
     private int frameIndex = 0;
     public boolean playingAnimation = false;
     private Frame prevFrame;
     private final GuiScreen parent;
     private long prevTick;
-    private static int partEditMode;
-    private static int sliderSelection = 0;
 
     private final GuiNpcSlider[] rotationSliders = new GuiNpcSlider[3];
     private final GuiNpcSlider[] pivotSliders = new GuiNpcSlider[3];
@@ -49,7 +51,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
         this.animation = animation;
         AnimationData data = npc.display.animationData;
-        data.animation = animation;
+        data.setAnimation(animation);
         data.setEnabled(true);
 
         int bodyPartX = 280;
@@ -92,9 +94,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
         AnimationData data = npc.display.animationData;
         if (!playingAnimation) {
-            data.animation = new Animation();
+            data.setAnimation(new Animation());
             data.animation.smooth = animation.smooth;
-            data.animation.renderTicks = animation.renderTicks;
             data.animation.loop = 0;
             if (editingFrame != null) {
                 data.animation.frames.add(editingFrame);
@@ -107,7 +108,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             if (!frame.isCustomized()) {
                 frame.speed = animation.speed;
                 frame.smooth = animation.smooth;
-                frame.renderTicks = animation.renderTicks;
             }
             for (Map.Entry<EnumAnimationPart,FramePart> entry : frame.frameParts.entrySet()) {
                 FramePart part = entry.getValue();
@@ -401,13 +401,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         AnimationData data = npc.display.animationData;
 
         if (guibutton.id == 11) {
-            if (frameIndex < animation.frames.size() - 1) {
-                animation.frames.add(frameIndex + 1, new Frame(10));
-            } else {
-                animation.frames.add(new Frame(10));
-            }
-            this.frameIndex = frameIndex + 1;
-            updateFrameSlider();
+            this.addFrame();
         } else if (guibutton.id == 12) {
             animation.frames.remove(frameIndex);
             updateFrameSlider();
@@ -475,7 +469,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
                 }
             }
             this.playingAnimation = true;
-            data.animation = animation;
+            data.setAnimation(this.animation);
             data.animation.paused = false;
         } else if (guibutton.id == 201) {
             data.animation.paused = true;
@@ -501,6 +495,20 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         initGui();
     }
 
+    private void addFrame() {
+        this.addFrame(new Frame(10));
+    }
+
+    private void addFrame(Frame frame) {
+        if (frameIndex < animation.frames.size() - 1) {
+            animation.frames.add(frameIndex + 1, frame);
+        } else {
+            animation.frames.add(frame);
+        }
+        this.frameIndex = frameIndex + 1;
+        updateFrameSlider();
+    }
+
     @Override
     public void drawScreen(int par1, int par2, float par3)
     {
@@ -510,12 +518,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.playingAnimation = false;
             initGui();
         } else if (data.isActive()) {
-            Frame currentFrame = (Frame) data.animation.currentFrame();
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
-                if (currentFrame != null && !currentFrame.renderTicks) {
-                    data.animation.increaseTime();
-                }
                 GuiNpcLabel label = this.getLabel(213);
                 if (label != null) {
                     label.label += ".";
@@ -533,8 +537,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
                 int sliderFrame = i + this.frameOffset;
                 if (sliderFrame >= this.animation.frames.size()) {
-                     button.color = 0x0;
-                     button.alpha = 0.3F;
+                    button.color = 0x0;
+                    button.alpha = 0.3F;
                 } else {
                     button.color = this.animation.frames.get(sliderFrame).getColorMarker();
                     if ((sliderFrame == this.animation.currentFrame && this.playingAnimation) || sliderFrame == this.frameIndex) {
@@ -585,7 +589,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     public void close() {
         if (!this.hasSubGui()) {
             if (animation != null) {
-                Client.sendData(EnumPacketServer.AnimationSave, animation.writeToNBT());
+                PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
             }
             displayGuiScreen(parent);
         } else {
@@ -641,6 +645,30 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         Frame editingFrame = this.editingFrame();
         if (subgui instanceof SubGuiColorSelector && editingFrame != null) {
             editingFrame.setColorMarker(((SubGuiColorSelector) subgui).color);
+        }
+    }
+
+    @Override
+    public void keyTyped(char par1, int par2) {
+        super.keyTyped(par1, par2);
+
+        if (GuiScreen.isCtrlKeyDown() && par2 != 29 && !GuiNpcTextField.isFieldActive()) {
+            switch (par2) {
+                case 46:
+                    if (this.editingFrame() != null) {
+                        copiedFrame = this.editingFrame();
+                    }
+                    break;
+                case 47:
+                    if (copiedFrame != null) {
+                        Frame frame = new Frame(10);
+                        frame.parent = this.animation;
+                        frame.readFromNBT(copiedFrame.writeToNBT());
+                        this.addFrame(frame);
+                        this.initGui();
+                    }
+                    break;
+            }
         }
     }
 }

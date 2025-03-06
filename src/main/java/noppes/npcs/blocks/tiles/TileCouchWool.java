@@ -8,7 +8,6 @@ public class TileCouchWool extends TileColorable {
 	public boolean hasRight = false;
 	public boolean hasCornerLeft = false;
 	public boolean hasCornerRight = false;
-	
 
     public void readFromNBT(NBTTagCompound compound){
         super.readFromNBT(compound);

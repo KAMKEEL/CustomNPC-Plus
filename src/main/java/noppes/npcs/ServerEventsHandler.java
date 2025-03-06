@@ -3,6 +3,17 @@ package noppes.npcs;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.controllers.SyncController;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.enums.EnumSoundOperation;
+import kamkeel.npcs.network.enums.EnumSyncAction;
+import kamkeel.npcs.network.enums.EnumSyncType;
+import kamkeel.npcs.network.packets.data.ClonerPacket;
+import kamkeel.npcs.network.packets.data.MarkDataPacket;
+import kamkeel.npcs.network.packets.data.SoundManagementPacket;
+import kamkeel.npcs.network.packets.data.VillagerListPacket;
+import kamkeel.npcs.network.packets.data.gui.GuiOpenPacket;
+import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -11,41 +22,38 @@ import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.StatCollector;
 import net.minecraft.village.MerchantRecipeList;
-import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.EntityInteractEvent;
-import net.minecraftforge.event.entity.player.EntityItemPickupEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent.Action;
 import net.minecraftforge.event.terraingen.PopulateChunkEvent;
-import noppes.npcs.blocks.tiles.TileBanner;
+import noppes.npcs.blocks.tiles.ITileIcon;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.*;
+import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.constants.EnumPartyObjectives;
+import noppes.npcs.constants.EnumQuestType;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
-import noppes.npcs.quests.QuestItem;
 import noppes.npcs.quests.QuestKill;
 import noppes.npcs.roles.RoleFollower;
 
@@ -95,8 +103,7 @@ public class ServerEventsHandler {
 				return;
 			PlayerData data = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
 			ServerCloneController.Instance.cleanTags(compound);
-			if(!Server.sendDataChecked((EntityPlayerMP)event.entityPlayer, EnumPacketClient.CLONE, compound))
-				event.entityPlayer.addChatMessage(new ChatComponentText("Entity too big to clone"));
+            PacketHandler.Instance.sendToPlayer(new ClonerPacket(compound), (EntityPlayerMP)event.entityPlayer);
 			data.cloned = compound;
 			if (event.target instanceof EntityNPCInterface) {
 				NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface) event.target);
@@ -108,8 +115,8 @@ public class ServerEventsHandler {
 				return;
 			NoppesUtilServer.setEditingNpc(event.entityPlayer, (EntityNPCInterface)event.target);
 			event.setCanceled(true);
-			Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.GUI, EnumGuiType.Script.ordinal());
-			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+            GuiOpenPacket.openGUI((EntityPlayerMP)event.entityPlayer, EnumGuiType.Script, 0, 0, 0);
+            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
 				LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "SCRIPTER", event.entityPlayer.getCommandSenderName(), ((EntityNPCInterface)(event.target)).display.getName(), (int)(event.target).posX, (int)(event.target).posY, (int)(event.target).posZ,  (event.target).worldObj.getWorldInfo().getWorldName()));
 			}
 		}
@@ -134,7 +141,7 @@ public class ServerEventsHandler {
 
 				if (merchantrecipelist != null)
 				{
-					Server.sendData(player, EnumPacketClient.VILLAGER_LIST, merchantrecipelist);
+                    PacketHandler.Instance.sendToPlayer(new VillagerListPacket(merchantrecipelist), player);
 				}
 			}
 		}
@@ -194,48 +201,20 @@ public class ServerEventsHandler {
 		}
 
 		if(block == Blocks.crafting_table && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
-			RecipeController controller = RecipeController.Instance;
-			NBTTagList list = new NBTTagList();
-			int i = 0;
-			for(RecipeCarpentry recipe : controller.globalRecipes.values()){
-				list.appendTag(recipe.writeNBT());
-				i++;
-				if(i % 10 == 0){
-					NBTTagCompound compound = new NBTTagCompound();
-					compound.setTag("recipes", list);
-					Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-					list = new NBTTagList();
-				}
-			}
-
-			if(i % 10 != 0){
-				NBTTagCompound compound = new NBTTagCompound();
-				compound.setTag("recipes", list);
-				Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-			}
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_WORKBENCH);
+            PacketHandler.Instance.sendToPlayer(new SyncPacket(
+                EnumSyncType.WORKBENCH_RECIPES,
+                EnumSyncAction.RELOAD,
+                -1,
+                SyncController.workbenchNBT()
+            ), (EntityPlayerMP) player);
 		}
 		if(block == CustomItems.carpentyBench && event.action == Action.RIGHT_CLICK_BLOCK && !player.worldObj.isRemote){
-			RecipeController controller = RecipeController.Instance;
-			NBTTagList list = new NBTTagList();
-			int i = 0;
-			for(RecipeCarpentry recipe : controller.anvilRecipes.values()){
-				list.appendTag(recipe.writeNBT());
-				i++;
-				if(i % 10 == 0){
-					NBTTagCompound compound = new NBTTagCompound();
-					compound.setTag("recipes", list);
-					Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-					list = new NBTTagList();
-				}
-			}
-
-			if(i % 10 != 0){
-				NBTTagCompound compound = new NBTTagCompound();
-				compound.setTag("recipes", list);
-				Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_ADD, compound);
-			}
-			Server.sendData((EntityPlayerMP)player, EnumPacketClient.SYNCRECIPES_CARPENTRYBENCH);
+            PacketHandler.Instance.sendToPlayer(new SyncPacket(
+                EnumSyncType.CARPENTRY_RECIPES,
+                EnumSyncAction.RELOAD,
+                -1,
+                SyncController.carpentryNBT()
+            ), (EntityPlayerMP) player);
 		}
 		if((block == CustomItems.banner || block == CustomItems.wallBanner || block == CustomItems.sign)  && event.action == Action.RIGHT_CLICK_BLOCK){
 			ItemStack item = player.inventory.getCurrentItem();
@@ -245,10 +224,10 @@ public class ServerEventsHandler {
 			int meta = player.worldObj.getBlockMetadata(event.x, event.y, event.z);
 			if(meta >= 7)
 				y--;
-			TileBanner tile = (TileBanner)player.worldObj.getTileEntity(event.x, y, event.z);
+            ITileIcon tile = (ITileIcon)player.worldObj.getTileEntity(event.x, y, event.z);
 			if(!tile.canEdit()){
 				if(item.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_BLOCKS)){
-					tile.time = System.currentTimeMillis();
+					tile.setTime(System.currentTimeMillis());
 					if(player.worldObj.isRemote)
 						player.addChatComponentMessage(new ChatComponentTranslation("availability.editIcon"));
 				}
@@ -256,20 +235,7 @@ public class ServerEventsHandler {
 			}
 
 			if(!player.worldObj.isRemote){
-                if(block == CustomItems.banner || block == CustomItems.wallBanner){
-                    // If sneaking and using shear
-                    if(player.isSneaking() && item.getItem() == Items.shears){
-                        int currentVariantIndex = tile.variant.ordinal();
-                        int nextVariantIndex = (currentVariantIndex + 1) % EnumBannerVariant.values().length;
-                        tile.variant = EnumBannerVariant.values()[nextVariantIndex];
-
-                        player.worldObj.markBlockForUpdate(event.x, y, event.z);
-                        event.setCanceled(true);
-                        return;
-                    }
-                }
-
-				tile.icon = item.copy();
+				tile.setIcon(item.copy());
 				player.worldObj.markBlockForUpdate(event.x, y, event.z);
 				event.setCanceled(true);
 			}
@@ -327,7 +293,7 @@ public class ServerEventsHandler {
 		ItemStack item = player.getCurrentEquippedItem();
 		if(item == null || item.getItem() != CustomItems.excalibur)
 			return;
-		Server.sendData((EntityPlayerMP)player, EnumPacketClient.PLAY_MUSIC, "customnpcs:songs.excalibur");
+        PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_MUSIC, "customnpcs:songs.excalibur"), (EntityPlayerMP)player);
 		player.addChatMessage(new ChatComponentTranslation("<" + StatCollector.translateToLocal(item.getItem().getUnlocalizedName() + ".name") + "> " + ItemExcalibur.quotes[player.getRNG().nextInt(ItemExcalibur.quotes.length)]));
 	}
 
@@ -504,12 +470,33 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void playerTracking(PlayerEvent.StartTracking event){
-        if(!(event.target instanceof EntityNPCInterface) || event.target.worldObj.isRemote)
+        if(!(event.target instanceof EntityPlayerMP || event.target instanceof EntityNPCInterface) || event.target.worldObj.isRemote)
             return;
 
-        MarkData data = MarkData.get((EntityNPCInterface) event.target);
-        if(data.marks.isEmpty())
-            return;
-        Server.sendData((EntityPlayerMP)event.entityPlayer, EnumPacketClient.MARK_DATA, event.target.getEntityId(), data.getNBT());
+        AnimationData animationData = AnimationData.getData(event.target);
+        if (animationData != null && animationData.isClientAnimating()) {
+            AnimationData playerAnimData = AnimationData.getData(event.entityPlayer);
+            if (playerAnimData != null) {
+                Animation currentAnimation = animationData.currentClientAnimation;
+                NBTTagCompound compound = currentAnimation.writeToNBT();
+                playerAnimData.viewAnimation(currentAnimation, animationData, compound,
+                    animationData.isClientAnimating(), currentAnimation.currentFrame, currentAnimation.currentFrameTime);
+            }
+        }
+
+        if (event.target instanceof EntityNPCInterface) {
+            MarkData data = MarkData.get((EntityNPCInterface) event.target);
+            if (data.marks.isEmpty())
+                return;
+            PacketHandler.Instance.sendToPlayer(new MarkDataPacket(event.target.getEntityId(), data.getNBT()), (EntityPlayerMP)event.entityPlayer);
+        }
+    }
+
+    @SubscribeEvent
+    public void entityTick(LivingEvent.LivingUpdateEvent event) {
+        AnimationData data = AnimationData.getData(event.entityLiving);
+        if (data != null) {
+            data.increaseTime();
+        }
     }
 }

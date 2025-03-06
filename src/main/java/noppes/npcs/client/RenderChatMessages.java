@@ -57,6 +57,7 @@ public class RenderChatMessages implements IChatMessages{
 		FontRenderer font = Minecraft.getMinecraft().fontRenderer;
         float var13 = 1.6F;
         float var14 = 0.016666668F * var13;
+        GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glPushMatrix();
         int size = 0;
         for (TextBlockClient block : messages.values())
@@ -140,6 +141,7 @@ public class RenderChatMessages implements IChatMessages{
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glPopMatrix();
         RenderHelper.enableStandardItemLighting();
+        GL11.glPopAttrib();
     }
 
 	private void drawRect(int par0, int par1, int par2, int par3, int par4, double par5)

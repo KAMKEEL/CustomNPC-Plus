@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data;
 
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.Container;
@@ -9,9 +10,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
-import noppes.npcs.Server;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.constants.EnumPacketClient;
 import noppes.npcs.containers.ContainerNPCBankInterface;
 import noppes.npcs.controllers.BankController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -108,7 +107,8 @@ public class BankData {
 			if (container != null)
 				container.setCurrency(item);
 		}
-		Server.sendDataChecked((EntityPlayerMP) player, EnumPacketClient.GUI_DATA, compound);
+
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
 	}
 	private ContainerNPCBankInterface getContainer(EntityPlayer player){
 		Container con = player.openContainer;

@@ -20,7 +20,7 @@ public class EntityAIWaterNav extends EntityAIBase
     {
         if (this.theEntity.isInWater() || this.theEntity.handleLavaMovement())
         {
-        	if (this.theEntity.ai.canSwim)
+        	if (this.theEntity.ais.canSwim)
         	{
         		return true;
         	}
@@ -28,7 +28,7 @@ public class EntityAIWaterNav extends EntityAIBase
         	{
         		return true;
         	}
-        		
+
         }
         return false;
     }

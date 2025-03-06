@@ -50,7 +50,7 @@ public class CmdNpc extends ChMcLogger {
             posZ = CommandBase.func_110666_a(pcParam, selectedNpc.posZ, args[2]);
         }
 
-        selectedNpc.ai.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
+        selectedNpc.ais.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
     }
 
     @SubCommand(
@@ -144,7 +144,7 @@ public class CmdNpc extends ChMcLogger {
         if(args.length > 0)
         	npc.display.name = args[0];
         npc.setPositionAndRotation(player.posX, player.posY, player.posZ, player.cameraYaw, player.cameraPitch);
-        npc.ai.startPos = new int[]{MathHelper.floor_double(player.posX),MathHelper.floor_double(player.posY),MathHelper.floor_double(player.posZ)};
+        npc.ais.startPos = new int[]{MathHelper.floor_double(player.posX),MathHelper.floor_double(player.posY),MathHelper.floor_double(player.posZ)};
         pw.spawnEntityInWorld(npc);
         npc.setHealth(npc.getMaxHealth());
         NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, npc);

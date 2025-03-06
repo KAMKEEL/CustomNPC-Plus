@@ -1,12 +1,11 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.packets.request.quest.QuestGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.gui.select.GuiQuestSelection;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumAvailabilityQuest;
-import noppes.npcs.constants.EnumPacketServer;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Quest;
 
@@ -66,16 +65,16 @@ public class SubGuiNpcAvailabilityQuest extends SubGuiInterface implements GuiSe
 		getButton(13).setDisplayText("availability.selectquest");
 
 		if(availabitily.questId >= 0){
-			Client.sendData(EnumPacketServer.QuestGet, availabitily.questId);
+            QuestGetPacket.getQuest(availabitily.questId);
 		}
 		if(availabitily.quest2Id >= 0){
-			Client.sendData(EnumPacketServer.QuestGet, availabitily.quest2Id);
+            QuestGetPacket.getQuest(availabitily.quest2Id);
 		}
 		if(availabitily.quest3Id >= 0){
-			Client.sendData(EnumPacketServer.QuestGet, availabitily.quest3Id);
+            QuestGetPacket.getQuest(availabitily.quest3Id);
 		}
 		if(availabitily.quest4Id >= 0){
-			Client.sendData(EnumPacketServer.QuestGet, availabitily.quest4Id);
+            QuestGetPacket.getQuest(availabitily.quest4Id);
 		}
 	}
 

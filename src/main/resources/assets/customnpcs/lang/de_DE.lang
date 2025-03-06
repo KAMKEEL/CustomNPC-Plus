@@ -346,7 +346,7 @@ global.banks=Banken
 global.transport=Transport
 global.playerdata=PlayerData
 global.recipes=Rezepte
-global.naturalspawn=Natural Spawns
+global.naturalspawn=Spawns
 
 bank.slot=Slot
 bank.unlock=Freischalten

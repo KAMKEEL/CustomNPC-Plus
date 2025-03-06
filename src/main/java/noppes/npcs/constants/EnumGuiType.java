@@ -1,5 +1,7 @@
 package noppes.npcs.constants;
 
+import noppes.npcs.scripted.ScriptBlock;
+
 public enum EnumGuiType {
 	MainMenuDisplay,
 	MainMenuInv,
@@ -23,13 +25,15 @@ public enum EnumGuiType {
 	SetupTransporter,
 	ManageTransport,
 	ManageBanks,
-	MobSpawner,
+    Cloner,
 	SetupBank,
 	ManageDialogs,
 	ManageQuests,
-	PlayerAnvil,
+    PlayerCarpentryBench,
+    PlayerAnvil,
 	QuestReward,
 	ManageRecipes,
+    ManageEffects,
 	QuestItem,
 	NpcRemote,
     GlobalRemote,
@@ -56,7 +60,9 @@ public enum EnumGuiType {
 	CompanionTalent,
 	CompanionTrader,
 	ManageLinked,
+    ManageMagic,
 	CustomGui,
 	ScriptItem,
-	ScriptBlock;
+	ScriptBlock,
+    Paintbrush;
 }

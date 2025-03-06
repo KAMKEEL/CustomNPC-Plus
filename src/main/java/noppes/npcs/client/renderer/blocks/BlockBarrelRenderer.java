@@ -9,7 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockBarrel;
-import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.barrel.ModelBarrel;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyBarrel;
 import noppes.npcs.client.model.blocks.legacy.ModelLegacyBarrelLid;
@@ -30,11 +30,11 @@ public class BlockBarrelRenderer extends BlockRendererInterface{
     private static final ResourceLocation trimTexture = new ResourceLocation("customnpcs","textures/models/barrel/trim.png");
 
     private static final ResourceLocation oak_lid = new ResourceLocation("customnpcs","textures/models/barrel/oak_lid.png");
-    private static final ResourceLocation spruce_lid = new ResourceLocation("customnpcs","textures/models/barrel/oak_lid.png");
-    private static final ResourceLocation birch_lid = new ResourceLocation("customnpcs","textures/models/barrel/oak_lid.png");
-    private static final ResourceLocation jungle_lid = new ResourceLocation("customnpcs","textures/models/barrel/oak_lid.png");
-    private static final ResourceLocation acacia_lid = new ResourceLocation("customnpcs","textures/models/barrel/oak_lid.png");
-    private static final ResourceLocation dark_oak_lid = new ResourceLocation("customnpcs","textures/models/barrel/oak_lid.png");
+    private static final ResourceLocation spruce_lid = new ResourceLocation("customnpcs","textures/models/barrel/spruce_lid.png");
+    private static final ResourceLocation birch_lid = new ResourceLocation("customnpcs","textures/models/barrel/birch_lid.png");
+    private static final ResourceLocation jungle_lid = new ResourceLocation("customnpcs","textures/models/barrel/jungle_lid.png");
+    private static final ResourceLocation acacia_lid = new ResourceLocation("customnpcs","textures/models/barrel/acacia_lid.png");
+    private static final ResourceLocation dark_oak_lid = new ResourceLocation("customnpcs","textures/models/barrel/dark_oak_lid.png");
 
 	public BlockBarrelRenderer(){
 		((BlockBarrel)CustomItems.barrel).renderId = RenderingRegistry.getNextAvailableRenderId();
@@ -44,7 +44,7 @@ public class BlockBarrelRenderer extends BlockRendererInterface{
 	@Override
 	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
 			double var6, float var8) {
-		TileColorable tile = (TileColorable) var1;
+		TileVariant tile = (TileVariant) var1;
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
@@ -122,15 +122,15 @@ public class BlockBarrelRenderer extends BlockRendererInterface{
     public void setLidTexture(int meta){
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
         if(meta == 1)
-            manager.bindTexture(oak_lid);
+            manager.bindTexture(spruce_lid);
         else if(meta == 2)
-            manager.bindTexture(oak_lid);
+            manager.bindTexture(birch_lid);
         else if(meta == 3)
-            manager.bindTexture(oak_lid);
+            manager.bindTexture(jungle_lid);
         else if(meta == 4)
-            manager.bindTexture(oak_lid);
+            manager.bindTexture(acacia_lid);
         else if(meta == 5)
-            manager.bindTexture(oak_lid);
+            manager.bindTexture(dark_oak_lid);
         else
             manager.bindTexture(oak_lid);
     }

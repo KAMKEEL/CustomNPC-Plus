@@ -54,16 +54,16 @@ public class EntityAIRangedAttack extends EntityAIBase
     	EntityLivingBase var1 = this.entityHost.getAttackTarget();
 
         if (var1 == null || !var1.isEntityAlive()) return false;
-        
+
 		if(entityHost.getDistanceToEntity(var1) > entityHost.stats.aggroRange) return false;
-		
+
         if (this.entityHost.inventory.getProjectile() == null)  return false;
-        
+
         double var2 = this.entityHost.getDistanceSq(var1.posX, var1.boundingBox.minY, var1.posZ);
-        double var3 = this.entityHost.ai.distanceToMelee * this.entityHost.ai.distanceToMelee;
-        
-        if (this.entityHost.ai.useRangeMelee >= 1 && var2 <= var3) return false;
-        
+        double var3 = this.entityHost.ais.distanceToMelee * this.entityHost.ais.distanceToMelee;
+
+        if (this.entityHost.ais.useRangeMelee >= 1 && var2 <= var3) return false;
+
         else
         {
             this.attackTarget = var1;
@@ -91,7 +91,7 @@ public class EntityAIRangedAttack extends EntityAIBase
         this.hasFired = false;
         this.rangedAttackTime = this.entityHost.stats.minDelay / 2;
     }
-    
+
     /**
      * Updates the task
      */
@@ -101,7 +101,7 @@ public class EntityAIRangedAttack extends EntityAIBase
         double var1 = this.entityHost.getDistanceSq(this.attackTarget.posX, this.attackTarget.boundingBox.minY, this.attackTarget.posZ);
 		float field_82642_h = this.entityHost.stats.rangedRange * this.entityHost.stats.rangedRange;
 
-		if (!navOverride && this.entityHost.ai.directLOS)
+		if (!navOverride && this.entityHost.ais.directLOS)
 		{
 			if (this.entityHost.getEntitySenses().canSee(this.attackTarget))
 		    {
@@ -111,7 +111,7 @@ public class EntityAIRangedAttack extends EntityAIBase
 			{
 				this.field_75318_f = 0;
 			}
-			int v = this.entityHost.ai.tacticalVariant == EnumNavType.Default ? 20 : 5;
+			int v = this.entityHost.ais.tacticalVariant == EnumNavType.Default ? 20 : 5;
 			if (var1 <= (double)field_82642_h && this.field_75318_f >= v)
 			{
 				this.entityHost.getNavigator().clearPathEntity();
@@ -123,10 +123,10 @@ public class EntityAIRangedAttack extends EntityAIBase
         }
 
         this.rangedAttackTime = Math.max(this.rangedAttackTime - 1, 0);
-        
+
         if (this.rangedAttackTime <= 0)
         {
-            if (var1 <= (double)field_82642_h && (this.entityHost.getEntitySenses().canSee(this.attackTarget) || this.entityHost.ai.canFireIndirect == 2))
+            if (var1 <= (double)field_82642_h && (this.entityHost.getEntitySenses().canSee(this.attackTarget) || this.entityHost.ais.canFireIndirect == 2))
             {
             	 if (this.field_70846_g++ <= this.entityHost.stats.burstCount)
                  {
@@ -138,32 +138,32 @@ public class EntityAIRangedAttack extends EntityAIBase
                 	 this.hasFired = true;
                 	 this.rangedAttackTime = (this.entityHost.stats.maxDelay - MathHelper.floor_float(this.entityHost.getRNG().nextFloat() * (this.entityHost.stats.maxDelay - this.entityHost.stats.minDelay)));
                  }
-            	 
+
             	 if (this.field_70846_g > 1)
                  {
             		 boolean indirect = false;
-            		 
-            		 switch(this.entityHost.ai.canFireIndirect)
+
+            		 switch(this.entityHost.ais.canFireIndirect)
             		 {
             		     case 1 : indirect = var1 > (double)field_82642_h / 2; break;
             		     case 2 : indirect = !this.entityHost.getEntitySenses().canSee(this.attackTarget);
             		 }
-            		 
+
             		 this.rangedAttackEntityHost.attackEntityWithRangedAttack(this.attackTarget, indirect ? 1 : 0);
             		 if (this.entityHost.currentAnimation != EnumAnimation.AIMING)
             		 {
             			 this.entityHost.swingItem();
             		 }
                  }
-            } 
+            }
         }
     }
-    
+
     public boolean hasFired()
     {
     	return this.hasFired;
     }
-    
+
     public void navOverride(boolean nav){
     	this.navOverride = nav;
         this.setMutexBits(this.navOverride ? AiMutex.PATHING : AiMutex.LOOK + AiMutex.PASSIVE);

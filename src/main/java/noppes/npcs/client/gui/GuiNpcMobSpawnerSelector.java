@@ -1,36 +1,36 @@
 package noppes.npcs.client.gui;
 
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagDouble;
 import net.minecraft.nbt.NBTTagList;
-import noppes.npcs.client.Client;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumPacketServer;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiData{
-    
+
     private GuiCustomScroll scroll;
     private List<String> list;
-    
+
 	private static String search = "";
 	public int activeTab =  1;
 	public boolean isServer = false;
-    
+
 	public GuiNpcMobSpawnerSelector() {
 		super();
         xSize = 256;
         this.closeOnEsc = true;
         setBackground("menubg.png");
 	}
-	
-	
+
+
     public void initGui(){
-        super.initGui();        
+        super.initGui();
         if(scroll == null){
 	        scroll = new GuiCustomScroll(this,0);
 	        scroll.setSize(165, 188);
@@ -40,7 +40,7 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 26;
         addScroll(scroll);
-        
+
     	addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 4, guiTop + 4, 165, 20, search));
 
     	addButton(new GuiNpcButton(0, guiLeft + 171, guiTop + 80, 80, 20, "gui.done"));
@@ -61,30 +61,30 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
 		addSideButton(new GuiMenuSideButton(33,guiLeft - 90, this.guiTop + 170, 45,22, "13"));
 		addSideButton(new GuiMenuSideButton(34,guiLeft - 45, this.guiTop + 191, 45,22, "14"));
 		addSideButton(new GuiMenuSideButton(35,guiLeft - 90, this.guiTop + 191, 45,22, "15"));
-    	
+
     	getSideButton(20 + activeTab).active = true;
     	showClones();
     }
-    
+
     public String getSelected(){
     	return scroll.getSelected();
     }
 	private void showClones() {
 
 		if(isServer){
-			Client.sendData(EnumPacketServer.CloneList, activeTab);
+            PacketClient.sendClient(new CloneListPacket(activeTab));
 			return;
 		}
-        
+
         ArrayList<String> list = new ArrayList<String>();
-        
+
         this.list = new ArrayList<String>(ClientCloneController.Instance.getClones(activeTab));
         scroll.setList(getSearchList());
 	}
     public void keyTyped(char c, int i)
     {
     	super.keyTyped(c, i);
-    	
+
     	if(search.equals(getTextField(1).getText()))
     		return;
     	search = getTextField(1).getText().toLowerCase();
@@ -109,7 +109,7 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
 		compound.setString("ClonedName", sel);
 		return compound;
 	}
-	
+
 	public void buttonEvent(GuiButton guibutton)
     {
 		int id = guibutton.id;
@@ -139,11 +139,11 @@ public class GuiNpcMobSpawnerSelector extends SubGuiInterface implements IGuiDat
 
         return nbttaglist;
     }
-	
+
 	@Override
 	public void save() {
-		// TODO Auto-generated method stub
-		
+
+
 	}
 
 

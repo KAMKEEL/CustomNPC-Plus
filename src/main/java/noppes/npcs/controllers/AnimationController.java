@@ -8,7 +8,6 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.*;
@@ -120,10 +119,6 @@ public class AnimationController implements IAnimationHandler {
 
         animations.remove(animation.getID());
         animations.put(animation.getID(), (Animation) animation);
-
-        for (PlayerData playerData : PlayerDataController.Instance.getAllPlayerData()) {
-            playerData.animationData.uncacheAnimation(animation.getID());
-        }
 
         saveAnimationMap();
 

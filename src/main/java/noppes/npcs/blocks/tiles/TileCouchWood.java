@@ -3,10 +3,10 @@ package noppes.npcs.blocks.tiles;
 import net.minecraft.nbt.NBTTagCompound;
 
 
-public class TileCouchWood extends TileColorable {
+public class TileCouchWood extends TileVariant {
 	public boolean hasLeft = false;
 	public boolean hasRight = false;
-	
+
 
     public void readFromNBT(NBTTagCompound compound){
         super.readFromNBT(compound);

@@ -5,8 +5,7 @@ import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import kamkeel.addon.client.DBCClient;
-import net.minecraft.block.Block;
+import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.model.ModelBiped;
@@ -17,6 +16,7 @@ import net.minecraft.client.renderer.RenderGlobal;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IReloadableResourceManager;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
@@ -29,7 +29,10 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
-import noppes.npcs.*;
+import noppes.npcs.CommonProxy;
+import noppes.npcs.CustomItems;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.*;
 import noppes.npcs.client.controllers.*;
@@ -40,6 +43,7 @@ import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.global.*;
+import noppes.npcs.client.gui.item.GuiNpcPaintbrush;
 import noppes.npcs.client.gui.mainmenu.*;
 import noppes.npcs.client.gui.player.*;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
@@ -53,17 +57,19 @@ import noppes.npcs.client.gui.script.GuiScriptItem;
 import noppes.npcs.client.model.*;
 import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.*;
-import noppes.npcs.client.renderer.items.CustomItemRenderer;
-import noppes.npcs.client.renderer.items.ScriptedBlockItemRenderer;
+import noppes.npcs.client.renderer.items.*;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.*;
+import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.*;
 import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
+import noppes.npcs.items.ItemLinked;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
 import org.lwjgl.input.Keyboard;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -84,8 +90,6 @@ public class ClientProxy extends CommonProxy {
 	public void load() {
 		Font = new FontContainer(ConfigClient.FontType, ConfigClient.FontSize);
 		createFolders();
-		CustomNpcs.Channel.register(new PacketHandlerClient());
-		CustomNpcs.ChannelPlayer.register(new PacketHandlerPlayer());
 		new MusicController();
 		new ScriptSoundController();
 
@@ -111,6 +115,7 @@ public class ClientProxy extends CommonProxy {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileWallBanner.class, new BlockWallBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileTallLamp.class, new BlockTallLampRenderer());
+            ClientRegistry.bindTileEntitySpecialRenderer(TileShortLamp.class, new BlockShortLampRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileChair.class, new BlockChairRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileWeaponRack.class, new BlockWeaponRackRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileCrate.class, new BlockCrateRenderer());
@@ -118,7 +123,7 @@ public class ClientProxy extends CommonProxy {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileCouchWood.class, new BlockCouchWoodRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileTable.class, new BlockTableRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileCandle.class, new BlockCandleRenderer());
-			ClientRegistry.bindTileEntitySpecialRenderer(TileLamp.class, new BlockLampRenderer());
+			ClientRegistry.bindTileEntitySpecialRenderer(TileLamp.class, new BlockLanternRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileStool.class, new BlockStoolRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBigSign.class, new BlockBigSignRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBarrel.class, new BlockBarrelRenderer());
@@ -130,10 +135,17 @@ public class ClientProxy extends CommonProxy {
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBook.class, new BlockBookRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TilePedestal.class, new BlockPedestalRenderer());
 			RenderingRegistry.registerBlockHandler(new BlockBloodRenderer());
+
+            // Tile Item Renderers
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.couchWool), new ItemCouchWoolRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.banner), new ItemBannerRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.wallBanner), new ItemBannerWallRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.shortLamp), new ItemShortLampRenderer());
+            MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.tallLamp), new ItemTallLampRenderer());
 		}
 		Minecraft mc = Minecraft.getMinecraft();
 
-		NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_L, "key.categories.customnpc");
+		NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
 
 		ClientRegistry.registerKeyBinding(NPCButton);
 		mc.gameSettings.loadOptions();
@@ -208,6 +220,15 @@ public class ClientProxy extends CommonProxy {
         return null;
 	}
 
+    public AnimationData getClientAnimationData(Entity entity) {
+        if (entity instanceof EntityPlayer) {
+            return ClientCacheHandler.playerAnimations.get(entity.getUniqueID());
+        } else if (entity instanceof EntityNPCInterface) {
+            return ((EntityNPCInterface) entity).display.animationData;
+        }
+        return null;
+    }
+
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 
@@ -246,7 +267,7 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNpcPather(npc);
 
 		else if (gui == EnumGuiType.ManageFactions)
-			return new GuiNPCManageFactions(npc);
+            return new GuiNPCManageFactions(npc);
 
         else if (gui == EnumGuiType.ManageCustomForms)
             return DBCClient.Instance.manageCustomForms(npc);
@@ -274,7 +295,10 @@ public class ClientProxy extends CommonProxy {
 			return new GuiNPCManageAnimations(animNpc, save);
 		}
 		else if (gui == EnumGuiType.ManageLinked)
-			return new GuiNPCManageLinkedNpc(npc);
+			return new GuiNPCManageLinked(npc);
+
+        else if (gui == EnumGuiType.ManageMagic)
+            return new GuiNpcManageMagic(npc);
 
 		else if (gui == EnumGuiType.ManageTransport)
 			return new GuiNPCManageTransporters(npc);
@@ -290,6 +314,9 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.ManageBanks)
 			return new GuiNPCManageBanks(npc, (ContainerManageBanks) container);
+
+        else if (gui == EnumGuiType.ManageEffects)
+            return new GuiNPCManageEffects(npc);
 
 		else if (gui == EnumGuiType.MainMenuGlobal)
 			return new GuiNPCGlobalMainMenu(npc);
@@ -318,8 +345,11 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.ScriptItem)
 			return new GuiScriptItem();
 
-		else if (gui == EnumGuiType.PlayerAnvil)
+		else if (gui == EnumGuiType.PlayerCarpentryBench)
 			return new GuiNpcCarpentryBench((ContainerCarpentryBench) container);
+
+        else if (gui == EnumGuiType.PlayerAnvil)
+            return new GuiNpcAnvil((ContainerAnvilRepair) container);
 
 		else if (gui == EnumGuiType.SetupFollower)
 			return new GuiNpcFollowerSetup(npc, (ContainerNPCFollowerSetup) container);
@@ -366,7 +396,7 @@ public class ClientProxy extends CommonProxy {
 		else if (gui == EnumGuiType.RedstoneBlock)
 			return new GuiNpcRedstoneBlock(x, y, z);
 
-		else if(gui == EnumGuiType.MobSpawner)
+		else if(gui == EnumGuiType.Cloner)
 			return new GuiNpcMobSpawner(x, y, z);
 
 		else if(gui == EnumGuiType.MobSpawnerMounter)
@@ -389,6 +419,9 @@ public class ClientProxy extends CommonProxy {
 
 		else if (gui == EnumGuiType.ScriptBlock)
 			return new GuiScriptBlock(x,y,z);
+
+        else if (gui == EnumGuiType.Paintbrush)
+            return new GuiNpcPaintbrush();
 
         else if (gui == EnumGuiType.GlobalRemote)
             return new GuiNPCGlobalMainMenu(null);
@@ -502,9 +535,11 @@ public class ClientProxy extends CommonProxy {
 
 	@Override
 	public void registerItem(Item item) {
-		if (item instanceof ItemScripted) {
-			MinecraftForgeClient.registerItemRenderer(item, new CustomItemRenderer());
-		} else {
+        if (item instanceof ItemScripted || item instanceof ItemLinked) {
+			MinecraftForgeClient.registerItemRenderer(item, new ItemCustomRenderer());
+		} else if (item instanceof ItemNpcTool) {
+            MinecraftForgeClient.registerItemRenderer(item, new ItemToolRenderer());
+        }else {
 			MinecraftForgeClient.registerItemRenderer(item, new NpcItemRenderer());
 		}
 	}
@@ -565,7 +600,7 @@ public class ClientProxy extends CommonProxy {
 	}
 
 	public static class FontContainer {
-		private StringCache textFont = null;
+		public StringCache textFont = null;
 		public boolean useCustomFont = true;
 
 		private FontContainer(){

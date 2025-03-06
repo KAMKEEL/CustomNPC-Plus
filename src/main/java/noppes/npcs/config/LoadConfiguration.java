@@ -1,5 +1,7 @@
 package noppes.npcs.config;
 
+import net.minecraftforge.common.config.Property;
+
 import java.io.File;
 
 public class LoadConfiguration {
