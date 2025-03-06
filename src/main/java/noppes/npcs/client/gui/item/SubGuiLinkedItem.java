@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.item;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.util.ColorUtil;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -389,7 +390,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             linkedItem.version++;
             initGui();
         }
-        mc.currentScreen = this;
+        mc.currentScreen = this.parent;
     }
 
     @Override
