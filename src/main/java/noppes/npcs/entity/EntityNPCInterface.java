@@ -14,6 +14,7 @@ import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
 import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
 import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
+import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -540,7 +541,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()) {
             reset();
         }
-        i = stats.resistances.applyResistance(damagesource, i);
+
         if ((float) this.hurtResistantTime > (float) this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
             return false;
 
@@ -560,6 +561,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 this.recentlyHit = 100;
         } else if (attackingEntity instanceof EntityPlayer && faction.isFriendlyToPlayer((EntityPlayer) attackingEntity))
             return false;
+
+        // Magic / Attribute Damage
+        if(attackingEntity instanceof EntityPlayer)
+            i = AttributeAttackUtil.calculateDamagePlayerToNPC((EntityPlayer) attackingEntity, this, i);
+
+        i = stats.resistances.applyResistance(damagesource, i);
+
         NpcEvent.DamagedEvent event = new NpcEvent.DamagedEvent(this.wrappedNPC, attackingEntity, i, damagesource);
         if (EventHooks.onNPCDamaged(this, event) || isKilled())
             return false;
