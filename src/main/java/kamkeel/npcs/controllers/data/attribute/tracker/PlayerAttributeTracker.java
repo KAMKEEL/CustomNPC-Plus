@@ -29,7 +29,7 @@ public class PlayerAttributeTracker {
     private PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
 
     public float extraHealth = 0;
-    public float maximumOutput = 0.0f;
+    public float gearOutput = 0.0f;
 
     public final Map<Integer, Float> magicDamage = new HashMap<>();
     public final Map<Integer, Float> magicBoost = new HashMap<>();
@@ -116,7 +116,7 @@ public class PlayerAttributeTracker {
                 }
             }
             equipmentTracker = currentEquip;
-            maximumOutput = AttributeAttackUtil.calculateMaximumOutput(this);
+            gearOutput = AttributeAttackUtil.calculateGearOutput(this);
             extraHealth = getAttributeValue(CustomAttributes.HEALTH);
 
             updatePlayerMaxHealth(player);

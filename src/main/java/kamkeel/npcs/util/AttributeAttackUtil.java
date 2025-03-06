@@ -1,7 +1,6 @@
 package kamkeel.npcs.util;
 
 import kamkeel.npcs.CustomAttributes;
-import kamkeel.npcs.controllers.AttributeController;
 import net.minecraft.entity.player.EntityPlayer;
 import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
 import noppes.npcs.config.ConfigMain;
@@ -213,7 +212,7 @@ public class AttributeAttackUtil {
     /**
      * Calculates a player's maximum output ignoring defensive modifiers.
      */
-    public static float calculateMaximumOutput(PlayerAttributeTracker attacker) {
+    public static float calculateGearOutput(PlayerAttributeTracker attacker) {
         float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
         float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
         float neutralTotal = neutralDamage * neutralBoost;
@@ -239,7 +238,7 @@ public class AttributeAttackUtil {
             PlayerAttributeTracker attacker = getTracker(entityPlayer);
             float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
             float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-            return attacker.maximumOutput + (baseDamage * mainBoost) + mainAttack;
+            return attacker.gearOutput + (baseDamage * mainBoost) + mainAttack;
         }
         return baseDamage;
     }
