@@ -726,12 +726,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (isKilled())
             return;
 
-        IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
-        this.targetTasks.addTask(0, new EntityAIClearTarget(this));
-        this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
-        this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ais.directLOS, false, attackEntitySelector));
-        this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
-        this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
+        if(!faction.isPassive()){
+            IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
+            this.targetTasks.addTask(0, new EntityAIClearTarget(this));
+            this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
+            this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ais.directLOS, false, attackEntitySelector));
+            this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
+            this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
+        }
 
         if (canFly()) {
             this.getNavigator().setCanSwim(true);
@@ -770,7 +772,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
         else if (this.ais.onAttack == 2) {
             this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
-        } else if (this.ais.onAttack == 0) {
+        } else if (this.ais.onAttack == 0 && !faction.isPassive()) {
             this.setLeapTask();
             if (this.inventory.getProjectile() == null || this.ais.useRangeMelee == 2) {
                 switch (this.ais.tacticalVariant) {
