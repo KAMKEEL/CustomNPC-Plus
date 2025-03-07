@@ -1,28 +1,30 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataRemoveInfoPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataDeleteInfoPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataSaveInfoPacket;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPlayerData;
+import noppes.npcs.constants.EnumScrollData;
+import noppes.npcs.controllers.data.MagicData;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
-public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo, ICustomScrollListener {
+public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo, ICustomScrollListener, ITextfieldListener, IScrollData {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Fields
     ////////////////////////////////////////////////////////////////////////////////
 
-    // Current tab (10=Quest, 11=Dialog, 12=Transport, 13=Bank, 14=Faction)
+    // Current tab (10=Quest, 11=Dialog, 12=Transport, 13=Bank, 14=Faction, 15=Magic)
     private int currentTab = 10;
     // View mode: 0 = Categorical (3 or 2 scrolls), 1 = Compact (2 or 1 scroll)
     private int viewMode = 0;
@@ -55,9 +57,13 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     private HashMap<String, Integer> bankData = new HashMap<>();
     private HashMap<String, Integer> factionData = new HashMap<>();
 
+    // ----- NEW: Magic Tab Components (Tab id 15) -----
+    private GuiCustomScroll magicAllScroll, magicSelectedScroll;
+    private MagicData magicData;
+    private HashMap<String, Integer> availableMagicElements = new HashMap<>();
+    private GuiNpcTextField splitField, damageField;
+
     // ----- Divider & Resizing Variables -----
-    // In categorical mode for Quest: two dividers (3 scrolls).
-    // In compact mode for Quest: one divider between two scrolls.
     private int dividerOffset1 = 0; // In categorical: width of left scroll; in compact for quests: width of left scroll.
     private int dividerOffset2 = 0; // Only used for Quest categorical mode.
     private final int dividerWidth = 5;
@@ -87,12 +93,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         setBackground("menubg.png");
         closeOnEsc = true;
         PacketClient.sendClient(new PlayerDataGetInfoPacket(playerName));
+        PacketClient.sendClient(new MagicGetAllPacket());
     }
 
     ////////////////////////////////////////////////////////////////////////////////
     // Layout Helpers
     ////////////////////////////////////////////////////////////////////////////////
-
     private int getPaddedLeft() {
         return guiLeft + leftPadding;
     }
@@ -105,12 +111,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         return getPaddedRight() - getPaddedLeft();
     }
 
-    // Height available for scroll windows.
     private int getScrollHeight() {
         return ySize - (scrollTopOffset + verticalGapAboveTF + textFieldHeight + verticalGapBelowTF);
     }
 
-    // Y coordinate for textfields.
     private int getTextFieldY() {
         return guiTop + scrollTopOffset + getScrollHeight() + verticalGapAboveTF;
     }
@@ -118,10 +122,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     ////////////////////////////////////////////////////////////////////////////////
     // Component Setup Helpers
     ////////////////////////////////////////////////////////////////////////////////
-
-    // Create top buttons.
     private void setupTopButtons() {
-
         // Show General Display Information
         GuiMenuTopButton playerTab = new GuiMenuTopButton(-10, guiLeft + 4, guiTop - 10, playerName);
 
@@ -130,6 +131,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         GuiMenuTopButton btnTransport = new GuiMenuTopButton(12, btnDialog.xPosition + btnDialog.getWidth(), guiTop - 10, "global.transport");
         GuiMenuTopButton btnBank = new GuiMenuTopButton(13, btnTransport.xPosition + btnTransport.getWidth(), guiTop - 10, "global.banks");
         GuiMenuTopButton btnFaction = new GuiMenuTopButton(14, btnBank.xPosition + btnBank.getWidth(), guiTop - 10, "menu.factions");
+        GuiMenuTopButton btnMagic = new GuiMenuTopButton(15, btnFaction.xPosition + btnFaction.getWidth(), guiTop - 10, "menu.magics");
+
         // Close button.
         GuiMenuTopButton close = new GuiMenuTopButton(-5, guiLeft + xSize - 22, guiTop - 10, "X");
 
@@ -139,6 +142,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         btnTransport.active = (currentTab == 12);
         btnBank.active = (currentTab == 13);
         btnFaction.active = (currentTab == 14);
+        btnMagic.active = (currentTab == 15);
 
         addTopButton(playerTab);
         addTopButton(btnQuest);
@@ -146,10 +150,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         addTopButton(btnTransport);
         addTopButton(btnBank);
         addTopButton(btnFaction);
+        addTopButton(btnMagic);
         addTopButton(close);
     }
 
-    // Helper to ensure scroll exists.
     private GuiCustomScroll ensureScroll(GuiCustomScroll scroll, int id) {
         if (scroll == null) {
             scroll = new GuiCustomScroll(this, id, 0);
@@ -157,7 +161,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         return scroll;
     }
 
-    // Helper to update a text field's position and width.
     private void updateComponentPosition(int fieldId, int newX, int newWidth) {
         GuiNpcTextField tf = getTextField(fieldId);
         if (tf != null) {
@@ -166,7 +169,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Helper to update a label's x position.
     private void updateLabelPosition(int labelId, int newX) {
         GuiNpcLabel lbl = getLabel(labelId);
         if (lbl != null) {
@@ -177,7 +179,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     ////////////////////////////////////////////////////////////////////////////////
     // initGui() & Tab Initialization
     ////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void initGui() {
         super.initGui();
@@ -185,12 +186,11 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
         if (currentTab == 10 || currentTab == 11 || currentTab == 12) {
             addButton(new GuiToggleButton(20, guiLeft + xSize - 102, guiTop + 10, viewMode == 0));
-            ((GuiToggleButton) getButton(20)).setTextureOff(specialIcons).setTextureOffPos( 16, 0);
-            ((GuiToggleButton) getButton(20)).setIconTexture(specialIcons).setIconPos( 16, 16, 16, 0 );
+            ((GuiToggleButton) getButton(20)).setTextureOff(specialIcons).setTextureOffPos(16, 0);
+            ((GuiToggleButton) getButton(20)).setIconTexture(specialIcons).setIconPos(16, 16, 16, 0);
         }
 
         guiTop += 7;
-        // Initialize components based on current tab.
         switch (currentTab) {
             case 10:
                 initQuestTab();
@@ -205,12 +205,17 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             case 14:
                 initSingleTab();
                 break;
+            case 15:
+                initMagicTab();
+                if (magicAllScroll != null) {
+                    magicAllScroll.setList(new ArrayList<>(this.availableMagicElements.keySet()));
+                }
+                break;
         }
-        // Delete button.
-        addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + 10 - 7, 50, 20, "gui.remove"));
+        if(currentTab != 15)
+            addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + 10 - 7, 50, 20, "gui.remove"));
     }
 
-    // ----- Quest Tab Initialization -----
     private void initQuestTab() {
         int paddedLeft = getPaddedLeft();
         int paddedRight = getPaddedRight();
@@ -222,7 +227,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                 dividerOffset1 = (availableWidth - 2 * dividerWidth) / 3;
                 dividerOffset2 = dividerOffset1 + dividerWidth + (availableWidth - 2 * dividerWidth) / 3;
             }
-            // Quest Category Scroll.
             questCatScroll = ensureScroll(questCatScroll, 0);
             questCatScroll.guiLeft = paddedLeft;
             questCatScroll.guiTop = guiTop + scrollTopOffset;
@@ -233,7 +237,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             addScroll(questCatScroll);
             addLabel(new GuiNpcLabel(1000, "Categories", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            // Quest Finished Scroll.
             questFinishedScroll = ensureScroll(questFinishedScroll, 1);
             questFinishedScroll.guiLeft = paddedLeft + dividerOffset1 + dividerWidth;
             questFinishedScroll.guiTop = guiTop + scrollTopOffset;
@@ -244,7 +247,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             addScroll(questFinishedScroll);
             addLabel(new GuiNpcLabel(1001, "Finished", paddedLeft + dividerOffset1 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            // Quest Active Scroll.
             questActiveScroll = ensureScroll(questActiveScroll, 2);
             questActiveScroll.guiLeft = paddedLeft + dividerOffset2 + dividerWidth;
             questActiveScroll.guiTop = guiTop + scrollTopOffset;
@@ -255,7 +257,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             addScroll(questActiveScroll);
             addLabel(new GuiNpcLabel(1002, "Active", paddedLeft + dividerOffset2 + dividerWidth, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
 
-            // Text Fields.
             addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, questCatSearch));
             addTextField(new GuiNpcTextField(56, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), dividerOffset2 - dividerOffset1 - dividerWidth, textFieldHeight, questFinishedSearch));
             addTextField(new GuiNpcTextField(57, this, fontRendererObj, paddedLeft + dividerOffset2 + dividerWidth, getTextFieldY(), paddedRight - (paddedLeft + dividerOffset2 + dividerWidth), textFieldHeight, questActiveSearch));
@@ -286,13 +287,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // ----- Dialog Tab Initialization -----
     private void initDialogTab() {
         int paddedLeft = getPaddedLeft();
         int availableWidth = getAvailableWidth();
         int scrollHeight = getScrollHeight();
 
-        if (viewMode == 0) { // Categorical: 2 scrolls.
+        if (viewMode == 0) {
             if (!isResizing) {
                 dividerOffset1 = (availableWidth - dividerWidth) / 2;
             }
@@ -316,7 +316,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
             addTextField(new GuiNpcTextField(55, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, dialogCatSearch));
             addTextField(new GuiNpcTextField(56, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), availableWidth - dividerOffset1 - dividerWidth, textFieldHeight, dialogReadSearch));
-        } else { // Compact: 1 scroll (no divider).
+        } else {
             dialogCompactScroll = ensureScroll(dialogCompactScroll, 5);
             dialogCompactScroll.guiLeft = paddedLeft;
             dialogCompactScroll.guiTop = guiTop + scrollTopOffset;
@@ -329,13 +329,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // ----- Transport Tab Initialization -----
     private void initTransportTab() {
         int paddedLeft = getPaddedLeft();
         int availableWidth = getAvailableWidth();
         int scrollHeight = getScrollHeight();
 
-        if (viewMode == 0) { // Categorical: 2 scrolls.
+        if (viewMode == 0) {
             if (!isResizing) {
                 dividerOffset1 = (availableWidth - dividerWidth) / 2;
             }
@@ -359,7 +358,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
             addTextField(new GuiNpcTextField(60, this, fontRendererObj, paddedLeft, getTextFieldY(), dividerOffset1, textFieldHeight, transCatSearch));
             addTextField(new GuiNpcTextField(61, this, fontRendererObj, paddedLeft + dividerOffset1 + dividerWidth, getTextFieldY(), availableWidth - dividerOffset1 - dividerWidth, textFieldHeight, transLocSearch));
-        } else { // Compact: 1 scroll (no divider).
+        } else {
             transCompactScroll = ensureScroll(transCompactScroll, 5);
             transCompactScroll.guiLeft = paddedLeft;
             transCompactScroll.guiTop = guiTop + scrollTopOffset;
@@ -372,7 +371,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // ----- Single Tab Initialization (Bank/Faction) -----
     private void initSingleTab() {
         int paddedLeft = getPaddedLeft();
         int availableWidth = getAvailableWidth();
@@ -395,10 +393,88 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         addTextField(new GuiNpcTextField(70, this, fontRendererObj, paddedLeft, getTextFieldY(), availableWidth, textFieldHeight, singleSearch));
     }
 
+    private void initMagicTab() {
+        int paddedLeft = getPaddedLeft();
+        int availableWidth = getAvailableWidth();
+        int scrollHeight = getScrollHeight();
+        int localDividerOffset = (availableWidth - dividerWidth) / 2;
+
+        // Left scroll: displays all available magic elements.
+        magicAllScroll = ensureScroll(magicAllScroll, 100);
+        magicAllScroll.guiLeft = paddedLeft;
+        magicAllScroll.guiTop = guiTop + scrollTopOffset;
+        magicAllScroll.setSize(localDividerOffset - 20, scrollHeight);
+        magicAllScroll.setList(new ArrayList<>(availableMagicElements.keySet()));
+        magicAllScroll.selected = -1;
+        addScroll(magicAllScroll);
+        addLabel(new GuiNpcLabel(5000, "menu.magics", paddedLeft, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
+
+        // Right scroll: displays currently selected magics (from magicData).
+        magicSelectedScroll = ensureScroll(magicSelectedScroll, 101);
+        magicSelectedScroll.guiLeft = 20 + paddedLeft + localDividerOffset + dividerWidth;
+        magicSelectedScroll.guiTop = guiTop + scrollTopOffset;
+        magicSelectedScroll.setSize(availableWidth - localDividerOffset - dividerWidth - 20, scrollHeight);
+        List<String> selectedList = new ArrayList<>();
+        for (String name : availableMagicElements.keySet()) {
+            int id = availableMagicElements.get(name);
+            if (magicData.hasMagic(id)) {
+                selectedList.add(name);
+            }
+        }
+        magicSelectedScroll.setList(selectedList);
+        magicSelectedScroll.selected = -1;
+        addScroll(magicSelectedScroll);
+        addLabel(new GuiNpcLabel(5001, "Current Magic", paddedLeft + localDividerOffset + dividerWidth + 20, guiTop + 15, CustomNpcResourceListener.DefaultTextColor));
+
+        // Arrow buttons for adding and removing magic entries.
+        int arrowWidth = 30, arrowHeight = 20;
+        int arrowX = paddedLeft + localDividerOffset + (dividerWidth - arrowWidth) / 2;
+        int addY = guiTop + scrollTopOffset + scrollHeight / 2 - arrowHeight - 2;
+        int removeY = guiTop + scrollTopOffset + scrollHeight / 2 + 2;
+        addButton(new GuiNpcButton(70, arrowX, addY, arrowWidth, arrowHeight, ">"));
+        addButton(new GuiNpcButton(71, arrowX, removeY, arrowWidth, arrowHeight, "<"));
+
+        // Standardize button: evenly distribute 1.0 amongst all selected magics.
+        int stdWidth = 80, stdHeight = 20;
+        int stdX = paddedLeft;
+        int stdY = guiTop + ySize - stdHeight - 6;
+        addButton(new GuiNpcButton(72, stdX, stdY + 4, stdWidth, stdHeight, "Standardize"));
+
+        // If a magic is selected in the right scroll, add text fields for split and damage.
+        int tfY = getTextFieldY();
+
+        addLabel(new GuiNpcLabel(5002, "magic.split", paddedLeft + localDividerOffset + dividerWidth - 60, tfY + 5, CustomNpcResourceListener.DefaultTextColor));
+        splitField = new GuiNpcTextField(73, this, fontRendererObj, paddedLeft + localDividerOffset + dividerWidth, tfY, 45, textFieldHeight, "");
+
+        addLabel(new GuiNpcLabel(5003, "magic.bonus", paddedLeft + localDividerOffset + dividerWidth + 80, tfY + 5, CustomNpcResourceListener.DefaultTextColor));
+        damageField = new GuiNpcTextField(74, this, fontRendererObj, paddedLeft + localDividerOffset + dividerWidth + 200 - 45, tfY, 45, textFieldHeight, "");
+
+        splitField.setFloatsOnly();
+        damageField.setFloatsOnly();
+        splitField.setMinMaxDefaultFloat(0, 1000000000, 0);
+        damageField.setMinMaxDefaultFloat(0, 1000000000, 0);
+        splitField.enabled = false;
+        damageField.enabled = false;
+
+        addTextField(splitField);
+        addTextField(damageField);
+        if(magicSelectedScroll.hasSelected()){
+            String sel = magicSelectedScroll.getSelected();
+            int id = availableMagicElements.get(sel);
+            if (magicData.hasMagic(id)) {
+                splitField.setText(magicData.getMagicSplit(id) + "");
+                damageField.setText(magicData.getMagicDamage(id) + "");
+                splitField.enabled = true;
+                damageField.enabled = true;
+            }
+        }
+
+        updateMagicSelectedList();
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Drawing Helpers
     ////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
@@ -415,12 +491,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        // In compact mode for Quests, draw divider between the two scrolls.
         if (currentTab == 10 && viewMode != 0 && !hasSubGui()) {
             int dividerX = paddedLeft + dividerOffset1;
             drawRect(dividerX + widthPadding, guiTop + scrollTopOffset + paddingTopBottom, dividerX + dividerWidth - widthPadding, guiTop + scrollTopOffset + scrollHeight - paddingTopBottom, 0xFF707070);
         }
-        // In categorical mode for Quest, draw both dividers.
         if (currentTab == 10 && viewMode == 0 && !hasSubGui()) {
             int dividerX1 = paddedLeft + dividerOffset1;
             int dividerX2 = paddedLeft + dividerOffset2;
@@ -437,7 +511,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     ////////////////////////////////////////////////////////////////////////////////
     // Mouse & Resizing Handlers
     ////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         int hitMargin = 3;
@@ -447,7 +520,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         int availableWidth = getAvailableWidth();
         if (!hasSubGui() && mouseY >= regionTop && mouseY <= regionBottom) {
             if (viewMode == 0) {
-                if (currentTab == 10) { // Quest categorical: 3 scrolls.
+                if (currentTab == 10) {
                     int dividerX1 = paddedLeft + dividerOffset1;
                     int dividerX2 = paddedLeft + dividerOffset2;
                     if (mouseX >= dividerX1 - hitMargin && mouseX <= dividerX1 + dividerWidth + hitMargin) {
@@ -470,8 +543,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                         return;
                     }
                 }
-            } else { // Compact mode.
-                if (currentTab == 10) { // Quest compact: 2 scrolls.
+            } else {
+                if (currentTab == 10) {
                     int defaultWidth = (availableWidth - dividerWidth) / 2;
                     if (!isResizing) dividerOffset1 = defaultWidth;
                     int dividerX = paddedLeft + dividerOffset1;
@@ -482,7 +555,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                         return;
                     }
                 }
-                // Dialog/Transport compact have only one scroll => no divider.
             }
         }
         super.mouseClicked(mouseX, mouseY, mouseButton);
@@ -496,9 +568,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         if (isResizing) {
             int dx = mouseX - initialDragX;
             initialDragX = mouseX;
-            // Handle Quest tab resizing.
             if (currentTab == 10) {
-                if (viewMode == 0) { // Categorical (3 scrolls)
+                if (viewMode == 0) {
                     if (resizingDivider == 1) {
                         dividerOffset1 += dx;
                         int maxOffset = dividerOffset2 - dividerWidth - minScrollWidth;
@@ -527,7 +598,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                         updateLabelPosition(1001, paddedLeft + dividerOffset1 + dividerWidth);
                         updateLabelPosition(1002, paddedLeft + dividerOffset2 + dividerWidth);
                     }
-                } else { // Compact mode for Quests (2 scrolls)
+                } else {
                     if (resizingDivider == 1) {
                         dividerOffset1 += dx;
                         dividerOffset1 = clamp(dividerOffset1, minScrollWidth, availableWidth - dividerWidth - minScrollWidth);
@@ -541,7 +612,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                     }
                 }
             } else if ((currentTab == 11 || currentTab == 12) && viewMode == 0) {
-                // For Dialog and Transport in categorical mode.
                 dividerOffset1 += dx;
                 dividerOffset1 = clamp(dividerOffset1, minScrollWidth, availableWidth - minScrollWidth);
                 if (currentTab == 11) {
@@ -577,7 +647,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         super.mouseMovedOrUp(mouseX, mouseY, state);
     }
 
-    // Simple clamp helper.
     private int clamp(int value, int min, int max) {
         if (value < min)
             return min;
@@ -589,7 +658,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     ////////////////////////////////////////////////////////////////////////////////
     // Key & Search Field Handling
     ////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
@@ -616,7 +684,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update quest search fields (categorical mode).
     private void updateQuestSearchField(int catFieldId, int finishedFieldId, int activeFieldId) {
         GuiNpcTextField tf = getTextField(catFieldId);
         if (tf != null && tf.isFocused()) {
@@ -659,7 +726,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update quest search fields in compact mode.
     private void updateQuestSearchFieldCompact(int finishedFieldId, int activeFieldId) {
         GuiNpcTextField tf = getTextField(finishedFieldId);
         if (tf != null && tf.isFocused()) {
@@ -681,7 +747,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update dialog search fields (categorical).
     private void updateDialogSearchField(int catFieldId, int readFieldId) {
         GuiNpcTextField tf = getTextField(catFieldId);
         if (tf != null && tf.isFocused()) {
@@ -711,7 +776,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update dialog search fields (compact).
     private void updateDialogSearchFieldCompact(int fieldId) {
         GuiNpcTextField tf = getTextField(fieldId);
         if (tf != null && tf.isFocused()) {
@@ -724,7 +788,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update transport search fields (categorical).
     private void updateTransportSearchField(int catFieldId, int locFieldId) {
         GuiNpcTextField tf = getTextField(catFieldId);
         if (tf != null && tf.isFocused()) {
@@ -754,7 +817,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update transport search fields (compact).
     private void updateTransportSearchFieldCompact(int fieldId) {
         GuiNpcTextField tf = getTextField(fieldId);
         if (tf != null && tf.isFocused()) {
@@ -767,7 +829,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Update search field for single scroll (Bank/Faction).
     private void updateSingleSearchField(int fieldId) {
         GuiNpcTextField tf = getTextField(fieldId);
         if (tf != null && tf.isFocused()) {
@@ -780,7 +841,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    // Standard filtering helpers.
     private List<String> filterList(HashMap<String, Integer> data, String search) {
         List<String> list = new ArrayList<>();
         for (String key : data.keySet()) {
@@ -808,42 +868,35 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     ////////////////////////////////////////////////////////////////////////////////
     // Action Handling
     ////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void actionPerformed(GuiButton button) {
-        // Close if the "X" button was clicked.
         if (button.id == -5) {
             close();
             return;
         }
-        // Tab switching.
-        if (button.id >= 10 && button.id <= 14) {
+        if (button.id >= 10 && button.id <= 15) {
             currentTab = button.id;
-            initGui(); // Reinitialize components using stored data.
+            initGui();
             return;
         }
-        // Mode toggle.
         if (button.id == 20) {
             viewMode = (viewMode == 0) ? 1 : 0;
             initGui();
             return;
         }
-        // Delete button.
         if (button.id == 30) {
             Integer selectedID = null;
             EnumPlayerData tabType = null;
-            // Quest tab
             if (currentTab == 10) {
-                if (viewMode == 0) { // Categorical mode
+                if (viewMode == 0) {
                     if (questCatScroll.getSelected() == null)
                         return;
-                    // Use category + selection key.
                     if (questActiveScroll.getSelected() != null) {
                         selectedID = removeSelection(questActiveScroll, questActiveData, questCatScroll.getSelected());
                     } else if (questFinishedScroll.getSelected() != null) {
                         selectedID = removeSelection(questFinishedScroll, questFinishedData, questCatScroll.getSelected());
                     }
-                } else { // Compact mode: key is just the selection.
+                } else {
                     if (questActiveScroll.getSelected() != null) {
                         selectedID = removeSelection(questActiveScroll, questActiveData, null);
                     } else if (questFinishedScroll.getSelected() != null) {
@@ -851,9 +904,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                     }
                 }
                 tabType = EnumPlayerData.Quest;
-            }
-            // Dialog tab
-            else if (currentTab == 11) {
+            } else if (currentTab == 11) {
                 if (viewMode == 0) {
                     if (dialogReadScroll.getSelected() != null && dialogCatScroll.getSelected() != null) {
                         selectedID = removeSelection(dialogReadScroll, dialogReadData, dialogCatScroll.getSelected());
@@ -864,9 +915,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                     }
                 }
                 tabType = EnumPlayerData.Dialog;
-            }
-            // Transport tab
-            else if (currentTab == 12) {
+            } else if (currentTab == 12) {
                 if (viewMode == 0) {
                     if (transLocScroll.getSelected() != null && transCatScroll.getSelected() != null) {
                         selectedID = removeSelection(transLocScroll, transLocData, transCatScroll.getSelected());
@@ -877,36 +926,82 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                     }
                 }
                 tabType = EnumPlayerData.Transport;
-            }
-            // Bank tab
-            else if (currentTab == 13) {
+            } else if (currentTab == 13) {
                 if (singleScroll.getSelected() != null) {
                     selectedID = removeSelection(singleScroll, bankData, null);
                 }
                 tabType = EnumPlayerData.Bank;
-            }
-            // Faction tab
-            else if (currentTab == 14) {
+            } else if (currentTab == 14) {
                 if (singleScroll.getSelected() != null) {
                     selectedID = removeSelection(singleScroll, factionData, null);
                 }
                 tabType = EnumPlayerData.Factions;
             }
             if (selectedID != null) {
-                PacketClient.sendClient(new PlayerDataRemoveInfoPacket(playerName, tabType, selectedID));
+                PacketClient.sendClient(new PlayerDataDeleteInfoPacket(playerName, tabType, selectedID));
             }
         }
+        if (currentTab == 15) {
+            // Add
+            if (button.id == 70) {
+                if (magicAllScroll != null && magicAllScroll.getSelected() != null) {
+                    String name = magicAllScroll.getSelected();
+                    int id = availableMagicElements.get(name);
+                    if (!magicData.hasMagic(id)) {
+                        magicData.addMagic(id, 0, 0);
+                    }
+                    updateMagicSelectedList();
+                }
+                saveMagicCompound();
+            } else if (button.id == 71) {
+                // Remove
+                if (magicSelectedScroll != null && magicSelectedScroll.getSelected() != null) {
+                    String name = magicSelectedScroll.getSelected();
+                    int id = availableMagicElements.get(name);
+                    if (magicData.hasMagic(id)) {
+                        magicData.removeMagic(id);
+                        PacketClient.sendClient(new PlayerDataDeleteInfoPacket(playerName, EnumPlayerData.Magic, id));
+                    }
+                    updateMagicSelectedList();
+                    if (splitField != null) {
+                        splitField.setText("");
+                        splitField.enabled = false;
+                    }
+                    if (damageField != null) {
+                        damageField.setText("");
+                        damageField.enabled = false;
+                    }
+                }
+            } else if (button.id == 72) {
+                int count = magicData.getMagics().size();
+                if (count > 0) {
+                    float stdSplit = 1.0f / count;
+                    for (Integer key : magicData.getMagics().keySet()) {
+                        noppes.npcs.controllers.data.MagicEntry entry = magicData.getMagic(key);
+                        if (entry != null) {
+                            entry.split = stdSplit;
+                        }
+                    }
+                    if (magicSelectedScroll != null && magicSelectedScroll.getSelected() != null && splitField != null) {
+                        String name = magicSelectedScroll.getSelected();
+                        int id = availableMagicElements.get(name);
+                        if (magicData.hasMagic(id)) {
+                            splitField.setText(magicData.getMagicSplit(id) + "");
+                        }
+                    }
+                }
+                saveMagicCompound();
+            }
+        }
+        super.actionPerformed(button);
     }
 
-    /**
-     * Helper method that removes the selected entry from a scroll and its backing data.
-     *
-     * @param scroll The GuiCustomScroll in question.
-     * @param data The backing map holding keys and IDs.
-     * @param prefix If non-null and non-empty, the key is built as "prefix: " + scroll.getSelected(); otherwise,
-     *               scroll.getSelected() is used.
-     * @return The ID of the removed item, or null if none was found.
-     */
+    private void saveMagicCompound(){
+        NBTTagCompound magicCompound = new NBTTagCompound();
+        magicData.writeToNBT(magicCompound);
+        PacketClient.sendClient(new PlayerDataSaveInfoPacket(playerName, EnumPlayerData.Magic, magicCompound));
+    }
+
     private Integer removeSelection(GuiCustomScroll scroll, Map<String, Integer> data, String prefix) {
         if (scroll.getSelected() == null) return null;
         String key = (prefix == null || prefix.isEmpty()) ? scroll.getSelected() : prefix + ": " + scroll.getSelected();
@@ -922,7 +1017,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     ////////////////////////////////////////////////////////////////////////////////
     // Data Setting Methods (IPlayerDataInfo)
     ////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void setQuestData(Map<String, Integer> questCategories, Map<String, Integer> questActive, Map<String, Integer> questFinished) {
         this.questCatData = new HashMap<>(questCategories);
@@ -967,9 +1061,11 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // Custom Scroll Click Handling
-    ////////////////////////////////////////////////////////////////////////////////
+    @Override
+    public void setMagicData(MagicData magicData) {
+        this.magicData = magicData;
+        updateMagicSelectedList();
+    }
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
@@ -1005,5 +1101,73 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         } else if (guiCustomScroll == questFinishedScroll) {
             questActiveScroll.selected = -1;
         }
+        if (guiCustomScroll == magicSelectedScroll) {
+            if (magicSelectedScroll.getSelected() != null) {
+                String name = magicSelectedScroll.getSelected();
+                int id = availableMagicElements.get(name);
+                if (magicData.hasMagic(id)) {
+                    if (splitField != null) {
+                        splitField.setText(magicData.getMagicSplit(id) + "");
+                        splitField.enabled = true;
+                    }
+                    if (damageField != null) {
+                        damageField.setText(magicData.getMagicDamage(id) + "");
+                        damageField.enabled = true;
+                    }
+                }
+            }
+        }
     }
+
+    @Override
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+
+    @Override
+    public void unFocused(GuiNpcTextField textField) {
+        if (currentTab == 15 && magicSelectedScroll != null && magicSelectedScroll.getSelected() != null) {
+            String name = magicSelectedScroll.getSelected();
+            int id = availableMagicElements.get(name);
+            if (magicData.hasMagic(id)) {
+                if (textField.id == 73) {
+                    try {
+                        float split = Float.parseFloat(textField.getText());
+                        magicData.getMagic(id).split = split;
+                    } catch(NumberFormatException e) { }
+                } else if (textField.id == 74) {
+                    try {
+                        float dmg = Float.parseFloat(textField.getText());
+                        magicData.getMagic(id).damage = dmg;
+                    } catch(NumberFormatException e) { }
+                }
+            }
+            saveMagicCompound();
+        }
+    }
+
+    // Helper to update the right scroll list in the Magic Tab.
+    private void updateMagicSelectedList() {
+        List<String> selected = new ArrayList<>();
+        for (String name : availableMagicElements.keySet()) {
+            int id = availableMagicElements.get(name);
+            if (magicData.hasMagic(id)) {
+                selected.add(name);
+            }
+        }
+        if(magicSelectedScroll != null)
+            magicSelectedScroll.setList(selected);
+    }
+
+    @Override
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        if (type == EnumScrollData.MAGIC) {
+            this.availableMagicElements = new HashMap<>();
+            for (String name : list) {
+                int id = data.get(name);
+                this.availableMagicElements.put(name, id);
+            }
+        }
+    }
+
+    @Override
+    public void setSelected(String selected) {}
 }

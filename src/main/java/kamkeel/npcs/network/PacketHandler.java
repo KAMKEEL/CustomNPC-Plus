@@ -227,7 +227,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new PlayerDataGetNamesPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
         REQUEST_PACKET.registerPacket(new PlayerDataGetInfoPacket());
-        REQUEST_PACKET.registerPacket(new PlayerDataRemoveInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataDeleteInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataSaveInfoPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataMapRegenPacket());
 
         // Main Menu Packets
@@ -334,6 +335,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new MagicSavePacket());
         REQUEST_PACKET.registerPacket(new MagicRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicDataGetPacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

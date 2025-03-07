@@ -8,7 +8,10 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.NoppesUtil;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicData;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,13 +33,15 @@ public final class PlayerDataInfoPacket extends LargeAbstractPacket {
     private Map<String, Integer> bankData;
     private Map<String, Integer> factionData;
 
+    private MagicData playerMagicData;
+
     public PlayerDataInfoPacket() {}
 
     public PlayerDataInfoPacket(String playerName,
                                 Map<String, Integer> questCategories, Map<String, Integer> questActive, Map<String, Integer> questFinished,
                                 Map<String, Integer> dialogCategories, Map<String, Integer> dialogRead,
                                 Map<String, Integer> transportCategories, Map<String, Integer> transportLocations,
-                                Map<String, Integer> bankData, Map<String, Integer> factionData) {
+                                Map<String, Integer> bankData, Map<String, Integer> factionData, MagicData playerMagicData) {
         this.playerName = playerName;
         this.questCategories = questCategories;
         this.questActive = questActive;
@@ -47,6 +52,7 @@ public final class PlayerDataInfoPacket extends LargeAbstractPacket {
         this.transportLocations = transportLocations;
         this.bankData = bankData;
         this.factionData = factionData;
+        this.playerMagicData = playerMagicData;
     }
 
     @Override
@@ -78,6 +84,10 @@ public final class PlayerDataInfoPacket extends LargeAbstractPacket {
         writeMap(buffer, bankData);
         // Write faction data map:
         writeMap(buffer, factionData);
+
+        NBTTagCompound compound = new NBTTagCompound();
+        playerMagicData.writeToNBT(compound);
+        ByteBufUtils.writeNBT(buffer, compound);
 
         byte[] bytes = new byte[buffer.readableBytes()];
         buffer.readBytes(bytes);

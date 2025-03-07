@@ -13,16 +13,16 @@ import noppes.npcs.constants.EnumPlayerData;
 
 import java.io.IOException;
 
-public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
-    public static final String packetName = "Request|PlayerDataRemoveNew";
+public final class PlayerDataDeleteInfoPacket extends AbstractPacket {
+    public static final String packetName = "Request|PlayerDataDeleteInfo";
 
     private String playerName;
     private EnumPlayerData tabType;
     private int value;
 
-    public PlayerDataRemoveInfoPacket() {}
+    public PlayerDataDeleteInfoPacket() {}
 
-    public PlayerDataRemoveInfoPacket(String playerName, EnumPlayerData tabType, int selectedKey) {
+    public PlayerDataDeleteInfoPacket(String playerName, EnumPlayerData tabType, int selectedKey) {
         this.playerName = playerName;
         this.tabType = tabType;
         this.value = selectedKey;
@@ -30,7 +30,7 @@ public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PlayerDataDelete;
+        return EnumRequestPacket.PlayerDataDeleteInfo;
     }
 
     @Override

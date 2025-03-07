@@ -1344,6 +1344,8 @@ magic.interaction=Interaction
 magic.diagram=Diagram Type
 magic.index=Index
 magic.priority=Priority
+magic.split=Split
+magic.bonus=Bonus
 
 diagram.circular=Circular
 diagram.square=Square
