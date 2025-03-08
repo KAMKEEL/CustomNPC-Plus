@@ -176,6 +176,7 @@ public class CustomNpcs {
         PixelmonHelper.load();
         new AddonManager();
         new AttributeController();
+        new MagicController();
     }
 
     @EventHandler
@@ -200,8 +201,6 @@ public class CustomNpcs {
         Server = event.getServer();
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
-        // VisibilityController.instance = new VisibilityController();
-        new MagicController();
         MagicController.getInstance().load();
         new PlayerDataController();
         new TagController();
