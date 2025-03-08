@@ -67,31 +67,31 @@ public class ConfigClient
 
     // HUD PROPERTIES
     public static Property QuestOverlayXProperty;
-    public static int QuestOverlayX = 100;
+    public static int QuestOverlayX = 0;
 
     public static Property QuestOverlayYProperty;
-    public static int QuestOverlayY = 100;
+    public static int QuestOverlayY = 31;
 
     public static Property QuestOverlayScaleProperty;
-    public static int QuestOverlayScale = 100;
+    public static int QuestOverlayScale = 223;
 
     public static Property QuestOverlayTextAlignProperty;
-    public static int QuestOverlayTextAlign = 1; // 0: Left, 1: Center, 2: Right
+    public static int QuestOverlayTextAlign = 0; // 0: Left, 1: Center, 2: Right
 
     public static Property CompassEnabledProperty;
-    public static boolean CompassEnabled;
+    public static boolean CompassEnabled = true;
 
     public static Property CompassOverlayXProperty;
-    public static int CompassOverlayX;
+    public static int CompassOverlayX = 37;
 
     public static Property CompassOverlayYProperty;
-    public static int CompassOverlayY;
+    public static int CompassOverlayY = 0;
 
     public static Property CompassOverlayScaleProperty;
-    public static int CompassOverlayScale;
+    public static int CompassOverlayScale = 276;
 
     public static Property CompassOverlayWidthProperty;
-    public static int CompassOverlayWidth;
+    public static int CompassOverlayWidth = 200;
 
     /**
      *  Texture Properties
@@ -125,17 +125,17 @@ public class ConfigClient
             config.load();
 
             // Hud Quest Overlay settings
-            QuestOverlayXProperty = config.get(HUD, "Quest Hud X", 100, "X position of the quest overlay.");
-            QuestOverlayX = QuestOverlayXProperty.getInt(100);
+            QuestOverlayXProperty = config.get(HUD, "Quest Hud X", 0, "X position of the quest overlay.");
+            QuestOverlayX = QuestOverlayXProperty.getInt(0);
 
-            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 100, "Y position of the quest overlay.");
-            QuestOverlayY = QuestOverlayYProperty.getInt(100);
+            QuestOverlayYProperty = config.get(HUD, "Quest Hud Y", 31, "Y position of the quest overlay.");
+            QuestOverlayY = QuestOverlayYProperty.getInt(31);
 
-            QuestOverlayScaleProperty = config.get(HUD, "Quest Hud Scale", 100, "Scale percentage of the quest overlay.");
-            QuestOverlayScale = QuestOverlayScaleProperty.getInt(100);
+            QuestOverlayScaleProperty = config.get(HUD, "Quest Hud Scale", 223, "Scale percentage of the quest overlay.");
+            QuestOverlayScale = QuestOverlayScaleProperty.getInt(223);
 
-            QuestOverlayTextAlignProperty = config.get(HUD, "Quest Hud Text Alignment", 1, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
-            QuestOverlayTextAlign = QuestOverlayTextAlignProperty.getInt(1);
+            QuestOverlayTextAlignProperty = config.get(HUD, "Quest Hud Text Alignment", 0, "Text alignment in quest overlay (0: Left, 1: Center, 2: Right).");
+            QuestOverlayTextAlign = QuestOverlayTextAlignProperty.getInt(0);
 
             CompassEnabledProperty = config.get(
                 HUD,
@@ -149,7 +149,7 @@ public class ConfigClient
             CompassOverlayXProperty = config.get(
                 HUD,
                 "Compass Hud X",
-                50,
+                37,
                 "Horizontal position of compass overlay (0-100 percentage)",
                 0,
                 100
@@ -159,7 +159,7 @@ public class ConfigClient
             CompassOverlayYProperty = config.get(
                 HUD,
                 "Compass Hud Y",
-                5,
+                0,
                 "Vertical position of compass overlay (0-100 percentage)",
                 0,
                 100
@@ -169,7 +169,7 @@ public class ConfigClient
             CompassOverlayScaleProperty = config.get(
                 HUD,
                 "Compass Hud Scale",
-                100,
+                276,
                 "Scale percentage of compass overlay",
                 50,
                 300
