@@ -328,7 +328,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
         REQUEST_PACKET.registerPacket(new ProfileChangePacket());
 
-        // Job Packets
+        // Magic Packets
         REQUEST_PACKET.registerPacket(new MagicCycleRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicCycleSavePacket());
         REQUEST_PACKET.registerPacket(new MagicGetAllPacket());
@@ -336,6 +336,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new MagicRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicGetPacket());
         REQUEST_PACKET.registerPacket(new MagicDataGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicNpcGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicNpcSavePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

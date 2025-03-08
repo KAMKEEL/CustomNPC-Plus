@@ -52,6 +52,8 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
 
         this.addButton(new GuiNpcButton(14, guiLeft + 15, y += 22, 190, 20, "menu.tags"));
         this.addButton(new GuiNpcButton(15, guiLeft + 208, y, 190, 20, "advanced.marks"));
+
+        this.addButton(new GuiNpcButton(16, guiLeft + 15, y += 22, 190, 20, "menu.magics"));
     }
 
     @Override
@@ -108,6 +110,10 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData
         if(button.id == 15){
             save();
             NoppesUtil.openGUI(player, new GuiNPCMarks(npc));
+        }
+        if(button.id == 16){
+            save();
+            NoppesUtil.openGUI(player, new GuiNPCMagic(npc));
         }
 	}
 

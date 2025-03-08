@@ -136,6 +136,7 @@ public enum EnumRequestPacket {
     PlayerDataDeleteInfo,
     PlayerDataRemove,
     PlayerDataMapRegen,
+    PlayerDataSave,
 
     JobSave,
     JobGet,
@@ -198,5 +199,7 @@ public enum EnumRequestPacket {
     MagicRemove,
     MagicGet,
     MagicSave,
-    PlayerDataSave, MagicDataGet
+    NpcMagicGet,
+    NpcMagicSave,
+    MagicDataGet,
 }
