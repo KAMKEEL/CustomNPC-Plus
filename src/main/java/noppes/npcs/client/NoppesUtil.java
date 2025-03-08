@@ -21,6 +21,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -79,6 +80,11 @@ public class NoppesUtil {
 	}
 
 	public static void openFolder(File dir){
+        if (dir == null || !dir.exists() || !dir.isDirectory()) {
+            // Log an error or simply return if there's nothing to open
+            return;
+        }
+
         String s = dir.getAbsolutePath();
 
         if (Util.getOSType() == Util.EnumOS.OSX)
@@ -247,7 +253,8 @@ public class NoppesUtil {
         Map<String, Integer> transportLocations = readMap(data);
         Map<String, Integer> bankData = readMap(data);
         Map<String, Integer> factionData = readMap(data);
-
+        MagicData magicData = new MagicData();
+        magicData.readToNBT(ByteBufUtils.readNBT(data));
 
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
         if(gui == null)
@@ -266,6 +273,7 @@ public class NoppesUtil {
             info.setTransportData(transportCategories, transportLocations);
             info.setBankData(bankData);
             info.setFactionData(factionData);
+            info.setMagicData(magicData);
         }
     }
 

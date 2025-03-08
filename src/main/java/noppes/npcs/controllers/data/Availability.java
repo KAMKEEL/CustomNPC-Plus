@@ -359,7 +359,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public int getDialog(int i) {
-		if (i < 0 && i > 3) {
+		if (i < 0 || i > 3) {
 			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
 		} else if (i == 0) {
 			return this.dialogId;
@@ -371,7 +371,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public void setDialog(int i, int id, int type) {
-		if (i < 0 && i > 3) {
+		if (i < 0 || i > 3) {
 			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
 		} else {
 			EnumAvailabilityDialog e = EnumAvailabilityDialog.values()[MathHelper.clamp_int(type, 0, 2)];
@@ -393,7 +393,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public void removeDialog(int i) {
-		if (i < 0 && i > 3) {
+		if (i < 0 || i > 3) {
 			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
 		} else {
 			if (i == 0) {
@@ -414,7 +414,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public int getQuest(int i) {
-		if (i < 0 && i > 3) {
+		if (i < 0 || i > 3) {
 			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
 		} else if (i == 0) {
 			return this.questId;
@@ -426,7 +426,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public void setQuest(int i, int id, int type) {
-		if (i < 0 && i > 3) {
+		if (i < 0 || i > 3) {
 			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
 		} else {
 			EnumAvailabilityQuest e = EnumAvailabilityQuest.values()[MathHelper.clamp_int(type, 0, 5)];
@@ -448,7 +448,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public void removeQuest(int i) {
-		if (i < 0 && i > 3) {
+		if (i < 0 || i > 3) {
 			throw new CustomNPCsException(i + " isnt between 0 and 3", new Object[0]);
 		} else {
 			if (i == 0) {
@@ -469,7 +469,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public void setFaction(int i, int id, int type, int stance) {
-		if (i < 0 && i > 1) {
+		if (i < 0 || i > 1) {
 			throw new CustomNPCsException(i + " isnt between 0 and 1", new Object[0]);
 		} else {
 			EnumAvailabilityFactionType e = EnumAvailabilityFactionType.values()[MathHelper.clamp_int(type, 0, 2)];
@@ -488,7 +488,7 @@ public class Availability implements ICompatibilty, IAvailability {
 	}
 
 	public void removeFaction(int i) {
-		if (i < 0 && i > 1) {
+		if (i < 0 || i > 1) {
 			throw new CustomNPCsException(i + " isnt between 0 and 1", new Object[0]);
 		} else {
 			if (i == 0) {

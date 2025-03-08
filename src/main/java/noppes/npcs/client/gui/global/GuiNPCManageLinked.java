@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.linked.*;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
@@ -182,6 +183,8 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 ImageData imageData = ClientCacheHandler.getImageData(linkedItem.display.texture);
                 if(imageData.imageLoaded()){
+                    float[] colors = ColorUtil.hexToRGB(this.linkedItem.display.itemColor);
+                    GL11.glColor3f(colors[0], colors[1], colors[2]);
                     imageData.bindTexture();
                     int iconX = 0, iconY = 0;
                     int iconWidth = imageData.getTotalWidth();
@@ -193,6 +196,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                     textureManager.bindTexture(new ResourceLocation("customnpcs", "textures/marks/question.png"));
                     func_152125_a(x, y, 0, 0, 1, 1, iconRenderSize, iconRenderSize, 1, 1);
                 }
+                GL11.glColor3f(1.0f, 1.0f, 1.0f);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
             }
         }

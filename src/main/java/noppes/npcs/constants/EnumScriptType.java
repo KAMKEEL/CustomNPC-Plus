@@ -109,7 +109,12 @@ public enum EnumScriptType {
     ANIMATION_FRAME_EXIT("frameExit"),
 
     LINKED_ITEM_VERSION("versionChanged"),
-    LINKED_ITEM_BUILD("buildingItem");
+    LINKED_ITEM_BUILD("buildingItem"),
+
+    PROFILE("profile"),
+    PROFILE_CHANGE("profileChange"),
+    PROFILE_REMOVE("profileRemove"),
+    PROFILE_CREATE("profileCreate");
 
 	public String function;
 

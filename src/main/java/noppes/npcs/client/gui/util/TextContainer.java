@@ -31,9 +31,7 @@ public class TextContainer {
 
 
     public TextContainer(String text){
-        this.text = text;
-        text.replaceAll("\\r?\\n|\\r", "\n");
-        double l = 1d;
+        this.text = text.replaceAll("\\r?\\n|\\r", "\n");
     }
 
     public void init(int width, int height){

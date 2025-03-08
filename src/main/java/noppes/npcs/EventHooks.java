@@ -17,10 +17,12 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.*;
 import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
+import noppes.npcs.api.handler.data.IProfile;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.api.item.IItemStack;
@@ -916,5 +918,23 @@ public class EventHooks {
             return;
         }
         postAnimationEvent(new AnimationEvent.FrameEvent.Exited(animation, frame));
+    }
+
+    public static boolean onProfileChange(PlayerDataScript handler, IPlayer player, IProfile profile, int slot) {
+        PlayerEvent.ProfileEvent.Changed event = new PlayerEvent.ProfileEvent.Changed(player, profile, slot, profile.getCurrentSlotId());
+        handler.callScript(EnumScriptType.PROFILE_CHANGE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onProfileRemove(PlayerDataScript handler, IPlayer player, IProfile profile, int slot) {
+        PlayerEvent.ProfileEvent.Removed event = new PlayerEvent.ProfileEvent.Removed(player, profile, slot);
+        handler.callScript(EnumScriptType.PROFILE_REMOVE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onProfileCreate(PlayerDataScript handler, IPlayer player, IProfile profile, int slot) {
+        PlayerEvent.ProfileEvent.Create event = new PlayerEvent.ProfileEvent.Create(player, profile, slot);
+        handler.callScript(EnumScriptType.PROFILE_CREATE, event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 }

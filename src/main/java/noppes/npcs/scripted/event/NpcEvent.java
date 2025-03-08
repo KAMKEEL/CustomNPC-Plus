@@ -132,7 +132,6 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
     public static class RangedLaunchedEvent extends NpcEvent implements INpcEvent.RangedLaunchedEvent {
         public final IEntityLivingBase target;
         public float damage;
-        //public List<IProjectile> projectiles = new ArrayList();
 
         public RangedLaunchedEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
@@ -344,18 +343,12 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         public final int optionId;
         public final IDialog dialogObj;
 
-        public final int dialog;
-        public final int option;
-
         public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
             this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
             this.id = id;
             this.optionId = optionId;
             this.dialogObj = dialog;
-
-            this.dialog = id;
-            this.option = optionId;
         }
 
         public String getHookName() {
@@ -371,11 +364,11 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         }
 
         public int getDialogId() {
-            return dialog;
+            return id;
         }
 
         public int getOptionId() {
-            return option;
+            return optionId;
         }
 
         /**
@@ -392,18 +385,12 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         public final int optionId;
         public final Dialog dialogObj;
 
-        public final int dialog;
-        public final int option;
-
         public DialogClosedEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
             this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
             this.id = id;
             this.optionId = optionId;
             this.dialogObj = dialog;
-
-            this.dialog = id;
-            this.option = optionId;
         }
 
         public String getHookName() {
@@ -419,11 +406,11 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         }
 
         public int getDialogId() {
-            return option;
+            return id;
         }
 
         public int getOptionId() {
-            return option;
+            return optionId;
         }
 
         /**

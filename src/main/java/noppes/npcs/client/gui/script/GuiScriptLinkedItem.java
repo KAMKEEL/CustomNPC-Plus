@@ -139,9 +139,6 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
             this.getButton(103).enabled = !this.languages.isEmpty();
             this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
             this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20, new String[]{"gui.no", "gui.yes"}, this.scriptHandler.getEnabled() ? 1 : 0));
-            if (this.player.worldObj.isRemote) {
-                this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
-            }
 
             this.addButton(new GuiNpcButton(109, var9, this.guiTop + 78, 80, 20, "gui.website"));
             this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
@@ -300,10 +297,6 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
         if (guibutton.id == 105) {
             container1 = new GuiYesNo(this, "", ((GuiNpcButton)guibutton).displayString, 10);
             this.displayGuiScreen(container1);
-        }
-
-        if (guibutton.id == 106) {
-            NoppesUtil.openFolder(ScriptController.Instance.dir);
         }
 
         if (guibutton.id == 107) {

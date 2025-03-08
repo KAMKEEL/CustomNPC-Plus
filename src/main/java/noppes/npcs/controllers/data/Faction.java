@@ -17,22 +17,23 @@ import java.util.HashSet;
 public class Faction implements IFaction {
 	public String name = "";
 	public int color = Integer.parseInt("FF00", 16);
-	
+
 	public HashSet<Integer> attackFactions;
 	public int id = -1;
-	
+
 	public int neutralPoints = 500;
 	public int friendlyPoints = 1500;
-		
+
 	public int defaultPoints = 1000;
-	
+
 	public boolean hideFaction = false;
 	public boolean getsAttacked = false;
-	
+    public boolean isPassive = false;
+
 	public Faction(){
 		attackFactions = new HashSet<Integer>();
 	}
-	
+
 	public Faction(int id, String name,int color, int defaultPoints){
 		this.name = name;
 		this.color = color;
@@ -48,28 +49,30 @@ public class Faction implements IFaction {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
-        
+
         neutralPoints= compound.getInteger("NeutralPoints");
         friendlyPoints = compound.getInteger("FriendlyPoints");
         defaultPoints = compound.getInteger("DefaultPoints");
 
         hideFaction = compound.getBoolean("HideFaction");
         getsAttacked = compound.getBoolean("GetsAttacked");
-        
+        isPassive = compound.getBoolean("IsPassive");
+
         attackFactions = NBTTags.getIntegerSet(compound.getTagList("AttackFactions", 10));
 	}
 	public void writeNBT(NBTTagCompound compound){
 		compound.setInteger("Slot", id);
 		compound.setString("Name", name);
 		compound.setInteger("Color", color);
-		
+
 		compound.setInteger("NeutralPoints", neutralPoints);
 		compound.setInteger("FriendlyPoints", friendlyPoints);
 		compound.setInteger("DefaultPoints", defaultPoints);
 
 		compound.setBoolean("HideFaction", hideFaction);
 		compound.setBoolean("GetsAttacked", getsAttacked);
-		
+        compound.setBoolean("IsPassive", isPassive);
+
 		compound.setTag("AttackFactions", NBTTags.nbtIntegerSet(attackFactions));
 	}
 
@@ -82,7 +85,7 @@ public class Faction implements IFaction {
 		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		return data.getFactionPoints(id) < neutralPoints;
 	}
-	
+
 	public boolean isNeutralToPlayer(EntityPlayer player) {
 		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
 		int points = data.getFactionPoints(id);
@@ -177,7 +180,15 @@ public class Faction implements IFaction {
 		this.hideFaction = bo;
 	}
 
-	public boolean attackedByMobs() {
+    public boolean isPassive() {
+        return isPassive;
+    }
+
+    public void setIsPassive(boolean passive) {
+        this.isPassive = passive;
+    }
+
+    public boolean attackedByMobs() {
 		return this.getsAttacked;
 	}
 

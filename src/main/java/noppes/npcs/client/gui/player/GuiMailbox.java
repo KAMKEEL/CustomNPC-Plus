@@ -72,7 +72,7 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
 		}
 		int minutes = (int) (selected.timePast / 60000);
 		if(minutes == 1)
-			return minutes + " " + StatCollector.translateToLocal("mailbox.minutes");
+			return minutes + " " + StatCollector.translateToLocal("mailbox.minute");
 		else
 			return minutes + " " + StatCollector.translateToLocal("mailbox.minutes");
 	}
@@ -118,10 +118,8 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
         }
     }
 	@Override
-	public void save() {
-
-
-	}
+	public void save() {}
+  
 	@Override
 	public void setGuiData(NBTTagCompound compound) {
 		PlayerMailData data = new PlayerMailData();

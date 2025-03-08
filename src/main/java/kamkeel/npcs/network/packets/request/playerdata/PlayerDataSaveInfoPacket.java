@@ -8,29 +8,31 @@ import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumPlayerData;
 
 import java.io.IOException;
 
-public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
-    public static final String packetName = "Request|PlayerDataRemoveNew";
+public final class PlayerDataSaveInfoPacket extends AbstractPacket {
+    public static final String packetName = "Request|PlayerDataSave";
 
     private String playerName;
     private EnumPlayerData tabType;
-    private int value;
+    private NBTTagCompound value;
 
-    public PlayerDataRemoveInfoPacket() {}
+    public PlayerDataSaveInfoPacket() {}
 
-    public PlayerDataRemoveInfoPacket(String playerName, EnumPlayerData tabType, int selectedKey) {
+    public PlayerDataSaveInfoPacket(String playerName, EnumPlayerData tabType, NBTTagCompound compound) {
         this.playerName = playerName;
         this.tabType = tabType;
-        this.value = selectedKey;
+        this.value = compound;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.PlayerDataDelete;
+        return EnumRequestPacket.PlayerDataSave;
     }
 
     @Override
@@ -39,10 +41,16 @@ public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
     }
 
     @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_PLAYERDATA;
+    }
+
+
+    @Override
     public void sendData(ByteBuf out) throws IOException {
         ByteBufUtils.writeString(out, playerName);
         out.writeInt(tabType.ordinal());
-        out.writeInt(this.value);
+        ByteBufUtils.writeNBT(out, this.value);
     }
 
     @Override
@@ -51,7 +59,7 @@ public final class PlayerDataRemoveInfoPacket extends AbstractPacket {
             return;
         String playerName = ByteBufUtils.readString(in);
         int tabType = in.readInt();
-        int value = in.readInt();
-        NoppesUtilServer.removePlayerDataInfo(playerName, tabType, value, (EntityPlayerMP) player);
+        NBTTagCompound value = ByteBufUtils.readNBT(in);
+        NoppesUtilServer.savePlayerDataInfo(playerName, tabType, value, (EntityPlayerMP) player);
     }
 }

@@ -590,6 +590,11 @@ public class NoppesUtilServer {
         	data.factionData.remove(buffer.readInt());
             playerdata.save();
         }
+        if(type == EnumPlayerData.Magic){
+            MagicData data = playerdata.magicData;
+            data.removeMagic(buffer.readInt());
+            playerdata.save();
+        }
         if(pl != null) {
             SyncController.syncPlayer((EntityPlayerMP) pl);
         }
@@ -1081,7 +1086,7 @@ public class NoppesUtilServer {
             questCategoriesMap, questActiveMap, questFinishedMap,
             dialogCategoriesMap, dialogReadMap,
             transportCategoriesMap, transportLocationsMap,
-            bankMap, factionMap);
+            bankMap, factionMap, playerdata.magicData);
         PacketHandler.Instance.sendToPlayer(packet, player);
     }
 
@@ -1094,6 +1099,7 @@ public class NoppesUtilServer {
      *   2: Transport – remove from transports.
      *   3: Bank – remove from banks.
      *   4: Factions – remove from factionData.
+     *   5: Magic - remove from magicData.
      *
      * The selectedKey is expected to be the string representation of the entry's ID.
      */
@@ -1123,8 +1129,43 @@ public class NoppesUtilServer {
         if(enumPlayerData == EnumPlayerData.Factions) { // Faction removal
             playerdata.factionData.factionData.remove(value);
         }
+        if(enumPlayerData == EnumPlayerData.Magic) { // Faction removal
+            playerdata.magicData.removeMagic(value);
+        }
         playerdata.save();
 
+        if(pl != null) {
+            SyncController.syncPlayer((EntityPlayerMP) pl);
+        }
+    }
+
+    /**
+     * Removes a specific data entry from the player's data.
+     *
+     * The tabType parameter is used as follows:
+     *   0: Quest – remove from both activeQuests and finishedQuests.
+     *   1: Dialog – remove from dialogsRead.
+     *   2: Transport – remove from transports.
+     *   3: Bank – remove from banks.
+     *   4: Factions – remove from factionData.
+     *
+     * The selectedKey is expected to be the string representation of the entry's ID.
+     */
+    public static void savePlayerDataInfo(String playerName, int tabType, NBTTagCompound compound, EntityPlayerMP player) {
+        EntityPlayer pl = MinecraftServer.getServer().getConfigurationManager().func_152612_a(playerName);
+        PlayerData playerdata;
+
+        EnumPlayerData enumPlayerData = EnumPlayerData.values()[tabType];
+        if(pl == null)
+            playerdata = PlayerDataController.Instance.getDataFromUsername(playerName);
+        else
+            playerdata = PlayerDataController.Instance.getPlayerData(pl);
+
+        if(enumPlayerData == EnumPlayerData.Magic) { // Quest removal
+            playerdata.magicData.readToNBT(compound);
+        }
+
+        playerdata.save();
         if(pl != null) {
             SyncController.syncPlayer((EntityPlayerMP) pl);
         }

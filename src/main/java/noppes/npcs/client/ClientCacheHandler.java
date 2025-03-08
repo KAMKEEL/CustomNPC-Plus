@@ -1,6 +1,7 @@
 package noppes.npcs.client;
 
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.select.GuiTextureSelection;
@@ -61,6 +62,9 @@ public class ClientCacheHandler {
         // Clear Texture Caches
         GuiSoundSelection.cachedDomains.clear();
         GuiTextureSelection.cachedTextures.clear();
+
+        // Clear music/bard sounds
+        MusicController.Instance.stopAllSounds();
     }
 
     public static void clearSkinCache() {

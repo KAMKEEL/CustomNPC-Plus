@@ -82,7 +82,7 @@ public class DataAdvanced {
 		compound.setString("SoulStonePlayerName", soulStonePlayerName);
 		compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
 
-        if(tagUUIDs.size() > 0){
+        if(!tagUUIDs.isEmpty()){
             NBTTagList nbtTagList = new NBTTagList();
             for (UUID uuid : tagUUIDs) {
                 nbtTagList.appendTag(new NBTTagString(uuid.toString()));

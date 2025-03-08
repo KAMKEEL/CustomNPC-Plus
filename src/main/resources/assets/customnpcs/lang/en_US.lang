@@ -539,6 +539,8 @@ faction.options=Faction Options
 faction.increasepoints=Faction %s increased by %s points
 faction.decreasepoints=Faction %s decreased by %s points
 faction.attacked=Attacked by mobs
+faction.passive=Is Passive
+faction.passive.hover=Passive factions will not queue any attacking tasks [Good for Performance]
 
 menu.inventory=Inventory
 menu.display=Display
@@ -1342,6 +1344,8 @@ magic.interaction=Interaction
 magic.diagram=Diagram Type
 magic.index=Index
 magic.priority=Priority
+magic.split=Split
+magic.bonus=Bonus
 
 diagram.circular=Circular
 diagram.square=Square

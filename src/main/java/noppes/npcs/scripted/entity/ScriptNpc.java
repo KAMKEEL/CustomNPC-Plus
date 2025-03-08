@@ -11,10 +11,7 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.entity.data.IModelData;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.IOverlayHandler;
-import noppes.npcs.api.handler.data.IAnimationData;
-import noppes.npcs.api.handler.data.IDialog;
-import noppes.npcs.api.handler.data.IFaction;
-import noppes.npcs.api.handler.data.ILines;
+import noppes.npcs.api.handler.data.*;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.api.jobs.IJob;
 import noppes.npcs.api.roles.IRole;
@@ -1381,8 +1378,11 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
 	public void updateAI() { this.npc.updateTasks(); }
 
-    @Override
     public IActionManager getActionManager() {
         return npc.actionManager;
+    }
+
+    public IMagicData getMagicData() {
+        return npc.stats.magicData;
     }
 }

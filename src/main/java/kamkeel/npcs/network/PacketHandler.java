@@ -227,7 +227,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new PlayerDataGetNamesPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
         REQUEST_PACKET.registerPacket(new PlayerDataGetInfoPacket());
-        REQUEST_PACKET.registerPacket(new PlayerDataRemoveInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataDeleteInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataSaveInfoPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataMapRegenPacket());
 
         // Main Menu Packets
@@ -327,13 +328,15 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
         REQUEST_PACKET.registerPacket(new ProfileChangePacket());
 
-        // Job Packets
+        // Magic Packets
         REQUEST_PACKET.registerPacket(new MagicCycleRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicCycleSavePacket());
         REQUEST_PACKET.registerPacket(new MagicGetAllPacket());
         REQUEST_PACKET.registerPacket(new MagicSavePacket());
         REQUEST_PACKET.registerPacket(new MagicRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicNpcGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicNpcSavePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

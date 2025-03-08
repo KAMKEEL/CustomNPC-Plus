@@ -122,13 +122,13 @@ public class GuiNpcGuard extends GuiNPCInterface2{
 	        }
 	        role.targets = all;
 			scroll1.selected = -1;
-			scroll1.selected = -1;
+			scroll2.selected = -1;
 			initGui();
 		}
 		if(button.id == 14){
 			role.targets.clear();
 			scroll1.selected = -1;
-			scroll1.selected = -1;
+			scroll2.selected = -1;
 			initGui();
 		}
     }

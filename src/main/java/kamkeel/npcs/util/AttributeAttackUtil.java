@@ -3,152 +3,245 @@ package kamkeel.npcs.util;
 import kamkeel.npcs.CustomAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicEntry;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 import static kamkeel.npcs.controllers.AttributeController.getTracker;
 
 public class AttributeAttackUtil {
     private static final Random random = new Random();
+    // --- Helper Classes & Methods ---
 
-    public static float calculateDamagePlayer(EntityPlayer attacker, EntityPlayer defender, float base){
-        return calculateDamagePlayer(getTracker(attacker), getTracker(defender), base);
-    }
-
-    public static float calculateDamagePlayer(PlayerAttributeTracker attacker, PlayerAttributeTracker defender, float baseDamage) {
-
-        // Calculate physical damage
-        float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-        float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-        float physicalDamage = (baseDamage * mainBoost) + mainAttack;
-
-        // Calculate neutral damage
-        float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
-        float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
-        float neutralTotal = neutralDamage * neutralBoost;
-
-        // Calculate magic damage
-        float magicTotal = 0.0f;
-        MagicController magicController = MagicController.getInstance();
-        for (Map.Entry<Integer, Float> entry : attacker.magicDamage.entrySet()) {
-            int magicId = entry.getKey();
-            if (magicController.getMagic(magicId) != null) {
-                float attackMagic = entry.getValue();
-                float defenseMagic = defender.magicDefense.getOrDefault(magicId, 0.0f);
-                float effectiveMagic = attackMagic - defenseMagic;
-
-                float boostMagic = attacker.magicBoost.getOrDefault(magicId, 0.0f);
-                float resistanceMagic = defender.magicResistance.getOrDefault(magicId, 0.0f);
-                float effectiveBoost = boostMagic - resistanceMagic;
-
-                float magicDamageForMagic = effectiveMagic * (effectiveBoost + 1);
-                // Ensure magic damage doesn't drop below 0 for this magic
-                magicTotal += Math.max(0, magicDamageForMagic);
-            }
+    // Container for allocation results.
+    private static class AllocationResult {
+        public Map<Integer, Float> allocation;
+        public float leftover;
+        public AllocationResult(Map<Integer, Float> allocation, float leftover) {
+            this.allocation = allocation;
+            this.leftover = leftover;
         }
-
-        // Sum all damage components
-        float totalDamage = physicalDamage + neutralTotal + magicTotal;
-
-        // Critical hit: if critical, float damage and add bonus
-        float criticalChance = attacker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
-        float criticalBonus = attacker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
-        if (random.nextFloat() < (criticalChance / 100)) {
-            totalDamage = (totalDamage * 2) + criticalBonus;
-        }
-
-        return totalDamage;
-    }
-
-    public static float calculateDamageNPC(PlayerAttributeTracker attacker, EntityNPCInterface defender, float baseDamage) {
-
-        // Calculate physical damage
-        float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-        float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-        float physicalDamage = (baseDamage * mainBoost) + mainAttack;
-
-        // Calculate neutral damage
-        float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
-        float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
-        float neutralTotal = neutralDamage * neutralBoost;
-
-        // Calculate magic damage
-//        float magicTotal = 0.0;
-//        MagicController magicController = MagicController.getInstance();
-//        for (Map.Entry<Integer, Float> entry : attacker.magicDamage.entrySet()) {
-//            int magicId = entry.getKey();
-//            if (magicController.getMagic(magicId) != null) {
-//                float attackMagic = entry.getValue();
-//                float defenseMagic = defender.magicDefense.getOrDefault(magicId, 0.0);
-//                float effectiveMagic = attackMagic - defenseMagic;
-//
-//                float boostMagic = attacker.magicBoost.getOrDefault(magicId, 0.0);
-//                float resistanceMagic = defender.magicResistance.getOrDefault(magicId, 0.0);
-//                float effectiveBoost = boostMagic - resistanceMagic;
-//
-//                float magicDamageForMagic = effectiveMagic * (effectiveBoost + 1);
-//                // Ensure magic damage doesn't drop below 0 for this magic
-//                magicTotal += Math.max(0, magicDamageForMagic);
-//            }
-//        }
-//
-//        // Sum all damage components
-//        float totalDamage = physicalDamage + neutralTotal + magicTotal;
-//
-//        // Critical hit: if critical, float damage and add bonus
-//        float criticalChance = attacker.getAttributeValue(ModAttributes.CRITICAL_CHANCE);
-//        float criticalBonus = attacker.getAttributeValue(ModAttributes.CRITICAL_DAMAGE);
-//        if (random.nextFloat() < (criticalChance / 100)) {
-//            totalDamage = (totalDamage * 2) + criticalBonus;
-//        }
-
-        return 0;
     }
 
     /**
-     * Calculates a player's total damage when attacking an opponent with no defense.
-     * In this calculation, any defensive modifiers (such as magic defense or resistance)
-     * are assumed to be zero.
-     *
-     * @param attacker   The attacker's attribute tracker.
-     * @return The total calculated damage.
+     * Allocates physical damage into magic allocations based on MagicData splits.
+     * Returns both a mapping (magic ID -> allocated damage) and any leftover physical damage.
      */
-    public static float calculateMaximumOutput(PlayerAttributeTracker attacker) {
-        // Neutral damage remains unchanged.
+    private static AllocationResult allocateMagicDamage(float physicalDamage, Map<Integer, MagicEntry> magicData) {
+        Map<Integer, Float> allocation = new HashMap<>();
+        float totalSplit = 0f;
+        for (Map.Entry<Integer, MagicEntry> entry : magicData.entrySet()) {
+            int magicId = entry.getKey();
+            float splitVal = entry.getValue().split;
+            float allocated = (physicalDamage * splitVal) + entry.getValue().damage;
+            allocation.put(magicId, allocated);
+            totalSplit += splitVal;
+        }
+        // Ensure double arithmetic for subtraction, then cast back to float.
+        float leftover = physicalDamage * (float)Math.max(0d, 1d - totalSplit);
+        return new AllocationResult(allocation, leftover);
+    }
+
+    /**
+     * Adds extra magic damage from attribute sources if attributes are enabled.
+     */
+    private static void addAttributeMagicDamage(Map<Integer, Float> allocation,
+                                                Map<Integer, Float> attributeDamage,
+                                                Map<Integer, Float> magicBoost) {
+        if (!ConfigMain.AttributesEnabled) return;
+        for (Map.Entry<Integer, Float> entry : attributeDamage.entrySet()) {
+            int magicId = entry.getKey();
+            float damage = entry.getValue();
+            float boost = magicBoost.getOrDefault(magicId, 0f);
+            damage *= (1 + (boost / 100));
+            allocation.put(magicId, allocation.getOrDefault(magicId, 0f) + damage);
+        }
+    }
+
+    /**
+     * Applies magic interactions. For each magic in the allocation, multiplies its damage by (1 + bonus)
+     * for each opposing magic the defender possesses.
+     */
+    private static void applyMagicInteractions(Map<Integer, Float> allocation,
+                                               Set<Integer> defenderMagicIDs,
+                                               MagicController magicController) {
+        for (Map.Entry<Integer, Float> entry : allocation.entrySet()) {
+            int magicId = entry.getKey();
+            float magicDamage = entry.getValue();
+            Magic magic = magicController.getMagic(magicId);
+            if (magic != null && magic.interactions != null) {
+                float multiplier = 1f;
+                for (Map.Entry<Integer, Float> inter : magic.interactions.entrySet()) {
+                    if (defenderMagicIDs.contains(inter.getKey())) {
+                        multiplier *= (1 + inter.getValue());
+                    }
+                }
+                entry.setValue(magicDamage * multiplier);
+            }
+        }
+    }
+
+    /**
+     * Applies defender magic defenses if attributes are enabled.
+     * Subtracts tracker-based magic defense (scaled by resistance) from each magic allocation.
+     */
+    private static float applyDefenderMagicDefense(Map<Integer, Float> allocation,
+                                                   PlayerAttributeTracker defender,
+                                                   MagicController magicController) {
+        if (!ConfigMain.AttributesEnabled) return 0f;
+        float adjusted = 0f;
+        for (Map.Entry<Integer, Float> entry : allocation.entrySet()) {
+            int magicId = entry.getKey();
+            if (magicController.getMagic(magicId) == null) continue;
+            float damage = entry.getValue();
+            float defense = defender.magicDefense.getOrDefault(magicId, 0f);
+            float resistance = defender.magicResistance.getOrDefault(magicId, 0f);
+            float totalDefense = defense * (1 + (resistance / 100));
+            damage -= totalDefense;
+            adjusted += Math.max(0, damage);
+        }
+        return adjusted;
+    }
+
+    // --- Damage Calculation Functions ---
+
+    /**
+     * Calculates damage when a player attacks another player.
+     */
+    public static float calculateDamagePlayerToPlayer(EntityPlayer attackPlayer, EntityPlayer defendPlayer, float baseDamage) {
+        PlayerData attackerData = PlayerData.get(attackPlayer);
+        PlayerData defenderData = PlayerData.get(defendPlayer);
+        PlayerAttributeTracker attacker = getTracker(attackPlayer);
+        PlayerAttributeTracker defender = getTracker(defendPlayer);
+
+        // Calculate physical damage.
+        float physicalDamage = applyMainAttack(baseDamage, attacker);
+        AllocationResult result = allocateMagicDamage(physicalDamage, attackerData.magicData.getMagics());
+        float leftover = applyNeutral(result.leftover, attacker);
+        addAttributeMagicDamage(result.allocation, attacker.magicDamage, attacker.magicBoost);
+
+        MagicController magicController = MagicController.getInstance();
+        Set<Integer> defenderMagicIDs = new HashSet<>(defenderData.magicData.getMagics().keySet());
+        applyMagicInteractions(result.allocation, defenderMagicIDs, magicController);
+        float adjustedMagic = applyDefenderMagicDefense(result.allocation, defender, magicController);
+
+        return applyCrit(leftover + adjustedMagic, attacker);
+    }
+
+    /**
+     * Calculates damage when a player attacks an NPC.
+     */
+    public static float calculateDamagePlayerToNPC(EntityPlayer attackPlayer, EntityNPCInterface npc, float baseDamage) {
+        PlayerData attackerData = PlayerData.get(attackPlayer);
+        PlayerAttributeTracker attacker = getTracker(attackPlayer);
+
+        float physicalDamage = applyMainAttack(baseDamage, attacker);
+        AllocationResult result = allocateMagicDamage(physicalDamage, attackerData.magicData.getMagics());
+        float leftover = applyNeutral(result.leftover, attacker);
+
+        addAttributeMagicDamage(result.allocation, attacker.magicDamage, attacker.magicBoost);
+
+        MagicController magicController = MagicController.getInstance();
+        Set<Integer> npcMagicIDs = new HashSet<>();
+        if (npc.stats != null && npc.stats.magicData != null)
+            npcMagicIDs = new HashSet<>(npc.stats.magicData.getMagics().keySet());
+        applyMagicInteractions(result.allocation, npcMagicIDs, magicController);
+
+        float adjustedMagic = 0f;
+        for (float val : result.allocation.values())
+            adjustedMagic += val;
+
+        return applyCrit(leftover + adjustedMagic, attacker);
+    }
+
+    public static float applyCrit(float damage, PlayerAttributeTracker tracker){
+        if (ConfigMain.AttributesEnabled) {
+            float critChance = tracker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
+            float critBonus = tracker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
+            if (random.nextFloat() < (critChance / 100))
+                damage = (damage * (1 + (float) ConfigMain.AttributesCriticalBoost / 100)) + critBonus;
+        }
+        return damage;
+    }
+
+    public static float applyMainAttack(float damage, PlayerAttributeTracker tracker){
+        if (ConfigMain.AttributesEnabled) {
+            float mainAttack = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+            float mainBoost = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
+            damage = (damage * mainBoost) + mainAttack;
+        }
+        return damage;
+    }
+
+    public static float applyNeutral(float leftover, PlayerAttributeTracker tracker){
+        if (ConfigMain.AttributesEnabled) {
+            float neutralDamage = tracker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
+            float neutralBoost = tracker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST);
+            leftover += neutralDamage * (1 + (neutralBoost / 100));
+        }
+        return leftover;
+    }
+
+    /**
+     * Calculates damage when an NPC attacks a player.
+     */
+    public static float calculateDamageNPCtoPlayer(EntityNPCInterface npc, EntityPlayer defendingPlayer, float baseDamage) {
+        PlayerData defenderData = PlayerData.get(defendingPlayer);
+        PlayerAttributeTracker defender = getTracker(defendingPlayer);
+
+        if (npc.stats == null || npc.stats.magicData == null)
+            return baseDamage;
+
+        AllocationResult result = allocateMagicDamage(baseDamage, npc.stats.magicData.getMagics());
+        float leftover = result.leftover;
+
+        MagicController magicController = MagicController.getInstance();
+        Set<Integer> defenderMagicIDs = new HashSet<>(defenderData.magicData.getMagics().keySet());
+        applyMagicInteractions(result.allocation, defenderMagicIDs, magicController);
+
+        float adjustedMagic = 0f;
+        for (float val : result.allocation.values())
+            adjustedMagic += val;
+
+        return leftover + adjustedMagic;
+    }
+
+    /**
+     * Calculates a player's maximum output ignoring defensive modifiers.
+     */
+    public static float calculateGearOutput(PlayerAttributeTracker attacker) {
         float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
         float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
         float neutralTotal = neutralDamage * neutralBoost;
 
-        // For magic damage, we ignore any defensive values.
-        float magicTotal = 0.0f;
+        float magicTotal = 0f;
         MagicController magicController = MagicController.getInstance();
         for (Map.Entry<Integer, Float> entry : attacker.magicDamage.entrySet()) {
             int magicId = entry.getKey();
             if (magicController.getMagic(magicId) != null) {
                 float attackMagic = entry.getValue();
-                // No defender, so effective magic equals attack magic.
-                float effectiveMagic = attackMagic;
-
-                float boostMagic = attacker.magicBoost.getOrDefault(magicId, 0.0f);
-                // No resistance present.
-                float effectiveBoost = boostMagic;
-
-                float magicDamageForMagic = effectiveMagic * (effectiveBoost + 1);
-                magicTotal += Math.max(0, magicDamageForMagic);
+                float boostMagic = attacker.magicBoost.getOrDefault(magicId, 0f);
+                magicTotal += Math.max(0, attackMagic * (boostMagic + 1));
             }
         }
         return neutralTotal + magicTotal;
     }
 
+    /**
+     * Calculates a player's outgoing damage based on base damage and main attack attributes.
+     */
     public static float calculateOutgoing(EntityPlayer entityPlayer, float baseDamage) {
-        PlayerAttributeTracker attacker = getTracker(entityPlayer);
-
-        float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-        float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-        float physicalDamage = (baseDamage * mainBoost) + mainAttack;
-        return attacker.maximumOutput + physicalDamage;
+        if (ConfigMain.AttributesEnabled) {
+            PlayerAttributeTracker attacker = getTracker(entityPlayer);
+            float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+            float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
+            return attacker.gearOutput + (baseDamage * mainBoost) + mainAttack;
+        }
+        return baseDamage;
     }
 }

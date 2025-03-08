@@ -61,7 +61,7 @@ public class MusicController {
                 soundHandler.stopSounds();
             } catch (Exception ignored) {}
         }
-        if (this.isPlaying()) {
+        if (this.playingSound != null) {
             this.playingSound.stopSound();
             this.playingSound = null;
         }
