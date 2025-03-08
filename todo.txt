@@ -7,14 +7,14 @@ Magic:
 - Store Magic on PlayerData and NPCs -- Done
 
 Profile:
-- On Profile Slot Change Event
-- On Profile Slot Create Event
-- On Profile Slot Delete Event
+- On Profile Slot Change Event -- WIP
+- On Profile Slot Create Event -- WIP
+- On Profile Slot Delete Event -- WIP
 
 ScriptPlayer and ScriptNPC
 -- Apply, Removing and Checking Magic Types
 
 Interfaces:
-- IMagic
+- IMagic -- Done
 - IProfile -- Need Work
 - ISlot -- Done
