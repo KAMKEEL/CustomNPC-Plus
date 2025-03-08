@@ -201,5 +201,4 @@ public enum EnumRequestPacket {
     MagicSave,
     NpcMagicGet,
     NpcMagicSave,
-    MagicDataGet,
 }

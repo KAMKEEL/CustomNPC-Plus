@@ -9,6 +9,7 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.constants.EnumPlayerData;
 
@@ -38,6 +39,12 @@ public final class PlayerDataSaveInfoPacket extends AbstractPacket {
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;
     }
+
+    @Override
+    public CustomNpcsPermissions.Permission getPermission() {
+        return CustomNpcsPermissions.GLOBAL_PLAYERDATA;
+    }
+
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
