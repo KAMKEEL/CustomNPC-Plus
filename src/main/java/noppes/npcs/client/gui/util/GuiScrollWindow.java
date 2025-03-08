@@ -113,7 +113,9 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
     public void mouseEvent(int i, int j, int k) {
     }
 
+    public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
 
+    }
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         parent.actionPerformed(guibutton);
@@ -266,7 +268,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
         super.drawDefaultBackground();
     }
 
-    protected void setClip(int x, int y, int width, int height) {
+    public void setClip(int x, int y, int width, int height) {
         if (scaledResolution == null)
             return;
         int scaleFactor = scaledResolution.getScaleFactor();

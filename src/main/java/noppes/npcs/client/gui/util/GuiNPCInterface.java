@@ -168,6 +168,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
             subgui.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
             return;
         }
+
+        for (GuiScrollWindow window : scrollWindows.values())
+            window.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+
+
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
     }
 

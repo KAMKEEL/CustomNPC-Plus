@@ -99,7 +99,7 @@ public class GuiModelInterface extends GuiNPCInterface {
 
     @Override
     public void drawScreen(int par1, int par2, float partialTicks) {
-        if (Mouse.isButtonDown(0)) {
+        if (Mouse.isButtonDown(0) && drawRenderButtons) {
             if (this.left.mousePressed(this.mc, par1, par2)) {
                 rotation += partialTicks * 1.5F;
             } else if (this.right.mousePressed(this.mc, par1, par2)) {
