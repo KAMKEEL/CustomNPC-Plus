@@ -11,6 +11,7 @@ import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.MarkType;
 import org.lwjgl.opengl.GL11;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class CompassHudComponent extends HudComponent {
@@ -29,11 +30,11 @@ public class CompassHudComponent extends HudComponent {
     public boolean resizingWidth = false;
 
     public static class MarkTargetEntry {
-        public int x, z;
+        public double x, z;
         public int type;
         public int color;
 
-        public MarkTargetEntry(int x, int z, int type, int color) {
+        public MarkTargetEntry(double x, double z, int type, int color) {
             this.x = x;
             this.z = z;
             this.type = type;
@@ -96,7 +97,6 @@ public class CompassHudComponent extends HudComponent {
 
     @Override
     public void renderOnScreen(float partialTicks) {
-        // If no mark data or in edit mode, skip normal rendering.
         if (!hasData || isEditting) return;
 
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
@@ -111,8 +111,13 @@ public class CompassHudComponent extends HudComponent {
         // Draw background bar
         drawRect(0, 0, overlayWidth, BAR_HEIGHT, 0x80000000);
 
+        // Sort marks so the closest ones render last (on top)
+        markTargets.sort(Comparator.comparingDouble(mark ->
+            mc.thePlayer.getDistanceSq(mark.x + 0.5, mc.thePlayer.posY, mark.z + 0.5)
+        ));
+
         // Render all marks
-        for(MarkTargetEntry mark : markTargets) {
+        for (MarkTargetEntry mark : markTargets) {
             renderMarkIcon(mark);
         }
 
@@ -259,7 +264,15 @@ public class CompassHudComponent extends HudComponent {
      */
     public void updateMarkTargets(List<MarkTargetEntry> newMarks) {
         markTargets.clear();
-        markTargets.addAll(newMarks);
+        for (MarkTargetEntry mark : newMarks) {
+            // Center the mark on the block
+            markTargets.add(new MarkTargetEntry(
+                Math.floor(mark.x) + 0.5,
+                Math.floor(mark.z) + 0.5,
+                mark.type,
+                mark.color
+            ));
+        }
         hasData = !markTargets.isEmpty();
     }
 

@@ -1,8 +1,6 @@
 package noppes.npcs.client.gui.hud;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class ClientHudManager {
     private static ClientHudManager instance;
