@@ -6,14 +6,21 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IFramePart;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.constants.EnumAnimationPart;
+import noppes.npcs.constants.animation.EnumFrameType;
 import noppes.npcs.util.Ease;
 import noppes.npcs.util.ValueUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class FramePart implements IFramePart {
+
     public Animation parent;
     public EnumAnimationPart part;
     public float[] rotation = {0, 0, 0};
     public float[] pivot = {0, 0, 0};
+
+    public HashMap<EnumFrameType, Value> values = new HashMap<>();
 
     boolean customized = false;
 
@@ -122,11 +129,27 @@ public class FramePart implements IFramePart {
     public void readFromNBT(NBTTagCompound compound) {
         part = EnumAnimationPart.valueOf(compound.getString("Part"));
         for (int i = 0; i < 3; i++) {
-            rotation[i] = compound.getFloat("Rotation" + i);
+            if (compound.hasKey("Rotation" + i)) {
+                rotation[i] = compound.getFloat("Rotation" + i);
+                addValue(EnumFrameType.values()[i], rotation[i]);
+            }
         }
         for (int i = 0; i < 3; i++) {
-            pivot[i] = compound.getFloat("Pivot" + i);
+            if (compound.hasKey("Pivot" + i)) {
+                pivot[i] = compound.getFloat("Pivot" + i);
+                addValue(EnumFrameType.values()[3 + i], rotation[i]);
+            }
         }
+
+        if (compound.hasKey("Rotation0")) {
+            for (int i = 0; i < 3; i++) {
+                rotation[i] = compound.getFloat("Rotation" + i);
+                addValue(EnumFrameType.values()[i], rotation[i]);
+                pivot[i] = compound.getFloat("Pivot" + i);
+                addValue(EnumFrameType.values()[3 + i], rotation[i]);
+            }
+        }
+
 
         // Customized = TRUE if Speed or Smooth Exist
         if (compound.hasKey("Speed")) {
@@ -136,6 +159,15 @@ public class FramePart implements IFramePart {
         if (compound.hasKey("Smooth")) {
             customized = true;
             smooth = compound.getByte("Smooth");
+        }
+
+        for (EnumFrameType type : EnumFrameType.values()) {
+            String name = type.toString().toLowerCase();
+            if (compound.hasKey(name)) {
+                NBTTagCompound cmpd = compound.getCompoundTag(name);
+                Ease easing = Ease.valueOf(cmpd.getString("easing"));
+                addValue(type, cmpd.getFloat("value"), easing);
+            }
         }
     }
 
@@ -147,6 +179,11 @@ public class FramePart implements IFramePart {
         }
         for (int i = 0; i < 3; i++) {
             compound.setFloat("Pivot" + i, pivot[i]);
+        }
+
+        for (Map.Entry<EnumFrameType, Value> entry : values.entrySet()) {
+            EnumFrameType type = entry.getKey();
+            compound.setTag(type.toString().toLowerCase(), entry.getValue().writeToNBT());
         }
 
         if (customized) {
@@ -166,7 +203,6 @@ public class FramePart implements IFramePart {
         part.smooth = this.smooth;
         return part;
     }
-
     @SideOnly(Side.CLIENT)
     public void interpolateAngles() {
         if (parent != null && parent.paused)
@@ -181,7 +217,11 @@ public class FramePart implements IFramePart {
                 if (next != null) {
                     FramePart nextPart = next.frameParts.get(part);
                     if (nextPart != null) {
-                        float value = Ease.OUTQUINT.apply(getInterpolationValue());
+                        float value = Ease.OUTBOUNCE.apply(getInterpolationValue());
+                        this.prevRotations[0] = ValueUtil.lerp(values.get(EnumFrameType.ROTATION_X).value * pi, nextPart.values.get(EnumFrameType.ROTATION_X).value * pi, value);
+                        this.prevRotations[1] = ValueUtil.lerp(values.get(EnumFrameType.ROTATION_Y).value * pi, nextPart.values.get(EnumFrameType.ROTATION_Y).value * pi, value);
+                        this.prevRotations[2] = ValueUtil.lerp(values.get(EnumFrameType.ROTATION_Z).value * pi, nextPart.values.get(EnumFrameType.ROTATION_Z).value * pi, value);
+
                         this.prevRotations[0] = ValueUtil.lerp(this.rotation[0] * pi, nextPart.rotation[0] * pi, value);
                         this.prevRotations[1] = ValueUtil.lerp(this.rotation[1] * pi, nextPart.rotation[1] * pi, value);
                         this.prevRotations[2] = ValueUtil.lerp(this.rotation[2] * pi, nextPart.rotation[2] * pi, value);
@@ -279,5 +319,54 @@ public class FramePart implements IFramePart {
         this.prevRotations[0] = this.rotation[0] * pi;
         this.prevRotations[1] = this.rotation[1] * pi;
         this.prevRotations[2] = this.rotation[2] * pi;
+    }
+
+    public IFramePart addValue(String type, float value) {
+        addValue(EnumFrameType.valueOf(type.toUpperCase()), value, Ease.INSINE);
+        return this;
+    }
+
+    public IFramePart addValue(String type, float value, String easing) {
+        addValue(EnumFrameType.valueOf(type.toUpperCase()), value, Ease.valueOf(easing.toUpperCase()));
+        return this;
+    }
+
+    public void addValue(EnumFrameType type, float value) {
+        addValue(type, value, Ease.INSINE);
+    }
+
+    public void addValue(EnumFrameType type, float value, Ease ease) {
+        Value val = new Value(value, ease);
+
+        if (!values.containsKey(type))
+            values.put(type, val);
+        else
+            values.replace(type, val);
+    }
+
+    public void setEase(EnumFrameType type, Ease ease) {
+        if (values.containsKey(type))
+            values.get(type).easing = ease;
+    }
+
+    public class Value {
+        public float value;
+        public Ease easing;
+
+        public Value(float value, Ease ease) {
+            this.value = value;
+            this.easing = ease;
+        }
+
+        public Value(float value) {
+            this(value, Ease.INOUTSINE);
+        }
+
+        public NBTTagCompound writeToNBT() {
+            NBTTagCompound cmpd = new NBTTagCompound();
+            cmpd.setFloat("value", value);
+            cmpd.setString("easing", easing.toString());
+            return cmpd;
+        }
     }
 }
