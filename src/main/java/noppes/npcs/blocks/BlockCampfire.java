@@ -3,12 +3,14 @@ package noppes.npcs.blocks;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
@@ -62,7 +64,20 @@ public class BlockCampfire extends BlockLightable{
     	return 8;
     }
 
-	@Override
+    @SideOnly(Side.CLIENT)
+    @Override
+    public void registerBlockIcons(IIconRegister par1IconRegister){
+        this.blockIcon = par1IconRegister.registerIcon(this.getTextureName());
+    }
+
+    @Override
+    @SideOnly(Side.CLIENT)
+    public IIcon getIcon(int p_149691_1_, int meta){
+        return this.blockIcon;
+    }
+
+
+    @Override
     @SideOnly(Side.CLIENT)
     public void randomDisplayTick(World world, int x, int y, int z, Random random){
         int meta = world.getBlockMetadata(x, y, z);

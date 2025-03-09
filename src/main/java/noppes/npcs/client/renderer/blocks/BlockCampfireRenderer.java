@@ -105,6 +105,11 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
 		GL11.glPopMatrix();
 	}
 
+    @Override
+    public boolean shouldRender3DInInventory(int modelId) {
+        return ConfigClient.LegacyCampfire;
+    }
+
 	@Override
 	public int getRenderId() {
 		return CustomItems.campfire.getRenderType();

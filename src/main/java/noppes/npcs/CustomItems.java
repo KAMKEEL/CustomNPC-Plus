@@ -296,13 +296,13 @@ public class CustomItems {
 			couchWool = new BlockCouchWool().setBlockName("npcCouchWool").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			table = new BlockTable().setBlockName("npcTable").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			couchWood = new BlockCouchWood().setBlockName("npcCouchWood").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
-			lantern = new BlockLantern(true).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:lantern");;
-			candle = new BlockCandle(true).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:candle");;
+			lantern = new BlockLantern(true).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:lantern");
+			candle = new BlockCandle(true).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:candle");
 			stool = new BlockStool().setBlockName("npcStool").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			Block placeholder = new BlockPlaceholder().setBlockName("npcPlaceholder").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabMisc);
 			bigsign = new BlockBigSign().setBlockName("npcBigSign").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			barrel = new BlockBarrel().setBlockName("npcBarrel").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
-			campfire = new BlockCampfire(true).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setCreativeTab(tabBlocks);
+			campfire = new BlockCampfire(true).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setCreativeTab(tabBlocks).setBlockTextureName("customnpcs:campfire");
 			tombstone = new BlockTombstone().setBlockName("npcTombstone").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setCreativeTab(tabBlocks);
 			shelf = new BlockShelf().setBlockName("npcShelf").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			sign = new BlockSign().setBlockName("npcSign").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
@@ -311,7 +311,7 @@ public class CustomItems {
 			pedestal = new BlockPedestal().setBlockName("npcPedestal").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeWood).setCreativeTab(tabBlocks);
 			crystal = new BlockCrystal().setBlockName("npcCrystal").setBlockTextureName("customnpcs:npcCrystal").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeGlass).setCreativeTab(tabBlocks);
 
-			campfire_unlit = new BlockCampfire(false).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone);
+			campfire_unlit = new BlockCampfire(false).setBlockName("npcCampfire").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setBlockTextureName("customnpcs:campfire");
 			lantern_unlit = new BlockLantern(false).setBlockName("npcLamp").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeMetal).setBlockTextureName("customnpcs:lantern");
 			candle_unlit = new BlockCandle(false).setBlockName("npcCandle").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeStone).setBlockTextureName("customnpcs:candle");
 
