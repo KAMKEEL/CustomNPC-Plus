@@ -211,8 +211,14 @@ public class QuestTrackingComponent extends HudComponent {
             textAlign = (textAlign + 1) % 3;
             button.displayString = getAlignText();
         } else if (button.id == 3) { // Reset to center.
-            posX = 50;
-            posY = 50;
+            ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+            float effectiveScale = getEffectiveScale(res);
+            int compWidth = (int)(overlayWidth * effectiveScale);
+            int compHeight = (int)(overlayHeight * effectiveScale);
+            int centerX = (res.getScaledWidth() - compWidth) / 2;
+            int centerY = (res.getScaledHeight() - compHeight) / 2;
+            posX = (int)(100F * centerX / res.getScaledWidth());
+            posY = (int)(100F * centerY / res.getScaledHeight());
         } else {
             super.onEditorButtonPressed(button);
         }
@@ -227,7 +233,7 @@ public class QuestTrackingComponent extends HudComponent {
         }
     }
 
-    // ---------- Helper rendering methods -----------
+    // ---------- Helper rendering methods ----------- (methods unchanged) ...
     private int renderTextBlock(List<String> lines, int startY, int align, int color) {
         int y = startY;
         FontRenderer font = mc.fontRenderer;
