@@ -43,7 +43,7 @@ public class BlockCarpentryBenchRenderer extends TileEntitySpecialRenderer imple
 		int meta = var1.getBlockMetadata();
         GL11.glPushMatrix();
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 +1.4f, (float)var6 + 0.5f);
-        GL11.glScalef(0.95f, 0.95f, 0.95f);
+        GL11.glScalef(0.99f, 0.99f, 0.99f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * (meta % 4), 0, 1, 0);
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
