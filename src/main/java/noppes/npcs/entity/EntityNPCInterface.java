@@ -565,13 +565,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         } else if (attackingEntity instanceof EntityPlayer && faction.isFriendlyToPlayer((EntityPlayer) attackingEntity))
             return false;
 
-        // Attribute + Resistances
-        if(!DBCAddon.IsAvailable()){
-            if(attackingEntity instanceof EntityPlayer)
-                i = AttributeAttackUtil.calculateDamagePlayerToNPC((EntityPlayer) attackingEntity, this, i);
+        // Attribute
+        if(!DBCAddon.IsAvailable() && attackingEntity instanceof EntityPlayer)
+            i = AttributeAttackUtil.calculateDamagePlayerToNPC((EntityPlayer) attackingEntity, this, i);
 
-            i = stats.resistances.applyResistance(damagesource, i);
-        }
+        //  Resistances
+        i = stats.resistances.applyResistance(damagesource, i);
 
         NpcEvent.DamagedEvent event = new NpcEvent.DamagedEvent(this.wrappedNPC, attackingEntity, i, damagesource);
         if (EventHooks.onNPCDamaged(this, event) || isKilled())
