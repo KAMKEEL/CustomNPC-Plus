@@ -2,7 +2,8 @@ package noppes.npcs.client.gui.util.animation;
 
 import net.minecraft.client.gui.Gui;
 import noppes.npcs.client.gui.util.GuiUtil;
-import noppes.npcs.constants.animation.EnumFrameType;
+import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
+import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -25,7 +26,7 @@ public class Grid {
     public boolean isDragging, isResetting;
     public boolean centerAroundMouse = true;
 
-    public GridPointManager manager = new GridPointManager(this);
+    public GridPointManager manager;
 
     public Grid(GuiGraphEditor parent, int startX, int startY, int endX, int endY) {
         this.parent = parent;
@@ -34,15 +35,53 @@ public class Grid {
         this.endX = endX;
         this.endY = endY;
 
+        manager = new GridPointManager(this);
+        keys();
         zoomX = targetZoomX = 20;
         subDivisionY = 2;
+        panY = -(parent.clipHeight * subDivisionY / 2);
+    }
+
+    public void keys() {
+        AnimationKeyPresets keys = parent.keys;
+
+        keys.RESET_GRID.setTask((pressType) -> {
+            if (pressType == KeyPreset.PRESS) {
+                if (!isResetting) {
+                    if (xDown()) {
+                        targetPanX = 0;
+                        targetZoomX = 20;
+                        smoothenPanX = true;
+                    } else if (yDown()) {
+                        targetPanY = -((parent.clipHeight) * subDivisionY / 2);
+                        targetZoomY = 1.0f;
+                        smoothenPanY = true;
+                    } else {
+                        targetPanY = -((parent.clipHeight) * subDivisionY / 2);
+                        targetPanX = 0;
+                        targetZoomX = 20;
+                        targetZoomY = 1.0f;
+                        smoothenPanX = smoothenPanY = true;
+                    }
+                    isResetting = true;
+                    centerAroundMouse = false;
+                }
+            }
+        });
+    }
+
+    public void setPos(int startX, int startY, int endX, int endY) {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks, int wheel) {
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
         // Panning
-        if (isDragging && !Mouse.isButtonDown(0))
+        if (isDragging && !Mouse.isButtonDown(1))
             isDragging = false;
 
         if (parent.isWithin(mouseX, mouseY) && !isResetting) {
@@ -60,31 +99,6 @@ public class Grid {
             }
         }
 
-        //////////////////////////////////////////////////////////////
-        //////////////////////////////////////////////////////////////
-        // Reset key
-        if (Keyboard.isKeyDown(Keyboard.KEY_R) && !isResetting) {
-            if (xDown()) {
-                targetPanX = 0;
-                targetZoomX = 20;
-                smoothenPanX = true;
-            } else if (yDown()) {
-                targetPanY = -((parent.clipHeight) * subDivisionY / 2);
-                targetZoomY = 1.0f;
-                smoothenPanY = true;
-            } else {
-                targetPanY = -((parent.clipHeight) * subDivisionY / 2);
-                targetPanX = 0;
-                targetZoomX = 20;
-                targetZoomY = 1.0f;
-                smoothenPanX = smoothenPanY = true;
-            }
-            isResetting = true;
-            centerAroundMouse = false;
-        } else if (isResetting && zoomX == targetZoomX && zoomY == targetZoomY && (smoothenPanX ? panX == targetPanX : smoothenPanY ? panY == targetPanY : true)) {
-            isResetting = smoothenPanX = smoothenPanY = false;
-            centerAroundMouse = true;
-        }
 
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
@@ -108,8 +122,13 @@ public class Grid {
 
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
-        // Smoothen panning while resetting
+        // Reset logic
         if (isResetting) {
+            if (zoomX == targetZoomX && zoomY == targetZoomY && (smoothenPanX ? panX == targetPanX : smoothenPanY ? panY == targetPanY : true)) {
+                isResetting = smoothenPanX = smoothenPanY = false;
+                centerAroundMouse = true;
+            }
+
             float rate = 0.1f;
             if (smoothenPanX && panX != targetPanX) {
                 panX = ValueUtil.lerp(panX, targetPanX, rate);
@@ -299,7 +318,6 @@ public class Grid {
     }
 
     public void drawYValue(int screenY, int value) {
-
         GL11.glPushMatrix();
         float scale = 0.5f;
         int adjustedX = (int) ((startX + 10) / scale); // Offset to the left of grid line
@@ -313,7 +331,7 @@ public class Grid {
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
         manager.mouseClicked(mouseX, mouseY, button);
-        if (button == 0 && parent.isWithin(mouseX,mouseY)) { // Left-click to start dragging
+        if (button == 1 && parent.isWithin(mouseX, mouseY)) { // Right-click to start panning
             isDragging = true;
             startPanX = mouseX;
             startPanY = mouseY;

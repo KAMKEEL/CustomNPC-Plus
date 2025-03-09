@@ -106,6 +106,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
                     tf.updateCursorCounter();
             }
             super.updateScreen();
+
+            for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+                guiScrollableComponent.updateScreen();
+            }
         }
     }
 

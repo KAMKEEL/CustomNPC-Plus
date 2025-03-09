@@ -5,6 +5,11 @@ import org.lwjgl.input.Keyboard;
 public class AnimationKeyPresets extends KeyPresetManager {
 
     ////////////////////
+    //Grid controls
+    public final KeyPreset RESET_GRID = add("Reset Grid", Keyboard.KEY_R, false);
+
+
+    ////////////////////
     //Grid Point controls
     public final KeyPreset FREE_TRANSFORM = add("Free Transform", Keyboard.KEY_G, false);
     public final KeyPreset ADD_POINT = add("Add Point", Keyboard.KEY_Z, false);

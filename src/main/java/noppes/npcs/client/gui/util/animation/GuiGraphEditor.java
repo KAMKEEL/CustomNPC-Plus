@@ -3,31 +3,32 @@ package noppes.npcs.client.gui.util.animation;
 import net.minecraft.client.gui.FontRenderer;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
-
-import java.awt.*;
-import java.util.ArrayList;
+import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
 
 public class GuiGraphEditor extends GuiScrollWindow {
     public int graphRight, graphBottom;
-    public ArrayList<Point> points = new ArrayList<>();
 
     public Grid grid;
+    public AnimationKeyPresets keys = new AnimationKeyPresets();
+
 
     public GuiGraphEditor(GuiNPCInterface parent, int posX, int posY, int clipWidth, int clipHeight, int maxScroll) {
         super(parent, posX, posY, clipWidth, clipHeight, maxScroll);
-        points.add(new Point(50, 50));
-        points.add(new Point(100, 100));
         drawDefaultBackground = false;
+
+        this.grid = new Grid(this, xPos, yPos, graphRight, graphBottom);
     }
 
     public void initGui() {
         super.initGui();
-
         graphRight = xPos + clipWidth;
         graphBottom = yPos + clipHeight;
 
-        this.grid = new Grid(this, xPos, yPos, graphRight, graphBottom);
-        grid.panY = -(clipHeight * grid.subDivisionY / 2);
+        grid.setPos(xPos, yPos, graphRight, graphBottom);
+    }
+    public void updateScreen(){
+        super.updateScreen();
+        keys.tick();
     }
 
     @Override

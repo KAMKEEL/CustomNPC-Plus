@@ -70,6 +70,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.pivotSliders[i] = new GuiNpcSlider(this, 95 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 115 + (20 * i), 0.5F);
         }
 
+        graphEditor = new GuiGraphEditor(this, guiLeft - 10, guiTop + 135, xSize, 120, 0);
         this.frameSlider = new GuiNpcSlider(this, 350, 0, 0, 0.0F);
     }
 
@@ -84,7 +85,10 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         addButton(toggleGraph = new GuiNpcButton(777, guiLeft -80, guiTop -2 + 84, 70, 20, "Toggle Graph"));
         if(toggleGraphEditor) {
             yOffset = -80;
-            graphEditor = new GuiGraphEditor(this, guiLeft - 10, guiTop + 135, xSize, 120, 0);
+            graphEditor.xPos = guiLeft - 10;
+            graphEditor.yPos = guiTop + 135;
+            graphEditor.clipWidth = xSize;
+            graphEditor.clipHeight = 120;
             addScrollableGui(0, graphEditor);
         }
 
