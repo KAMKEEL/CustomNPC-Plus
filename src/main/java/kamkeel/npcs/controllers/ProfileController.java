@@ -26,8 +26,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import static noppes.npcs.CustomNpcsPermissions.PROFILE_REGION_BYPASS;
-import static noppes.npcs.CustomNpcsPermissions.hasPermission;
+import static noppes.npcs.CustomNpcsPermissions.*;
 
 public class ProfileController implements IProfileHandler {
 
@@ -631,7 +630,7 @@ public class ProfileController implements IProfileHandler {
     public boolean allowSlotPermission(EntityPlayer player) {
         Profile profile = getProfile(player);
         int currentSlots = profile.getSlots().size();
-        if (CustomNpcsPermissions.hasCustomPermission(player, "customnpcs.profile.max.*")) {
+        if (CustomNpcsPermissions.hasCustomPermission(player, PROFILE_MAX.name)) {
             return true;
         }
         int highestAllowed = 0;
