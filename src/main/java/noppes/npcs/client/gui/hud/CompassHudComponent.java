@@ -104,48 +104,54 @@ public class CompassHudComponent extends HudComponent {
         int actualY = (int)(posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
 
+        // Calculate interpolated player position and rotation.
+        double interpPosX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * partialTicks;
+        double interpPosY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * partialTicks;
+        double interpPosZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * partialTicks;
+        float interpYaw = mc.thePlayer.prevRotationYaw + (mc.thePlayer.rotationYaw - mc.thePlayer.prevRotationYaw) * partialTicks;
+
         GL11.glPushMatrix();
         GL11.glTranslatef(actualX, actualY, 0);
         GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
-        // Draw background bar
+        // Draw background bar.
         drawRect(0, 0, overlayWidth, BAR_HEIGHT, 0x80000000);
 
-        // Sort marks so the closest ones render last (on top)
-        markTargets.sort(Comparator.comparingDouble(mark ->
-            mc.thePlayer.getDistanceSq(mark.x + 0.5, mc.thePlayer.posY, mark.z + 0.5)
-        ));
+        // Sort marks using interpolated player position.
+        markTargets.sort(Comparator.comparingDouble((MarkTargetEntry mark) ->
+            (interpPosX - mark.x) * (interpPosX - mark.x) + (interpPosZ - mark.z) * (interpPosZ - mark.z)
+        ).reversed());
 
-        // Render all marks
+        // Render all marks using the interpolated values.
         for (MarkTargetEntry mark : markTargets) {
-            renderMarkIcon(mark);
+            renderMarkIcon(mark, interpPosX, interpPosY, interpPosZ, interpYaw);
         }
 
         GL11.glPopMatrix();
     }
 
-    private void renderMarkIcon(MarkTargetEntry mark) {
+    private void renderMarkIcon(MarkTargetEntry mark, double playerX, double playerY, double playerZ, float playerYaw) {
         if (mc.thePlayer == null) return;
 
-        Float iconPos = calculateIconPosition(mark.x, mark.z);
-        if(iconPos == null) {
+        Float iconPos = calculateIconPosition(mark.x, mark.z, playerX, playerZ, playerYaw);
+        if (iconPos == null) {
             // Target is behind the player; don't render.
             return;
         }
 
         int barWidth = overlayWidth;
         float distance = (float) Math.sqrt(
-            Math.pow(mark.x - mc.thePlayer.posX, 2) +
-                Math.pow(mark.z - mc.thePlayer.posZ, 2)
+            Math.pow(mark.x - playerX, 2) +
+                Math.pow(mark.z - playerZ, 2)
         );
 
         int iconSize = calculateIconSize(distance);
-        int iconX = MathHelper.clamp_int((int)iconPos.floatValue(), iconSize/2, barWidth - iconSize/2);
-        int iconY = (BAR_HEIGHT - iconSize)/2;
+        int iconX = MathHelper.clamp_int((int) iconPos.floatValue(), iconSize / 2, barWidth - iconSize / 2);
+        int iconY = (BAR_HEIGHT - iconSize) / 2;
 
         ResourceLocation texture = getTextureForMark(mark.type);
-        if(texture != null) {
-            renderTextureIcon(iconX - iconSize/2, iconY, iconSize, texture, mark.color);
+        if (texture != null) {
+            renderTextureIcon(iconX - iconSize / 2, iconY, iconSize, texture, mark.color);
         }
     }
 
@@ -186,22 +192,23 @@ public class CompassHudComponent extends HudComponent {
         GL11.glPopMatrix();
     }
 
-    private Float calculateIconPosition(double targetX, double targetZ) {
-        double dx = targetX - mc.thePlayer.posX;
-        double dz = targetZ - mc.thePlayer.posZ;
-        double angleToTarget = Math.toDegrees(Math.atan2(dz, dx));
-        double adjustedPlayerYaw = mc.thePlayer.rotationYaw + 90;
-        double relativeAngle = angleToTarget - adjustedPlayerYaw;
-        while(relativeAngle < -180) relativeAngle += 360;
-        while(relativeAngle > 180) relativeAngle -= 360;
+    private Float calculateIconPosition(double targetX, double targetZ, double playerX, double playerZ, float playerYaw) {
+        double dx = targetX - playerX;
+        double dz = targetZ - playerZ;
 
-        // Only render if the target is within 90° to either side (180° front)
+        double angleToTarget = Math.toDegrees(Math.atan2(dz, dx));
+        double adjustedPlayerYaw = playerYaw + 90;
+        double relativeAngle = angleToTarget - adjustedPlayerYaw;
+        while (relativeAngle < -180) relativeAngle += 360;
+        while (relativeAngle > 180) relativeAngle -= 360;
+
+        // Only render if the target is within 90° to either side (i.e., 180° front)
         if (Math.abs(relativeAngle) > 90) {
             return null;
         }
 
         // Map -90..90 to 0..overlayWidth so that 0 becomes the left edge and 90 the right edge.
-        return (float)(overlayWidth / 2.0 + (relativeAngle / 90.0) * (overlayWidth / 2.0));
+        return (float) (overlayWidth / 2.0 + (relativeAngle / 90.0) * (overlayWidth / 2.0));
     }
 
     private int calculateIconSize(float distance) {
@@ -267,8 +274,8 @@ public class CompassHudComponent extends HudComponent {
         for (MarkTargetEntry mark : newMarks) {
             // Center the mark on the block
             markTargets.add(new MarkTargetEntry(
-                Math.floor(mark.x) + 0.5,
-                Math.floor(mark.z) + 0.5,
+                mark.x,
+                mark.z,
                 mark.type,
                 mark.color
             ));

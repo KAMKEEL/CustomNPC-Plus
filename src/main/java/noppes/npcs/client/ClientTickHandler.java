@@ -177,8 +177,8 @@ public class ClientTickHandler{
                     if(mark.getType() != MarkType.NONE &&
                         mark.availability.isAvailable(player)) {
                         marks.add(new CompassHudComponent.MarkTargetEntry(
-                            (int)npc.posX,
-                            (int)npc.posZ,
+                            npc.posX,
+                            npc.posZ,
                             mark.getType(),
                             mark.color
                         ));
