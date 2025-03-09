@@ -65,7 +65,7 @@ public class BlockShortLampRenderer extends BlockRendererInterface {
     }
 
     @Override
-    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {}
+    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer){}
 
     public static void setLampTexture(int meta){
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();

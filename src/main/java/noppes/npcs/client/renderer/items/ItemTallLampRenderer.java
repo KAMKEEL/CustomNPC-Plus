@@ -35,6 +35,10 @@ public class ItemTallLampRenderer implements IItemRenderer {
         GL11.glEnable(GL11.GL_ALPHA_TEST);
 
         GL11.glPushMatrix();
+        if (type == ItemRenderType.EQUIPPED || type == ItemRenderType.EQUIPPED_FIRST_PERSON){
+            GL11.glTranslatef(0.5F, 0.5F, 0.5F);
+        }
+
         GL11.glTranslatef(0, 0.42f, 0);
         GL11.glScalef(0.76f, 0.66f, 0.76f);
         GL11.glRotatef(180, 0, 0, 1);

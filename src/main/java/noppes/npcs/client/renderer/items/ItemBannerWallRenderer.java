@@ -34,6 +34,10 @@ public class ItemBannerWallRenderer implements IItemRenderer {
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
 
         GL11.glPushMatrix();
+        if (type == ItemRenderType.EQUIPPED || type == ItemRenderType.EQUIPPED_FIRST_PERSON){
+            GL11.glTranslatef(0.5F, 0.5F, 0.5F);
+        }
+
         GL11.glTranslatef(0, 0.26f, 0.3f);
         GL11.glScalef(0.95f, 0.85f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
