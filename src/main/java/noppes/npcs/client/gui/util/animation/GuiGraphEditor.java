@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.util.animation;
 import net.minecraft.client.gui.FontRenderer;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
-import noppes.npcs.client.gui.util.animation.Grid;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -42,6 +41,11 @@ public class GuiGraphEditor extends GuiScrollWindow {
     public void mouseClicked(int mouseX, int mouseY, int button) {
         grid.mouseClicked(mouseX, mouseY, button);
     }
+    @Override
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c,i);
+        grid.keyTyped(c,i);
+    }
 
     public boolean isWithin(int mouseX, int mouseY) {
         if (parent.hasSubGui())
@@ -57,4 +61,5 @@ public class GuiGraphEditor extends GuiScrollWindow {
     public FontRenderer getFontRenderer() {
         return fontRendererObj;
     }
+
 }

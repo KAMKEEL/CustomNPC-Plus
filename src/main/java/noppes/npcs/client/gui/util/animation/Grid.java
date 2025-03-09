@@ -313,16 +313,15 @@ public class Grid {
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
         manager.mouseClicked(mouseX, mouseY, button);
-        if (button == 0) { // Left-click to start dragging
+        if (button == 0 && parent.isWithin(mouseX,mouseY)) { // Left-click to start dragging
             isDragging = true;
             startPanX = mouseX;
             startPanY = mouseY;
         }
 
-        if (button == 1) {
-            manager.highlightedTypes.add(EnumFrameType.ROTATION_X);
-            manager.addPoint(EnumFrameType.ROTATION_X, 5, 0); // worldX(mouseX - startX), worldY(mouseY - startY)
-        }
+    }
+    public void keyTyped(char c, int i) {
+       manager.keyTyped(c,i);
     }
 
     public boolean xDown() {

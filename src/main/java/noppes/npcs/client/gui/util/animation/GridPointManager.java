@@ -1,10 +1,12 @@
 package noppes.npcs.client.gui.util.animation;
 
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.constants.animation.EnumFrameType;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -22,15 +24,17 @@ public class GridPointManager {
     public Point selectedPoint;
     public Playhead playhead = new Playhead(0);
 
+    public boolean isFreeTransforming;
+    public double ftGrabX, ftGrabY; //where point is grabbed on free transforming
     public GridPointManager(Grid grid) {
         this.grid = grid;
     }
 
-    public void addPoint(EnumFrameType type, double x, double y) {
-        addPoint(type, new Point(type, x, y));
+    public Point addPoint(EnumFrameType type, double x, double y) {
+        return addPoint(type, new Point(type, x, y));
     }
 
-    public void addPoint(EnumFrameType type, Point point) {
+    public Point addPoint(EnumFrameType type, Point point) {
         HashMap<Double, Point> points = pointsOf(type);
         if (points == null) {
             points = new HashMap<>();
@@ -38,8 +42,16 @@ public class GridPointManager {
         }
 
         points.put(point.worldX, point);
+        return point;
     }
 
+    public void deletePoint(EnumFrameType type, double x) {
+        HashMap<Double, Point> points = pointsOf(type);
+        if (points == null)
+            return;
+
+        points.remove(x);
+    }
     public Point getPoint(EnumFrameType type, double x) {
         HashMap<Double, Point> points = pointsOf(type);
         if (points == null)
@@ -71,28 +83,81 @@ public class GridPointManager {
             selectedPoint.highlighted = false;
 
         this.selectedPoint = point;
-        point.highlighted = true;
+
+        if (point != null)
+            point.highlighted = true;
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks) {
+        if (isFreeTransforming && selectedPoint != null) {
+            if (grid.xDown())
+                selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+            else if (grid.yDown())
+                selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
+            else {
+                selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+                selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
+            }
+        }
+
         playhead.draw(mouseX, mouseY, partialTicks);
 
         forEachActive((type, point) -> {
             point.draw(mouseX, mouseY, partialTicks);
         });
+
+        if (Cursors.currentCursor != null)
+            Cursors.currentCursor.draw(mouseX, mouseY);
+
     }
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
+        if (selectedPoint != null && !isFreeTransforming) {
+            if (grid.parent.isWithin(mouseX, mouseY) && !selectedPoint.isMouseAbove(mouseX, mouseY))
+                setSelectedPoint(null);
+        }
+
+        if (isFreeTransforming) {
+            Cursors.setCursor(null);
+            isFreeTransforming = false;
+            if (button == 1 && selectedPoint != null) {
+                selectedPoint.set(ftGrabX, ftGrabY);
+                ftGrabX = ftGrabY = 0;
+            }
+        }
+
         playhead.mouseClicked(mouseX, mouseY, button);
 
         forEachActive((type, point) -> {
             point.mouseClicked(mouseX, mouseY, button);
         });
+    }
 
-        if (selectedPoint != null) {
-            if (!selectedPoint.isMouseAbove(mouseX, mouseY))
-                setSelectedPoint(null);
+    public void keyTyped(char c, int key) {
+        if (key == Keyboard.KEY_G && selectedPoint != null) {
+            isFreeTransforming = !isFreeTransforming;
+            ftGrabX = selectedPoint.worldX;
+            ftGrabY = selectedPoint.worldY;
+            Cursors.setCursor(isFreeTransforming ? Cursors.MOVE : null);
         }
+
+        EnumFrameType type = EnumFrameType.ROTATION_X;
+        if (key == Keyboard.KEY_Z) {
+            highlightedTypes.add(type);
+
+            HashMap<Double, Point> points = pointsOf(type);
+            Point point = points != null ? points.get((double) playhead.worldX) : null; //check if it exists
+            if (point == null)
+                point = addPoint(type, playhead.worldX, 0); // worldX(mouseX - startX), worldY(mouseY - startY)
+
+            setSelectedPoint(point);
+        }
+
+        if (key == Keyboard.KEY_DELETE && selectedPoint != null){
+            deletePoint(type,selectedPoint.worldX);
+        }
+
+
     }
 
     private static ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/animation.png");
@@ -157,10 +222,13 @@ public class GridPointManager {
         }
 
         public void mouseClicked(int mouseX, int mouseY, int button) {
-            if (isMouseAbove(mouseX, mouseY))
+            if (button == 0 && isMouseAbove(mouseX, mouseY))
                 setSelectedPoint(this);
-            else if (highlighted && grid.parent.isWithin(mouseX, mouseY))
-                highlighted = false;
+        }
+
+        public void set(double x, double y) {
+            this.worldX = x;
+            this.worldY = y;
         }
     }
 
