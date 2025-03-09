@@ -34,9 +34,6 @@ public class ItemNpcTool extends Item {
     public static final String[] toolTypes = new String[] {"hammer", "paintbrush"};
     public static String BRUSH_COLOR_TAG = "BrushColor";
 
-    @SideOnly(Side.CLIENT)
-    private IIcon[] icons;
-
     public ItemNpcTool() {
         super();
         maxStackSize = 1;
@@ -53,23 +50,6 @@ public class ItemNpcTool extends Item {
             meta = 0;
         }
         return super.getUnlocalizedName() + "." + toolTypes[meta];
-    }
-
-    @SideOnly(Side.CLIENT)
-    @Override
-    public void registerIcons(IIconRegister iconRegister) {
-        icons = new IIcon[toolTypes.length];
-        for (int i = 0; i < toolTypes.length; i++) {
-            icons[i] = iconRegister.registerIcon("noppes:npc_tool_" + toolTypes[i]);
-        }
-    }
-
-    @Override
-    public IIcon getIconFromDamage(int meta) {
-        if(meta < 0 || meta >= icons.length){
-            meta = 0;
-        }
-        return icons[meta];
     }
 
     @Override
