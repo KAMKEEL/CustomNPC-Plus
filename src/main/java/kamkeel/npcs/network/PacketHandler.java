@@ -16,6 +16,7 @@ import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.player.*;
+import kamkeel.npcs.network.packets.player.profile.*;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
@@ -55,7 +56,6 @@ import kamkeel.npcs.network.packets.request.party.*;
 import kamkeel.npcs.network.packets.request.pather.MovingPathGetPacket;
 import kamkeel.npcs.network.packets.request.pather.MovingPathSavePacket;
 import kamkeel.npcs.network.packets.request.playerdata.*;
-import kamkeel.npcs.network.packets.request.profile.*;
 import kamkeel.npcs.network.packets.request.quest.*;
 import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
@@ -320,14 +320,6 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new EffectSavePacket());
         REQUEST_PACKET.registerPacket(new EffectRemovePacket());
 
-        // Profile Packets
-        REQUEST_PACKET.registerPacket(new ProfileGetPacket());
-        REQUEST_PACKET.registerPacket(new ProfileGetInfoPacket());
-        REQUEST_PACKET.registerPacket(new ProfileCreatePacket());
-        REQUEST_PACKET.registerPacket(new ProfileRemovePacket());
-        REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
-        REQUEST_PACKET.registerPacket(new ProfileChangePacket());
-
         // Magic Packets
         REQUEST_PACKET.registerPacket(new MagicCycleRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicCycleSavePacket());
@@ -434,6 +426,14 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new CustomGuiClosePacket());
         PLAYER_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
         PLAYER_PACKET.registerPacket(new CustomScrollClickPacket());
+
+        // Profile Packets
+        PLAYER_PACKET.registerPacket(new ProfileCreatePacket());
+        PLAYER_PACKET.registerPacket(new ProfileRemovePacket());
+        PLAYER_PACKET.registerPacket(new ProfileRenamePacket());
+        PLAYER_PACKET.registerPacket(new ProfileChangePacket());
+        PLAYER_PACKET.registerPacket(new ProfileGetPacket());
+        PLAYER_PACKET.registerPacket(new ProfileGetInfoPacket());
     }
 
     public void registerChannels() {

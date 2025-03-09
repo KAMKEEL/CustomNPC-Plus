@@ -1,11 +1,11 @@
 package noppes.npcs.client.gui.player.inventory;
 
+import kamkeel.npcs.network.packets.player.profile.*;
 import noppes.npcs.api.handler.data.ISlot;
 import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.controllers.data.profile.Slot;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.profile.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;

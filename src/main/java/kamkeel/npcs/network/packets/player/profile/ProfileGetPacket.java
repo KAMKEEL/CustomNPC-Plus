@@ -1,4 +1,4 @@
-package kamkeel.npcs.network.packets.request.profile;
+package kamkeel.npcs.network.packets.player.profile;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -8,7 +8,7 @@ import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -24,12 +24,12 @@ public final class ProfileGetPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.ProfileGet;
+        return EnumPlayerPacket.ProfileGet;
     }
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
     @SideOnly(Side.CLIENT)

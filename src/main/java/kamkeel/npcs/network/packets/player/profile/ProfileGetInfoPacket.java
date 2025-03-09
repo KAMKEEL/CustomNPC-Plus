@@ -1,16 +1,16 @@
-package kamkeel.npcs.network.packets.request.profile;
+package kamkeel.npcs.network.packets.player.profile;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import noppes.npcs.api.handler.data.ISlot;
 import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -31,12 +31,12 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.ProfileGetInfo;
+        return EnumPlayerPacket.ProfileGetInfo;
     }
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
     @SideOnly(Side.CLIENT)
