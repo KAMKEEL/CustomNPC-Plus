@@ -53,25 +53,18 @@ public class CommandProfileRegion extends CommandProfileBase {
     }
 
     @SubCommand(
-        desc = "Add a new region. Format: DIM, X1, Y1, Z1, X2, Y2, Z2",
+        desc = "Add a new region. Format: DIM X1 Y1 Z1 X2 Y2 Z2",
         usage = "<dim> <x1> <y1> <z1> <x2> <y2> <z2>"
     )
     public void add(ICommandSender sender, String[] args) throws CommandException {
-        if(args.length < 1){
-            sendError(sender, "Usage: /profile region add <DIM, X1, Y1, Z1, X2, Y2, Z2>");
-            return;
-        }
-        // Combine args in case the region data was split by spaces
-        String regionStr = String.join(" ", args).trim();
-        String[] parts = regionStr.split(",");
-        if(parts.length != 7){
-            sendError(sender, "Invalid region format. Must contain 7 integers separated by commas.");
+        if(args.length != 7){
+            sendError(sender, "Usage: /profile region add <dim> <x1> <y1> <z1> <x2> <y2> <z2>");
             return;
         }
         List<Integer> regionList = new ArrayList<>();
         try {
-            for(String part : parts){
-                regionList.add(Integer.parseInt(part.trim()));
+            for(String arg : args){
+                regionList.add(Integer.parseInt(arg));
             }
         } catch(NumberFormatException e){
             sendError(sender, "Invalid number format in region data.");
@@ -83,7 +76,7 @@ public class CommandProfileRegion extends CommandProfileBase {
         for(List<Integer> region : ConfigMain.RestrictedProfileRegions) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < region.size(); i++) {
-                if(i > 0) sb.append(", ");
+                if(i > 0) sb.append(" ");
                 sb.append(region.get(i));
             }
             regionStrings.add(sb.toString());
