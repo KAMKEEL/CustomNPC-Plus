@@ -36,7 +36,7 @@ public class KeyPresetManager {
             if (!file.exists())
                 return;
 
-            NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
+            NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
             for (KeyPreset key : keys)
                 key.readFromNbt(compound);
 
