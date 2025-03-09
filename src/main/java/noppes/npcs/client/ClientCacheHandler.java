@@ -1,8 +1,13 @@
 package noppes.npcs.client;
 
+import kamkeel.npcs.util.ByteBufUtils;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.gui.customoverlay.OverlayCustom;
+import noppes.npcs.client.gui.hud.ClientHudManager;
+import noppes.npcs.client.gui.hud.EnumHudComponent;
+import noppes.npcs.client.gui.hud.HudComponent;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.select.GuiTextureSelection;
 import noppes.npcs.client.renderer.ImageData;
@@ -13,6 +18,7 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.util.CacheHashMap;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -65,6 +71,13 @@ public class ClientCacheHandler {
 
         // Clear music/bard sounds
         MusicController.Instance.stopAllSounds();
+
+        // Clear Quest Tracker
+        HudComponent component = ClientHudManager.getInstance().getHudComponents().get(EnumHudComponent.QuestTracker);
+        if(component != null){
+            component.loadData(new NBTTagCompound());
+            component.hasData = false;
+        }
     }
 
     public static void clearSkinCache() {
