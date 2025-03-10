@@ -32,7 +32,7 @@ public class CommandProfileAdmin extends CommandProfileBase {
     }
 
     @SubCommand(
-        desc = "Clone a slot from one player's profile to another's.",
+        desc = "Clone a slot from one player's profile to another player.",
         usage = "<sourcePlayer> <destinationPlayer> <sourceSlot> <destinationSlot> [temp]"
     )
     public void clone(ICommandSender sender, String[] args) throws CommandException {
