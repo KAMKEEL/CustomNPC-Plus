@@ -352,7 +352,7 @@ public class AttributeItemUtil {
                         Magic magic = MagicController.getInstance().getMagic(magicId);
                         if (magic != null) {
                             // Build the magic display name without formatting for sorting.
-                            String rawMagicName = magic.getDisplayName() + " " + getMagicAppendix(magicKey);
+                            String rawMagicName = magic.getDisplayName().replace("&", "\u00A7") + " \u00A77" + getMagicAppendix(magicKey);
                             String plainName = stripFormatting(rawMagicName);
                             String formattedLine = formatAttributeLine(def, section, value, rawMagicName);
                             TooltipEntry entry = new TooltipEntry(plainName, formattedLine);
@@ -423,7 +423,7 @@ public class AttributeItemUtil {
             String sign = value >= 0 ? "+" : "";
             String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
             String valueString = color + sign + formattedValue;
-            if (def != null && def.getValueType() == AttributeValueType.PERCENT)
+            if (def != null && (def.getValueType() == AttributeValueType.PERCENT || def.getValueType() == AttributeValueType.MAGIC))
                 valueString += "%";
             valueString += EnumChatFormatting.GRAY;
             return valueString + " " + displayName;
@@ -432,8 +432,11 @@ public class AttributeItemUtil {
                 displayName = "\u00A7" + def.getColorCode() + displayName;
             else
                 displayName = EnumChatFormatting.AQUA + displayName;
-            formattedValue = EnumChatFormatting.GRAY + formattedValue;
-            return displayName + "\u00A77: " + formattedValue;
+
+            String sign = value >= 0 ? "+" : "";
+            String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
+            String valueString = color + sign + formattedValue;
+            return displayName + "\u00A77: " + valueString;
         }
     }
 
