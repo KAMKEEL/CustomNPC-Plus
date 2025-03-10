@@ -447,9 +447,6 @@ public class ProfileController implements IProfileHandler {
             saveSlotData(profile.player);
             profile.currentSlotId = newSlotId;
             loadSlotData(profile.player);
-
-            if(ConfigMain.AttributesEnabled)
-                AttributeController.getTracker(profile.player).recalcAttributes(profile.player);
         } else {
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         }
@@ -594,6 +591,9 @@ public class ProfileController implements IProfileHandler {
         PlayerData pdata = PlayerData.get(player);
         pdata.profileSlot = profile.getCurrentSlotId();
         pdata.save();
+
+        if(ConfigMain.AttributesEnabled)
+            AttributeController.getTracker(player).recalcAttributes(player);
     }
 
     public List<ProfileInfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
