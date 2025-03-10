@@ -52,6 +52,9 @@ public enum Cursors {
         currentCursor = cursor;
     }
 
+    public static void reset(){
+        setCursor(null);
+    }
     private static ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/cursors.png");
 }
 

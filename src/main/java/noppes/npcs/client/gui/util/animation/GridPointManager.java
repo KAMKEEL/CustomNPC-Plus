@@ -41,13 +41,14 @@ public class GridPointManager {
                 if (isFreeTransforming) {
                     selectedPoint.set(ftGrabX, ftGrabY);
                     ftGrabX = ftGrabY = 0;
+                    Cursors.reset();
                 } else {
                     ftGrabX = selectedPoint.worldX;
                     ftGrabY = selectedPoint.worldY;
+                    Cursors.setCursor(Cursors.MOVE);
                 }
 
                 isFreeTransforming = !isFreeTransforming;
-                Cursors.setCursor(isFreeTransforming ? Cursors.MOVE : null);
             }
         });
 
@@ -79,7 +80,7 @@ public class GridPointManager {
         }
 
         if (button == 0 && isFreeTransforming) {
-            Cursors.setCursor(null);
+            Cursors.reset();
             isFreeTransforming = false;
         }
 
@@ -150,27 +151,54 @@ public class GridPointManager {
 
     public void draw(int mouseX, int mouseY, float partialTicks) {
         if (isFreeTransforming && selectedPoint != null) {
-            if (grid.xDown())
-                selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
-            else if (grid.yDown())
-                selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
-            else {
-                selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
-                selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
+                if (grid.xDown())
+                    selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+                else if (grid.yDown())
+                    selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
+                else {
+                    selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+                    selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
             }
         }
 
         playhead.draw(mouseX, mouseY, partialTicks);
 
         forEachActive((type, point) -> {
-            if (point.worldX == -4)
-                System.out.println();
             point.draw(mouseX, mouseY, partialTicks);
         });
 
         if (Cursors.currentCursor != null)
             Cursors.currentCursor.draw(mouseX, mouseY);
 
+        ////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
+        // Pans grid while free transforming
+        // MUST BE DONE AT THE VERY END -> MESSES WITH drawScreen(mouseX,mouseY)
+        if (isFreeTransforming) {
+            if (mouseX < grid.startX) {
+                int deltaX = mouseX - grid.startX;
+                grid.panX += deltaX / grid.zoomX;
+                GuiUtil.setMouseX(grid.startX - 1);
+            }
+            if (mouseX > grid.endX) {
+                int deltaX = mouseX - grid.endX;
+                grid.panX += (deltaX / grid.zoomX);
+                GuiUtil.setMouseX(grid.endX + 1);
+            }
+            if (mouseY < grid.startY) {
+                int deltaY = mouseY - grid.startY;
+                grid.panY += deltaY / grid.zoomY;
+                GuiUtil.setMouseY(grid.startY);
+            }
+            if (mouseY > grid.endY) {
+                int deltaY = mouseY - grid.endY;
+                grid.panY += deltaY / grid.zoomY;
+                GuiUtil.setMouseY(grid.endY + 2);
+            }
+        }
+
+        ////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
     }
 
     public void keyTyped(char c, int key) {

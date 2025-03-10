@@ -643,6 +643,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             if (animation != null) {
                 PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
             }
+            graphEditor.close();
             displayGuiScreen(parent);
         } else {
             closeSubGui(this.getSubGui());

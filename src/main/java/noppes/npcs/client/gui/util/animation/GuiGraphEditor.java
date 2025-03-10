@@ -63,4 +63,8 @@ public class GuiGraphEditor extends GuiScrollWindow {
         return fontRendererObj;
     }
 
+    public void close() {
+        if (Cursors.currentCursor != null)
+            Cursors.reset();
+    }
 }

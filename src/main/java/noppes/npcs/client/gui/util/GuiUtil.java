@@ -76,6 +76,31 @@ public class GuiUtil {
         tessellator.draw();
     }
 
+    public static void setMouse(int guiX, int guiY) {
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+
+        int factor = scaledResolution.getScaleFactor();
+
+        Mouse.setCursorPosition(guiX * factor, mc.displayHeight - (guiY * factor));
+    }
+
+    public static void setMouseX(int guiX) {
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+
+        int factor = scaledResolution.getScaleFactor();
+        Mouse.setCursorPosition(guiX * factor, Mouse.getY());
+    }
+
+    public static void setMouseY(int guiY) {
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+
+        int factor = scaledResolution.getScaleFactor();
+        Mouse.setCursorPosition(Mouse.getX(), mc.displayHeight - (guiY * factor));
+    }
+
     public static double preciseMouseX() {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
