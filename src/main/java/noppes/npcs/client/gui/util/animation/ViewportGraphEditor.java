@@ -5,14 +5,14 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiScrollWindow;
 import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
 
-public class GuiGraphEditor extends GuiScrollWindow {
+public class ViewportGraphEditor extends GuiScrollWindow {
     public int graphRight, graphBottom;
 
     public Grid grid;
     public AnimationKeyPresets keys = new AnimationKeyPresets();
 
 
-    public GuiGraphEditor(GuiNPCInterface parent, int posX, int posY, int clipWidth, int clipHeight, int maxScroll) {
+    public ViewportGraphEditor(GuiNPCInterface parent, int posX, int posY, int clipWidth, int clipHeight, int maxScroll) {
         super(parent, posX, posY, clipWidth, clipHeight, maxScroll);
         drawDefaultBackground = false;
 

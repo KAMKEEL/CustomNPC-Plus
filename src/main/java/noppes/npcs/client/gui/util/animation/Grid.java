@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Grid {
-    GuiGraphEditor parent;
+    ViewportGraphEditor parent;
     public int startX, startY; // Positioning
     public int endX, endY; // Positioning
     public int yAxisHeight = 12;
@@ -28,7 +28,7 @@ public class Grid {
 
     public GridPointManager manager;
 
-    public Grid(GuiGraphEditor parent, int startX, int startY, int endX, int endY) {
+    public Grid(ViewportGraphEditor parent, int startX, int startY, int endX, int endY) {
         this.parent = parent;
         this.startX = startX;
         this.startY = startY;
