@@ -233,15 +233,12 @@ public class ProfileController implements IProfileHandler {
                 newProfile = new Profile(player, compound);
                 activeProfiles.put(uuid, newProfile);
                 loadSlotData(player);
-            } else {
-                newProfile = new Profile(null, compound);
-                activeProfiles.put(uuid, newProfile);
+                return true;
             }
-            return true;
         } catch (Exception e) {
             LogWriter.except(e);
-            return false;
         }
+        return false;
     }
 
     public synchronized void logout(EntityPlayer player) {
@@ -450,9 +447,6 @@ public class ProfileController implements IProfileHandler {
             saveSlotData(profile.player);
             profile.currentSlotId = newSlotId;
             loadSlotData(profile.player);
-            PlayerData pdata = PlayerData.get(profile.player);
-            pdata.profileSlot = newSlotId;
-            pdata.save();
 
             if(ConfigMain.AttributesEnabled)
                 AttributeController.getTracker(profile.player).recalcAttributes(profile.player);
@@ -596,6 +590,10 @@ public class ProfileController implements IProfileHandler {
         for (IProfileData profileData : profileTypes.values()) {
             profileData.save(player);
         }
+
+        PlayerData pdata = PlayerData.get(player);
+        pdata.profileSlot = profile.getCurrentSlotId();
+        pdata.save();
     }
 
     public List<ProfileInfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
