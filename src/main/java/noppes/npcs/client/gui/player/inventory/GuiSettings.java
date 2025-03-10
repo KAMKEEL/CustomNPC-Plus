@@ -39,14 +39,12 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         this.addLabel(new GuiNpcLabel(1, "settings.chatBubbles", guiLeft + 8, guiTop + 14 + y));
         this.addButton(new GuiNpcButton(1, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.EnableChatBubbles?1:0));
 
+        this.addLabel(new GuiNpcLabel(90,"settings.hud", guiLeft + 8 + 155, guiTop + 14 + y));
+        this.addButton(new GuiNpcButton(90, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, "gui.edit"));
+
         y += 22;
         this.addLabel(new GuiNpcLabel(2, "settings.dialogSound", guiLeft + 8, guiTop + 14 + y));
         this.addButton(new GuiNpcButton(2, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.DialogSound?1:0));
-
-//        this.addLabel(new GuiNpcLabel(12,"settings.alignmentX", guiLeft + 8 + 155, guiTop + 14 + y));
-//        this.addTextField(new GuiNpcTextField(12, this, this.fontRendererObj, guiLeft + 107 + 160, guiTop + 9 + y, 45, 20, ConfigClient.TrackingInfoX + ""));
-//        getTextField(12).integersOnly = true;
-//        getTextField(12).setMinMaxDefault(-2000, 2000, 0);
 
         y += 22;
         this.addLabel(new GuiNpcLabel(10,"settings.dialogSpeed", guiLeft + 8, guiTop + 14 + y));
@@ -71,9 +69,6 @@ public class GuiSettings extends GuiCNPCInventory implements ITextfieldListener,
         this.addButton(new GuiNpcButton(8, guiLeft + 105, guiTop + 9 + y, 50, 20, new String[]{"gui.no", "gui.yes"}, ConfigClient.HideEffectsBar?1:0));
 
         y += 22;
-
-        this.addLabel(new GuiNpcLabel(90, "overlayer", guiLeft + 8, guiTop + 14 + y));
-        this.addButton(new GuiNpcButton(90, guiLeft + 105, guiTop + 9 + y, "EDIT"));
 
         y += 22;
         this.addButton(new GuiNpcButton(5, guiLeft + 8, guiTop + 9 + y, 150, 20, "settings.clearSkin"));

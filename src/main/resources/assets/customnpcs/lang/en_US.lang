@@ -219,6 +219,7 @@ settings.clearTrack=Clear Tracked Quest
 settings.confirmClearTrack=Are you sure you want to clear your tracked quest?
 settings.clearSkin=Clear Skin Cache
 settings.confirmClearSkin=Are you sure you want to clear your skin cache?
+settings.hud=Hud Editor
 
 scale.shared=Shared
 filter.contains=Contains

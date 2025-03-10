@@ -114,7 +114,7 @@ public class GuiHudEditor extends GuiScreen {
                 hasRight = true;
             } else if (btn.id == COMPONENT_LABEL_ID) {
                 // Update the label text.
-                btn.displayString = selectedComponent != null ? selectedComponent.getClass().getSimpleName() : "None";
+                btn.displayString = selectedComponent != null ? selectedComponent.getClass().getSimpleName().replace("Component", "") : "None";
                 hasLabel = true;
             }
         }
@@ -122,7 +122,7 @@ public class GuiHudEditor extends GuiScreen {
             buttonList.add(new GuiButton(CYCLE_LEFT_ID, groupX, cycleY, 20, 20, "<"));
         }
         if (!hasLabel) {
-            GuiButton labelBtn = new GuiButton(COMPONENT_LABEL_ID, groupX + 20, cycleY, 120, 20, selectedComponent != null ? selectedComponent.getClass().getSimpleName() : "None");
+            GuiButton labelBtn = new GuiButton(COMPONENT_LABEL_ID, groupX + 20, cycleY, 120, 20, selectedComponent != null ? selectedComponent.getClass().getSimpleName().replace("Component", "") : "None");
             labelBtn.enabled = false;
             buttonList.add(labelBtn);
         }
