@@ -9,6 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockChair;
+import noppes.npcs.blocks.tiles.TileChair;
 import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.chair.ModelChair;
 import noppes.npcs.client.model.blocks.chair.ModelChairSpoof;
@@ -45,7 +46,31 @@ public class BlockChairRenderer extends BlockRendererInterface{
         GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
         // GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
+
+        // Apply push translation if this is a pushed chair.
+        if(tile instanceof TileChair) {
+            TileChair chairTile = (TileChair) tile;
+            if(chairTile.isPushed()) {
+                float pushDistance = 0.6f; // adjust as needed for visual effect
+                switch(tile.rotation) {
+                    case 0: // Facing north – push the model backwards.
+                        GL11.glTranslatef(0, 0, -pushDistance);
+                        break;
+                    case 1: // Facing east – push right.
+                        GL11.glTranslatef(-pushDistance, 0, 0);
+                        break;
+                    case 2: // Facing south – push forwards.
+                        GL11.glTranslatef(0, 0, pushDistance);
+                        break;
+                    case 3: // Facing west – push left.
+                        GL11.glTranslatef(pushDistance, 0, 0);
+                        break;
+                }
+            }
+        }
+
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
+
         GL11.glColor3f(1, 1, 1);
 
         GL11.glEnable(GL11.GL_ALPHA_TEST);

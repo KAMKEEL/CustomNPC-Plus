@@ -6,6 +6,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import kamkeel.npcs.network.packets.request.item.ColorSetPacket;
+import kamkeel.npcs.network.packets.request.item.HammerPacket;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
@@ -20,7 +21,9 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.BlockBanner;
+import noppes.npcs.blocks.BlockChair;
 import noppes.npcs.blocks.BlockTallLamp;
+import noppes.npcs.blocks.tiles.TileChair;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.constants.EnumGuiType;
@@ -90,6 +93,15 @@ public class ItemNpcTool extends Item {
                 PacketClient.sendClient(new ColorSetPacket(x, y, z));
                 return true;
             }
+        }  else if (isHammer(stack)){
+            Block block = player.worldObj.getBlock(x, y, z);
+            if(block instanceof BlockChair){
+                TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+                if(tile instanceof TileChair) {
+                    PacketClient.sendClient(new HammerPacket(x, y, z));
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -120,6 +132,10 @@ public class ItemNpcTool extends Item {
 
     public static boolean isPaintbrush(ItemStack itemStack){
         return itemStack.getItemDamage() == 1;
+    }
+
+    public static boolean isHammer(ItemStack itemStack){
+        return itemStack.getItemDamage() == 0;
     }
 
     @Override
