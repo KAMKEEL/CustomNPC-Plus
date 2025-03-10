@@ -77,8 +77,8 @@ public final class HammerPacket extends AbstractPacket {
         TileEntity tile = player.worldObj.getTileEntity(x, y, z);
         if(tile instanceof TileChair) {
             ((TileChair) tile).push();
-        } else if (tile instanceof TileBanner || tile instanceof TileWallBanner){
-
+        } else if (tile instanceof TileBanner){
+            ((TileBanner) tile).changeVariant();
         }
     }
 }

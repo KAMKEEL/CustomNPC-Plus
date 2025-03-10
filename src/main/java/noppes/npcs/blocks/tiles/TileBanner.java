@@ -49,4 +49,14 @@ public class TileBanner extends TileColorable implements ITileIcon {
     public void setIcon(ItemStack stack){
         this.icon = stack;
     }
+
+
+    public void changeVariant() {
+        EnumBannerVariant[] variants = EnumBannerVariant.values();
+        int nextIndex = (bannerTrim.ordinal() + 1) % variants.length;
+        bannerTrim = variants[nextIndex];
+
+        this.markDirty();
+        this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
+    }
 }

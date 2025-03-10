@@ -23,6 +23,8 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.BlockBanner;
 import noppes.npcs.blocks.BlockChair;
 import noppes.npcs.blocks.BlockTallLamp;
+import noppes.npcs.blocks.BlockWallBanner;
+import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.blocks.tiles.TileChair;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.client.NoppesUtil;
@@ -95,7 +97,17 @@ public class ItemNpcTool extends Item {
             }
         }  else if (isHammer(stack)){
             Block block = player.worldObj.getBlock(x, y, z);
-            if(block instanceof BlockChair){
+            if(block instanceof BlockBanner || block instanceof BlockWallBanner){
+                int meta = world.getBlockMetadata(x, y, z);
+                if(meta >= 7)
+                    y--;
+
+                TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+                if(tile instanceof TileBanner) {
+                    PacketClient.sendClient(new HammerPacket(x, y, z));
+                    return true;
+                }
+            } else if(block instanceof BlockChair){
                 TileEntity tile = player.worldObj.getTileEntity(x, y, z);
                 if(tile instanceof TileChair) {
                     PacketClient.sendClient(new HammerPacket(x, y, z));

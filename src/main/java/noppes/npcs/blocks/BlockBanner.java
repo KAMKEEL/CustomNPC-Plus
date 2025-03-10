@@ -23,6 +23,7 @@ import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.blocks.tiles.TileColorable;
+import noppes.npcs.items.ItemNpcTool;
 
 import java.util.List;
 
@@ -42,6 +43,10 @@ public class BlockBanner extends BlockContainer{
     	ItemStack item = player.inventory.getCurrentItem();
     	if(item == null)
     		return false;
+
+        if(item.getItem() != null && item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 0)
+            return false;
+
     	int meta = par1World.getBlockMetadata(i, j, k);
     	if(meta >= 7)
     		j--;

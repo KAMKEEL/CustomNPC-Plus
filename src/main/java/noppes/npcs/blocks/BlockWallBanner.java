@@ -19,6 +19,7 @@ import net.minecraft.world.World;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.blocks.tiles.TileWallBanner;
+import noppes.npcs.items.ItemNpcTool;
 
 import java.util.List;
 
@@ -37,6 +38,10 @@ public class BlockWallBanner extends BlockContainer{
     	ItemStack item = player.inventory.getCurrentItem();
     	if(item == null)
     		return false;
+
+        if(item.getItem() != null && item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 0)
+            return false;
+
     	TileWallBanner tile = (TileWallBanner) par1World.getTileEntity(i, j, k);
     	if(tile.canEdit())
     		return true;
