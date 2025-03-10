@@ -1346,6 +1346,9 @@ magic.index=Index
 magic.priority=Priority
 magic.split=Split
 magic.bonus=Bonus
+magic.dist=Dist
+magic.distribute=Distribute
+magic.distInfo=Distributes Magic Split through all selected Magic
 
 diagram.circular=Circular
 diagram.square=Square

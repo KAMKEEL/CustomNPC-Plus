@@ -434,11 +434,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         addButton(new GuiNpcButton(70, arrowX, addY, arrowWidth, arrowHeight, ">"));
         addButton(new GuiNpcButton(71, arrowX, removeY, arrowWidth, arrowHeight, "<"));
 
-        // Standardize button: evenly distribute 1.0 amongst all selected magics.
+        // Distribute button: evenly distribute 1.0 amongst all selected magics.
         int stdWidth = 80, stdHeight = 20;
         int stdX = paddedLeft;
         int stdY = guiTop + ySize - stdHeight - 6;
-        addButton(new GuiNpcButton(72, stdX, stdY + 4, stdWidth, stdHeight, "Standardize"));
+        addButton(new GuiNpcButton(72, stdX, stdY + 4, stdWidth, stdHeight, "magic.distribute"));
+        getButton(72).setHoverText("magic.distInfo");
 
         // If a magic is selected in the right scroll, add text fields for split and damage.
         int tfY = getTextFieldY();
