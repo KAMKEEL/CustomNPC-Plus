@@ -173,7 +173,8 @@ public class GridPointManager {
         ////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////
         // Pans grid while free transforming
-        // MUST BE DONE AT THE VERY END -> MESSES WITH drawScreen(mouseX,mouseY)
+        // MUST BE DONE AT THE VERY END -> CHANGES CURSOR POSITION WITHOUT
+        // CHANGING GuiScreen.drawScreen(mouseX,mouseY) VALUES
         if (isFreeTransforming) {
             if (mouseX < grid.startX) {
                 int deltaX = mouseX - grid.startX;
