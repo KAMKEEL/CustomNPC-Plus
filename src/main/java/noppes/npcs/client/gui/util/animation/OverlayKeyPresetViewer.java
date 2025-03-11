@@ -14,6 +14,8 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class OverlayKeyPresetViewer {
+    private static final ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/keypreset_highres.png");
+
     public int startX, startY, endX, endY, width, height;
     public boolean showOverlay;
 
@@ -55,8 +57,8 @@ public class OverlayKeyPresetViewer {
         boolean aboveButton = viewButton.isMouseAbove(mouseX, mouseY);
         boolean aboveOverlay = isMouseAbove(mouseX, mouseY);
 
-        //     if (aboveButton)
-        showOverlay = true;
+        if (aboveButton)
+            showOverlay = true;
 
         if (showOverlay) {
             drawOverlay(mouseX, mouseY, partialTicks, wheel);
@@ -288,8 +290,6 @@ public class OverlayKeyPresetViewer {
             return (int) (getWidth() * 2.5f / 4);
         }
     }
-
-    private static final ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/keypreset_highres.png");
 
     public class OverlayButton {
         public int startX, startY, endX, width, height;
