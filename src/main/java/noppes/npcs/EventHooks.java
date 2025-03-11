@@ -389,6 +389,24 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onProfileChange(PlayerDataScript handler, IPlayer player, IProfile profile, int newSlot, int prevSlot, boolean post) {
+        PlayerEvent.ProfileEvent.Changed event = new PlayerEvent.ProfileEvent.Changed(player, profile, newSlot, prevSlot, post);
+        handler.callScript(EnumScriptType.PROFILE_CHANGE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onProfileRemove(PlayerDataScript handler, IPlayer player, IProfile profile, int slot, boolean post) {
+        PlayerEvent.ProfileEvent.Removed event = new PlayerEvent.ProfileEvent.Removed(player, profile, slot, post);
+        handler.callScript(EnumScriptType.PROFILE_REMOVE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onProfileCreate(PlayerDataScript handler, IPlayer player, IProfile profile, int slot, boolean post) {
+        PlayerEvent.ProfileEvent.Create event = new PlayerEvent.ProfileEvent.Create(player, profile, slot, post);
+        handler.callScript(EnumScriptType.PROFILE_CREATE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onStartUsingItem(PlayerDataScript handler, IPlayer player, int duration, ItemStack item){
         PlayerEvent.StartUsingItem event = new PlayerEvent.StartUsingItem(player, item, duration);
         handler.callScript(EnumScriptType.START_USING_ITEM, event);
@@ -918,23 +936,5 @@ public class EventHooks {
             return;
         }
         postAnimationEvent(new AnimationEvent.FrameEvent.Exited(animation, frame));
-    }
-
-    public static boolean onProfileChange(PlayerDataScript handler, IPlayer player, IProfile profile, int slot) {
-        PlayerEvent.ProfileEvent.Changed event = new PlayerEvent.ProfileEvent.Changed(player, profile, slot, profile.getCurrentSlotId());
-        handler.callScript(EnumScriptType.PROFILE_CHANGE, event);
-        return NpcAPI.EVENT_BUS.post(event);
-    }
-
-    public static boolean onProfileRemove(PlayerDataScript handler, IPlayer player, IProfile profile, int slot) {
-        PlayerEvent.ProfileEvent.Removed event = new PlayerEvent.ProfileEvent.Removed(player, profile, slot);
-        handler.callScript(EnumScriptType.PROFILE_REMOVE, event);
-        return NpcAPI.EVENT_BUS.post(event);
-    }
-
-    public static boolean onProfileCreate(PlayerDataScript handler, IPlayer player, IProfile profile, int slot) {
-        PlayerEvent.ProfileEvent.Create event = new PlayerEvent.ProfileEvent.Create(player, profile, slot);
-        handler.callScript(EnumScriptType.PROFILE_CREATE, event);
-        return NpcAPI.EVENT_BUS.post(event);
     }
 }

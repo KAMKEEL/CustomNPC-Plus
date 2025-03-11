@@ -4,10 +4,7 @@ import kamkeel.npcs.controllers.data.profile.*;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.CustomNpcs;
-import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.LogWriter;
-import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.*;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.data.IProfile;
@@ -15,8 +12,11 @@ import noppes.npcs.api.handler.IProfileHandler;
 import noppes.npcs.api.handler.data.ISlot;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -48,6 +48,7 @@ public class ProfileController implements IProfileHandler {
     private static final String MSG_SLOT_ALREADY_ACTIVE      = "Slot is already active.";
     private static final String MSG_REGION_NOT_ALLOWED       = "Profile switching not allowed from your current location.";
     private static final String MSG_CHANGE_SUCCESS           = "Slot changed successfully.";
+    private static final String MSG_CANCELLED      = "Operation cancelled.";
 
     public static Map<String, IProfileData> profileTypes = new HashMap<>();
     public static Map<UUID, Profile> activeProfiles = new HashMap<>();
@@ -362,7 +363,21 @@ public class ProfileController implements IProfileHandler {
         if (!profile.getSlots().containsKey(slotId)) {
             return ProfileOperation.error(MSG_SLOT_NOT_EXIST);
         }
+
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        if(profile.player != null){
+            IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
+            if(EventHooks.onProfileRemove(handler,  scriptPlayer, profile, slotId, false))
+                return ProfileOperation.error(MSG_CANCELLED);
+        }
+
         profile.getSlots().remove(slotId);
+
+        if(profile.player != null){
+            IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
+            EventHooks.onProfileRemove(handler,  scriptPlayer, profile, slotId, true);
+        }
+
         return ProfileOperation.success(MSG_REMOVE_SUCCESS);
     }
 
@@ -386,12 +401,23 @@ public class ProfileController implements IProfileHandler {
                 }
             }
         }
+
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        if(profile.player != null){
+            IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
+            if(EventHooks.onProfileCreate(handler,  scriptPlayer, profile, newSlotId, false))
+                return ProfileOperation.error(MSG_CANCELLED);
+        }
+
         Slot newSlot = new Slot(newSlotId, "Slot " + newSlotId);
         newSlot.setLastLoaded(System.currentTimeMillis());
         profile.getSlots().put(newSlotId, newSlot);
         if(profile.player != null){
             verifySlotQuests(profile.player);
             save(profile.player, profile);
+
+            IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
+            EventHooks.onProfileCreate(handler,  scriptPlayer, profile, newSlotId, true);
         }
         return ProfileOperation.success(MSG_NEW_SLOT_CREATED);
     }
@@ -437,6 +463,7 @@ public class ProfileController implements IProfileHandler {
                     return ProfileOperation.error(MSG_REGION_NOT_ALLOWED);
                 }
             }
+
             List<IProfileData> dataList = new ArrayList<>(profileTypes.values());
             dataList.sort(Comparator.comparingInt(IProfileData::getSwitchPriority));
             for (IProfileData pd : dataList) {
@@ -444,9 +471,20 @@ public class ProfileController implements IProfileHandler {
                     return pd.verifySwitch(profile.player);
                 }
             }
+
+            int prevSlot = profile.getCurrentSlotId();
+
+            PlayerDataScript handler = ScriptController.Instance.playerScripts;
+            IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
+            if(EventHooks.onProfileChange(handler,  scriptPlayer, profile, newSlotId,  prevSlot, false))
+                return ProfileOperation.error(MSG_CANCELLED);
+
+
             saveSlotData(profile.player);
             profile.currentSlotId = newSlotId;
             loadSlotData(profile.player);
+
+            EventHooks.onProfileChange(handler,  scriptPlayer, profile, newSlotId,  prevSlot, true);
         } else {
             return ProfileOperation.error(MSG_PLAYER_NOT_FOUND);
         }

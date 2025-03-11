@@ -1011,11 +1011,13 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class ProfileEvent extends PlayerEvent implements IPlayerEvent.ProfileEvent {
         public final IProfile profile;
         public final int slot;
+        public final boolean post;
 
-        public ProfileEvent(IPlayer player, IProfile profile, int slot) {
+        public ProfileEvent(IPlayer player, IProfile profile, int slot, boolean post) {
             super(player);
             this.profile = profile;
             this.slot = slot;
+            this.post = post;
         }
 
         public String getHookName() {
@@ -1032,12 +1034,17 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             return this.slot;
         }
 
+        @Override
+        public boolean isPost() {
+            return this.post;
+        }
+
         @Cancelable
         public static class Changed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Changed {
             public final int prevSlot;
 
-            public Changed(IPlayer player, IProfile profile, int slot, int prevSlot) {
-                super(player, profile, slot);
+            public Changed(IPlayer player, IProfile profile, int slot, int prevSlot, boolean post) {
+                super(player, profile, slot, post);
                 this.prevSlot = prevSlot;
             }
 
@@ -1054,8 +1061,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         @Cancelable
         public static class Removed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Removed {
 
-            public Removed(IPlayer player, IProfile profile, int slot) {
-                super(player, profile, slot);
+            public Removed(IPlayer player, IProfile profile, int slot, boolean post) {
+                super(player, profile, slot, post);
             }
 
             public String getHookName() {
@@ -1066,8 +1073,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         @Cancelable
         public static class Create extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Create {
 
-            public Create(IPlayer player, IProfile profile, int slot) {
-                super(player, profile, slot);
+            public Create(IPlayer player, IProfile profile, int slot, boolean post) {
+                super(player, profile, slot, post);
             }
 
             public String getHookName() {
