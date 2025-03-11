@@ -30,7 +30,7 @@ public class ViewportGraphEditor extends GuiScrollWindow {
 
         grid.setPos(startX, startY, endX, endY);
 
-        presetOverlay.initGui(endX - (clipWidth / 2)-30, startY + (clipHeight / 4), endX, endY);
+        presetOverlay.initGui(endX - (clipWidth / 2) - 37, startY + (clipHeight / 4), endX, endY);
         presetOverlay.viewButton.initGui(endX + 1, endY + 2);
     }
 
@@ -45,7 +45,7 @@ public class ViewportGraphEditor extends GuiScrollWindow {
         this.drawGradientRect(startX, startY, endX, endY, 0xFF303030, 0xFF303030);
 
         grid.draw(mouseX, mouseY, partialTicks, wheel);
-        presetOverlay.draw(mouseX, mouseY, partialTicks, wheel);
+        presetOverlay.draw(mouseX, mouseY, wheel);
 
         // int heigh = presetOverlay.list.get(0).getHeight();
         grid.parent.getFontRenderer().drawString("abovebox: " + presetOverlay.list.get(0).isMouseAboveBox(mouseX, mouseY), mouseX + 5, mouseY, 0xffffffff);

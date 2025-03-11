@@ -8,6 +8,7 @@ import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.client.gui.util.animation.keys.KeyPresetManager;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.util.ValueUtil;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.LinkedList;
@@ -17,9 +18,10 @@ public class OverlayKeyPresetViewer {
     private static final ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/keypreset_highres.png");
 
     public int startX, startY, endX, endY, width, height;
+    public int mouseX, mouseY;
     public boolean showOverlay;
 
-    public int elementSpacing = 5;
+    public int elementSpacing = 5, yStartSpacing = 5;
     public float scale = 0.75f;
     public Scrollable scroll = new Scrollable();
 
@@ -53,7 +55,9 @@ public class OverlayKeyPresetViewer {
         scroll.maxScroll = Math.max(0, totalHeight - height);
     }
 
-    public void draw(int mouseX, int mouseY, float partialTicks, int wheel) {
+    public void draw(int mouseX, int mouseY, int wheel) {
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
         boolean aboveButton = viewButton.isMouseAbove(mouseX, mouseY);
         boolean aboveOverlay = isMouseAbove(mouseX, mouseY);
 
@@ -61,7 +65,7 @@ public class OverlayKeyPresetViewer {
             showOverlay = true;
 
         if (showOverlay) {
-            drawOverlay(mouseX, mouseY, partialTicks, wheel);
+            drawOverlay(wheel);
 
             if (!aboveOverlay && !aboveButton)
                 showOverlay = false;
@@ -70,17 +74,17 @@ public class OverlayKeyPresetViewer {
         viewButton.drawButton();
     }
 
-    public void drawOverlay(int mouseX, int mouseY, float partialTicks, int wheel) {
-        if (wheel != 0 && isMouseAbove(mouseX, mouseY))
-            scroll.scroll(wheel);
-        scroll.update();
+    public void drawOverlay(int wheel) {
+        scroll.update(wheel);
 
-        GuiUtil.drawGradientRect(startX, startY, endX, endY, 0x88000000, 0x88303030);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - 2 : width, height);
+        GuiUtil.drawGradientRect(startX, startY, endX, endY, 0x88000000, 0x88303030);
+        scroll.drawBar();
+
+        GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - scroll.barWidth : width, height);
 
         GL11.glPushMatrix();
-        GL11.glTranslatef((startX + 2), startY + 5 - scroll.scrollY, 0);
+        GL11.glTranslatef((startX + 2), startY + yStartSpacing - scroll.scrollY, 0);
 
         for (int i = 0, height = 0; i < list.size(); i++) {
             PresetElement element = list.get(i);
@@ -90,7 +94,7 @@ public class OverlayKeyPresetViewer {
             element.drawDescription();
             GL11.glPopMatrix();
 
-            element.drawBox(mouseX, mouseY, height);
+            element.drawBox(height);
             height += element.getHeight();
         }
 
@@ -99,6 +103,9 @@ public class OverlayKeyPresetViewer {
     }
 
     public void keyTyped(char c, int i) {
+        if (!isMouseAbove(mouseX, mouseY))
+            return;
+
         list.forEach((element) -> {
             if (element.isEditing)
                 element.keyTyped(i);
@@ -113,14 +120,18 @@ public class OverlayKeyPresetViewer {
             } else
                 element.boxClicked(button);
 
-            if (element.isMouseAboveReset(mouseX, mouseY) && !element.key.isDefault())
+            if (element.isMouseAboveReset(mouseX, mouseY) && !element.key.isDefault()) {
                 element.key.defaultState.writeTo(element.key.currentState);
-
+                manager.save();
+            }
 
         });
     }
 
     public boolean isMouseAbove(int mouseX, int mouseY) {
+        if (scroll.isMouseDragging)
+            return true;
+
         return mouseX >= startX && mouseX < endX && mouseY >= startY && mouseY < endY;
     }
 
@@ -130,13 +141,31 @@ public class OverlayKeyPresetViewer {
 
     public class Scrollable {
         private float scrollY, targetScrollY, maxScroll;
+        private int barWidth = 2;
+
+        private boolean isMouseDragging;
+        private int startDragY;
 
         public Scrollable() {
         }
 
-        public void update() {
+        public void update(int wheel) {
+            if (wheel != 0 && isMouseAbove(mouseX, mouseY))
+                targetScrollY = ValueUtil.clamp(targetScrollY - wheel / 15, 0, maxScroll);
+
+            if (Mouse.isButtonDown(0)) {
+                if (!isMouseDragging && isMouseAboveBar(mouseX, mouseY)) {
+                    isMouseDragging = true;
+                    startDragY = (int) (mouseY - scrollY);
+                }
+            } else
+                isMouseDragging = false;
+
+            if (isMouseDragging)
+                scrollY = targetScrollY = ValueUtil.clamp(mouseY - startDragY, 0, maxScroll);
+
             if (scrollY != targetScrollY) {
-                scrollY = ValueUtil.lerp(scrollY, targetScrollY, 0.05f);
+                scrollY = ValueUtil.lerp(scrollY, targetScrollY, 0.1f);
 
                 if (Math.abs(scrollY - targetScrollY) < 0.001) // Snap to exact target value
                     scrollY = targetScrollY;
@@ -145,8 +174,21 @@ public class OverlayKeyPresetViewer {
             scrollY = ValueUtil.clamp(scrollY, 0, maxScroll);
         }
 
-        public void scroll(int wheel) {
-            targetScrollY = ValueUtil.clamp(targetScrollY - wheel / 10, 0, maxScroll);
+        public void drawBar() {
+            int scrollbarHeight = (int) (height - yStartSpacing - maxScroll);
+
+            GL11.glPushMatrix();
+            GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY, 0);
+            GuiUtil.drawRectD(0, 0, barWidth, scrollbarHeight, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
+            GL11.glPopMatrix();
+        }
+
+        public boolean isMouseAboveBar(int mouseX, int mouseY) {
+            int barX = endX - barWidth - 2;
+            int barY = (int) (startY + scrollY + yStartSpacing);
+            int scrollbarHeight = (int) (height - yStartSpacing - maxScroll);
+
+            return mouseX >= barX && mouseX < barX + barWidth && mouseY >= barY && mouseY < barY + scrollbarHeight;
         }
     }
 
@@ -169,7 +211,7 @@ public class OverlayKeyPresetViewer {
             font.drawSplitString(description, 9, font.FONT_HEIGHT, getMaxStringWidth() - 9, 0x888888);
         }
 
-        public void drawBox(int mouseX, int mouseY, int offsetY) {
+        public void drawBox(int offsetY) {
             ////////////////////////////////////////////
             ////////////////////////////////////////////
             //Box texture
@@ -178,7 +220,7 @@ public class OverlayKeyPresetViewer {
             GL11.glColor4f(1, 1, 1, 1);
             float boxScaleX = 1.75f;
             float boxWidth = 32 * boxScaleX;
-            boxScreenX = getMaxStringWidth() * scale + 10; //remove scaling from maxStringWidth
+            boxScreenX = getMaxStringWidth() * scale + 8; //remove scaling from maxStringWidth
             GL11.glScalef(boxScaleX, 1, 0);
 
             if (isEditing)
@@ -293,10 +335,9 @@ public class OverlayKeyPresetViewer {
             mouseY -= startY + 5 - scroll.scrollY;
 
             float boxScaleX = 1.75f;
-            float screenX = (getMaxStringWidth() * scale + 10);
             float screenY = boxScreenY + 10;
 
-            return mouseX >= screenX && mouseX < screenX + 32 * boxScaleX && mouseY >= screenY && mouseY < screenY + 10;
+            return mouseX >= boxScreenX && mouseX < boxScreenX + 32 * boxScaleX && mouseY >= screenY && mouseY < screenY + 10;
         }
 
         public boolean isMouseAboveReset(int mouseX, int mouseY) {
