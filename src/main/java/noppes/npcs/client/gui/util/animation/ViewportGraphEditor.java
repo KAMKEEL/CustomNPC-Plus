@@ -30,7 +30,7 @@ public class ViewportGraphEditor extends GuiScrollWindow {
 
         grid.setPos(startX, startY, endX, endY);
 
-        presetOverlay.initGui(endX - (clipWidth / 2), startY + (clipHeight / 4), endX, endY);
+        presetOverlay.initGui(endX - (clipWidth / 2)-30, startY + (clipHeight / 4), endX, endY);
         presetOverlay.viewButton.initGui(endX + 1, endY + 2);
     }
 

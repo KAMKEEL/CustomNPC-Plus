@@ -87,7 +87,7 @@ public class OverlayKeyPresetViewer {
             GL11.glPushMatrix();
             GL11.glScalef(scale, scale, 1);
             GL11.glTranslatef(0, Math.round(height / scale), 0);
-            element.drawText();
+            element.drawDescription();
             GL11.glPopMatrix();
 
             element.drawBox(mouseX, mouseY, height);
@@ -100,16 +100,23 @@ public class OverlayKeyPresetViewer {
 
     public void keyTyped(char c, int i) {
         list.forEach((element) -> {
-            if (element.boxFocused)
-                element.keyTyped(c, i);
+            if (element.isEditing)
+                element.keyTyped(i);
         });
     }
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
         list.forEach((element) -> {
-            if (element.isMouseAboveBox(mouseX, mouseY)) {
-                element.mouseClicked(mouseX, mouseY, button);
-            }
+            if (!element.isMouseAboveBox(mouseX, mouseY)) {
+                if (element.isEditing)
+                    element.cancelEdit();
+            } else
+                element.boxClicked(button);
+
+            if (element.isMouseAboveReset(mouseX, mouseY) && !element.key.isDefault())
+                element.key.defaultState.writeTo(element.key.currentState);
+
+
         });
     }
 
@@ -145,26 +152,16 @@ public class OverlayKeyPresetViewer {
 
     public class PresetElement {
         public KeyPreset key;
-        public boolean boxFocused;
-        public float boxScreenY;
+        public boolean isEditing;
+        public float boxScreenX, boxScreenY;
 
-        public KeyPreset.KeyState oldState = new KeyPreset.KeyState();
+        public KeyPreset.KeyState newState = new KeyPreset.KeyState();
 
         public PresetElement(KeyPreset key) {
             this.key = key;
         }
 
-        public int getHeight() {
-            List<String> wrappedDescription = font.listFormattedStringToWidth(String.format("- %s", key.description), getMaxStringWidth());
-
-            int nameHeight = font.FONT_HEIGHT;
-            int translations = font.FONT_HEIGHT;
-            int descriptionHeight = wrappedDescription.size() * (font.FONT_HEIGHT);
-
-            return Math.round((nameHeight + descriptionHeight + translations) * scale) + elementSpacing;
-        }
-
-        public void drawText() {
+        public void drawDescription() {
             String name = String.format("> %s", key.name);
             font.drawString(name, 0, 0, 0xffffff);
 
@@ -180,23 +177,35 @@ public class OverlayKeyPresetViewer {
             GL11.glPushMatrix();
             GL11.glColor4f(1, 1, 1, 1);
             float boxScaleX = 1.75f;
-            float screenX = getMaxStringWidth() * scale + 10; //remove scaling from maxStringWidth
+            float boxWidth = 32 * boxScaleX;
+            boxScreenX = getMaxStringWidth() * scale + 10; //remove scaling from maxStringWidth
             GL11.glScalef(boxScaleX, 1, 0);
 
-            if (boxFocused)
+            if (isEditing)
                 new Color(0x4772b3, 1).glColor();
             else if (isMouseAboveBox(mouseX, mouseY))
                 new Color(0x656565, 1).glColor();
             else
                 new Color(0x545454, 1).glColor();
-            GuiUtil.drawTexturedModalRect(screenX / boxScaleX, boxScreenY = offsetY - 5, 64, 20, 0, 492);
+            GuiUtil.drawTexturedModalRect(boxScreenX / boxScaleX, boxScreenY = offsetY - 5, 32, 20, 0, 492);
             GL11.glPopMatrix();
+
+            //Reset box
+            boolean isDefault = key.isDefault();
+            float resetWidth = 10;
+            float resetScreenX = boxScreenX + boxWidth + 2;
+
+            if (isMouseAboveReset(mouseX, mouseY) && !isDefault)
+                new Color(0x656565, 1).glColor();
+            else
+                new Color(0x545454, 1).glColor();
+            GuiUtil.drawTexturedModalRect(resetScreenX, boxScreenY, 10, 20, 33, 492);
 
             ////////////////////////////////////////////
             ////////////////////////////////////////////
             //Key name
-            String name = getName();
-            float boxWidth = 32 * boxScaleX, nameWidth = font.getStringWidth(name);
+            String name = getBoxKeyName();
+            float nameWidth = font.getStringWidth(name);
             float nameScale = scale;
             float nameBoxRatio = nameWidth * scale / boxWidth;
 
@@ -206,20 +215,77 @@ public class OverlayKeyPresetViewer {
                 GL11.glTranslatef(0, nameBoxRatio * 0.5f, 0);
             }
 
-            float nameX = screenX + boxWidth / 2 - (nameWidth / 2 * nameScale);
+            float nameX = boxScreenX + boxWidth / 2 - (nameWidth / 2 * nameScale);
             float nameY = offsetY + 11.5f - (font.FONT_HEIGHT / 2);
-
             GL11.glScalef(nameScale, nameScale, 1);
             GL11.glTranslatef(nameX / nameScale, nameY / nameScale, 1);
             font.drawStringWithShadow(name, 0, 0, conflicts() ? 0xff5555 : 0xffffffff);
+            GL11.glPopMatrix();
+
+            //Reset letter
+            char letter = 'X';
+            float letterX = resetScreenX + (resetWidth / 2) - (font.getCharWidth(letter) / 2 * scale) + 0.25f;
+            GL11.glPushMatrix();
+            GL11.glScalef(scale, scale, 1);
+            GL11.glTranslatef(letterX / scale, nameY / scale, 1);
+            font.drawStringWithShadow(String.valueOf(letter), 0, 0, isDefault ? 0xff8a8a8a : 0xffffffff);
             GL11.glPopMatrix();
 
             ////////////////////////////////////////////
             ////////////////////////////////////////////
         }
 
+        public void boxClicked(int button) {
+            if (isEditing)
+                setKey(-100 + button);
+            else if (button == 0)
+                isEditing = true;
+        }
+
+        public void keyTyped(int typedKey) {
+            if (typedKey == 1) {
+                setKey(0);
+                return;
+            }
+
+            newState.setState(newState.keyCode, KeyPreset.isCtrlKeyDown(), KeyPreset.isAltKeyDown(), KeyPreset.isShiftKeyDown());
+            if (KeyPreset.isNotCtrlShiftAlt(typedKey))
+                setKey(typedKey);
+        }
+
+        public void setKey(int keyCode) {
+            if (keyCode == 0)
+                newState.clear();
+
+            newState.keyCode = keyCode;
+            newState.writeTo(key.currentState);
+            cancelEdit();
+            manager.save();
+        }
+
+        public void cancelEdit() {
+            newState.clear();
+            isEditing = false;
+        }
+
         public boolean conflicts() {
             return list.stream().anyMatch(element -> element.key != this.key && element.key.equals(this.key));
+        }
+
+        public String getBoxKeyName() {
+            if (isEditing) {
+                String modifiers = "";
+                if (KeyPreset.isCtrlKeyDown())
+                    modifiers += "CTRL ";
+                if (KeyPreset.isAltKeyDown())
+                    modifiers += "ALT ";
+                if (KeyPreset.isShiftKeyDown())
+                    modifiers += "SHIFT ";
+
+                return !modifiers.isEmpty() ? modifiers : "Press a key";
+            }
+
+            return key.currentState.getName();
         }
 
         public boolean isMouseAboveBox(int mouseX, int mouseY) {
@@ -233,56 +299,26 @@ public class OverlayKeyPresetViewer {
             return mouseX >= screenX && mouseX < screenX + 32 * boxScaleX && mouseY >= screenY && mouseY < screenY + 10;
         }
 
-        public void mouseClicked(int mouseX, int mouseY, int button) {
-            if (button == 0) {
-                boxFocused = true;
-                oldState.saveState(key);
-                key.clear();
-            } else if (button == 1) {
-                if (boxFocused) {
-                    boxFocused = false;
-                    oldState.loadState(key);
-                } else
-                    key.defaultState.loadState(key);
-            } else
-                setKey(-100 + button);
+        public boolean isMouseAboveReset(int mouseX, int mouseY) {
+            mouseX -= startX + 2;
+            mouseY -= startY + 5 - scroll.scrollY;
+
+            float boxScaleX = 1.75f;
+            float resetWidth = 10, boxWidth = 32 * boxScaleX;
+            float screenX = boxScreenX + boxWidth + 2;
+            float screenY = boxScreenY + 10;
+
+            return mouseX >= screenX && mouseX < screenX + resetWidth && mouseY >= screenY && mouseY < screenY + 10;
         }
 
-        public void keyTyped(char c, int keyCode) {
-            if (keyCode == 1) {
-                boxFocused = false;
-                oldState.loadState(key);
-                return;
-            }
+        public int getHeight() {
+            List<String> wrappedDescription = font.listFormattedStringToWidth(String.format("- %s", key.description), getMaxStringWidth());
 
-            key.hasCtrl = KeyPreset.isCtrlKeyDown();
-            key.hasShift = KeyPreset.isShiftKeyDown();
-            key.hasAlt = KeyPreset.isAltKeyDown();
-            if (KeyPreset.isNotCtrlShiftAlt(keyCode))
-                setKey(keyCode);
+            int nameHeight = font.FONT_HEIGHT;
+            int translations = font.FONT_HEIGHT;
+            int descriptionHeight = wrappedDescription.size() * (font.FONT_HEIGHT);
 
-        }
-
-        public void setKey(int keyCode) {
-            key.keyCode = keyCode;
-            boxFocused = false;
-            manager.save();
-        }
-
-        public String getName() {
-            if (boxFocused) {
-                String modifiers = "";
-                if (KeyPreset.isCtrlKeyDown())
-                    modifiers += "CTRL ";
-                if (KeyPreset.isAltKeyDown())
-                    modifiers += "ALT ";
-                if (KeyPreset.isShiftKeyDown())
-                    modifiers += "SHIFT ";
-
-                return !modifiers.isEmpty() ? modifiers : "Press a key";
-            }
-
-            return key.getKeyName();
+            return Math.round((nameHeight + descriptionHeight + translations) * scale) + elementSpacing;
         }
 
         public int getMaxStringWidth() {
