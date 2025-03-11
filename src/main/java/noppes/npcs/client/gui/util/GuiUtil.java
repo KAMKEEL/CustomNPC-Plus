@@ -9,6 +9,19 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiUtil {
 
+    public static void setScissorClip(int x, int y, int width, int height) {
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int scale = res.getScaleFactor();
+
+
+        // Adjust position to Top-Left origin (OpenGL window/screen space uses bottom-left origin)
+        y = mc.displayHeight - y * scale;
+        height *= scale;
+
+        // Set clip
+        GL11.glScissor(x * scale, y - height, width * scale, height);
+    }
     public static void drawHorizontalLine(double y, double startX, double endX, int color) {
         if (endX < startX) {
             double i1 = startX;
@@ -63,10 +76,41 @@ public class GuiUtil {
         GL11.glDisable(GL11.GL_BLEND);
     }
 
+    public static void drawGradientRect(int left, int top, int right, int bottom, int startColor, int endColor) {
+        double zLevel = 0;
+
+        float f = (float) (startColor >> 24 & 255) / 255.0F;
+        float f1 = (float) (startColor >> 16 & 255) / 255.0F;
+        float f2 = (float) (startColor >> 8 & 255) / 255.0F;
+        float f3 = (float) (startColor & 255) / 255.0F;
+        float f4 = (float) (endColor >> 24 & 255) / 255.0F;
+        float f5 = (float) (endColor >> 16 & 255) / 255.0F;
+        float f6 = (float) (endColor >> 8 & 255) / 255.0F;
+        float f7 = (float) (endColor & 255) / 255.0F;
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GL11.glShadeModel(GL11.GL_SMOOTH);
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_F(f1, f2, f3, f);
+        tessellator.addVertex(right, top, zLevel);
+        tessellator.addVertex(left, top, zLevel);
+        tessellator.setColorRGBA_F(f5, f6, f7, f4);
+        tessellator.addVertex(left, bottom, zLevel);
+        tessellator.addVertex(right, bottom, zLevel);
+        tessellator.draw();
+        GL11.glShadeModel(GL11.GL_FLAT);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+    }
+
     public static void drawTexturedModalRect(double x, double y, double width, double height, int textureX, int textureY) {
         double zLevel = 0;
-        float f = 0.00390625F;
-        float f1 = 0.00390625F;
+        float f = 1/256f;
+        float f1 = 1/256f;
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.addVertexWithUV(x + 0, y + height, zLevel, (float) (textureX) * f, (float) (textureY + height) * f1);

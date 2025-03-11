@@ -15,11 +15,10 @@ public class KeyPresetManager {
 
     public KeyPresetManager(String fileName) {
         this.fileName = fileName;
-        load();
     }
 
-    public KeyPreset add(String description, int keyCode, boolean isMouseKey) {
-        KeyPreset preset = new KeyPreset(description, keyCode, isMouseKey);
+    public KeyPreset add(String name) {
+        KeyPreset preset = new KeyPreset(name);
         keys.add(preset);
         return preset;
     }
@@ -28,6 +27,7 @@ public class KeyPresetManager {
         for (KeyPreset key : keys)
             key.tick();
     }
+
 
     public void load() {
         try {

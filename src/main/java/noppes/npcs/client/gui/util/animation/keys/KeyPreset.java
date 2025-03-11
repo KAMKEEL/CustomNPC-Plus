@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.animation.keys;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.settings.GameSettings;
 import net.minecraft.nbt.NBTTagCompound;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -14,19 +15,44 @@ public class KeyPreset {
      */
     public static final int PRESS = 0, HOLD = 1, RELEASE = 2, SINGLE_PRESS = 3, PRESS_RELEASE = 4;
 
-    public int keyCode, defaultKeyCode;
+    public int keyCode = -1;
     public int pressTime;
     public boolean isDown;
 
     public boolean isMouseKey, hasCtrl, hasAlt, hasShift;
 
-    public String name;
+    public String name, description;
     public Consumer<Integer> task;
+    public KeyState defaultState = new KeyState();
 
-    public KeyPreset(String name, int keyCode, boolean isMouseKey) {
+    public KeyPreset(String name) {
         this.name = name;
-        this.keyCode = defaultKeyCode = keyCode;
-        this.isMouseKey = isMouseKey;
+    }
+
+    public KeyPreset setDefaultState(int keyCode, boolean isMouseKey, boolean hasCtrl, boolean hasAlt, boolean hasShift) {
+        defaultState.setState(keyCode, isMouseKey, hasCtrl, hasAlt, hasShift);
+        return this;
+    }
+
+    //call on the last key added, to load saved presets
+    public KeyPreset markDone(KeyPresetManager manager) {
+        manager.load();
+        return this;
+    }
+
+    public KeyPreset setDescription(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public String getKeyName() {
+        String name = keyCode == -1 ? "" : GameSettings.getKeyDisplayString(keyCode);
+        return (hasCtrl ? "CTRL " : "") + (hasAlt ? "ALT " : "") + (hasShift ? "SHIFT " : "") + name;
+    }
+
+    public void clear() {
+        this.keyCode = -1;
+        hasCtrl = hasAlt = hasShift = isMouseKey = false;
     }
 
     public void setDown(boolean down) {
@@ -63,8 +89,13 @@ public class KeyPreset {
     }
 
     public void tick() {
-        boolean isDown = isMouseKey ? Mouse.isButtonDown(keyCode) : Keyboard.isKeyDown(keyCode);
-        isDown = isDown && (hasCtrl ? isCtrlKeyDown() : true) && (hasShift ? isShiftKeyDown() : true) && (hasAlt ? isAltKeyDown() : true);
+        if (keyCode == -1)
+            return;
+
+        boolean isDown = isMouseKey ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode);
+        if(isDown)
+            System.out.println();
+        isDown = isDown && (hasCtrl ? isCtrlKeyDown() : true) && (hasAlt ? isAltKeyDown() : true && (hasShift ? isShiftKeyDown() : true));
 
         setDown(isDown);
     }
@@ -90,15 +121,62 @@ public class KeyPreset {
         this.hasAlt = compound.getBoolean("hasAlt");
     }
 
+    public boolean equals(Object preset) {
+        if (preset == this)
+            return true;
+
+        if (preset instanceof KeyPreset) {
+            KeyPreset key = (KeyPreset) preset;
+            return key.keyCode == keyCode && key.isMouseKey == isMouseKey && key.hasCtrl == hasCtrl && key.hasAlt == hasAlt && key.hasShift == hasShift;
+        }
+
+        return false;
+    }
     public static boolean isCtrlKeyDown() {
         return Minecraft.isRunningOnMac ? Keyboard.isKeyDown(219) || Keyboard.isKeyDown(220) : Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
     }
 
+    public static boolean isAltKeyDown() {
+        return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
+    }
     public static boolean isShiftKeyDown() {
         return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
     }
 
-    public static boolean isAltKeyDown() {
-        return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
+    public static boolean isNotCtrlShiftAlt(int key) {
+        return key != 219 && key != 220 && key != 29 && key != 157 && key != 42 && key != 54 && key != 56 && key != 184;
+    }
+
+    public static class KeyState {
+        public int keyCode = -1;
+        public boolean isMouseKey, hasCtrl, hasAlt, hasShift;
+
+        public void setState(int keyCode, boolean isMouseKey, boolean hasCtrl, boolean hasAlt, boolean hasShift) {
+            this.keyCode = keyCode;
+            this.isMouseKey = isMouseKey;
+            this.hasCtrl = hasCtrl;
+            this.hasAlt = hasAlt;
+            this.hasShift = hasShift;
+        }
+
+        public void saveState(KeyPreset key) {
+            keyCode = key.keyCode;
+            hasCtrl = key.hasCtrl;
+            hasShift = key.hasShift;
+            hasAlt = key.hasAlt;
+            isMouseKey = key.isMouseKey;
+        }
+
+        public void loadState(KeyPreset key) {
+            key.keyCode = keyCode;
+            key.hasCtrl = hasCtrl;
+            key.hasShift = hasShift;
+            key.hasAlt = hasAlt;
+            key.isMouseKey = isMouseKey;
+        }
+
+        public boolean hasState() {
+            return keyCode != -1;
+        }
     }
 }

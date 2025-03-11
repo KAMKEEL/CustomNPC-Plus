@@ -103,7 +103,7 @@ public class Grid {
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
         // Zoom logic
-        if (wheel != 0) {
+        if (wheel != 0 && !parent.presetOverlay.showOverlay) {
             float xRate = zoomX < 15 ? 1.1f : 1.25f;
             float yRate = zoomY < 15 ? 1.1f : 1.25f;
 
@@ -147,16 +147,12 @@ public class Grid {
         //////////////////////////////////////////////////////////////
         Gui.drawRect(startX, startY - yAxisHeight, endX, startY, 0xFF161616); //background
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glPushMatrix();
-        float scale = 3f;
-        float offset = -400;
-        //   GL11.glTranslatef(offset, offset,0);
-        //   GL11.glScalef(scale, scale, 1);
+
         GL11.glDepthMask(false);
         drawLines(mouseX, mouseY);
         GL11.glDepthMask(true);
+
         manager.draw(mouseX, mouseY, partialTicks);
-        GL11.glPopMatrix();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 

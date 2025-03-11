@@ -710,7 +710,12 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     @Override
     public void keyTyped(char par1, int par2) {
+        boolean old = closeOnEsc;
+        if(graphEditor.presetOverlay.showOverlay)
+            closeOnEsc = false;
+
         super.keyTyped(par1, par2);
+        closeOnEsc = old;
 
         if (GuiScreen.isCtrlKeyDown() && par2 != 29 && !GuiNpcTextField.isFieldActive()) {
             switch (par2) {
