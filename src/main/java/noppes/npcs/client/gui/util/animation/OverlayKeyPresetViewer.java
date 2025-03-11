@@ -245,7 +245,7 @@ public class OverlayKeyPresetViewer {
                 } else
                     key.defaultState.loadState(key);
             } else
-                setKey(-100 + button, true);
+                setKey(-100 + button);
         }
 
         public void keyTyped(char c, int keyCode) {
@@ -258,14 +258,13 @@ public class OverlayKeyPresetViewer {
             key.hasCtrl = KeyPreset.isCtrlKeyDown();
             key.hasShift = KeyPreset.isShiftKeyDown();
             key.hasAlt = KeyPreset.isAltKeyDown();
-            if (KeyPreset.isNotCtrlShiftAlt(keyCode)) {
-                setKey(keyCode, false);
-            }
+            if (KeyPreset.isNotCtrlShiftAlt(keyCode))
+                setKey(keyCode);
+
         }
 
-        public void setKey(int keyCode, boolean isMouse) {
+        public void setKey(int keyCode) {
             key.keyCode = keyCode;
-            key.isMouseKey = isMouse;
             boxFocused = false;
             manager.save();
         }

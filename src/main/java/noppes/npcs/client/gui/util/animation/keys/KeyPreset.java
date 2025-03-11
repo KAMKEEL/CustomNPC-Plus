@@ -19,7 +19,7 @@ public class KeyPreset {
     public int pressTime;
     public boolean isDown;
 
-    public boolean isMouseKey, hasCtrl, hasAlt, hasShift;
+    public boolean hasCtrl, hasAlt, hasShift;
 
     public String name, description;
     public Consumer<Integer> task;
@@ -29,14 +29,8 @@ public class KeyPreset {
         this.name = name;
     }
 
-    public KeyPreset setDefaultState(int keyCode, boolean isMouseKey, boolean hasCtrl, boolean hasAlt, boolean hasShift) {
-        defaultState.setState(keyCode, isMouseKey, hasCtrl, hasAlt, hasShift);
-        return this;
-    }
-
-    //call on the last key added, to load saved presets
-    public KeyPreset markDone(KeyPresetManager manager) {
-        manager.load();
+    public KeyPreset setDefaultState(int keyCode, boolean hasCtrl, boolean hasAlt, boolean hasShift) {
+        defaultState.setState(keyCode, hasCtrl, hasAlt, hasShift);
         return this;
     }
 
@@ -45,14 +39,19 @@ public class KeyPreset {
         return this;
     }
 
-    public String getKeyName() {
-        String name = keyCode == -1 ? "" : GameSettings.getKeyDisplayString(keyCode);
-        return (hasCtrl ? "CTRL " : "") + (hasAlt ? "ALT " : "") + (hasShift ? "SHIFT " : "") + name;
+    public KeyPreset setTask(Consumer<Integer> task) {
+        this.task = task;
+        return this;
     }
 
-    public void clear() {
-        this.keyCode = -1;
-        hasCtrl = hasAlt = hasShift = isMouseKey = false;
+    public void tick() {
+        if (keyCode == -1)
+            return;
+
+        boolean isDown = isMouseKey() ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode);
+        isDown = isDown && (hasCtrl ? isCtrlKeyDown() : true) && (hasAlt ? isAltKeyDown() : true && (hasShift ? isShiftKeyDown() : true));
+
+        setDown(isDown);
     }
 
     public void setDown(boolean down) {
@@ -83,28 +82,30 @@ public class KeyPreset {
         return this;
     }
 
-    public KeyPreset setTask(Consumer<Integer> task) {
-        this.task = task;
-        return this;
+    public boolean isMouseKey() {
+        return keyCode < -1;
     }
 
-    public void tick() {
-        if (keyCode == -1)
-            return;
+    public String getKeyName() {
+        String name = keyCode == -1 ? "" : GameSettings.getKeyDisplayString(keyCode);
+        return (hasCtrl ? "CTRL " : "") + (hasAlt ? "ALT " : "") + (hasShift ? "SHIFT " : "") + name;
+    }
 
-        boolean isDown = isMouseKey ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode);
-        if(isDown)
-            System.out.println();
-        isDown = isDown && (hasCtrl ? isCtrlKeyDown() : true) && (hasAlt ? isAltKeyDown() : true && (hasShift ? isShiftKeyDown() : true));
+    public void clear() {
+        this.keyCode = -1;
+        hasCtrl = hasAlt = hasShift = false;
+    }
 
-        setDown(isDown);
+    //call on the last key added, to load saved presets
+    public KeyPreset markDone(KeyPresetManager manager) {
+        manager.load();
+        return this;
     }
 
     public void writeToNbt(NBTTagCompound c) {
         NBTTagCompound compound = new NBTTagCompound();
 
         compound.setInteger("keyCode", keyCode);
-        compound.setBoolean("isMouseKey", isMouseKey);
         compound.setBoolean("hasCtrl", hasCtrl);
         compound.setBoolean("hasShift", hasShift);
         compound.setBoolean("hasAlt", hasAlt);
@@ -115,7 +116,6 @@ public class KeyPreset {
         NBTTagCompound compound = c.getCompoundTag(name);
 
         this.keyCode = compound.getInteger("keyCode");
-        this.isMouseKey = compound.getBoolean("isMouseKey");
         this.hasCtrl = compound.getBoolean("hasCtrl");
         this.hasShift = compound.getBoolean("hasShift");
         this.hasAlt = compound.getBoolean("hasAlt");
@@ -127,7 +127,7 @@ public class KeyPreset {
 
         if (preset instanceof KeyPreset) {
             KeyPreset key = (KeyPreset) preset;
-            return key.keyCode == keyCode && key.isMouseKey == isMouseKey && key.hasCtrl == hasCtrl && key.hasAlt == hasAlt && key.hasShift == hasShift;
+            return key.keyCode == keyCode && key.hasCtrl == hasCtrl && key.hasAlt == hasAlt && key.hasShift == hasShift;
         }
 
         return false;
@@ -149,11 +149,10 @@ public class KeyPreset {
 
     public static class KeyState {
         public int keyCode = -1;
-        public boolean isMouseKey, hasCtrl, hasAlt, hasShift;
+        public boolean hasCtrl, hasAlt, hasShift;
 
-        public void setState(int keyCode, boolean isMouseKey, boolean hasCtrl, boolean hasAlt, boolean hasShift) {
+        public void setState(int keyCode, boolean hasCtrl, boolean hasAlt, boolean hasShift) {
             this.keyCode = keyCode;
-            this.isMouseKey = isMouseKey;
             this.hasCtrl = hasCtrl;
             this.hasAlt = hasAlt;
             this.hasShift = hasShift;
@@ -164,7 +163,6 @@ public class KeyPreset {
             hasCtrl = key.hasCtrl;
             hasShift = key.hasShift;
             hasAlt = key.hasAlt;
-            isMouseKey = key.isMouseKey;
         }
 
         public void loadState(KeyPreset key) {
@@ -172,7 +170,6 @@ public class KeyPreset {
             key.hasCtrl = hasCtrl;
             key.hasShift = hasShift;
             key.hasAlt = hasAlt;
-            key.isMouseKey = isMouseKey;
         }
 
         public boolean hasState() {
