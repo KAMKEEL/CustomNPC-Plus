@@ -55,21 +55,19 @@ public class KeyPreset {
     }
 
     public void setDown(boolean down) {
-        if (down && !isDown) {
-            onAction(PRESS);
-            onAction(PRESS_RELEASE);
-        }
+        if (down && !isDown)
+            onAction(PRESS, PRESS_RELEASE);
+
         if (!down && isDown) {
             if (pressTime <= 5)
                 onAction(SINGLE_PRESS);
 
-            onAction(RELEASE);
-            onAction(PRESS_RELEASE);
+            onAction(RELEASE, PRESS_RELEASE);
             pressTime = 0;
         }
 
         if (isDown || down) //to fire in both press & release
-            onAction(KeyPreset.HOLD);
+            onAction(HOLD);
 
         if (isDown)
             pressTime++;
@@ -77,8 +75,9 @@ public class KeyPreset {
         this.isDown = down;
     }
 
-    public KeyPreset onAction(int pressType) {
-        this.task.accept(pressType);
+    public KeyPreset onAction(int... pressTypes) {
+        for (int pressType : pressTypes)
+            this.task.accept(pressType);
         return this;
     }
 
@@ -87,8 +86,7 @@ public class KeyPreset {
     }
 
     public String getKeyName() {
-        String name = keyCode == -1 ? "" : GameSettings.getKeyDisplayString(keyCode);
-        return (hasCtrl ? "CTRL " : "") + (hasAlt ? "ALT " : "") + (hasShift ? "SHIFT " : "") + name;
+        return getKeyName(this);
     }
 
     public void clear() {
@@ -132,20 +130,7 @@ public class KeyPreset {
 
         return false;
     }
-    public static boolean isCtrlKeyDown() {
-        return Minecraft.isRunningOnMac ? Keyboard.isKeyDown(219) || Keyboard.isKeyDown(220) : Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
-    }
 
-    public static boolean isAltKeyDown() {
-        return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
-    }
-    public static boolean isShiftKeyDown() {
-        return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
-    }
-
-    public static boolean isNotCtrlShiftAlt(int key) {
-        return key != 219 && key != 220 && key != 29 && key != 157 && key != 42 && key != 54 && key != 56 && key != 184;
-    }
 
     public static class KeyState {
         public int keyCode = -1;
@@ -175,5 +160,40 @@ public class KeyPreset {
         public boolean hasState() {
             return keyCode != -1;
         }
+    }
+
+    public static boolean isCtrlKeyDown() {
+        return Minecraft.isRunningOnMac ? Keyboard.isKeyDown(219) || Keyboard.isKeyDown(220) : Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
+    }
+
+    public static boolean isAltKeyDown() {
+        return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
+    }
+
+    public static boolean isShiftKeyDown() {
+        return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
+    }
+
+    public static boolean isNotCtrlShiftAlt(int key) {
+        return key != 219 && key != 220 && key != 29 && key != 157 && key != 42 && key != 54 && key != 56 && key != 184;
+    }
+
+    public static String getKeyName(KeyPreset key) {
+        int code = key.keyCode;
+        String name = "";
+
+        if (code == -100)
+            name = "Left Mouse";
+        else if (code == -99)
+            name = "Right Mouse";
+        else if (code == -98)
+            name = "Middle Mouse";
+        else {
+            name = code == -1 ? "" : GameSettings.getKeyDisplayString(code);
+            if (name.contains("Button"))
+                name = name.replace("Button", "Mouse");
+        }
+
+        return (key.hasCtrl ? "CTRL " : "") + (key.hasAlt ? "ALT " : "") + (key.hasShift ? "SHIFT " : "") + name;
     }
 }
