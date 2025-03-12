@@ -19,7 +19,7 @@ import java.util.function.BiConsumer;
 public class GridPointManager {
     public Grid grid;
     public AnimationKeyPresets keys;
-    public HashMap<EnumFrameType, HashMap<Double, Point>> typePoints = new HashMap<>();
+    public HashMap<EnumFrameType, HashMap<PointKey, Point>> typePoints = new HashMap<>();
     public List<EnumFrameType> highlightedTypes = new ArrayList<>();
     public List<Point> highlightedPoints = new ArrayList<>();
     public Point selectedPoint;
@@ -50,8 +50,8 @@ public class GridPointManager {
                 if (!highlightedTypes.contains(type))
                     highlightedTypes.add(type);
 
-                HashMap<Double, Point> points = pointsOf(type);
-                Point point = points != null ? points.get((double) playhead.worldX) : null; //check if it exists
+                HashMap<PointKey, Point> points = pointsOf(type);
+                Point point = points != null ? points.get(new PointKey(playhead.worldX)) : null; //check if it exists
                 if (point == null)
                     point = addPoint(type, playhead.worldX, 0); // worldX(mouseX - startX), worldY(mouseY - startY)
 
@@ -90,6 +90,7 @@ public class GridPointManager {
         }
 
         if (button == 0 && isFreeTransforming) {
+            //  selectedPoint.updateKey();
             Cursors.reset();
             isFreeTransforming = false;
         }
@@ -104,45 +105,46 @@ public class GridPointManager {
     }
 
     public Point addPoint(EnumFrameType type, Point point) {
-        HashMap<Double, Point> points = pointsOf(type);
+        HashMap<PointKey, Point> points = pointsOf(type);
         if (points == null) {
             points = new HashMap<>();
             typePoints.put(type, points);
         }
 
-        points.put(point.worldX, point);
+        points.put(new PointKey(point), point);
         return point;
     }
 
     public void deletePoint(EnumFrameType type, double x) {
-        HashMap<Double, Point> points = pointsOf(type);
+        HashMap<PointKey, Point> points = pointsOf(type);
         if (points == null)
             return;
 
-        Point point = points.remove(x);
+        Point point = points.remove(new PointKey(x));
         if (point == selectedPoint)
             setSelectedPoint(null);
+
     }
     public Point getPoint(EnumFrameType type, double x) {
-        HashMap<Double, Point> points = pointsOf(type);
+        HashMap<PointKey, Point> points = pointsOf(type);
         if (points == null)
             return null;
 
-        return points.get(x);
+        return points.get(new PointKey(x));
     }
 
-    public HashMap<Double, Point> pointsOf(EnumFrameType type) {
+    public HashMap<PointKey, Point> pointsOf(EnumFrameType type) {
         return typePoints.get(type);
     }
 
     public void forEachActive(BiConsumer<EnumFrameType, Point> consumer) {
-        for (Map.Entry<EnumFrameType, HashMap<Double, Point>> entry : typePoints.entrySet()) {
+        for (Map.Entry<EnumFrameType, HashMap<PointKey, Point>> entry : typePoints.entrySet()) {
             EnumFrameType type = entry.getKey();
 
             if (!highlightedTypes.contains(type))
                 continue;
 
-            for (Map.Entry<Double, Point> points : entry.getValue().entrySet()) {
+            for (Map.Entry<PointKey, Point> points : entry.getValue().entrySet()) {
                 Point point = points.getValue();
                 consumer.accept(type, point);
             }
@@ -172,6 +174,7 @@ public class GridPointManager {
                     selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
                     selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
             }
+
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -276,9 +279,68 @@ public class GridPointManager {
         public void mouseClicked(int mouseX, int mouseY, int button) {
         }
 
-        public void set(double x, double y) {
-            this.worldX = x;
+        public void setY(double y) {
             this.worldY = y;
+        }
+
+        public void updateKey() {
+            HashMap<PointKey, Point> points = pointsOf(type);
+            if (points == null)
+                return;
+
+            points.remove(this);
+            //  points.put(worldX, this);
+        }
+
+        public void setX(double x) {
+            this.worldX = (int) x;
+
+            if (x != worldX)
+                updateKey();
+        }
+
+        public void set(double x, double y) {
+            setX(x);
+            setY(y);
+        }
+
+        public boolean equals(Object o) {
+            if (o instanceof Point) {
+                Point ob = (Point) o;
+                return worldX == ob.worldX && worldY == ob.worldY && type == ob.type;
+            }
+
+            return false;
+        }
+    }
+
+    public class PointKey {
+        private double x;
+        private Point point;
+
+        public PointKey(double x) {
+            this.x = x;
+        }
+
+        public PointKey(Point point) {
+            this.point = point;
+        }
+
+        public double getKey() {
+            return point != null ? point.worldX : x; // Always returns the current `worldX`
+        }
+
+        public boolean equals(Object o) {
+            if (o instanceof PointKey) {
+                PointKey ob = (PointKey) o;
+                return this.getKey() == ob.getKey();
+            }
+
+            return false;
+        }
+
+        public int hashCode() {
+            return Double.hashCode(getKey()); // Hashing based on x value
         }
     }
 
