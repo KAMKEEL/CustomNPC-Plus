@@ -6,7 +6,6 @@ import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
 import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -16,6 +15,8 @@ public class Grid {
     public int startX, startY; // Positioning
     public int endX, endY; // Positioning
     public int yAxisHeight = 12;
+
+    public int mouseX, mouseY;
 
     public float zoomX = 1.0f, targetZoomX = 1f, zoomY = 1f, targetZoomY = 1f; //Zoom smoothness
     public float panX = 0, panY = 0, targetPanX, targetPanY; //  pan offsets
@@ -68,6 +69,15 @@ public class Grid {
                 }
             }
         });
+
+        keys.PAN_GRID.setTask((pressType) -> {
+            if (pressType == KeyPreset.PRESS) {
+                isDragging = true;
+                startPanX = mouseX;
+                startPanY = mouseY;
+            } else if (pressType == KeyPreset.RELEASE)
+                isDragging = false;
+        });
     }
 
     public void setPos(int startX, int startY, int endX, int endY) {
@@ -78,27 +88,25 @@ public class Grid {
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks, int wheel) {
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
         // Panning
-        if (isDragging && !Mouse.isButtonDown(1))
-            isDragging = false;
 
-        if (parent.isWithin(mouseX, mouseY) && !isResetting) {
-            if (isDragging) {
-                if (xDown())
-                    panX -= (mouseX - startPanX) / zoomX;
-                else if (yDown())
-                    panY -= (mouseY - startPanY) / zoomY;
-                else {
-                    panX -= (mouseX - startPanX) / zoomX;
-                    panY -= (mouseY - startPanY) / zoomY * subDivisionY;
-                }
-                startPanX = mouseX;
-                startPanY = mouseY;
+        if (isDragging && parent.isWithin(mouseX, mouseY) && !isResetting) {
+            if (xDown())
+                panX -= (mouseX - startPanX) / zoomX;
+            else if (yDown())
+                panY -= (mouseY - startPanY) / zoomY;
+            else {
+                panX -= (mouseX - startPanX) / zoomX;
+                panY -= (mouseY - startPanY) / zoomY * subDivisionY;
             }
+            startPanX = mouseX;
+            startPanY = mouseY;
         }
-
 
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
@@ -327,11 +335,6 @@ public class Grid {
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
         manager.mouseClicked(mouseX, mouseY, button);
-        if (button == 1 && parent.isWithin(mouseX, mouseY)) { // Right-click to start panning
-            isDragging = true;
-            startPanX = mouseX;
-            startPanY = mouseY;
-        }
 
     }
     public void keyTyped(char c, int i) {
@@ -339,11 +342,11 @@ public class Grid {
     }
 
     public boolean xDown() {
-        return Keyboard.isKeyDown(Keyboard.KEY_X);
+        return manager.keys.LOCK_X.isDown;
     }
 
     public boolean yDown() {
-        return Keyboard.isKeyDown(Keyboard.KEY_Y);
+        return manager.keys.LOCK_Y.isDown;
     }
 
     ////////////////////////////////////////////////////////////

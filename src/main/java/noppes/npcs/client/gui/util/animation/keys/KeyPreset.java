@@ -213,11 +213,11 @@ public class KeyPreset {
             int code = keyCode;
             String name = "";
 
-            if (code == -100)
+            if (code == LEFT_MOUSE)
                 name = "Left Mouse";
-            else if (code == -99)
+            else if (code == RIGHT_MOUSE)
                 name = "Right Mouse";
-            else if (code == -98)
+            else if (code == MIDDLE_MOUSE)
                 name = "Middle Mouse";
             else {
                 name = code == -1 ? "" : GameSettings.getKeyDisplayString(code);
