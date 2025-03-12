@@ -183,12 +183,15 @@ public abstract class GuiDiagram extends Gui {
         List<DiagramIcon> icons = getIcons();
         Map<Integer, Point> positions = new HashMap<>();
         int count = icons.size();
-        int centerX = x + width/2, centerY = y + height/2;
-        int radius = Math.min(width, height)/2 - (int)(0.8 * slotSize);
+        if (count == 0) {  // avoid division by zero
+            return positions;
+        }
+        int centerX = x + width / 2, centerY = y + height / 2;
+        int radius = Math.min(width, height) / 2 - (int) (0.8 * slotSize);
         for (int i = 0; i < count; i++) {
             double angle = 2 * Math.PI * i / count;
-            int posX = centerX + (int)(radius * Math.cos(angle));
-            int posY = centerY + (int)(radius * Math.sin(angle));
+            int posX = centerX + (int) (radius * Math.cos(angle));
+            int posY = centerY + (int) (radius * Math.sin(angle));
             positions.put(icons.get(i).id, new Point(posX, posY));
         }
         return positions;
@@ -198,23 +201,30 @@ public abstract class GuiDiagram extends Gui {
         List<DiagramIcon> icons = getIcons();
         Map<Integer, Point> positions = new HashMap<>();
         int count = icons.size();
-        int n = (int)Math.ceil(Math.sqrt(count));
+        if (count == 0) {  // early exit if no icons
+            return positions;
+        }
+        int n = (int) Math.ceil(Math.sqrt(count));
         int gridWidth = width - 20, gridHeight = height - 20;
         int cellWidth = gridWidth / n, cellHeight = gridHeight / n;
-        int startX = x + (width - gridWidth)/2, startY = y + (height - gridHeight)/2;
+        int startX = x + (width - gridWidth) / 2, startY = y + (height - gridHeight) / 2;
         for (int i = 0; i < count; i++) {
             int row = i / n, col = i % n;
-            int posX = startX + col * cellWidth + cellWidth/2;
-            int posY = startY + row * cellHeight + cellHeight/2;
+            int posX = startX + col * cellWidth + cellWidth / 2;
+            int posY = startY + row * cellHeight + cellHeight / 2;
             positions.put(icons.get(i).id, new Point(posX, posY));
         }
         return positions;
     }
 
+
     protected Map<Integer, Point> calculateTreePositions() {
         List<DiagramIcon> icons = getIcons();
         Map<Integer, Point> positions = new HashMap<>();
         int count = icons.size();
+        if(count == 0) { // avoid arithmetic errors when no icons exist
+            return positions;
+        }
         int levels = (int)Math.ceil(Math.log(count + 1) / Math.log(2));
         int levelHeight = height / (levels + 1);
         int index = 0;
@@ -230,6 +240,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return positions;
     }
+
 
     protected Map<Integer, Point> calculateGeneratedPositions() {
         List<DiagramIcon> icons = getIcons();
@@ -328,22 +339,30 @@ public abstract class GuiDiagram extends Gui {
     // --- Layout Algorithms for Clusters ---
     private Map<Integer, Point> layoutCycle(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight) {
         Map<Integer, Point> positions = new HashMap<>();
+        if (cluster.isEmpty()) {  // guard against an empty cluster
+            return positions;
+        }
         int centerX = compX + compWidth / 2, centerY = compY + compHeight / 2;
         int radius = Math.min(compWidth, compHeight) / 3;
         int i = 0;
         for (Integer id : cluster) {
             double angle = 2 * Math.PI * i / cluster.size();
-            int posX = centerX + (int)(radius * Math.cos(angle));
-            int posY = centerY + (int)(radius * Math.sin(angle));
+            int posX = centerX + (int) (radius * Math.cos(angle));
+            int posY = centerY + (int) (radius * Math.sin(angle));
             positions.put(id, new Point(posX, posY));
             i++;
         }
         return positions;
     }
 
+
     private Map<Integer, Point> layoutTree(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight,
                                            Map<Integer, List<Integer>> fullGraph) {
         Map<Integer, Point> positions = new HashMap<>();
+        if (cluster.isEmpty()) { // guard against empty clusters
+            return positions;
+        }
+
         Map<Integer, List<Integer>> subgraph = new HashMap<>();
         for (Integer id : cluster) {
             List<Integer> neighbors = new ArrayList<>();
@@ -395,6 +414,10 @@ public abstract class GuiDiagram extends Gui {
 
     private Map<Integer, Point> layoutSquare(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight) {
         Map<Integer, Point> positions = new HashMap<>();
+        if (cluster.isEmpty()) { // guard against empty clusters
+            return positions;
+        }
+
         int n = (int)Math.round(Math.sqrt(cluster.size()));
         int gridCellWidth = compWidth / n, gridCellHeight = compHeight / n;
         int index = 0;
@@ -415,6 +438,9 @@ public abstract class GuiDiagram extends Gui {
     private Map<Integer, Point> layoutForceDirected(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight,
                                                     List<DiagramConnection> connections) {
         Map<Integer, Point> positions = new HashMap<>();
+        if (cluster.isEmpty()) {  // Early exit to avoid division by zero
+            return positions;
+        }
         Random rand = new Random(100);
         for (Integer id : cluster) {
             int posX = compX + rand.nextInt(compWidth);
@@ -486,50 +512,62 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
+
     // --- Manual Layouts ---
     // Manual layouts use the icon index (e.g. ring number, row, level) and the priority for ordering.
     private Map<Integer, Point> calculateCircularManualPositions() {
         List<DiagramIcon> icons = getIcons();
+        Map<Integer, Point> positions = new HashMap<>();
+        if (icons.isEmpty()) {
+            return positions;
+        }
         Map<Integer, List<DiagramIcon>> groups = new TreeMap<>();
         for (DiagramIcon icon : icons) {
             groups.computeIfAbsent(icon.index, k -> new ArrayList<>()).add(icon);
         }
-        Map<Integer, Point> positions = new HashMap<>();
-        int centerX = x + width/2, centerY = y + height/2;
+        int centerX = x + width / 2, centerY = y + height / 2;
         int maxRing = groups.isEmpty() ? 0 : Collections.max(groups.keySet());
-        int maxRadius = Math.min(width, height)/2 - iconSize - 10;
-        double ringSpacing = (maxRing + 1) > 0 ? (double)maxRadius/(maxRing + 1) : 0;
+        int maxRadius = Math.min(width, height) / 2 - iconSize - 10;
+        double ringSpacing = (maxRing + 1) > 0 ? (double) maxRadius / (maxRing + 1) : 0;
         for (Map.Entry<Integer, List<DiagramIcon>> entry : groups.entrySet()) {
             int ring = entry.getKey();
             List<DiagramIcon> groupIcons = entry.getValue();
+            if (groupIcons.isEmpty())
+                continue;
             groupIcons.sort(Comparator.comparingInt(icon -> icon.priority));
             double radius = ringSpacing * (ring + 1);
             int count = groupIcons.size();
-            double startAngle = (ring == 0) ? -Math.PI/2 : -3 * Math.PI/4;
+            double startAngle = (ring == 0) ? -Math.PI / 2 : -3 * Math.PI / 4;
             for (int i = 0; i < count; i++) {
                 double angle = startAngle + 2 * Math.PI * i / count;
-                int posX = centerX + (int)(radius * Math.cos(angle));
-                int posY = centerY + (int)(radius * Math.sin(angle));
+                int posX = centerX + (int) (radius * Math.cos(angle));
+                int posY = centerY + (int) (radius * Math.sin(angle));
                 positions.put(groupIcons.get(i).id, new Point(posX, posY));
             }
         }
         return positions;
     }
 
+
     private Map<Integer, Point> calculateSquareManualPositions() {
         List<DiagramIcon> icons = getIcons();
+        Map<Integer, Point> positions = new HashMap<>();
+        if (icons.isEmpty()) {
+            return positions;
+        }
         Map<Integer, List<DiagramIcon>> groups = new TreeMap<>();
         for (DiagramIcon icon : icons) {
             groups.computeIfAbsent(icon.index, k -> new ArrayList<>()).add(icon);
         }
-        Map<Integer, Point> positions = new HashMap<>();
-        int centerX = x + width/2, centerY = y + height/2;
+        int centerX = x + width / 2, centerY = y + height / 2;
         int maxRing = groups.isEmpty() ? 0 : Collections.max(groups.keySet());
-        int halfSide = Math.min(width, height)/2 - iconSize - 10;
-        double ringSpacing = (maxRing + 1) > 0 ? (double)halfSide/(maxRing + 1) : 0;
+        int halfSide = Math.min(width, height) / 2 - iconSize - 10;
+        double ringSpacing = (maxRing + 1) > 0 ? (double) halfSide / (maxRing + 1) : 0;
         for (Map.Entry<Integer, List<DiagramIcon>> entry : groups.entrySet()) {
             int ring = entry.getKey();
             List<DiagramIcon> groupIcons = entry.getValue();
+            if (groupIcons.isEmpty())
+                continue;
             groupIcons.sort(Comparator.comparingInt(icon -> icon.priority));
             double offset = ringSpacing * (ring + 1);
             int count = groupIcons.size();
@@ -538,23 +576,24 @@ public abstract class GuiDiagram extends Gui {
                 double posAlong = (perimeter * i) / count;
                 int posX, posY;
                 if (posAlong < 2 * offset) {
-                    posX = centerX - (int)offset + (int)posAlong;
-                    posY = centerY - (int)offset;
+                    posX = centerX - (int) offset + (int) posAlong;
+                    posY = centerY - (int) offset;
                 } else if (posAlong < 4 * offset) {
-                    posX = centerX + (int)offset;
-                    posY = centerY - (int)offset + (int)(posAlong - 2 * offset);
+                    posX = centerX + (int) offset;
+                    posY = centerY - (int) offset + (int) (posAlong - 2 * offset);
                 } else if (posAlong < 6 * offset) {
-                    posX = centerX + (int)offset - (int)(posAlong - 4 * offset);
-                    posY = centerY + (int)offset;
+                    posX = centerX + (int) offset - (int) (posAlong - 4 * offset);
+                    posY = centerY + (int) offset;
                 } else {
-                    posX = centerX - (int)offset;
-                    posY = centerY + (int)offset - (int)(posAlong - 6 * offset);
+                    posX = centerX - (int) offset;
+                    posY = centerY + (int) offset - (int) (posAlong - 6 * offset);
                 }
                 positions.put(groupIcons.get(i).id, new Point(posX, posY));
             }
         }
         return positions;
     }
+
 
     private Map<Integer, Point> calculateTreeManualPositions() {
         List<DiagramIcon> icons = getIcons();
@@ -563,6 +602,9 @@ public abstract class GuiDiagram extends Gui {
             levels.computeIfAbsent(icon.index, k -> new ArrayList<>()).add(icon);
         }
         Map<Integer, Point> positions = new HashMap<>();
+        if (icons.isEmpty()) { // prevent division errors
+            return positions;
+        }
         int maxLevel = levels.isEmpty() ? 0 : Collections.max(levels.keySet());
         int levelHeight = height / (maxLevel + 2);
         for (Map.Entry<Integer, List<DiagramIcon>> entry : levels.entrySet()) {
@@ -570,6 +612,9 @@ public abstract class GuiDiagram extends Gui {
             List<DiagramIcon> levelIcons = entry.getValue();
             levelIcons.sort(Comparator.comparingInt(icon -> icon.priority));
             int count = levelIcons.size();
+            if(count == 0) {
+                continue;
+            }
             int horizontalSpacing = (width - 40) / (count + 1);
             for (int i = 0; i < count; i++) {
                 int posX = x + 20 + (i + 1) * horizontalSpacing;
@@ -579,6 +624,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return positions;
     }
+
 
     // --- Arrow Drawing Methods ---
     /**
