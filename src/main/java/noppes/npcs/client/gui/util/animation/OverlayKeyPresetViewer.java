@@ -318,7 +318,7 @@ public class OverlayKeyPresetViewer {
         }
 
         public boolean conflicts() {
-            return list.stream().anyMatch(element -> element.key != this.key && element.key.equals(this.key));
+            return list.stream().anyMatch(element -> key.shouldConflict && element.key.shouldConflict && element.key != this.key && element.key.equals(this.key));
         }
 
         public String getBoxKeyName() {

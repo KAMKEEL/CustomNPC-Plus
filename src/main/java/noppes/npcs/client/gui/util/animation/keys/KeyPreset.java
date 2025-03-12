@@ -19,6 +19,7 @@ public class KeyPreset {
     public KeyState currentState = new KeyState();
 
     public String name, description;
+    public boolean shouldConflict = true;
     public Consumer<Integer> task;
 
     public int pressTime;
@@ -42,6 +43,11 @@ public class KeyPreset {
 
     public KeyPreset setTask(Consumer<Integer> task) {
         this.task = task;
+        return this;
+    }
+
+    public KeyPreset shouldConflict(boolean shouldConflict) {
+        this.shouldConflict = shouldConflict;
         return this;
     }
 
@@ -78,8 +84,10 @@ public class KeyPreset {
     }
 
     public KeyPreset onAction(int... pressTypes) {
-        for (int pressType : pressTypes)
-            this.task.accept(pressType);
+        if (task != null) {
+            for (int pressType : pressTypes)
+                this.task.accept(pressType);
+        }
         return this;
     }
 
@@ -220,6 +228,8 @@ public class KeyPreset {
             return (hasCtrl ? "CTRL " : "") + (hasAlt ? "ALT " : "") + (hasShift ? "SHIFT " : "") + name;
         }
     }
+
+    public static final int LEFT_MOUSE = -100, RIGHT_MOUSE = -99, MIDDLE_MOUSE = -98, MOUSE_4 = -97, MOUSE_5 = -96;
 
     public static boolean isCtrlKeyDown() {
         return Minecraft.isRunningOnMac ? Keyboard.isKeyDown(219) || Keyboard.isKeyDown(220) : Keyboard.isKeyDown(29) || Keyboard.isKeyDown(157);
