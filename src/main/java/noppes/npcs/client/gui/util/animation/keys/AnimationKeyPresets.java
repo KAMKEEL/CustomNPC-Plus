@@ -7,8 +7,8 @@ public class AnimationKeyPresets extends KeyPresetManager {
     ////////////////////
     //Grid controls
     public final KeyPreset PAN_GRID = add("Pan Grid").setDefaultState(KeyPreset.RIGHT_MOUSE, false, false, false).setDescription("Holding pans the grid with mouse cursor");
-    public final KeyPreset LOCK_X = add("Lock X Axis").setDefaultState(Keyboard.KEY_X, false, false, false).setDescription("Holding locks the X axis while zooming or panning. \nDoesn't conflict").shouldConflict(false);
-    public final KeyPreset LOCK_Y = add("Lock Y Axis").setDefaultState(Keyboard.KEY_Y, false, false, false).setDescription("Holding locks the Y axis while zooming or panning. \nDoesn't conflict").shouldConflict(false);
+    public final KeyPreset LOCK_X = add("Lock X Axis").setDefaultState(Keyboard.KEY_X, false, false, false).setDescription("Holding locks the X axis while zooming or panning").shouldConflict(false);
+    public final KeyPreset LOCK_Y = add("Lock Y Axis").setDefaultState(Keyboard.KEY_Y, false, false, false).setDescription("Holding locks the Y axis while zooming or panning").shouldConflict(false);
     public final KeyPreset RESET_GRID = add("Reset Grid").setDefaultState(Keyboard.KEY_R, false, false, false).setDescription("Resets the grid's XY scale and translation to the origins");
 
 

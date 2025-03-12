@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.animation;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
@@ -213,6 +214,9 @@ public class OverlayKeyPresetViewer {
         public void drawDescription() {
             String name = String.format("> %s", key.name);
             font.drawString(name, 0, 0, 0xffffff);
+
+            if(!key.shouldConflict)
+                font.drawString("(Conflict-free)", font.getStringWidth(name) + 5, 0, 0xface40);
 
             String description = String.format("- %s", key.description);
             font.drawSplitString(description, 9, font.FONT_HEIGHT, getMaxStringWidth() - 9, 0x888888);
