@@ -2,7 +2,6 @@ package noppes.npcs.client.gui.util.animation;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
@@ -302,7 +301,7 @@ public class OverlayKeyPresetViewer {
             }
 
             newState.setState(newState.keyCode, KeyPreset.isCtrlKeyDown(), KeyPreset.isAltKeyDown(), KeyPreset.isShiftKeyDown());
-            if (KeyPreset.isNotCtrlShiftAlt(typedKey))
+            if (KeyPreset.isNotCtrlAltShift(typedKey))
                 setKey(typedKey);
         }
 

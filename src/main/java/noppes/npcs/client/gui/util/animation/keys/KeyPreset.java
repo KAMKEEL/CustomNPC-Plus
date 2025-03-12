@@ -243,7 +243,7 @@ public class KeyPreset {
         return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
     }
 
-    public static boolean isNotCtrlShiftAlt(int key) {
+    public static boolean isNotCtrlAltShift(int key) {
         return key != 219 && key != 220 && key != 29 && key != 157 && key != 42 && key != 54 && key != 56 && key != 184;
     }
 }

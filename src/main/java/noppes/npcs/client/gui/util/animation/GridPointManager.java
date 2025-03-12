@@ -36,19 +36,12 @@ public class GridPointManager {
     public void keys() {
         EnumFrameType type = EnumFrameType.ROTATION_X;
 
-        keys.FREE_TRANSFORM.setTask((pressType) -> {
-            if (pressType == KeyPreset.PRESS && selectedPoint != null) {
-                if (isFreeTransforming) {
-                    selectedPoint.set(ftGrabX, ftGrabY);
-                    ftGrabX = ftGrabY = 0;
-                    Cursors.reset();
-                } else {
-                    ftGrabX = selectedPoint.worldX;
-                    ftGrabY = selectedPoint.worldY;
-                    Cursors.setCursor(Cursors.MOVE);
-                }
-
-                isFreeTransforming = !isFreeTransforming;
+        keys.SELECT_POINT.setTask((pressType) -> {
+            if (pressType == KeyPreset.PRESS) {
+                forEachActive((pointType, point) -> {
+                    if (point.isMouseAbove(grid.mouseX, grid.mouseY))
+                        setSelectedPoint(point);
+                });
             }
         });
 
@@ -71,6 +64,23 @@ public class GridPointManager {
                 deletePoint(type, selectedPoint.worldX);
             }
         });
+
+        keys.FREE_TRANSFORM.setTask((pressType) -> {
+            if (pressType == KeyPreset.PRESS && selectedPoint != null) {
+                if (isFreeTransforming) {
+                    selectedPoint.set(ftGrabX, ftGrabY);
+                    ftGrabX = ftGrabY = 0;
+                    Cursors.reset();
+                } else {
+                    ftGrabX = selectedPoint.worldX;
+                    ftGrabY = selectedPoint.worldY;
+                    Cursors.setCursor(Cursors.MOVE);
+                }
+
+                isFreeTransforming = !isFreeTransforming;
+            }
+        });
+
     }
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
@@ -150,6 +160,9 @@ public class GridPointManager {
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks) {
+        ////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
+        // Free transform logic
         if (isFreeTransforming && selectedPoint != null) {
                 if (grid.xDown())
                     selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
@@ -161,6 +174,8 @@ public class GridPointManager {
             }
         }
 
+        ////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////
         playhead.draw(mouseX, mouseY, partialTicks);
 
         forEachActive((type, point) -> {
@@ -203,8 +218,6 @@ public class GridPointManager {
     }
 
     public void keyTyped(char c, int key) {
-
-
     }
 
     private static ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/animation.png");
@@ -221,9 +234,6 @@ public class GridPointManager {
         }
 
         public void draw(int mouseX, int mouseY, float partialTicks) {
-
-            grid.parent.getFontRenderer().drawString("above: " + isMouseAbove(mouseX, mouseY), mouseX, mouseY, 0xffffffff);
-
             float scale = 0.1f;
             int textureWidth = 32, textureHeight = 32;
             float offsetX = (textureHeight / 2) * scale - 0.5f, offsetY = (textureHeight / 2) * scale - 0.5f;
@@ -252,11 +262,6 @@ public class GridPointManager {
             int screenX = (int) (screenX() - offsetX);
             int screenY = (int) ((screenY()) - offsetY);
 
-            //            grid.parent.getFontRenderer().drawString("mouseX: " + mouseX, mouseX, mouseY + 10, 0xffffffff);
-            //            grid.parent.getFontRenderer().drawString(String.format("Point(%s, %s)", screenX, screenY), mouseX, mouseY + 20, 0xffffffff);
-            //            grid.parent.getFontRenderer().drawString(String.format("Mouse(%s, %s)", rMX, rMY), mouseX, mouseY + 30, 0xffffffff);
-            //            grid.parent.getFontRenderer().drawString(String.format("Offset(%s, %s)", offsetX / scale, offsetX), mouseX, mouseY + 40, 0xffffffff);
-
             return rMX >= screenX && rMX < screenX + textureWidth * scale && rMY >= screenY && rMY < screenY + textureHeight * scale;
         }
 
@@ -269,8 +274,6 @@ public class GridPointManager {
         }
 
         public void mouseClicked(int mouseX, int mouseY, int button) {
-            if (button == 0 && isMouseAbove(mouseX, mouseY))
-                setSelectedPoint(this);
         }
 
         public void set(double x, double y) {
@@ -297,9 +300,6 @@ public class GridPointManager {
 
             //Expand clip boundary
             grid.parent.setClip(grid.startX, grid.startY - grid.yAxisHeight, grid.parent.clipWidth, grid.parent.clipHeight + grid.yAxisHeight);
-
-            grid.parent.getFontRenderer().drawString(String.format("Mouse(%s, %s)", mouseX, mouseY), mouseX, mouseY + 10, 0xffffffff);
-            grid.parent.getFontRenderer().drawString(String.format("m(%s, %s)", GuiUtil.preciseMouseX(), GuiUtil.preciseMouseY()), mouseX, mouseY + 20, 0xffffffff);
 
             ////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////
