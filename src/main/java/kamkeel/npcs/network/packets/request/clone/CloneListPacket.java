@@ -55,11 +55,6 @@ public final class CloneListPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.MOUNTER, EnumItemPacketType.CLONER))
             return;
 
-        int id = in.readInt();
-        Entity entity = player.worldObj.getEntityByID(id);
-        if (!(entity instanceof EntityNPCInterface))
-            return;
-
         NBTTagList list = new NBTTagList();
         int tab = in.readInt();
         for(String name : ServerCloneController.Instance.getClones(tab))
