@@ -3,10 +3,7 @@ package kamkeel.npcs.network.packets.request.clone;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.AbstractPacket;
-import kamkeel.npcs.network.PacketChannel;
-import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -52,11 +49,11 @@ public class MobSpawnerPacket extends AbstractPacket {
         this.compound = compound;
     }
 
-    public static MobSpawnerPacket Server(int x, int y, int z, String name, int tab) {
-        return new MobSpawnerPacket(Action.Server, x, y, z, name, tab);
+    public static void Server(int x, int y, int z, String name, int tab) {
+        PacketClient.sendClient(new MobSpawnerPacket(Action.Server, x, y, z, name, tab));
     }
-    public static MobSpawnerPacket Client(int x, int y, int z, NBTTagCompound compound) {
-        return new MobSpawnerPacket(Action.Client, x, y, z, compound);
+    public static void Client(int x, int y, int z, NBTTagCompound compound) {
+        PacketClient.sendClient(new MobSpawnerPacket(Action.Client, x, y, z, compound));
     }
 
     @Override

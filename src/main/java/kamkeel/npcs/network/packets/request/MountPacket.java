@@ -3,10 +3,7 @@ package kamkeel.npcs.network.packets.request;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.AbstractPacket;
-import kamkeel.npcs.network.PacketChannel;
-import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -79,11 +76,11 @@ public final class MountPacket extends AbstractPacket {
         }
     }
 
-    public static MountPacket Player() {
-        return new MountPacket(Action.Player, new NBTTagCompound());
+    public static void Player() {
+        PacketClient.sendClient(new MountPacket(Action.Player, new NBTTagCompound()));
     }
-    public static MountPacket Spawn(NBTTagCompound compound) {
-        return new MountPacket(Action.Spawn, compound);
+    public static void Spawn(NBTTagCompound compound) {
+        PacketClient.sendClient(new MountPacket(Action.Spawn, compound));
     }
 
     private enum Action {
