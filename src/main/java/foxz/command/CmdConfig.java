@@ -14,6 +14,7 @@ import net.minecraft.block.BlockLeavesBase;
 import net.minecraft.block.BlockVine;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigItem;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.ChunkController;
 
@@ -123,15 +124,15 @@ public class CmdConfig extends ChMcLogger {
     )
     public boolean guns(String[] args){
     	if(args.length == 0){
-    		sendmessage("GunsEnabled: " + ConfigMain.GunsEnabled);
+    		sendmessage("GunsEnabled: " + ConfigItem.GunsEnabled);
     	}
     	else{
-			ConfigMain.GunsEnabled = Boolean.parseBoolean(args[0]);
-			ConfigMain.GunsEnabledProperty.set(ConfigMain.GunsEnabled);
+			ConfigItem.GunsEnabled = Boolean.parseBoolean(args[0]);
+			ConfigItem.GunsEnabledProperty.set(ConfigItem.GunsEnabled);
 			if(ConfigMain.config.hasChanged()){
 				ConfigMain.config.save();
 			}
-            sendmessage("GunsEnabled is now " + ConfigMain.GunsEnabled);
+            sendmessage("GunsEnabled is now " + ConfigItem.GunsEnabled);
     	}
         return true;
     }

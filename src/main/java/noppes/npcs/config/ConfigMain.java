@@ -22,6 +22,7 @@ public class ConfigMain
     public final static String PARTY = "PARTY";
     public final static String PROFILES = "Profile";
     public final static String ATTRIBUTES = "Attributes";
+    public final static String ITEM = "Item";
 
     /**
      *  General Main Properties
@@ -30,17 +31,8 @@ public class ConfigMain
     public static Property EnableUpdateCheckerProperty;
     public static boolean EnableUpdateChecker = true;
 
-    public static Property DisableExtraBlockProperty;
-    public static boolean DisableExtraBlock = false;
-
-    public static Property DisableExtraItemsProperty;
-    public static boolean DisableExtraItems = false;
-
     public static Property DisableEnchantsProperty;
     public static boolean DisableEnchants = false;
-
-    public static Property GunsEnabledProperty;
-    public static boolean GunsEnabled = true;
 
     public static Property EnchantStartIdProperty;
     public static int EnchantStartId = 100;
@@ -154,15 +146,6 @@ public class ConfigMain
             EnableUpdateCheckerProperty = config.get(GENERAL, "Enables Update Checker", true);
             EnableUpdateChecker = EnableUpdateCheckerProperty.getBoolean(true);
 
-            DisableExtraBlockProperty = config.get(GENERAL, "Disable Extra Blocks", false);
-            DisableExtraBlock = DisableExtraBlockProperty.getBoolean(false);
-
-            DisableExtraItemsProperty = config.get(GENERAL, "Disable Extra Items", false);
-            DisableExtraItems = DisableExtraItemsProperty.getBoolean(false);
-
-            GunsEnabledProperty = config.get(GENERAL, "Guns Enabled", true, "Set to false if you want to disable guns");
-            GunsEnabled = GunsEnabledProperty.getBoolean(true);
-
             DisableEnchantsProperty = config.get(GENERAL, "Disable Enchants", false);
             DisableEnchants = DisableEnchantsProperty.getBoolean(false);
 
@@ -268,6 +251,7 @@ public class ConfigMain
                 "Enable Attributes",
                 "Critical Amount"
             })));
+
             // Attributes
             AttributesEnabled = config.get(ATTRIBUTES, "Enable Attributes", true, "Allows Attributes to be applied to Items and Armors").getBoolean(true);
             AttributesCriticalBoost = config.get(ATTRIBUTES, "Critical Amount", 100, "The boost in damage received by achieving a critical hit. Takes an number so 100 is 100% extra damage").getInt(100);
@@ -277,17 +261,8 @@ public class ConfigMain
                 EnableUpdateChecker = LegacyConfig.EnableUpdateChecker;
                 EnableUpdateCheckerProperty.set(EnableUpdateChecker);
 
-                DisableExtraBlock = LegacyConfig.DisableExtraBlock;
-                DisableExtraBlockProperty.set(DisableExtraBlock);
-
-                DisableExtraItems = LegacyConfig.DisableExtraItems;
-                DisableExtraItemsProperty.set(DisableExtraItems);
-
                 DisableEnchants = LegacyConfig.DisableEnchants;
                 DisableEnchantsProperty.set(DisableEnchants);
-
-                GunsEnabled = LegacyConfig.GunsEnabled;
-                GunsEnabledProperty.set(GunsEnabled);
 
                 EnchantStartId = LegacyConfig.EnchantStartId;
                 EnchantStartIdProperty.set(EnchantStartId);

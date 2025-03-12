@@ -9,7 +9,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigItem;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 import noppes.npcs.enchants.EnchantInterface;
 import noppes.npcs.entity.EntityProjectile;
@@ -31,7 +31,7 @@ public class ItemGun extends ItemNpcInterface implements IProjectileCallback{
     	if(worldObj.isRemote)
     		return;
 
-        if (!hasBullet(player, stack) || !ConfigMain.GunsEnabled){
+        if (!hasBullet(player, stack) || !ConfigItem.GunsEnabled){
     		worldObj.playSoundAtEntity(player, "customnpcs:gun.empty", 1.0F,1);
         	return;
         }
@@ -49,16 +49,16 @@ public class ItemGun extends ItemNpcInterface implements IProjectileCallback{
     	projectile.callbackItem = stack;
     	projectile.setSpeed(40);
     	projectile.shoot(material.getDamageVsEntity() + 1);
-		
+
 		if(!player.capabilities.isCreativeMode && !hasInfinite(stack))
 			consumeItem(player, getBullet());
-    	
+
 		worldObj.playSoundAtEntity(player, "customnpcs:gun.pistol.shot", 1.0F,itemRand.nextFloat() * 0.3F + 0.8F);
 		worldObj.spawnEntityInWorld(projectile);
-    }    
+    }
 
 	@Override
-    public void onUsingTick(ItemStack stack, EntityPlayer player, int count) 
+    public void onUsingTick(ItemStack stack, EntityPlayer player, int count)
     {
     	int ticks = getMaxItemUseDuration(stack) - count;
     	if(ticks == 8 && !player.worldObj.isRemote){
@@ -111,11 +111,11 @@ public class ItemGun extends ItemNpcInterface implements IProjectileCallback{
 			return CustomItems.bulletBlack;
 		}
 	}
-	
+
 	public boolean hasInfinite(ItemStack stack){
 		return EnchantInterface.getLevel(EnchantInterface.Infinite, stack) > 0;
 	}
-	
+
     @Override
     public int getItemEnchantability(){
         return this.material.getEnchantability();

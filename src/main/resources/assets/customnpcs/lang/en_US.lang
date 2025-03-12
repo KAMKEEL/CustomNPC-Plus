@@ -802,6 +802,7 @@ item.npcDiamondGun.name=Diamond Gun
 item.npcBronzeGun.name=Bronze Gun
 item.npcEmeraldGun.name=Emerald Gun
 item.npcMachineGun.name=Machine Gun
+item.npcMachineGun.info=Remaining
 
 item.npcWoodenBullet.name=Wooden Bullet
 item.npcStoneBullet.name=Stone Bullet

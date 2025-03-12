@@ -13,6 +13,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.config.ConfigItem;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.PlayerDataController;
@@ -121,15 +122,15 @@ public class ConfigCommand extends CommandKamkeelBase {
     )
     public void guns(ICommandSender sender, String[] args){
     	if(args.length == 0){
-    		sendResult(sender, "GunsEnabled: \u00A7c" + ConfigMain.GunsEnabled);
+    		sendResult(sender, "GunsEnabled: \u00A7c" + ConfigItem.GunsEnabled);
     	}
     	else{
-			ConfigMain.GunsEnabled = Boolean.parseBoolean(args[0]);
-			ConfigMain.GunsEnabledProperty.set(ConfigMain.GunsEnabled);
+			ConfigItem.GunsEnabled = Boolean.parseBoolean(args[0]);
+			ConfigItem.GunsEnabledProperty.set(ConfigItem.GunsEnabled);
 			if(ConfigMain.config.hasChanged()){
 				ConfigMain.config.save();
 			}
-            sendResult(sender, "GunsEnabled is now \u00A7c" + ConfigMain.GunsEnabled);
+            sendResult(sender, "GunsEnabled is now \u00A7c" + ConfigItem.GunsEnabled);
     	}
     }
 

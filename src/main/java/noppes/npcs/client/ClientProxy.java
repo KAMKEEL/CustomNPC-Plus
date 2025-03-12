@@ -59,6 +59,7 @@ import noppes.npcs.client.renderer.*;
 import noppes.npcs.client.renderer.blocks.*;
 import noppes.npcs.client.renderer.items.*;
 import noppes.npcs.config.ConfigClient;
+import noppes.npcs.config.ConfigItem;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
@@ -111,7 +112,7 @@ public class ClientProxy extends CommonProxy {
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.scripted), new ScriptedBlockItemRenderer());
         RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
 
-		if(!ConfigMain.DisableExtraBlock){
+		if(!ConfigItem.DisableExtraBlock){
 			ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileWallBanner.class, new BlockWallBannerRenderer());
 			ClientRegistry.bindTileEntitySpecialRenderer(TileTallLamp.class, new BlockTallLampRenderer());

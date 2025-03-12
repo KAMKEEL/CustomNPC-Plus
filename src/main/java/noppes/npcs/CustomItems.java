@@ -15,7 +15,7 @@ import net.minecraftforge.common.util.EnumHelper;
 import net.minecraftforge.oredict.OreDictionary;
 import noppes.npcs.blocks.*;
 import noppes.npcs.blocks.tiles.*;
-import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigItem;
 import noppes.npcs.constants.EnumNpcToolMaterial;
 import noppes.npcs.items.*;
 
@@ -216,7 +216,7 @@ public class CustomItems {
 		GameRegistry.registerTileEntity(TileBanner.class, "TileNPCBanner");
 		GameRegistry.registerTileEntity(TileScripted.class, "TileNPCScripted");
 
-		if(!ConfigMain.DisableExtraBlock){
+		if(!ConfigItem.DisableExtraBlock){
 			GameRegistry.registerTileEntity(TileWallBanner.class, "TileNPCWallBanner");
 			GameRegistry.registerTileEntity(TileTallLamp.class, "TileNPCTallLamp");
             GameRegistry.registerTileEntity(TileShortLamp.class, "TileNPCShortLamp");
@@ -284,7 +284,7 @@ public class CustomItems {
 
 		((ItemNpcBlock)Item.getItemFromBlock(carpentyBench)).names = new String[]{"tile.npcCarpentyBench", "tile.anvil"};
 
-		if(!ConfigMain.DisableExtraBlock){
+		if(!ConfigItem.DisableExtraBlock){
 			blood = new BlockBlood().setBlockName("npcBloodBlock").setBlockTextureName("customnpcs:npcBloodBlock").setCreativeTab(tabBlocks);
 			banner = new BlockBanner().setBlockName("npcBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeCloth).setCreativeTab(tabBlocks);
 			wallBanner = new BlockWallBanner().setBlockName("npcWallBanner").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypeCloth).setCreativeTab(tabBlocks);
@@ -376,7 +376,7 @@ public class CustomItems {
 		clarinet = new ItemMusicClarinet().setUnlocalizedName("npcClarinet").setFull3D().setMaxStackSize(1).setTextureName("customnpcs:npcClarinet");
 
 
-		if(!ConfigMain.DisableExtraItems){
+		if(!ConfigItem.DisableExtraItems){
 			tabArmor = new CreativeTabNpcs("cnpcsa");
 			tabWeapon = new CreativeTabNpcs("cnpcsw");
 

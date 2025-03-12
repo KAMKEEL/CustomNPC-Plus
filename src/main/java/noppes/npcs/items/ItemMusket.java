@@ -6,7 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
-import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigItem;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.entity.EntityProjectile;
 import org.lwjgl.opengl.GL11;
@@ -21,12 +21,12 @@ public class ItemMusket extends ItemNpcInterface{
     public void onPlayerStoppedUsing(ItemStack stack, World par2World, EntityPlayer player, int count) {
     	if(player.worldObj.isRemote)
     		return;
-    	
-    	if(!stack.stackTagCompound.getBoolean("IsLoaded2") && !player.capabilities.isCreativeMode || !ConfigMain.GunsEnabled) {
+
+    	if(!stack.stackTagCompound.getBoolean("IsLoaded2") && !player.capabilities.isCreativeMode || !ConfigItem.GunsEnabled) {
     		player.worldObj.playSoundAtEntity(player, "customnpcs:gun.empty", 1.0F,1);
     		return;
     	}
-    	
+
 		if(stack.stackTagCompound.getBoolean("Reloading2") && !player.capabilities.isCreativeMode) {
 			stack.stackTagCompound.setBoolean("Reloading2", false);
 			return;
@@ -37,10 +37,10 @@ public class ItemMusket extends ItemNpcInterface{
 		projectile.setSpeed(50);
 		projectile.setParticleEffect(EnumParticleType.Smoke);
 		projectile.shoot(2);
-		
+
 		if(!player.capabilities.isCreativeMode)
 			consumeItem(player, CustomItems.bulletBlack);
-		
+
 		player.worldObj.playSoundAtEntity(player, "random.explode", 0.9F, itemRand.nextFloat() * 0.3F + 1.8F);
 		player.worldObj.playSoundAtEntity(player, "ambient.weather.thunder", 2.0F, itemRand.nextFloat() * 0.3F + 1.8F);
 		player.worldObj.spawnEntityInWorld(projectile);
@@ -49,12 +49,12 @@ public class ItemMusket extends ItemNpcInterface{
     }
 
 	@Override
-    public void onUsingTick(ItemStack stack, EntityPlayer player, int count) 
+    public void onUsingTick(ItemStack stack, EntityPlayer player, int count)
     {
     	if(player.worldObj.isRemote){
     		return;
     	}
-    	
+
     	int ticks = getMaxItemUseDuration(stack) - count;
 
     	if(!player.capabilities.isCreativeMode){
@@ -67,7 +67,7 @@ public class ItemMusket extends ItemNpcInterface{
 	    	}
     	}
     }
-    
+
 	@Override
 	public void renderSpecial(){
 		GL11.glRotatef(-6, 0, 0, 1f);
@@ -94,10 +94,10 @@ public class ItemMusket extends ItemNpcInterface{
     }
 
 	public EnumAction getItemUseAction(ItemStack stack)
-    {	
+    {
 		if(stack.stackTagCompound == null || !stack.stackTagCompound.getBoolean("Reloading2"))
 			return EnumAction.bow;
-		
+
 		return EnumAction.block;
     }
 }
