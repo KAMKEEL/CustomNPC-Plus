@@ -3,6 +3,7 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.MagicSavePacket;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.SubGuiColorSelector;
@@ -185,6 +186,9 @@ public class SubGuiMagic extends SubGuiInterface implements ITextfieldListener, 
         if(guiNpcTextField.id == 3){
             magic.iconTexture = guiNpcTextField.getText();
         }
+        if (guiNpcTextField.id == 90 && selectedInteraction != null) {
+            interactionValues.put(selectedInteraction, guiNpcTextField.getFloat());
+        }
     }
 
     public void mouseClicked(int i, int j, int k)
@@ -253,14 +257,13 @@ public class SubGuiMagic extends SubGuiInterface implements ITextfieldListener, 
         NBTTagCompound compound = new NBTTagCompound();
         magic.writeNBT(compound);
         PacketClient.sendClient(new MagicSavePacket(compound));
-
-
         super.close();
     }
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
         if(guiCustomScroll.id == 1){
+            GuiNpcTextField.unfocus();
             selectedInteraction = interactionsScroll.getSelected();
             interactionField.enabled = true;
             interactionField.setText(interactionValues.get(selectedInteraction) + "");
