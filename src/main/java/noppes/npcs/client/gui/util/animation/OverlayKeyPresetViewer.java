@@ -47,12 +47,7 @@ public class OverlayKeyPresetViewer {
         this.endY = endY;
         this.width = endX - startX;
         this.height = endY - startY;
-
-        int totalHeight = 0;
-        for (PresetElement element : list)
-            totalHeight += element.getHeight();
-
-        scroll.maxScroll = Math.max(0, totalHeight - height);
+        scroll.init();
     }
 
     public void draw(int mouseX, int mouseY, int wheel) {
@@ -79,10 +74,10 @@ public class OverlayKeyPresetViewer {
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.drawGradientRect(startX, startY, endX, endY, 0x88000000, 0x88303030);
-        scroll.drawBar();
+        if (scroll.maxScroll > 0)
+            scroll.drawBar();
 
         GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - scroll.barWidth : width, height);
-
         GL11.glPushMatrix();
         GL11.glTranslatef((startX + 2), startY + yStartSpacing - scroll.scrollY, 0);
 
@@ -141,7 +136,8 @@ public class OverlayKeyPresetViewer {
 
     public class Scrollable {
         private float scrollY, targetScrollY, maxScroll;
-        private int barWidth = 2;
+        private int totalHeight, scrollbarHeight, barWidth = 2;
+        private float heightFactor, scrollFactor;
 
         private boolean isMouseDragging;
         private int startDragY;
@@ -149,20 +145,34 @@ public class OverlayKeyPresetViewer {
         public Scrollable() {
         }
 
+        public void init() {
+            totalHeight = 0;
+            for (PresetElement element : list)
+                totalHeight += element.getHeight();
+
+            totalHeight -= yStartSpacing;
+            heightFactor = height / totalHeight;
+            scrollbarHeight = Math.max((int) (height * heightFactor), 20);
+            scrollFactor = (height - yStartSpacing - scrollbarHeight) / maxScroll;
+
+            scroll.maxScroll = Math.max(0, totalHeight - height);
+        }
+
         public void update(int wheel) {
             if (wheel != 0 && isMouseAbove(mouseX, mouseY))
                 targetScrollY = ValueUtil.clamp(targetScrollY - wheel / 15, 0, maxScroll);
 
+
             if (Mouse.isButtonDown(0)) {
                 if (!isMouseDragging && isMouseAboveBar(mouseX, mouseY)) {
                     isMouseDragging = true;
-                    startDragY = (int) (mouseY - scrollY);
+                    startDragY = (int) (mouseY - scrollY * scrollFactor);
                 }
             } else
                 isMouseDragging = false;
 
             if (isMouseDragging)
-                scrollY = targetScrollY = ValueUtil.clamp(mouseY - startDragY, 0, maxScroll);
+                scrollY = targetScrollY = ValueUtil.clamp((mouseY - startDragY) / scrollFactor, 0, maxScroll);
 
             if (scrollY != targetScrollY) {
                 scrollY = ValueUtil.lerp(scrollY, targetScrollY, 0.1f);
@@ -175,18 +185,15 @@ public class OverlayKeyPresetViewer {
         }
 
         public void drawBar() {
-            int scrollbarHeight = (int) (height - yStartSpacing - maxScroll);
-
             GL11.glPushMatrix();
-            GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY, 0);
+            GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY * scrollFactor, 0);
             GuiUtil.drawRectD(0, 0, barWidth, scrollbarHeight, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
             GL11.glPopMatrix();
         }
 
         public boolean isMouseAboveBar(int mouseX, int mouseY) {
             int barX = endX - barWidth - 2;
-            int barY = (int) (startY + scrollY + yStartSpacing);
-            int scrollbarHeight = (int) (height - yStartSpacing - maxScroll);
+            int barY = (int) (startY + yStartSpacing + scrollY * scrollFactor);
 
             return mouseX >= barX && mouseX < barX + barWidth && mouseY >= barY && mouseY < barY + scrollbarHeight;
         }
