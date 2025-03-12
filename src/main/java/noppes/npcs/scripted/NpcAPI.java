@@ -1,5 +1,6 @@
 package noppes.npcs.scripted;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
 import kamkeel.npcs.controllers.ProfileController;
@@ -269,6 +270,8 @@ public class NpcAPI extends AbstractNpcAPI {
         return biomes.toArray(new String[]{});
     }
 
+
+    public static Boolean dbcLoaded = null;
     public IEntity<?> getIEntity(Entity entity) {
         if(entity == null)
             return null;
@@ -276,30 +279,12 @@ public class NpcAPI extends AbstractNpcAPI {
             return ((EntityNPCInterface)entity).wrappedNPC;
         else{
             ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
-            boolean isDBC = false;
-            if(entity instanceof EntityPlayerMP) {
-                Set<?> keySet = entity.getEntityData().getCompoundTag("PlayerPersisted").func_150296_c();
-                for (Object o : keySet) {
-                    String s = (String) o;
-                    if (s.contains("jrmc")) {
-                        isDBC = true;
-                        break;
-                    }
-                }
-            }
-
-            if (data == null || data.base instanceof ScriptDBCPlayer != isDBC) {
+            if (data == null) {
                 if (entity instanceof EntityPlayerMP) {
-                    ScriptEntityData newData;
-                    if (isDBC) {
-                        newData = new ScriptEntityData(new ScriptDBCPlayer<>((EntityPlayerMP) entity));
-                    } else {
-                        newData = new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
+                    if(dbcLoaded == null){
+                        dbcLoaded = Loader.isModLoaded("jinryuujrmcore");
                     }
-                    if (data != null) {
-                        ((ScriptEntity<?>) newData.base).copyTempData(data.base);
-                    }
-                    data = newData;
+                    data = dbcLoaded ? new ScriptEntityData(new ScriptDBCPlayer<>((EntityPlayerMP) entity)) : new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
                 }
                 else if (PixelmonHelper.isPixelmon(entity))
                     return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
