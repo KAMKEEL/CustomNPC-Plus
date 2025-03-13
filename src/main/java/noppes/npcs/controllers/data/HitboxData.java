@@ -11,12 +11,12 @@ public class HitboxData {
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
         nbttagcompound.setBoolean("HitboxEnabled", hitboxEnabled);
-        if(hitboxEnabled) {
-            if(widthScale > ConfigMain.HitBoxScaleMax)
+        if (hitboxEnabled) {
+            if (widthScale > ConfigMain.HitBoxScaleMax)
                 widthScale = ConfigMain.HitBoxScaleMax;
             nbttagcompound.setFloat("HitboxWidthScale", widthScale);
 
-            if(heightScale > ConfigMain.HitBoxScaleMax)
+            if (heightScale > ConfigMain.HitBoxScaleMax)
                 heightScale = ConfigMain.HitBoxScaleMax;
             nbttagcompound.setFloat("HitboxHeightScale", heightScale);
         }
@@ -25,13 +25,13 @@ public class HitboxData {
 
     public void readFromNBT(NBTTagCompound nbttagcompound) {
         hitboxEnabled = nbttagcompound.getBoolean("HitboxEnabled");
-        if(hitboxEnabled) {
+        if (hitboxEnabled) {
             widthScale = nbttagcompound.getFloat("HitboxWidthScale");
-            if(widthScale > ConfigMain.HitBoxScaleMax)
+            if (widthScale > ConfigMain.HitBoxScaleMax)
                 widthScale = ConfigMain.HitBoxScaleMax;
 
             heightScale = nbttagcompound.getFloat("HitboxHeightScale");
-            if(heightScale > ConfigMain.HitBoxScaleMax)
+            if (heightScale > ConfigMain.HitBoxScaleMax)
                 heightScale = ConfigMain.HitBoxScaleMax;
         }
     }

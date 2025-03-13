@@ -52,8 +52,8 @@ public class LinkedItem implements ILinkedItem {
 
         compound.setTag("Display", this.display.writeToNBT());
 
-        compound.setDouble("DurabilityValue",this.durabilityValue);
-        compound.setInteger("MaxStackSize",this.stackSize);
+        compound.setDouble("DurabilityValue", this.durabilityValue);
+        compound.setInteger("MaxStackSize", this.stackSize);
 
         compound.setBoolean("IsTool", this.isTool);
         compound.setBoolean("IsNormalItem", this.isNormalItem);
@@ -248,7 +248,7 @@ public class LinkedItem implements ILinkedItem {
     public LinkedItemScript getOrCreateScriptHandler() {
         LinkedItemScript data = getScriptHandler();
         if (data == null)
-            setScriptHandler(data =new LinkedItemScript());
+            setScriptHandler(data = new LinkedItemScript());
         return data;
     }
 }

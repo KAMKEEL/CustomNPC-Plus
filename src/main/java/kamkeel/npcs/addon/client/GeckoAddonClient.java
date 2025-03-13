@@ -19,19 +19,29 @@ public class GeckoAddonClient {
      * The fewer classes modified by mixins the safer.
      * These are for mixins affecting only client-side classes.
      */
-    public GeckoAddonClient(){
+    public GeckoAddonClient() {
         Instance = this;
     }
 
     // Creation Screen Mixins
-    public void showGeckoButtons(GuiCreationScreen creationScreen, EntityLivingBase entity){}
-    public void geckoGuiCreationScreenActionPerformed(GuiCreationScreen creationScreen, GuiNpcButton btn){}
+    public void showGeckoButtons(GuiCreationScreen creationScreen, EntityLivingBase entity) {
+    }
+
+    public void geckoGuiCreationScreenActionPerformed(GuiCreationScreen creationScreen, GuiNpcButton btn) {
+    }
 
     // Npc Display Mixins
-    public void geckoNpcDisplayInitGui(GuiNPCInterface2 guiNPCInterface){}
-    public void geckoNpcDisplayActionPerformed(GuiNPCInterface2 guiNPCInterface, GuiNpcButton btn){}
+    public void geckoNpcDisplayInitGui(GuiNPCInterface2 guiNPCInterface) {
+    }
+
+    public void geckoNpcDisplayActionPerformed(GuiNPCInterface2 guiNPCInterface, GuiNpcButton btn) {
+    }
 
     // Render Npc Mixins
-    public boolean isGeckoModel(ModelBase mainModel){ return false;}
-    public void geckoRenderModel(ModelMPM mainModel, EntityNPCInterface npc, float rotationYaw, float renderPartialTicks) {}
+    public boolean isGeckoModel(ModelBase mainModel) {
+        return false;
+    }
+
+    public void geckoRenderModel(ModelMPM mainModel, EntityNPCInterface npc, float rotationYaw, float renderPartialTicks) {
+    }
 }

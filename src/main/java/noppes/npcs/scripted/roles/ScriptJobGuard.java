@@ -6,36 +6,40 @@ import noppes.npcs.roles.JobGuard;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobGuard extends ScriptJobInterface implements IJobGuard {
-	private JobGuard job;
-	public ScriptJobGuard(EntityNPCInterface npc){
-		super(npc);
-		this.job = (JobGuard) npc.jobInterface;
-	}
+    private JobGuard job;
 
-	public boolean attackCreepers() {
-		return job.attackCreepers;
-	}
-	public void attackCreepers(boolean value) {
-		job.attackCreepers = value;
-	}
+    public ScriptJobGuard(EntityNPCInterface npc) {
+        super(npc);
+        this.job = (JobGuard) npc.jobInterface;
+    }
 
-	public boolean attacksAnimals() {
-		return job.attacksAnimals;
-	}
-	public void attacksAnimals(boolean value) {
-		job.attacksAnimals = value;
-	}
+    public boolean attackCreepers() {
+        return job.attackCreepers;
+    }
 
-	public boolean attackHostileMobs() {
-		return job.attackHostileMobs;
-	}
-	public void attackHostileMobs(boolean value) {
-		job.attackHostileMobs = value;
-	}
-	
-	@Override
-	public int getType(){
-		return JobType.GUARD;
-	}
-	
+    public void attackCreepers(boolean value) {
+        job.attackCreepers = value;
+    }
+
+    public boolean attacksAnimals() {
+        return job.attacksAnimals;
+    }
+
+    public void attacksAnimals(boolean value) {
+        job.attacksAnimals = value;
+    }
+
+    public boolean attackHostileMobs() {
+        return job.attackHostileMobs;
+    }
+
+    public void attackHostileMobs(boolean value) {
+        job.attackHostileMobs = value;
+    }
+
+    @Override
+    public int getType() {
+        return JobType.GUARD;
+    }
+
 }

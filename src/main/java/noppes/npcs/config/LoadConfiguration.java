@@ -1,7 +1,5 @@
 package noppes.npcs.config;
 
-import net.minecraftforge.common.config.Property;
-
 import java.io.File;
 
 public class LoadConfiguration {
@@ -11,8 +9,7 @@ public class LoadConfiguration {
     public static File debugConfigFile;
     public static File clientConfigFile;
 
-    public static void init(String configpath)
-    {
+    public static void init(String configpath) {
         mainConfigFile = new File(configpath + "main.cfg");
         itemConfigFile = new File(configpath + "item.cfg");
         clientConfigFile = new File(configpath + "client.cfg");

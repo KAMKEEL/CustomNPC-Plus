@@ -16,6 +16,10 @@ import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.player.*;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.player.profile.*;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
@@ -27,10 +31,6 @@ import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import kamkeel.npcs.network.packets.request.clone.*;
-import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
-import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
-import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
-import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
@@ -97,10 +97,10 @@ public class PacketHandler {
     public Map<EnumChannelType, FMLEventChannel> channels = new Hashtable<>();
 
     // Client to Server
-    public static final PacketChannel REQUEST_PACKET = new PacketChannel("CNPC+|Req",   EnumChannelType.REQUEST);
+    public static final PacketChannel REQUEST_PACKET = new PacketChannel("CNPC+|Req", EnumChannelType.REQUEST);
 
     // Client to Server - Typically information
-    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player",   EnumChannelType.PLAYER);
+    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player", EnumChannelType.PLAYER);
 
     // Server to Client
     public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumChannelType.DATA);
@@ -118,7 +118,7 @@ public class PacketHandler {
         this.registerPlayerPackets();
     }
 
-    public void registerRequestPackets(){
+    public void registerRequestPackets() {
         // NPC Packets
         REQUEST_PACKET.registerPacket(new NpcClosePacket());
         REQUEST_PACKET.registerPacket(new NpcDeletePacket());
@@ -345,7 +345,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new DimensionTeleportPacket());
     }
 
-    public void registerDataPackets(){
+    public void registerDataPackets() {
         // Data Packets
         DATA_PACKET.registerPacket(new LoginPacket());
         DATA_PACKET.registerPacket(new AchievementPacket());
@@ -454,7 +454,7 @@ public class PacketHandler {
             .orElse(null);
     }
 
-    public FMLEventChannel getEventChannel(AbstractPacket abstractPacket){
+    public FMLEventChannel getEventChannel(AbstractPacket abstractPacket) {
         PacketChannel packetChannel = getPacketChannel(abstractPacket.getChannel().getChannelType());
         if (packetChannel == null) {
             return null;
@@ -491,20 +491,20 @@ public class PacketHandler {
                 return;
             }
 
-            if(side == Side.SERVER){
-                if(abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)){
+            if (side == Side.SERVER) {
+                if (abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)) {
                     LogWriter.error(String.format("%s tried to use CNPC+ without being an op", player.getCommandSenderName()));
                     return;
                 }
 
                 // Check if permission is allowed
-                if(abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())){
+                if (abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())) {
                     return;
                 }
 
                 // Check for required NPC
                 EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-                if(abstractPacket.needsNPC() && npc == null){
+                if (abstractPacket.needsNPC() && npc == null) {
                     return;
                 }
 

@@ -25,11 +25,11 @@ public class TileWaypoint extends TileEntity {
     public int range = 10;
 
     @Override
-    public void updateEntity(){
-        if(worldObj.isRemote || name.isEmpty())
+    public void updateEntity() {
+        if (worldObj.isRemote || name.isEmpty())
             return;
         ticks--;
-        if(ticks > 0)
+        if (ticks > 0)
             return;
         ticks = 10;
 
@@ -40,19 +40,19 @@ public class TileWaypoint extends TileEntity {
         recentlyChecked.retainAll(listMax);
         recentlyChecked.addAll(toCheck);
 
-        if(toCheck.isEmpty())
+        if (toCheck.isEmpty())
             return;
-        for(EntityPlayer player : toCheck){
+        for (EntityPlayer player : toCheck) {
             PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
             PlayerQuestData questData = playerData.questData;
             Party party = playerData.getPlayerParty();
             Quest partyQuest = null;
-            if(party != null && party.getQuestData() != null && party.getQuestData().quest != null && party.getQuestData().quest.type == EnumQuestType.Location){
+            if (party != null && party.getQuestData() != null && party.getQuestData().quest != null && party.getQuestData().quest.type == EnumQuestType.Location) {
                 QuestData partyQuestData = party.getQuestData();
                 partyQuest = partyQuestData.quest;
                 QuestLocation partyQuestLocation = (QuestLocation) partyQuestData.quest.questInterface;
                 boolean isPartyLeader = player.getUniqueID().equals(party.getLeaderUUID());
-                if(partyQuestLocation.setFoundParty(party, player, name, isPartyLeader)){
+                if (partyQuestLocation.setFoundParty(party, player, name, isPartyLeader)) {
                     player.addChatMessage(new ChatComponentTranslation(name + " " + StatCollector.translateToLocal("quest.found")));
                     PartyController.Instance().pingPartyQuestObjectiveUpdate(party);
                     PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Location);
@@ -60,18 +60,18 @@ public class TileWaypoint extends TileEntity {
             }
 
             ArrayList<QuestData> activeQuestValues = new ArrayList<>(questData.activeQuests.values());
-            for(QuestData data : activeQuestValues){
-                if(data.quest.type != EnumQuestType.Location)
+            for (QuestData data : activeQuestValues) {
+                if (data.quest.type != EnumQuestType.Location)
                     continue;
 
-                if(partyQuest != null && partyQuest.id == data.quest.getId())
+                if (partyQuest != null && partyQuest.id == data.quest.getId())
                     continue;
 
-                if(data.quest.partyOptions.allowParty && data.quest.partyOptions.onlyParty)
+                if (data.quest.partyOptions.allowParty && data.quest.partyOptions.onlyParty)
                     continue;
 
                 QuestLocation quest = (QuestLocation) data.quest.questInterface;
-                if(quest.setFound(data, name)){
+                if (quest.setFound(data, name)) {
                     player.addChatMessage(new ChatComponentTranslation(name + " " + StatCollector.translateToLocal("quest.found")));
                     questData.checkQuestCompletion(playerData, EnumQuestType.Location);
                 }
@@ -79,7 +79,7 @@ public class TileWaypoint extends TileEntity {
         }
     }
 
-    private List<EntityPlayer> getPlayerList(int x, int y, int z){
+    private List<EntityPlayer> getPlayerList(int x, int y, int z) {
         return worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 1, zCoord + 1).expand(x, y, z));
     }
 
@@ -88,14 +88,14 @@ public class TileWaypoint extends TileEntity {
         super.readFromNBT(compound);
         name = compound.getString("LocationName");
         range = compound.getInteger("LocationRange");
-        if(range < 2)
+        if (range < 2)
             range = 2;
     }
 
     @Override
     public void writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
-        if(!name.isEmpty())
+        if (!name.isEmpty())
             compound.setString("LocationName", name);
         compound.setInteger("LocationRange", range);
     }

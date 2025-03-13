@@ -23,7 +23,8 @@ public final class PlayerDataGetNamesPacket extends AbstractPacket {
     private EnumPlayerData playerData;
     private String name;
 
-    public PlayerDataGetNamesPacket() {}
+    public PlayerDataGetNamesPacket() {
+    }
 
     public PlayerDataGetNamesPacket(EnumPlayerData playerData, String name) {
         this.playerData = playerData;
@@ -44,7 +45,7 @@ public final class PlayerDataGetNamesPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(playerData.ordinal());
-        if(playerData != EnumPlayerData.Players)
+        if (playerData != EnumPlayerData.Players)
             ByteBufUtils.writeString(out, this.name);
     }
 

@@ -36,7 +36,8 @@ public class SpawnMobPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public SpawnMobPacket() {}
+    public SpawnMobPacket() {
+    }
 
     public SpawnMobPacket(Action type, int posX, int posY, int posz, String selectedName, int tab) {
         this.type = type;
@@ -108,15 +109,15 @@ public class SpawnMobPacket extends AbstractPacket {
         int z = in.readInt();
         NBTTagCompound compound;
 
-        if(requestedAction == Action.Server)
+        if (requestedAction == Action.Server)
             compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(in), in.readInt());
         else
             compound = ByteBufUtils.readNBT(in);
 
-        if(compound == null)
+        if (compound == null)
             return;
         Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, player.worldObj);
-        if(entity == null){
+        if (entity == null) {
             player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
             return;
         }
@@ -126,7 +127,7 @@ public class SpawnMobPacket extends AbstractPacket {
             npc.script.setEnabled(false);
         }
 
-        if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+        if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
             LogWriter.script(String.format("[%s] (Player) %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
         }
     }

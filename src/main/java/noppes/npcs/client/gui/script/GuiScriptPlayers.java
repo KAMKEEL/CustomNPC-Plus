@@ -11,7 +11,7 @@ import noppes.npcs.controllers.data.PlayerDataScript;
 import java.util.List;
 
 public class GuiScriptPlayers extends GuiScriptInterface {
-    private PlayerDataScript script = new PlayerDataScript((EntityPlayer)null);
+    private PlayerDataScript script = new PlayerDataScript((EntityPlayer) null);
 
     public GuiScriptPlayers() {
         hookList.add(EnumScriptType.INIT.function);
@@ -99,7 +99,7 @@ public class GuiScriptPlayers extends GuiScriptInterface {
                     script.getScripts().add(new ScriptContainer(script));
                 }
             }
-            script.getScripts().set(tab,container);
+            script.getScripts().set(tab, container);
             initGui();
         }
     }

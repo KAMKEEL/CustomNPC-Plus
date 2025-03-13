@@ -566,7 +566,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             return false;
 
         // Attribute
-        if(!DBCAddon.IsAvailable() && attackingEntity instanceof EntityPlayer)
+        if (!DBCAddon.IsAvailable() && attackingEntity instanceof EntityPlayer)
             i = AttributeAttackUtil.calculateDamagePlayerToNPC((EntityPlayer) attackingEntity, this, i);
 
         //  Resistances
@@ -727,7 +727,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (isKilled())
             return;
 
-        if(!faction.isPassive()){
+        if (!faction.isPassive()) {
             IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
             this.targetTasks.addTask(0, new EntityAIClearTarget(this));
             this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));

@@ -89,67 +89,67 @@ public class CustomGuiButton extends GuiButton implements IClickListener {
         FontRenderer fontRenderer = mc.fontRenderer;
 
         float red = (color >> 16 & 255) / 255f;
-        float green = (color >> 8  & 255) / 255f;
+        float green = (color >> 8 & 255) / 255f;
         float blue = (color & 255) / 255f;
-        GL11.glColor4f(red,green,blue,this.alpha);
+        GL11.glColor4f(red, green, blue, this.alpha);
 
         if (this.imageData != null && this.imageData.imageLoaded()) {
             int totalWidth = this.imageData.getTotalWidth();
             int totalHeight = this.imageData.getTotalHeight();
 
-            float u1 = (float)textureX/(float)totalWidth;
-            float u2 = u1 + (float)width/(float)totalWidth;
-            float v1 = (float)textureY/(float)totalHeight;
-            float v2 = v1 + (float)height/(float)totalHeight;
+            float u1 = (float) textureX / (float) totalWidth;
+            float u2 = u1 + (float) width / (float) totalWidth;
+            float v1 = (float) textureY / (float) totalHeight;
+            float v2 = v1 + (float) height / (float) totalHeight;
 
             if (this.enabled) {
                 if (this.field_146123_n) {
-                    v1 = (float)(textureY + 2 * this.height)/(float)totalHeight;
+                    v1 = (float) (textureY + 2 * this.height) / (float) totalHeight;
                 } else {
-                    v1 = (float)(textureY + this.height)/(float)totalHeight;
+                    v1 = (float) (textureY + this.height) / (float) totalHeight;
                 }
-                v2 = v1 + (float)height/(float)totalHeight;
+                v2 = v1 + (float) height / (float) totalHeight;
             }
 
             GL11.glPushMatrix();
-                GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition - u1 * totalWidth * this.scale, GuiCustom.guiTop + this.yPosition - v1 * totalHeight * this.scale,(float)this.id);
-                GL11.glScalef(this.scale,this.scale,1.0F);
+            GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition - u1 * totalWidth * this.scale, GuiCustom.guiTop + this.yPosition - v1 * totalHeight * this.scale, (float) this.id);
+            GL11.glScalef(this.scale, this.scale, 1.0F);
 
-                this.imageData.bindTexture();
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                Tessellator tessellator = Tessellator.instance;
-                tessellator.startDrawingQuads();
-                tessellator.setColorOpaque_F(1, 1, 1);
-                tessellator.setColorRGBA_F(red, green, blue, alpha);
-                tessellator.addVertexWithUV(u2 * totalWidth, v2 * totalHeight, 0, u2, v2);
-                tessellator.addVertexWithUV(u2 * totalWidth, v1 * totalHeight, 0, u2, v1);
-                tessellator.addVertexWithUV(u1 * totalWidth, v1 * totalHeight, 0, u1, v1);
-                tessellator.addVertexWithUV(u1 * totalWidth, v2 * totalHeight, 0, u1, v2);
-                tessellator.draw();
-                GL11.glTranslated(0.0D, 0.0D, 0.1D);
-                this.drawCenteredString(fontRenderer, this.label, this.width / 2, (this.height - 8) / 2, this.color);
+            this.imageData.bindTexture();
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            Tessellator tessellator = Tessellator.instance;
+            tessellator.startDrawingQuads();
+            tessellator.setColorOpaque_F(1, 1, 1);
+            tessellator.setColorRGBA_F(red, green, blue, alpha);
+            tessellator.addVertexWithUV(u2 * totalWidth, v2 * totalHeight, 0, u2, v2);
+            tessellator.addVertexWithUV(u2 * totalWidth, v1 * totalHeight, 0, u2, v1);
+            tessellator.addVertexWithUV(u1 * totalWidth, v1 * totalHeight, 0, u1, v1);
+            tessellator.addVertexWithUV(u1 * totalWidth, v2 * totalHeight, 0, u1, v2);
+            tessellator.draw();
+            GL11.glTranslated(0.0D, 0.0D, 0.1D);
+            this.drawCenteredString(fontRenderer, this.label, this.width / 2, (this.height - 8) / 2, this.color);
             GL11.glPopMatrix();
         } else {
             GL11.glPushMatrix();
-                GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition, GuiCustom.guiTop + this.yPosition,(float)this.id);
-                GL11.glScalef(this.scale,this.scale,1.0F);
+            GL11.glTranslatef(GuiCustom.guiLeft + this.xPosition, GuiCustom.guiTop + this.yPosition, (float) this.id);
+            GL11.glScalef(this.scale, this.scale, 1.0F);
 
-                mc.getTextureManager().bindTexture(buttonTextures);
-                int i = this.getHoverState(this.field_146123_n);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                this.drawTexturedModalRect(0, 0, 0, 46 + i * 20, this.width / 2, this.height);
-                this.drawTexturedModalRect(this.width / 2, 0, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
-                this.mouseDragged(mc, mouseX, mouseY);
-                int j = 14737632;
-                if (this.packedFGColour != 0) {
-                    j = this.packedFGColour;
-                } else if (!this.enabled) {
-                    j = 10526880;
-                } else if (this.field_146123_n) {
-                    j = 16777120;
-                }
-                GL11.glTranslated(0.0D, 0.0D, 0.1D);
-                this.drawCenteredString(fontRenderer, this.displayString, this.width / 2, (this.height - 8) / 2, j);
+            mc.getTextureManager().bindTexture(buttonTextures);
+            int i = this.getHoverState(this.field_146123_n);
+            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+            this.drawTexturedModalRect(0, 0, 0, 46 + i * 20, this.width / 2, this.height);
+            this.drawTexturedModalRect(this.width / 2, 0, 200 - this.width / 2, 46 + i * 20, this.width / 2, this.height);
+            this.mouseDragged(mc, mouseX, mouseY);
+            int j = 14737632;
+            if (this.packedFGColour != 0) {
+                j = this.packedFGColour;
+            } else if (!this.enabled) {
+                j = 10526880;
+            } else if (this.field_146123_n) {
+                j = 16777120;
+            }
+            GL11.glTranslated(0.0D, 0.0D, 0.1D);
+            this.drawCenteredString(fontRenderer, this.displayString, this.width / 2, (this.height - 8) / 2, j);
             GL11.glPopMatrix();
         }
 

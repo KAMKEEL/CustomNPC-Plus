@@ -28,56 +28,57 @@ import java.util.*;
 
 public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListener, IGuiData, IPartyData, GuiYesNoCallback {
 
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");
 
     private EntityPlayer player;
     private GuiCustomScroll scroll;
-	private HashMap<Integer,GuiMenuSideButton> sideButtons = new HashMap<Integer,GuiMenuSideButton>();
-	private QuestLogData data = new QuestLogData();
-	private boolean noQuests = false;
-	private byte questPages = 1;
+    private HashMap<Integer, GuiMenuSideButton> sideButtons = new HashMap<Integer, GuiMenuSideButton>();
+    private QuestLogData data = new QuestLogData();
+    private boolean noQuests = false;
+    private byte questPages = 1;
     private static long lastClicked = System.currentTimeMillis();
     private boolean isPartySet = false;
 
-    private HashMap<String,String> questAlertsOnOpen;
+    private HashMap<String, String> questAlertsOnOpen;
     private String trackedQuestKeyOnOpen;
 
     private float sideButtonScroll = 0;
     private float destSideButtonScroll = 0;
 
-	public GuiQuestLog() {
-		super();
-		this.player = mc.thePlayer;
+    public GuiQuestLog() {
+        super();
+        this.player = mc.thePlayer;
         xSize = 280;
         ySize = 180;
         drawDefaultBackground = false;
         PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.QuestLog));
     }
-    public void initGui(){
+
+    public void initGui() {
         super.initGui();
 
-    	sideButtons.clear();
+        sideButtons.clear();
 
         noQuests = false;
 
-        if(data.categories.isEmpty()){
-        	noQuests = true;
-        	return;
+        if (data.categories.isEmpty()) {
+            noQuests = true;
+            return;
         }
         List<String> categories = new ArrayList<String>();
         categories.addAll(data.categories.keySet());
-        Collections.sort(categories,String.CASE_INSENSITIVE_ORDER);
+        Collections.sort(categories, String.CASE_INSENSITIVE_ORDER);
         int i = 0;
-        for(String category : categories){
-        	if(data.selectedCategory.isEmpty())
-        		data.selectedCategory = category;
-        	sideButtons.put(i, new GuiMenuSideButton(i,guiLeft - 69, this.guiTop +2 + i*21, 70,22, category));
+        for (String category : categories) {
+            if (data.selectedCategory.isEmpty())
+                data.selectedCategory = category;
+            sideButtons.put(i, new GuiMenuSideButton(i, guiLeft - 69, this.guiTop + 2 + i * 21, 70, 22, category));
             i++;
         }
         sideButtons.get(categories.indexOf(data.selectedCategory)).active = true;
 
-        if(scroll == null)
-        	scroll = new GuiCustomScroll(this,0);
+        if (scroll == null)
+            scroll = new GuiCustomScroll(this, 0);
 
         scroll.setList(data.categories.get(data.selectedCategory));
         scroll.setSize(134, 174);
@@ -93,10 +94,10 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
 
         boolean showParty = false;
         boolean showTrackAlerts = true;
-        if(data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+        if (data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)) {
             showParty = true;
-            if(data.partyOptions.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
-                if(data.partyOptions.get(data.selectedCategory + ":" + data.selectedQuest).get(0).contains("only")){
+            if (data.partyOptions.containsKey(data.selectedCategory + ":" + data.selectedQuest)) {
+                if (data.partyOptions.get(data.selectedCategory + ":" + data.selectedQuest).get(0).contains("only")) {
                     showTrackAlerts = false;
                 }
             }
@@ -130,17 +131,17 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         GuiNpcButton alertButton = new GuiNpcButton(5, guiLeft + 205, guiTop + 151, 50, 20, new String[]{"quest.alerts", "quest.noAlerts"}, data.getQuestAlerts() ? 0 : 1);
         addButton(alertButton);
 
-        if(getButton(1) != null)
+        if (getButton(1) != null)
             getButton(1).visible = questPages == 1 && data.hasSelectedQuest();
-        if(getButton(2) != null)
+        if (getButton(2) != null)
             getButton(2).visible = questPages == 2 && data.hasSelectedQuest();
         if (getButton(3) != null)
             getButton(3).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
-        if(getButton(4) != null){
+        if (getButton(4) != null) {
             getButton(4).visible = !data.selectedQuest.isEmpty() && getButton(1).visible;
             getButton(4).enabled = showTrackAlerts && !isPartySet;
         }
-        if(getButton(5) != null){
+        if (getButton(5) != null) {
             getButton(5).visible = getButton(4).visible;
             getButton(5).enabled = showTrackAlerts && !isPartySet;
         }
@@ -155,7 +156,7 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         if (flag) {
             if (i == 0) {
                 String key = data.selectedCategory + ":" + data.selectedQuest;
-                if(data.partyQuests.containsKey(key)){
+                if (data.partyQuests.containsKey(key)) {
                     int questID = data.partyQuests.get(key);
                     PacketClient.sendClient(new PartySetQuestPacket(questID));
                 }
@@ -166,8 +167,8 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     }
 
     @Override
-	protected void actionPerformed(GuiButton guibutton){
-        if(guibutton instanceof AbstractTab)
+    protected void actionPerformed(GuiButton guibutton) {
+        if (guibutton instanceof AbstractTab)
             return;
 
         if (guibutton.id <= -100) {
@@ -175,26 +176,22 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
             return;
         }
 
-        if(lastClicked > System.currentTimeMillis() - 5){
+        if (lastClicked > System.currentTimeMillis() - 5) {
             return;
         }
-        if(guibutton.id == 11){
+        if (guibutton.id == 11) {
             questPages = 1;
             lastClicked = System.currentTimeMillis();
-        }
-        else if(guibutton.id == 10){
+        } else if (guibutton.id == 10) {
             questPages = 0;
-        }
-        else if(guibutton.id == 1){
+        } else if (guibutton.id == 1) {
             questPages = 2;
-        }
-        else if(guibutton.id == 2){
+        } else if (guibutton.id == 2) {
             questPages = 1;
             lastClicked = System.currentTimeMillis();
         }
 
-        if (guibutton.id == 3)
-        {
+        if (guibutton.id == 3) {
             if (Objects.equals(ClientCacheHandler.party.getCurrentQuestName(), data.selectedQuest)) {
                 PacketClient.sendClient(new PartySetQuestPacket(-1));
             } else {
@@ -202,32 +199,33 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
                 displayGuiScreen(yesnoDisband);
             }
         }
-        if(guibutton.id == 4){
+        if (guibutton.id == 4) {
             if (!data.trackedQuestKey.equals(data.selectedCategory + ":" + data.selectedQuest)) {
                 data.trackedQuestKey = data.selectedCategory + ":" + data.selectedQuest;
             } else {
                 data.trackedQuestKey = "";
             }
         }
-        if(guibutton.id == 5){
+        if (guibutton.id == 5) {
             data.toggleQuestAlerts();
         }
         initGui();
     }
+
     @Override
-    public void drawScreen(int i, int j, float f){
-    	if(scroll != null)
-    		scroll.visible = !noQuests;
-    	drawDefaultBackground();
+    public void drawScreen(int i, int j, float f) {
+        if (scroll != null)
+            scroll.visible = !noQuests;
+        drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, 195);
         drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
         super.drawScreen(i, j, f);
 
-        if(noQuests){
-        	fontRendererObj.drawString(StatCollector.translateToLocal("quest.noquests"),guiLeft + 84,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
-        	return;
+        if (noQuests) {
+            fontRendererObj.drawString(StatCollector.translateToLocal("quest.noquests"), guiLeft + 84, guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+            return;
         }
 
         // Define constants for smoothing the scroll
@@ -256,17 +254,17 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
             }
         }
 
-        fontRendererObj.drawString(data.selectedCategory,guiLeft + 5,guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
+        fontRendererObj.drawString(data.selectedCategory, guiLeft + 5, guiTop + 5, CustomNpcResourceListener.DefaultTextColor);
 
-        if(!data.hasSelectedQuest())
-        	return;
+        if (!data.hasSelectedQuest())
+            return;
 
         if (questPages == 1) {
-        	drawProgress();
-        	String title = StatCollector.translateToLocal("gui.text");
-        	fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+            drawProgress();
+            String title = StatCollector.translateToLocal("gui.text");
+            fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
 
-            if(data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)){
+            if (data.partyQuests.containsKey(data.selectedCategory + ":" + data.selectedQuest)) {
                 title = StatCollector.translateToLocal("party.party");
                 fontRendererObj.drawString(title, guiLeft + 170, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
             }
@@ -275,9 +273,9 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
             String title = StatCollector.translateToLocal("quest.objectives");
             fontRendererObj.drawString(title, guiLeft + 284 - fontRendererObj.getStringWidth(title), guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         } else {
-        	drawQuestText();
-        	String title = StatCollector.translateToLocal("quest.objectives");
-        	fontRendererObj.drawString(title, guiLeft + 170, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
+            drawQuestText();
+            String title = StatCollector.translateToLocal("quest.objectives");
+            fontRendererObj.drawString(title, guiLeft + 170, guiTop + 179, CustomNpcResourceListener.DefaultTextColor);
         }
 
         GL11.glPushMatrix();
@@ -285,90 +283,90 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         GL11.glScalef(1.24f, 1.24f, 1.24f);
         fontRendererObj.drawString(data.selectedQuest, (130 - fontRendererObj.getStringWidth(data.selectedQuest)) / 2, 4, CustomNpcResourceListener.DefaultTextColor);
         GL11.glPopMatrix();
-        drawHorizontalLine(guiLeft + 142, guiLeft + 312, guiTop + 17,  + 0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
+        drawHorizontalLine(guiLeft + 142, guiLeft + 312, guiTop + 17, +0xFF000000 + CustomNpcResourceListener.DefaultTextColor);
     }
 
-    private void drawQuestText(){
-    	TextBlockClient block = new TextBlockClient(data.getQuestText(), 174, true, player);
+    private void drawQuestText() {
+        TextBlockClient block = new TextBlockClient(data.getQuestText(), 174, true, player);
         int yoffset = guiTop + 5;
-    	for(int i = 0; i < block.lines.size(); i++){
-    		String text = block.lines.get(i).getFormattedText();
-    		fontRendererObj.drawString(text, guiLeft + 142, guiTop + 20 + (i * fontRendererObj.FONT_HEIGHT), CustomNpcResourceListener.DefaultTextColor);
-    	}
+        for (int i = 0; i < block.lines.size(); i++) {
+            String text = block.lines.get(i).getFormattedText();
+            fontRendererObj.drawString(text, guiLeft + 142, guiTop + 20 + (i * fontRendererObj.FONT_HEIGHT), CustomNpcResourceListener.DefaultTextColor);
+        }
     }
 
     private void drawProgress() {
         String complete = data.getComplete();
-        if(complete != null && !complete.isEmpty())
-        	fontRendererObj.drawString(StatCollector.translateToLocalFormatted("quest.completewith", complete), guiLeft + 144, guiTop + 105, CustomNpcResourceListener.DefaultTextColor);
+        if (complete != null && !complete.isEmpty())
+            fontRendererObj.drawString(StatCollector.translateToLocalFormatted("quest.completewith", complete), guiLeft + 144, guiTop + 105, CustomNpcResourceListener.DefaultTextColor);
 
-    	int yoffset = guiTop + 22;
-        for(String process : data.getQuestStatus()){
-        	int index = process.lastIndexOf(":");
-        	if(index > 0){
-        		String name = process.substring(0, index);
-        		String trans = StatCollector.translateToLocal(name);
-        		if(!trans.equals(name))
-        			name = trans;
-        		trans = StatCollector.translateToLocal("entity." + name + ".name");
-        		if(!trans.equals("entity." + name + ".name")){
-        			name = trans;
-        		}
-        		process = name + process.substring(index);
-        	}
-        	fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
-	        yoffset += 10;
-        }
-	}
-
-    private void drawPartyOptions() {
         int yoffset = guiTop + 22;
-        for(String process : data.getPartyOptions()){
-            List<String> parts = Arrays.asList(process.split(":"));
-            String drawString = StatCollector.translateToLocal(parts.get(0)) + ": " + StatCollector.translateToLocal(parts.get(1));
-            fontRendererObj.drawString("- " + drawString, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
+        for (String process : data.getQuestStatus()) {
+            int index = process.lastIndexOf(":");
+            if (index > 0) {
+                String name = process.substring(0, index);
+                String trans = StatCollector.translateToLocal(name);
+                if (!trans.equals(name))
+                    name = trans;
+                trans = StatCollector.translateToLocal("entity." + name + ".name");
+                if (!trans.equals("entity." + name + ".name")) {
+                    name = trans;
+                }
+                process = name + process.substring(index);
+            }
+            fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset, CustomNpcResourceListener.DefaultTextColor);
             yoffset += 10;
         }
     }
 
-	protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
-    {
+    private void drawPartyOptions() {
+        int yoffset = guiTop + 22;
+        for (String process : data.getPartyOptions()) {
+            List<String> parts = Arrays.asList(process.split(":"));
+            String drawString = StatCollector.translateToLocal(parts.get(0)) + ": " + StatCollector.translateToLocal(parts.get(1));
+            fontRendererObj.drawString("- " + drawString, guiLeft + 144, yoffset, CustomNpcResourceListener.DefaultTextColor);
+            yoffset += 10;
+        }
     }
+
+    protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
+    }
+
     @Override
-    public void mouseClicked(int i, int j, int k)
-    {
-    	super.mouseClicked(i, j, k);
-        if (k == 0){
-        	if(scroll != null)
-        		scroll.mouseClicked(i, j, k);
-            for (GuiMenuSideButton button : new ArrayList<GuiMenuSideButton>(sideButtons.values())){
-                if (button.mousePressed(mc, i, j)){
-                	sideButtonPressed(button);
+    public void mouseClicked(int i, int j, int k) {
+        super.mouseClicked(i, j, k);
+        if (k == 0) {
+            if (scroll != null)
+                scroll.mouseClicked(i, j, k);
+            for (GuiMenuSideButton button : new ArrayList<GuiMenuSideButton>(sideButtons.values())) {
+                if (button.mousePressed(mc, i, j)) {
+                    sideButtonPressed(button);
                 }
             }
         }
     }
+
     private void sideButtonPressed(GuiMenuSideButton button) {
-    	if(button.active)
-    		return;
-    	NoppesUtil.clickSound();
+        if (button.active)
+            return;
+        NoppesUtil.clickSound();
         data.selectedCategory = button.displayString;
         data.selectedQuest = "";
-        if(scroll != null)
+        if (scroll != null)
             scroll.selected = -1;
         this.initGui();
     }
-	@Override
-	public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
-		if(!scroll.hasSelected())
-			return;
-		data.selectedQuest = scroll.getSelected();
-		initGui();
-	}
 
     @Override
-    public void keyTyped(char c, int i)
-    {
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
+        if (!scroll.hasSelected())
+            return;
+        data.selectedQuest = scroll.getSelected();
+        initGui();
+    }
+
+    @Override
+    public void keyTyped(char c, int i) {
         if (i == 1 || i == mc.gameSettings.keyBindInventory.getKeyCode()) // inventory key
         {
             mc.displayGuiScreen(null);
@@ -376,15 +374,15 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
         }
     }
 
-	@Override
-	public void setGuiData(NBTTagCompound compound) {
+    @Override
+    public void setGuiData(NBTTagCompound compound) {
         QuestLogData data = new QuestLogData();
         data.readNBT(compound);
         this.data = data;
         this.questAlertsOnOpen = new HashMap<>(data.questAlerts);
         this.trackedQuestKeyOnOpen = data.trackedQuestKey;
         initGui();
-	}
+    }
 
     @Override
     public void setPartyData(NBTTagCompound compound) {
@@ -403,15 +401,15 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
     }
 
     @Override
-	public void save() {
+    public void save() {
         if (this.data != null &&
-                (!Objects.equals(this.questAlertsOnOpen, data.questAlerts) ||
+            (!Objects.equals(this.questAlertsOnOpen, data.questAlerts) ||
                 !Objects.equals(this.trackedQuestKeyOnOpen, data.trackedQuestKey))) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Alerts", NBTTags.nbtStringStringMap(data.questAlerts));
             PacketClient.sendClient(new QuestLogToServerPacket(compound, this.data.trackedQuestKey));
         }
-	}
+    }
 
 
     public boolean isMouseInScrollZone(int x, int y) {

@@ -1,19 +1,8 @@
 package noppes.npcs.client.gui;
 
-import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.magic.MagicSavePacket;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.client.gui.global.GuiNpcManageMagic;
-import noppes.npcs.client.gui.util.*;
-import noppes.npcs.constants.EnumTextureType;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 
 public class SubGuiMagicCycleViewer extends SubGuiInterface {
 
@@ -37,7 +26,7 @@ public class SubGuiMagicCycleViewer extends SubGuiInterface {
     public void initGui() {
         super.initGui();
 
-        if(magicCycle == null)
+        if (magicCycle == null)
             return;
 
         // Position the map in a designated area (e.g., right panel)

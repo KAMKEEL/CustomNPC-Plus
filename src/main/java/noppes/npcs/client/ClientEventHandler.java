@@ -35,7 +35,7 @@ import java.util.*;
 public class ClientEventHandler {
     public static final RenderCNPCPlayer renderCNPCSelf = new RenderCNPCPlayer();
     public static final RenderCNPCPlayer renderCNPCPlayer = new RenderCNPCPlayer();
-    public static HashMap<Integer,Long> disabledButtonTimes = new HashMap<>();
+    public static HashMap<Integer, Long> disabledButtonTimes = new HashMap<>();
     public static float partialHandTicks;
     public static boolean firstPersonAnimation;
     public static ModelBiped firstPersonModel;
@@ -48,11 +48,11 @@ public class ClientEventHandler {
 
     public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
-    public static HashMap<EnumAnimationPart,String[]> partNames = new HashMap<>();
-    public static HashMap<Class<?>,Field[]> declaredFieldCache = new HashMap<>();
+    public static HashMap<EnumAnimationPart, String[]> partNames = new HashMap<>();
+    public static HashMap<Class<?>, Field[]> declaredFieldCache = new HashMap<>();
 
     private static final HashSet<Render> processedPlayerRenderers = new HashSet<>();
-    public static final HashMap<ModelRenderer,FramePart> originalValues = new HashMap<>();
+    public static final HashMap<ModelRenderer, FramePart> originalValues = new HashMap<>();
     public static ModelBase playerModel;
 
     private Class<?> renderPlayerJBRA;
@@ -71,7 +71,7 @@ public class ClientEventHandler {
             return;
 
         ArrayList<Integer> removeList = new ArrayList<>();
-        for (Map.Entry<Integer,Long> entry : disabledButtonTimes.entrySet()) {
+        for (Map.Entry<Integer, Long> entry : disabledButtonTimes.entrySet()) {
             if (entry.getValue() > 0) {
                 if (entry.getKey() == event.button || entry.getKey() == -1) {
                     event.setCanceled(true);
@@ -88,13 +88,13 @@ public class ClientEventHandler {
     }
 
     @SubscribeEvent
-    public void onOverlayRender(RenderGameOverlayEvent.Post event){
-        if(event.type == RenderGameOverlayEvent.ElementType.ALL) {
+    public void onOverlayRender(RenderGameOverlayEvent.Post event) {
+        if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
             for (OverlayCustom overlayCustom : ClientCacheHandler.customOverlays.values()) {
                 overlayCustom.renderGameOverlay(event.partialTicks);
             }
 
-            if(ClientHudManager.getInstance().getHudComponents().isEmpty()){
+            if (ClientHudManager.getInstance().getHudComponents().isEmpty()) {
                 ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestTracker, new QuestTrackingComponent(Minecraft.getMinecraft()));
                 ClientHudManager.getInstance().registerHud(EnumHudComponent.QuestCompass, new CompassHudComponent(Minecraft.getMinecraft()));
             }
@@ -142,16 +142,16 @@ public class ClientEventHandler {
         if (event.entity instanceof EntityNPCInterface) {
             MarkData markData = MarkData.get((EntityNPCInterface) event.entity);
             EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-            if(PlayerData.get(player) != null){
-                for(MarkData.Mark m : markData.marks){
-                    if(m.getType() != MarkType.NONE && m.availability.isAvailable(player)){
+            if (PlayerData.get(player) != null) {
+                for (MarkData.Mark m : markData.marks) {
+                    if (m.getType() != MarkType.NONE && m.availability.isAvailable(player)) {
                         MarkRenderer.render(event.entity, event.x, event.y, event.z, m);
                         break;
                     }
                 }
             }
         } else if (event.entity instanceof EntityPlayer) {
-            for (Map.Entry<ModelRenderer,FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
+            for (Map.Entry<ModelRenderer, FramePart> entry : ClientEventHandler.originalValues.entrySet()) {
                 ModelRenderer renderer = entry.getKey();
                 FramePart part = entry.getValue();
                 renderer.rotateAngleX = part.rotation[0];
@@ -173,9 +173,9 @@ public class ClientEventHandler {
         ClientEventHandler.renderingPlayer = event.entityPlayer;
     }
 
-    @SubscribeEvent(priority= EventPriority.LOWEST)
-    public void pre(RenderPlayerEvent.Pre event){
-        if(!(event.entity instanceof AbstractClientPlayer))
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void pre(RenderPlayerEvent.Pre event) {
+        if (!(event.entity instanceof AbstractClientPlayer))
             return;
     }
 
@@ -185,7 +185,7 @@ public class ClientEventHandler {
         ClientEventHandler.renderingPlayer = null;
 
         if (renderPlayerJBRA != null && hasOverlays(player)) {
-            if(renderPlayerJBRA.isInstance(event.renderer))
+            if (renderPlayerJBRA.isInstance(event.renderer))
                 return;
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
@@ -330,7 +330,7 @@ public class ClientEventHandler {
         try {
             Class<?> ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
             Object model = renderer.baseModel;
-            if(!(model instanceof ModelBiped))
+            if (!(model instanceof ModelBiped))
                 return null;
 
             Field[] declared;
@@ -338,7 +338,7 @@ public class ClientEventHandler {
                 declared = ClientEventHandler.declaredFieldCache.get(ModelBipedBody);
             } else {
                 declared = ModelBipedBody.getDeclaredFields();
-                ClientEventHandler.declaredFieldCache.put(ModelBipedBody,declared);
+                ClientEventHandler.declaredFieldCache.put(ModelBipedBody, declared);
             }
             Set<Map.Entry<EnumAnimationPart, String[]>> entrySet = ClientEventHandler.partNames.entrySet();
             for (Field f : declared) {
@@ -350,11 +350,13 @@ public class ClientEventHandler {
                             if (partName.equals(f.getName()) && renderer == f.get(model)) {
                                 return entry.getKey();
                             }
-                        } catch (IllegalAccessException ignored) {}
+                        } catch (IllegalAccessException ignored) {
+                        }
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         return null;
     }

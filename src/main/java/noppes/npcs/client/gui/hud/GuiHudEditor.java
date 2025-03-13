@@ -1,16 +1,12 @@
 package noppes.npcs.client.gui.hud;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import org.lwjgl.input.Mouse;
-import org.lwjgl.opengl.GL11;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 public class GuiHudEditor extends GuiScreen {
     private GuiScreen parent;
@@ -50,8 +46,8 @@ public class GuiHudEditor extends GuiScreen {
     /**
      * Updates the custom buttons shown on screen.
      * Removes all buttons except the global Save (id 0) and then adds:
-     *   - The selected component's custom buttons plus its Reset Position button,
-     *   - Followed by the cycle buttons at the very bottom.
+     * - The selected component's custom buttons plus its Reset Position button,
+     * - Followed by the cycle buttons at the very bottom.
      * Custom buttons are arranged in two columns.
      */
     private void updateCustomButtons() {
@@ -149,13 +145,13 @@ public class GuiHudEditor extends GuiScreen {
                 continue;
             ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             float effectiveScale = hud.getEffectiveScale(res);
-            int actualX = (int)(hud.posX / 100F * res.getScaledWidth());
-            int actualY = (int)(hud.posY / 100F * res.getScaledHeight());
+            int actualX = (int) (hud.posX / 100F * res.getScaledWidth());
+            int actualY = (int) (hud.posY / 100F * res.getScaledHeight());
             int margin = 5;
             int barWidth = 6; // same as WIDTH_BAR_SIZE
-            int barX = actualX + (int)(hud.overlayWidth * effectiveScale) + margin;
-            int barY = actualY + (int)(((hud.overlayHeight - 20) / 2.0F) * effectiveScale);
-            int barHeight = (int)(20 * effectiveScale);
+            int barX = actualX + (int) (hud.overlayWidth * effectiveScale) + margin;
+            int barY = actualY + (int) (((hud.overlayHeight - 20) / 2.0F) * effectiveScale);
+            int barHeight = (int) (20 * effectiveScale);
             if (mouseX >= barX && mouseX <= barX + barWidth &&
                 mouseY >= barY && mouseY <= barY + barHeight) {
                 resizingWidth = true;
@@ -171,10 +167,10 @@ public class GuiHudEditor extends GuiScreen {
         for (HudComponent hud : ClientHudManager.getInstance().getHudComponents().values()) {
             ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             float effectiveScale = hud.getEffectiveScale(res);
-            int actualX = (int)(hud.posX / 100F * res.getScaledWidth());
-            int actualY = (int)(hud.posY / 100F * res.getScaledHeight());
-            int absWidth = (int)(hud.overlayWidth * effectiveScale);
-            int absHeight = (int)(hud.overlayHeight * effectiveScale);
+            int actualX = (int) (hud.posX / 100F * res.getScaledWidth());
+            int actualY = (int) (hud.posY / 100F * res.getScaledHeight());
+            int absWidth = (int) (hud.overlayWidth * effectiveScale);
+            int absHeight = (int) (hud.overlayHeight * effectiveScale);
             if (mouseX >= actualX && mouseX <= actualX + absWidth &&
                 mouseY >= actualY && mouseY <= actualY + absHeight) {
                 if (mouseX >= actualX + absWidth - HANDLE_SIZE && mouseY >= actualY + absHeight - HANDLE_SIZE) {
@@ -218,12 +214,12 @@ public class GuiHudEditor extends GuiScreen {
                 int newY = scaledHeight - (Mouse.getY() * scaledHeight / mc.displayHeight) - dragOffsetY;
                 if (newX < 0) newX = 0;
                 if (newY < 0) newY = 0;
-                if (newX + (int)(selectedComponent.overlayWidth * effectiveScale) > scaledWidth)
-                    newX = scaledWidth - (int)(selectedComponent.overlayWidth * effectiveScale);
-                if (newY + (int)(selectedComponent.overlayHeight * effectiveScale) > scaledHeight)
-                    newY = scaledHeight - (int)(selectedComponent.overlayHeight * effectiveScale);
-                selectedComponent.posX = (int)(100F * newX / scaledWidth);
-                selectedComponent.posY = (int)(100F * newY / scaledHeight);
+                if (newX + (int) (selectedComponent.overlayWidth * effectiveScale) > scaledWidth)
+                    newX = scaledWidth - (int) (selectedComponent.overlayWidth * effectiveScale);
+                if (newY + (int) (selectedComponent.overlayHeight * effectiveScale) > scaledHeight)
+                    newY = scaledHeight - (int) (selectedComponent.overlayHeight * effectiveScale);
+                selectedComponent.posX = (int) (100F * newX / scaledWidth);
+                selectedComponent.posY = (int) (100F * newY / scaledHeight);
             }
             if (resizing) {
                 int currentMouseX = Mouse.getX() * width / mc.displayWidth;
@@ -256,16 +252,16 @@ public class GuiHudEditor extends GuiScreen {
                 if (selectedComponent instanceof CompassHudComponent) {
                     int margin = 5;
                     int widthBar = 6; // as used in CompassHudComponent.
-                    compWidth = (int)((selectedComponent.overlayWidth + margin + widthBar) * effectiveScale);
-                    compHeight = (int)(selectedComponent.overlayHeight * effectiveScale);
+                    compWidth = (int) ((selectedComponent.overlayWidth + margin + widthBar) * effectiveScale);
+                    compHeight = (int) (selectedComponent.overlayHeight * effectiveScale);
                 } else {
-                    compWidth = (int)(selectedComponent.overlayWidth * effectiveScale);
-                    compHeight = (int)(selectedComponent.overlayHeight * effectiveScale);
+                    compWidth = (int) (selectedComponent.overlayWidth * effectiveScale);
+                    compHeight = (int) (selectedComponent.overlayHeight * effectiveScale);
                 }
                 int centerX = (res.getScaledWidth() - compWidth) / 2;
                 int centerY = (res.getScaledHeight() - compHeight) / 2;
-                selectedComponent.posX = (int)(100F * centerX / res.getScaledWidth());
-                selectedComponent.posY = (int)(100F * centerY / res.getScaledHeight());
+                selectedComponent.posX = (int) (100F * centerX / res.getScaledWidth());
+                selectedComponent.posY = (int) (100F * centerY / res.getScaledHeight());
                 updateCustomButtons();
             }
         } else if (button.id == CYCLE_LEFT_ID) {

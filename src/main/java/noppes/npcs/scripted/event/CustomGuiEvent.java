@@ -151,7 +151,7 @@ public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
         public final int clickType;
 
         public SlotClickEvent(IPlayer player, ICustomGui gui, int slotId, IItemSlot slot, IItemStack stack, int dragType, int clickType) {
-            super(player,gui);
+            super(player, gui);
             this.slotId = slotId;
             this.stack = stack;
             this.dragType = dragType;

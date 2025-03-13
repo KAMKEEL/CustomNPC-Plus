@@ -12,8 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class ConfigMain
-{
+public class ConfigMain {
     public static Configuration config;
 
     public final static String GENERAL = "General";
@@ -25,7 +24,7 @@ public class ConfigMain
     public final static String ITEM = "Item";
 
     /**
-     *  General Main Properties
+     * General Main Properties
      **/
 
     public static Property EnableUpdateCheckerProperty;
@@ -77,13 +76,13 @@ public class ConfigMain
     public static int DefaultMaxPartySize = 4;
 
     /**
-     *  Attribute Properties
+     * Attribute Properties
      **/
     public static boolean AttributesEnabled = true;
     public static int AttributesCriticalBoost = 100;
 
     /**
-     *  Profile Properties
+     * Profile Properties
      **/
     public static boolean ProfilesEnabled = true;
     public static boolean AllowProfileBackups = true;
@@ -97,7 +96,7 @@ public class ConfigMain
 
 
     /**
-     *  General NPC Properties
+     * General NPC Properties
      **/
 
     public static Property OpsOnlyProperty;
@@ -128,18 +127,16 @@ public class ConfigMain
     public static int HitBoxScaleMax = 15;
 
     /**
-     *  Update Properties
+     * Update Properties
      **/
 
     public static Property TrackedQuestUpdateFrequencyProperty;
     public static int TrackedQuestUpdateFrequency = 5;
 
-    public static void init(File configFile)
-    {
+    public static void init(File configFile) {
         config = new Configuration(configFile);
 
-        try
-        {
+        try {
             config.load();
 
             // General
@@ -257,7 +254,7 @@ public class ConfigMain
             AttributesCriticalBoost = config.get(ATTRIBUTES, "Critical Amount", 100, "The boost in damage received by achieving a critical hit. Takes an number so 100 is 100% extra damage").getInt(100);
 
             // Convert to Legacy
-            if(CustomNpcs.legacyExist){
+            if (CustomNpcs.legacyExist) {
                 EnableUpdateChecker = LegacyConfig.EnableUpdateChecker;
                 EnableUpdateCheckerProperty.set(EnableUpdateChecker);
 
@@ -320,7 +317,7 @@ public class ConfigMain
                 NpcNavRange = 96;
             }
 
-            if(NpcSizeLimit < 1){
+            if (NpcSizeLimit < 1) {
                 NpcSizeLimit = 1;
             }
 
@@ -331,13 +328,9 @@ public class ConfigMain
             if (SkinOverlayLimit < 0) {
                 SkinOverlayLimit = 0;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its main configuration");
-        }
-        finally
-        {
+        } finally {
             if (config.hasChanged()) {
                 config.save();
             }

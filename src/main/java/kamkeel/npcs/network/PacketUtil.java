@@ -133,7 +133,7 @@ public class PacketUtil {
     }
 
     private static boolean isValidItemForType(ItemStack item, EnumItemPacketType type) {
-        if(item == null || item.getItem() == null)
+        if (item == null || item.getItem() == null)
             return false;
 
         switch (type) {
@@ -213,9 +213,9 @@ public class PacketUtil {
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
             NBTTagCompound tabCompound = new NBTTagCompound();
-            tabCompound.setInteger("Tab",i);
-            tabCompound.setTag("Script",container.writeToNBT(new NBTTagCompound()));
-            tabCompound.setInteger("TotalScripts",containers.size());
+            tabCompound.setInteger("Tab", i);
+            tabCompound.setTag("Script", container.writeToNBT(new NBTTagCompound()));
+            tabCompound.setInteger("TotalScripts", containers.size());
             GuiDataPacket.sendGuiData(player, tabCompound);
         }
     }
@@ -229,14 +229,14 @@ public class PacketUtil {
 
         if (tab >= 0) {
             if (data.getScripts().size() > totalScripts) {
-                data.setScripts(data.getScripts().subList(0,totalScripts));
+                data.setScripts(data.getScripts().subList(0, totalScripts));
             } else while (data.getScripts().size() < totalScripts) {
                 data.getScripts().add(new ScriptContainer(data));
             }
             NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
             ScriptContainer script = new ScriptContainer(data);
             script.readFromNBT(tabCompound);
-            data.getScripts().set(tab,script);
+            data.getScripts().set(tab, script);
         } else {
             NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             data.setLanguage(compound.getString("ScriptLanguage"));

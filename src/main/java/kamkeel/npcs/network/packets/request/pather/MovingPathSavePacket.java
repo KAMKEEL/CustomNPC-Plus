@@ -64,6 +64,6 @@ public final class MovingPathSavePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.PATHER, player))
             return;
 
-        npc.ais.setMovingPath(NBTTags.getIntegerArraySet(ByteBufUtils.readNBT(in).getTagList("MovingPathNew",10)));
+        npc.ais.setMovingPath(NBTTags.getIntegerArraySet(ByteBufUtils.readNBT(in).getTagList("MovingPathNew", 10)));
     }
 }

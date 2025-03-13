@@ -13,49 +13,49 @@ import net.minecraft.util.IIcon;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 
-public class ItemSkirt extends ItemArmor{
+public class ItemSkirt extends ItemArmor {
 
-	private String texture;
-	
-	public ItemSkirt(ArmorMaterial par2EnumArmorMaterial, String texture) {
-		super(par2EnumArmorMaterial, 0, 2);
-		this.texture = texture;
-		setCreativeTab(CustomItems.tabArmor);
-		setMaxStackSize(1);
-	}
+    private String texture;
+
+    public ItemSkirt(ArmorMaterial par2EnumArmorMaterial, String texture) {
+        super(par2EnumArmorMaterial, 0, 2);
+        this.texture = texture;
+        setCreativeTab(CustomItems.tabArmor);
+        setMaxStackSize(1);
+    }
+
     @Override
-    public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
+    public int getColorFromItemStack(ItemStack par1ItemStack, int par2) {
         int j = this.getColor(par1ItemStack);
 
-        if (j < 0)
-        {
+        if (j < 0) {
             j = 16777215;
         }
 
         return j;
     }
-	
-	@Override
-    public String getArmorTexture(ItemStack stack, Entity entity, int slot, String type){
-		if(type != null && type.equals("overlay"))
-			return null;
-		return texture;
+
+    @Override
+    public String getArmorTexture(ItemStack stack, Entity entity, int slot, String type) {
+        if (type != null && type.equals("overlay"))
+            return null;
+        return texture;
     }
-	
-	@Override
+
+    @Override
     @SideOnly(Side.CLIENT)
-    public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, int armorSlot){
+    public ModelBiped getArmorModel(EntityLivingBase entityLiving, ItemStack itemStack, int armorSlot) {
         return CustomNpcs.proxy.getSkirtModel();
     }
 
     @Override
-    public Item setUnlocalizedName(String name){
-		GameRegistry.registerItem(this, name);
-    	return super.setUnlocalizedName(name);
+    public Item setUnlocalizedName(String name) {
+        GameRegistry.registerItem(this, name);
+        return super.setUnlocalizedName(name);
     }
+
     @SideOnly(Side.CLIENT)
-    public IIcon getIconFromDamageForRenderPass(int par1, int par2)
-    {
-		return super.getIconFromDamage(par1);
+    public IIcon getIconFromDamageForRenderPass(int par1, int par2) {
+        return super.getIconFromDamage(par1);
     }
 }

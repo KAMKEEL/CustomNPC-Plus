@@ -26,24 +26,24 @@ public class SubGuiNpcCooldownPicker extends SubGuiInterface implements ITextfie
         super.initGui();
 
         int days = 0, hours = 0, minutes = 0, seconds = 0;
-        if(isMCCustom) {
+        if (isMCCustom) {
             long currentMillis = cooldownValue * 50;
-            days = (int)(currentMillis / 86400000L);
+            days = (int) (currentMillis / 86400000L);
             long remainder = currentMillis % 86400000L;
-            hours = (int)(remainder / 3600000L);
+            hours = (int) (remainder / 3600000L);
             remainder %= 3600000L;
-            minutes = (int)(remainder / 60000L);
+            minutes = (int) (remainder / 60000L);
             remainder %= 60000L;
-            seconds = (int)(remainder / 1000L);
+            seconds = (int) (remainder / 1000L);
         } else {
             // For RL custom cooldown, currentCooldown is stored in milliseconds.
-            days = (int)(cooldownValue / 86400000L);
+            days = (int) (cooldownValue / 86400000L);
             long remainder = cooldownValue % 86400000L;
-            hours = (int)(remainder / 3600000L);
+            hours = (int) (remainder / 3600000L);
             remainder %= 3600000L;
-            minutes = (int)(remainder / 60000L);
+            minutes = (int) (remainder / 60000L);
             remainder %= 60000L;
-            seconds = (int)(remainder / 1000L);
+            seconds = (int) (remainder / 1000L);
         }
 
         int y = guiTop + 20;
@@ -82,19 +82,19 @@ public class SubGuiNpcCooldownPicker extends SubGuiInterface implements ITextfie
 
     @Override
     public void buttonEvent(GuiButton button) {
-        if(button.id == 0) {
+        if (button.id == 0) {
             close();
         }
     }
 
-    public void close(){
+    public void close() {
         int inputDays = parseInt(daysField.getText());
         int inputHours = parseInt(hoursField.getText());
         int inputMinutes = parseInt(minutesField.getText());
         int inputSeconds = parseInt(secondsField.getText());
         // Calculate total time in milliseconds.
         long totalMillis = inputDays * 86400000L + inputHours * 3600000L + inputMinutes * 60000L + inputSeconds * 1000L;
-        if(isMCCustom) {
+        if (isMCCustom) {
             // Convert real milliseconds to ticks.
             cooldownValue = totalMillis / 50;
         } else {
@@ -111,7 +111,7 @@ public class SubGuiNpcCooldownPicker extends SubGuiInterface implements ITextfie
     private int parseInt(String text) {
         try {
             return Integer.parseInt(text);
-        } catch(Exception e) {
+        } catch (Exception e) {
             return 0;
         }
     }

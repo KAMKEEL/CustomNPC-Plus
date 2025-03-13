@@ -10,12 +10,13 @@ import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.util.Queue;
+import java.util.*;
 
 /**
  * Abstract GUI class for drawing diagrams with icons (nodes) and connections (arrows).
- *
+ * <p>
  * This revised version ensures that non‑Chart layouts use the full diagram bounds for positioning
  * (so that the outer icons lie flush with the edges) and that curved arrow drawing selects the
  * best control point (using both curveAngle and its negative) to avoid icons.
@@ -60,6 +61,7 @@ public abstract class GuiDiagram extends Gui {
     public void setCurvedArrows(boolean curved) {
         this.curvedArrows = curved;
     }
+
     public void setCurveAngle(int angle) {
         this.curveAngle = angle;
     }
@@ -88,6 +90,7 @@ public abstract class GuiDiagram extends Gui {
 
     // --- Data Providers (subclasses must implement) ---
     protected abstract List<DiagramIcon> createIcons();
+
     protected abstract List<DiagramConnection> createConnections();
 
     protected final List<DiagramIcon> getIcons() {
@@ -96,6 +99,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return iconsCache;
     }
+
     protected final List<DiagramConnection> getConnections() {
         if (connectionsCache == null) {
             connectionsCache = createConnections();
@@ -108,7 +112,9 @@ public abstract class GuiDiagram extends Gui {
      */
     protected abstract void renderIcon(DiagramIcon icon, int posX, int posY, IconRenderState state);
 
-    protected List<String> getIconTooltip(DiagramIcon icon) { return null; }
+    protected List<String> getIconTooltip(DiagramIcon icon) {
+        return null;
+    }
 
     protected List<String> getConnectionTooltip(DiagramConnection conn) {
         List<String> tooltip = new ArrayList<>();
@@ -125,9 +131,13 @@ public abstract class GuiDiagram extends Gui {
         }
         return tooltip;
     }
-    protected String getIconName(DiagramIcon icon) { return "Icon " + icon.id; }
+
+    protected String getIconName(DiagramIcon icon) {
+        return "Icon " + icon.id;
+    }
 
     // --- Layout Calculation ---
+
     /**
      * For non‑CHART layouts, returns a mapping from node ID to (x,y) position.
      */
@@ -284,6 +294,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return graph;
     }
+
     private List<Set<Integer>> getConnectedComponents(Map<Integer, List<Integer>> graph) {
         Set<Integer> visited = new HashSet<>();
         List<Set<Integer>> components = new ArrayList<>();
@@ -296,6 +307,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return components;
     }
+
     private void dfsComponent(Integer current, Map<Integer, List<Integer>> graph, Set<Integer> visited, Set<Integer> comp) {
         visited.add(current);
         comp.add(current);
@@ -304,6 +316,7 @@ public abstract class GuiDiagram extends Gui {
                 dfsComponent(neighbor, graph, visited, comp);
         }
     }
+
     private boolean isCycle(Set<Integer> cluster, Map<Integer, List<Integer>> graph) {
         if (cluster.size() < 3) return false;
         for (Integer node : cluster) {
@@ -315,6 +328,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return true;
     }
+
     private boolean isTree(Set<Integer> cluster, Map<Integer, List<Integer>> graph) {
         int edgeCount = 0;
         for (Integer node : cluster) {
@@ -325,6 +339,7 @@ public abstract class GuiDiagram extends Gui {
         edgeCount /= 2;
         return edgeCount == cluster.size() - 1;
     }
+
     private boolean isSquare(Set<Integer> cluster) {
         int n = cluster.size();
         int sqrt = (int) Math.round(Math.sqrt(n));
@@ -488,8 +503,8 @@ public abstract class GuiDiagram extends Gui {
                 double[] d = disp.get(id);
                 double dispLength = Math.sqrt(d[0] * d[0] + d[1] * d[1]);
                 if (dispLength < 0.01) dispLength = 0.01;
-                int newX = positions.get(id).x + (int)((d[0] / dispLength) * Math.min(dispLength, temperature));
-                int newY = positions.get(id).y + (int)((d[1] / dispLength) * Math.min(dispLength, temperature));
+                int newX = positions.get(id).x + (int) ((d[0] / dispLength) * Math.min(dispLength, temperature));
+                int newY = positions.get(id).y + (int) ((d[1] / dispLength) * Math.min(dispLength, temperature));
                 newX = Math.max(compX, Math.min(compX + compWidth, newX));
                 newY = Math.max(compY, Math.min(compY + compHeight, newY));
                 positions.get(id).x = newX;
@@ -588,9 +603,9 @@ public abstract class GuiDiagram extends Gui {
             List<DiagramIcon> levelIcons = entry.getValue();
             levelIcons.sort(Comparator.comparingInt(icon -> icon.priority));
             int m = levelIcons.size();
-            int posY = (m > 0 && maxLevel > 0) ? y + (int)((height * level) / (maxLevel)) : y + height / 2;
+            int posY = (m > 0 && maxLevel > 0) ? y + (int) ((height * level) / (maxLevel)) : y + height / 2;
             for (int i = 0; i < m; i++) {
-                int posX = (m > 1) ? x + (int)((width * i) / (m - 1.0)) : x + width / 2;
+                int posX = (m > 1) ? x + (int) ((width * i) / (m - 1.0)) : x + width / 2;
                 positions.put(levelIcons.get(i).id, new Point(posX, posY));
             }
         }
@@ -598,6 +613,7 @@ public abstract class GuiDiagram extends Gui {
     }
 
     // --- Curved Arrow Helpers ---
+
     /**
      * Computes a quadratic Bezier control point given endpoints and an angle (in degrees).
      */
@@ -608,8 +624,8 @@ public abstract class GuiDiagram extends Gui {
         double angleRad = Math.toRadians(angleDegrees);
         double offset = len * Math.tan(angleRad) / 2;
         double perpX = -dy / len, perpY = dx / len;
-        return new Point((x1 + x2) / 2 + (int)(perpX * offset),
-            (y1 + y2) / 2 + (int)(perpY * offset));
+        return new Point((x1 + x2) / 2 + (int) (perpX * offset),
+            (y1 + y2) / 2 + (int) (perpY * offset));
     }
 
     /**
@@ -642,7 +658,11 @@ public abstract class GuiDiagram extends Gui {
             float r = ((color >> 16) & 0xFF) / 255f;
             float g = ((color >> 8) & 0xFF) / 255f;
             float b = (color & 0xFF) / 255f;
-            if (dim) { r *= 0.4f; g *= 0.4f; b *= 0.4f; }
+            if (dim) {
+                r *= 0.4f;
+                g *= 0.4f;
+                b *= 0.4f;
+            }
             GL11.glColor4f(r, g, b, 1f);
             GL11.glBegin(GL11.GL_LINES);
             GL11.glVertex2i(x1, y1);
@@ -669,14 +689,18 @@ public abstract class GuiDiagram extends Gui {
             float rr = ((color >> 16) & 0xFF) / 255f;
             float gg = ((color >> 8) & 0xFF) / 255f;
             float bb = (color & 0xFF) / 255f;
-            if (dim) { rr *= 0.4f; gg *= 0.4f; bb *= 0.4f; }
+            if (dim) {
+                rr *= 0.4f;
+                gg *= 0.4f;
+                bb *= 0.4f;
+            }
             GL11.glColor4f(rr, gg, bb, 1f);
 
             GL11.glBegin(GL11.GL_LINE_STRIP);
             for (int i = 0; i <= segments; i++) {
                 double t = (double) i / segments;
-                int bx = (int)((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
-                int by = (int)((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
+                int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
+                int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
                 GL11.glVertex2i(bx, by);
             }
             GL11.glEnd();
@@ -711,19 +735,23 @@ public abstract class GuiDiagram extends Gui {
             double dBy = 2 * (1 - t) * (control.y - y1) + 2 * t * (y2 - control.y);
             angle = Math.atan2(dBy, dBx);
         }
-        float defenderEdgeX = x2 - (slotSize / 2f) * (float)Math.cos(angle);
-        float defenderEdgeY = y2 - (slotSize / 2f) * (float)Math.sin(angle);
+        float defenderEdgeX = x2 - (slotSize / 2f) * (float) Math.cos(angle);
+        float defenderEdgeY = y2 - (slotSize / 2f) * (float) Math.sin(angle);
         int arrowSize = 6;
-        float leftX = defenderEdgeX - arrowSize * (float)Math.cos(angle - Math.PI / 6);
-        float leftY = defenderEdgeY - arrowSize * (float)Math.sin(angle - Math.PI / 6);
-        float rightX = defenderEdgeX - arrowSize * (float)Math.cos(angle + Math.PI / 6);
-        float rightY = defenderEdgeY - arrowSize * (float)Math.sin(angle + Math.PI / 6);
+        float leftX = defenderEdgeX - arrowSize * (float) Math.cos(angle - Math.PI / 6);
+        float leftY = defenderEdgeY - arrowSize * (float) Math.sin(angle - Math.PI / 6);
+        float rightX = defenderEdgeX - arrowSize * (float) Math.cos(angle + Math.PI / 6);
+        float rightY = defenderEdgeY - arrowSize * (float) Math.sin(angle + Math.PI / 6);
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         float rr = ((color >> 16) & 0xFF) / 255f;
         float gg = ((color >> 8) & 0xFF) / 255f;
         float bb = (color & 0xFF) / 255f;
-        if (dim) { rr *= 0.4f; gg *= 0.4f; bb *= 0.4f; }
+        if (dim) {
+            rr *= 0.4f;
+            gg *= 0.4f;
+            bb *= 0.4f;
+        }
         GL11.glColor4f(rr, gg, bb, 1f);
         GL11.glDisable(GL11.GL_CULL_FACE);
         GL11.glBegin(GL11.GL_TRIANGLES);
@@ -747,13 +775,14 @@ public abstract class GuiDiagram extends Gui {
             drawVerticalLine(slotX + slotSize - 1 - i, slotY + i, slotY + slotSize - i, iconBorderColor);
         }
     }
+
     protected int mixColors(int color1, int color2, float ratio) {
         int a1 = (color1 >> 24) & 0xFF, r1 = (color1 >> 16) & 0xFF, g1 = (color1 >> 8) & 0xFF, b1 = color1 & 0xFF;
         int a2 = (color2 >> 24) & 0xFF, r2 = (color2 >> 16) & 0xFF, g2 = (color2 >> 8) & 0xFF, b2 = color2 & 0xFF;
-        int a = (int)(a1 + (a2 - a1) * ratio);
-        int r = (int)(r1 + (r2 - r1) * ratio);
-        int g = (int)(g1 + (g2 - g1) * ratio);
-        int b = (int)(b1 + (b2 - b1) * ratio);
+        int a = (int) (a1 + (a2 - a1) * ratio);
+        int r = (int) (r1 + (r2 - r1) * ratio);
+        int g = (int) (g1 + (g2 - g1) * ratio);
+        int b = (int) (b1 + (b2 - b1) * ratio);
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
@@ -762,9 +791,9 @@ public abstract class GuiDiagram extends Gui {
         double minDist = Double.MAX_VALUE;
         Point prev = null;
         for (int i = 0; i <= segments; i++) {
-            double t = (double)i / segments;
-            int x = (int)((1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * control.x + t * t * end.x);
-            int y = (int)((1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * control.y + t * t * end.y);
+            double t = (double) i / segments;
+            int x = (int) ((1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * control.x + t * t * end.x);
+            int y = (int) ((1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * control.y + t * t * end.y);
             Point curr = new Point(x, y);
             if (prev != null) {
                 double d = distancePointToSegment(px, py, prev, curr);
@@ -774,15 +803,23 @@ public abstract class GuiDiagram extends Gui {
         }
         return minDist;
     }
+
     private double distancePointToSegment(int px, int py, Point a, Point b) {
         double A = px - a.x, B = py - a.y, C = b.x - a.x, D = b.y - a.y;
         double dot = A * C + B * D;
         double lenSq = C * C + D * D;
         double param = (lenSq != 0) ? (dot / lenSq) : -1;
         double xx, yy;
-        if (param < 0) { xx = a.x; yy = a.y; }
-        else if (param > 1) { xx = b.x; yy = b.y; }
-        else { xx = a.x + param * C; yy = a.y + param * D; }
+        if (param < 0) {
+            xx = a.x;
+            yy = a.y;
+        } else if (param > 1) {
+            xx = b.x;
+            yy = b.y;
+        } else {
+            xx = a.x + param * C;
+            yy = a.y + param * D;
+        }
         double dx = px - xx, dy = py - yy;
         return Math.sqrt(dx * dx + dy * dy);
     }
@@ -824,8 +861,8 @@ public abstract class GuiDiagram extends Gui {
         int factor = sr.getScaleFactor();
         Map<Integer, Point> positions = calculatePositions();
         int centerX = x + width / 2, centerY = y + height / 2;
-        int effectiveMouseX = (int)(((float)mouseX - (centerX + panX)) / zoom + centerX);
-        int effectiveMouseY = (int)(((float)mouseY - (centerY + panY)) / zoom + centerY);
+        int effectiveMouseX = (int) (((float) mouseX - (centerX + panX)) / zoom + centerX);
+        int effectiveMouseY = (int) (((float) mouseY - (centerY + panY)) / zoom + centerY);
         Integer hoveredIconId = null;
         int hoveredConnFrom = -1, hoveredConnTo = -1;
         Set<Integer> selectedIconIds = new HashSet<>();
@@ -947,12 +984,14 @@ public abstract class GuiDiagram extends Gui {
         }
         return null;
     }
+
     protected DiagramConnection getConnectionByIds(int idFrom, int idTo) {
         for (DiagramConnection conn : getConnections()) {
             if (conn.idFrom == idFrom && conn.idTo == idTo) return conn;
         }
         return null;
     }
+
     protected int getConnectionColor(DiagramConnection conn) {
         float percent = conn.percent;
         if (percent <= 0.10f) return 0xFF80FF80;
@@ -963,21 +1002,29 @@ public abstract class GuiDiagram extends Gui {
             ratio = Math.min(1f, Math.max(0f, ratio));
             int r1 = 0xFF, g1 = 0xA5, b1 = 0x00;
             int r2 = 0xFF, g2 = 0x00, b2 = 0x00;
-            int r = r1 + (int)((r2 - r1) * ratio);
-            int g = g1 + (int)((g2 - g1) * ratio);
-            int b = b1 + (int)((b2 - b1) * ratio);
+            int r = r1 + (int) ((r2 - r1) * ratio);
+            int g = g1 + (int) ((g2 - g1) * ratio);
+            int b = b1 + (int) ((b2 - b1) * ratio);
             return (0xFF << 24) | (r << 16) | (g << 8) | b;
         }
     }
+
     private double pointLineDistance(int px, int py, int x1, int y1, int x2, int y2) {
         double A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
         double dot = A * C + B * D;
         double lenSq = C * C + D * D;
         double param = (lenSq != 0) ? (dot / lenSq) : -1;
         double xx, yy;
-        if (param < 0) { xx = x1; yy = y1; }
-        else if (param > 1) { xx = x2; yy = y2; }
-        else { xx = x1 + param * C; yy = y1 + param * D; }
+        if (param < 0) {
+            xx = x1;
+            yy = y1;
+        } else if (param > 1) {
+            xx = x2;
+            yy = y2;
+        } else {
+            xx = x1 + param * C;
+            yy = y1 + param * D;
+        }
         double dx = px - xx, dy = py - yy;
         return Math.sqrt(dx * dx + dy * dy);
     }
@@ -991,8 +1038,8 @@ public abstract class GuiDiagram extends Gui {
                 Point pos = calculatePositions().get(icon.id);
                 if (pos == null) continue;
                 int centerX = x + width / 2, centerY = y + height / 2;
-                int effectiveX = (int)(((float)mouseX - (centerX + panX)) / zoom + centerX);
-                int effectiveY = (int)(((float)mouseY - (centerY + panY)) / zoom + centerY);
+                int effectiveX = (int) (((float) mouseX - (centerX + panX)) / zoom + centerX);
+                int effectiveY = (int) (((float) mouseY - (centerY + panY)) / zoom + centerY);
                 int slotX = pos.x - slotSize / 2, slotY = pos.y - slotSize / 2;
                 if (effectiveX >= slotX && effectiveX < slotX + slotSize &&
                     effectiveY >= slotY && effectiveY < slotY + slotSize) {
@@ -1010,7 +1057,9 @@ public abstract class GuiDiagram extends Gui {
         }
         return false;
     }
+
     protected DiagramIcon currentlyPressedIcon = null;
+
     public void mouseClickMove(int mouseX, int mouseY, int mouseButton, long timeSinceLastClick) {
         if (parent != null && parent.hasSubGui()) return;
         if (dragging) {
@@ -1022,6 +1071,7 @@ public abstract class GuiDiagram extends Gui {
         }
         if (currentlyPressedIcon != null) onIconHeld(currentlyPressedIcon);
     }
+
     public void mouseReleased(int mouseX, int mouseY, int state) {
         if (parent != null && parent.hasSubGui()) return;
         if (currentlyPressedIcon != null) {
@@ -1030,32 +1080,46 @@ public abstract class GuiDiagram extends Gui {
         }
         dragging = false;
     }
+
     public boolean isWithin(int mouseX, int mouseY) {
         if (parent.hasSubGui())
             return false;
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
+
     public void handleMouseScroll(int scrollDelta) {
         zoom += scrollDelta * 0.0009f;
         if (zoom < 0.5f) zoom = 0.5f;
         if (zoom > 2.0f) zoom = 2.0f;
     }
-    protected void drawHoveringText(List<String> textLines, int mouseX, int mouseY, FontRenderer font) {}
+
+    protected void drawHoveringText(List<String> textLines, int mouseX, int mouseY, FontRenderer font) {
+    }
 
     // --- Flag Setters ---
     public void setShowArrowHeads(boolean showArrowHeads) {
         this.showArrowHeads = showArrowHeads;
     }
+
     public void setUseColorScaling(boolean useColorScaling) {
         this.useColorScaling = useColorScaling;
     }
 
     // --- Icon and Connection Event Callbacks ---
-    protected void onIconClick(DiagramIcon icon) {}
-    protected void onIconHeld(DiagramIcon icon) {}
-    protected void onIconRelease(DiagramIcon icon) {}
-    protected void onIconHover(DiagramIcon icon) {}
-    protected void onConnectionHover(DiagramConnection conn) {}
+    protected void onIconClick(DiagramIcon icon) {
+    }
+
+    protected void onIconHeld(DiagramIcon icon) {
+    }
+
+    protected void onIconRelease(DiagramIcon icon) {
+    }
+
+    protected void onIconHover(DiagramIcon icon) {
+    }
+
+    protected void onConnectionHover(DiagramConnection conn) {
+    }
 
     // --- Inner Helper Classes ---
     public static class DiagramIcon {
@@ -1064,7 +1128,11 @@ public abstract class GuiDiagram extends Gui {
         public boolean pressable = false;
         public int index = 0;
         public int priority = 0;
-        public DiagramIcon(int id) { this.id = id; }
+
+        public DiagramIcon(int id) {
+            this.id = id;
+        }
+
         public DiagramIcon(int id, int index, int priority) {
             this.id = id;
             this.index = index;
@@ -1076,6 +1144,7 @@ public abstract class GuiDiagram extends Gui {
         public int idFrom, idTo;
         public float percent;
         public String hoverText;
+
         public DiagramConnection(int idFrom, int idTo, float percent, String hoverText) {
             this.idFrom = idFrom;
             this.idTo = idTo;

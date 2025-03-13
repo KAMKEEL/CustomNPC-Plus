@@ -15,30 +15,27 @@ import noppes.npcs.entity.data.ModelData;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer,
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNpcSkeleton extends EntityNPCInterface
-{
-    public EntityNpcSkeleton(World world)
-    {
+public class EntityNpcSkeleton extends EntityNPCInterface {
+    public EntityNpcSkeleton(World world) {
         super(world);
         display.texture = "customnpcs:textures/entity/skeleton/Skeleton.png";
     }
 
-    public void onUpdate()
-    {
-    	isDead = true;
+    public void onUpdate() {
+        isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
 
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	ModelData data = npc.modelData;
-			data.setEntityClass(EntitySkeleton.class);
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            ModelData data = npc.modelData;
+            data.setEntityClass(EntitySkeleton.class);
 
 
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
+            worldObj.spawnEntityInWorld(npc);
+        }
         super.onUpdate();
     }
 }

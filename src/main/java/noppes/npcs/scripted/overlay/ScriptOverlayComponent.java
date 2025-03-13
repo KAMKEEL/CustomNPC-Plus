@@ -19,7 +19,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
         6           7           8
      */
 
-    public ScriptOverlayComponent(){
+    public ScriptOverlayComponent() {
     }
 
     public int getID() {
@@ -83,10 +83,10 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
     public NBTTagCompound toNBT(NBTTagCompound nbt) {
         nbt.setInteger("id", this.id);
         nbt.setIntArray("pos", new int[]{this.posX, this.posY});
-        nbt.setInteger("alignment",this.alignment);
+        nbt.setInteger("alignment", this.alignment);
         nbt.setInteger("color", this.color);
-        nbt.setFloat("alpha",this.alpha);
-        nbt.setFloat("rotation",this.rotation);
+        nbt.setFloat("alpha", this.alpha);
+        nbt.setFloat("rotation", this.rotation);
 
         nbt.setInteger("type", this.getType());
         return nbt;
@@ -104,7 +104,7 @@ public abstract class ScriptOverlayComponent implements ICustomOverlayComponent 
     }
 
     public static ScriptOverlayComponent createFromNBT(NBTTagCompound nbt) {
-        switch(nbt.getInteger("type")) {
+        switch (nbt.getInteger("type")) {
             case 0:
                 return (new ScriptOverlayTexturedRect()).fromNBT(nbt);
             case 1:

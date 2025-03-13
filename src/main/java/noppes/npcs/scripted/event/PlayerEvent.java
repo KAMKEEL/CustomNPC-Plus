@@ -117,7 +117,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final int mouseWheel;
         public final boolean buttonDown;
 
-        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys){
+        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys) {
             super(player);
             this.button = button;
             this.mouseWheel = mouseWheel;
@@ -234,7 +234,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final int fromDim;
         public final int toDim;
 
-        public ChangedDimension(IPlayer player, int fromDim, int toDim){
+        public ChangedDimension(IPlayer player, int fromDim, int toDim) {
             super(player);
             this.fromDim = fromDim;
             this.toDim = toDim;
@@ -376,7 +376,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class FallEvent extends PlayerEvent implements IPlayerEvent.FallEvent {
         public final float distance;
 
-        public FallEvent(IPlayer player, float distance){
+        public FallEvent(IPlayer player, float distance) {
             super(player);
             this.distance = distance;
         }
@@ -391,7 +391,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     }
 
     public static class JumpEvent extends PlayerEvent implements IPlayerEvent.JumpEvent {
-        public JumpEvent(IPlayer player){
+        public JumpEvent(IPlayer player) {
             super(player);
         }
 
@@ -667,7 +667,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public StartUsingItem(IPlayer player, ItemStack item, int duration){
+        public StartUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -692,7 +692,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public UsingItem(IPlayer player, ItemStack item, int duration){
+        public UsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -717,7 +717,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public StopUsingItem(IPlayer player, ItemStack item, int duration){
+        public StopUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -741,7 +741,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public FinishUsingItem(IPlayer player, ItemStack item, int duration){
+        public FinishUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -973,6 +973,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             }
 
         }
+
         public static class Ticked extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Ticked {
 
             public Ticked(IPlayer player, IPlayerEffect statusEffect) {
@@ -980,6 +981,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             }
 
         }
+
         public static class Removed extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Removed {
 
             private final ExpirationType type;

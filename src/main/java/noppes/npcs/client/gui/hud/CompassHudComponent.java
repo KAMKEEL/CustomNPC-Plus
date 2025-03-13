@@ -10,6 +10,7 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.MarkType;
 import org.lwjgl.opengl.GL11;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -53,7 +54,7 @@ public class CompassHudComponent extends HudComponent {
     public void loadData(NBTTagCompound compound) {
         markTargets.clear();
         NBTTagList list = compound.getTagList("MarkTargets", 10);
-        for(int i = 0; i < list.tagCount(); i++) {
+        for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound entry = list.getCompoundTagAt(i);
             markTargets.add(new MarkTargetEntry(
                 entry.getInteger("x"),
@@ -91,7 +92,7 @@ public class CompassHudComponent extends HudComponent {
         ConfigClient.CompassOverlayWidth = overlayWidth;
         ConfigClient.CompassOverlayWidthProperty.set(ConfigClient.CompassOverlayWidth);
 
-        if(ConfigClient.config.hasChanged())
+        if (ConfigClient.config.hasChanged())
             ConfigClient.config.save();
     }
 
@@ -100,8 +101,8 @@ public class CompassHudComponent extends HudComponent {
         if (!hasData || isEditting) return;
 
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)(posX / 100F * res.getScaledWidth());
-        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        int actualX = (int) (posX / 100F * res.getScaledWidth());
+        int actualY = (int) (posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
 
         // Calculate interpolated player position and rotation.
@@ -156,14 +157,21 @@ public class CompassHudComponent extends HudComponent {
     }
 
     private ResourceLocation getTextureForMark(int type) {
-        switch(type) {
-            case MarkType.EXCLAMATION: return new ResourceLocation("customnpcs", "textures/marks/exclamation.png");
-            case MarkType.QUESTION: return new ResourceLocation("customnpcs", "textures/marks/question.png");
-            case MarkType.POINTER: return new ResourceLocation("customnpcs", "textures/marks/pointer.png");
-            case MarkType.CROSS: return new ResourceLocation("customnpcs", "textures/marks/cross.png");
-            case MarkType.SKULL: return new ResourceLocation("customnpcs", "textures/marks/skull.png");
-            case MarkType.STAR: return new ResourceLocation("customnpcs", "textures/marks/star.png");
-            default: return null;
+        switch (type) {
+            case MarkType.EXCLAMATION:
+                return new ResourceLocation("customnpcs", "textures/marks/exclamation.png");
+            case MarkType.QUESTION:
+                return new ResourceLocation("customnpcs", "textures/marks/question.png");
+            case MarkType.POINTER:
+                return new ResourceLocation("customnpcs", "textures/marks/pointer.png");
+            case MarkType.CROSS:
+                return new ResourceLocation("customnpcs", "textures/marks/cross.png");
+            case MarkType.SKULL:
+                return new ResourceLocation("customnpcs", "textures/marks/skull.png");
+            case MarkType.STAR:
+                return new ResourceLocation("customnpcs", "textures/marks/star.png");
+            default:
+                return null;
         }
     }
 
@@ -212,20 +220,20 @@ public class CompassHudComponent extends HudComponent {
     }
 
     private int calculateIconSize(float distance) {
-        if(distance <= SCALE_DISTANCE_MIN) return MAX_ICON_SIZE;
-        if(distance >= SCALE_DISTANCE_MAX) return BASE_ICON_SIZE;
+        if (distance <= SCALE_DISTANCE_MIN) return MAX_ICON_SIZE;
+        if (distance >= SCALE_DISTANCE_MAX) return BASE_ICON_SIZE;
 
         float t = (distance - SCALE_DISTANCE_MIN) /
             (SCALE_DISTANCE_MAX - SCALE_DISTANCE_MIN);
-        return (int)(MAX_ICON_SIZE - (MAX_ICON_SIZE - BASE_ICON_SIZE) * t);
+        return (int) (MAX_ICON_SIZE - (MAX_ICON_SIZE - BASE_ICON_SIZE) * t);
     }
 
     @Override
     public void renderEditing() {
         isEditting = true;
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)(posX / 100F * res.getScaledWidth());
-        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        int actualX = (int) (posX / 100F * res.getScaledWidth());
+        int actualY = (int) (posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
@@ -253,12 +261,12 @@ public class CompassHudComponent extends HudComponent {
 
     private void renderDemoIcon(float position, int type, int color) {
         float pulse = (System.currentTimeMillis() % 1000) / 1000f;
-        int size = (int)(BASE_ICON_SIZE + (MAX_ICON_SIZE - BASE_ICON_SIZE) * pulse);
+        int size = (int) (BASE_ICON_SIZE + (MAX_ICON_SIZE - BASE_ICON_SIZE) * pulse);
         ResourceLocation texture = getTextureForMark(type);
 
-        if(texture != null) {
+        if (texture != null) {
             GL11.glPushMatrix();
-            GL11.glTranslatef(position - size/2, (BAR_HEIGHT - size)/2, 0);
+            GL11.glTranslatef(position - size / 2, (BAR_HEIGHT - size) / 2, 0);
             renderTextureIcon(0, 0, size, texture, color);
             GL11.glPopMatrix();
         }

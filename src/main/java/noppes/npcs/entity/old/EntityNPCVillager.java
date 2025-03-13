@@ -15,30 +15,28 @@ import noppes.npcs.entity.data.ModelData;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer,
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNPCVillager extends EntityNPCInterface
-{
+public class EntityNPCVillager extends EntityNPCInterface {
 
-    public EntityNPCVillager(World world)
-    {
+    public EntityNPCVillager(World world) {
         super(world);
         display.texture = "textures/entity/villager/villager.png";
     }
-    public void onUpdate()
-    {
-    	isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
+    public void onUpdate() {
+        isDead = true;
 
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	ModelData data = npc.modelData;
-			data.setEntityClass(EntityVillager.class);
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
+
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            ModelData data = npc.modelData;
+            data.setEntityClass(EntityVillager.class);
 
 
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
+            worldObj.spawnEntityInWorld(npc);
+        }
         super.onUpdate();
     }
 

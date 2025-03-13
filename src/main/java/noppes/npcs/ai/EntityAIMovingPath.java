@@ -6,12 +6,11 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
-public class EntityAIMovingPath extends EntityAIBase
-{
+public class EntityAIMovingPath extends EntityAIBase {
     private EntityNPCInterface npc;
     private int[] pos;
 
-    public EntityAIMovingPath(EntityNPCInterface par1EntityNPCInterface){
+    public EntityAIMovingPath(EntityNPCInterface par1EntityNPCInterface) {
         this.npc = par1EntityNPCInterface;
         this.setMutexBits(AiMutex.PASSIVE);
     }
@@ -20,16 +19,16 @@ public class EntityAIMovingPath extends EntityAIBase
      * Returns whether the EntityAIBase should begin execution.
      */
     @Override
-    public boolean shouldExecute(){
+    public boolean shouldExecute() {
         if (npc.isAttacking() || npc.isInteracting() || npc.getRNG().nextInt(40) != 0 && npc.ais.movingPause || !npc.getNavigator().noPath() || npc.isInteracting())
             return false;
 
         List<int[]> list = npc.ais.getMovingPath();
-        if(list.size() < 2)
-        	return false;
+        if (list.size() < 2)
+            return false;
 
         npc.ais.incrementMovingPath();
-    	pos = npc.ais.getCurrentMovingPath();
+        pos = npc.ais.getCurrentMovingPath();
 
         return true;
     }
@@ -38,11 +37,11 @@ public class EntityAIMovingPath extends EntityAIBase
      * Returns whether an in-progress EntityAIBase should continue executing
      */
     @Override
-    public boolean continueExecuting(){
-    	if(npc.isAttacking() || npc.isInteracting()){
-    		npc.ais.decreaseMovingPath();
-    		return false;
-    	}
+    public boolean continueExecuting() {
+        if (npc.isAttacking() || npc.isInteracting()) {
+            npc.ais.decreaseMovingPath();
+            return false;
+        }
         return !this.npc.getNavigator().noPath();
     }
 
@@ -50,7 +49,7 @@ public class EntityAIMovingPath extends EntityAIBase
      * Execute a one shot task or start executing a continuous task
      */
     @Override
-    public void startExecuting(){
+    public void startExecuting() {
         this.npc.getNavigator().tryMoveToXYZ(pos[0] + 0.5, pos[1], pos[2] + 0.5, 1.0D);
     }
 }

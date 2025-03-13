@@ -13,32 +13,39 @@ import noppes.npcs.controllers.data.PlayerQuestData;
 import java.util.Vector;
 
 public abstract class QuestInterface implements IQuestInterface {
-	public int questId;
-	public abstract void writeEntityToNBT(NBTTagCompound compound);
-	public abstract void readEntityFromNBT(NBTTagCompound compound);
-	public abstract boolean isCompleted(PlayerData player);
-	public void handleComplete(EntityPlayer player) {
-		PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
-		if(questData != null && questData.getTrackedQuest() != null){
-			if (this.questId == PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest().getId()) {
-				PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
-			}
-		}
-	}
+    public int questId;
 
-    public void handlePartyComplete(EntityPlayer player, Party party, boolean isLeader, EnumPartyObjectives objectives){
+    public abstract void writeEntityToNBT(NBTTagCompound compound);
+
+    public abstract void readEntityFromNBT(NBTTagCompound compound);
+
+    public abstract boolean isCompleted(PlayerData player);
+
+    public void handleComplete(EntityPlayer player) {
+        PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).questData;
+        if (questData != null && questData.getTrackedQuest() != null) {
+            if (this.questId == PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest().getId()) {
+                PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
+            }
+        }
+    }
+
+    public void handlePartyComplete(EntityPlayer player, Party party, boolean isLeader, EnumPartyObjectives objectives) {
         handleComplete(player);
     }
 
-    public void removePartyItems(Party party){}
+    public void removePartyItems(Party party) {
+    }
 
     public abstract Vector<String> getQuestLogStatus(EntityPlayer player);
-	public abstract IQuestObjective[] getObjectives(EntityPlayer var1);
+
+    public abstract IQuestObjective[] getObjectives(EntityPlayer var1);
 
 
     // Party Related
     public abstract IQuestObjective[] getPartyObjectives(Party party);
 
     public abstract Vector<String> getPartyQuestLogStatus(Party party);
+
     public abstract boolean isPartyCompleted(Party party);
 }

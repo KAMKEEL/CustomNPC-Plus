@@ -41,12 +41,12 @@ public class DataAdvanced {
 
     public boolean attackOtherFactions = false;
     public boolean defendFaction = false;
-	public boolean disablePitch = false;
+    public boolean disablePitch = false;
 
-	public String soulStonePlayerName = "";
-	public boolean refuseSoulStone = false;
-	public boolean soulStoneInit = false;
-	public int minFactionPointsToSoulStone = -1;
+    public String soulStonePlayerName = "";
+    public boolean refuseSoulStone = false;
+    public boolean soulStoneInit = false;
+    public int minFactionPointsToSoulStone = -1;
 
     public DataAdvanced(EntityNPCInterface npc) {
         this.npc = npc;
@@ -76,13 +76,13 @@ public class DataAdvanced {
         compound.setInteger("NpcJob", job.ordinal());
         compound.setTag("FactionPoints", factions.writeToNBT(new NBTTagCompound()));
 
-		compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
+        compound.setTag("NPCDialogOptions", nbtDialogs(npc.dialogs));
 
-		compound.setBoolean("RefuseSoulStone", refuseSoulStone);
-		compound.setString("SoulStonePlayerName", soulStonePlayerName);
-		compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
+        compound.setBoolean("RefuseSoulStone", refuseSoulStone);
+        compound.setString("SoulStonePlayerName", soulStonePlayerName);
+        compound.setInteger("MinFactionPointsToSoulStone", minFactionPointsToSoulStone);
 
-        if(!tagUUIDs.isEmpty()){
+        if (!tagUUIDs.isEmpty()) {
             NBTTagList nbtTagList = new NBTTagList();
             for (UUID uuid : tagUUIDs) {
                 nbtTagList.appendTag(new NBTTagString(uuid.toString()));
@@ -119,45 +119,45 @@ public class DataAdvanced {
 
         factions.readFromNBT(compound.getCompoundTag("FactionPoints"));
 
-		npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));
+        npc.dialogs = getDialogs(compound.getTagList("NPCDialogOptions", 10));
 
-		refuseSoulStone = compound.getBoolean("RefuseSoulStone");
-		soulStonePlayerName = compound.getString("SoulStonePlayerName");
-		minFactionPointsToSoulStone = compound.getInteger("MinFactionPointsToSoulStone");
+        refuseSoulStone = compound.getBoolean("RefuseSoulStone");
+        soulStonePlayerName = compound.getString("SoulStonePlayerName");
+        minFactionPointsToSoulStone = compound.getInteger("MinFactionPointsToSoulStone");
 
-        if(compound.hasKey("TagUUIDs")){
-            NBTTagList nbtTagList = compound.getTagList("TagUUIDs",8);
+        if (compound.hasKey("TagUUIDs")) {
+            NBTTagList nbtTagList = compound.getTagList("TagUUIDs", 8);
             for (int i = 0; i < nbtTagList.tagCount(); i++) {
                 tagUUIDs.add(UUID.fromString(nbtTagList.getStringTagAt(i)));
             }
         }
     }
 
-	private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {
-		HashMap<Integer, DialogOption> map = new HashMap<Integer, DialogOption>();
-		for (int i = 0; i < tagList.tagCount(); i++) {
-			NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
-			int slot = nbttagcompound.getInteger("DialogSlot");
-			DialogOption option = new DialogOption();
-			option.readNBT(nbttagcompound.getCompoundTag("NPCDialog"));
-			map.put(slot, option);
+    private HashMap<Integer, DialogOption> getDialogs(NBTTagList tagList) {
+        HashMap<Integer, DialogOption> map = new HashMap<Integer, DialogOption>();
+        for (int i = 0; i < tagList.tagCount(); i++) {
+            NBTTagCompound nbttagcompound = tagList.getCompoundTagAt(i);
+            int slot = nbttagcompound.getInteger("DialogSlot");
+            DialogOption option = new DialogOption();
+            option.readNBT(nbttagcompound.getCompoundTag("NPCDialog"));
+            map.put(slot, option);
 
-		}
-		return map;
-	}
+        }
+        return map;
+    }
 
 
-	private NBTTagList nbtDialogs(HashMap<Integer, DialogOption> dialogs2) {
-		NBTTagList nbttaglist = new NBTTagList();
-		for (int slot : dialogs2.keySet()) {
-			NBTTagCompound nbttagcompound = new NBTTagCompound();
-			nbttagcompound.setInteger("DialogSlot", slot);
-			nbttagcompound.setTag("NPCDialog", dialogs2.get(slot)
-					.writeNBT());
-			nbttaglist.appendTag(nbttagcompound);
-		}
-		return nbttaglist;
-	}
+    private NBTTagList nbtDialogs(HashMap<Integer, DialogOption> dialogs2) {
+        NBTTagList nbttaglist = new NBTTagList();
+        for (int slot : dialogs2.keySet()) {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setInteger("DialogSlot", slot);
+            nbttagcompound.setTag("NPCDialog", dialogs2.get(slot)
+                .writeNBT());
+            nbttaglist.appendTag(nbttagcompound);
+        }
+        return nbttaglist;
+    }
 
     public Line getInteractLine() {
         return (Line) interactLines.getLine(!orderedLines);
@@ -184,25 +184,25 @@ public class DataAdvanced {
             i -= 2;
         }
         role = EnumRoleType.values()[i];
-        if(role == EnumRoleType.None)
+        if (role == EnumRoleType.None)
             npc.roleInterface = null;
-        else if(role == EnumRoleType.Bank && !(npc.roleInterface instanceof RoleBank))
+        else if (role == EnumRoleType.Bank && !(npc.roleInterface instanceof RoleBank))
             npc.roleInterface = new RoleBank(npc);
-        else if(role == EnumRoleType.Follower && !(npc.roleInterface instanceof RoleFollower))
+        else if (role == EnumRoleType.Follower && !(npc.roleInterface instanceof RoleFollower))
             npc.roleInterface = new RoleFollower(npc);
-        else if(role == EnumRoleType.Postman && !(npc.roleInterface instanceof RolePostman))
+        else if (role == EnumRoleType.Postman && !(npc.roleInterface instanceof RolePostman))
             npc.roleInterface = new RolePostman(npc);
-        else if(role == EnumRoleType.Trader && !(npc.roleInterface instanceof RoleTrader))
+        else if (role == EnumRoleType.Trader && !(npc.roleInterface instanceof RoleTrader))
             npc.roleInterface = new RoleTrader(npc);
-        else if(role == EnumRoleType.Transporter && !(npc.roleInterface instanceof RoleTransporter))
+        else if (role == EnumRoleType.Transporter && !(npc.roleInterface instanceof RoleTransporter))
             npc.roleInterface = new RoleTransporter(npc);
-        else if(role == EnumRoleType.Companion && !(npc.roleInterface instanceof RoleCompanion))
+        else if (role == EnumRoleType.Companion && !(npc.roleInterface instanceof RoleCompanion))
             npc.roleInterface = new RoleCompanion(npc);
     }
 
     public void setJob(int i) {
-        if(npc.jobInterface != null && !npc.worldObj.isRemote)
-        	npc.jobInterface.reset();
+        if (npc.jobInterface != null && !npc.worldObj.isRemote)
+            npc.jobInterface.reset();
 
         job = EnumJobType.values()[i % EnumJobType.values().length];
         if (job == EnumJobType.None)

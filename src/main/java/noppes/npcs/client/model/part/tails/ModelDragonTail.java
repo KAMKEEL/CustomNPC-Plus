@@ -7,100 +7,99 @@ import noppes.npcs.client.model.util.ModelPlaneRenderer;
 
 public class ModelDragonTail extends ModelRenderer {
 
-	public ModelDragonTail(ModelMPM base) {
-		super(base);
-		
-		int x = 52;
-		int y = 16;
+    public ModelDragonTail(ModelMPM base) {
+        super(base);
 
-		ModelRenderer dragon = new ModelRenderer(base, x, y);
-		dragon.setTextureSize(64,32);
+        int x = 52;
+        int y = 16;
+
+        ModelRenderer dragon = new ModelRenderer(base, x, y);
+        dragon.setTextureSize(64, 32);
         dragon.setRotationPoint(0F, 0F, 3F);
         this.addChild(dragon);
-		
+
         ModelRenderer DragonTail2 = new ModelRenderer(base, x, y);
         DragonTail2.setTextureSize(64, 32);
-		DragonTail2.setRotationPoint(0F, 2F, 2F);
+        DragonTail2.setRotationPoint(0F, 2F, 2F);
 
-		ModelRenderer DragonTail3 = new ModelRenderer(base, x, y);
-		DragonTail3.setTextureSize(64, 32);
-		DragonTail3.setRotationPoint(0F, 4.5F, 4F);
-		
-		ModelRenderer DragonTail4 = new ModelRenderer(base, x, y);
-		DragonTail4.setTextureSize(64, 32);
-		DragonTail4.setRotationPoint(0F, 7F, 5.75F);
-		
-		ModelRenderer DragonTail5 = new ModelRenderer(base, x, y);
-		DragonTail5.setTextureSize(64, 32);
-		DragonTail5.setRotationPoint(0F, 9F, 8F);
+        ModelRenderer DragonTail3 = new ModelRenderer(base, x, y);
+        DragonTail3.setTextureSize(64, 32);
+        DragonTail3.setRotationPoint(0F, 4.5F, 4F);
 
-		ModelPlaneRenderer planeLeft = new ModelPlaneRenderer(base, x, y);
-		planeLeft.setTextureSize(64, 32);
-		planeLeft.addSidePlane(-1.5F, -1.5F, -1.5F, 3, 3);
-		ModelPlaneRenderer planeRight = new ModelPlaneRenderer(base, x, y);
-		planeRight.setTextureSize(64, 32);
-		planeRight.addSidePlane(-1.5F, -1.5F, -1.5F, 3, 3);
-		setRotation(planeRight,  (float)Math.PI, (float)Math.PI ,0);
+        ModelRenderer DragonTail4 = new ModelRenderer(base, x, y);
+        DragonTail4.setTextureSize(64, 32);
+        DragonTail4.setRotationPoint(0F, 7F, 5.75F);
 
-		ModelPlaneRenderer planeTop = new ModelPlaneRenderer(base, x, y);
-		planeTop.setTextureSize(64, 32);
-		planeTop.addTopPlane(-1.5F, -1.5F, -1.5F, 3, 3);
-		setRotation(planeTop,   0 ,-(float)Math.PI / 2,0);
-		ModelPlaneRenderer planeBottom = new ModelPlaneRenderer(base, x, y);
-		planeBottom.setTextureSize(64, 32);
-		planeBottom.addTopPlane(-1.5F, -1.5F, -1.5F, 3, 3);
-		setRotation(planeBottom,   0 ,-(float)Math.PI / 2, (float)Math.PI);
+        ModelRenderer DragonTail5 = new ModelRenderer(base, x, y);
+        DragonTail5.setTextureSize(64, 32);
+        DragonTail5.setRotationPoint(0F, 9F, 8F);
 
-		ModelPlaneRenderer planeBack = new ModelPlaneRenderer(base, x, y);
-		planeBack.setTextureSize(64, 32);
-		planeBack.addBackPlane(-1.5F, -1.5F, -1.5F, 3, 3);
-		setRotation(planeBack,  0, 0 ,(float)Math.PI / 2);
-		ModelPlaneRenderer planeFront = new ModelPlaneRenderer(base, x, y);
-		planeFront.setTextureSize(64, 32);
-		planeFront.addBackPlane(-1.5F, -1.5F, -1.5F, 3, 3);
-		setRotation(planeFront,  0, (float)Math.PI ,-(float)Math.PI / 2);
+        ModelPlaneRenderer planeLeft = new ModelPlaneRenderer(base, x, y);
+        planeLeft.setTextureSize(64, 32);
+        planeLeft.addSidePlane(-1.5F, -1.5F, -1.5F, 3, 3);
+        ModelPlaneRenderer planeRight = new ModelPlaneRenderer(base, x, y);
+        planeRight.setTextureSize(64, 32);
+        planeRight.addSidePlane(-1.5F, -1.5F, -1.5F, 3, 3);
+        setRotation(planeRight, (float) Math.PI, (float) Math.PI, 0);
 
-		dragon.addChild(planeLeft);
-		dragon.addChild(planeRight);
-		dragon.addChild(planeTop);
-		dragon.addChild(planeBottom);
-		dragon.addChild(planeFront);
-		dragon.addChild(planeBack);
+        ModelPlaneRenderer planeTop = new ModelPlaneRenderer(base, x, y);
+        planeTop.setTextureSize(64, 32);
+        planeTop.addTopPlane(-1.5F, -1.5F, -1.5F, 3, 3);
+        setRotation(planeTop, 0, -(float) Math.PI / 2, 0);
+        ModelPlaneRenderer planeBottom = new ModelPlaneRenderer(base, x, y);
+        planeBottom.setTextureSize(64, 32);
+        planeBottom.addTopPlane(-1.5F, -1.5F, -1.5F, 3, 3);
+        setRotation(planeBottom, 0, -(float) Math.PI / 2, (float) Math.PI);
 
-		DragonTail2.addChild(planeLeft);
-		DragonTail2.addChild(planeRight);
-		DragonTail2.addChild(planeTop);
-		DragonTail2.addChild(planeBottom);
-		DragonTail2.addChild(planeFront);
-		DragonTail2.addChild(planeBack);
+        ModelPlaneRenderer planeBack = new ModelPlaneRenderer(base, x, y);
+        planeBack.setTextureSize(64, 32);
+        planeBack.addBackPlane(-1.5F, -1.5F, -1.5F, 3, 3);
+        setRotation(planeBack, 0, 0, (float) Math.PI / 2);
+        ModelPlaneRenderer planeFront = new ModelPlaneRenderer(base, x, y);
+        planeFront.setTextureSize(64, 32);
+        planeFront.addBackPlane(-1.5F, -1.5F, -1.5F, 3, 3);
+        setRotation(planeFront, 0, (float) Math.PI, -(float) Math.PI / 2);
 
-		DragonTail3.addChild(planeLeft);
-		DragonTail3.addChild(planeRight);
-		DragonTail3.addChild(planeTop);
-		DragonTail3.addChild(planeBottom);
-		DragonTail3.addChild(planeFront);
-		DragonTail3.addChild(planeBack);
+        dragon.addChild(planeLeft);
+        dragon.addChild(planeRight);
+        dragon.addChild(planeTop);
+        dragon.addChild(planeBottom);
+        dragon.addChild(planeFront);
+        dragon.addChild(planeBack);
 
-		DragonTail4.addChild(planeLeft);
-		DragonTail4.addChild(planeRight);
-		DragonTail4.addChild(planeTop);
-		DragonTail4.addChild(planeBottom);
-		DragonTail4.addChild(planeFront);
-		DragonTail4.addChild(planeBack);
+        DragonTail2.addChild(planeLeft);
+        DragonTail2.addChild(planeRight);
+        DragonTail2.addChild(planeTop);
+        DragonTail2.addChild(planeBottom);
+        DragonTail2.addChild(planeFront);
+        DragonTail2.addChild(planeBack);
 
-		dragon.addChild(DragonTail2);
-		dragon.addChild(DragonTail3);
-		dragon.addChild(DragonTail4);
-	}
+        DragonTail3.addChild(planeLeft);
+        DragonTail3.addChild(planeRight);
+        DragonTail3.addChild(planeTop);
+        DragonTail3.addChild(planeBottom);
+        DragonTail3.addChild(planeFront);
+        DragonTail3.addChild(planeBack);
 
-	public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity entity)
-    {
-		
+        DragonTail4.addChild(planeLeft);
+        DragonTail4.addChild(planeRight);
+        DragonTail4.addChild(planeTop);
+        DragonTail4.addChild(planeBottom);
+        DragonTail4.addChild(planeFront);
+        DragonTail4.addChild(planeBack);
+
+        dragon.addChild(DragonTail2);
+        dragon.addChild(DragonTail3);
+        dragon.addChild(DragonTail4);
     }
 
-	private void setRotation(ModelRenderer model, float x, float y, float z) {
-		model.rotateAngleX = x;
-		model.rotateAngleY = y;
-		model.rotateAngleZ = z;
-	}
+    public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity entity) {
+
+    }
+
+    private void setRotation(ModelRenderer model, float x, float y, float z) {
+        model.rotateAngleX = x;
+        model.rotateAngleY = y;
+        model.rotateAngleZ = z;
+    }
 }

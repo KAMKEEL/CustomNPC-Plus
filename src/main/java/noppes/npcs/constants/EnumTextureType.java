@@ -7,17 +7,18 @@ public enum EnumTextureType {
     ITEM("texture.item");
 
     private String lang;
-    EnumTextureType(String langName){
+
+    EnumTextureType(String langName) {
         this.lang = langName;
     }
 
-    public String getLang(){
+    public String getLang() {
         return lang;
     }
 
-    public static String[] names(){
+    public static String[] names() {
         ArrayList<String> list = new ArrayList<String>();
-        for(EnumTextureType e : values())
+        for (EnumTextureType e : values())
             list.add(e.lang);
 
         return list.toArray(new String[list.size()]);

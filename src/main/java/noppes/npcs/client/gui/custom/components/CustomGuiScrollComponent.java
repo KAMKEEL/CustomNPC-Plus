@@ -40,17 +40,17 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
 
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         GL11.glPushMatrix();
-            float red = (color >> 16 & 255) / 255f;
-            float green = (color >> 8  & 255) / 255f;
-            float blue = (color & 255) / 255f;
-            GL11.glColor4f(red,green,blue,this.alpha);
+        float red = (color >> 16 & 255) / 255f;
+        float green = (color >> 8 & 255) / 255f;
+        float blue = (color & 255) / 255f;
+        GL11.glColor4f(red, green, blue, this.alpha);
 
-            GL11.glTranslatef(0.0F, 0.0F, (float)this.id);
-            boolean hovered = mouseX >= this.guiLeft && mouseY >= this.guiTop && mouseX < this.guiLeft + this.xSize && mouseY < this.guiTop + this.ySize;
-            super.drawScreen(mouseX, mouseY, partialTicks, mouseWheel);
-            if (hovered && this.hoverText != null && this.hoverText.length > 0) {
-                this.parent.hoverText = this.hoverText;
-            }
+        GL11.glTranslatef(0.0F, 0.0F, (float) this.id);
+        boolean hovered = mouseX >= this.guiLeft && mouseY >= this.guiTop && mouseX < this.guiLeft + this.xSize && mouseY < this.guiTop + this.ySize;
+        super.drawScreen(mouseX, mouseY, partialTicks, mouseWheel);
+        if (hovered && this.hoverText != null && this.hoverText.length > 0) {
+            this.parent.hoverText = this.hoverText;
+        }
         GL11.glPopMatrix();
     }
 
@@ -80,7 +80,7 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
     }
 
     public ICustomGuiComponent toComponent() {
-        ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.xSize, this.ySize, (String[])this.getList().toArray(new String[0]));
+        ScriptGuiScroll component = new ScriptGuiScroll(this.id, this.guiLeft - GuiCustom.guiLeft, this.guiTop - GuiCustom.guiTop, this.xSize, this.ySize, (String[]) this.getList().toArray(new String[0]));
         component.setHoverText(this.hoverText);
         component.setColor(color);
         component.setAlpha(alpha);
@@ -94,8 +94,8 @@ public class CustomGuiScrollComponent extends GuiCustomScroll implements IDataHo
             NBTTagList tagList = new NBTTagList();
             Iterator var3 = this.getSelectedList().iterator();
 
-            while(var3.hasNext()) {
-                String s = (String)var3.next();
+            while (var3.hasNext()) {
+                String s = (String) var3.next();
                 tagList.appendTag(new NBTTagString(s));
             }
 

@@ -49,7 +49,7 @@ public class ScriptEntityItem<T extends EntityItem> extends ScriptEntity<T> impl
 
     public void setAge(long age) {
         age = Math.max(Math.min(age, Integer.MAX_VALUE), Integer.MIN_VALUE);
-        this.entity.age = (int)age;
+        this.entity.age = (int) age;
     }
 
     public int getLifeSpawn() {
@@ -65,7 +65,7 @@ public class ScriptEntityItem<T extends EntityItem> extends ScriptEntity<T> impl
     }
 
     public void setItem(IItemStack item) {
-        ItemStack stack = item == null? null : item.getMCItemStack();
+        ItemStack stack = item == null ? null : item.getMCItemStack();
         this.entity.setEntityItemStack(stack);
     }
 }

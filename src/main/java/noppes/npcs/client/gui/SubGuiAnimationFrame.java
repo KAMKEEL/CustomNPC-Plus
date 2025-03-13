@@ -43,7 +43,7 @@ public class SubGuiAnimationFrame extends SubGuiInterface implements ITextfieldL
             return;
         }
 
-        int value = ((GuiNpcButton)guibutton).getValue();
+        int value = ((GuiNpcButton) guibutton).getValue();
         if (guibutton.id == 10) {
             editingFrame.setCustomized(!editingFrame.isCustomized());
         } else if (guibutton.id == 12) {

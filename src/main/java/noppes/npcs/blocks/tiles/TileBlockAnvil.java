@@ -7,9 +7,10 @@ public class TileBlockAnvil extends TileEntity {
 
     public boolean firstTick = true;
 
-    public TileBlockAnvil(){}
+    public TileBlockAnvil() {
+    }
 
-    public boolean canUpdate(){
+    public boolean canUpdate() {
         return true;
     }
 

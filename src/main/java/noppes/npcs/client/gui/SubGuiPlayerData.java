@@ -2,8 +2,8 @@ package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataDeleteInfoPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataSaveInfoPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -212,7 +212,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                 }
                 break;
         }
-        if(currentTab != 15)
+        if (currentTab != 15)
             addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + 10 - 7, 50, 20, "gui.remove"));
     }
 
@@ -459,7 +459,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
         addTextField(splitField);
         addTextField(damageField);
-        if(magicSelectedScroll.hasSelected()){
+        if (magicSelectedScroll.hasSelected()) {
             String sel = magicSelectedScroll.getSelected();
             int id = availableMagicElements.get(sel);
             if (magicData.hasMagic(id)) {
@@ -997,7 +997,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         super.actionPerformed(button);
     }
 
-    private void saveMagicCompound(){
+    private void saveMagicCompound() {
         NBTTagCompound magicCompound = new NBTTagCompound();
         magicData.writeToNBT(magicCompound);
         PacketClient.sendClient(new PlayerDataSaveInfoPacket(playerName, EnumPlayerData.Magic, magicCompound));
@@ -1121,7 +1121,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
     @Override
     public void unFocused(GuiNpcTextField textField) {
@@ -1133,12 +1134,14 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                     try {
                         float split = Float.parseFloat(textField.getText());
                         magicData.getMagic(id).split = split;
-                    } catch(NumberFormatException e) { }
+                    } catch (NumberFormatException e) {
+                    }
                 } else if (textField.id == 74) {
                     try {
                         float dmg = Float.parseFloat(textField.getText());
                         magicData.getMagic(id).damage = dmg;
-                    } catch(NumberFormatException e) { }
+                    } catch (NumberFormatException e) {
+                    }
                 }
             }
             saveMagicCompound();
@@ -1154,7 +1157,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                 selected.add(name);
             }
         }
-        if(magicSelectedScroll != null)
+        if (magicSelectedScroll != null)
             magicSelectedScroll.setList(selected);
     }
 
@@ -1170,5 +1173,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     }
 
     @Override
-    public void setSelected(String selected) {}
+    public void setSelected(String selected) {
+    }
 }

@@ -60,11 +60,11 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
         return this;
     }
 
-    public boolean getShadow(){
+    public boolean getShadow() {
         return this.shadow;
     }
 
-    public void setShadow(boolean shadow){
+    public void setShadow(boolean shadow) {
         this.shadow = shadow;
     }
 
@@ -77,7 +77,7 @@ public class ScriptGuiLabel extends ScriptGuiComponent implements ILabel {
         nbt.setString("label", this.label);
         nbt.setIntArray("size", new int[]{this.width, this.height});
         nbt.setFloat("scale", this.scale);
-        nbt.setBoolean("shadow",this.shadow);
+        nbt.setBoolean("shadow", this.shadow);
         return nbt;
     }
 

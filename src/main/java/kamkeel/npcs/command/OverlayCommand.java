@@ -14,22 +14,22 @@ import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class OverlayCommand extends CommandKamkeelBase {
 
-	@Override
-	public String getCommandName() {
-		return "overlay";
-	}
+    @Override
+    public String getCommandName() {
+        return "overlay";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Overlay operations";
-	}
+    @Override
+    public String getDescription() {
+        return "Overlay operations";
+    }
 
     @SubCommand(
-            desc = "set an overlay to a player",
-            usage = "<player> <num> <texture>"
+        desc = "set an overlay to a player",
+        usage = "<player> <num> <texture>"
     )
-    public void set(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void set(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int overlayID;
         try {
             overlayID = Integer.parseInt(args[1]);
@@ -42,7 +42,7 @@ public class OverlayCommand extends CommandKamkeelBase {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
-        for(PlayerData playerdata : data){
+        for (PlayerData playerdata : data) {
             SkinOverlay skinOverlay = new SkinOverlay(args[2]);
             playerdata.skinOverlays.add(overlayID, skinOverlay);
             playerdata.save();
@@ -52,11 +52,11 @@ public class OverlayCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "remove an overlay from a player",
-            usage = "<player> <num>"
+        desc = "remove an overlay from a player",
+        usage = "<player> <num>"
     )
-    public void remove(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void remove(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int overlayID;
         try {
             overlayID = Integer.parseInt(args[1]);
@@ -69,13 +69,12 @@ public class OverlayCommand extends CommandKamkeelBase {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
-        for(PlayerData playerdata : data){
-            if(playerdata.skinOverlays.has(overlayID)){
+        for (PlayerData playerdata : data) {
+            if (playerdata.skinOverlays.has(overlayID)) {
                 playerdata.skinOverlays.remove(overlayID);
                 playerdata.save();
                 sendResult(sender, String.format("Overlay removed to Player '\u00A7b%s\u00A77' on ID \u00A7d%d", playerdata.playername, overlayID));
-            }
-            else {
+            } else {
                 sendError(sender, String.format("No overlay found for Player '\u00A7b%s\u00A74' on ID \u00A7d%d", playerdata.playername, overlayID));
             }
             return;
@@ -83,11 +82,11 @@ public class OverlayCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "modify an overlay for a player",
-            usage = "<player> <num> <blend/glow> <true/false>"
+        desc = "modify an overlay for a player",
+        usage = "<player> <num> <blend/glow> <true/false>"
     )
-    public void modify(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void modify(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int overlayID;
         try {
             overlayID = Integer.parseInt(args[1]);
@@ -101,35 +100,34 @@ public class OverlayCommand extends CommandKamkeelBase {
             return;
         }
 
-        if(!args[2].equalsIgnoreCase("blend") && !args[2].equalsIgnoreCase("glow")){
+        if (!args[2].equalsIgnoreCase("blend") && !args[2].equalsIgnoreCase("glow")) {
             sendError(sender, "Unknown Entry: " + args[2]);
             return;
         }
         boolean isBlend = args[2].equalsIgnoreCase("blend");
 
-        if(!args[3].equalsIgnoreCase("true") && !args[3].equalsIgnoreCase("false")){
+        if (!args[3].equalsIgnoreCase("true") && !args[3].equalsIgnoreCase("false")) {
             sendError(sender, "Unknown Bool: " + args[3]);
             return;
         }
 
         boolean isTrue = args[3].equalsIgnoreCase("true");
 
-        for(PlayerData playerdata : data){
-            if(!playerdata.skinOverlays.has(overlayID)){
+        for (PlayerData playerdata : data) {
+            if (!playerdata.skinOverlays.has(overlayID)) {
                 sendError(sender, String.format("Player '\u00A7b%s\u00A7c' does not have Overlay ID \u00A7d%d", playerdata.playername, overlayID));
                 return;
             }
 
             ISkinOverlay skinOverlay = playerdata.skinOverlays.get(overlayID);
-            if(skinOverlay == null){
+            if (skinOverlay == null) {
                 sendError(sender, String.format("Player '\u00A7b%s\u00A7c' does not have Overlay ID \u00A7d%d", playerdata.playername, overlayID));
                 return;
             }
 
-            if(isBlend){
+            if (isBlend) {
                 skinOverlay.setBlend(isTrue);
-            }
-            else{
+            } else {
                 skinOverlay.setGlow(isTrue);
             }
             playerdata.skinOverlays.add(overlayID, skinOverlay);
@@ -140,17 +138,17 @@ public class OverlayCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "clears all overlays from a player",
-            usage = "<player>"
+        desc = "clears all overlays from a player",
+        usage = "<player>"
     )
-    public void clear(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void clear(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
-        for(PlayerData playerdata : data){
+        for (PlayerData playerdata : data) {
             playerdata.skinOverlays.clear();
             playerdata.save();
             sendResult(sender, String.format("Overlays cleared from Player '\u00A7b%s\u00A77'", playerdata.playername));
@@ -159,25 +157,24 @@ public class OverlayCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "List all overlays on a player",
-            usage = "<player>"
+        desc = "List all overlays on a player",
+        usage = "<player>"
     )
     public void info(ICommandSender sender, String args[]) throws CommandException {
-        String playername=args[0];
+        String playername = args[0];
 
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
-        for(PlayerData playerdata : data){
+        for (PlayerData playerdata : data) {
             sendResult(sender, "--------------------");
-            if(playerdata.skinOverlays.size() == 0){
+            if (playerdata.skinOverlays.size() == 0) {
                 sendResult(sender, String.format("No Overlays found for Player '\u00A7b%s\u00A77'", playerdata.playername));
-            }
-            else {
-                for(ISkinOverlay overlay : playerdata.skinOverlays.overlayList.values()){
-                    if(overlay != null){
+            } else {
+                for (ISkinOverlay overlay : playerdata.skinOverlays.overlayList.values()) {
+                    if (overlay != null) {
                         sendResult(sender, String.format("%s", overlay.getTexture()));
                     }
                 }

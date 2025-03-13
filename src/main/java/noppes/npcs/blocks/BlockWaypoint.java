@@ -17,39 +17,38 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.tiles.TileWaypoint;
 import noppes.npcs.constants.EnumGuiType;
 
-public class BlockWaypoint extends BlockContainer{
+public class BlockWaypoint extends BlockContainer {
 
-	public BlockWaypoint() {
+    public BlockWaypoint() {
         super(Material.iron);
         this.setCreativeTab(CustomItems.tab);
-	}
-
-    @Override
-    public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9)
-    {
-    	if(par1World.isRemote)
-    		return false;
-		ItemStack currentItem = player.inventory.getCurrentItem();
-		if (currentItem != null	&& currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_WAYPOINT)) {
-			TileEntity tile = par1World.getTileEntity(i, j, k);
-			NBTTagCompound compound = new NBTTagCompound();
-			tile.writeToNBT(compound);
-            PacketHandler.Instance.sendToPlayer(new GuiWaypointPacket(compound), (EntityPlayerMP)player);
-        	return true;
-		}
-		return false;
     }
 
     @Override
-    public void onBlockPlacedBy(World world, int i, int j, int k, EntityLivingBase entityliving, ItemStack item){
-    	if(entityliving instanceof EntityPlayer && world.isRemote){
-    		CustomNpcs.proxy.openGui(i, j, k, EnumGuiType.Waypoint, (EntityPlayer) entityliving);
-    	}
+    public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int par6, float par7, float par8, float par9) {
+        if (par1World.isRemote)
+            return false;
+        ItemStack currentItem = player.inventory.getCurrentItem();
+        if (currentItem != null && currentItem.getItem() == CustomItems.wand && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.EDIT_WAYPOINT)) {
+            TileEntity tile = par1World.getTileEntity(i, j, k);
+            NBTTagCompound compound = new NBTTagCompound();
+            tile.writeToNBT(compound);
+            PacketHandler.Instance.sendToPlayer(new GuiWaypointPacket(compound), (EntityPlayerMP) player);
+            return true;
+        }
+        return false;
     }
 
-	@Override
-	public TileEntity createNewTileEntity(World var1, int var2) {
-		return new TileWaypoint();
-	}
+    @Override
+    public void onBlockPlacedBy(World world, int i, int j, int k, EntityLivingBase entityliving, ItemStack item) {
+        if (entityliving instanceof EntityPlayer && world.isRemote) {
+            CustomNpcs.proxy.openGui(i, j, k, EnumGuiType.Waypoint, (EntityPlayer) entityliving);
+        }
+    }
+
+    @Override
+    public TileEntity createNewTileEntity(World var1, int var2) {
+        return new TileWaypoint();
+    }
 
 }

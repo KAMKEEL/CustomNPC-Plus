@@ -12,8 +12,8 @@ import noppes.npcs.controllers.data.PlayerFactionData;
 import java.util.List;
 
 @Command(
-        name = "faction",
-        desc = "operations about relationship between player and faction"
+    name = "faction",
+    desc = "operations about relationship between player and faction"
 )
 public class CmdFaction extends ChMcLogger {
 
@@ -27,9 +27,9 @@ public class CmdFaction extends ChMcLogger {
     }
 
     @SubCommand(
-            desc = "Add points",
-            usage = "<points>",
-            permissions={OpOnly.class, ParamCheck.class}
+        desc = "Add points",
+        usage = "<points>",
+        permissions = {OpOnly.class, ParamCheck.class}
     )
     public Boolean add(String[] args) {
         int points;
@@ -41,8 +41,8 @@ public class CmdFaction extends ChMcLogger {
         }
         int factionid = this.selectedFaction.id;
 
-        for(PlayerData playerdata : data){
-	        PlayerFactionData playerfactiondata = playerdata.factionData;
+        for (PlayerData playerdata : data) {
+            PlayerFactionData playerfactiondata = playerdata.factionData;
             playerfactiondata.increasePoints(factionid, points, playerdata.player);
             playerdata.updateClient = true;
         }
@@ -50,9 +50,9 @@ public class CmdFaction extends ChMcLogger {
     }
 
     @SubCommand(
-            desc = "Substract points",
-            usage = "<points>",
-            permissions={OpOnly.class, ParamCheck.class}
+        desc = "Substract points",
+        usage = "<points>",
+        permissions = {OpOnly.class, ParamCheck.class}
     )
     public Boolean subtract(String[] args) {
         int points;
@@ -63,8 +63,8 @@ public class CmdFaction extends ChMcLogger {
             return false;
         }
         int factionid = this.selectedFaction.id;
-        for(PlayerData playerdata : data){
-        	PlayerFactionData playerfactiondata = playerdata.factionData;
+        for (PlayerData playerdata : data) {
+            PlayerFactionData playerfactiondata = playerdata.factionData;
             playerfactiondata.increasePoints(factionid, -points, playerdata.player);
             playerdata.updateClient = true;
         }
@@ -72,22 +72,22 @@ public class CmdFaction extends ChMcLogger {
     }
 
     @SubCommand(
-            desc = "Reset points to default",
-            usage = "",
-            permissions={OpOnly.class}
+        desc = "Reset points to default",
+        usage = "",
+        permissions = {OpOnly.class}
     )
     public Boolean reset(String[] args) {
-        for(PlayerData playerdata : data){
-        	playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
+        for (PlayerData playerdata : data) {
+            playerdata.factionData.factionData.put(this.selectedFaction.id, this.selectedFaction.defaultPoints);
             playerdata.updateClient = true;
         }
         return true;
     }
 
     @SubCommand(
-            desc = "Set points",
-            usage = "<points>",
-            permissions={OpOnly.class, ParamCheck.class}
+        desc = "Set points",
+        usage = "<points>",
+        permissions = {OpOnly.class, ParamCheck.class}
     )
     public Boolean set(String[] args) {
         int points;
@@ -97,22 +97,22 @@ public class CmdFaction extends ChMcLogger {
             sendmessage("Must be an integer");
             return false;
         }
-        for(PlayerData playerdata : data){
-        	PlayerFactionData playerfactiondata = playerdata.factionData;
-        	playerfactiondata.factionData.put(this.selectedFaction.id,points);
+        for (PlayerData playerdata : data) {
+            PlayerFactionData playerfactiondata = playerdata.factionData;
+            playerfactiondata.factionData.put(this.selectedFaction.id, points);
             playerdata.updateClient = true;
         }
         return true;
     }
 
     @SubCommand(
-            desc="Drop relationship",
-            usage="",
-            permissions={OpOnly.class}
+        desc = "Drop relationship",
+        usage = "",
+        permissions = {OpOnly.class}
     )
-    public Boolean drop(String[] args){
-        for(PlayerData playerdata : data){
-        	playerdata.factionData.factionData.remove(this.selectedFaction.id);
+    public Boolean drop(String[] args) {
+        for (PlayerData playerdata : data) {
+            playerdata.factionData.factionData.remove(this.selectedFaction.id);
             playerdata.updateClient = true;
         }
         return true;

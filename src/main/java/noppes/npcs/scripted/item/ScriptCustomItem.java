@@ -79,10 +79,10 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
             this.loaded = true;
         }
 
-        if(!this.isEnabled())
+        if (!this.isEnabled())
             return;
 
-        if(ScriptController.Instance.lastLoaded > lastInited){
+        if (ScriptController.Instance.lastLoaded > lastInited) {
             lastInited = ScriptController.Instance.lastLoaded;
             if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
                 EventHooks.onScriptItemInit(this);
@@ -92,7 +92,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         for (int i = 0; i < this.scripts.size(); i++) {
             ScriptContainer script = this.scripts.get(i);
             if (!this.errored.contains(i)) {
-                if(script == null || script.errored || !script.hasCode())
+                if (script == null || script.errored || !script.hasCode())
                     continue;
 
                 script.run(hookName, event);
@@ -152,35 +152,35 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         saveItemData();
     }
 
-    public int getArmorType(){
+    public int getArmorType() {
         return this.armorType;
     }
 
-    public void setIsTool(boolean isTool){
+    public void setIsTool(boolean isTool) {
         this.isTool = isTool;
         saveItemData();
     }
 
-    public boolean isTool(){
+    public boolean isTool() {
         return this.isTool;
     }
 
-    public void setIsNormalItem(boolean normalItem){
+    public void setIsNormalItem(boolean normalItem) {
         this.isNormalItem = normalItem;
         saveItemData();
     }
 
-    public boolean isNormalItem(){
+    public boolean isNormalItem() {
         return this.isNormalItem;
     }
 
 
-    public void setDigSpeed(int digSpeed){
+    public void setDigSpeed(int digSpeed) {
         this.digSpeed = digSpeed;
         saveItemData();
     }
 
-    public int getDigSpeed(){
+    public int getDigSpeed() {
         return this.digSpeed;
     }
 
@@ -198,11 +198,11 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     public void setDurabilityValue(float value) {
-        this.durabilityValue = (double)value;
+        this.durabilityValue = (double) value;
         saveItemData();
     }
 
-    public int getMaxItemUseDuration(){
+    public int getMaxItemUseDuration() {
         return this.maxItemUseDuration;
     }
 
@@ -220,11 +220,11 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         return this.itemUseAction;
     }
 
-    public int getEnchantability(){
+    public int getEnchantability() {
         return this.enchantability;
     }
 
-    public void setEnchantability(int enchantability){
+    public void setEnchantability(int enchantability) {
         this.enchantability = enchantability;
         saveItemData();
     }
@@ -258,8 +258,8 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
 
     public NBTTagCompound getItemNBT(NBTTagCompound compound) {
         super.getItemNBT(compound);
-        compound.setDouble("DurabilityValue",this.durabilityValue);
-        compound.setInteger("MaxStackSize",this.stackSize);
+        compound.setDouble("DurabilityValue", this.durabilityValue);
+        compound.setInteger("MaxStackSize", this.stackSize);
 
         compound.setBoolean("IsTool", this.isTool);
         compound.setBoolean("IsNormalItem", this.isNormalItem);

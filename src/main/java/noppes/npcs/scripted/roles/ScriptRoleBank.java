@@ -6,12 +6,12 @@ import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleBank extends ScriptRoleInterface implements IRoleBank {
 
-	public ScriptRoleBank(EntityNPCInterface npc) {
-		super(npc);
-	}
+    public ScriptRoleBank(EntityNPCInterface npc) {
+        super(npc);
+    }
 
-	@Override
-	public int getType(){
-		return RoleType.BANK;
-	}
+    @Override
+    public int getType() {
+        return RoleType.BANK;
+    }
 }

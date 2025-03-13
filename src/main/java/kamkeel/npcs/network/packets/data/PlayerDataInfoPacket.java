@@ -10,7 +10,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicData;
 
 import java.io.IOException;
@@ -35,7 +34,8 @@ public final class PlayerDataInfoPacket extends LargeAbstractPacket {
 
     private MagicData playerMagicData;
 
-    public PlayerDataInfoPacket() {}
+    public PlayerDataInfoPacket() {
+    }
 
     public PlayerDataInfoPacket(String playerName,
                                 Map<String, Integer> questCategories, Map<String, Integer> questActive, Map<String, Integer> questFinished,

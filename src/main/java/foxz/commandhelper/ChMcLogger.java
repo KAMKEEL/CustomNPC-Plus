@@ -16,10 +16,10 @@ public class ChMcLogger extends AbstractCommandHelper {
 
     @Override
     public void help(String cmd, String desc, String usa) {
-    	if(usa.isEmpty())
-    		sendmessage(String.format("%s = %s", cmd, desc));
-    	else
-    		sendmessage(String.format("%s %s = %s", cmd, usa, desc));
+        if (usa.isEmpty())
+            sendmessage(String.format("%s = %s", cmd, desc));
+        else
+            sendmessage(String.format("%s %s = %s", cmd, usa, desc));
     }
 
     @Override

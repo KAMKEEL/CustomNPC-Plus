@@ -90,14 +90,14 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
         nbt.setInteger("id", this.id);
         nbt.setIntArray("pos", new int[]{this.posX, this.posY});
         nbt.setInteger("color", this.color);
-        nbt.setFloat("alpha",this.alpha);
-        nbt.setFloat("rotation",this.rotation);
+        nbt.setFloat("alpha", this.alpha);
+        nbt.setFloat("rotation", this.rotation);
         if (this.hoverText != null) {
             NBTTagList list = new NBTTagList();
             String[] var3 = this.hoverText;
             int var4 = var3.length;
 
-            for(int var5 = 0; var5 < var4; ++var5) {
+            for (int var5 = 0; var5 < var4; ++var5) {
                 String s = var3[var5];
                 if (s != null && !s.isEmpty()) {
                     list.appendTag(new NBTTagString(s));
@@ -123,7 +123,7 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
             NBTTagList list = nbt.getTagList("hover", 8);
             String[] hoverText = new String[list.tagCount()];
 
-            for(int i = 0; i < list.tagCount(); ++i) {
+            for (int i = 0; i < list.tagCount(); ++i) {
                 hoverText[i] = list.getStringTagAt(i);
             }
 
@@ -134,7 +134,7 @@ public abstract class ScriptGuiComponent implements ICustomGuiComponent {
     }
 
     public static ScriptGuiComponent createFromNBT(NBTTagCompound nbt) {
-        switch(nbt.getInteger("type")) {
+        switch (nbt.getInteger("type")) {
             case 0:
                 return (new ScriptGuiButton()).fromNBT(nbt);
             case 1:

@@ -132,7 +132,7 @@ public class EffectCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData pdata : players) {
-            if(pdata.player != null){
+            if (pdata.player != null) {
                 CustomEffectController.getInstance().applyEffect(pdata.player, match.id, time, (byte) 1, match.index);
                 sendResult(sender, String.format("%s §agiven to §7'§b%s§7'", match.effect.getName(), pdata.playername));
             }
@@ -182,7 +182,7 @@ public class EffectCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData pdata : players) {
-            if(pdata.player != null){
+            if (pdata.player != null) {
                 CustomEffectController.getInstance().removeEffect(pdata.player, match.id, match.index, ExpirationType.REMOVED);
                 sendResult(sender, String.format("Effect %s removed from %s", match.effect.getName(), pdata.playername));
             }
@@ -236,7 +236,7 @@ public class EffectCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData pdata : players) {
-            if(pdata.player != null){
+            if (pdata.player != null) {
                 CustomEffectController.getInstance().applyEffect(pdata.player, effect.id, time, (byte) 1, effect.index);
                 sendResult(sender, String.format("%s §agiven to §7'§b%s§7'", effect.getName(), pdata.playername));
             }
@@ -282,7 +282,7 @@ public class EffectCommand extends CommandKamkeelBase {
         }
 
         for (PlayerData pdata : players) {
-            if(pdata.player != null){
+            if (pdata.player != null) {
                 CustomEffectController.getInstance().removeEffect(pdata.player, effect.id, effect.index, ExpirationType.REMOVED);
                 sendResult(sender, String.format("Effect %s removed from %s", effect.getName(), pdata.playername));
             }

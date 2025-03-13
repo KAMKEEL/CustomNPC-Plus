@@ -23,7 +23,7 @@ public class ScriptProjectile<T extends EntityProjectile> extends ScriptEntity<T
     }
 
     public void setItem(IItemStack item) {
-        if(item == null)
+        if (item == null)
             entity.setThrownItem(null);
         else
             entity.setThrownItem(item.getMCItemStack());
@@ -46,7 +46,7 @@ public class ScriptProjectile<T extends EntityProjectile> extends ScriptEntity<T
     }
 
     public void setHeading(IEntity entity) {
-        setHeading(entity.getX(), entity.getMCEntity().boundingBox.minY + (double)(entity.getHeight() / 2.0F), entity.getZ());
+        setHeading(entity.getX(), entity.getMCEntity().boundingBox.minY + (double) (entity.getHeight() / 2.0F), entity.getZ());
     }
 
     public void setHeading(double x, double y, double z) {
@@ -63,9 +63,9 @@ public class ScriptProjectile<T extends EntityProjectile> extends ScriptEntity<T
         entity.prevRotationYaw = entity.rotationYaw = yaw;
         entity.prevRotationPitch = entity.rotationPitch = pitch;
 
-        double varX = (double)(-MathHelper.sin(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(pitch / 180.0F * (float)Math.PI));
-        double varZ = (double)(MathHelper.cos(yaw / 180.0F * (float)Math.PI) * MathHelper.cos(pitch / 180.0F * (float)Math.PI));
-        double varY = (double)(-MathHelper.sin(pitch / 180.0F * (float)Math.PI));
+        double varX = (double) (-MathHelper.sin(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(pitch / 180.0F * (float) Math.PI));
+        double varZ = (double) (MathHelper.cos(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(pitch / 180.0F * (float) Math.PI));
+        double varY = (double) (-MathHelper.sin(pitch / 180.0F * (float) Math.PI));
 
         float acc = (float) (20.0F - Math.floor(entity.accuracy / 5.0F));
         entity.setThrowableHeading(varX, varY, varZ, -pitch, acc);
@@ -75,7 +75,7 @@ public class ScriptProjectile<T extends EntityProjectile> extends ScriptEntity<T
         return EntityType.PROJECTILE;
     }
 
-    public boolean typeOf(int type){
+    public boolean typeOf(int type) {
         return type == EntityType.PROJECTILE || super.typeOf(type);
     }
 
@@ -84,10 +84,10 @@ public class ScriptProjectile<T extends EntityProjectile> extends ScriptEntity<T
     }
 
     public void enableEvents() {
-        if(ScriptContainer.Current == null)
+        if (ScriptContainer.Current == null)
             throw new CustomNPCsException("Can only be called during scripts");
 
-        if(!entity.scripts.contains(ScriptContainer.Current)) {
+        if (!entity.scripts.contains(ScriptContainer.Current)) {
             entity.scripts.add(ScriptContainer.Current);
         }
     }

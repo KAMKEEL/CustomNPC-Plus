@@ -17,20 +17,29 @@ public class DBCClient {
      * The fewer classes modified by mixins the safer.
      * These are for mixins affecting only client-side classes.
      */
-    public DBCClient(){
+    public DBCClient() {
         Instance = this;
     }
 
     // Stat Buttons
-    public void showDBCStatButtons(GuiNpcStats stats, EntityLivingBase entity){}
-    public void showDBCStatActionPerformed(GuiNpcStats stats, GuiNpcButton btn){}
+    public void showDBCStatButtons(GuiNpcStats stats, EntityLivingBase entity) {
+    }
+
+    public void showDBCStatActionPerformed(GuiNpcStats stats, GuiNpcButton btn) {
+    }
 
 
     // Render Auras
-    public void renderDBCAuras(EntityNPCInterface npcInterface){}
+    public void renderDBCAuras(EntityNPCInterface npcInterface) {
+    }
 
     // Manage Custom Forms
-    public GuiNPCInterface2 manageCustomForms(EntityNPCInterface npcInterface){ return null; }
+    public GuiNPCInterface2 manageCustomForms(EntityNPCInterface npcInterface) {
+        return null;
+    }
+
     // Manage Custom Forms
-    public GuiNPCInterface2 manageCustomAuras(EntityNPCInterface npcInterface){ return null; }
+    public GuiNPCInterface2 manageCustomAuras(EntityNPCInterface npcInterface) {
+        return null;
+    }
 }

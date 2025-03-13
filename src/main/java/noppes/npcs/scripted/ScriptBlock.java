@@ -22,7 +22,7 @@ public class ScriptBlock implements IBlock {
         this.block = block;
         this.pos = pos;
         this.bPos = NpcAPI.Instance().getIPos(pos);
-        this.tile = NpcAPI.Instance().getITileEntity(world.getTileEntity(pos.getX(),pos.getY(), pos.getZ()));
+        this.tile = NpcAPI.Instance().getITileEntity(world.getTileEntity(pos.getX(), pos.getY(), pos.getZ()));
     }
 
     public IPos getPosition() {
@@ -43,16 +43,16 @@ public class ScriptBlock implements IBlock {
         this.block = world.getBlock(pos).getMCBlock();
         this.pos = pos.getMCPos();
         this.bPos = pos;
-        this.tile = NpcAPI.Instance().getITileEntity(world.getMCWorld().getTileEntity(pos.getX(),pos.getY(),pos.getZ()));
+        this.tile = NpcAPI.Instance().getITileEntity(world.getMCWorld().getTileEntity(pos.getX(), pos.getY(), pos.getZ()));
         return true;
     }
 
     public boolean setPosition(IPos pos) {
-        return this.setPosition(pos,world);
+        return this.setPosition(pos, world);
     }
 
     public boolean setPos(IPos pos, IWorld world) {
-        return this.setPosition(pos,world);
+        return this.setPosition(pos, world);
     }
 
     public boolean setPos(IPos pos) {
@@ -60,19 +60,19 @@ public class ScriptBlock implements IBlock {
     }
 
     public boolean setPosition(int x, int y, int z, IWorld world) {
-        return this.setPos(NpcAPI.Instance().getIPos(x,y,z),world);
+        return this.setPos(NpcAPI.Instance().getIPos(x, y, z), world);
     }
 
     public boolean setPosition(int x, int y, int z) {
-        return this.setPos(NpcAPI.Instance().getIPos(x,y,z));
+        return this.setPos(NpcAPI.Instance().getIPos(x, y, z));
     }
 
     public boolean setPos(int x, int y, int z, IWorld world) {
-        return this.setPosition(x,y,z, world);
+        return this.setPosition(x, y, z, world);
     }
 
     public boolean setPos(int x, int y, int z) {
-        return this.setPosition(x,y,z);
+        return this.setPosition(x, y, z);
     }
 
     public int getX() {
@@ -96,18 +96,18 @@ public class ScriptBlock implements IBlock {
     }
 
     public IBlock setBlock(String blockName) {
-        Block block = (Block)Block.blockRegistry.getObject(new ResourceLocation(blockName));
-        if(block == null) {
+        Block block = (Block) Block.blockRegistry.getObject(new ResourceLocation(blockName));
+        if (block == null) {
             return this;
         } else {
-            this.world.getMCWorld().setBlock(getX(),getY(),getZ(),block);
-            return NpcAPI.Instance().getIBlock(world, getX(),getY(),getZ());
+            this.world.getMCWorld().setBlock(getX(), getY(), getZ(), block);
+            return NpcAPI.Instance().getIBlock(world, getX(), getY(), getZ());
         }
     }
 
     public IBlock setBlock(IBlock block) {
-        this.world.getMCWorld().setBlock(getX(),getY(),getZ(),block.getMCBlock());
-        return NpcAPI.Instance().getIBlock(world, getX(),getY(),getZ());
+        this.world.getMCWorld().setBlock(getX(), getY(), getZ(), block.getMCBlock());
+        return NpcAPI.Instance().getIBlock(world, getX(), getY(), getZ());
     }
 
     public boolean isContainer() {
@@ -115,10 +115,10 @@ public class ScriptBlock implements IBlock {
     }
 
     public IContainer getContainer() {
-        if(!this.isContainer()) {
+        if (!this.isContainer()) {
             throw new CustomNPCsException("This block is not a container", new Object[0]);
         } else {
-            return NpcAPI.Instance().getIContainer((IInventory)this.tile.getMCTileEntity());
+            return NpcAPI.Instance().getIContainer((IInventory) this.tile.getMCTileEntity());
         }
     }
 
@@ -127,7 +127,7 @@ public class ScriptBlock implements IBlock {
     }
 
     public String getDisplayName() {
-        return this.tile == null || this.tile.getMCTileEntity() == null ? this.getName():this.tile.getMCTileEntity().blockType.getItemIconName();
+        return this.tile == null || this.tile.getMCTileEntity() == null ? this.getName() : this.tile.getMCTileEntity().blockType.getItemIconName();
     }
 
     public IWorld getWorld() {
@@ -146,8 +146,8 @@ public class ScriptBlock implements IBlock {
         return this.tile;
     }
 
-    public void setTileEntity(ITileEntity tileEntity){
-        world.setTileEntity(pos.getX(),pos.getY(), pos.getZ(),tileEntity);
+    public void setTileEntity(ITileEntity tileEntity) {
+        world.setTileEntity(pos.getX(), pos.getY(), pos.getZ(), tileEntity);
         this.tile = tileEntity;
     }
 
@@ -168,7 +168,7 @@ public class ScriptBlock implements IBlock {
     }
 
     public boolean canCollide(double maxVolume) {
-        AxisAlignedBB alignedBB = block.getCollisionBoundingBoxFromPool(world.getMCWorld(),getX(),getY(),getZ());
+        AxisAlignedBB alignedBB = block.getCollisionBoundingBoxFromPool(world.getMCWorld(), getX(), getY(), getZ());
         if (alignedBB == null) {
             return false;
         }
@@ -183,7 +183,7 @@ public class ScriptBlock implements IBlock {
     }
 
     public void setBounds(float minX, float minY, float minZ, float maxX, float maxY, float maxZ) {
-        this.block.setBlockBounds(minX,minY,minZ,maxX,maxY,maxZ);
+        this.block.setBlockBounds(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     public double getBlockBoundsMinX() {
@@ -215,8 +215,8 @@ public class ScriptBlock implements IBlock {
     }
 
     public boolean equals(Object obj) {
-        return obj instanceof IBlock && ((ScriptBlock)obj).getName().equals(this.getName()) &&
-                ((ScriptBlock)obj).getWorld() == this.getWorld() &&
-                ((ScriptBlock)obj).getPos().equals(this.getPos());
+        return obj instanceof IBlock && ((ScriptBlock) obj).getName().equals(this.getName()) &&
+            ((ScriptBlock) obj).getWorld() == this.getWorld() &&
+            ((ScriptBlock) obj).getPos().equals(this.getPos());
     }
 }

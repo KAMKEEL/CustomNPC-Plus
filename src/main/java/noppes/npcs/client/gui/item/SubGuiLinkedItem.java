@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.item;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.util.ColorUtil;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -124,12 +123,22 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         addLabel(new GuiNpcLabel(5, "display.useAction", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
         String[] useActions = {"use_action.none", "use_action.block", "use_action.eat", "use_action.drink"};
         int useActionIndex = 0;
-        switch(linkedItem.itemUseAction) {
-            case 0: useActionIndex = 0; break;
-            case 1: useActionIndex = 1; break;
-            case 3: useActionIndex = 2; break;
-            case 4: useActionIndex = 3; break;
-            default: useActionIndex = 0; break;
+        switch (linkedItem.itemUseAction) {
+            case 0:
+                useActionIndex = 0;
+                break;
+            case 1:
+                useActionIndex = 1;
+                break;
+            case 3:
+                useActionIndex = 2;
+                break;
+            case 4:
+                useActionIndex = 3;
+                break;
+            default:
+                useActionIndex = 0;
+                break;
         }
         GuiButtonBiDirectional useActionButton = new GuiButtonBiDirectional(6, x + 120, y, 100, 20, useActions, useActionIndex);
         addButton(useActionButton);
@@ -164,7 +173,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         // Item Color: label and two buttons
         scrollWindow.addLabel(new GuiNpcLabel(20, "gui.color", x, localY + 5, 0xFFFFFF));
         String colorHex = Integer.toHexString(linkedItem.display.itemColor);
-        while(colorHex.length() < 6)
+        while (colorHex.length() < 6)
             colorHex = "0" + colorHex;
         GuiNpcButton colorPickerButton = new GuiNpcButton(24, x + 80, localY, 80, 20, colorHex);
         colorPickerButton.packedFGColour = linkedItem.display.itemColor;
@@ -301,9 +310,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
             // Clear color: set to 0xFFFFFF.
             linkedItem.display.itemColor = 0xFFFFFF;
             GuiScrollWindow scrollWindow = getScrollableGui(0);
-            if(scrollWindow != null){
+            if (scrollWindow != null) {
                 GuiNpcButton npcButton = scrollWindow.getButton(24);
-                if(npcButton != null){
+                if (npcButton != null) {
                     npcButton.displayString = "ffffff";
                     npcButton.packedFGColour = 0xFFFFFF;
                 }
@@ -311,22 +320,42 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         } else if (id == 6) {
             // Item Use Action button.
             int index = ((GuiButtonBiDirectional) guibutton).getValue();
-            switch(index) {
-                case 0: linkedItem.itemUseAction = 0; break;
-                case 1: linkedItem.itemUseAction = 1; break;
-                case 2: linkedItem.itemUseAction = 3; break;
-                case 3: linkedItem.itemUseAction = 4; break;
+            switch (index) {
+                case 0:
+                    linkedItem.itemUseAction = 0;
+                    break;
+                case 1:
+                    linkedItem.itemUseAction = 1;
+                    break;
+                case 2:
+                    linkedItem.itemUseAction = 3;
+                    break;
+                case 3:
+                    linkedItem.itemUseAction = 4;
+                    break;
             }
         } else if (id == 8) {
             // Armor Type button.
             int index = ((GuiButtonBiDirectional) guibutton).getValue();
-            switch(index) {
-                case 0: linkedItem.armorType = -2; break;
-                case 1: linkedItem.armorType = -1; break;
-                case 2: linkedItem.armorType = 0; break;
-                case 3: linkedItem.armorType = 1; break;
-                case 4: linkedItem.armorType = 2; break;
-                case 5: linkedItem.armorType = 3; break;
+            switch (index) {
+                case 0:
+                    linkedItem.armorType = -2;
+                    break;
+                case 1:
+                    linkedItem.armorType = -1;
+                    break;
+                case 2:
+                    linkedItem.armorType = 0;
+                    break;
+                case 3:
+                    linkedItem.armorType = 1;
+                    break;
+                case 4:
+                    linkedItem.armorType = 2;
+                    break;
+                case 5:
+                    linkedItem.armorType = 3;
+                    break;
             }
         } else if (id == 27 && guibutton instanceof GuiNpcButtonYesNo) {
             // IsTool toggle
@@ -444,10 +473,10 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if(subgui instanceof SubGuiColorSelector){
-            if(colorPicked == 1)
+        if (subgui instanceof SubGuiColorSelector) {
+            if (colorPicked == 1)
                 linkedItem.display.itemColor = ((SubGuiColorSelector) subgui).color;
-            if(colorPicked == 2)
+            if (colorPicked == 2)
                 linkedItem.display.durabilityColor = ((SubGuiColorSelector) subgui).color;
 
             initGui();

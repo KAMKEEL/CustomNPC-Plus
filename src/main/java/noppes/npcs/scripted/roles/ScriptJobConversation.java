@@ -6,15 +6,16 @@ import noppes.npcs.roles.JobConversation;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobConversation extends ScriptJobInterface implements IJobConversation {
-	private JobConversation job;
-	public ScriptJobConversation(EntityNPCInterface npc){
-		super(npc);
-		this.job = (JobConversation) npc.jobInterface;
-	}
-		
-	@Override
-	public int getType(){
-		return JobType.SPAWNER;
-	}
-	
+    private JobConversation job;
+
+    public ScriptJobConversation(EntityNPCInterface npc) {
+        super(npc);
+        this.job = (JobConversation) npc.jobInterface;
+    }
+
+    @Override
+    public int getType() {
+        return JobType.SPAWNER;
+    }
+
 }

@@ -32,12 +32,11 @@ public class CNPCData implements IProfileData {
     @Override
     public void setNBT(EntityPlayer player, NBTTagCompound replace) {
         PlayerData customNPCData = PlayerData.get(player);
-        if(replace.hasNoTags()){
+        if (replace.hasNoTags()) {
             PlayerData newData = new PlayerData();
             newData.player = player;
             customNPCData.setNBT((NBTTagCompound) newData.getNBT().copy());
-        }
-        else {
+        } else {
             customNPCData.setNBT(replace);
         }
         customNPCData.updateClient = true;
@@ -51,7 +50,7 @@ public class CNPCData implements IProfileData {
     @Override
     public ProfileOperation verifySwitch(EntityPlayer player) {
         PlayerData playerData = PlayerData.get(player);
-        if(playerData.partyUUID != null)
+        if (playerData.partyUUID != null)
             return ProfileOperation.error("Cannot switch while in Party");
 
         return ProfileOperation.success("");

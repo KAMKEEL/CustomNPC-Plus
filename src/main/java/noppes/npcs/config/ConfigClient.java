@@ -9,8 +9,7 @@ import org.apache.logging.log4j.Level;
 
 import java.io.File;
 
-public class ConfigClient
-{
+public class ConfigClient {
     public static Configuration config;
 
     public final static String GENERAL = "General";
@@ -21,13 +20,13 @@ public class ConfigClient
 
 
     /**
-     *  General Properties
+     * General Properties
      **/
     public static Property CacheLifeProperty;
     public static int CacheLife = 10;
 
     /**
-     *  Visual Properties
+     * Visual Properties
      **/
     public static Property EnableChatBubblesProperty;
     public static boolean EnableChatBubbles = true;
@@ -51,7 +50,7 @@ public class ConfigClient
     public static boolean HideEffectsBar = false;
 
     /**
-     *  Questing Properties
+     * Questing Properties
      **/
     public static Property DialogSpeedProperty;
     public static int DialogSpeed = 10;
@@ -94,12 +93,12 @@ public class ConfigClient
     public static int CompassOverlayWidth = 200;
 
     /**
-     *  Texture Properties
+     * Texture Properties
      **/
     public static boolean WoodTextures = false;
 
     /**
-     *  Model Properties
+     * Model Properties
      **/
     public static boolean LegacyCampfire = false;
     public static boolean LegacyBanner = false;
@@ -116,12 +115,10 @@ public class ConfigClient
     public static boolean LegacyPedestal = false;
     public static boolean LegacyMailbox = false;
 
-    public static void init(File configFile)
-    {
+    public static void init(File configFile) {
         config = new Configuration(configFile);
 
-        try
-        {
+        try {
             config.load();
 
             // Hud Quest Overlay settings
@@ -243,7 +240,7 @@ public class ConfigClient
             LegacyMailbox = config.get(MODEL, "Legacy Mailbox Model", false).getBoolean(false);
 
             // Convert to Legacy
-            if(CustomNpcs.legacyExist){
+            if (CustomNpcs.legacyExist) {
                 EnableChatBubbles = LegacyConfig.EnableChatBubbles;
                 EnableChatBubblesProperty.set(EnableChatBubbles);
 
@@ -256,13 +253,9 @@ public class ConfigClient
                 FontSize = LegacyConfig.FontSize;
                 FontSizeProperty.set(FontSize);
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its client configuration");
-        }
-        finally
-        {
+        } finally {
             if (config.hasChanged()) {
                 config.save();
             }

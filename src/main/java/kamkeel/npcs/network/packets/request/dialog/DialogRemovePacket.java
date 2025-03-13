@@ -63,13 +63,12 @@ public final class DialogRemovePacket extends AbstractPacket {
         int diagId = in.readInt();
         boolean sendGroup = in.readBoolean();
         Dialog dialog = DialogController.Instance.dialogs.get(diagId);
-        if(dialog != null && dialog.category != null){
+        if (dialog != null && dialog.category != null) {
             DialogController.Instance.removeDialog(dialog);
-            if(sendGroup){
-                NoppesUtilServer.sendDialogGroup((EntityPlayerMP) player,dialog.category);
-            }
-            else {
-                NoppesUtilServer.sendDialogData((EntityPlayerMP) player,dialog.category);
+            if (sendGroup) {
+                NoppesUtilServer.sendDialogGroup((EntityPlayerMP) player, dialog.category);
+            } else {
+                NoppesUtilServer.sendDialogData((EntityPlayerMP) player, dialog.category);
             }
         }
     }

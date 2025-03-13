@@ -32,7 +32,8 @@ public final class TransportSavePacket extends AbstractPacket {
         this.compound = compound;
     }
 
-    public TransportSavePacket() {}
+    public TransportSavePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -71,8 +72,8 @@ public final class TransportSavePacket extends AbstractPacket {
 
         int cat = in.readInt();
         TransportLocation location = TransportController.getInstance().saveLocation(cat, ByteBufUtils.readNBT(in), npc);
-        if(location != null){
-            if(npc.advanced.role != EnumRoleType.Transporter)
+        if (location != null) {
+            if (npc.advanced.role != EnumRoleType.Transporter)
                 return;
             RoleTransporter role = (RoleTransporter) npc.roleInterface;
             role.setTransport(location);

@@ -16,24 +16,24 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScrollListener, GuiYesNoCallback{
+public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScrollListener, GuiYesNoCallback {
 
     private GuiCustomScroll scroll;
     private PlayerMailData data;
     private PlayerMail selected;
 
-	public GuiMailbox() {
-		super();
+    public GuiMailbox() {
+        super();
         xSize = 256;
         setBackground("menubg.png");
         MailActionPacket.RequestMailData();
-	}
-    public void initGui()
-    {
+    }
+
+    public void initGui() {
         super.initGui();
-        if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0);
-	        scroll.setSize(165, 186);
+        if (scroll == null) {
+            scroll = new GuiCustomScroll(this, 0);
+            scroll.setSize(165, 186);
         }
         scroll.guiLeft = guiLeft + 4;
         scroll.guiTop = guiTop + 4;
@@ -44,114 +44,115 @@ public class GuiMailbox extends GuiNPCInterface implements IGuiData, ICustomScro
 
         this.addLabel(new GuiNpcLabel(0, title, guiLeft + x, guiTop - 8));
 
-        if(selected != null){
-        	this.addLabel(new GuiNpcLabel(3, StatCollector.translateToLocal("mailbox.sender") + ":", guiLeft + 170, guiTop + 6));
-        	this.addLabel(new GuiNpcLabel(1, selected.sender, guiLeft + 174, guiTop + 18));
-        	this.addLabel(new GuiNpcLabel(2, StatCollector.translateToLocalFormatted("mailbox.timesend",getTimePast()), guiLeft + 174, guiTop + 30));
+        if (selected != null) {
+            this.addLabel(new GuiNpcLabel(3, StatCollector.translateToLocal("mailbox.sender") + ":", guiLeft + 170, guiTop + 6));
+            this.addLabel(new GuiNpcLabel(1, selected.sender, guiLeft + 174, guiTop + 18));
+            this.addLabel(new GuiNpcLabel(2, StatCollector.translateToLocalFormatted("mailbox.timesend", getTimePast()), guiLeft + 174, guiTop + 30));
         }
 
-        this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 192,82,20, "mailbox.read"));
-        this.addButton(new GuiNpcButton(1, guiLeft + 88, guiTop + 192,82,20, "selectWorld.deleteButton"));
+        this.addButton(new GuiNpcButton(0, guiLeft + 4, guiTop + 192, 82, 20, "mailbox.read"));
+        this.addButton(new GuiNpcButton(1, guiLeft + 88, guiTop + 192, 82, 20, "selectWorld.deleteButton"));
         getButton(1).setEnabled(selected != null);
     }
 
     private String getTimePast() {
-		if(selected.timePast > 86400000){
-			int days = (int) (selected.timePast / 86400000);
-			if(days == 1)
-				return days + " " + StatCollector.translateToLocal("mailbox.day");
-			else
-				return days + " " + StatCollector.translateToLocal("mailbox.days");
-		}
-		if(selected.timePast > 3600000){
-			int hours = (int) (selected.timePast / 3600000);
-			if(hours == 1)
-				return hours + " " + StatCollector.translateToLocal("mailbox.hour");
-			else
-				return hours + " " + StatCollector.translateToLocal("mailbox.hours");
-		}
-		int minutes = (int) (selected.timePast / 60000);
-		if(minutes == 1)
-			return minutes + " " + StatCollector.translateToLocal("mailbox.minute");
-		else
-			return minutes + " " + StatCollector.translateToLocal("mailbox.minutes");
-	}
-	@Override
-    public void confirmClicked(boolean flag, int i)
-    {
-		if(flag && selected != null){
-	        MailActionPacket.DeleteMail(selected.time, selected.sender);
-	        selected = null;
-		}
-		NoppesUtil.openGUI(player, this);
-    }
-	protected void actionPerformed(GuiButton guibutton)
-    {
-		int id = guibutton.id;
-    	if(scroll.selected < 0)
-    		return;
-    	if(id == 0){
-    		GuiMailmanWrite.parent = this;
-    		GuiMailmanWrite.mail = selected;
-    		MailActionPacket.OpenMail(selected.time, selected.sender);
-    		selected = null;
-    		scroll.selected = -1;
-    	}
-    	if(id == 1){
-            GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("gui.delete"), 0);
-            displayGuiScreen(guiyesno);
-    	}
+        if (selected.timePast > 86400000) {
+            int days = (int) (selected.timePast / 86400000);
+            if (days == 1)
+                return days + " " + StatCollector.translateToLocal("mailbox.day");
+            else
+                return days + " " + StatCollector.translateToLocal("mailbox.days");
+        }
+        if (selected.timePast > 3600000) {
+            int hours = (int) (selected.timePast / 3600000);
+            if (hours == 1)
+                return hours + " " + StatCollector.translateToLocal("mailbox.hour");
+            else
+                return hours + " " + StatCollector.translateToLocal("mailbox.hours");
+        }
+        int minutes = (int) (selected.timePast / 60000);
+        if (minutes == 1)
+            return minutes + " " + StatCollector.translateToLocal("mailbox.minute");
+        else
+            return minutes + " " + StatCollector.translateToLocal("mailbox.minutes");
     }
 
     @Override
-    public void mouseClicked(int i, int j, int k)
-    {
-    	super.mouseClicked(i, j, k);
-    	scroll.mouseClicked(i, j, k);
+    public void confirmClicked(boolean flag, int i) {
+        if (flag && selected != null) {
+            MailActionPacket.DeleteMail(selected.time, selected.sender);
+            selected = null;
+        }
+        NoppesUtil.openGUI(player, this);
     }
+
+    protected void actionPerformed(GuiButton guibutton) {
+        int id = guibutton.id;
+        if (scroll.selected < 0)
+            return;
+        if (id == 0) {
+            GuiMailmanWrite.parent = this;
+            GuiMailmanWrite.mail = selected;
+            MailActionPacket.OpenMail(selected.time, selected.sender);
+            selected = null;
+            scroll.selected = -1;
+        }
+        if (id == 1) {
+            GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", StatCollector.translateToLocal("gui.delete"), 0);
+            displayGuiScreen(guiyesno);
+        }
+    }
+
     @Override
-    public void keyTyped(char c, int i)
-    {
-        if (i == 1 || isInventoryKey(i))
-        {
+    public void mouseClicked(int i, int j, int k) {
+        super.mouseClicked(i, j, k);
+        scroll.mouseClicked(i, j, k);
+    }
+
+    @Override
+    public void keyTyped(char c, int i) {
+        if (i == 1 || isInventoryKey(i)) {
             close();
         }
     }
-	@Override
-	public void save() {}
-  
-	@Override
-	public void setGuiData(NBTTagCompound compound) {
-		PlayerMailData data = new PlayerMailData();
-		data.loadNBTData(compound);
 
-		List<String> list = new ArrayList<String>();
-		Collections.sort(data.playermail, new Comparator<PlayerMail>(){
-		     public int compare(PlayerMail o1, PlayerMail o2){
-		         if(o1.time == o2.time)
-		             return 0;
-		         return o1.time > o2.time ? -1 : 1;
-		     }
-		});
-		for(PlayerMail mail : data.playermail){
-			list.add(mail.subject);
-		}
+    @Override
+    public void save() {
+    }
 
-		this.data = data;
-		scroll.clear();
-		selected = null;
-		scroll.setUnsortedList(list);
-	}
-	@Override
-	public void customScrollClicked(int i, int j, int k,
-			GuiCustomScroll guiCustomScroll) {
-		selected = data.playermail.get(guiCustomScroll.selected);
-		initGui();
+    @Override
+    public void setGuiData(NBTTagCompound compound) {
+        PlayerMailData data = new PlayerMailData();
+        data.loadNBTData(compound);
 
-		if(selected != null && !selected.beenRead){
-			selected.beenRead = true;
+        List<String> list = new ArrayList<String>();
+        Collections.sort(data.playermail, new Comparator<PlayerMail>() {
+            public int compare(PlayerMail o1, PlayerMail o2) {
+                if (o1.time == o2.time)
+                    return 0;
+                return o1.time > o2.time ? -1 : 1;
+            }
+        });
+        for (PlayerMail mail : data.playermail) {
+            list.add(mail.subject);
+        }
+
+        this.data = data;
+        scroll.clear();
+        selected = null;
+        scroll.setUnsortedList(list);
+    }
+
+    @Override
+    public void customScrollClicked(int i, int j, int k,
+                                    GuiCustomScroll guiCustomScroll) {
+        selected = data.playermail.get(guiCustomScroll.selected);
+        initGui();
+
+        if (selected != null && !selected.beenRead) {
+            selected.beenRead = true;
             MailActionPacket.ReadMail(selected.time, selected.sender);
-		}
-	}
+        }
+    }
 
 }

@@ -109,7 +109,7 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos crossProduct(double x, double y, double z) {
-        return this.crossProduct(NpcAPI.Instance().getIPos(x,y,z));
+        return this.crossProduct(NpcAPI.Instance().getIPos(x, y, z));
     }
 
     public IPos crossProduct(IPos pos) {
@@ -118,7 +118,7 @@ public class ScriptBlockPos implements IPos {
 
     public IPos divide(double scalar) {
         return NpcAPI.Instance().getIPos(
-        getXD()/scalar , getYD()/scalar, getZD()/scalar
+            getXD() / scalar, getYD() / scalar, getZD() / scalar
         );
     }
 
@@ -160,9 +160,9 @@ public class ScriptBlockPos implements IPos {
     }
 
     public String toString() {
-        double xd = Math.floor(this.getXD() * 1000)/1000.0D;
-        double yd = Math.floor(this.getYD() * 1000)/1000.0D;
-        double zd = Math.floor(this.getZD() * 1000)/1000.0D;
+        double xd = Math.floor(this.getXD() * 1000) / 1000.0D;
+        double yd = Math.floor(this.getYD() * 1000) / 1000.0D;
+        double zd = Math.floor(this.getZD() * 1000) / 1000.0D;
         return "(" + xd + ", " + yd + ", " + zd + ")";
     }
 

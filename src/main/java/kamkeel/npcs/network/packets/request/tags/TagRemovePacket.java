@@ -29,7 +29,8 @@ public final class TagRemovePacket extends AbstractPacket {
         this.tagId = tagId;
     }
 
-    public TagRemovePacket() {}
+    public TagRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

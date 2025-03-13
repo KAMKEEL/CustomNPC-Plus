@@ -9,40 +9,40 @@ import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleTransporter extends ScriptRoleInterface implements IRoleTransporter {
-	private final RoleTransporter role;
+    private final RoleTransporter role;
 
-	public ScriptRoleTransporter(EntityNPCInterface npc) {
-		super(npc);
-		role = (RoleTransporter) npc.roleInterface;
+    public ScriptRoleTransporter(EntityNPCInterface npc) {
+        super(npc);
+        role = (RoleTransporter) npc.roleInterface;
 
-	}
+    }
 
-	public String getName() {
-		return role.name;
-	}
+    public String getName() {
+        return role.name;
+    }
 
-	public int getTransportId() {
-		return role.transportId;
-	}
+    public int getTransportId() {
+        return role.transportId;
+    }
 
-	public void unlock(IPlayer<EntityPlayerMP> player, ITransportLocation location) {
-		this.role.unlock(player.getMCEntity(), location);
-	}
+    public void unlock(IPlayer<EntityPlayerMP> player, ITransportLocation location) {
+        this.role.unlock(player.getMCEntity(), location);
+    }
 
-	public ITransportLocation getTransport(){
-		return this.role.getLocation();
-	}
+    public ITransportLocation getTransport() {
+        return this.role.getLocation();
+    }
 
-	public boolean hasTransport(){
-		return this.role.hasTransport();
-	}
+    public boolean hasTransport() {
+        return this.role.hasTransport();
+    }
 
-	public void setTransport(ITransportLocation location) {
-		this.role.setTransport(location);
-	}
+    public void setTransport(ITransportLocation location) {
+        this.role.setTransport(location);
+    }
 
-	@Override
-	public int getType(){
-		return RoleType.TRANSPORTER;
-	}
+    @Override
+    public int getType() {
+        return RoleType.TRANSPORTER;
+    }
 }

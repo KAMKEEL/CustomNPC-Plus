@@ -16,177 +16,177 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class RoleFollower extends RoleInterface {
-	
-	private String ownerUUID;
-	public boolean isFollowing = true;
-	public HashMap<Integer,Integer> rates;
-	public NpcMiscInventory inventory;
-	public String dialogHire = StatCollector.translateToLocal("follower.hireText") + " {days} " + StatCollector.translateToLocal("follower.days");
-	public String dialogFarewell = StatCollector.translateToLocal("follower.farewellText") + " {player}";
-	public int daysHired;
-	public long hiredTime;
-	public boolean disableGui = false;
-	public boolean infiniteDays = false;
-	public boolean refuseSoulStone = false;
-	
-	public EntityPlayer owner = null;
-	
-	public RoleFollower(EntityNPCInterface npc) {
-		super(npc);
-		inventory = new NpcMiscInventory(3);
-		rates = new HashMap<Integer, Integer>();
-	}
 
-	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
-		nbttagcompound.setInteger("MercenaryDaysHired", daysHired);
-		nbttagcompound.setLong("MercenaryHiredTime", hiredTime);
-		nbttagcompound.setString("MercenaryDialogHired", dialogHire);
-		nbttagcompound.setString("MercenaryDialogFarewell", dialogFarewell);
-		if(hasOwner())
-			nbttagcompound.setString("MercenaryOwner", ownerUUID);
-    	nbttagcompound.setTag("MercenaryDayRates", NBTTags.nbtIntegerIntegerMap(rates));
-    	nbttagcompound.setTag("MercenaryInv", inventory.getToNBT());
-    	nbttagcompound.setBoolean("MercenaryIsFollowing", isFollowing);
-    	nbttagcompound.setBoolean("MercenaryDisableGui", disableGui);
-    	nbttagcompound.setBoolean("MercenaryInfiniteDays", infiniteDays);
-    	nbttagcompound.setBoolean("MercenaryRefuseSoulstone", refuseSoulStone);
-    	return nbttagcompound;
-	}
+    private String ownerUUID;
+    public boolean isFollowing = true;
+    public HashMap<Integer, Integer> rates;
+    public NpcMiscInventory inventory;
+    public String dialogHire = StatCollector.translateToLocal("follower.hireText") + " {days} " + StatCollector.translateToLocal("follower.days");
+    public String dialogFarewell = StatCollector.translateToLocal("follower.farewellText") + " {player}";
+    public int daysHired;
+    public long hiredTime;
+    public boolean disableGui = false;
+    public boolean infiniteDays = false;
+    public boolean refuseSoulStone = false;
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		ownerUUID = nbttagcompound.getString("MercenaryOwner");
-		daysHired = nbttagcompound.getInteger("MercenaryDaysHired");
-		hiredTime = nbttagcompound.getLong("MercenaryHiredTime");
-		dialogHire = nbttagcompound.getString("MercenaryDialogHired");
-		dialogFarewell = nbttagcompound.getString("MercenaryDialogFarewell");
-		rates = NBTTags.getIntegerIntegerMap(nbttagcompound.getTagList("MercenaryDayRates", 10));
-		inventory.setFromNBT(nbttagcompound.getCompoundTag("MercenaryInv"));
-		isFollowing = nbttagcompound.getBoolean("MercenaryIsFollowing");
-		disableGui = nbttagcompound.getBoolean("MercenaryDisableGui");
-		infiniteDays = nbttagcompound.getBoolean("MercenaryInfiniteDays");
-		refuseSoulStone = nbttagcompound.getBoolean("MercenaryRefuseSoulstone");
-	}
+    public EntityPlayer owner = null;
 
-	@Override
-	public boolean aiShouldExecute() {
-		owner = getOwner();
-		if(!infiniteDays && owner != null && getDaysLeft() <= 0){
-			owner.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(dialogFarewell, owner, npc)));
-			killed();
-		}
-		return false;
-	}
-	
-	public EntityPlayer getOwner(){
-		if(ownerUUID == null || ownerUUID.isEmpty())
-			return null;
-		try{
-	        UUID uuid = UUID.fromString(ownerUUID);
-	        if(uuid != null)
-	        	return npc.worldObj.func_152378_a(uuid);
-		}
-		catch(IllegalArgumentException ex){
-			
-		}
-        
-		return npc.worldObj.getPlayerEntityByName(ownerUUID);
-	}
-	public boolean hasOwner(){
-		if(!infiniteDays && daysHired <= 0)
-			return false;
-		return ownerUUID != null && !ownerUUID.isEmpty();
-	}
-	@Override
-	public void killed() {
-		ownerUUID = null;
-		daysHired = 0;
-		hiredTime = 0;
-		isFollowing = true;
-		npc.stats.canDespawn = npc.stats.playerSetCanDespawn;
-	}
-	
-	public int getDaysLeft(){
-		if(infiniteDays)
-			return 100;
-		if(daysHired <= 0)
-			return 0;
-		int days = (int) ((npc.worldObj.getTotalWorldTime()- hiredTime) / 24000);
-		return daysHired - days;
-	}
-	
-	public void addDays(int days) {
-		daysHired = days + getDaysLeft();
-		hiredTime = npc.worldObj.getTotalWorldTime();
-	}
-	
-	@Override
-	public void interact(EntityPlayer player) {
-		if(ownerUUID == null || ownerUUID.isEmpty()){
-			npc.say(player, npc.advanced.getInteractLine());
-			NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerFollowerHire, npc);
-		}
-		else if(player == owner && !disableGui){
-			NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerFollower, npc);
-		}
-	}
-	
-	@Override
-	public boolean defendOwner() {
-		return isFollowing() && npc.advanced.job == EnumJobType.Guard;
-	}
+    public RoleFollower(EntityNPCInterface npc) {
+        super(npc);
+        inventory = new NpcMiscInventory(3);
+        rates = new HashMap<Integer, Integer>();
+    }
 
-	@Override
-	public void delete() {
-		
-	}
-	
-	public boolean isFollowing(){
-		return owner != null && isFollowing && getDaysLeft() > 0;
-	}
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
+        nbttagcompound.setInteger("MercenaryDaysHired", daysHired);
+        nbttagcompound.setLong("MercenaryHiredTime", hiredTime);
+        nbttagcompound.setString("MercenaryDialogHired", dialogHire);
+        nbttagcompound.setString("MercenaryDialogFarewell", dialogFarewell);
+        if (hasOwner())
+            nbttagcompound.setString("MercenaryOwner", ownerUUID);
+        nbttagcompound.setTag("MercenaryDayRates", NBTTags.nbtIntegerIntegerMap(rates));
+        nbttagcompound.setTag("MercenaryInv", inventory.getToNBT());
+        nbttagcompound.setBoolean("MercenaryIsFollowing", isFollowing);
+        nbttagcompound.setBoolean("MercenaryDisableGui", disableGui);
+        nbttagcompound.setBoolean("MercenaryInfiniteDays", infiniteDays);
+        nbttagcompound.setBoolean("MercenaryRefuseSoulstone", refuseSoulStone);
+        return nbttagcompound;
+    }
 
-	public void setOwner(EntityPlayer player) {
-		UUID id = player.getUniqueID();
-		if(ownerUUID == null || id == null || !ownerUUID.equals(id))
-			killed();
-		ownerUUID = id.toString();
-		npc.stats.canDespawn = false;
-	}
+    @Override
+    public void readFromNBT(NBTTagCompound nbttagcompound) {
+        ownerUUID = nbttagcompound.getString("MercenaryOwner");
+        daysHired = nbttagcompound.getInteger("MercenaryDaysHired");
+        hiredTime = nbttagcompound.getLong("MercenaryHiredTime");
+        dialogHire = nbttagcompound.getString("MercenaryDialogHired");
+        dialogFarewell = nbttagcompound.getString("MercenaryDialogFarewell");
+        rates = NBTTags.getIntegerIntegerMap(nbttagcompound.getTagList("MercenaryDayRates", 10));
+        inventory.setFromNBT(nbttagcompound.getCompoundTag("MercenaryInv"));
+        isFollowing = nbttagcompound.getBoolean("MercenaryIsFollowing");
+        disableGui = nbttagcompound.getBoolean("MercenaryDisableGui");
+        infiniteDays = nbttagcompound.getBoolean("MercenaryInfiniteDays");
+        refuseSoulStone = nbttagcompound.getBoolean("MercenaryRefuseSoulstone");
+    }
 
-	public void setRate(int index, int amount) {
-		if(index > 2 || index < 0)
-			return;
+    @Override
+    public boolean aiShouldExecute() {
+        owner = getOwner();
+        if (!infiniteDays && owner != null && getDaysLeft() <= 0) {
+            owner.addChatMessage(new ChatComponentTranslation(NoppesStringUtils.formatText(dialogFarewell, owner, npc)));
+            killed();
+        }
+        return false;
+    }
 
-		if(amount < 1)
-			return;
+    public EntityPlayer getOwner() {
+        if (ownerUUID == null || ownerUUID.isEmpty())
+            return null;
+        try {
+            UUID uuid = UUID.fromString(ownerUUID);
+            if (uuid != null)
+                return npc.worldObj.func_152378_a(uuid);
+        } catch (IllegalArgumentException ex) {
 
-		rates.put(index, amount);
-	}
+        }
 
-	public int getRate(int index) {
-		if(index > 2 || index < 0)
-			return -1;
+        return npc.worldObj.getPlayerEntityByName(ownerUUID);
+    }
 
-		if(!rates.containsKey(index))
-			return -1;
+    public boolean hasOwner() {
+        if (!infiniteDays && daysHired <= 0)
+            return false;
+        return ownerUUID != null && !ownerUUID.isEmpty();
+    }
 
-		return rates.get(index);
-	}
+    @Override
+    public void killed() {
+        ownerUUID = null;
+        daysHired = 0;
+        hiredTime = 0;
+        isFollowing = true;
+        npc.stats.canDespawn = npc.stats.playerSetCanDespawn;
+    }
 
-	public void setDialogHire(String dialogHire) {
-		this.dialogHire = dialogHire;
-	}
+    public int getDaysLeft() {
+        if (infiniteDays)
+            return 100;
+        if (daysHired <= 0)
+            return 0;
+        int days = (int) ((npc.worldObj.getTotalWorldTime() - hiredTime) / 24000);
+        return daysHired - days;
+    }
 
-	public String getDialogHire() {
-		return dialogHire;
-	}
+    public void addDays(int days) {
+        daysHired = days + getDaysLeft();
+        hiredTime = npc.worldObj.getTotalWorldTime();
+    }
 
-	public void setDialogFarewell(String dialogFarewell){
-		this.dialogFarewell = dialogFarewell;
-	}
+    @Override
+    public void interact(EntityPlayer player) {
+        if (ownerUUID == null || ownerUUID.isEmpty()) {
+            npc.say(player, npc.advanced.getInteractLine());
+            NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerFollowerHire, npc);
+        } else if (player == owner && !disableGui) {
+            NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerFollower, npc);
+        }
+    }
 
-	public String getDialogFarewell(){
-		return this.dialogFarewell;
-	}
+    @Override
+    public boolean defendOwner() {
+        return isFollowing() && npc.advanced.job == EnumJobType.Guard;
+    }
+
+    @Override
+    public void delete() {
+
+    }
+
+    public boolean isFollowing() {
+        return owner != null && isFollowing && getDaysLeft() > 0;
+    }
+
+    public void setOwner(EntityPlayer player) {
+        UUID id = player.getUniqueID();
+        if (ownerUUID == null || id == null || !ownerUUID.equals(id))
+            killed();
+        ownerUUID = id.toString();
+        npc.stats.canDespawn = false;
+    }
+
+    public void setRate(int index, int amount) {
+        if (index > 2 || index < 0)
+            return;
+
+        if (amount < 1)
+            return;
+
+        rates.put(index, amount);
+    }
+
+    public int getRate(int index) {
+        if (index > 2 || index < 0)
+            return -1;
+
+        if (!rates.containsKey(index))
+            return -1;
+
+        return rates.get(index);
+    }
+
+    public void setDialogHire(String dialogHire) {
+        this.dialogHire = dialogHire;
+    }
+
+    public String getDialogHire() {
+        return dialogHire;
+    }
+
+    public void setDialogFarewell(String dialogFarewell) {
+        this.dialogFarewell = dialogFarewell;
+    }
+
+    public String getDialogFarewell() {
+        return this.dialogFarewell;
+    }
 }

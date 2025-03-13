@@ -32,7 +32,8 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public JobSpawnerAddPacket() { }
+    public JobSpawnerAddPacket() {
+    }
 
     public JobSpawnerAddPacket(boolean isServer, String selected, int activeTab, int slot) {
         this.isServer = isServer;
@@ -71,10 +72,10 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeBoolean(this.isServer);
-        if(this.isServer){
-          ByteBufUtils.writeString(out, selected);
-          out.writeInt(this.activeTab);
-          out.writeInt(this.slot);
+        if (this.isServer) {
+            ByteBufUtils.writeString(out, selected);
+            out.writeInt(this.activeTab);
+            out.writeInt(this.slot);
         } else {
             out.writeInt(this.slot);
             ByteBufUtils.writeNBT(out, this.compound);
@@ -89,12 +90,12 @@ public final class JobSpawnerAddPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc.advanced.job != EnumJobType.Spawner)
+        if (npc.advanced.job != EnumJobType.Spawner)
             return;
 
         JobSpawner job = (JobSpawner) npc.jobInterface;
         boolean useServerClone = in.readBoolean();
-        if(useServerClone){
+        if (useServerClone) {
             NBTTagCompound compound = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(in), in.readInt());
             job.setJobCompound(in.readInt(), compound);
         } else {

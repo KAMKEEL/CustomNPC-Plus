@@ -26,22 +26,22 @@ public class ItemLinked extends ItemCustomizable {
         if (world.isRemote)
             return;
 
-        if(world.getTotalWorldTime() % 10 != 0)
+        if (world.getTotalWorldTime() % 10 != 0)
             return;
 
         IItemStack itemStack = NpcAPI.Instance().getIItemStack(stack);
-        if(itemStack instanceof ScriptLinkedItem){
+        if (itemStack instanceof ScriptLinkedItem) {
             ScriptLinkedItem scriptLinkedItem = (ScriptLinkedItem) itemStack;
             LinkedItem linkedItem = LinkedItemController.getInstance().get(scriptLinkedItem.linkedItem.getId());
             int prevVersion = scriptLinkedItem.linkedVersion;
-            if(linkedItem != null && scriptLinkedItem.linkedVersion != linkedItem.version){
+            if (linkedItem != null && scriptLinkedItem.linkedVersion != linkedItem.version) {
                 scriptLinkedItem.linkedItem = linkedItem.clone();
                 scriptLinkedItem.linkedVersion = linkedItem.version;
                 scriptLinkedItem.saveItemData();
 
                 // Send Version Change Event
                 EventHooks.onLinkedItemVersionChange(scriptLinkedItem, linkedItem.version, prevVersion);
-            } else if (linkedItem == null){
+            } else if (linkedItem == null) {
                 if (entity instanceof EntityPlayer) {
                     EntityPlayer player = (EntityPlayer) entity;
                     player.inventory.setInventorySlotContents(itemSlot, null); // Remove the item

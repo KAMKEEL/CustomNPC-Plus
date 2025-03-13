@@ -7,15 +7,14 @@ import org.apache.logging.log4j.Level;
 
 import java.io.File;
 
-public class ConfigMixin
-{
+public class ConfigMixin {
     public static Configuration config;
 
     public final static String CLIENT = "CLIENT";
     public final static String GENERAL = "GENERAL";
 
     /**
-     *  General Properties
+     * General Properties
      **/
     public static Property EntityRendererMixinProperty;
     public static boolean EntityRendererMixin = true;
@@ -26,12 +25,10 @@ public class ConfigMixin
     public static Property FirstPersonAnimationMixinProperty;
     public static boolean FirstPersonAnimationMixin = true;
 
-    public static void init(File configFile)
-    {
+    public static void init(File configFile) {
         config = new Configuration(configFile);
 
-        try
-        {
+        try {
             config.load();
 
             EntityRendererMixinProperty = config.get(CLIENT, "Entity Render Mixin", true, "Enables Overlay Mixins for Conflicts relating to Optifine or other Skin Renderers. If crashes occur, please disable.");
@@ -46,13 +43,9 @@ public class ConfigMixin
             } else {
                 FirstPersonAnimationMixin = false;
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its mixin configuration");
-        }
-        finally
-        {
+        } finally {
             if (config.hasChanged()) {
                 config.save();
             }

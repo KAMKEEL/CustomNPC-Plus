@@ -15,219 +15,218 @@ import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 public class SpawnController implements INaturalSpawnsHandler {
-	public HashMap<String,List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>() ;
-	public ArrayList<SpawnData> data = new ArrayList<SpawnData>();
-	public Random random = new Random();
-	
-	public static SpawnController Instance;
+    public HashMap<String, List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>();
+    public ArrayList<SpawnData> data = new ArrayList<SpawnData>();
+    public Random random = new Random();
 
-	private int lastUsedID = 0;
-	
-	public SpawnController(){
-		Instance = this;
-		loadData();
-	}
+    public static SpawnController Instance;
 
-	private void loadData(){
+    private int lastUsedID = 0;
 
-		File saveDir = CustomNpcs.getWorldSaveDirectory();
-		if(saveDir == null){
-			return;
-		}
-		try {
-	        File file = new File(saveDir, "spawns.dat");
-	        if(file.exists()){
-	        	loadDataFile(file);
-	        }
-		} catch (Exception e) {
-			try {
-		        File file = new File(saveDir, "spawns.dat_old");
-		        if(file.exists()){
-		        	loadDataFile(file);
-		        }
-		        
-			} catch (Exception ee) {
-			}
-		}
-	}
+    public SpawnController() {
+        Instance = this;
+        loadData();
+    }
 
-	private void loadDataFile(File file) throws IOException{
+    private void loadData() {
+
+        File saveDir = CustomNpcs.getWorldSaveDirectory();
+        if (saveDir == null) {
+            return;
+        }
+        try {
+            File file = new File(saveDir, "spawns.dat");
+            if (file.exists()) {
+                loadDataFile(file);
+            }
+        } catch (Exception e) {
+            try {
+                File file = new File(saveDir, "spawns.dat_old");
+                if (file.exists()) {
+                    loadDataFile(file);
+                }
+
+            } catch (Exception ee) {
+            }
+        }
+    }
+
+    private void loadDataFile(File file) throws IOException {
         DataInputStream var1 = new DataInputStream(new BufferedInputStream(new GZIPInputStream(new FileInputStream(file))));
-		loadData(var1);
-		var1.close();
-	}
+        loadData(var1);
+        var1.close();
+    }
 
-	public void loadData(DataInputStream stream) throws IOException{
-		ArrayList<SpawnData> data = new ArrayList<SpawnData>();
+    public void loadData(DataInputStream stream) throws IOException {
+        ArrayList<SpawnData> data = new ArrayList<SpawnData>();
         NBTTagCompound nbttagcompound1 = CompressedStreamTools.read(stream);
         lastUsedID = nbttagcompound1.getInteger("lastID");
         NBTTagList nbtlist = nbttagcompound1.getTagList("NPCSpawnData", 10);
 
-	    if(nbtlist != null){
-	        for(int i = 0; i < nbtlist.tagCount(); i++)
-	        {
-	            NBTTagCompound nbttagcompound = nbtlist.getCompoundTagAt(i);
-	            SpawnData spawn = new SpawnData();
-	            spawn.readNBT(nbttagcompound);
-	            data.add(spawn);
-	        }
-	    }
-	    this.data = data;
-		fillBiomeData();
-	}
-	public NBTTagCompound getNBT(){
+        if (nbtlist != null) {
+            for (int i = 0; i < nbtlist.tagCount(); i++) {
+                NBTTagCompound nbttagcompound = nbtlist.getCompoundTagAt(i);
+                SpawnData spawn = new SpawnData();
+                spawn.readNBT(nbttagcompound);
+                data.add(spawn);
+            }
+        }
+        this.data = data;
+        fillBiomeData();
+    }
+
+    public NBTTagCompound getNBT() {
         NBTTagList list = new NBTTagList();
-        for(SpawnData spawn : data){
+        for (SpawnData spawn : data) {
             NBTTagCompound nbtfactions = new NBTTagCompound();
             spawn.writeNBT(nbtfactions);
-        	list.appendTag(nbtfactions);
+            list.appendTag(nbtfactions);
         }
         NBTTagCompound nbttagcompound = new NBTTagCompound();
         nbttagcompound.setInteger("lastID", lastUsedID);
         nbttagcompound.setTag("NPCSpawnData", list);
         return nbttagcompound;
-	}
-	public void saveData(){
-		try {
-			File saveDir = CustomNpcs.getWorldSaveDirectory();
+    }
+
+    public void saveData() {
+        try {
+            File saveDir = CustomNpcs.getWorldSaveDirectory();
             File file = new File(saveDir, "spawns.dat_new");
             File file1 = new File(saveDir, "spawns.dat_old");
             File file2 = new File(saveDir, "spawns.dat");
             CompressedStreamTools.writeCompressed(getNBT(), new FileOutputStream(file));
-            if(file1.exists())
-            {
+            if (file1.exists()) {
                 file1.delete();
             }
             file2.renameTo(file1);
-            if(file2.exists())
-            {
+            if (file2.exists()) {
                 file2.delete();
             }
             file.renameTo(file2);
-            if(file.exists())
-            {
+            if (file.exists()) {
                 file.delete();
             }
-		} catch (Exception e) {
-			LogWriter.except(e);
-		}
-	}
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+    }
 
-	public SpawnData getSpawnData(int id) {
-		for(SpawnData spawn : data)
-			if(spawn.id == id)
-				return spawn;
-		return null;
-	}
+    public SpawnData getSpawnData(int id) {
+        for (SpawnData spawn : data)
+            if (spawn.id == id)
+                return spawn;
+        return null;
+    }
 
-	public void saveSpawnData(SpawnData spawn) {
-		if(spawn.id < 0)
-			spawn.id = getUnusedId();
-		SpawnData original = getSpawnData(spawn.id);
-		if(original == null)
-			data.add(spawn);
-		else{
-			original.readNBT(spawn.writeNBT(new NBTTagCompound()));
-		}
-		fillBiomeData();
-		saveData();
-	}
-	
-	private void fillBiomeData(){
-		HashMap<String,List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>() ;
-		for(SpawnData spawn : data){
-	        for(String s : spawn.biomes){
-	        	List<SpawnData> list = biomes.get(s);
-	        	if(list == null)
-	        		biomes.put(s, (list = new ArrayList<SpawnData>()));
-	        	list.add(spawn);
-	        }
-		}
-        this.biomes = biomes;
-	}
-	
-	public int getUnusedId(){
-		lastUsedID++;
-		return lastUsedID;
-	}
-	public void removeSpawnData(int id) {
-		ArrayList<SpawnData> data = new ArrayList<SpawnData>();
-		
-		for(SpawnData spawn : this.data){
-			if(spawn.id == id)
-				continue;
+    public void saveSpawnData(SpawnData spawn) {
+        if (spawn.id < 0)
+            spawn.id = getUnusedId();
+        SpawnData original = getSpawnData(spawn.id);
+        if (original == null)
             data.add(spawn);
-		}
-		this.data = data;
+        else {
+            original.readNBT(spawn.writeNBT(new NBTTagCompound()));
+        }
+        fillBiomeData();
+        saveData();
+    }
 
-		fillBiomeData();
-		saveData();
-	}
-	
-	public List<SpawnData> getSpawnList(String biome) {
-		return biomes.get(biome);
-	}
+    private void fillBiomeData() {
+        HashMap<String, List<SpawnData>> biomes = new HashMap<String, List<SpawnData>>();
+        for (SpawnData spawn : data) {
+            for (String s : spawn.biomes) {
+                List<SpawnData> list = biomes.get(s);
+                if (list == null)
+                    biomes.put(s, (list = new ArrayList<SpawnData>()));
+                list.add(spawn);
+            }
+        }
+        this.biomes = biomes;
+    }
 
-	public SpawnData getRandomSpawnData(String biome, int dimensionId) {
-		List<SpawnData> biomeList = getSpawnList(biome);
-		if (biomeList == null)
-			return null;
+    public int getUnusedId() {
+        lastUsedID++;
+        return lastUsedID;
+    }
 
-		ArrayList<SpawnData> list = new ArrayList<>();
-		for (SpawnData data : biomeList) {
-			if (data.dimensions.contains(dimensionId)) {
-				list.add(data);
-			}
-		}
-		if(list.isEmpty())
-			return null;
+    public void removeSpawnData(int id) {
+        ArrayList<SpawnData> data = new ArrayList<SpawnData>();
 
-		return (SpawnData) WeightedRandom.getRandomItem(this.random, list);
-	}
+        for (SpawnData spawn : this.data) {
+            if (spawn.id == id)
+                continue;
+            data.add(spawn);
+        }
+        this.data = data;
 
-	public Map<String,Integer> getScroll() {
-		Map<String,Integer> map = new HashMap<String,Integer>();
-		for(SpawnData spawn : data){
-			map.put(spawn.name, spawn.id);
-		}
-		return map;
-	}
+        fillBiomeData();
+        saveData();
+    }
 
-	public void save() {
-		for (SpawnData spawn : this.data) {
-			if (spawn.id < 0) {
-				spawn.id = getUnusedId();
-			}
-			SpawnData original = getSpawnData(spawn.id);
-			if (original == null) {
-				this.data.add(spawn);
-			} else {
-				original.readNBT(spawn.writeNBT(new NBTTagCompound()));
-			}
-		}
+    public List<SpawnData> getSpawnList(String biome) {
+        return biomes.get(biome);
+    }
 
-		this.fillBiomeData();
-		this.saveData();
-	}
+    public SpawnData getRandomSpawnData(String biome, int dimensionId) {
+        List<SpawnData> biomeList = getSpawnList(biome);
+        if (biomeList == null)
+            return null;
 
-	public INaturalSpawn[] getSpawns() {
-		return data.toArray(new INaturalSpawn[]{});
-	}
+        ArrayList<SpawnData> list = new ArrayList<>();
+        for (SpawnData data : biomeList) {
+            if (data.dimensions.contains(dimensionId)) {
+                list.add(data);
+            }
+        }
+        if (list.isEmpty())
+            return null;
 
-	public INaturalSpawn[] getSpawns(String biome) {
-		return getSpawnList(biome).toArray(new INaturalSpawn[]{});
-	}
+        return (SpawnData) WeightedRandom.getRandomItem(this.random, list);
+    }
 
-	public void addSpawn(INaturalSpawn spawn) {
-		((SpawnData) spawn).id = 0;
-		this.saveSpawnData((SpawnData) spawn);
-	}
+    public Map<String, Integer> getScroll() {
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        for (SpawnData spawn : data) {
+            map.put(spawn.name, spawn.id);
+        }
+        return map;
+    }
 
-	public void removeSpawn(INaturalSpawn spawn) {
-		this.removeSpawnData(((SpawnData) spawn).id);
-	}
+    public void save() {
+        for (SpawnData spawn : this.data) {
+            if (spawn.id < 0) {
+                spawn.id = getUnusedId();
+            }
+            SpawnData original = getSpawnData(spawn.id);
+            if (original == null) {
+                this.data.add(spawn);
+            } else {
+                original.readNBT(spawn.writeNBT(new NBTTagCompound()));
+            }
+        }
 
-	public INaturalSpawn createSpawn() {
-		return new SpawnData();
-	}
+        this.fillBiomeData();
+        this.saveData();
+    }
+
+    public INaturalSpawn[] getSpawns() {
+        return data.toArray(new INaturalSpawn[]{});
+    }
+
+    public INaturalSpawn[] getSpawns(String biome) {
+        return getSpawnList(biome).toArray(new INaturalSpawn[]{});
+    }
+
+    public void addSpawn(INaturalSpawn spawn) {
+        ((SpawnData) spawn).id = 0;
+        this.saveSpawnData((SpawnData) spawn);
+    }
+
+    public void removeSpawn(INaturalSpawn spawn) {
+        this.removeSpawnData(((SpawnData) spawn).id);
+    }
+
+    public INaturalSpawn createSpawn() {
+        return new SpawnData();
+    }
 }

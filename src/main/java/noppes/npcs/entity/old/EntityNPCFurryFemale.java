@@ -15,41 +15,39 @@ import noppes.npcs.entity.data.ModelPartData;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer,
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNPCFurryFemale extends EntityNPCInterface
-{
-    public EntityNPCFurryFemale(World world)
-    {
+public class EntityNPCFurryFemale extends EntityNPCInterface {
+    public EntityNPCFurryFemale(World world) {
         super(world);
         scaleX = scaleY = scaleZ = 0.9075f;
         display.texture = "customnpcs:textures/entity/furryfemale/WolfBlack.png";
     }
-    public void onUpdate()
-    {
-    	isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
+    public void onUpdate() {
+        isDead = true;
 
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	ModelData data = npc.modelData;
-			data.breasts = 2;
-			data.modelScale.head.setScale(0.95f,0.95f);
-			data.modelScale.legs.setScale(0.92f,0.92f);
-			data.modelScale.arms.setScale(0.80f,0.92f);
-			data.modelScale.body.setScale(0.92f, 0.92f);
-	    	ModelPartData hair = data.getOrCreatePart("ears");
-			hair.playerTexture = true;
-			ModelPartData snout = data.getOrCreatePart("snout");
-			snout.playerTexture = true;
-			snout.type = 1;
-			ModelPartData tail = data.getOrCreatePart("tail");
-			tail.playerTexture = true;
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
+
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            ModelData data = npc.modelData;
+            data.breasts = 2;
+            data.modelScale.head.setScale(0.95f, 0.95f);
+            data.modelScale.legs.setScale(0.92f, 0.92f);
+            data.modelScale.arms.setScale(0.80f, 0.92f);
+            data.modelScale.body.setScale(0.92f, 0.92f);
+            ModelPartData hair = data.getOrCreatePart("ears");
+            hair.playerTexture = true;
+            ModelPartData snout = data.getOrCreatePart("snout");
+            snout.playerTexture = true;
+            snout.type = 1;
+            ModelPartData tail = data.getOrCreatePart("tail");
+            tail.playerTexture = true;
 
 
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
+            worldObj.spawnEntityInWorld(npc);
+        }
         super.onUpdate();
     }
 }

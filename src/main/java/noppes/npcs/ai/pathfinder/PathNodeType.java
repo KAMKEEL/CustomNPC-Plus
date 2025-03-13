@@ -1,7 +1,6 @@
 package noppes.npcs.ai.pathfinder;
 
-public enum PathNodeType
-{
+public enum PathNodeType {
     BLOCKED(-1.0F),
     OPEN(0.0F),
     WALKABLE(0.0F),
@@ -22,13 +21,11 @@ public enum PathNodeType
 
     private final float priority;
 
-    private PathNodeType(float priorityIn)
-    {
+    private PathNodeType(float priorityIn) {
         this.priority = priorityIn;
     }
 
-    public float getPriority()
-    {
+    public float getPriority() {
         return this.priority;
     }
 }

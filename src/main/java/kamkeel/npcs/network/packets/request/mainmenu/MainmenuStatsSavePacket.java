@@ -22,7 +22,8 @@ public final class MainmenuStatsSavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public MainmenuStatsSavePacket() {}
+    public MainmenuStatsSavePacket() {
+    }
 
     public MainmenuStatsSavePacket(NBTTagCompound compound) {
         this.compound = compound;

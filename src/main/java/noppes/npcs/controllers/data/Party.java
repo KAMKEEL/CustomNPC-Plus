@@ -93,8 +93,8 @@ public class Party implements IParty {
     }
 
     public EnumPartyObjectives getObjectiveRequirement() {
-        if(getQuestData() != null){
-            if(getQuestData().quest != null){
+        if (getQuestData() != null) {
+            if (getQuestData().quest != null) {
                 return getQuestData().quest.partyOptions.objectiveRequirement;
             }
         }
@@ -114,7 +114,7 @@ public class Party implements IParty {
     public boolean addPlayer(EntityPlayer player) {
         if (player == null) return false;
 
-        if(partyMembers.containsKey(player.getUniqueID())){
+        if (partyMembers.containsKey(player.getUniqueID())) {
             return false;
         }
 
@@ -130,12 +130,12 @@ public class Party implements IParty {
         if (player == null) return false;
 
         UUID uuid = player.getUniqueID();
-        if(partyMembers.containsKey(uuid)){
+        if (partyMembers.containsKey(uuid)) {
             partyMembers.remove(uuid);
             partyOrder.remove(uuid);
 
-            if(uuid.equals(partyLeader)){
-                if(partyMembers.size() > 0){
+            if (uuid.equals(partyLeader)) {
+                if (partyMembers.size() > 0) {
                     partyLeader = partyOrder.get(0);
                 }
             }
@@ -151,11 +151,11 @@ public class Party implements IParty {
 
     public boolean removePlayer(UUID uuid) {
         if (uuid == null) return false;
-        if(partyMembers.containsKey(uuid)){
+        if (partyMembers.containsKey(uuid)) {
             partyMembers.remove(uuid);
             partyOrder.remove(uuid);
-            if(uuid.equals(partyLeader)){
-                if(!partyMembers.isEmpty()){
+            if (uuid.equals(partyLeader)) {
+                if (!partyMembers.isEmpty()) {
                     partyLeader = partyOrder.get(0);
                 }
             }
@@ -179,12 +179,12 @@ public class Party implements IParty {
 
     @Override
     public boolean addPlayer(IPlayer player) {
-        return player != null && this.addPlayer((EntityPlayerMP)player.getMCEntity());
+        return player != null && this.addPlayer((EntityPlayerMP) player.getMCEntity());
     }
 
     @Override
     public boolean removePlayer(IPlayer player) {
-        return player != null && this.removePlayer((EntityPlayerMP)player.getMCEntity());
+        return player != null && this.removePlayer((EntityPlayerMP) player.getMCEntity());
     }
 
     public boolean hasPlayer(EntityPlayer player) {
@@ -193,16 +193,16 @@ public class Party implements IParty {
 
     @Override
     public boolean hasPlayer(IPlayer player) {
-        if(player == null)
+        if (player == null)
             return false;
-        EntityPlayer entityPlayer = (EntityPlayer)player.getMCEntity();
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
         return partyMembers.containsKey(entityPlayer.getUniqueID());
     }
 
     @Override
     public boolean hasPlayer(String playerName) {
         UUID uuid = getUUID(playerName);
-        if (uuid == null){
+        if (uuid == null) {
             return false;
         }
         return partyMembers.containsKey(uuid);
@@ -221,13 +221,13 @@ public class Party implements IParty {
         }
     }
 
-    public boolean setLeader(EntityPlayer player){
+    public boolean setLeader(EntityPlayer player) {
         UUID uuid = player.getUniqueID();
-        if(partyLeader != null && partyLeader.equals(uuid)){
+        if (partyLeader != null && partyLeader.equals(uuid)) {
             return false;
         }
 
-        if(!partyMembers.containsKey(uuid)){
+        if (!partyMembers.containsKey(uuid)) {
             return false;
         }
 
@@ -274,7 +274,7 @@ public class Party implements IParty {
 
     // Called when Set Quest is Called
     @Override
-    public boolean validateQuest(int questID, boolean sendLeaderMessages){
+    public boolean validateQuest(int questID, boolean sendLeaderMessages) {
         IQuest quest = QuestController.Instance.get(questID);
         if (quest == null) {
             return false;
@@ -304,7 +304,7 @@ public class Party implements IParty {
         EnumPartyRequirements partyRequirements = EnumPartyRequirements.values()[partyReq];
         if (partyRequirements == EnumPartyRequirements.Leader) {
             boolean leaderBool = isValidLeaderQuest(leader, questID);
-            if(!leaderBool){
+            if (!leaderBool) {
                 sendInfoMessage(leader, "\u00A7cYou are invalid for this quest", sendLeaderMessages);
             }
             return leaderBool;
@@ -355,7 +355,7 @@ public class Party implements IParty {
     }
 
     private void sendInfoMessage(EntityPlayer player, String message, boolean send) {
-        if(!send)
+        if (!send)
             return;
 
         player.addChatMessage(new ChatComponentText(String.format("\u00A7c%s", message)));
@@ -376,12 +376,13 @@ public class Party implements IParty {
         try {
             BufferedReader in = new BufferedReader(new InputStreamReader(new URL("https://api.mojang.com/users/profiles/minecraft/" + name).openStream()));
             String uuidString;
-            uuidString = (((JsonObject)new JsonParser().parse(in)).get("id")).toString().replaceAll("\"", "");
+            uuidString = (((JsonObject) new JsonParser().parse(in)).get("id")).toString().replaceAll("\"", "");
             uuidString = uuidString.replaceAll("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5");
             in.close();
 
             uuid = UUID.fromString(uuidString);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return uuid;
     }
 
@@ -441,14 +442,14 @@ public class Party implements IParty {
     }
 
     @Override
-    public void updateQuestObjectiveData(){
+    public void updateQuestObjectiveData() {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
             PartyController.Instance().pingPartyQuestObjectiveUpdate(this);
         }
     }
 
     @Override
-    public void updatePartyData(){
+    public void updatePartyData() {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
             PartyController.Instance().pingPartyUpdate(this);
         }

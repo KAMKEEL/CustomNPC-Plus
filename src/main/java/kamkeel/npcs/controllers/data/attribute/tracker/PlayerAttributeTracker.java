@@ -1,10 +1,5 @@
 package kamkeel.npcs.controllers.data.attribute.tracker;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import java.util.Map.Entry;
-
 import kamkeel.npcs.CustomAttributes;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
@@ -20,9 +15,14 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.UUID;
+
 public class PlayerAttributeTracker {
 
-    public  static UUID healthUUID = UUID.fromString("48a0ad75-2cf8-4838-ad2f-9a0aadc57dfe");
+    public static UUID healthUUID = UUID.fromString("48a0ad75-2cf8-4838-ad2f-9a0aadc57dfe");
 
 
     private final UUID playerId;
@@ -59,7 +59,7 @@ public class PlayerAttributeTracker {
             // Update equipment tracker.
             PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
             currentEquip.updateFrom(player);
-            ItemStack[] equipment = new ItemStack[] { currentEquip.heldItem, currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet };
+            ItemStack[] equipment = new ItemStack[]{currentEquip.heldItem, currentEquip.boots, currentEquip.leggings, currentEquip.chestplate, currentEquip.helmet};
             for (ItemStack piece : equipment) {
                 if (piece != null) {
                     if (piece.stackTagCompound != null && piece.stackTagCompound.hasKey(AttributeItemUtil.TAG_RPGCORE)) {
@@ -140,7 +140,8 @@ public class PlayerAttributeTracker {
             if (old != null) {
                 maxHealthAttr.removeModifier(old);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         if (bonusHealth != 0) {
             maxHealthAttr.applyModifier(new AttributeModifier(healthUUID, "RPGCoreHealthBonus", bonusHealth, 0));
         }

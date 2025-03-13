@@ -19,7 +19,8 @@ import java.io.IOException;
 public final class RoleGetPacket extends AbstractPacket {
     public static String packetName = "Request|RoleGet";
 
-    public RoleGetPacket() { }
+    public RoleGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -38,7 +39,8 @@ public final class RoleGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
@@ -48,7 +50,7 @@ public final class RoleGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc.roleInterface == null)
+        if (npc.roleInterface == null)
             return;
 
         NBTTagCompound compound = new NBTTagCompound();

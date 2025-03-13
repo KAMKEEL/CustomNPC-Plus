@@ -26,7 +26,8 @@ public final class GlobalNPCScriptPacket extends AbstractPacket {
     private int maxSize;
     private NBTTagCompound compound;
 
-    public GlobalNPCScriptPacket() {}
+    public GlobalNPCScriptPacket() {
+    }
 
     public GlobalNPCScriptPacket(Action type, int page, int maxSize, NBTTagCompound compound) {
         this.type = type;
@@ -46,7 +47,7 @@ public final class GlobalNPCScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_GLOBAL;
     }
 
@@ -55,7 +56,7 @@ public final class GlobalNPCScriptPacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             out.writeInt(this.page);
             out.writeInt(this.maxSize);
             ByteBufUtils.writeNBT(out, this.compound);
@@ -75,13 +76,13 @@ public final class GlobalNPCScriptPacket extends AbstractPacket {
 
         Action requestedAction = Action.values()[in.readInt()];
         GlobalNPCDataScript data = ScriptController.Instance.globalNpcScripts;
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             int tab = in.getInt(in.readerIndex());
-            PacketUtil.saveScripts(data,in);
+            PacketUtil.saveScripts(data, in);
             ScriptController.Instance.lastGlobalNpcUpdate = System.currentTimeMillis();
-            if(tab == -1)
+            if (tab == -1)
                 ScriptController.Instance.saveGlobalScriptsSync();
         }
     }
@@ -89,6 +90,7 @@ public final class GlobalNPCScriptPacket extends AbstractPacket {
     public static void Save(int id, int maxSize, NBTTagCompound compound) {
         PacketClient.sendClient(new GlobalNPCScriptPacket(Action.SAVE, id, maxSize, compound));
     }
+
     public static void Get() {
         PacketClient.sendClient(new GlobalNPCScriptPacket(Action.GET, -1, -1, new NBTTagCompound()));
     }

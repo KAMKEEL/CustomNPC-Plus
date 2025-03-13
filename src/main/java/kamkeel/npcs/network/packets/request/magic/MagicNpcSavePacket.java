@@ -9,10 +9,8 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.controllers.data.MagicData;
@@ -24,7 +22,8 @@ public final class MagicNpcSavePacket extends AbstractPacket {
 
     private MagicData magicData;
 
-    public MagicNpcSavePacket() {}
+    public MagicNpcSavePacket() {
+    }
 
     public MagicNpcSavePacket(MagicData magicData) {
         this.magicData = magicData;
@@ -54,7 +53,7 @@ public final class MagicNpcSavePacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         NBTTagCompound compound = new NBTTagCompound();
-        if(magicData != null){
+        if (magicData != null) {
             magicData.writeToNBT(compound);
         }
         ByteBufUtils.writeNBT(out, compound);

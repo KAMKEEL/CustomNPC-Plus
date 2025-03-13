@@ -20,7 +20,8 @@ public final class PlayerDataDeleteInfoPacket extends AbstractPacket {
     private EnumPlayerData tabType;
     private int value;
 
-    public PlayerDataDeleteInfoPacket() {}
+    public PlayerDataDeleteInfoPacket() {
+    }
 
     public PlayerDataDeleteInfoPacket(String playerName, EnumPlayerData tabType, int selectedKey) {
         this.playerName = playerName;

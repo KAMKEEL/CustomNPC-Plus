@@ -20,7 +20,8 @@ import java.io.IOException;
 public final class DialogCategoriesGetPacket extends AbstractPacket {
     public static String packetName = "Request|DialogCategoriesGet";
 
-    public DialogCategoriesGetPacket() {}
+    public DialogCategoriesGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -34,7 +35,8 @@ public final class DialogCategoriesGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

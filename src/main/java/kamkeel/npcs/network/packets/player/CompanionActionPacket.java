@@ -69,7 +69,7 @@ public class CompanionActionPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         Type type = Type.values()[in.readInt()];
 
-        if(npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
+        if (npc.advanced.role != EnumRoleType.Companion || player != npc.getOwner())
             return;
 
         if (type == Type.OpenInventory) {
@@ -79,7 +79,7 @@ public class CompanionActionPacket extends AbstractPacket {
         int id = in.readInt();
         int exp = in.readInt();
         RoleCompanion role = (RoleCompanion) npc.roleInterface;
-        if(exp <= 0 || !role.canAddExp(-exp) || id < 0 || id >= EnumCompanionTalent.values().length) //should never happen unless hacking
+        if (exp <= 0 || !role.canAddExp(-exp) || id < 0 || id >= EnumCompanionTalent.values().length) //should never happen unless hacking
             return;
         EnumCompanionTalent talent = EnumCompanionTalent.values()[id];
         role.addExp(-exp);

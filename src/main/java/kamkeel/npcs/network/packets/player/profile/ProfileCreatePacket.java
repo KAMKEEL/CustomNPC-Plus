@@ -21,7 +21,8 @@ import java.io.IOException;
 public final class ProfileCreatePacket extends AbstractPacket {
     public static String packetName = "Request|ProfileCreate";
 
-    public ProfileCreatePacket() {}
+    public ProfileCreatePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -40,14 +41,15 @@ public final class ProfileCreatePacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if(!ConfigMain.ProfilesEnabled)
+        if (!ConfigMain.ProfilesEnabled)
             return;
 
         Profile profile = ProfileController.Instance.getProfile(player);

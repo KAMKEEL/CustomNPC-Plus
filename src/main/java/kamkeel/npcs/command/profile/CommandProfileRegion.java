@@ -33,7 +33,7 @@ public class CommandProfileRegion extends CommandProfileBase {
     public void enable(ICommandSender sender, String[] args) throws CommandException {
         ConfigMain.RegionProfileSwitching = true;
         ConfigMain.RegionProfileSwitchingProperty.set(true);
-        if(ConfigMain.config.hasChanged()){
+        if (ConfigMain.config.hasChanged()) {
             ConfigMain.config.save();
         }
         sendResult(sender, "Profile region switching enabled.");
@@ -46,7 +46,7 @@ public class CommandProfileRegion extends CommandProfileBase {
     public void disable(ICommandSender sender, String[] args) throws CommandException {
         ConfigMain.RegionProfileSwitching = false;
         ConfigMain.RegionProfileSwitchingProperty.set(false);
-        if(ConfigMain.config.hasChanged()){
+        if (ConfigMain.config.hasChanged()) {
             ConfigMain.config.save();
         }
         sendResult(sender, "Profile region switching disabled.");
@@ -57,32 +57,32 @@ public class CommandProfileRegion extends CommandProfileBase {
         usage = "<dim> <x1> <y1> <z1> <x2> <y2> <z2>"
     )
     public void add(ICommandSender sender, String[] args) throws CommandException {
-        if(args.length != 7){
+        if (args.length != 7) {
             sendError(sender, "Usage: /profile region add <dim> <x1> <y1> <z1> <x2> <y2> <z2>");
             return;
         }
         List<Integer> regionList = new ArrayList<>();
         try {
-            for(String arg : args){
+            for (String arg : args) {
                 regionList.add(Integer.parseInt(arg));
             }
-        } catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             sendError(sender, "Invalid number format in region data.");
             return;
         }
         ConfigMain.RestrictedProfileRegions.add(regionList);
         // Update config property value
         List<String> regionStrings = new ArrayList<>();
-        for(List<Integer> region : ConfigMain.RestrictedProfileRegions) {
+        for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < region.size(); i++) {
-                if(i > 0) sb.append(" ");
+                if (i > 0) sb.append(" ");
                 sb.append(region.get(i));
             }
             regionStrings.add(sb.toString());
         }
         ConfigMain.RestrictedProfileRegionsProperty.set(regionStrings.toArray(new String[0]));
-        if(ConfigMain.config.hasChanged()){
+        if (ConfigMain.config.hasChanged()) {
             ConfigMain.config.save();
         }
         sendResult(sender, "Region added successfully.");
@@ -93,35 +93,35 @@ public class CommandProfileRegion extends CommandProfileBase {
         usage = "<index>"
     )
     public void remove(ICommandSender sender, String[] args) throws CommandException {
-        if(args.length < 1){
+        if (args.length < 1) {
             sendError(sender, "Usage: /profile region remove <index>");
             return;
         }
         int index;
         try {
             index = Integer.parseInt(args[0]);
-        } catch(NumberFormatException e){
+        } catch (NumberFormatException e) {
             sendError(sender, "Index must be a number.");
             return;
         }
         index = index - 1; // Convert to 0-based index
-        if(index < 0 || index >= ConfigMain.RestrictedProfileRegions.size()){
+        if (index < 0 || index >= ConfigMain.RestrictedProfileRegions.size()) {
             sendError(sender, "Invalid index. Must be between 1 and " + ConfigMain.RestrictedProfileRegions.size());
             return;
         }
         ConfigMain.RestrictedProfileRegions.remove(index);
         // Update config property value
         List<String> regionStrings = new ArrayList<>();
-        for(List<Integer> region : ConfigMain.RestrictedProfileRegions) {
+        for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < region.size(); i++) {
-                if(i > 0) sb.append(", ");
+                if (i > 0) sb.append(", ");
                 sb.append(region.get(i));
             }
             regionStrings.add(sb.toString());
         }
         ConfigMain.RestrictedProfileRegionsProperty.set(regionStrings.toArray(new String[0]));
-        if(ConfigMain.config.hasChanged()){
+        if (ConfigMain.config.hasChanged()) {
             ConfigMain.config.save();
         }
         sendResult(sender, "Region removed successfully.");
@@ -132,17 +132,17 @@ public class CommandProfileRegion extends CommandProfileBase {
         usage = ""
     )
     public void list(ICommandSender sender, String[] args) throws CommandException {
-        if(ConfigMain.RestrictedProfileRegions.isEmpty()){
+        if (ConfigMain.RestrictedProfileRegions.isEmpty()) {
             sendMessage(sender, "No restricted profile regions configured.");
             return;
         }
         sendMessage(sender, "Restricted Profile Regions:");
         int i = 1;
-        for(List<Integer> region : ConfigMain.RestrictedProfileRegions) {
+        for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
             StringBuilder sb = new StringBuilder();
             sb.append(i).append(": ");
             for (int j = 0; j < region.size(); j++) {
-                if(j > 0) sb.append(", ");
+                if (j > 0) sb.append(", ");
                 sb.append(region.get(j));
             }
             sendMessage(sender, sb.toString());

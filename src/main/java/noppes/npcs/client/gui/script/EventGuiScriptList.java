@@ -22,16 +22,16 @@ public class EventGuiScriptList extends SubGuiInterface {
         this.setBackground("menubg.png");
         this.xSize = 346;
         this.ySize = 216;
-        if(scripts == null) {
+        if (scripts == null) {
             scripts = new ArrayList();
         }
 
-        this.scripts = (List)scripts;
+        this.scripts = (List) scripts;
     }
 
     public void initGui() {
         super.initGui();
-        if(this.scroll1 == null) {
+        if (this.scroll1 == null) {
             this.scroll1 = new GuiCustomScroll(this, 0);
             this.scroll1.setSize(140, 180);
         }
@@ -40,7 +40,7 @@ public class EventGuiScriptList extends SubGuiInterface {
         this.scroll1.guiTop = this.guiTop + 14;
         this.addScroll(this.scroll1);
         this.addLabel(new GuiNpcLabel(1, "script.availableScripts", this.guiLeft + 4, this.guiTop + 4));
-        if(this.scroll2 == null) {
+        if (this.scroll2 == null) {
             this.scroll2 = new GuiCustomScroll(this, 1);
             this.scroll2.setSize(140, 180);
         }
@@ -61,26 +61,26 @@ public class EventGuiScriptList extends SubGuiInterface {
     }
 
     protected void actionPerformed(GuiButton guibutton) {
-        GuiNpcButton button = (GuiNpcButton)guibutton;
-        if(button.id == 1 && this.scroll1.hasSelected()) {
+        GuiNpcButton button = (GuiNpcButton) guibutton;
+        if (button.id == 1 && this.scroll1.hasSelected()) {
             this.container.scripts.add(this.scroll1.getSelected());
             this.scroll1.selected = -1;
             this.scroll2.selected = -1;
             this.initGui();
         }
 
-        if(button.id == 2 && this.scroll2.hasSelected()) {
+        if (button.id == 2 && this.scroll2.hasSelected()) {
             this.container.scripts.remove(this.scroll2.getSelected());
             this.scroll2.selected = -1;
             this.initGui();
         }
 
-        if(button.id == 3) {
+        if (button.id == 3) {
             this.container.scripts.clear();
             Iterator var3 = this.scripts.iterator();
 
-            while(var3.hasNext()) {
-                String script = (String)var3.next();
+            while (var3.hasNext()) {
+                String script = (String) var3.next();
                 this.container.scripts.add(script);
             }
 
@@ -89,14 +89,14 @@ public class EventGuiScriptList extends SubGuiInterface {
             this.initGui();
         }
 
-        if(button.id == 4) {
+        if (button.id == 4) {
             this.container.scripts.clear();
             this.scroll1.selected = -1;
             this.scroll2.selected = -1;
             this.initGui();
         }
 
-        if(button.id == 66) {
+        if (button.id == 66) {
             this.close();
         }
 

@@ -22,7 +22,8 @@ public final class RemoteResetPacket extends AbstractPacket {
 
     private int entityID;
 
-    public RemoteResetPacket() {}
+    public RemoteResetPacket() {
+    }
 
     public RemoteResetPacket(int entityID) {
         this.entityID = entityID;
@@ -58,7 +59,7 @@ public final class RemoteResetPacket extends AbstractPacket {
             return;
 
         Entity entity = player.worldObj.getEntityByID(in.readInt());
-        if(!(entity instanceof EntityNPCInterface))
+        if (!(entity instanceof EntityNPCInterface))
             return;
         npc = (EntityNPCInterface) entity;
         npc.reset();

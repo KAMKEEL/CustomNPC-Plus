@@ -13,14 +13,14 @@ import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 
-public class BlockBeam extends BlockRotated{
+public class BlockBeam extends BlockRotated {
 
-	public BlockBeam() {
+    public BlockBeam() {
         super(Blocks.planks);
-	}
+    }
 
     @Override
-    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
+    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List) {
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
         par3List.add(new ItemStack(par1, 1, 2));
@@ -30,41 +30,39 @@ public class BlockBeam extends BlockRotated{
     }
 
     @Override
-    public int damageDropped(int par1){
+    public int damageDropped(int par1) {
         return par1;
     }
+
     @Override
-    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
-    	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileVariant)){
-    		super.setBlockBoundsBasedOnState(world, x, y, z);
-    		return;
-    	}
-    	TileVariant tile = (TileVariant) tileentity;
-    	if(tile.rotation == 0){
-	        setBlockBounds(0.33f, 0.33f, 0.25f, 0.67f, 0.67f, 1f );
-		}
-		else if(tile.rotation == 2){
-	        setBlockBounds(0.33f, 0.33f, 0, 0.67f, 0.67f, 0.75f );
-		}
-		else if(tile.rotation == 3){
-	        setBlockBounds(0.25f, 0.33f, 0.33f, 1f, 0.67f, 0.67f );
-		}
-		else if(tile.rotation == 1){
-	        setBlockBounds(0, 0.33f, 0.33f, 0.75f, 0.67f, 0.67f );
-		}
+    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+        TileEntity tileentity = world.getTileEntity(x, y, z);
+        if (!(tileentity instanceof TileVariant)) {
+            super.setBlockBoundsBasedOnState(world, x, y, z);
+            return;
+        }
+        TileVariant tile = (TileVariant) tileentity;
+        if (tile.rotation == 0) {
+            setBlockBounds(0.33f, 0.33f, 0.25f, 0.67f, 0.67f, 1f);
+        } else if (tile.rotation == 2) {
+            setBlockBounds(0.33f, 0.33f, 0, 0.67f, 0.67f, 0.75f);
+        } else if (tile.rotation == 3) {
+            setBlockBounds(0.25f, 0.33f, 0.33f, 1f, 0.67f, 0.67f);
+        } else if (tile.rotation == 1) {
+            setBlockBounds(0, 0.33f, 0.33f, 0.75f, 0.67f, 0.67f);
+        }
     }
 
     @Override
-    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
+    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack) {
         super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);
-        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
+        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
     }
 
 
-	@Override
-	public TileEntity createNewTileEntity(World var1, int var2) {
-		return new TileBeam();
-	}
+    @Override
+    public TileEntity createNewTileEntity(World var1, int var2) {
+        return new TileBeam();
+    }
 
 }

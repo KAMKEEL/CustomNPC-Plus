@@ -9,111 +9,112 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleFollower extends ScriptRoleInterface implements IRoleFollower {
-	private RoleFollower role;
-	public ScriptRoleFollower(EntityNPCInterface npc) {
-		super(npc);
-		role = (RoleFollower) npc.roleInterface;
-	}
+    private RoleFollower role;
 
-	public void setOwner(IPlayer player){
-		if(player == null || player.getMCEntity() == null){
-			role.setOwner(null);
-			return;
-		}
-		EntityPlayer mcplayer = (EntityPlayer) player.getMCEntity();
-		role.setOwner(mcplayer);
-	}
+    public ScriptRoleFollower(EntityNPCInterface npc) {
+        super(npc);
+        role = (RoleFollower) npc.roleInterface;
+    }
 
-	public IPlayer getOwner(){
-		if(role.owner == null)
-			return null;
-		
-		return (IPlayer) NpcAPI.Instance().getIEntity(role.owner);
-	}
+    public void setOwner(IPlayer player) {
+        if (player == null || player.getMCEntity() == null) {
+            role.setOwner(null);
+            return;
+        }
+        EntityPlayer mcplayer = (EntityPlayer) player.getMCEntity();
+        role.setOwner(mcplayer);
+    }
 
-	public boolean hasOwner(){
-		return role.owner != null;
-	}
-	
-	public boolean isFollowing() {
-		return role.isFollowing();
-	}
-	
-	public void setIsFollowing(boolean following) {
-		if (role.owner != null && role.getDaysLeft() > 0) role.isFollowing = following;
-	}
+    public IPlayer getOwner() {
+        if (role.owner == null)
+            return null;
 
-	public int getDaysLeft(){
-		return role.getDaysLeft();
-	}
+        return (IPlayer) NpcAPI.Instance().getIEntity(role.owner);
+    }
 
-	public void addDaysLeft(int days){
-		role.addDays(days);
-	}
+    public boolean hasOwner() {
+        return role.owner != null;
+    }
 
-	public boolean getInfiniteDays(){
-		return role.infiniteDays;
-	}
+    public boolean isFollowing() {
+        return role.isFollowing();
+    }
 
-	public void setInfiniteDays(boolean infinite){
-		role.infiniteDays = infinite;
-	}
+    public void setIsFollowing(boolean following) {
+        if (role.owner != null && role.getDaysLeft() > 0) role.isFollowing = following;
+    }
 
-	public boolean getGuiDisabled(){
-		return role.disableGui;
-	}
+    public int getDaysLeft() {
+        return role.getDaysLeft();
+    }
 
-	public void setGuiDisabled(boolean disabled){
-		role.disableGui = disabled;
-	}
+    public void addDaysLeft(int days) {
+        role.addDays(days);
+    }
+
+    public boolean getInfiniteDays() {
+        return role.infiniteDays;
+    }
+
+    public void setInfiniteDays(boolean infinite) {
+        role.infiniteDays = infinite;
+    }
+
+    public boolean getGuiDisabled() {
+        return role.disableGui;
+    }
+
+    public void setGuiDisabled(boolean disabled) {
+        role.disableGui = disabled;
+    }
 
 
-	/**
-	 * @param index Index of Rate [0 - 2]
-	 * @param amount Amount hired for
-	 */
-	public void setRate(int index, int amount){
-		role.setRate(index, amount);
-	}
+    /**
+     * @param index  Index of Rate [0 - 2]
+     * @param amount Amount hired for
+     */
+    public void setRate(int index, int amount) {
+        role.setRate(index, amount);
+    }
 
-	/**
-	 * @param index Index of Rate [0 - 2]
-	 * @return amount fired for
-	 */
-	public int getRate(int index){
-		return role.getRate(index);
-	}
+    /**
+     * @param index Index of Rate [0 - 2]
+     * @return amount fired for
+     */
+    public int getRate(int index) {
+        return role.getRate(index);
+    }
 
-	/**
-	 * @param dialogHire New dialog hire string
-	 */
-	public void setDialogHire(String dialogHire){
-		role.setDialogHire(dialogHire);
-	}
+    /**
+     * @param dialogHire New dialog hire string
+     */
+    public void setDialogHire(String dialogHire) {
+        role.setDialogHire(dialogHire);
+    }
 
-	/**
-	 * @return dialog hire string
-	 */
-	public String getDialogHire(){
-		return role.getDialogHire();
-	}
+    /**
+     * @return dialog hire string
+     */
+    public String getDialogHire() {
+        return role.getDialogHire();
+    }
 
-	/**
-	 * @param dialogFarewell New dialog farewell string
-	 */
-	public void setDialogFarewell(String dialogFarewell){
-		role.setDialogFarewell(dialogFarewell);
-	}
+    /**
+     * @param dialogFarewell New dialog farewell string
+     */
+    public void setDialogFarewell(String dialogFarewell) {
+        role.setDialogFarewell(dialogFarewell);
+    }
 
-	/**
-	 * @return dialog farewell string
-	 */
-	public String getDialogFarewell(){
-		return role.getDialogFarewell();
-	}
+    /**
+     * @return dialog farewell string
+     */
+    public String getDialogFarewell() {
+        return role.getDialogFarewell();
+    }
 
-	@Override
-	public int getType(){
-		return RoleType.FOLLOWER;
-	}
+    @Override
+    public int getType() {
+        return RoleType.FOLLOWER;
+    }
 }

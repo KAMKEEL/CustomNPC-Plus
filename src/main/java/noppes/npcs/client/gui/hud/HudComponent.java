@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.hud;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
+
 import java.util.List;
 
 public abstract class HudComponent {
@@ -54,7 +55,7 @@ public abstract class HudComponent {
      * The default implementation toggles the enabled state if button id is 999.
      */
     public void onEditorButtonPressed(GuiButton button) {
-        if(button.id == 999){
+        if (button.id == 999) {
             enabled = !enabled;
             button.displayString = enabled ? "Enabled" : "Disabled";
         }

@@ -17,7 +17,7 @@ import tconstruct.client.tabs.InventoryTabCustomNpc;
 import tconstruct.client.tabs.TabRegistry;
 
 public class GuiCNPCInventory extends GuiNPCInterface {
-    public static final ResourceLocation specialIcons = new ResourceLocation("customnpcs","textures/gui/icons.png");
+    public static final ResourceLocation specialIcons = new ResourceLocation("customnpcs", "textures/gui/icons.png");
 
     public static int activeTab = -100;
     protected Minecraft mc = Minecraft.getMinecraft();
@@ -30,9 +30,9 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         drawDefaultBackground = false;
     }
 
-    public void initGui(){
+    public void initGui() {
         super.initGui();
-        guiTop +=10;
+        guiTop += 10;
 
         TabRegistry.updateTabValues(guiLeft, guiTop, InventoryTabCustomNpc.class);
         TabRegistry.addTabsToList(buttonList);
@@ -46,7 +46,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         questsButton.renderResource = specialIcons;
         addSideButton(questsButton);
 
-        if(ClientCacheHandler.allowParties){
+        if (ClientCacheHandler.allowParties) {
             y += 21;
             GuiMenuSideButton partyButton = new GuiMenuSideButton(-101, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             partyButton.rightSided = true;
@@ -54,7 +54,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             partyButton.renderResource = specialIcons;
             addSideButton(partyButton);
         }
-        if(ConfigClient.enableFactionTab){
+        if (ConfigClient.enableFactionTab) {
             y += 21;
             GuiMenuSideButton factionButton = new GuiMenuSideButton(-102, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             factionButton.rightSided = true;
@@ -63,7 +63,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             factionButton.renderResource = specialIcons;
             addSideButton(factionButton);
         }
-        if(ClientCacheHandler.allowProfiles){
+        if (ClientCacheHandler.allowProfiles) {
             y += 21;
             GuiMenuSideButton profileButton = new GuiMenuSideButton(-104, guiLeft + xSize + 37, this.guiTop + y, 22, 22, "");
             profileButton.rightSided = true;
@@ -108,7 +108,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
         updateEffectBar();
         super.drawScreen(mouseX, mouseY, partialTicks);
         if (!ConfigClient.HideEffectsBar && effectBar != null && !effectBar.entries.isEmpty()) {
-            if(activeTab != -100)
+            if (activeTab != -100)
                 effectBar.drawScreen(mouseX, mouseY, partialTicks);
         }
     }
@@ -130,7 +130,7 @@ public class GuiCNPCInventory extends GuiNPCInterface {
 
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         if (guibutton.id <= -100) {
             if (guibutton.id == -100 && activeTab != -100) {
                 activeTab = -100;
@@ -156,5 +156,6 @@ public class GuiCNPCInventory extends GuiNPCInterface {
     }
 
     @Override
-    public void save() {}
+    public void save() {
+    }
 }

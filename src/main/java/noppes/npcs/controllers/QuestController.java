@@ -21,243 +21,242 @@ import java.io.FileInputStream;
 import java.util.*;
 
 public class QuestController implements IQuestHandler {
-    public HashMap<Integer,QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
-	public HashMap<Integer,QuestCategory> categories = new HashMap<Integer, QuestCategory>();
-	public HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
+    public HashMap<Integer, QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
+    public HashMap<Integer, QuestCategory> categories = new HashMap<Integer, QuestCategory>();
+    public HashMap<Integer, Quest> quests = new HashMap<Integer, Quest>();
     public HashMap<Integer, Quest> sharedQuests = new HashMap<>();
 
-	public static QuestController Instance = new QuestController();;
+    public static QuestController Instance = new QuestController();
+    ;
 
-	private int lastUsedCatID = 0;
-	private int lastUsedQuestID = 0;
+    private int lastUsedCatID = 0;
+    private int lastUsedQuestID = 0;
 
-	public QuestController(){
-		Instance = this;
-	}
+    public QuestController() {
+        Instance = this;
+    }
 
-	public void load(){
-		categories.clear();
-		quests.clear();
+    public void load() {
+        categories.clear();
+        quests.clear();
 
-		lastUsedCatID = 0;
-		lastUsedQuestID = 0;
+        lastUsedCatID = 0;
+        lastUsedQuestID = 0;
 
-		try {
-	        File file = new File(CustomNpcs.getWorldSaveDirectory(), "quests.dat");
-	        if(file.exists()){
-	        	loadCategoriesOld(file);
-	        	file.delete();
-	        	file = new File(CustomNpcs.getWorldSaveDirectory(), "quests.dat_old");
-	        	if(file.exists())
-	        		file.delete();
-	        	return;
-	        }
-		} catch (Exception e) {
+        try {
+            File file = new File(CustomNpcs.getWorldSaveDirectory(), "quests.dat");
+            if (file.exists()) {
+                loadCategoriesOld(file);
+                file.delete();
+                file = new File(CustomNpcs.getWorldSaveDirectory(), "quests.dat_old");
+                if (file.exists())
+                    file.delete();
+                return;
+            }
+        } catch (Exception e) {
 
-		}
+        }
 
-		File dir = getDir();
-		if(!dir.exists()){
-			dir.mkdir();
-		}
-		else{
-			for(File file : dir.listFiles()){
-				if(!file.isDirectory())
-					continue;
-				QuestCategory category = loadCategoryDir(file);
-				Iterator<Integer> ite = category.quests.keySet().iterator();
-				while(ite.hasNext()){
-					int id = ite.next();
-					if(id > lastUsedQuestID)
-						lastUsedQuestID = id;
-					Quest quest = category.quests.get(id);
-					if(quests.containsKey(id)){
-						LogWriter.error("Duplicate id " + quest.id + " from category " + category.title);
-						ite.remove();
-					}
-					else{
-						quests.put(id, quest);
-                        if(quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared){
+        File dir = getDir();
+        if (!dir.exists()) {
+            dir.mkdir();
+        } else {
+            for (File file : dir.listFiles()) {
+                if (!file.isDirectory())
+                    continue;
+                QuestCategory category = loadCategoryDir(file);
+                Iterator<Integer> ite = category.quests.keySet().iterator();
+                while (ite.hasNext()) {
+                    int id = ite.next();
+                    if (id > lastUsedQuestID)
+                        lastUsedQuestID = id;
+                    Quest quest = category.quests.get(id);
+                    if (quests.containsKey(id)) {
+                        LogWriter.error("Duplicate id " + quest.id + " from category " + category.title);
+                        ite.remove();
+                    } else {
+                        quests.put(id, quest);
+                        if (quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared) {
                             sharedQuests.put(id, quest);
                         }
-					}
-				}
-				lastUsedCatID++;
-				category.id = lastUsedCatID;
-				categories.put(category.id, category);
-			}
-		}
-	}
-	private QuestCategory loadCategoryDir(File dir) {
-		QuestCategory category = new QuestCategory();
-		category.title = dir.getName();
-		for(File file : dir.listFiles()){
-			if(!file.isFile() || !file.getName().endsWith(".json"))
-				continue;
-			try{
-				Quest quest = new Quest();
-				quest.id = Integer.parseInt(file.getName().substring(0, file.getName().length() - 5));
-				quest.readNBTPartial(NBTJsonUtil.LoadFile(file));
-				category.quests.put(quest.id, quest);
-				quest.category = category;
-			}
-			catch(Exception e){
-				LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
-			}
-		}
-		return category;
-	}
-	private void loadCategoriesOld(File file) throws Exception{
-		File dir = getDir();
-		if(!dir.exists()){
-			dir.mkdir();
-		}
+                    }
+                }
+                lastUsedCatID++;
+                category.id = lastUsedCatID;
+                categories.put(category.id, category);
+            }
+        }
+    }
+
+    private QuestCategory loadCategoryDir(File dir) {
+        QuestCategory category = new QuestCategory();
+        category.title = dir.getName();
+        for (File file : dir.listFiles()) {
+            if (!file.isFile() || !file.getName().endsWith(".json"))
+                continue;
+            try {
+                Quest quest = new Quest();
+                quest.id = Integer.parseInt(file.getName().substring(0, file.getName().length() - 5));
+                quest.readNBTPartial(NBTJsonUtil.LoadFile(file));
+                category.quests.put(quest.id, quest);
+                quest.category = category;
+            } catch (Exception e) {
+                LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
+            }
+        }
+        return category;
+    }
+
+    private void loadCategoriesOld(File file) throws Exception {
+        File dir = getDir();
+        if (!dir.exists()) {
+            dir.mkdir();
+        }
         NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
         lastUsedCatID = nbttagcompound1.getInteger("lastID");
         lastUsedQuestID = nbttagcompound1.getInteger("lastQuestID");
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);
-        if(list != null){
-	        for(int i = 0; i < list.tagCount(); i++)
-	        {
-	            QuestCategory category = new QuestCategory();
-	            category.readNBT(list.getCompoundTagAt(i));
-	            categories.put(category.id,category);
-	            saveCategory(category);
+        if (list != null) {
+            for (int i = 0; i < list.tagCount(); i++) {
+                QuestCategory category = new QuestCategory();
+                category.readNBT(list.getCompoundTagAt(i));
+                categories.put(category.id, category);
+                saveCategory(category);
                 Iterator<Map.Entry<Integer, Quest>> ita = category.quests.entrySet().iterator();
-                while(ita.hasNext()){
-                	Map.Entry<Integer, Quest> entry = ita.next();
-            		Quest quest = entry.getValue();
-            		quest.id = entry.getKey();
-            		quest.category = category;
-                	if(quests.containsKey(quest.id))
-                		ita.remove();
-                	else{
-                		saveQuest(category.id, quest);
-                	}
+                while (ita.hasNext()) {
+                    Map.Entry<Integer, Quest> entry = ita.next();
+                    Quest quest = entry.getValue();
+                    quest.id = entry.getKey();
+                    quest.category = category;
+                    if (quests.containsKey(quest.id))
+                        ita.remove();
+                    else {
+                        saveQuest(category.id, quest);
+                    }
                 }
-	        }
+            }
         }
-	}
+    }
 
 
-	public void removeCategory(int category){
-		QuestCategory cat = categories.get(category);
-		if(cat == null)
-			return;
-		File dir = new File(getDir(), cat.title);
-		if(!dir.delete())
-			return;
-		for(int dia : cat.quests.keySet())
-			quests.remove(dia);
-		categories.remove(category);
+    public void removeCategory(int category) {
+        QuestCategory cat = categories.get(category);
+        if (cat == null)
+            return;
+        File dir = new File(getDir(), cat.title);
+        if (!dir.delete())
+            return;
+        for (int dia : cat.quests.keySet())
+            quests.remove(dia);
+        categories.remove(category);
         SyncController.syncRemove(EnumSyncType.QUEST_CATEGORY, category);
-	}
+    }
 
-	public void saveCategory(QuestCategory category){
-		category.title = NoppesStringUtils.cleanFileName(category.title);
-		if(categories.containsKey(category.id)){
-			QuestCategory currentCategory = categories.get(category.id);
-			if(!currentCategory.title.equals(category.title)){
-				while(containsCategoryName(category.title))
-					category.title += "_";
-				File newdir = new File(getDir(), category.title);
-				File olddir = new File(getDir(), currentCategory.title);
-				if(newdir.exists())
-					return;
-				if(!olddir.renameTo(newdir))
-					return;
-			}
-			category.quests = currentCategory.quests;
-		}
-		else{
-			if(category.id < 0){
-				lastUsedCatID++;
-				category.id = lastUsedCatID;
-			}
-			while(containsCategoryName(category.title))
-				category.title += "_";
-			File dir = new File(getDir(), category.title);
-			if(!dir.exists())
-				dir.mkdirs();
-		}
-		categories.put(category.id, category);
+    public void saveCategory(QuestCategory category) {
+        category.title = NoppesStringUtils.cleanFileName(category.title);
+        if (categories.containsKey(category.id)) {
+            QuestCategory currentCategory = categories.get(category.id);
+            if (!currentCategory.title.equals(category.title)) {
+                while (containsCategoryName(category.title))
+                    category.title += "_";
+                File newdir = new File(getDir(), category.title);
+                File olddir = new File(getDir(), currentCategory.title);
+                if (newdir.exists())
+                    return;
+                if (!olddir.renameTo(newdir))
+                    return;
+            }
+            category.quests = currentCategory.quests;
+        } else {
+            if (category.id < 0) {
+                lastUsedCatID++;
+                category.id = lastUsedCatID;
+            }
+            while (containsCategoryName(category.title))
+                category.title += "_";
+            File dir = new File(getDir(), category.title);
+            if (!dir.exists())
+                dir.mkdirs();
+        }
+        categories.put(category.id, category);
         SyncController.syncUpdate(EnumSyncType.QUEST_CATEGORY, -1, SyncController.updateQuestCat(category));
     }
-	private boolean containsCategoryName(String name) {
-		name = name.toLowerCase();
-		for(QuestCategory cat : categories.values()){
-			if(cat.title.toLowerCase().equals(name))
-				return true;
-		}
-		return false;
-	}
 
-	private boolean containsQuestName(QuestCategory category, Quest quest) {
-		for(Quest q : category.quests.values()){
-			if(q.id != quest.id && q.title.equalsIgnoreCase(quest.title))
-				return true;
-		}
-		return false;
-	}
+    private boolean containsCategoryName(String name) {
+        name = name.toLowerCase();
+        for (QuestCategory cat : categories.values()) {
+            if (cat.title.toLowerCase().equals(name))
+                return true;
+        }
+        return false;
+    }
 
-	public void saveQuest(int categoryID, Quest quest){
-		QuestCategory category = categories.get(categoryID);
-		if(category == null)
-			return;
-		quest.category = category;
+    private boolean containsQuestName(QuestCategory category, Quest quest) {
+        for (Quest q : category.quests.values()) {
+            if (q.id != quest.id && q.title.equalsIgnoreCase(quest.title))
+                return true;
+        }
+        return false;
+    }
 
-		while(containsQuestName(quest.category, quest)){
-			quest.title = quest.title + "_";
-		}
+    public void saveQuest(int categoryID, Quest quest) {
+        QuestCategory category = categories.get(categoryID);
+        if (category == null)
+            return;
+        quest.category = category;
 
-		if(quest.id < 0){
-			lastUsedQuestID++;
-			quest.id = lastUsedQuestID;
-		}
+        while (containsQuestName(quest.category, quest)) {
+            quest.title = quest.title + "_";
+        }
 
-    	quests.put(quest.id, quest);
-    	category.quests.put(quest.id, quest);
+        if (quest.id < 0) {
+            lastUsedQuestID++;
+            quest.id = lastUsedQuestID;
+        }
+
+        quests.put(quest.id, quest);
+        category.quests.put(quest.id, quest);
 
         sharedQuests.remove(quest.id);
-        if(quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared){
+        if (quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared) {
             sharedQuests.put(quest.id, quest);
         }
 
-    	File dir = new File(getDir(), category.title);
-    	if(!dir.exists())
-    		dir.mkdirs();
+        File dir = new File(getDir(), category.title);
+        if (!dir.exists())
+            dir.mkdirs();
 
-    	File file = new File(dir, quest.id + ".json_new");
-    	File file2 = new File(dir, quest.id + ".json");
+        File file = new File(dir, quest.id + ".json_new");
+        File file2 = new File(dir, quest.id + ".json");
 
-    	try {
-			NBTJsonUtil.SaveFile(file, quest.writeToNBTPartial(new NBTTagCompound()));
-			if(file2.exists())
-				file2.delete();
-			file.renameTo(file2);
+        try {
+            NBTJsonUtil.SaveFile(file, quest.writeToNBTPartial(new NBTTagCompound()));
+            if (file2.exists())
+                file2.delete();
+            file.renameTo(file2);
             SyncController.syncUpdate(EnumSyncType.QUEST, category.id, quest.writeToNBT(new NBTTagCompound()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	public void removeQuest(Quest quest) {
-		File file = new File(new File(getDir(), quest.category.title), quest.id + ".json");
-		if(!file.delete())
-			return;
-		quests.remove(quest.id);
-		quest.category.quests.remove(quest.id);
-	}
+    public void removeQuest(Quest quest) {
+        File file = new File(new File(getDir(), quest.category.title), quest.id + ".json");
+        if (!file.delete())
+            return;
+        quests.remove(quest.id);
+        quest.category.quests.remove(quest.id);
+    }
 
-	private File getDir(){
-		return new File(CustomNpcs.getWorldSaveDirectory(), "quests");
-	}
+    private File getDir() {
+        return new File(CustomNpcs.getWorldSaveDirectory(), "quests");
+    }
 
-	public List<IQuestCategory> categories() {
-		return new ArrayList(this.categories.values());
-	}
+    public List<IQuestCategory> categories() {
+        return new ArrayList(this.categories.values());
+    }
 
-	public IQuest get(int id) {
-		return (IQuest)this.quests.get(id);
-	}
+    public IQuest get(int id) {
+        return (IQuest) this.quests.get(id);
+    }
 }

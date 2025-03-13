@@ -14,88 +14,88 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TabRegistry {
-	private static ArrayList<AbstractTab> tabList = new ArrayList<AbstractTab>();
+    private static ArrayList<AbstractTab> tabList = new ArrayList<AbstractTab>();
 
-	public static void registerTab(AbstractTab tab) {
-		tabList.add(tab);
-	}
+    public static void registerTab(AbstractTab tab) {
+        tabList.add(tab);
+    }
 
-	public static ArrayList<AbstractTab> getTabList() {
-		return tabList;
-	}
+    public static ArrayList<AbstractTab> getTabList() {
+        return tabList;
+    }
 
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent
-	public void guiPostInit(GuiScreenEvent.InitGuiEvent.Post event) {
-		if ((event.gui instanceof GuiInventory)) {
-			int xSize = 176;
-			int ySize = 166;
-			int guiLeft = (event.gui.width - xSize) / 2;
-			int guiTop = (event.gui.height - ySize) / 2;
-			guiLeft += getPotionOffset();
-			updateTabValues(guiLeft, guiTop, InventoryTabVanilla.class);
-			addTabsToList(event.buttonList);
-		}
-	}
+    @SideOnly(Side.CLIENT)
+    @SubscribeEvent
+    public void guiPostInit(GuiScreenEvent.InitGuiEvent.Post event) {
+        if ((event.gui instanceof GuiInventory)) {
+            int xSize = 176;
+            int ySize = 166;
+            int guiLeft = (event.gui.width - xSize) / 2;
+            int guiTop = (event.gui.height - ySize) / 2;
+            guiLeft += getPotionOffset();
+            updateTabValues(guiLeft, guiTop, InventoryTabVanilla.class);
+            addTabsToList(event.buttonList);
+        }
+    }
 
-	private static Minecraft mc = FMLClientHandler.instance().getClient();
+    private static Minecraft mc = FMLClientHandler.instance().getClient();
 
-	public static void openInventoryGui() {
-		mc.thePlayer.sendQueue.addToSendQueue(new C0DPacketCloseWindow(
-				mc.thePlayer.openContainer.windowId));
-		GuiInventory inventory = new GuiInventory(mc.thePlayer);
-		mc.displayGuiScreen(inventory);
-	}
+    public static void openInventoryGui() {
+        mc.thePlayer.sendQueue.addToSendQueue(new C0DPacketCloseWindow(
+            mc.thePlayer.openContainer.windowId));
+        GuiInventory inventory = new GuiInventory(mc.thePlayer);
+        mc.displayGuiScreen(inventory);
+    }
 
-	public static void updateTabValues(int cornerX, int cornerY,
-			Class<?> selectedButton) {
-		int count = 2;
-		for (int i = 0; i < tabList.size(); i++) {
-			AbstractTab t = tabList.get(i);
-			if (t.shouldAddToList()) {
-				t.id = count;
-				t.xPosition = cornerX + (count - 2) * 28;
-				t.yPosition = cornerY - 28;
-				t.enabled = !t.getClass().equals(selectedButton);
-				count++;
-			}
-		}
-	}
+    public static void updateTabValues(int cornerX, int cornerY,
+                                       Class<?> selectedButton) {
+        int count = 2;
+        for (int i = 0; i < tabList.size(); i++) {
+            AbstractTab t = tabList.get(i);
+            if (t.shouldAddToList()) {
+                t.id = count;
+                t.xPosition = cornerX + (count - 2) * 28;
+                t.yPosition = cornerY - 28;
+                t.enabled = !t.getClass().equals(selectedButton);
+                count++;
+            }
+        }
+    }
 
-	public static void addTabsToList(List buttonList) {
-		for (AbstractTab tab : tabList) {
-			if (tab.shouldAddToList()) {
-				buttonList.add(tab);
-			}
-		}
-	}
+    public static void addTabsToList(List buttonList) {
+        for (AbstractTab tab : tabList) {
+            if (tab.shouldAddToList()) {
+                buttonList.add(tab);
+            }
+        }
+    }
 
-	public static int getPotionOffset() {
-		// If at least one potion is active...
-		if (!mc.thePlayer.getActivePotionEffects().isEmpty()) {
-			if (Loader.isModLoaded("NotEnoughItems")) {
-				try {
-					// Check whether NEI is hidden and enabled
-					Class<?> c = Class
-							.forName("codechicken.nei.NEIClientConfig");
-					Object hidden = c.getMethod("isHidden").invoke(null);
-					Object enabled = c.getMethod("isEnabled").invoke(null);
-					if (hidden != null && hidden instanceof Boolean
-							&& enabled != null && enabled instanceof Boolean) {
-						if ((Boolean) hidden || !((Boolean) enabled)) {
-							// If NEI is disabled or hidden, offset the tabs by
-							// 60
-							return 60;
-						}
-					}
-				} catch (Exception e) {
-				}
-			} else {
-				// If NEI is not installed, offset the tabs
-				return 60;
-			}
-		}
-		// No potions, no offset needed
-		return 0;
-	}
+    public static int getPotionOffset() {
+        // If at least one potion is active...
+        if (!mc.thePlayer.getActivePotionEffects().isEmpty()) {
+            if (Loader.isModLoaded("NotEnoughItems")) {
+                try {
+                    // Check whether NEI is hidden and enabled
+                    Class<?> c = Class
+                        .forName("codechicken.nei.NEIClientConfig");
+                    Object hidden = c.getMethod("isHidden").invoke(null);
+                    Object enabled = c.getMethod("isEnabled").invoke(null);
+                    if (hidden != null && hidden instanceof Boolean
+                        && enabled != null && enabled instanceof Boolean) {
+                        if ((Boolean) hidden || !((Boolean) enabled)) {
+                            // If NEI is disabled or hidden, offset the tabs by
+                            // 60
+                            return 60;
+                        }
+                    }
+                } catch (Exception e) {
+                }
+            } else {
+                // If NEI is not installed, offset the tabs
+                return 60;
+            }
+        }
+        // No potions, no offset needed
+        return 0;
+    }
 }

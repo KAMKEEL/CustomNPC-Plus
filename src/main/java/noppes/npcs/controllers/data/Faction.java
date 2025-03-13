@@ -15,42 +15,44 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class Faction implements IFaction {
-	public String name = "";
-	public int color = Integer.parseInt("FF00", 16);
+    public String name = "";
+    public int color = Integer.parseInt("FF00", 16);
 
-	public HashSet<Integer> attackFactions;
-	public int id = -1;
+    public HashSet<Integer> attackFactions;
+    public int id = -1;
 
-	public int neutralPoints = 500;
-	public int friendlyPoints = 1500;
+    public int neutralPoints = 500;
+    public int friendlyPoints = 1500;
 
-	public int defaultPoints = 1000;
+    public int defaultPoints = 1000;
 
-	public boolean hideFaction = false;
-	public boolean getsAttacked = false;
+    public boolean hideFaction = false;
+    public boolean getsAttacked = false;
     public boolean isPassive = false;
 
-	public Faction(){
-		attackFactions = new HashSet<Integer>();
-	}
+    public Faction() {
+        attackFactions = new HashSet<Integer>();
+    }
 
-	public Faction(int id, String name,int color, int defaultPoints){
-		this.name = name;
-		this.color = color;
-		this.defaultPoints = defaultPoints;
-		this.id = id;
-		attackFactions = new HashSet<Integer>();
-	}
-	public static String formatName(String name){
-		name = name.toLowerCase().trim();
-		return name.substring(0, 1).toUpperCase() + name.substring(1);
-	}
-	public void readNBT(NBTTagCompound compound){
+    public Faction(int id, String name, int color, int defaultPoints) {
+        this.name = name;
+        this.color = color;
+        this.defaultPoints = defaultPoints;
+        this.id = id;
+        attackFactions = new HashSet<Integer>();
+    }
+
+    public static String formatName(String name) {
+        name = name.toLowerCase().trim();
+        return name.substring(0, 1).toUpperCase() + name.substring(1);
+    }
+
+    public void readNBT(NBTTagCompound compound) {
         name = compound.getString("Name");
         color = compound.getInteger("Color");
         id = compound.getInteger("Slot");
 
-        neutralPoints= compound.getInteger("NeutralPoints");
+        neutralPoints = compound.getInteger("NeutralPoints");
         friendlyPoints = compound.getInteger("FriendlyPoints");
         defaultPoints = compound.getInteger("DefaultPoints");
 
@@ -59,126 +61,131 @@ public class Faction implements IFaction {
         isPassive = compound.getBoolean("IsPassive");
 
         attackFactions = NBTTags.getIntegerSet(compound.getTagList("AttackFactions", 10));
-	}
-	public void writeNBT(NBTTagCompound compound){
-		compound.setInteger("Slot", id);
-		compound.setString("Name", name);
-		compound.setInteger("Color", color);
+    }
 
-		compound.setInteger("NeutralPoints", neutralPoints);
-		compound.setInteger("FriendlyPoints", friendlyPoints);
-		compound.setInteger("DefaultPoints", defaultPoints);
+    public void writeNBT(NBTTagCompound compound) {
+        compound.setInteger("Slot", id);
+        compound.setString("Name", name);
+        compound.setInteger("Color", color);
 
-		compound.setBoolean("HideFaction", hideFaction);
-		compound.setBoolean("GetsAttacked", getsAttacked);
+        compound.setInteger("NeutralPoints", neutralPoints);
+        compound.setInteger("FriendlyPoints", friendlyPoints);
+        compound.setInteger("DefaultPoints", defaultPoints);
+
+        compound.setBoolean("HideFaction", hideFaction);
+        compound.setBoolean("GetsAttacked", getsAttacked);
         compound.setBoolean("IsPassive", isPassive);
 
-		compound.setTag("AttackFactions", NBTTags.nbtIntegerSet(attackFactions));
-	}
+        compound.setTag("AttackFactions", NBTTags.nbtIntegerSet(attackFactions));
+    }
 
-	public boolean isFriendlyToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
-		return data.getFactionPoints(id) >= friendlyPoints;
-	}
+    public boolean isFriendlyToPlayer(EntityPlayer player) {
+        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        return data.getFactionPoints(id) >= friendlyPoints;
+    }
 
-	public boolean isAggressiveToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
-		return data.getFactionPoints(id) < neutralPoints;
-	}
+    public boolean isAggressiveToPlayer(EntityPlayer player) {
+        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        return data.getFactionPoints(id) < neutralPoints;
+    }
 
-	public boolean isNeutralToPlayer(EntityPlayer player) {
-		PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
-		int points = data.getFactionPoints(id);
-		return points >= neutralPoints && points < friendlyPoints;
-	}
+    public boolean isNeutralToPlayer(EntityPlayer player) {
+        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        int points = data.getFactionPoints(id);
+        return points >= neutralPoints && points < friendlyPoints;
+    }
 
-	public boolean isAggressiveToNpc(EntityNPCInterface entity) {
-		return attackFactions.contains(entity.faction.id);
-	}
+    public boolean isAggressiveToNpc(EntityNPCInterface entity) {
+        return attackFactions.contains(entity.faction.id);
+    }
 
-	public int getId() {
-		return this.id;
-	}
+    public int getId() {
+        return this.id;
+    }
 
-	public String getName() {
-		return this.name;
-	}
+    public String getName() {
+        return this.name;
+    }
 
-	public void setName(String name) { this.name = name; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setDefaultPoints(int points) {
-		this.defaultPoints = points;
-	}
+    public void setDefaultPoints(int points) {
+        this.defaultPoints = points;
+    }
 
-	public int getDefaultPoints() {
-		return this.defaultPoints;
-	}
+    public int getDefaultPoints() {
+        return this.defaultPoints;
+    }
 
-	public void setFriendlyPoints(int points) {
-		this.friendlyPoints = points;
-	}
+    public void setFriendlyPoints(int points) {
+        this.friendlyPoints = points;
+    }
 
-	public int getFriendlyPoints() {
-		return this.friendlyPoints;
-	}
+    public int getFriendlyPoints() {
+        return this.friendlyPoints;
+    }
 
-	public void setNeutralPoints(int points) {
-		this.neutralPoints = points;
-	}
+    public void setNeutralPoints(int points) {
+        this.neutralPoints = points;
+    }
 
-	public int getNeutralPoints() {
-		return this.neutralPoints;
-	}
+    public int getNeutralPoints() {
+        return this.neutralPoints;
+    }
 
-	public void setColor(int color) { this.color = color; }
+    public void setColor(int color) {
+        this.color = color;
+    }
 
-	public int getColor() {
-		return this.color;
-	}
+    public int getColor() {
+        return this.color;
+    }
 
-	public int playerStatus(IPlayer player) {
-		IPlayerFactionData data = player.getData().getFactionData();
-		int points = data.getPoints(this.id);
-		if (points >= this.friendlyPoints) {
-			return 1;
-		} else {
-			return points < this.neutralPoints ? -1 : 0;
-		}
-	}
+    public int playerStatus(IPlayer player) {
+        IPlayerFactionData data = player.getData().getFactionData();
+        int points = data.getPoints(this.id);
+        if (points >= this.friendlyPoints) {
+            return 1;
+        } else {
+            return points < this.neutralPoints ? -1 : 0;
+        }
+    }
 
-	public boolean isAggressiveToNpc(ICustomNpc npc) {
-		return this.attackFactions.contains(npc.getFaction().getId());
-	}
+    public boolean isAggressiveToNpc(ICustomNpc npc) {
+        return this.attackFactions.contains(npc.getFaction().getId());
+    }
 
-	public boolean isEnemyFaction(IFaction faction) {
-		return this.attackFactions.contains(faction.getId());
-	}
+    public boolean isEnemyFaction(IFaction faction) {
+        return this.attackFactions.contains(faction.getId());
+    }
 
-	public IFaction[] getEnemyFactions() {
-		ArrayList<IFaction> enemyFactions = new ArrayList<>();
+    public IFaction[] getEnemyFactions() {
+        ArrayList<IFaction> enemyFactions = new ArrayList<>();
 
-		for (int id : this.attackFactions) {
-			enemyFactions.add(FactionController.getInstance().get(id));
-		}
+        for (int id : this.attackFactions) {
+            enemyFactions.add(FactionController.getInstance().get(id));
+        }
 
-		return enemyFactions.toArray(new IFaction[]{});
-	}
+        return enemyFactions.toArray(new IFaction[]{});
+    }
 
-	public void addEnemyFaction(IFaction faction) {
-		this.attackFactions.add(faction.getId());
-	}
+    public void addEnemyFaction(IFaction faction) {
+        this.attackFactions.add(faction.getId());
+    }
 
-	public void removeEnemyFaction(IFaction faction) {
-		this.attackFactions.remove(faction.getId());
-	}
+    public void removeEnemyFaction(IFaction faction) {
+        this.attackFactions.remove(faction.getId());
+    }
 
-	public boolean getIsHidden() {
-		return this.hideFaction;
-	}
+    public boolean getIsHidden() {
+        return this.hideFaction;
+    }
 
-	public void setIsHidden(boolean bo) {
-		this.hideFaction = bo;
-	}
+    public void setIsHidden(boolean bo) {
+        this.hideFaction = bo;
+    }
 
     public boolean isPassive() {
         return isPassive;
@@ -189,26 +196,26 @@ public class Faction implements IFaction {
     }
 
     public boolean attackedByMobs() {
-		return this.getsAttacked;
-	}
+        return this.getsAttacked;
+    }
 
-	public void setAttackedByMobs(boolean bo) {
-		this.getsAttacked = bo;
-	}
+    public void setAttackedByMobs(boolean bo) {
+        this.getsAttacked = bo;
+    }
 
-	public void save() {
-		FactionController.getInstance().saveFaction(this);
-	}
+    public void save() {
+        FactionController.getInstance().saveFaction(this);
+    }
 
-	public boolean isFriendlyToPlayer(IPlayer player) {
-		return this.isFriendlyToPlayer((EntityPlayer) player.getMCEntity());
-	}
+    public boolean isFriendlyToPlayer(IPlayer player) {
+        return this.isFriendlyToPlayer((EntityPlayer) player.getMCEntity());
+    }
 
-	public boolean isNeutralToPlayer(IPlayer player) {
-		return this.isNeutralToPlayer((EntityPlayer) player.getMCEntity());
-	}
+    public boolean isNeutralToPlayer(IPlayer player) {
+        return this.isNeutralToPlayer((EntityPlayer) player.getMCEntity());
+    }
 
-	public boolean isAggressiveToPlayer(IPlayer player) {
-		return this.isAggressiveToPlayer((EntityPlayer) player.getMCEntity());
-	}
+    public boolean isAggressiveToPlayer(IPlayer player) {
+        return this.isAggressiveToPlayer((EntityPlayer) player.getMCEntity());
+    }
 }

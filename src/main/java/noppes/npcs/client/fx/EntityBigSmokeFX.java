@@ -15,14 +15,15 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.EntityEvent.EntityConstructing;
 import org.lwjgl.opengl.GL11;
 
-public class EntityBigSmokeFX extends EntityFX
-{
+public class EntityBigSmokeFX extends EntityFX {
 
-    /** there are 12 smoke textures. */
+    /**
+     * there are 12 smoke textures.
+     */
     public static final int TEXTURE_COUNT = 12;
     public static final ResourceLocation[] TEXTURES = new ResourceLocation[TEXTURE_COUNT];
-    static
-    {
+
+    static {
         for (int i = 0; i < TEXTURE_COUNT; i++)
             TEXTURES[i] = new ResourceLocation("customnpcs" + ":" + "textures/particle/big_smoke_" + i + ".png");
     }
@@ -71,8 +72,7 @@ public class EntityBigSmokeFX extends EntityFX
     }
 
     @Override
-    public void renderParticle(Tessellator tess, float partialTicks, float rotX, float rotXZ, float rotZ, float rotYZ, float rotXY)
-    {
+    public void renderParticle(Tessellator tess, float partialTicks, float rotX, float rotXZ, float rotZ, float rotYZ, float rotXY) {
         rotX = ActiveRenderInfo.rotationX;
         rotXZ = ActiveRenderInfo.rotationXZ;
         rotZ = ActiveRenderInfo.rotationZ;
@@ -120,8 +120,7 @@ public class EntityBigSmokeFX extends EntityFX
     }
 
     @Override
-    public int getFXLayer()
-    {
+    public int getFXLayer() {
         return 3;
     }
 
@@ -156,7 +155,6 @@ public class EntityBigSmokeFX extends EntityFX
     }
 
 
-
     /**
      * Allows you to change various aspects of campfire smoke particles:<br>
      * - {@link #particleRed}, {@link #particleGreen}, and {@link #particleBlue} are the float r, g, b values of the smoke. <br>
@@ -176,8 +174,7 @@ public class EntityBigSmokeFX extends EntityFX
      * This event is {@link Cancelable}. If canceled, the entity will be removed.<br>
      */
     @Cancelable
-    public static class EntityBigSmokeFXConstructingEvent extends EntityConstructing
-    {
+    public static class EntityBigSmokeFXConstructingEvent extends EntityConstructing {
         public final int[] campfirePosition;
 
         public float particleRed;
@@ -192,11 +189,10 @@ public class EntityBigSmokeFX extends EntityFX
         public float alphaFadePerTick;
         public int particleMaxAge;
 
-        public EntityBigSmokeFXConstructingEvent(EntityBigSmokeFX entity, int x, int y, int z)
-        {
+        public EntityBigSmokeFXConstructingEvent(EntityBigSmokeFX entity, int x, int y, int z) {
             super(entity);
 
-            campfirePosition = new int[] { x, y, z };
+            campfirePosition = new int[]{x, y, z};
 
             particleRed = entity.particleRed;
             particleGreen = entity.particleGreen;

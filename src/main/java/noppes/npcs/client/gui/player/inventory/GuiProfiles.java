@@ -1,11 +1,10 @@
 package noppes.npcs.client.gui.player.inventory;
 
-import kamkeel.npcs.network.packets.player.profile.*;
-import noppes.npcs.api.handler.data.ISlot;
-import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.controllers.data.profile.Slot;
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.profile.*;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -13,6 +12,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.api.handler.data.ISlot;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
@@ -29,7 +29,7 @@ import java.util.List;
 
 public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback {
 
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");
     private GuiCustomScroll scroll;
     public HashMap<String, Integer> data = new HashMap<>();
     private String selected = null;
@@ -46,28 +46,27 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     private int lastMouseY = 0; // Last recorded mouse Y position when dragging
 
     public GuiProfiles() {
-		super();
-		xSize = 280;
-		ySize = 180;
+        super();
+        xSize = 280;
+        ySize = 180;
         this.drawDefaultBackground = false;
         title = "";
         PacketClient.sendClient(new ProfileGetPacket());
         PacketClient.sendClient(new ProfileGetInfoPacket());
-	}
+    }
 
-	@Override
-    public void initGui()
-    {
-		super.initGui();
+    @Override
+    public void initGui() {
+        super.initGui();
 
         int y = guiTop + 4;
-        this.addButton(new GuiNpcButton(1,guiLeft + 4, y += 144, 60, 20, "gui.change"));
-        this.addButton(new GuiNpcButton(2,guiLeft + 4 + 63, y, 60, 20, "gui.rename"));
-        this.addButton(new GuiNpcButton(3,guiLeft + 4 + 63, y += 22, 60, 20, "gui.remove"));
-        this.addButton(new GuiNpcButton(4,guiLeft + 4, y, 60, 20, "gui.create"));
+        this.addButton(new GuiNpcButton(1, guiLeft + 4, y += 144, 60, 20, "gui.change"));
+        this.addButton(new GuiNpcButton(2, guiLeft + 4 + 63, y, 60, 20, "gui.rename"));
+        this.addButton(new GuiNpcButton(3, guiLeft + 4 + 63, y += 22, 60, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(4, guiLeft + 4, y, 60, 20, "gui.create"));
 
-        if(scroll == null){
-            scroll = new GuiCustomScroll(this,0);
+        if (scroll == null) {
+            scroll = new GuiCustomScroll(this, 0);
             scroll.setSize(123, 141);
         }
         scroll.guiLeft = guiLeft + 4;
@@ -77,8 +76,8 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
-        if(guibutton instanceof AbstractTab)
+    protected void actionPerformed(GuiButton guibutton) {
+        if (guibutton instanceof AbstractTab)
             return;
 
         if (guibutton.id <= -100) {
@@ -86,22 +85,22 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             return;
         }
 
-        if(guibutton.id == 4){
+        if (guibutton.id == 4) {
             GuiYesNo guiyesno = new GuiYesNo(this, StatCollector.translateToLocal("profile.create.message"), StatCollector.translateToLocal("gui.sure"), 104);
             displayGuiScreen(guiyesno);
         }
 
-        if(this.slot == null)
+        if (this.slot == null)
             return;
 
-        if(guibutton.id == 1){
+        if (guibutton.id == 1) {
             GuiYesNo guiyesno = new GuiYesNo(this, slot.getName(), StatCollector.translateToLocal("profile.change.message"), 101);
             displayGuiScreen(guiyesno);
         }
-        if(guibutton.id == 2){
+        if (guibutton.id == 2) {
             setSubGui(new SubGuiEditText(slot.getName()));
         }
-        if(guibutton.id == 3){
+        if (guibutton.id == 3) {
             GuiYesNo guiyesno = new GuiYesNo(this, slot.getName(), StatCollector.translateToLocal("gui.delete"), 103);
             displayGuiScreen(guiyesno);
         }
@@ -169,7 +168,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             fontRendererObj.drawString(result, resultX, y, resultColor, false);
             y += spacing;
 
-            if(slot.isTemporary()){
+            if (slot.isTemporary()) {
                 label = StatCollector.translateToLocal("profile.temporary");
                 result = (String.valueOf(slot.isTemporary())).toUpperCase();
                 labelColor = 0xfc60dd;
@@ -222,7 +221,7 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     @Override
     public void handleMouseInput() {
         super.handleMouseInput();
-        if(isMouseOverScrollBox(mouseX, mouseY)){
+        if (isMouseOverScrollBox(mouseX, mouseY)) {
             int delta = Mouse.getEventDWheel();
             if (delta != 0) {
                 scrollY -= delta / 7;
@@ -266,16 +265,16 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     }
 
     @Override
-    public void keyTyped(char c, int i)
-    {
+    public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
-        if (i == 1 || (!hasSubGui() && isInventoryKey(i)))
-        {
+        if (i == 1 || (!hasSubGui() && isInventoryKey(i))) {
             close();
         }
     }
-	@Override
-	public void save() {}
+
+    @Override
+    public void save() {
+    }
 
     @Override
     public void confirmClicked(boolean result, int id) {
@@ -286,18 +285,18 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
             // Create Slot
             PacketClient.sendClient(new ProfileCreatePacket());
         }
-        if(slot == null)
+        if (slot == null)
             return;
 
-        if(id == 101){
+        if (id == 101) {
             // Change Slot
             PacketClient.sendClient(new ProfileChangePacket(slot.getId()));
         }
-        if(id == 102 && rename != null && !rename.equalsIgnoreCase(slot.getName())){
+        if (id == 102 && rename != null && !rename.equalsIgnoreCase(slot.getName())) {
             // Rename Slot
             PacketClient.sendClient(new ProfileRenamePacket(slot.getId(), rename));
         }
-        if(id == 103){
+        if (id == 103) {
             // Delete Slot
             PacketClient.sendClient(new ProfileRemovePacket(slot.getId()));
         }
@@ -305,9 +304,9 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
-        if(subgui instanceof SubGuiEditText){
-            if(!((SubGuiEditText)subgui).cancelled){
-                rename = ((SubGuiEditText)subgui).text;
+        if (subgui instanceof SubGuiEditText) {
+            if (!((SubGuiEditText) subgui).cancelled) {
+                rename = ((SubGuiEditText) subgui).text;
                 GuiYesNo guiyesno = new GuiYesNo(this, rename, StatCollector.translateToLocal("profile.rename.message"), 102);
                 displayGuiScreen(guiyesno);
             }
@@ -319,9 +318,9 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
         if (guiCustomScroll.id == 0) {
             slot = null;
             selected = scroll.getSelected();
-            if (profile != null && selected != null && !selected.isEmpty()){
-                for(ISlot checkSlot : profile.getSlots().values()){
-                    if(checkSlot.getId() == data.get(selected)){
+            if (profile != null && selected != null && !selected.isEmpty()) {
+                for (ISlot checkSlot : profile.getSlots().values()) {
+                    if (checkSlot.getId() == data.get(selected)) {
                         slot = (Slot) checkSlot;
                         break;
                     }
@@ -331,28 +330,29 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
     public void setGuiData(NBTTagCompound compound) {
         this.slot = null;
-        if(compound.hasKey("PROFILE")){
+        if (compound.hasKey("PROFILE")) {
             // Load Profile
             this.profile = new Profile(mc.thePlayer, compound);
             this.data = new HashMap<>();
             String currentSlot = "\u00A7e";
             String otherSlot = "\u00A7f";
-            for(ISlot slot1 : profile.getSlots().values()){
+            for (ISlot slot1 : profile.getSlots().values()) {
                 String name = slot1.getId() + " - " + slot1.getName();
-                if(profile.currentSlotId == slot1.getId())
+                if (profile.currentSlotId == slot1.getId())
                     name = currentSlot + name;
                 else
                     name = otherSlot + name;
                 this.data.put(name, slot1.getId());
             }
-        } else if(compound.hasKey("PROFILE_INFO")){
+        } else if (compound.hasKey("PROFILE_INFO")) {
             slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
         }
-        if(scroll != null){
+        if (scroll != null) {
             scroll.setSelected("");
         }
         initGui();

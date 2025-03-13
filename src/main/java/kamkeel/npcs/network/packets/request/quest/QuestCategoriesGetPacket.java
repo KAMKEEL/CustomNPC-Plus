@@ -18,7 +18,8 @@ import java.io.IOException;
 public final class QuestCategoriesGetPacket extends AbstractPacket {
     public static String packetName = "Request|QuestCategoriesGet";
 
-    public QuestCategoriesGetPacket() {}
+    public QuestCategoriesGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -32,7 +33,8 @@ public final class QuestCategoriesGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

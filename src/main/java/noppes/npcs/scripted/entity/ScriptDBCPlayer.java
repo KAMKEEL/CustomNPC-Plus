@@ -12,7 +12,7 @@ import noppes.npcs.scripted.NpcAPI;
 public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> implements IDBCPlayer {
     public T player;
 
-    public ScriptDBCPlayer(T player){
+    public ScriptDBCPlayer(T player) {
         super(player);
         this.player = player;
     }
@@ -71,7 +71,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         }
 
         throw new CustomNPCsException("Invalid stat name: " + stat + "\nValid stat names are:" +
-                "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit",new Object[0]);
+            "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit", new Object[0]);
     }
 
     private double applyOperator(String method, double n1, double n2) {
@@ -90,33 +90,39 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return n1;
     }
 
-    public void addBonusAttribute(String stat, String bonusID, String operation, double attributeValue){
-        addBonusAttribute(stat,bonusID,operation,attributeValue,true);
+    public void addBonusAttribute(String stat, String bonusID, String operation, double attributeValue) {
+        addBonusAttribute(stat, bonusID, operation, attributeValue, true);
     }
-    public void addBonusAttribute(String stat, String bonusID, String operation, double attributeValue, boolean endOfTheList){
-        bonusAttribute("add",stat,bonusID,operation,attributeValue,endOfTheList);
+
+    public void addBonusAttribute(String stat, String bonusID, String operation, double attributeValue, boolean endOfTheList) {
+        bonusAttribute("add", stat, bonusID, operation, attributeValue, endOfTheList);
     }
-    public void addToBonusAttribute(String stat, String bonusID, String operation, double attributeValue){
-        bonusAttribute("addto",stat,bonusID,operation,attributeValue,true);
+
+    public void addToBonusAttribute(String stat, String bonusID, String operation, double attributeValue) {
+        bonusAttribute("addto", stat, bonusID, operation, attributeValue, true);
     }
-    public void setBonusAttribute(String stat, String bonusID, String operation, double attributeValue){
-        bonusAttribute("set",stat,bonusID,operation,attributeValue,true);
+
+    public void setBonusAttribute(String stat, String bonusID, String operation, double attributeValue) {
+        bonusAttribute("set", stat, bonusID, operation, attributeValue, true);
     }
-    public void getBonusAttribute(String stat, String bonusID){
-        bonusAttribute("get",stat,bonusID,"*",1.0,true);
+
+    public void getBonusAttribute(String stat, String bonusID) {
+        bonusAttribute("get", stat, bonusID, "*", 1.0, true);
     }
-    public void removeBonusAttribute(String stat, String bonusID){
-        bonusAttribute("remove",stat,bonusID,"*",1.0,true);
+
+    public void removeBonusAttribute(String stat, String bonusID) {
+        bonusAttribute("remove", stat, bonusID, "*", 1.0, true);
     }
-    public void clearBonusAttribute(String stat){
-        bonusAttribute("clear",stat,"","*",1.0,true);
+
+    public void clearBonusAttribute(String stat) {
+        bonusAttribute("clear", stat, "", "*", 1.0, true);
     }
 
     public String bonusAttribute(String action, String stat, String bonusID) {
         String[] actions = new String[]{"get", "remove", "clear"};
         boolean valid = false;
-        for(String s : actions){
-            if(s.equals(action.toLowerCase())){
+        for (String s : actions) {
+            if (s.equals(action.toLowerCase())) {
                 valid = true;
             }
         }
@@ -124,7 +130,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             throw new CustomNPCsException("Action can be:  get/remove/clear", new Object[0]);
         }
 
-        return bonusAttribute(action,stat,bonusID,"*",1.0,false);
+        return bonusAttribute(action, stat, bonusID, "*", 1.0, false);
     }
 
     public String bonusAttribute(String action, String stat, String bonusID, String operation, double attributeValue, boolean endOfTheList) {
@@ -132,8 +138,8 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         String[] operations = new String[]{"+", "-", "*", "/", "%"};
 
         boolean valid = false;
-        for(String s : actions){
-            if(s.equals(action.toLowerCase())){
+        for (String s : actions) {
+            if (s.equals(action.toLowerCase())) {
                 valid = true;
             }
         }
@@ -141,7 +147,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             throw new CustomNPCsException("Action can be:  add/addTo/set/get/remove/clear", new Object[0]);
         }
 
-        if(!action.equals("remove") && !action.equals("get") && !action.equals("clear")) {
+        if (!action.equals("remove") && !action.equals("get") && !action.equals("clear")) {
             valid = false;
             for (String s : operations) {
                 if (s.equals(operation)) {
@@ -174,16 +180,16 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 stat = "spi";
                 break;
         }
-        if(!(stat.equals("str") || stat.equals("dex") || stat.equals("con") || stat.equals("wil") || stat.equals("mnd") || stat.equals("spi")))
+        if (!(stat.equals("str") || stat.equals("dex") || stat.equals("con") || stat.equals("wil") || stat.equals("mnd") || stat.equals("spi")))
             throw new CustomNPCsException("Invalid stat name: " + stat + "\nValid stat names are:" +
-                    "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit",new Object[0]);
+                "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit", new Object[0]);
 
         String bonusValueString = operation + attributeValue;
-        String bonus = player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcAttrBonus"+stat);
+        String bonus = player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcAttrBonus" + stat);
         String bonuses[] = bonus.split("\\|");
         String[][] bonusValues = new String[bonuses.length][2];
         if (bonuses.length > 0 && bonuses[0].length() > 0) {
-            for(int i = 0; i < bonuses.length; ++i) {
+            for (int i = 0; i < bonuses.length; ++i) {
                 String[] bonusValue = bonuses[i].split("\\;");
                 bonusValues[i][0] = bonusValue[0];
                 bonusValues[i][1] = bonusValue[1];
@@ -192,7 +198,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
 
         switch (action) {
             case "get":
-                if(player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus"+stat)) {
+                if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus" + stat)) {
                     for (String[] s : bonusValues) {
                         if (s[0].equals(bonusID))
                             return s[1];
@@ -200,12 +206,12 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 }
                 return "";
             case "clear":
-                if(player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus"+stat))
-                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, "");
+                if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus" + stat))
+                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus" + stat, "");
                 break;
             case "remove":
                 String newBonusString = "";
-                if(player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus"+stat)) {
+                if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcAttrBonus" + stat)) {
                     int num = -1;
                     boolean number;
                     boolean run = false;
@@ -218,7 +224,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                         number = false;
                     }
 
-                    for(int i = 0; i < bonuses.length; ++i) {
+                    for (int i = 0; i < bonuses.length; ++i) {
                         bonusValue = bonuses[i].split("\\;");
                         bonusValues[i][0] = bonusValue[0];
                         if (number && i == num || !number && bonusValues[i][0].equals(bonusID)) {
@@ -237,7 +243,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                             }
                         }
 
-                        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, startString);
+                        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus" + stat, startString);
                     }
                 }
                 break;
@@ -267,7 +273,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                             bonus = bonusID + ";" + bonusValueString + "|" + bonus;
                         }
                     }
-                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, bonus);
+                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus" + stat, bonus);
                 }
                 break;
             case "set": {
@@ -307,7 +313,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                         }
                     }
 
-                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, startString);
+                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus" + stat, startString);
                 }
                 break;
             }
@@ -349,7 +355,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                         }
                     }
 
-                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus"+stat, startString);
+                    player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcAttrBonus" + stat, startString);
                 }
                 break;
             }
@@ -358,80 +364,88 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return "";
     }
 
-    public void setRelease(byte release){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcRelease",release);
+    public void setRelease(byte release) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcRelease", release);
     }
-    public byte getRelease(){
+
+    public byte getRelease() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcRelease");
     }
 
-    public void setBody(int body){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcBdy",body);
+    public void setBody(int body) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcBdy", body);
     }
-    public int getBody(){
+
+    public int getBody() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcBdy");
     }
 
-    public void setHP(int hp){
+    public void setHP(int hp) {
         setBody(hp);
     }
-    public int getHP()
-    {
+
+    public int getHP() {
         return getBody();
     }
 
 
-    public void setStamina(int stamina){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcStamina",stamina);
+    public void setStamina(int stamina) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcStamina", stamina);
     }
-    public int getStamina(){
+
+    public int getStamina() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcStamina");
     }
 
-    public void setKi(int ki){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcEnrgy",ki);
+    public void setKi(int ki) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcEnrgy", ki);
     }
-    public int getKi(){
+
+    public int getKi() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcEnrgy");
     }
 
-    public void setTP(int tp){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcTpint",tp);
+    public void setTP(int tp) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcTpint", tp);
     }
-    public int getTP(){
+
+    public int getTP() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcTpint");
     }
 
-    public void setGravity(float gravity){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setFloat("jrmcGravForce",gravity);
+    public void setGravity(float gravity) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setFloat("jrmcGravForce", gravity);
     }
-    public float getGravity(){
+
+    public float getGravity() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getFloat("jrmcGravForce");
     }
 
-    public boolean isBlocking(){
+    public boolean isBlocking() {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
         return compound.getCompoundTag("JRMCEP").getInteger("blocking") == 1;
     }
 
-    public void setHairCode(String hairCode){
+    public void setHairCode(String hairCode) {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
-        compound.getCompoundTag("JRMCEP").setString("haircode",hairCode);
+        compound.getCompoundTag("JRMCEP").setString("haircode", hairCode);
     }
-    public String getHairCode(){
+
+    public String getHairCode() {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
         return compound.getCompoundTag("JRMCEP").getString("haircode");
     }
 
-    public void setExtraCode(String extraCode){
+    public void setExtraCode(String extraCode) {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
-        compound.getCompoundTag("JRMCEP").setString("extracode",extraCode);
+        compound.getCompoundTag("JRMCEP").setString("extracode", extraCode);
     }
-    public String getExtraCode(){
+
+    public String getExtraCode() {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
         return compound.getCompoundTag("JRMCEP").getString("extracode");
@@ -444,7 +458,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         byte offset = (byte) (vanity ? 10 : 2);
 
         NBTTagList newList = new NBTTagList();
-        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
+        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
         for (int i = 0; i < list.tagCount(); i++) {
             if (offset - list.getCompoundTagAt(i).getByte("Slot") != slot) {
                 newList.appendTag(list.getCompoundTagAt(i));
@@ -468,7 +482,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
 
         byte offset = (byte) (vanity ? 10 : 2);
 
-        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
+        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
         for (int i = 0; i < list.tagCount(); i++) {
             if (offset - list.getCompoundTagAt(i).getByte("Slot") == slot) {
                 return NpcAPI.Instance().getIItemStack(ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i)));
@@ -478,11 +492,11 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return null;
     }
 
-    public IItemStack[] getInventory(){
+    public IItemStack[] getInventory() {
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
 
-        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag",10);
+        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
         IItemStack[] itemList = new IItemStack[list.tagCount()];
         for (int i = 0; i < list.tagCount(); i++) {
             ItemStack itemStack = ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
@@ -492,36 +506,39 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         return itemList;
     }
 
-    public void setForm(byte form){
-        if(form < 0)
+    public void setForm(byte form) {
+        if (form < 0)
             return;
 
-        switch(getRace()){
+        switch (getRace()) {
             case 0:
             case 3:
-                if(form > 3)
+                if (form > 3)
                     return;
                 break;
             case 1:
             case 2:
-                if(form > 15)
+                if (form > 15)
                     return;
                 break;
             case 4:
-                if(form > 7)
+                if (form > 7)
                     return;
                 break;
         }
 
-        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcState",form);
+        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcState", form);
     }
-    public byte getForm(){
+
+    public byte getForm() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcState");
     }
-    public void setForm2(byte form2){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcState2",form2);
+
+    public void setForm2(byte form2) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcState2", form2);
     }
-    public byte getForm2(){
+
+    public byte getForm2() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcState2");
     }
 
@@ -530,11 +547,12 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             String formTree = this.getRacialTreeName();
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
-                        getString("jrmcFormMastery" + formTree).split(";");
+                    getString("jrmcFormMastery" + formTree).split(";");
                 String masteryString = formMasteries[form];
                 return Double.parseDouble(masteryString.split(",")[1]);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return 0.0D;
     }
 
@@ -543,7 +561,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             String formTree = this.getRacialTreeName();
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
-                        getString("jrmcFormMastery" + formTree).split(";");
+                    getString("jrmcFormMastery" + formTree).split(";");
                 if (form >= formMasteries.length)
                     return;
 
@@ -558,9 +576,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 }
 
                 player.getEntityData().getCompoundTag("PlayerPersisted").
-                        setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
+                    setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public void addRacialFormMastery(byte form, double value) {
@@ -568,7 +587,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             String formTree = this.getRacialTreeName();
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMastery" + formTree)) {
                 String[] formMasteries = player.getEntityData().getCompoundTag("PlayerPersisted").
-                        getString("jrmcFormMastery" + formTree).split(";");
+                    getString("jrmcFormMastery" + formTree).split(";");
                 if (form >= formMasteries.length)
                     return;
 
@@ -584,9 +603,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 }
 
                 player.getEntityData().getCompoundTag("PlayerPersisted").
-                        setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
+                    setString("jrmcFormMastery" + formTree, String.valueOf(masteryString));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     private String getRacialTreeName() {
@@ -611,7 +631,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         try {
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMasteryNonRacial")) {
                 String masteryData = player.getEntityData().getCompoundTag("PlayerPersisted").
-                        getString("jrmcFormMasteryNonRacial");
+                    getString("jrmcFormMasteryNonRacial");
                 if (!masteryData.contains(formName)) {
                     return 0.0D;
                 }
@@ -623,7 +643,8 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
         return 0.0D;
     }
 
@@ -631,7 +652,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         try {
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMasteryNonRacial")) {
                 String masteryData = player.getEntityData().getCompoundTag("PlayerPersisted").
-                        getString("jrmcFormMasteryNonRacial");
+                    getString("jrmcFormMasteryNonRacial");
                 if (!masteryData.contains(formName)) {
                     return;
                 }
@@ -653,16 +674,17 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 }
 
                 player.getEntityData().getCompoundTag("PlayerPersisted").
-                        setString("jrmcFormMasteryNonRacial", String.valueOf(masteryString));
+                    setString("jrmcFormMasteryNonRacial", String.valueOf(masteryString));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
     public void addOtherFormMastery(String formName, double value) {
         try {
             if (player.getEntityData().getCompoundTag("PlayerPersisted").hasKey("jrmcFormMasteryNonRacial")) {
                 String masteryData = player.getEntityData().getCompoundTag("PlayerPersisted").
-                        getString("jrmcFormMasteryNonRacial");
+                    getString("jrmcFormMasteryNonRacial");
                 if (!masteryData.contains(formName)) {
                     return;
                 }
@@ -685,62 +707,69 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 }
 
                 player.getEntityData().getCompoundTag("PlayerPersisted").
-                        setString("jrmcFormMasteryNonRacial", String.valueOf(masteryString));
+                    setString("jrmcFormMasteryNonRacial", String.valueOf(masteryString));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 
-    public void setPowerPoints(int points){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcArcRsrv",points);
+    public void setPowerPoints(int points) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcArcRsrv", points);
     }
-    public int getPowerPoints(){
+
+    public int getPowerPoints() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcArcRsrv");
     }
 
-    public void setAuraColor(int color){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcAuraColor",color);
+    public void setAuraColor(int color) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setInteger("jrmcAuraColor", color);
     }
-    public int getAuraColor(){
+
+    public int getAuraColor() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcAuraColor");
     }
 
-    public void setFormLevel(int level){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSltX","TR"+level);
+    public void setFormLevel(int level) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSltX", "TR" + level);
     }
-    public int getFormLevel(){
+
+    public int getFormLevel() {
         String formString = player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSltX");
-        if(formString.length() < 1)
+        if (formString.length() < 1)
             return 0;
 
         StringBuilder digitString = new StringBuilder();
-        for(char c : formString.toCharArray()){
-            if(Character.isDigit(c))
+        for (char c : formString.toCharArray()) {
+            if (Character.isDigit(c))
                 digitString.append(c);
         }
 
-        if(digitString.length() < 1)
+        if (digitString.length() < 1)
             return 0;
 
         return Integer.parseInt(digitString.toString());
     }
 
-    public void setSkills(String skills){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSlts",skills);
+    public void setSkills(String skills) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcSSlts", skills);
     }
-    public String getSkills(){
+
+    public String getSkills() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcSSlts");
     }
 
-    public void setJRMCSE(String statusEffects){
-        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcStatusEff",statusEffects);
+    public void setJRMCSE(String statusEffects) {
+        player.getEntityData().getCompoundTag("PlayerPersisted").setString("jrmcStatusEff", statusEffects);
     }
-    public String getJRMCSE(){
+
+    public String getJRMCSE() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcStatusEff");
     }
 
-    public byte getDBCClass(){
+    public byte getDBCClass() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcClass");
     }
+
     public void setDBCClass(byte dbcClass) {
         if (dbcClass < 0 || dbcClass > 2)
             return;
@@ -748,9 +777,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcClass", dbcClass);
     }
 
-    public int getRace(){
+    public int getRace() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcRace");
     }
+
     public void setRace(byte race) {
         if (race < 0 || race > 1)
             return;
@@ -758,9 +788,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcRace", race);
     }
 
-    public int getPowerType(){
+    public int getPowerType() {
         return player.getEntityData().getCompoundTag("PlayerPersisted").getByte("jrmcPwrtyp");
     }
+
     public void setPowerType(byte powerType) {
         if (powerType < 0 || powerType > 1)
             return;
@@ -768,7 +799,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         player.getEntityData().getCompoundTag("PlayerPersisted").setByte("jrmcPwrtyp", powerType);
     }
 
-    public int getKillCount(String type){
+    public int getKillCount(String type) {
         type = type.toLowerCase().trim();
 
         int evilKills = player.getEntityData().getCompoundTag("PlayerPersisted").getInteger("jrmcKillCountEvil");

@@ -16,7 +16,9 @@ public class MagicCycle {
     public String displayName = "";
     public EnumDiagramLayout layout = EnumDiagramLayout.CIRCULAR;
     public HashMap<Integer, MagicAssociation> associations = new HashMap<>();
-    public MagicCycle() {}
+
+    public MagicCycle() {
+    }
 
     public void readNBT(NBTTagCompound compound) {
         id = compound.getInteger("ID");

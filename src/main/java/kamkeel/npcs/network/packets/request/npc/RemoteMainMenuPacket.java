@@ -27,7 +27,8 @@ public final class RemoteMainMenuPacket extends AbstractPacket {
 
     private int entityID;
 
-    public RemoteMainMenuPacket() {}
+    public RemoteMainMenuPacket() {
+    }
 
     public RemoteMainMenuPacket(int entityID) {
         this.entityID = entityID;
@@ -49,7 +50,6 @@ public final class RemoteMainMenuPacket extends AbstractPacket {
     }
 
 
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
@@ -64,12 +64,12 @@ public final class RemoteMainMenuPacket extends AbstractPacket {
             return;
 
         Entity entity = player.worldObj.getEntityByID(in.readInt());
-        if(!(entity instanceof EntityNPCInterface))
+        if (!(entity instanceof EntityNPCInterface))
             return;
 
         NoppesUtilServer.sendOpenGui(player, EnumGuiType.MainMenuDisplay, (EntityNPCInterface) entity);
-        if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-            LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface)entity).display.getName(), entity.posX, entity.posY, entity.posZ,  entity.worldObj.getWorldInfo().getWorldName()));
+        if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+            LogWriter.script(String.format("[%s] (Player) %s OPEN NPC %s (%s, %s, %s) [%s]", "WAND", player.getCommandSenderName(), ((EntityNPCInterface) entity).display.getName(), entity.posX, entity.posY, entity.posZ, entity.worldObj.getWorldInfo().getWorldName()));
         }
     }
 }

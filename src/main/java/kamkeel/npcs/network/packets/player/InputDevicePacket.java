@@ -34,6 +34,7 @@ public class InputDevicePacket extends AbstractPacket {
         this.key = key;
         this.isKeyPressed = isDown;
     }
+
     public static void sendMouse(int mouseButton, int scroll, boolean isDown) {
         InputDevicePacket packet = new InputDevicePacket(Type.MOUSE, mouseButton, isDown);
         packet.scroll = scroll;
@@ -121,20 +122,19 @@ public class InputDevicePacket extends AbstractPacket {
     }
 
     private static int[] getPressedArray(String pressedKeys) {
-        if(pressedKeys == null)
+        if (pressedKeys == null)
             return new int[0];
 
         String[] split = pressedKeys.split(",");
         int[] keysDown;
 
-        if(pressedKeys.length() > 0) {
+        if (pressedKeys.length() > 0) {
             keysDown = new int[split.length];
             try {
                 for (int i = 0; i < split.length; i++) {
                     keysDown[i] = Integer.parseInt(split[i]);
                 }
-            }
-            catch (NumberFormatException ignored){
+            } catch (NumberFormatException ignored) {
             }
         } else {
             keysDown = new int[0];

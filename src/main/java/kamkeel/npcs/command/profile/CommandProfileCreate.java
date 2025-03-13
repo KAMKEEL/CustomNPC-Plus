@@ -34,21 +34,21 @@ public class CommandProfileCreate extends CommandProfileBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
-        if(!(sender instanceof EntityPlayer)) {
+        if (!(sender instanceof EntityPlayer)) {
             sendError(sender, "This command can only be used by a player.");
             return;
         }
-        EntityPlayer player = (EntityPlayer)sender;
-        if(ProfileController.Instance.getProfile(player) == null) {
+        EntityPlayer player = (EntityPlayer) sender;
+        if (ProfileController.Instance.getProfile(player) == null) {
             sendError(sender, "Profile not found.");
             return;
         }
         ProfileOperation result = ProfileController.Instance.createSlotInternal(ProfileController.Instance.getProfile(player));
-        if(result.getResult() == EnumProfileOperation.SUCCESS) {
+        if (result.getResult() == EnumProfileOperation.SUCCESS) {
             sendResult(sender, "New profile slot created successfully.");
-        } else if(result.getResult() == EnumProfileOperation.LOCKED) {
+        } else if (result.getResult() == EnumProfileOperation.LOCKED) {
             sendError(sender, "Profile is locked. Details: %s", result.getMessage());
-        } else if(result.getResult() == EnumProfileOperation.ERROR) {
+        } else if (result.getResult() == EnumProfileOperation.ERROR) {
             sendError(sender, "Error creating new profile slot: %s", result.getMessage());
         } else {
             sendError(sender, "Unexpected error: %s", result.getMessage());

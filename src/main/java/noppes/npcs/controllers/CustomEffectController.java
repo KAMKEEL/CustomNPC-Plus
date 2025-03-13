@@ -41,7 +41,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     private int lastUsedID = 0;
     public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
-    public CustomEffectController(){
+    public CustomEffectController() {
         HashMap<Integer, CustomEffect> customEffects = new HashMap<>();
         registerEffectMap(0, customEffects);
     }
@@ -54,7 +54,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         indexMapper.put(index, (HashMap<Integer, CustomEffect>) effectHashMap);
     }
 
-    public HashMap<Integer, CustomEffect> getCustomEffects(){
+    public HashMap<Integer, CustomEffect> getCustomEffects() {
         return indexMapper.get(0);
     }
 
@@ -349,8 +349,8 @@ public class CustomEffectController implements ICustomEffectHandler {
         saveEffectLoadMap();
     }
 
-    public HashMap<Integer, CustomEffect> getEffectMap(int index){
-        if(indexMapper.containsKey(index)){
+    public HashMap<Integer, CustomEffect> getEffectMap(int index) {
+        if (indexMapper.containsKey(index)) {
             return getEffectMap(index);
         }
         return null;
@@ -413,7 +413,8 @@ public class CustomEffectController implements ICustomEffectHandler {
                 if (file.exists()) {
                     loadCustomEffectMap(file);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 

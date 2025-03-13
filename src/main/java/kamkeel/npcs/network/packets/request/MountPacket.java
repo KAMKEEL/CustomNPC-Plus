@@ -23,7 +23,8 @@ public final class MountPacket extends AbstractPacket {
     private Action action;
     private NBTTagCompound compound;
 
-    public MountPacket() {}
+    public MountPacket() {
+    }
 
     public MountPacket(Action action, NBTTagCompound nbtTagCompound) {
         this.action = action;
@@ -51,7 +52,7 @@ public final class MountPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(action.ordinal());
-        if(action == Action.Spawn)
+        if (action == Action.Spawn)
             ByteBufUtils.writeNBT(out, this.compound);
     }
 
@@ -64,7 +65,7 @@ public final class MountPacket extends AbstractPacket {
             return;
 
         MountPacket.Action requestedAction = MountPacket.Action.values()[in.readInt()];
-        switch (requestedAction){
+        switch (requestedAction) {
             case Player:
                 player.mountEntity(ServerEventsHandler.mounted);
                 break;
@@ -79,6 +80,7 @@ public final class MountPacket extends AbstractPacket {
     public static void Player() {
         PacketClient.sendClient(new MountPacket(Action.Player, new NBTTagCompound()));
     }
+
     public static void Spawn(NBTTagCompound compound) {
         PacketClient.sendClient(new MountPacket(Action.Spawn, compound));
     }

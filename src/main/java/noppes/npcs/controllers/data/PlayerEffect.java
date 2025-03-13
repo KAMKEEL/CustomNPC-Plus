@@ -51,7 +51,7 @@ public class PlayerEffect implements IPlayerEffect {
     @Override
     public String getName() {
         CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);
-        if(effect != null)
+        if (effect != null)
             return effect.getName();
 
         return "UNKNOWN";
@@ -61,7 +61,7 @@ public class PlayerEffect implements IPlayerEffect {
     public void performEffect(IPlayer player) {
         if (player != null && player.getMCEntity() != null && player.getMCEntity() instanceof EntityPlayer) {
             CustomEffect effect = CustomEffectController.getInstance().get(this.id, this.index);
-            if(effect != null)
+            if (effect != null)
                 effect.onTick((EntityPlayer) player.getMCEntity(), this);
         }
     }

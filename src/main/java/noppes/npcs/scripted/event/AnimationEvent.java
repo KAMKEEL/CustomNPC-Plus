@@ -68,7 +68,7 @@ public abstract class AnimationEvent extends CustomNPCsEvent implements IAnimati
         public FrameEvent(IAnimation animation, IFrame frame) {
             super(animation);
             this.frame = frame;
-            this.index = ((Animation)this.getAnimation()).frames.indexOf((Frame) this.frame);
+            this.index = ((Animation) this.getAnimation()).frames.indexOf((Frame) this.frame);
         }
 
         @Override

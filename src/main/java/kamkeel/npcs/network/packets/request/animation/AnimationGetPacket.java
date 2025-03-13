@@ -23,7 +23,8 @@ public final class AnimationGetPacket extends AbstractPacket {
 
     private int animationID;
 
-    public AnimationGetPacket() { }
+    public AnimationGetPacket() {
+    }
 
     public AnimationGetPacket(int animationID) {
         this.animationID = animationID;
@@ -33,6 +34,7 @@ public final class AnimationGetPacket extends AbstractPacket {
     public Enum getType() {
         return EnumRequestPacket.AnimationGet;
     }
+
     @Override
     public PacketChannel getChannel() {
         return PacketHandler.REQUEST_PACKET;

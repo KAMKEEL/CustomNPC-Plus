@@ -180,7 +180,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         super.mouseMovedOrUp(mouseX, mouseY, state);
     }
 
-    public void mouseEvent(int i, int j, int k){}
+    public void mouseEvent(int i, int j, int k) {
+    }
 
     @Override
     protected void actionPerformed(GuiButton guibutton) {
@@ -191,7 +192,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
     }
 
-    public void buttonEvent(GuiButton guibutton){}
+    public void buttonEvent(GuiButton guibutton) {
+    }
 
     @Override
     public void keyTyped(char c, int i) {

@@ -1,19 +1,19 @@
 package noppes.npcs.client.gui;
 
-import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.client.gui.util.GuiDiagram;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.renderer.ImageData;
-import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.data.Magic;
-import noppes.npcs.controllers.data.MagicAssociation;
-import noppes.npcs.controllers.data.MagicCycle;
-import noppes.npcs.constants.EnumDiagramLayout;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import noppes.npcs.client.ClientCacheHandler;
+import noppes.npcs.client.gui.util.GuiDiagram;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.constants.EnumDiagramLayout;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicAssociation;
+import noppes.npcs.controllers.data.MagicCycle;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -183,6 +183,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
     // Inner class wrapping a Magic as a DiagramIcon.
     private class MagicIcon extends DiagramIcon {
         public Magic magic;
+
         public MagicIcon(Magic magic) {
             super(magic.id, 0, 0);
             this.magic = magic;

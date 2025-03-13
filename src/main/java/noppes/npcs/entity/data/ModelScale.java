@@ -28,7 +28,7 @@ public class ModelScale implements IModelScale {
 
     @Override
     public IModelScalePart getPart(int part) {
-        switch (ValueUtil.clamp(part,0,3)) {
+        switch (ValueUtil.clamp(part, 0, 3)) {
             case 0:
                 return head;
             case 1:

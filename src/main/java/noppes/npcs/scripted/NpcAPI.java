@@ -73,10 +73,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class NpcAPI extends AbstractNpcAPI {
-    private static final Map<String,Object> tempData = new HashMap<>();
+    private static final Map<String, Object> tempData = new HashMap<>();
     private static final Map<Integer, ScriptWorld> worldCache = new LRUHashMap<>(10);
-    private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60*1000);
-    public static final HashMap<String,Object> engineObjects = new HashMap<>();
+    private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60 * 1000);
+    public static final HashMap<String, Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
     private static AbstractNpcAPI instance = null;
 
@@ -91,23 +91,23 @@ public class NpcAPI extends AbstractNpcAPI {
         scriptItemCache.clear();
     }
 
-    public Object getTempData(String key){
+    public Object getTempData(String key) {
         return tempData.get(key);
     }
 
-    public void setTempData(String key, Object value){
+    public void setTempData(String key, Object value) {
         tempData.put(key, value);
     }
 
-    public boolean hasTempData(String key){
+    public boolean hasTempData(String key) {
         return tempData.containsKey(key);
     }
 
-    public void removeTempData(String key){
+    public void removeTempData(String key) {
         tempData.remove(key);
     }
 
-    public void clearTempData(){
+    public void clearTempData() {
         tempData.clear();
     }
 
@@ -115,35 +115,35 @@ public class NpcAPI extends AbstractNpcAPI {
         return tempData.keySet().toArray(new String[0]);
     }
 
-    public Object getStoredData(String key){
+    public Object getStoredData(String key) {
         NBTTagCompound compound = ScriptController.Instance.compound;
-        if(!compound.hasKey(key))
+        if (!compound.hasKey(key))
             return null;
         NBTBase base = compound.getTag(key);
-        if(base instanceof NBTBase.NBTPrimitive)
-            return ((NBTBase.NBTPrimitive)base).func_150286_g();
-        return ((NBTTagString)base).func_150285_a_();
+        if (base instanceof NBTBase.NBTPrimitive)
+            return ((NBTBase.NBTPrimitive) base).func_150286_g();
+        return ((NBTTagString) base).func_150285_a_();
     }
 
-    public void setStoredData(String key, Object value){
+    public void setStoredData(String key, Object value) {
         NBTTagCompound compound = ScriptController.Instance.compound;
-        if(value instanceof Number)
+        if (value instanceof Number)
             compound.setDouble(key, ((Number) value).doubleValue());
-        else if(value instanceof String)
-            compound.setString(key, (String)value);
+        else if (value instanceof String)
+            compound.setString(key, (String) value);
         ScriptController.Instance.shouldSave = true;
     }
 
-    public boolean hasStoredData(String key){
+    public boolean hasStoredData(String key) {
         return ScriptController.Instance.compound.hasKey(key);
     }
 
-    public void removeStoredData(String key){
+    public void removeStoredData(String key) {
         ScriptController.Instance.compound.removeTag(key);
         ScriptController.Instance.shouldSave = true;
     }
 
-    public void clearStoredData(){
+    public void clearStoredData() {
         ScriptController.Instance.compound = new NBTTagCompound();
         ScriptController.Instance.shouldSave = true;
     }
@@ -153,7 +153,7 @@ public class NpcAPI extends AbstractNpcAPI {
         if (compound != null) {
             Set keySet = compound.func_150296_c();
             List<String> list = new ArrayList<>();
-            for(Object o : keySet){
+            for (Object o : keySet) {
                 list.add((String) o);
             }
             String[] array = list.toArray(new String[list.size()]);
@@ -163,15 +163,15 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public void registerICommand(ICommand command) {
-        ((CommandHandler)CustomNpcs.getServer().getCommandManager()).registerCommand((ScriptedCommand) command);
+        ((CommandHandler) CustomNpcs.getServer().getCommandManager()).registerCommand((ScriptedCommand) command);
     }
 
     public ICommand getICommand(String commandName, int priorityLevel) {
-        return new ScriptedCommand(commandName,priorityLevel);
+        return new ScriptedCommand(commandName, priorityLevel);
     }
 
     public void addGlobalObject(String key, Object obj) {
-        NpcAPI.engineObjects.put(key,obj);
+        NpcAPI.engineObjects.put(key, obj);
     }
 
     public void removeGlobalObject(String key) {
@@ -182,7 +182,7 @@ public class NpcAPI extends AbstractNpcAPI {
         return NpcAPI.engineObjects.containsKey(key);
     }
 
-    public HashMap<String,Object> getEngineObjects() {
+    public HashMap<String, Object> getEngineObjects() {
         return NpcAPI.engineObjects;
     }
 
@@ -241,13 +241,21 @@ public class NpcAPI extends AbstractNpcAPI {
         return ServerCloneController.Instance;
     }
 
-    public INaturalSpawnsHandler getNaturalSpawns() { return SpawnController.Instance; }
+    public INaturalSpawnsHandler getNaturalSpawns() {
+        return SpawnController.Instance;
+    }
 
-    public IProfileHandler getProfileHandler() { return ProfileController.Instance; }
+    public IProfileHandler getProfileHandler() {
+        return ProfileController.Instance;
+    }
 
-    public ICustomEffectHandler getCustomEffectHandler() { return CustomEffectController.Instance; }
+    public ICustomEffectHandler getCustomEffectHandler() {
+        return CustomEffectController.Instance;
+    }
 
-    public IPartyHandler getPartyHandler() { return PartyController.Instance(); }
+    public IPartyHandler getPartyHandler() {
+        return PartyController.Instance();
+    }
 
     public ITransportHandler getLocations() {
         return TransportController.getInstance();
@@ -272,21 +280,21 @@ public class NpcAPI extends AbstractNpcAPI {
 
 
     public static Boolean dbcLoaded = null;
+
     public IEntity<?> getIEntity(Entity entity) {
-        if(entity == null)
+        if (entity == null)
             return null;
-        if(entity instanceof EntityNPCInterface)
-            return ((EntityNPCInterface)entity).wrappedNPC;
-        else{
+        if (entity instanceof EntityNPCInterface)
+            return ((EntityNPCInterface) entity).wrappedNPC;
+        else {
             ScriptEntityData data = (ScriptEntityData) entity.getExtendedProperties("ScriptedObject");
             if (data == null) {
                 if (entity instanceof EntityPlayerMP) {
-                    if(dbcLoaded == null){
+                    if (dbcLoaded == null) {
                         dbcLoaded = Loader.isModLoaded("jinryuujrmcore");
                     }
                     data = dbcLoaded ? new ScriptEntityData(new ScriptDBCPlayer<>((EntityPlayerMP) entity)) : new ScriptEntityData(new ScriptPlayer<>((EntityPlayerMP) entity));
-                }
-                else if (PixelmonHelper.isPixelmon(entity))
+                } else if (PixelmonHelper.isPixelmon(entity))
                     return new ScriptPixelmon<EntityTameable>((EntityTameable) entity);
                 else if (entity instanceof EntityAnimal)
                     data = new ScriptEntityData(new ScriptAnimal<>((EntityAnimal) entity));
@@ -336,14 +344,14 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IBlock getIBlock(IWorld world, int x, int y, int z) {
         Block block = world.getMCWorld().getBlock(x, y, z);
-        if(block == null || block.isAir(world.getMCWorld(), x, y, z))
+        if (block == null || block.isAir(world.getMCWorld(), x, y, z))
             return null;
 
-        return new ScriptBlock(world.getMCWorld(), world.getMCWorld().getBlock(x, y, z), new BlockPos(x,y,z));
+        return new ScriptBlock(world.getMCWorld(), world.getMCWorld().getBlock(x, y, z), new BlockPos(x, y, z));
     }
 
     public IBlock getIBlock(IWorld world, IPos pos) {
-        return pos == null ? null : this.getIBlock(world, pos.getX(),pos.getY(),pos.getZ());
+        return pos == null ? null : this.getIBlock(world, pos.getX(), pos.getY(), pos.getZ());
     }
 
     public ITileEntity getITileEntity(IWorld world, IPos pos) {
@@ -351,12 +359,12 @@ public class NpcAPI extends AbstractNpcAPI {
             return null;
         }
 
-        TileEntity tileEntity = world.getMCWorld().getTileEntity(pos.getX(), pos.getY(),pos.getZ());
+        TileEntity tileEntity = world.getMCWorld().getTileEntity(pos.getX(), pos.getY(), pos.getZ());
         return this.getITileEntity(tileEntity);
     }
 
     public ITileEntity getITileEntity(IWorld world, int x, int y, int z) {
-        TileEntity tileEntity = world.getMCWorld().getTileEntity(x,y,z);
+        TileEntity tileEntity = world.getMCWorld().getTileEntity(x, y, z);
         return this.getITileEntity(tileEntity);
     }
 
@@ -369,7 +377,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IPos getIPos(double x, double y, double z) {
-        return this.getIPos(new BlockPos(x,y,z));
+        return this.getIPos(new BlockPos(x, y, z));
     }
 
     public IPos getIPos(int x, int y, int z) {
@@ -387,7 +395,7 @@ public class NpcAPI extends AbstractNpcAPI {
     public IPos[] getAllInBox(IPos from, IPos to, boolean sortByDistance) {
         ArrayList<IPos> list = new ArrayList<>();
         if (from != null && to != null) {
-            Iterator<BlockPos> posIterable = BlockPos.getAllInBox(from.getMCPos(),to.getMCPos()).iterator();
+            Iterator<BlockPos> posIterable = BlockPos.getAllInBox(from.getMCPos(), to.getMCPos()).iterator();
             posIterable.forEachRemaining(BlockPos -> list.add(this.getIPos(BlockPos)));
             if (sortByDistance) {
                 list.sort(Comparator.comparingDouble(pos -> pos.distanceTo(from)));
@@ -397,11 +405,11 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IPos[] getAllInBox(IPos from, IPos to) {
-        return this.getAllInBox(from,to,true);
+        return this.getAllInBox(from, to, true);
     }
 
     public INbt getINbt(NBTTagCompound nbtTagCompound) {
-        return nbtTagCompound == null?new ScriptNbt(new NBTTagCompound()):new ScriptNbt(nbtTagCompound);
+        return nbtTagCompound == null ? new ScriptNbt(new NBTTagCompound()) : new ScriptNbt(nbtTagCompound);
     }
 
     public INbt stringToNbt(String str) {
@@ -430,7 +438,7 @@ public class NpcAPI extends AbstractNpcAPI {
             return null;
         } else {
             EntityCustomNpc npc = new EntityCustomNpc(world.getMCWorld());
-            npc.setPositionAndRotation((double)x + 0.5D, y, (double)z + 0.5D, 0.0F, 0.0F);
+            npc.setPositionAndRotation((double) x + 0.5D, y, (double) z + 0.5D, 0.0F, 0.0F);
             npc.setHealth(npc.getMaxHealth());
             world.getMCWorld().spawnEntityInWorld(npc);
             return npc.wrappedNPC;
@@ -457,7 +465,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IItemStack getIItemStack(ItemStack itemstack) {
-        if(itemstack == null)
+        if (itemstack == null)
             return null;
 
         synchronized (scriptItemCache) {
@@ -521,10 +529,10 @@ public class NpcAPI extends AbstractNpcAPI {
     public IWorld getIWorldLoad(int dimensionId) {
         try {
             IWorld iWorld = this.getIWorld(dimensionId);
-            if(iWorld != null)
+            if (iWorld != null)
                 return iWorld;
+        } catch (CustomNPCsException ignored) {
         }
-        catch (CustomNPCsException ignored){}
 
         WorldServer worldServer = CustomNpcs.getServer().worldServerForDimension(dimensionId);
         if (worldServer != null) {
@@ -539,7 +547,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IContainer getIContainer(Container container) {
-        return container instanceof ContainerNpcInterface ? ContainerNpcInterface.getOrCreateIContainer((ContainerNpcInterface)container) : new ScriptContainer(container);
+        return container instanceof ContainerNpcInterface ? ContainerNpcInterface.getOrCreateIContainer((ContainerNpcInterface) container) : new ScriptContainer(container);
     }
 
     private void checkWorld() {
@@ -552,7 +560,7 @@ public class NpcAPI extends AbstractNpcAPI {
         this.checkWorld();
         IWorld[] worlds = new IWorld[CustomNpcs.getServer().worldServers.length];
 
-        for(int i = 0; i < CustomNpcs.getServer().worldServers.length; ++i) {
+        for (int i = 0; i < CustomNpcs.getServer().worldServers.length; ++i) {
             worlds[i] = this.getIWorld(CustomNpcs.getServer().worldServers[i]);
         }
 
@@ -572,15 +580,15 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IDamageSource getIDamageSource(IEntity<?> entity) {
-        if(entity.getType() == 1)//if player
-            return new ScriptDamageSource(new EntityDamageSource("player",entity.getMCEntity()));
+        if (entity.getType() == 1)//if player
+            return new ScriptDamageSource(new EntityDamageSource("player", entity.getMCEntity()));
         else
-            return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(),entity.getMCEntity()));
+            return new ScriptDamageSource(new EntityDamageSource(entity.getTypeName(), entity.getMCEntity()));
     }
 
     public void executeCommand(IWorld world, String command) {
         //if(!world.getMCWorld().isRemote)
-            NoppesUtilServer.runCommand(world.getMCWorld(), "API", command);
+        NoppesUtilServer.runCommand(world.getMCWorld(), "API", command);
     }
 
     public String getRandomName(int dictionary, int gender) {
@@ -596,11 +604,11 @@ public class NpcAPI extends AbstractNpcAPI {
         return player == null ? null : (IPlayer<?>) NpcAPI.Instance().getIEntity(player);
     }
 
-    public IPlayer<?>[] getAllServerPlayers(){
+    public IPlayer<?>[] getAllServerPlayers() {
         List<?> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
         IPlayer<?>[] arr = new IPlayer[list.size()];
-        for(int i = 0; i < list.size(); i++){
-            arr[i] = (IPlayer<?>) NpcAPI.Instance().getIEntity((EntityPlayerMP)list.get(i));
+        for (int i = 0; i < list.size(); i++) {
+            arr[i] = (IPlayer<?>) NpcAPI.Instance().getIEntity((EntityPlayerMP) list.get(i));
         }
 
         return arr;
@@ -610,30 +618,28 @@ public class NpcAPI extends AbstractNpcAPI {
         return MinecraftServer.getServer().getConfigurationManager().getAllUsernames();
     }
 
-    public void playSoundAtEntity(IEntity<?> entity, String sound, float volume, float pitch){
+    public void playSoundAtEntity(IEntity<?> entity, String sound, float volume, float pitch) {
         entity.getWorld().getMCWorld().playSoundAtEntity(entity.getMCEntity(), sound, volume, pitch);
     }
 
-    public void playSoundToNearExcept(IPlayer<?> player, String sound, float volume, float pitch){
+    public void playSoundToNearExcept(IPlayer<?> player, String sound, float volume, float pitch) {
         player.getWorld().getMCWorld().playSoundToNearExcept(player.getMCEntity(), sound, volume, pitch);
     }
 
-    public String getMOTD()
-    {
+    public String getMOTD() {
         return MinecraftServer.getServer().getMOTD();
     }
 
-    public void setMOTD(String motd)
-    {
+    public void setMOTD(String motd) {
         MinecraftServer.getServer().setMOTD(motd);
     }
 
-    public IParticle createParticle(String directory){
+    public IParticle createParticle(String directory) {
         return new ScriptParticle(directory);
     }
 
     @Deprecated
-    public IParticle createEntityParticle(String directory){
+    public IParticle createEntityParticle(String directory) {
         return new ScriptParticle(directory);
     }
 
@@ -726,7 +732,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IFrame createFrame(int duration, float speed, byte smooth) {
-        return new Frame(duration,speed,smooth);
+        return new Frame(duration, speed, smooth);
     }
 
     public IFramePart createPart(String name) {
@@ -749,7 +755,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IFramePart createPart(String name, float[] rotation, float[] pivot, float speed, byte smooth) {
-        FramePart part = (FramePart) this.createPart(name,rotation,pivot);
+        FramePart part = (FramePart) this.createPart(name, rotation, pivot);
         part.setSpeed(speed);
         part.setSmooth(smooth);
         return part;
@@ -776,7 +782,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IFramePart createPart(int partId, float[] rotation, float[] pivot, float speed, byte smooth) {
-        FramePart part = (FramePart) this.createPart(partId,rotation,pivot);
+        FramePart part = (FramePart) this.createPart(partId, rotation, pivot);
         part.setSpeed(speed);
         part.setSmooth(smooth);
         return part;

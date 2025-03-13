@@ -10,15 +10,10 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.controllers.data.Magic;
-import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.controllers.data.MagicAssociation;
+import noppes.npcs.controllers.data.MagicCycle;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
@@ -70,27 +65,28 @@ public class MagicController {
                 if (file.exists()) {
                     loadMagicFile(file);
                 }
-            } catch (Exception ee) { }
+            } catch (Exception ee) {
+            }
         }
 
         if (magics.isEmpty() && cycles.isEmpty()) {
             // Create default magics
-            Magic earth  = new Magic(getUnusedId(), "Earth", 0x00DD00);
+            Magic earth = new Magic(getUnusedId(), "Earth", 0x00DD00);
             earth.setItem(new ItemStack(CustomItems.earthElement));
 
-            Magic water  = new Magic(getUnusedId(), "Water", 0xF2DD00);
+            Magic water = new Magic(getUnusedId(), "Water", 0xF2DD00);
             water.setItem(new ItemStack(CustomItems.waterElement));
 
-            Magic fire   = new Magic(getUnusedId(), "Fire", 0xDD0000);
+            Magic fire = new Magic(getUnusedId(), "Fire", 0xDD0000);
             fire.setItem(new ItemStack(CustomItems.spellFire));
 
-            Magic air    = new Magic(getUnusedId(), "Air", 0xDD0000);
+            Magic air = new Magic(getUnusedId(), "Air", 0xDD0000);
             air.setItem(new ItemStack(CustomItems.airElement));
 
-            Magic dark   = new Magic(getUnusedId(), "Dark", 0xDD0000);
+            Magic dark = new Magic(getUnusedId(), "Dark", 0xDD0000);
             dark.setItem(new ItemStack(CustomItems.spellDark));
 
-            Magic holy   = new Magic(getUnusedId(), "Holy", 0xDD0000);
+            Magic holy = new Magic(getUnusedId(), "Holy", 0xDD0000);
             holy.setItem(new ItemStack(CustomItems.spellHoly));
 
             Magic nature = new Magic(getUnusedId(), "Nature", 0xDD0000);
@@ -332,7 +328,7 @@ public class MagicController {
             return;
 
         Magic magic = magics.get(magicId);
-        if(magic == null)
+        if (magic == null)
             return;
 
         MagicAssociation assoc = new MagicAssociation();

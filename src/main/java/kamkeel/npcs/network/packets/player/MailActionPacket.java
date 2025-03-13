@@ -45,15 +45,19 @@ public class MailActionPacket extends AbstractPacket {
         packet.action = Action.GET;
         PacketClient.sendClient(packet);
     }
+
     public static void OpenMail(long time, String sender) {
         PacketClient.sendClient(new MailActionPacket(Action.OPEN, time, sender));
     }
+
     public static void DeleteMail(long time, String sender) {
         PacketClient.sendClient(new MailActionPacket(Action.DELETE, time, sender));
     }
+
     public static void ReadMail(long time, String sender) {
         PacketClient.sendClient(new MailActionPacket(Action.READ, time, sender));
     }
+
     public static void SendMail(String receiver, NBTTagCompound mailData) {
         PacketClient.sendClient(new MailSendPacket(receiver, mailData));
     }
@@ -90,7 +94,7 @@ public class MailActionPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         Action type = Action.values()[in.readInt()];
 
-        if(!(player instanceof EntityPlayerMP))
+        if (!(player instanceof EntityPlayerMP))
             return;
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
         PlayerMailData data = PlayerDataController.Instance.getPlayerData(playerMP).mailData;
@@ -107,9 +111,9 @@ public class MailActionPacket extends AbstractPacket {
             case OPEN:
                 playerMP.closeContainer();
 
-                while(it.hasNext()){
+                while (it.hasNext()) {
                     PlayerMail mail = it.next();
-                    if(mail.time == time && mail.sender.equals(user)){
+                    if (mail.time == time && mail.sender.equals(user)) {
                         ContainerMail.staticmail = mail;
                         playerMP.openGui(CustomNpcs.instance, EnumGuiType.PlayerMailman.ordinal(), playerMP.worldObj, 0, 0, 0);
                         break;
@@ -118,9 +122,9 @@ public class MailActionPacket extends AbstractPacket {
                 break;
 
             case DELETE:
-                while(it.hasNext()){
+                while (it.hasNext()) {
                     PlayerMail mail = it.next();
-                    if(mail.time == time && mail.sender.equals(user)){
+                    if (mail.time == time && mail.sender.equals(user)) {
                         it.remove();
                     }
                 }
@@ -128,11 +132,11 @@ public class MailActionPacket extends AbstractPacket {
                 break;
 
             case READ:
-                while(it.hasNext()){
+                while (it.hasNext()) {
                     PlayerMail mail = it.next();
-                    if(mail.time == time && mail.sender.equals(user)){
+                    if (mail.time == time && mail.sender.equals(user)) {
                         mail.beenRead = true;
-                        if(mail.hasQuest())
+                        if (mail.hasQuest())
                             PlayerQuestController.addActiveQuest(new QuestData(mail.getQuest()), playerMP);
                     }
                 }
@@ -148,6 +152,7 @@ public class MailActionPacket extends AbstractPacket {
         public MailSendPacket() {
 
         }
+
         private MailSendPacket(String username, NBTTagCompound mailContent) {
             this.username = username;
             this.mailContent = mailContent;
@@ -164,10 +169,10 @@ public class MailActionPacket extends AbstractPacket {
         @Override
         @SideOnly(Side.SERVER)
         protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
-            if(!(player instanceof EntityPlayerMP))
+            if (!(player instanceof EntityPlayerMP))
                 return;
             EntityPlayerMP playerMP = (EntityPlayerMP) player;
-            if(!(playerMP.openContainer instanceof ContainerMail))
+            if (!(playerMP.openContainer instanceof ContainerMail))
                 return;
 
             String mailReceiver = PlayerDataController.Instance.hasPlayer(ByteBufUtils.readString(data));
@@ -179,7 +184,7 @@ public class MailActionPacket extends AbstractPacket {
             PlayerMail mail = new PlayerMail();
             String s = playerMP.getDisplayName();
             if (!s.equals(playerMP.getCommandSenderName()))
-                s += " (" +playerMP.getCommandSenderName() + ")";
+                s += " (" + playerMP.getCommandSenderName() + ")";
             mail.readNBT(ByteBufUtils.readBigNBT(data));
             mail.sender = s;
             mail.items = ((ContainerMail) playerMP.openContainer).mail.items;
@@ -192,7 +197,7 @@ public class MailActionPacket extends AbstractPacket {
 
             NBTTagCompound comp = new NBTTagCompound();
             comp.setString("username", mailReceiver);
-            NoppesUtilServer.sendGuiClose(playerMP, 1,comp);
+            NoppesUtilServer.sendGuiClose(playerMP, 1, comp);
         }
 
         @Override

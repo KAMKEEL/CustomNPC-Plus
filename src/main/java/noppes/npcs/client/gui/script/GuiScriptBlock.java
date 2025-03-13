@@ -5,7 +5,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileScripted;
 
 
-
 public class GuiScriptBlock extends GuiScriptInterface {
     private TileScripted tileScripted;
 

@@ -8,18 +8,14 @@ import noppes.npcs.config.legacy.LegacyConfig;
 import org.apache.logging.log4j.Level;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
-public class ConfigItem
-{
+public class ConfigItem {
     public static Configuration config;
 
     public final static String ALL = "All";
     public final static String GUN = "Gun";
     /**
-     *  Item Properties
+     * Item Properties
      **/
     public static Property DisableExtraBlockProperty;
     public static boolean DisableExtraBlock = false;
@@ -31,16 +27,14 @@ public class ConfigItem
     public static int MachineGunTickSpeed = 6;
 
     /**
-     *  Item Properties
+     * Item Properties
      **/
 
 
-    public static void init(File configFile)
-    {
+    public static void init(File configFile) {
         config = new Configuration(configFile);
 
-        try
-        {
+        try {
             config.load();
 
             // ITEMS
@@ -57,7 +51,7 @@ public class ConfigItem
             MachineGunTickSpeed = config.get(GUN, "Machine Gun Fire Rate", 6, "How many ticks to shoot bullets at").getInt(6);
 
             // Convert to Legacy
-            if(CustomNpcs.legacyExist){
+            if (CustomNpcs.legacyExist) {
                 DisableExtraBlock = LegacyConfig.DisableExtraBlock;
                 DisableExtraBlockProperty.set(DisableExtraBlock);
 
@@ -67,13 +61,9 @@ public class ConfigItem
                 GunsEnabled = LegacyConfig.GunsEnabled;
                 GunsEnabledProperty.set(GunsEnabled);
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its item configuration");
-        }
-        finally
-        {
+        } finally {
             if (config.hasChanged()) {
                 config.save();
             }

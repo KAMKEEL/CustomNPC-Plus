@@ -11,19 +11,12 @@ import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.blocks.tiles.TileChair;
-import noppes.npcs.blocks.tiles.TileColorable;
-import noppes.npcs.blocks.tiles.TileWallBanner;
 
 import java.io.IOException;
-
-import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
-import static noppes.npcs.items.ItemNpcTool.getColor;
 
 public final class HammerPacket extends AbstractPacket {
     public static String packetName = "Request|Hammer";
@@ -38,7 +31,8 @@ public final class HammerPacket extends AbstractPacket {
         this.z = z;
     }
 
-    public HammerPacket() {}
+    public HammerPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -75,9 +69,9 @@ public final class HammerPacket extends AbstractPacket {
         int z = in.readInt();
 
         TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-        if(tile instanceof TileChair) {
+        if (tile instanceof TileChair) {
             ((TileChair) tile).push();
-        } else if (tile instanceof TileBanner){
+        } else if (tile instanceof TileBanner) {
             ((TileBanner) tile).changeVariant();
         }
     }

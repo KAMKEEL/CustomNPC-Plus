@@ -19,7 +19,7 @@ public class MagicData implements IMagicData {
     public void readToNBT(NBTTagCompound compound) {
         NBTTagCompound magicData = compound.getCompoundTag("MagicData");
         magics.clear();
-        if(magicData == null)
+        if (magicData == null)
             return;
         for (Object key : magicData.func_150296_c()) {
             int i = Integer.parseInt((String) key);

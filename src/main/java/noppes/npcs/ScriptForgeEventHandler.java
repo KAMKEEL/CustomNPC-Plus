@@ -35,22 +35,22 @@ public class ScriptForgeEventHandler {
 
     @SubscribeEvent
     public void forgeEntity(Event event) {
-        if(CustomNpcs.getServer() != null && ScriptController.Instance.forgeScripts.isEnabled()) {
-            if(event instanceof TickEvent && !(((TickEvent)event).side == Side.SERVER && ((TickEvent)event).phase == TickEvent.Phase.START)) {
+        if (CustomNpcs.getServer() != null && ScriptController.Instance.forgeScripts.isEnabled()) {
+            if (event instanceof TickEvent && !(((TickEvent) event).side == Side.SERVER && ((TickEvent) event).phase == TickEvent.Phase.START)) {
                 return;
             }
 
-            if(event instanceof EntityEvent) {
-                EntityEvent ev2 = (EntityEvent)event;
-                if(ev2.entity != null && ev2.entity.worldObj instanceof WorldServer) {
+            if (event instanceof EntityEvent) {
+                EntityEvent ev2 = (EntityEvent) event;
+                if (ev2.entity != null && ev2.entity.worldObj instanceof WorldServer) {
                     EventHooks.onForgeEntityEvent(ev2);
                 }
-            } else if(event instanceof WorldEvent) {
-                WorldEvent ev1 = (WorldEvent)event;
-                if(ev1.world instanceof WorldServer) {
+            } else if (event instanceof WorldEvent) {
+                WorldEvent ev1 = (WorldEvent) event;
+                if (ev1.world instanceof WorldServer) {
                     EventHooks.onForgeWorldEvent(ev1);
                 }
-            } else if(!(event instanceof TickEvent) || ((TickEvent)event).side != Side.CLIENT) {
+            } else if (!(event instanceof TickEvent) || ((TickEvent) event).side != Side.CLIENT) {
                 if (event instanceof PlayerEvent) {
                     PlayerEvent ev = (PlayerEvent) event;
                     if (ev.player == null || !(ev.player.worldObj instanceof WorldServer)) {
@@ -74,21 +74,21 @@ public class ScriptForgeEventHandler {
             list.removeAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("net.minecraftforge.event.terraingen"));
             Iterator e1 = list.iterator();
 
-            while(true) {
+            while (true) {
                 ClassPath.ClassInfo classLoader;
                 String classes;
                 do {
-                    if(!e1.hasNext()) {
-                        if(PixelmonHelper.Enabled) {
+                    if (!e1.hasNext()) {
+                        if (PixelmonHelper.Enabled) {
                             try {
                                 Field e2 = ClassLoader.class.getDeclaredField("classes");
                                 e2.setAccessible(true);
                                 ClassLoader classLoader1 = Thread.currentThread().getContextClassLoader();
-                                ArrayList classes1 = new ArrayList((Vector)e2.get(classLoader1));
+                                ArrayList classes1 = new ArrayList((Vector) e2.get(classLoader1));
                                 Iterator infoClass1 = classes1.iterator();
 
-                                while(infoClass1.hasNext()) {
-                                    Class c2 = (Class)infoClass1.next();
+                                while (infoClass1.hasNext()) {
+                                    Class c2 = (Class) infoClass1.next();
                                 }
                             } catch (Exception var12) {
                                 var12.printStackTrace();
@@ -100,20 +100,20 @@ public class ScriptForgeEventHandler {
                         return this;
                     }
 
-                    classLoader = (ClassPath.ClassInfo)e1.next();
+                    classLoader = (ClassPath.ClassInfo) e1.next();
                     classes = classLoader.getName();
-                } while(classes.startsWith("net.minecraftforge.event.terraingen"));
+                } while (classes.startsWith("net.minecraftforge.event.terraingen"));
 
                 Class infoClass = classLoader.load();
                 ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
-                if(c.isEmpty()) {
+                if (c.isEmpty()) {
                     c.add(infoClass);
                 }
 
                 Iterator var10 = c.iterator();
-                while(var10.hasNext()) {
-                    Class c1 = (Class)var10.next();
-                    if(!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
+                while (var10.hasNext()) {
+                    Class c1 = (Class) var10.next();
+                    if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
                         register.invoke(FMLCommonHandler.instance().bus(), new Object[]{c1, this, e, Loader.instance().activeModContainer()});
                     }
                 }

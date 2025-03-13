@@ -32,17 +32,16 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         closeOnEsc = true;
     }
 
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
         int y = guiTop - 10;
 
-        GuiMenuTopButton close = new GuiMenuTopButton(0,guiLeft + xSize - 22, guiTop - 17, "X");
-        GuiMenuTopButton general =  new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
-        GuiMenuTopButton spacing =  new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
-        GuiMenuTopButton images =  new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
-        topButtons = new GuiMenuTopButton[]{general,images,spacing,close};
-        for(GuiMenuTopButton button : topButtons) {
+        GuiMenuTopButton close = new GuiMenuTopButton(0, guiLeft + xSize - 22, guiTop - 17, "X");
+        GuiMenuTopButton general = new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
+        GuiMenuTopButton spacing = new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
+        GuiMenuTopButton images = new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
+        topButtons = new GuiMenuTopButton[]{general, images, spacing, close};
+        for (GuiMenuTopButton button : topButtons) {
             button.active = button.id == activeMenu;
             addButton(button);
         }
@@ -202,7 +201,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getTextField(17).setMinMaxDefault(-Integer.MAX_VALUE, Integer.MAX_VALUE, 0);
 
                 String color = Integer.toHexString(dialogImage.color);
-                while(color.length() < 6)
+                while (color.length() < 6)
                     color = 0 + color;
                 addButton(new GuiNpcButton(18, guiLeft + 35, y += 25, 60, 20, color));
                 addLabel(new GuiNpcLabel(15, "gui.color", guiLeft + 4, y + 5));
@@ -232,10 +231,10 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 addLabel(new GuiNpcLabel(20, "gui.type", guiLeft + 4, y + 5));
 
                 addButton(new GuiNpcButton(24, guiLeft + 160, y, 60, 20,
-                        new String[]{"display.topLeft", "display.topCenter", "display.topRight",
-                                     "display.left", "display.center", "display.right",
-                                     "display.botLeft", "display.botCenter", "display.botRight"},
-                        dialogImage.alignment));
+                    new String[]{"display.topLeft", "display.topCenter", "display.topRight",
+                        "display.left", "display.center", "display.right",
+                        "display.botLeft", "display.botCenter", "display.botRight"},
+                    dialogImage.alignment));
                 addLabel(new GuiNpcLabel(21, "display.alignment", guiLeft + 110, y + 5));
                 getButton(24).setEnabled(dialogImage.imageType == 0);
                 getButton(24).setVisible(dialogImage.imageType == 0);
@@ -266,7 +265,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         NoppesUtil.clickSound();
 
         int id = button.id;
-        if(id == 0){
+        if (id == 0) {
             close();
             return;
         }
@@ -277,7 +276,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
 
         if (guibutton instanceof GuiMenuTopButton) {
@@ -385,15 +384,15 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
     }
 
     @Override
-    public void drawScreen(int i, int j, float f){
-        super.drawScreen(i,j,f);
-        for(GuiMenuTopButton button: topButtons)
+    public void drawScreen(int i, int j, float f) {
+        super.drawScreen(i, j, f);
+        for (GuiMenuTopButton button : topButtons)
             button.drawButton(mc, i, j);
     }
 
 
     @Override
-    public void subGuiClosed(SubGuiInterface subgui){
+    public void subGuiClosed(SubGuiInterface subgui) {
         if (activeMenu == 1) {
             if (lastColorClicked == 0) {
                 dialog.color = ((SubGuiColorSelector) subgui).color;
@@ -418,8 +417,8 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     public void save() {
         GuiNpcTextField.unfocus();
-        if(dialog.id >= 0)
-            PacketClient.sendClient(new DialogSavePacket(((SubGuiNpcDialog)parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
+        if (dialog.id >= 0)
+            PacketClient.sendClient(new DialogSavePacket(((SubGuiNpcDialog) parent).dialogCategoryID, dialog.writeToNBT(new NBTTagCompound()), false));
     }
 
     private DialogImage getSelectedImage() {
@@ -545,7 +544,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-        if(guiCustomScroll.id == 0 && imageScroll != null) {
+        if (guiCustomScroll.id == 0 && imageScroll != null) {
             selected = guiCustomScroll.selected;
             initGui();
         }

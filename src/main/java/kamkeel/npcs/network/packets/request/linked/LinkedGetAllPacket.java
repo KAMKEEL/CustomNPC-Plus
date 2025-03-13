@@ -22,7 +22,9 @@ public final class LinkedGetAllPacket extends AbstractPacket {
     public static String packetName = "Request|LinkedGetAll";
 
     private Action action;
-    public LinkedGetAllPacket() {}
+
+    public LinkedGetAllPacket() {
+    }
 
     public LinkedGetAllPacket(Action action) {
         this.action = action;
@@ -52,7 +54,7 @@ public final class LinkedGetAllPacket extends AbstractPacket {
             return;
 
         Action action = Action.values()[in.readInt()];
-        if(action == Action.NPC){
+        if (action == Action.NPC) {
             HashMap<String, Integer> list = new HashMap<>();
             for (LinkedNpcController.LinkedData d : LinkedNpcController.Instance.list) {
                 list.put(d.name, 0);
@@ -61,7 +63,7 @@ public final class LinkedGetAllPacket extends AbstractPacket {
             if (npc != null) {
                 ScrollSelectedPacket.setSelectedList((EntityPlayerMP) player, npc.linkedName);
             }
-        } else if (action == Action.ITEM){
+        } else if (action == Action.ITEM) {
             HashMap<String, Integer> list = new HashMap<>();
             for (LinkedItem linkedItem : LinkedItemController.getInstance().linkedItems.values()) {
                 list.put(linkedItem.name, linkedItem.id);
@@ -70,11 +72,11 @@ public final class LinkedGetAllPacket extends AbstractPacket {
         }
     }
 
-    public static void GetNPCs(){
+    public static void GetNPCs() {
         PacketClient.sendClient(new LinkedGetAllPacket(Action.NPC));
     }
 
-    public static void GetItems(){
+    public static void GetItems() {
         PacketClient.sendClient(new LinkedGetAllPacket(Action.ITEM));
     }
 

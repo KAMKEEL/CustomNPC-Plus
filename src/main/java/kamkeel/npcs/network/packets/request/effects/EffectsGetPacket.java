@@ -25,7 +25,8 @@ public final class EffectsGetPacket extends AbstractPacket {
         this.effectID = outlineID;
     }
 
-    public EffectsGetPacket() {}
+    public EffectsGetPacket() {
+    }
 
     @Override
     public Enum getType() {
