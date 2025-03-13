@@ -5,8 +5,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 
 public abstract class GuiNPCInterface2 extends GuiNPCInterface {
-    private ResourceLocation background = new ResourceLocation("customnpcs:textures/gui/menubg.png");
-    private GuiNpcMenu menu;
+    private final ResourceLocation background = new ResourceLocation("customnpcs:textures/gui/menubg.png");
+    private final GuiNpcMenu menu;
 
     public GuiNPCInterface2(EntityNPCInterface npc) {
         this(npc, -1);

@@ -22,6 +22,8 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
     private GuiNpcButton left, right, zoom, unzoom;
 
     private static float zoomed = 60;
+    public float minZoom = 10, maxZoom = 100;
+    public boolean allowRotate = true;
 
     public int xOffset = 0;
     public int yOffset = 0;
@@ -60,21 +62,50 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
 
     private long start = -1;
 
+    public boolean isMouseOverRenderer(int x, int y) {
+        if (!allowRotate) {
+            return false;
+        }
+        // Center of the entity rendering
+        int centerX = guiLeft + 190 + xOffset; // Matches l in drawScreen()
+        int centerY = guiTop + 180 + yOffset; // Matches i1 in drawScreen()
+
+        // Define separate buffers for X and Y axes
+        int xBuffer = 100; // Horizontal buffer
+        int yBuffer = 150; // Vertical buffer
+
+        // Check if the mouse is within the buffer area
+        return mouseX >= centerX - xBuffer && mouseX <= centerX + xBuffer && mouseY >= centerY - yBuffer && mouseY <= centerY + yBuffer;
+    }
+
+
     @Override
-    public void drawScreen(int par1, int par2, float par3) {
+    public void drawScreen(int par1, int par2, float partialTicks) {
         if (Mouse.isButtonDown(0)) {
             if (left.mousePressed(mc, par1, par2))
-                rotation += par3 * 2;
+                rotation += partialTicks * 2;
             else if (right.mousePressed(mc, par1, par2))
-                rotation -= par3 * 2;
+                rotation -= partialTicks * 2;
             else if (zoom.mousePressed(mc, par1, par2))
-                zoomed += par3 * 2;
+                zoomed += partialTicks * 2;
             else if (unzoom.mousePressed(mc, par1, par2) && zoomed > 10)
-                zoomed -= par3 * 2;
+                zoomed -= partialTicks * 2;
 
         }
 
-        super.drawScreen(par1, par2, par3);
+        if (isMouseOverRenderer(par1, par2)) {
+            zoomed += Mouse.getDWheel() * 0.035f;
+            if (Mouse.isButtonDown(0) || Mouse.isButtonDown(1)) {
+                rotation -= Mouse.getDX() * 0.75f;
+            }
+        }
+
+        if (zoomed > maxZoom)
+            zoomed = maxZoom;
+        if (zoomed < minZoom)
+            zoomed = minZoom;
+
+        super.drawScreen(par1, par2, partialTicks);
 
         GL11.glColor4f(1, 1, 1, 1);
 
@@ -105,13 +136,13 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
         GL11.glRotatef(-(float) Math.atan(f6 / 80F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
         entity.prevRotationYaw = entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = -(float) Math.atan(f6 / 80F) * 20F;
+        entity.rotationPitch = entity.prevRotationPitch = -(float) Math.atan(f6 / 80F) * 20F;
         entity.prevRotationYawHead = entity.rotationYawHead = entity.rotationYaw;
         GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
         RenderManager.instance.playerViewY = 180F;
 
         try {
-            RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+            RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, partialTicks);
         } catch (Exception e) {
             playerdata.setEntityClass(null);
         }

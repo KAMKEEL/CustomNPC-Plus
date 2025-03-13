@@ -173,7 +173,7 @@ public class Magic implements IMagic {
 
     @Override
     public float getInteraction(int magicID, float value) {
-        if(hasInteraction(magicID))
+        if (hasInteraction(magicID))
             return interactions.get(magicID);
         return 0.0f;
     }

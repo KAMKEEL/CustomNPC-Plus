@@ -13,6 +13,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
+import noppes.npcs.client.gui.util.animation.ViewportGraphEditor;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -37,6 +38,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     protected HashMap<Integer, GuiNpcSlider> sliders = new HashMap<Integer, GuiNpcSlider>();
     protected HashMap<Integer, GuiScreen> extra = new HashMap<Integer, GuiScreen>();
     protected HashMap<Integer, GuiScrollWindow> scrollWindows = new HashMap<>();
+    protected HashMap<Integer, ViewportGraphEditor> graphEditors = new HashMap<>();
     protected HashMap<Integer, GuiDiagram> diagrams = new HashMap<>();
 
     public static boolean resizingActive = false;
@@ -92,6 +94,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         scrolls.clear();
         sliders.clear();
         scrollWindows.clear();
+        graphEditors.clear();
         diagrams.clear();
         Keyboard.enableRepeatEvents(true);
     }
@@ -106,6 +109,13 @@ public abstract class GuiNPCInterface extends GuiScreen {
                     tf.updateCursorCounter();
             }
             super.updateScreen();
+
+            for (GuiScrollWindow guiScrollableComponent : scrollWindows.values())
+                guiScrollableComponent.updateScreen();
+
+            for (ViewportGraphEditor graphEditor : graphEditors.values())
+                graphEditor.updateScreen();
+
         }
     }
 
@@ -118,6 +128,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
         gui.setWorldAndResolution(mc, width, height);
         gui.initGui();
         scrollWindows.put(id, gui);
+    }
+
+    public void addGraphEditor(int id, ViewportGraphEditor graph) {
+        graphEditors.put(id, graph);
     }
 
     /**
@@ -145,6 +159,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 guiScrollableComponent.mouseClicked(i, j, k);
             }
 
+            for (ViewportGraphEditor graphEditor : graphEditors.values())
+                graphEditor.mouseClicked(i, j, k);
+
             if (k == 0) {
                 for (GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())) {
                     scroll.mouseClicked(i, j, k);
@@ -168,6 +185,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             subgui.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
             return;
         }
+
+        for (GuiScrollWindow window : scrollWindows.values())
+            window.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
+
         super.mouseClickMove(mouseX, mouseY, clickedMouseButton, timeSinceLastClick);
     }
 
@@ -202,9 +223,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
         for (GuiNpcTextField tf : textfields.values())
             tf.textboxKeyTyped(c, i);
 
-        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values())
             guiScrollableComponent.keyTyped(c, i);
-        }
+
+        for (ViewportGraphEditor graphEditor : graphEditors.values())
+            graphEditor.keyTyped(c, i);
 
         // Fixes closing sub with escape closes all of its parents
         boolean enoughTimeSinceSubClosed = Minecraft.getSystemTime() - timeClosedSubGui > 50;
@@ -310,16 +333,22 @@ public abstract class GuiNPCInterface extends GuiScreen {
         for (GuiNpcTextField tf : textfields.values()) {
             tf.drawTextBox(i, j);
         }
+        int wheel = Mouse.getDWheel();
         for (GuiCustomScroll scroll : scrolls.values()) {
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? wheel : 0);
         }
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);
+
         // Draw scrollable windows.
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? wheel : 0);
         }
+
+        for (ViewportGraphEditor graphEditor : graphEditors.values())
+            graphEditor.drawScreen(i, j, f, wheel);
+
         for (GuiDiagram diagram : diagrams.values()) {
             diagram.drawDiagram(i, j, subGui);
         }
@@ -442,7 +471,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         float f4 = entity.rotationPitch;
         float f7 = entity.rotationYawHead;
         float f5 = (float) (guiLeft + x) - mouseX;
-        float f6 = (float) ((guiTop + y) - 50 * scale * zoomed) - mouseY;
+        float f6 = (guiTop + y) - 50 * scale * zoomed - mouseY;
         int orientation = 0;
         if (npc != null) {
             orientation = npc.ais.orientation;
@@ -484,8 +513,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void openLink(String link) {
         try {
             Class oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke((Object) null, new Object[0]);
-            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new Object[]{new URI(link)});
+            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
+            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new URI(link));
         } catch (Throwable throwable) {
         }
     }

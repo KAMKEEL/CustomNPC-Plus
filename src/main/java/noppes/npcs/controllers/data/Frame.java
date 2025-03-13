@@ -9,9 +9,8 @@ import noppes.npcs.constants.EnumAnimationPart;
 import java.util.HashMap;
 import java.util.Map;
 
-
 public class Frame implements IFrame {
-    public Animation parent;
+    private Animation parent;
     public HashMap<EnumAnimationPart, FramePart> frameParts = new HashMap<>();
     public int duration = 0;
 
@@ -36,8 +35,33 @@ public class Frame implements IFrame {
         this.customized = true;
     }
 
+    public int getStartTick() {
+        int time = 0;
+        for (int i = 0; i < parent.frames.size(); i++) {
+            Frame f = parent.frames.get(i);
+            if (f == this)
+                break;
+
+            time += f.getDuration();
+        }
+        return time;
+    }
+
+    public void setParent(Animation parent) {
+        this.parent = parent;
+    }
+
+    public Animation getParent() {
+        return parent;
+    }
+
     public HashMap<EnumAnimationPart, FramePart> getFrameMap() {
         return frameParts;
+    }
+
+    public void addPart(EnumAnimationPart key, FramePart frame) {
+        frame.setParent(parent);
+        frameParts.put(key, frame);
     }
 
     public IFramePart[] getParts() {
@@ -45,7 +69,8 @@ public class Frame implements IFrame {
     }
 
     public IFrame addPart(IFramePart partConfig) {
-        this.frameParts.put(((FramePart) partConfig).getPart(), (FramePart) partConfig);
+        ((FramePart) partConfig).setParent(parent);
+        addPart(((FramePart) partConfig).getPart(), (FramePart) partConfig);
         return this;
     }
 
@@ -150,6 +175,7 @@ public class Frame implements IFrame {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound item = list.getCompoundTagAt(i);
             FramePart framePart = new FramePart();
+            framePart.setParent(parent);
             framePart.readFromNBT(item);
             if (!framePart.customized) {
                 framePart.smooth = this.smooth;
@@ -184,7 +210,7 @@ public class Frame implements IFrame {
         Frame frame = new Frame(this.duration);
         HashMap<EnumAnimationPart, FramePart> frameParts = this.frameParts;
         for (Map.Entry<EnumAnimationPart, FramePart> entry : frameParts.entrySet()) {
-            frame.frameParts.put(entry.getKey(), entry.getValue().copy());
+            frame.addPart(entry.getKey(), entry.getValue().copy());
         }
         frame.parent = this.parent;
         frame.duration = this.duration;

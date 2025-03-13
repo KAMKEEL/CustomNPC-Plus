@@ -1,6 +1,14 @@
 package noppes.npcs.util;
 
 public class ValueUtil {
+    public static float lerp(float start, float end, float delta) {
+        return start + delta * (end - start);
+    }
+
+    public static double lerp(double start, double end, double delta) {
+        return start + delta * (end - start);
+    }
+
     public static float clamp(float given, float min, float max) {
         if (given < min)
             return min;

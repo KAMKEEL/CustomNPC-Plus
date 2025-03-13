@@ -54,6 +54,14 @@ public class Animation implements IAnimation {
         return this.parent;
     }
 
+    public boolean hasFrame(int index) {
+        return index >= 0 && index < frames.size();
+    }
+
+    public IFrame getFrame(int index) {
+        return hasFrame(index) ? frames.get(index) : null;
+    }
+
     public IFrame currentFrame() {
         return currentFrame < frames.size() ? frames.get(currentFrame) : null;
     }
@@ -76,12 +84,22 @@ public class Animation implements IAnimation {
     }
 
     public IAnimation addFrame(IFrame frame) {
-        this.frames.add((Frame) frame);
-        return this;
+        return addFrame((Frame) frame);
     }
 
     public IAnimation addFrame(int index, IFrame frame) {
-        this.frames.add(index, (Frame) frame);
+        return addFrame(index, (Frame) frame);
+    }
+
+    public IAnimation addFrame(Frame frame) {
+        frame.setParent(this);
+        this.frames.add(frame);
+        return this;
+    }
+
+    public IAnimation addFrame(int index, Frame frame) {
+        frame.setParent(this);
+        this.frames.add(index, frame);
         return this;
     }
 
@@ -192,7 +210,7 @@ public class Animation implements IAnimation {
         for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound item = list.getCompoundTagAt(i);
             Frame frame = new Frame();
-            frame.parent = this;
+            frame.setParent(this);
             frame.readFromNBT(item);
             frames.add(frame);
         }
@@ -228,6 +246,18 @@ public class Animation implements IAnimation {
         compound.setInteger("CurrentFrame", currentFrame);
         compound.setInteger("CurrentFrameTime", currentFrameTime);
         return compound;
+    }
+
+    public int getCurrentTick() {
+        int time = 0;
+        for (int i = 0; i < this.frames.size(); i++) {
+            if (i >= this.currentFrame) {
+                break;
+            }
+            time += this.frames.get(i).getDuration();
+        }
+        time += this.currentFrameTime;
+        return time;
     }
 
     public boolean increaseTime() {

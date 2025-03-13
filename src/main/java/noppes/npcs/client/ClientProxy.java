@@ -292,6 +292,7 @@ public class ClientProxy extends CommonProxy {
                 animNpc.display.texture = "customnpcs:textures/entity/humanmale/AnimationBody.png";
                 save = false;
             }
+            animNpc.display.setName("Animation Dude");
             return new GuiNPCManageAnimations(animNpc, save);
         } else if (gui == EnumGuiType.ManageLinked)
             return new GuiNPCManageLinked(npc);

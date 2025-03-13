@@ -21,7 +21,7 @@ public class GuiModelInterface extends GuiNPCInterface {
     private GuiNpcButton left, right, zoom, unzoom;
 
     private static float zoomed = 60;
-    public float minSize = 10, maxSize = 100;
+    public float minZoom = 10, maxZoom = 100;
 
     public int xOffset = 0, xOffsetButton = 0;
     public int yOffset = 0, yOffsetButton = 0;
@@ -98,16 +98,16 @@ public class GuiModelInterface extends GuiNPCInterface {
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3) {
-        if (Mouse.isButtonDown(0)) {
+    public void drawScreen(int par1, int par2, float partialTicks) {
+        if (Mouse.isButtonDown(0) && drawRenderButtons) {
             if (this.left.mousePressed(this.mc, par1, par2)) {
-                rotation += par3 * 1.5F;
+                rotation += partialTicks * 1.5F;
             } else if (this.right.mousePressed(this.mc, par1, par2)) {
-                rotation -= par3 * 1.5F;
-            } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxSize) {
-                zoomed += par3 * 1.0F;
-            } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minSize) {
-                zoomed -= par3 * 1.0F;
+                rotation -= partialTicks * 1.5F;
+            } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxZoom) {
+                zoomed += partialTicks * 1.0F;
+            } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minZoom) {
+                zoomed -= partialTicks * 1.0F;
             }
         }
 
@@ -118,10 +118,10 @@ public class GuiModelInterface extends GuiNPCInterface {
             }
         }
 
-        if (zoomed > maxSize)
-            zoomed = maxSize;
-        if (zoomed < minSize)
-            zoomed = minSize;
+        if (zoomed > maxZoom)
+            zoomed = maxZoom;
+        if (zoomed < minZoom)
+            zoomed = minZoom;
 
         if (hasSubGui() && !drawNPConSub)
             return;
@@ -156,13 +156,13 @@ public class GuiModelInterface extends GuiNPCInterface {
         GL11.glRotatef(-(float) Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
         entity.prevRotationYaw = entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
+        entity.rotationPitch = entity.prevRotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
         entity.prevRotationYawHead = entity.rotationYawHead = followMouse ? entity.rotationYaw : rotation;
         GL11.glTranslatef(0.0F, entity.yOffset, 1F);
         RenderManager.instance.playerViewY = 180F;
 
         try {
-            RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
+            RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, partialTicks);
         } catch (Exception e) {
             playerdata.setEntityClass(null);
         }
@@ -178,7 +178,7 @@ public class GuiModelInterface extends GuiNPCInterface {
         OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0F, 0f, 500.065F);
-        super.drawScreen(par1, par2, par3);
+        super.drawScreen(par1, par2, partialTicks);
         GL11.glPopMatrix();
 
         postRender(entity);
