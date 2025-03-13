@@ -90,6 +90,7 @@ public class GridPointManager {
         }
 
         if (button == 0 && isFreeTransforming) {
+            selectedPoint.updateKey();
             Cursors.reset();
             isFreeTransforming = false;
         }
@@ -99,6 +100,7 @@ public class GridPointManager {
             point.mouseClicked(mouseX, mouseY, button);
         });
     }
+
     public Point addPoint(EnumFrameType type, double x, double y) {
         return addPoint(type, new Point(type, x, y));
     }
@@ -165,13 +167,11 @@ public class GridPointManager {
         // Free transform logic
         if (isFreeTransforming && selectedPoint != null) {
                 if (grid.xDown())
-                    selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+                    selectedPoint.setX(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)));
                 else if (grid.yDown())
-                    selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
-                else {
-                    selectedPoint.worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
-                    selectedPoint.worldY = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
-            }
+                    selectedPoint.setY(grid.worldY(GuiUtil.preciseMouseY() - grid.startY));
+                else
+                    selectedPoint.set(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)), grid.worldY(GuiUtil.preciseMouseY() - grid.startY));
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -227,10 +227,35 @@ public class GridPointManager {
         public double worldX, worldY;
         public boolean highlighted;
 
+        public double previousX;
+
         public Point(EnumFrameType type, double worldX, double worldY) {
             this.type = type;
-            this.worldX = worldX;
+            this.worldX = previousX = worldX;
             this.worldY = worldY;
+        }
+
+        public void setX(double x) {
+            worldX = (int) x;
+        }
+
+        public void setY(double y) {
+            worldY = y;
+        }
+
+        public void set(double x, double y) {
+            setX(x);
+            setY(y);
+        }
+
+        public void updateKey() {
+            HashMap<Double, Point> points = pointsOf(type);
+            if (points == null)
+                return;
+
+            points.remove(previousX);
+            points.put(worldX, this);
+            previousX = worldX;
         }
 
         public void draw(int mouseX, int mouseY, float partialTicks) {
@@ -274,11 +299,6 @@ public class GridPointManager {
         }
 
         public void mouseClicked(int mouseX, int mouseY, int button) {
-        }
-
-        public void set(double x, double y) {
-            this.worldX = x;
-            this.worldY = y;
         }
     }
 
