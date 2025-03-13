@@ -298,6 +298,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
+
     }
 
     @Cancelable
@@ -329,6 +331,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
     }
 
     @Cancelable
@@ -498,6 +501,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
+
     }
 
     @Cancelable
@@ -528,6 +533,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
+
     }
 
     public static class ContainerClosed extends PlayerEvent implements IPlayerEvent.ContainerClosed {
