@@ -153,7 +153,7 @@ public class ScriptNbt implements INbt {
             } else if (nbt instanceof Integer) {
                 list.appendTag(new NBTTagInt(((Integer) nbt).intValue()));
             } else if (nbt instanceof int[]) {
-                list.appendTag(new NBTTagIntArray(nbt));
+                list.appendTag(new NBTTagIntArray((int[]) nbt));
             }
         }
 

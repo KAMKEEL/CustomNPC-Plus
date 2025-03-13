@@ -21,7 +21,7 @@ public class TranslateUtil {
     public static String Translate(String text) {
 
         try {
-            String urlStr = String.format(TranslateUrl, URLEncoder.encode(text, StandardCharsets.UTF_8), "auto", "nl");
+            String urlStr = String.format(TranslateUrl, URLEncoder.encode(text, StandardCharsets.UTF_8.name()), "auto", "nl");
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
