@@ -69,7 +69,7 @@ public class CheckPlayerValue extends AbstractPacket {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
                 PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(playerMP).questData;
                 Party playerParty = playerData.getPlayerParty();
-                if(playerParty != null)
+                if (playerParty != null)
                     PartyController.Instance().checkQuestCompletion(playerParty, null);
 
                 questData.checkQuestCompletion(playerData, null);

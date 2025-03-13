@@ -10,16 +10,16 @@ public class ChMcLogger extends AbstractCommandHelper {
     }
 
     public void sendmessage(String msg) {
-        ICommandSender sender = (ICommandSender) pcParam;
+        ICommandSender sender = pcParam;
         sender.addChatMessage(new ChatComponentText(msg));
     }
 
     @Override
     public void help(String cmd, String desc, String usa) {
-    	if(usa.isEmpty())
-    		sendmessage(String.format("%s = %s", cmd, desc));
-    	else
-    		sendmessage(String.format("%s %s = %s", cmd, usa, desc));
+        if (usa.isEmpty())
+            sendmessage(String.format("%s = %s", cmd, desc));
+        else
+            sendmessage(String.format("%s %s = %s", cmd, usa, desc));
     }
 
     @Override

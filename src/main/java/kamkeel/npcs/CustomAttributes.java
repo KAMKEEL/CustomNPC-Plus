@@ -3,9 +3,9 @@ package kamkeel.npcs;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
+import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestActiveRequirement;
 import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestCompletedRequirement;
-import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 
 /**
  * ModAttributes registers the core attributes (both non–magic and magic–based).
@@ -38,7 +38,7 @@ public class CustomAttributes {
     public static AttributeDefinition MAGIC_DEFENSE;
     public static AttributeDefinition MAGIC_RESISTANCE;
 
-    public CustomAttributes(){
+    public CustomAttributes() {
         HEALTH = AttributeController.registerAttribute(HEALTH_KEY, "Health", 'c', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);
 
         MAIN_ATTACK = AttributeController.registerAttribute(MAIN_ATTACK_KEY, "Main Attack Damage", '4', AttributeValueType.FLAT, AttributeDefinition.AttributeSection.BASE);

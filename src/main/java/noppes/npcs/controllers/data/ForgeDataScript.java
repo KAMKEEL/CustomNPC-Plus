@@ -33,7 +33,7 @@ public class ForgeDataScript implements INpcScriptHandler {
         if (compound.hasKey("Scripts")) {
             this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
         } else {
-            this.scripts = NBTTags.GetScript(compound,this);
+            this.scripts = NBTTags.GetScript(compound, this);
         }
         this.scriptLanguage = compound.getString("ScriptLanguage");
         if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
@@ -47,9 +47,9 @@ public class ForgeDataScript implements INpcScriptHandler {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setInteger("TotalScripts",this.scripts.size());
+        compound.setInteger("TotalScripts", this.scripts.size());
         for (int i = 0; i < this.scripts.size(); i++) {
-            compound.setTag("Tab"+i,this.scripts.get(i).writeToNBT(new NBTTagCompound()));
+            compound.setTag("Tab" + i, this.scripts.get(i).writeToNBT(new NBTTagCompound()));
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
@@ -62,7 +62,7 @@ public class ForgeDataScript implements INpcScriptHandler {
     }
 
     public void callScript(String type, Event event) {
-        if(this.isEnabled()) {
+        if (this.isEnabled()) {
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastForgeUpdate > this.lastForgeUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 this.lastForgeUpdate = ScriptController.Instance.lastForgeUpdate;
@@ -77,7 +77,7 @@ public class ForgeDataScript implements INpcScriptHandler {
             }
 
             for (ScriptContainer script : this.scripts) {
-                if(script == null || script.errored || !script.hasCode() )
+                if (script == null || script.errored || !script.hasCode())
                     continue;
 
                 script.run(type, event);

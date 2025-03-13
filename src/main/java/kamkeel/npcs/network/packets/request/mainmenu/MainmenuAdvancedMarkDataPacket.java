@@ -23,7 +23,8 @@ public final class MainmenuAdvancedMarkDataPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public MainmenuAdvancedMarkDataPacket() {}
+    public MainmenuAdvancedMarkDataPacket() {
+    }
 
     public MainmenuAdvancedMarkDataPacket(NBTTagCompound compound) {
         this.compound = compound;

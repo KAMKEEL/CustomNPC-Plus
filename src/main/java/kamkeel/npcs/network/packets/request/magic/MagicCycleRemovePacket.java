@@ -7,11 +7,12 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.MagicController;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.io.IOException;
 
 public class MagicCycleRemovePacket extends AbstractPacket {
@@ -20,7 +21,8 @@ public class MagicCycleRemovePacket extends AbstractPacket {
 
     private int cycleId;
 
-    public MagicCycleRemovePacket() { }
+    public MagicCycleRemovePacket() {
+    }
 
     public MagicCycleRemovePacket(int cycleId) {
         this.cycleId = cycleId;

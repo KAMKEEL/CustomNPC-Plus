@@ -10,7 +10,9 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.MarkType;
 import org.lwjgl.opengl.GL11;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class CompassHudComponent extends HudComponent {
@@ -29,11 +31,11 @@ public class CompassHudComponent extends HudComponent {
     public boolean resizingWidth = false;
 
     public static class MarkTargetEntry {
-        public int x, z;
+        public double x, z;
         public int type;
         public int color;
 
-        public MarkTargetEntry(int x, int z, int type, int color) {
+        public MarkTargetEntry(double x, double z, int type, int color) {
             this.x = x;
             this.z = z;
             this.type = type;
@@ -52,7 +54,7 @@ public class CompassHudComponent extends HudComponent {
     public void loadData(NBTTagCompound compound) {
         markTargets.clear();
         NBTTagList list = compound.getTagList("MarkTargets", 10);
-        for(int i = 0; i < list.tagCount(); i++) {
+        for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound entry = list.getCompoundTagAt(i);
             markTargets.add(new MarkTargetEntry(
                 entry.getInteger("x"),
@@ -90,69 +92,86 @@ public class CompassHudComponent extends HudComponent {
         ConfigClient.CompassOverlayWidth = overlayWidth;
         ConfigClient.CompassOverlayWidthProperty.set(ConfigClient.CompassOverlayWidth);
 
-        if(ConfigClient.config.hasChanged())
+        if (ConfigClient.config.hasChanged())
             ConfigClient.config.save();
     }
 
     @Override
     public void renderOnScreen(float partialTicks) {
-        // If no mark data or in edit mode, skip normal rendering.
         if (!hasData || isEditting) return;
 
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)(posX / 100F * res.getScaledWidth());
-        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        int actualX = (int) (posX / 100F * res.getScaledWidth());
+        int actualY = (int) (posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
+
+        // Calculate interpolated player position and rotation.
+        double interpPosX = mc.thePlayer.lastTickPosX + (mc.thePlayer.posX - mc.thePlayer.lastTickPosX) * partialTicks;
+        double interpPosY = mc.thePlayer.lastTickPosY + (mc.thePlayer.posY - mc.thePlayer.lastTickPosY) * partialTicks;
+        double interpPosZ = mc.thePlayer.lastTickPosZ + (mc.thePlayer.posZ - mc.thePlayer.lastTickPosZ) * partialTicks;
+        float interpYaw = mc.thePlayer.prevRotationYaw + (mc.thePlayer.rotationYaw - mc.thePlayer.prevRotationYaw) * partialTicks;
 
         GL11.glPushMatrix();
         GL11.glTranslatef(actualX, actualY, 0);
         GL11.glScalef(effectiveScale, effectiveScale, effectiveScale);
 
-        // Draw background bar
+        // Draw background bar.
         drawRect(0, 0, overlayWidth, BAR_HEIGHT, 0x80000000);
 
-        // Render all marks
-        for(MarkTargetEntry mark : markTargets) {
-            renderMarkIcon(mark);
+        // Sort marks using interpolated player position.
+        markTargets.sort(Comparator.comparingDouble((MarkTargetEntry mark) ->
+            (interpPosX - mark.x) * (interpPosX - mark.x) + (interpPosZ - mark.z) * (interpPosZ - mark.z)
+        ).reversed());
+
+        // Render all marks using the interpolated values.
+        for (MarkTargetEntry mark : markTargets) {
+            renderMarkIcon(mark, interpPosX, interpPosY, interpPosZ, interpYaw);
         }
 
         GL11.glPopMatrix();
     }
 
-    private void renderMarkIcon(MarkTargetEntry mark) {
+    private void renderMarkIcon(MarkTargetEntry mark, double playerX, double playerY, double playerZ, float playerYaw) {
         if (mc.thePlayer == null) return;
 
-        Float iconPos = calculateIconPosition(mark.x, mark.z);
-        if(iconPos == null) {
+        Float iconPos = calculateIconPosition(mark.x, mark.z, playerX, playerZ, playerYaw);
+        if (iconPos == null) {
             // Target is behind the player; don't render.
             return;
         }
 
         int barWidth = overlayWidth;
         float distance = (float) Math.sqrt(
-            Math.pow(mark.x - mc.thePlayer.posX, 2) +
-                Math.pow(mark.z - mc.thePlayer.posZ, 2)
+            Math.pow(mark.x - playerX, 2) +
+                Math.pow(mark.z - playerZ, 2)
         );
 
         int iconSize = calculateIconSize(distance);
-        int iconX = MathHelper.clamp_int((int)iconPos.floatValue(), iconSize/2, barWidth - iconSize/2);
-        int iconY = (BAR_HEIGHT - iconSize)/2;
+        int iconX = MathHelper.clamp_int((int) iconPos.floatValue(), iconSize / 2, barWidth - iconSize / 2);
+        int iconY = (BAR_HEIGHT - iconSize) / 2;
 
         ResourceLocation texture = getTextureForMark(mark.type);
-        if(texture != null) {
-            renderTextureIcon(iconX - iconSize/2, iconY, iconSize, texture, mark.color);
+        if (texture != null) {
+            renderTextureIcon(iconX - iconSize / 2, iconY, iconSize, texture, mark.color);
         }
     }
 
     private ResourceLocation getTextureForMark(int type) {
-        switch(type) {
-            case MarkType.EXCLAMATION: return new ResourceLocation("customnpcs", "textures/marks/exclamation.png");
-            case MarkType.QUESTION: return new ResourceLocation("customnpcs", "textures/marks/question.png");
-            case MarkType.POINTER: return new ResourceLocation("customnpcs", "textures/marks/pointer.png");
-            case MarkType.CROSS: return new ResourceLocation("customnpcs", "textures/marks/cross.png");
-            case MarkType.SKULL: return new ResourceLocation("customnpcs", "textures/marks/skull.png");
-            case MarkType.STAR: return new ResourceLocation("customnpcs", "textures/marks/star.png");
-            default: return null;
+        switch (type) {
+            case MarkType.EXCLAMATION:
+                return new ResourceLocation("customnpcs", "textures/marks/exclamation.png");
+            case MarkType.QUESTION:
+                return new ResourceLocation("customnpcs", "textures/marks/question.png");
+            case MarkType.POINTER:
+                return new ResourceLocation("customnpcs", "textures/marks/pointer.png");
+            case MarkType.CROSS:
+                return new ResourceLocation("customnpcs", "textures/marks/cross.png");
+            case MarkType.SKULL:
+                return new ResourceLocation("customnpcs", "textures/marks/skull.png");
+            case MarkType.STAR:
+                return new ResourceLocation("customnpcs", "textures/marks/star.png");
+            default:
+                return null;
         }
     }
 
@@ -181,39 +200,40 @@ public class CompassHudComponent extends HudComponent {
         GL11.glPopMatrix();
     }
 
-    private Float calculateIconPosition(double targetX, double targetZ) {
-        double dx = targetX - mc.thePlayer.posX;
-        double dz = targetZ - mc.thePlayer.posZ;
-        double angleToTarget = Math.toDegrees(Math.atan2(dz, dx));
-        double adjustedPlayerYaw = mc.thePlayer.rotationYaw + 90;
-        double relativeAngle = angleToTarget - adjustedPlayerYaw;
-        while(relativeAngle < -180) relativeAngle += 360;
-        while(relativeAngle > 180) relativeAngle -= 360;
+    private Float calculateIconPosition(double targetX, double targetZ, double playerX, double playerZ, float playerYaw) {
+        double dx = targetX - playerX;
+        double dz = targetZ - playerZ;
 
-        // Only render if the target is within 90° to either side (180° front)
+        double angleToTarget = Math.toDegrees(Math.atan2(dz, dx));
+        double adjustedPlayerYaw = playerYaw + 90;
+        double relativeAngle = angleToTarget - adjustedPlayerYaw;
+        while (relativeAngle < -180) relativeAngle += 360;
+        while (relativeAngle > 180) relativeAngle -= 360;
+
+        // Only render if the target is within 90° to either side (i.e., 180° front)
         if (Math.abs(relativeAngle) > 90) {
             return null;
         }
 
         // Map -90..90 to 0..overlayWidth so that 0 becomes the left edge and 90 the right edge.
-        return (float)(overlayWidth / 2.0 + (relativeAngle / 90.0) * (overlayWidth / 2.0));
+        return (float) (overlayWidth / 2.0 + (relativeAngle / 90.0) * (overlayWidth / 2.0));
     }
 
     private int calculateIconSize(float distance) {
-        if(distance <= SCALE_DISTANCE_MIN) return MAX_ICON_SIZE;
-        if(distance >= SCALE_DISTANCE_MAX) return BASE_ICON_SIZE;
+        if (distance <= SCALE_DISTANCE_MIN) return MAX_ICON_SIZE;
+        if (distance >= SCALE_DISTANCE_MAX) return BASE_ICON_SIZE;
 
         float t = (distance - SCALE_DISTANCE_MIN) /
             (SCALE_DISTANCE_MAX - SCALE_DISTANCE_MIN);
-        return (int)(MAX_ICON_SIZE - (MAX_ICON_SIZE - BASE_ICON_SIZE) * t);
+        return (int) (MAX_ICON_SIZE - (MAX_ICON_SIZE - BASE_ICON_SIZE) * t);
     }
 
     @Override
     public void renderEditing() {
         isEditting = true;
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)(posX / 100F * res.getScaledWidth());
-        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        int actualX = (int) (posX / 100F * res.getScaledWidth());
+        int actualY = (int) (posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
@@ -241,12 +261,12 @@ public class CompassHudComponent extends HudComponent {
 
     private void renderDemoIcon(float position, int type, int color) {
         float pulse = (System.currentTimeMillis() % 1000) / 1000f;
-        int size = (int)(BASE_ICON_SIZE + (MAX_ICON_SIZE - BASE_ICON_SIZE) * pulse);
+        int size = (int) (BASE_ICON_SIZE + (MAX_ICON_SIZE - BASE_ICON_SIZE) * pulse);
         ResourceLocation texture = getTextureForMark(type);
 
-        if(texture != null) {
+        if (texture != null) {
             GL11.glPushMatrix();
-            GL11.glTranslatef(position - size/2, (BAR_HEIGHT - size)/2, 0);
+            GL11.glTranslatef(position - size / 2, (BAR_HEIGHT - size) / 2, 0);
             renderTextureIcon(0, 0, size, texture, color);
             GL11.glPopMatrix();
         }
@@ -259,7 +279,15 @@ public class CompassHudComponent extends HudComponent {
      */
     public void updateMarkTargets(List<MarkTargetEntry> newMarks) {
         markTargets.clear();
-        markTargets.addAll(newMarks);
+        for (MarkTargetEntry mark : newMarks) {
+            // Center the mark on the block
+            markTargets.add(new MarkTargetEntry(
+                mark.x,
+                mark.z,
+                mark.type,
+                mark.color
+            ));
+        }
         hasData = !markTargets.isEmpty();
     }
 

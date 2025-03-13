@@ -25,7 +25,8 @@ public final class MailOpenSetupPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public MailOpenSetupPacket() { }
+    public MailOpenSetupPacket() {
+    }
 
     public MailOpenSetupPacket(NBTTagCompound compound) {
         this.compound = compound;

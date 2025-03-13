@@ -27,7 +27,8 @@ public final class CloneTagListPacket extends AbstractPacket {
         this.tab = tab;
     }
 
-    public CloneTagListPacket() {}
+    public CloneTagListPacket() {
+    }
 
     @Override
     public Enum getType() {

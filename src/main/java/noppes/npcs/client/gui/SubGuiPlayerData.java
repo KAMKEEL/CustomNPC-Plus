@@ -2,8 +2,8 @@ package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
-import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataDeleteInfoPacket;
+import kamkeel.npcs.network.packets.request.playerdata.PlayerDataGetInfoPacket;
 import kamkeel.npcs.network.packets.request.playerdata.PlayerDataSaveInfoPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
@@ -81,7 +81,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     private final int verticalGapBelowTF = 3;
 
     // ----- Other -----
-    private String playerName;
+    private final String playerName;
 
     ////////////////////////////////////////////////////////////////////////////////
     // Constructor
@@ -187,7 +187,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         if (currentTab == 10 || currentTab == 11 || currentTab == 12) {
             addButton(new GuiToggleButton(20, guiLeft + xSize - 102, guiTop + 10, viewMode == 0));
             ((GuiToggleButton) getButton(20)).setTextureOff(specialIcons).setTextureOffPos(16, 0);
-            ((GuiToggleButton) getButton(20)).setIconTexture(specialIcons).setIconPos(16, 16, 16, 0);
+            getButton(20).setIconTexture(specialIcons).setIconPos(16, 16, 16, 0);
         }
 
         guiTop += 7;
@@ -212,7 +212,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                 }
                 break;
         }
-        if(currentTab != 15)
+        if (currentTab != 15)
             addButton(new GuiNpcButton(30, guiLeft + xSize - 60, guiTop + 10 - 7, 50, 20, "gui.remove"));
     }
 
@@ -434,11 +434,12 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         addButton(new GuiNpcButton(70, arrowX, addY, arrowWidth, arrowHeight, ">"));
         addButton(new GuiNpcButton(71, arrowX, removeY, arrowWidth, arrowHeight, "<"));
 
-        // Standardize button: evenly distribute 1.0 amongst all selected magics.
+        // Distribute button: evenly distribute 1.0 amongst all selected magics.
         int stdWidth = 80, stdHeight = 20;
         int stdX = paddedLeft;
         int stdY = guiTop + ySize - stdHeight - 6;
-        addButton(new GuiNpcButton(72, stdX, stdY + 4, stdWidth, stdHeight, "Standardize"));
+        addButton(new GuiNpcButton(72, stdX, stdY + 4, stdWidth, stdHeight, "magic.distribute"));
+        getButton(72).setHoverText("magic.distInfo");
 
         // If a magic is selected in the right scroll, add text fields for split and damage.
         int tfY = getTextFieldY();
@@ -458,7 +459,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
         addTextField(splitField);
         addTextField(damageField);
-        if(magicSelectedScroll.hasSelected()){
+        if (magicSelectedScroll.hasSelected()) {
             String sel = magicSelectedScroll.getSelected();
             int id = availableMagicElements.get(sel);
             if (magicData.hasMagic(id)) {
@@ -996,7 +997,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
         super.actionPerformed(button);
     }
 
-    private void saveMagicCompound(){
+    private void saveMagicCompound() {
         NBTTagCompound magicCompound = new NBTTagCompound();
         magicData.writeToNBT(magicCompound);
         PacketClient.sendClient(new PlayerDataSaveInfoPacket(playerName, EnumPlayerData.Magic, magicCompound));
@@ -1120,7 +1121,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
     @Override
     public void unFocused(GuiNpcTextField textField) {
@@ -1132,12 +1134,14 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                     try {
                         float split = Float.parseFloat(textField.getText());
                         magicData.getMagic(id).split = split;
-                    } catch(NumberFormatException e) { }
+                    } catch (NumberFormatException e) {
+                    }
                 } else if (textField.id == 74) {
                     try {
                         float dmg = Float.parseFloat(textField.getText());
                         magicData.getMagic(id).damage = dmg;
-                    } catch(NumberFormatException e) { }
+                    } catch (NumberFormatException e) {
+                    }
                 }
             }
             saveMagicCompound();
@@ -1153,7 +1157,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
                 selected.add(name);
             }
         }
-        if(magicSelectedScroll != null)
+        if (magicSelectedScroll != null)
             magicSelectedScroll.setList(selected);
     }
 
@@ -1169,5 +1173,6 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
     }
 
     @Override
-    public void setSelected(String selected) {}
+    public void setSelected(String selected) {
+    }
 }

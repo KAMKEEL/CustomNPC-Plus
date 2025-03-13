@@ -12,6 +12,7 @@ import foxz.command.CommandNoppes;
 import kamkeel.npcs.addon.AddonManager;
 import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
+import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
@@ -27,7 +28,6 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.common.ForgeChunkManager;
 import net.minecraftforge.common.MinecraftForge;
 import nikedemos.markovnames.generators.*;
-import kamkeel.npcs.controllers.AttributeController;
 import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.LoadConfiguration;
@@ -100,10 +100,10 @@ public class CustomNpcs {
         legacyPath = ev.getModConfigurationDirectory() + "/CustomNpcs.cfg";
 
         File configDir = new File(configPath);
-        if(!configDir.exists()){
+        if (!configDir.exists()) {
             // Convert Legacy Config to New Config if NO Config Folder Exists
             File legacyFile = new File(legacyPath);
-            if(legacyFile.exists()){
+            if (legacyFile.exists()) {
                 System.out.println("Loading Legacy Config");
                 legacyExist = true;
                 legacyConfig = new LegacyConfig();
@@ -176,6 +176,7 @@ public class CustomNpcs {
         PixelmonHelper.load();
         new AddonManager();
         new AttributeController();
+        new MagicController();
     }
 
     @EventHandler
@@ -200,8 +201,6 @@ public class CustomNpcs {
         Server = event.getServer();
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
-        // VisibilityController.instance = new VisibilityController();
-        new MagicController();
         MagicController.getInstance().load();
         new PlayerDataController();
         new TagController();
@@ -229,15 +228,15 @@ public class CustomNpcs {
         PlayerDataController.Instance.clearCache();
 
         Set<String> names = Block.blockRegistry.getKeys();
-        for(String name : names){
+        for (String name : names) {
             Block block = (Block) Block.blockRegistry.getObject(name);
-            if(block instanceof BlockLeavesBase){
+            if (block instanceof BlockLeavesBase) {
                 block.setTickRandomly(ConfigMain.LeavesDecayEnabled);
             }
-            if(block instanceof BlockVine){
+            if (block instanceof BlockVine) {
                 block.setTickRandomly(ConfigMain.VineGrowthEnabled);
             }
-            if(block instanceof BlockIce){
+            if (block instanceof BlockIce) {
                 block.setTickRandomly(ConfigMain.IceMeltsEnabled);
             }
         }
@@ -257,7 +256,7 @@ public class CustomNpcs {
 
 
     @EventHandler
-    public void stopped(FMLServerStoppedEvent event){
+    public void stopped(FMLServerStoppedEvent event) {
         ServerCloneController.Instance = null;
         GlobalDataController.Instance.saveData();
         ScriptController.Instance.saveForgeScripts();
@@ -269,7 +268,7 @@ public class CustomNpcs {
     public void serverstart(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandNoppes());
         event.registerServerCommand(new CommandKamkeel());
-        if(ConfigMain.ProfilesEnabled)
+        if (ConfigMain.ProfilesEnabled)
             event.registerServerCommand(new CommandProfile());
     }
 
@@ -324,7 +323,7 @@ public class CustomNpcs {
         }
     }
 
-    public static MinecraftServer getServer(){
+    public static MinecraftServer getServer() {
         return MinecraftServer.getServer();
     }
 

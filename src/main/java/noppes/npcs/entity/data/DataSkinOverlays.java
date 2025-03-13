@@ -23,8 +23,8 @@ public class DataSkinOverlays implements IOverlayHandler {
     }
 
     public void readFromNBT(NBTTagCompound nbtTagCompound) {
-        HashMap<Integer,ISkinOverlay> skinOverlays = new HashMap<>();
-        NBTTagList skinOverlayList = nbtTagCompound.getTagList("SkinOverlayData",10);
+        HashMap<Integer, ISkinOverlay> skinOverlays = new HashMap<>();
+        NBTTagList skinOverlayList = nbtTagCompound.getTagList("SkinOverlayData", 10);
         for (int i = 0; i < skinOverlayList.tagCount(); i++) {
             int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
             SkinOverlay skinOverlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
@@ -38,14 +38,14 @@ public class DataSkinOverlays implements IOverlayHandler {
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
         NBTTagList overlayList = new NBTTagList();
         if (!this.overlayList.isEmpty()) {
-            for (Map.Entry<Integer,ISkinOverlay> overlayData : this.overlayList.entrySet()) {
+            for (Map.Entry<Integer, ISkinOverlay> overlayData : this.overlayList.entrySet()) {
                 NBTTagCompound compound = new NBTTagCompound();
                 compound.setInteger("SkinOverlayID", overlayData.getKey());
                 compound = ((SkinOverlay) overlayData.getValue()).writeToNBT(compound);
                 overlayList.appendTag(compound);
             }
         }
-        nbttagcompound.setTag("SkinOverlayData",overlayList);
+        nbttagcompound.setTag("SkinOverlayData", overlayList);
         return nbttagcompound;
     }
 
@@ -85,7 +85,9 @@ public class DataSkinOverlays implements IOverlayHandler {
         return removed;
     }
 
-    public int size() { return this.overlayList.size(); }
+    public int size() {
+        return this.overlayList.size();
+    }
 
     public void clear() {
         this.overlayList.clear();

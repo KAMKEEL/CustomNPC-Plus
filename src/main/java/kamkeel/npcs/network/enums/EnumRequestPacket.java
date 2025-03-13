@@ -185,14 +185,6 @@ public enum EnumRequestPacket {
     ColorSet,
     ColorBrush,
 
-    ProfileGet,
-    ProfileGetAll,
-    ProfileGetInfo,
-    ProfileCreate,
-    ProfileRemove,
-    ProfileRename,
-    ProfileChange,
-
     MagicCycleRemove,
     MagicCycleSave,
     MagicGetAll,
@@ -200,5 +192,5 @@ public enum EnumRequestPacket {
     MagicGet,
     MagicSave,
     NpcMagicGet,
-    NpcMagicSave,
+    NpcMagicSave, Hammer,
 }

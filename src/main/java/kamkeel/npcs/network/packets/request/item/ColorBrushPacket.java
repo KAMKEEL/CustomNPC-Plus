@@ -28,7 +28,8 @@ public final class ColorBrushPacket extends AbstractPacket {
         this.color = color;
     }
 
-    public ColorBrushPacket() {}
+    public ColorBrushPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -63,9 +64,9 @@ public final class ColorBrushPacket extends AbstractPacket {
         setBrushColor(stack, color);
     }
 
-    public static void setBrushColor(ItemStack brush, int color){
+    public static void setBrushColor(ItemStack brush, int color) {
         NBTTagCompound brushCompound = brush.getTagCompound();
-        if(brushCompound == null)
+        if (brushCompound == null)
             brushCompound = new NBTTagCompound();
 
         brushCompound.setInteger(BRUSH_COLOR_TAG, color);

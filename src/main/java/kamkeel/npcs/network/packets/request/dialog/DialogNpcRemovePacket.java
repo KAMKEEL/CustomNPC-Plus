@@ -24,7 +24,8 @@ public final class DialogNpcRemovePacket extends AbstractPacket {
         this.index = index;
     }
 
-    public DialogNpcRemovePacket() {}
+    public DialogNpcRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

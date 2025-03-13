@@ -16,9 +16,11 @@ public class ContainerAnvilRepair extends Container {
     // Single-slot output inventory.
     public InventoryCraftResult anvilResult = new InventoryCraftResult();
 
-    private EntityPlayer player;
-    private World worldObj;
-    private int posX, posY, posZ;
+    private final EntityPlayer player;
+    private final World worldObj;
+    private final int posX;
+    private final int posY;
+    private final int posZ;
 
     public int repairCost = 0;
     public int repairMaterialConsumed = 0;
@@ -109,7 +111,7 @@ public class ContainerAnvilRepair extends Container {
 
             ItemStack output = null;
             if (matchingRecipe != null) {
-                if(!matchingRecipe.availability.isAvailable(player)){
+                if (!matchingRecipe.availability.isAvailable(player)) {
                     return;
                 }
 
@@ -159,8 +161,6 @@ public class ContainerAnvilRepair extends Container {
     }
 
 
-
-
     // --- Sync Methods ---
     @Override
     public void addCraftingToCrafters(ICrafting listener) {
@@ -199,15 +199,15 @@ public class ContainerAnvilRepair extends Container {
 
     @Override
     public boolean canInteractWith(EntityPlayer player) {
-        return player.getDistanceSq((double)this.posX + 0.5D,
-            (double)this.posY + 0.5D,
-            (double)this.posZ + 0.5D) <= 64.0D;
+        return player.getDistanceSq((double) this.posX + 0.5D,
+            (double) this.posY + 0.5D,
+            (double) this.posZ + 0.5D) <= 64.0D;
     }
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer player, int index) {
         ItemStack copy = null;
-        Slot slot = (Slot)this.inventorySlots.get(index);
+        Slot slot = (Slot) this.inventorySlots.get(index);
         if (slot != null && slot.getHasStack()) {
             ItemStack stack = slot.getStack();
             copy = stack.copy();
@@ -253,7 +253,7 @@ public class ContainerAnvilRepair extends Container {
     // when picked up, consumes the required number of repair material items and
     // subtracts one from the damaged item stack.
     public class SlotAnvilOutput extends Slot {
-        private ContainerAnvilRepair container;
+        private final ContainerAnvilRepair container;
 
         public SlotAnvilOutput(ContainerAnvilRepair container, IInventory inventory, int index, int x, int y) {
             super(inventory, index, x, y);

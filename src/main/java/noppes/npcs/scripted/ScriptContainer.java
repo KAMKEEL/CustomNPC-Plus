@@ -31,7 +31,7 @@ public class ScriptContainer implements IContainer {
         if (slot >= 0 && slot < this.getSize()) {
             return this.inventory != null ? NpcAPI.Instance().getIItemStack(this.inventory.getStackInSlot(slot)) : NpcAPI.Instance().getIItemStack(this.container.getSlot(slot).getStack());
         } else {
-            throw new CustomNPCsException("Slot is out of range " + slot, new Object[0]);
+            throw new CustomNPCsException("Slot is out of range " + slot);
         }
     }
 
@@ -46,14 +46,14 @@ public class ScriptContainer implements IContainer {
             }
 
         } else {
-            throw new CustomNPCsException("Slot is out of range " + slot, new Object[0]);
+            throw new CustomNPCsException("Slot is out of range " + slot);
         }
     }
 
     public int count(IItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
         int count = 0;
 
-        for(int i = 0; i < this.getSize(); ++i) {
+        for (int i = 0; i < this.getSize(); ++i) {
             IItemStack toCompare = this.getSlot(i);
             if (NoppesUtilPlayer.compareItems(item.getMCItemStack(), toCompare.getMCItemStack(), ignoreDamage, ignoreNBT)) {
                 count += toCompare.getStackSize();
@@ -74,7 +74,7 @@ public class ScriptContainer implements IContainer {
     public IItemStack[] getItems() {
         IItemStack[] items = new IItemStack[this.getSize()];
 
-        for(int i = 0; i < this.getSize(); ++i) {
+        for (int i = 0; i < this.getSize(); ++i) {
             items[i] = this.getSlot(i);
         }
 
@@ -89,7 +89,7 @@ public class ScriptContainer implements IContainer {
         container.detectAndSendChanges();
     }
 
-    public boolean isPlayerNotUsingContainer(IPlayer player){
+    public boolean isPlayerNotUsingContainer(IPlayer player) {
         return container.isPlayerNotUsingContainer((EntityPlayerMP) player.getMCEntity());
     }
 }

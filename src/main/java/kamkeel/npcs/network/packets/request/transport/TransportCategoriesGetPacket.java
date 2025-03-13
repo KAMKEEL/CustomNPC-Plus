@@ -18,7 +18,8 @@ import java.io.IOException;
 public final class TransportCategoriesGetPacket extends AbstractPacket {
     public static String packetName = "Request|TransportCategoriesGet";
 
-    public TransportCategoriesGetPacket() {}
+    public TransportCategoriesGetPacket() {
+    }
 
     @Override
     public Enum getType() {

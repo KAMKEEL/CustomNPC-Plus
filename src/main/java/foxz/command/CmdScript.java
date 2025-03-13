@@ -7,8 +7,8 @@ import foxz.commandhelper.permissions.OpOnly;
 import noppes.npcs.controllers.ScriptController;
 
 @Command(
-        name = "script",
-        desc = "Script operation"
+    name = "script",
+    desc = "Script operation"
 )
 public class CmdScript extends ChMcLogger {
 
@@ -17,14 +17,14 @@ public class CmdScript extends ChMcLogger {
     }
 
     @SubCommand(
-            desc = "Reload scripts and saved data from disks script folder.",
-            permissions={OpOnly.class}
+        desc = "Reload scripts and saved data from disks script folder.",
+        permissions = {OpOnly.class}
     )
-    public Boolean reload(String args[]) {
-    	if(ScriptController.Instance.loadStoredData())
-    		sendmessage("Reload succesful");
-    	else
-    		sendmessage("Failed reloading stored data");
+    public Boolean reload(String[] args) {
+        if (ScriptController.Instance.loadStoredData())
+            sendmessage("Reload succesful");
+        else
+            sendmessage("Failed reloading stored data");
         return true;
     }
 }

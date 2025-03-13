@@ -22,8 +22,8 @@ import tconstruct.client.tabs.AbstractTab;
 
 import java.util.*;
 
-public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICustomScrollListener,  IPartyData, GuiYesNoCallback {
-    private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/standardbg.png");
+public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ICustomScrollListener, IPartyData, GuiYesNoCallback {
+    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");
     private final EntityPlayer player;
 
     private boolean receivedData;
@@ -42,7 +42,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
     private String questCompleteWith;
     private String trackedQuestKey;
     private String originalTracked = "";
-    private QuestLogData data = new QuestLogData();
+    private final QuestLogData data = new QuestLogData();
 
     public GuiParty() {
         super();
@@ -54,7 +54,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
         PacketClient.sendClient(new PartyInfoPacket());
     }
 
-    public void initGui(){
+    public void initGui() {
         super.initGui();
 
         this.selectedInvite = this.selectedPlayer = null;
@@ -65,7 +65,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
                 //
                 //create party button
                 //
-                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize/2 + 40, guiTop + ySize/2 + 20, "party.createParty");
+                GuiNpcButton createPartyButton = new GuiNpcButton(200, guiLeft + xSize / 2 + 40, guiTop + ySize / 2 + 20, "party.createParty");
                 createPartyButton.width = 100;
                 this.addButton(createPartyButton);
 
@@ -120,7 +120,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
                         guiLeft + 284 - fontRendererObj.getStringWidth(textString), getButton(405).yPosition + 3));
                     getButton(405).visible = getLabel(406).enabled = !getButton(400).visible;
 
-                    if(isLeader){
+                    if (isLeader) {
                         GuiNpcButton disbandButton = new GuiNpcButton(410, guiLeft + 164, arrowButtonsY + 19, "party.dropQuest");
                         disbandButton.width = 135;
                         this.addButton(disbandButton);
@@ -172,7 +172,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
                     this.addButton(leaveButton);
                 }
 
-                if (party.getIsLocked()){
+                if (party.getIsLocked()) {
                     GuiNpcButton trackButton = new GuiNpcButton(415, guiLeft + 5, guiTop + ySize - 8 - 23, new String[]{"party.track", "quest.tracking"}, data.trackedQuestKey.equals("P" + ":" + trackedQuestKey) ? 1 : 0);
                     trackButton.width = 135;
                     this.addButton(trackButton);
@@ -216,8 +216,8 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
-        if(guibutton instanceof AbstractTab)
+    protected void actionPerformed(GuiButton guibutton) {
+        if (guibutton instanceof AbstractTab)
             return;
 
         Party party = ClientCacheHandler.party;
@@ -303,7 +303,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
     }
 
     @Override
-    public void drawScreen(int i, int j, float f){
+    public void drawScreen(int i, int j, float f) {
         renderTicks++;
 
         drawDefaultBackground();
@@ -313,17 +313,17 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
         drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, 67, 195);
         super.drawScreen(i, j, f);
 
-        if(!receivedData){
+        if (!receivedData) {
             String periods = "";
-            for (int k = 0; k < (renderTicks/10)%4; k++) {
+            for (int k = 0; k < (renderTicks / 10) % 4; k++) {
                 periods += ".";
             }
-            fontRendererObj.drawString(StatCollector.translateToLocal("gui.loading") + periods,guiLeft + xSize/2,guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
+            fontRendererObj.drawString(StatCollector.translateToLocal("gui.loading") + periods, guiLeft + xSize / 2, guiTop + 80, CustomNpcResourceListener.DefaultTextColor);
             return;
         }
 
         if (ClientCacheHandler.party == null) {
-            drawTextBlock("party.messageNoParty", guiLeft + 155, guiTop + ySize/2 - 20, 160);
+            drawTextBlock("party.messageNoParty", guiLeft + 155, guiTop + ySize / 2 - 20, 160);
         } else if (ClientCacheHandler.party.getQuest() != null) {
             Quest quest = (Quest) ClientCacheHandler.party.getQuest();
             if (showQuestText) {
@@ -343,31 +343,30 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
 
     private void drawProgress() {
         String complete = this.questCompleteWith;
-        if(complete != null && !complete.isEmpty())
+        if (complete != null && !complete.isEmpty())
             fontRendererObj.drawString(StatCollector.translateToLocalFormatted("quest.completewith", complete), guiLeft + 144, guiTop + 105, CustomNpcResourceListener.DefaultTextColor);
 
         int yoffset = guiTop + 22;
-        for(String process : this.questLogStatus){
+        for (String process : this.questLogStatus) {
             int index = process.lastIndexOf(":");
-            if(index > 0){
+            if (index > 0) {
                 String name = process.substring(0, index);
                 String trans = StatCollector.translateToLocal(name);
-                if(!trans.equals(name))
+                if (!trans.equals(name))
                     name = trans;
                 trans = StatCollector.translateToLocal("entity." + name + ".name");
-                if(!trans.equals("entity." + name + ".name")){
+                if (!trans.equals("entity." + name + ".name")) {
                     name = trans;
                 }
                 process = name + process.substring(index);
             }
-            fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset , CustomNpcResourceListener.DefaultTextColor);
+            fontRendererObj.drawString("- " + process, guiLeft + 144, yoffset, CustomNpcResourceListener.DefaultTextColor);
             yoffset += 10;
         }
     }
 
     @Override
-    public void keyTyped(char c, int i)
-    {
+    public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
         if (!GuiNpcTextField.isFieldActive()) {
             if (i == 1 || i == mc.gameSettings.keyBindInventory.getKeyCode()) // inventory key
@@ -453,7 +452,7 @@ public class GuiParty extends GuiCNPCInventory implements ITextfieldListener,ICu
     @Override
     public void save() {
         if (this.partyChanged) {
-            if(ClientCacheHandler.party != null)
+            if (ClientCacheHandler.party != null)
                 PacketClient.sendClient(new PartySavePacket(ClientCacheHandler.party.writeClientNBT()));
         }
         if (!Objects.equals(this.originalTracked, data.trackedQuestKey)) {

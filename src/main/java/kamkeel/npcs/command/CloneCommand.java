@@ -21,31 +21,30 @@ import static kamkeel.npcs.util.ColorUtil.*;
 
 public class CloneCommand extends CommandKamkeelBase {
 
-	@Override
-	public String getCommandName() {
-		return "clone";
-	}
+    @Override
+    public String getCommandName() {
+        return "clone";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Clone operation (server side)";
-	}
+    @Override
+    public String getDescription() {
+        return "Clone operation (server side)";
+    }
 
     @SubCommand(
-            desc = "Add NPC(s) to clone storage",
-            usage = "<npc> <tab> [clonedname]",
-            permission = 4
+        desc = "Add NPC(s) to clone storage",
+        usage = "<npc> <tab> [clonedname]",
+        permission = 4
     )
     public void add(ICommandSender sender, String[] args) {
         int tab = 0;
-        try{
-        	tab = Integer.parseInt(args[1]);
-            if(tab < 0 || tab > 15){
+        try {
+            tab = Integer.parseInt(args[1]);
+            if (tab < 0 || tab > 15) {
                 sendError(sender, "Tab must be within 1-15");
                 return;
             }
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             sendError(sender, String.format("Tab is not a number: %s", args[1]));
             return;
         }
@@ -60,31 +59,30 @@ public class CloneCommand extends CommandKamkeelBase {
                 if (args.length > 2) {
                     name = args[2];
                 }
-    			NBTTagCompound compound = new NBTTagCompound();
-    			if(!npc.writeToNBTOptional(compound))
-    				return;
-    			ServerCloneController.Instance.addClone(compound, name, tab);
+                NBTTagCompound compound = new NBTTagCompound();
+                if (!npc.writeToNBTOptional(compound))
+                    return;
+                ServerCloneController.Instance.addClone(compound, name, tab);
                 sendResult(sender, String.format("Added NPC \u00A7e%s\u00A77 to Tab \u00A7b%d\u00A77", name, tab));
             }
         }
     }
 
     @SubCommand(
-    		desc = "List NPC from clone storage",
-    		usage = "<tab>",
-    		permission = 2
+        desc = "List NPC from clone storage",
+        usage = "<tab>",
+        permission = 2
     )
     public void list(ICommandSender sender, String[] args) {
         sendMessage(sender, "--- Stored NPCs --- (server side)");
         int tab = 0;
-        try{
+        try {
             tab = Integer.parseInt(args[1]);
-            if(tab < 0 || tab > 15){
+            if (tab < 0 || tab > 15) {
                 sendError(sender, "Tab must be within 1-15");
                 return;
             }
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             sendError(sender, String.format("Tab is not a number: %s", args[1]));
             return;
         }
@@ -96,32 +94,31 @@ public class CloneCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-    		desc = "Remove NPC from clone storage",
-    		usage = "<name> <tab>",
-    		permission = 4
+        desc = "Remove NPC from clone storage",
+        usage = "<name> <tab>",
+        permission = 4
     )
     public void del(ICommandSender sender, String[] args) throws CommandException {
         String nametodel = args[0];
         int tab = 0;
-        try{
+        try {
             tab = Integer.parseInt(args[1]);
-            if(tab < 0 || tab > 15){
-                sendError(sender, String.format("Tab must be within 1-15"));
+            if (tab < 0 || tab > 15) {
+                sendError(sender, "Tab must be within 1-15");
                 return;
             }
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             sendError(sender, String.format("Tab is not a number: %s", args[1]));
             return;
         }
 
         boolean deleted = false;
-        for(String name : ServerCloneController.Instance.getClones(tab)){
-        	if(nametodel.equalsIgnoreCase(name)){
-        		ServerCloneController.Instance.removeClone(name, tab);
-        		deleted = true;
-        		break;
-        	}
+        for (String name : ServerCloneController.Instance.getClones(tab)) {
+            if (nametodel.equalsIgnoreCase(name)) {
+                ServerCloneController.Instance.removeClone(name, tab);
+                deleted = true;
+                break;
+            }
         }
         if (!ServerCloneController.Instance.removeClone(nametodel, tab)) {
             sendError(sender, String.format("NPC '%s' was not found", nametodel));
@@ -131,28 +128,27 @@ public class CloneCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-    		desc = "Spawn cloned NPC",
-    		usage = "<name> <tab> [[world:]x,y,z]] [newname]",
-    		permission = 2
+        desc = "Spawn cloned NPC",
+        usage = "<name> <tab> [[world:]x,y,z]] [newname]",
+        permission = 2
     )
     public void spawn(ICommandSender sender, String[] args) throws CommandException {
         String name = args[0].replaceAll("%", " "); // if name of npc separed by space, user must use % in place of space
         int tab = 0;
-        try{
+        try {
             tab = Integer.parseInt(args[1]);
-            if(tab < 0 || tab > 15){
-                sendError(sender, String.format("Tab must be within 1-15"));
+            if (tab < 0 || tab > 15) {
+                sendError(sender, "Tab must be within 1-15");
                 return;
             }
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             sendError(sender, String.format("Tab is not a number: %s", args[1]));
             return;
         }
 
-        String newname=null;
+        String newname = null;
         NBTTagCompound compound = ServerCloneController.Instance.getCloneData(sender, name, tab);
-        if(compound == null){
+        if (compound == null) {
             sendError(sender, "Unknown npc");
             return;
         }
@@ -161,34 +157,34 @@ public class CloneCommand extends CommandKamkeelBase {
         double posY = sender.getPlayerCoordinates().posY;
         double posZ = sender.getPlayerCoordinates().posZ;
 
-        if(args.length > 2){
+        if (args.length > 2) {
             String location = args[2];
             String[] par;
-            if (location.contains(":")){
+            if (location.contains(":")) {
                 par = location.split(":");
                 location = par[1];
                 world = Utils.getWorld(par[0]);
-                if (world == null){
+                if (world == null) {
                     sendError(sender, String.format("'%s' is an unknown world", par[0]));
                     return;
                 }
             }
 
-            if (location.contains(",")){
+            if (location.contains(",")) {
                 par = location.split(",");
-                if (par.length != 3){
+                if (par.length != 3) {
                     sendError(sender, "Location need be x,y,z");
                     return;
                 }
-                try{
+                try {
                     posX = func_110666_a(sender, posX, par[0]);
                     posY = func_110665_a(sender, posY, par[1].trim(), 0, 0);
                     posZ = func_110666_a(sender, posZ, par[2]);
-                }  catch(NumberFormatException ex){
+                } catch (NumberFormatException ex) {
                     sendError(sender, "Location should be in numbers");
                     return;
                 }
-                if (args.length > 3){
+                if (args.length > 3) {
                     newname = args[3];
                 }
             } else {
@@ -196,56 +192,54 @@ public class CloneCommand extends CommandKamkeelBase {
             }
         }
 
-        if (posX == 0 && posY == 0 && posZ == 0){//incase it was called from the console and not pos was given
+        if (posX == 0 && posY == 0 && posZ == 0) {//incase it was called from the console and not pos was given
             sendError(sender, "Location needed");
             return;
         }
 
         Entity entity = EntityList.createEntityFromNBT(compound, world);
         entity.setPosition(posX + 0.5, posY + 1, posZ + 0.5);
-        if(entity instanceof EntityNPCInterface){
+        if (entity instanceof EntityNPCInterface) {
             EntityNPCInterface npc = (EntityNPCInterface) entity;
             npc.ais.startPos = new int[]{MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)};
-            if(newname != null && !newname.isEmpty())
+            if (newname != null && !newname.isEmpty())
                 npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way
         }
         world.spawnEntityInWorld(entity);
     }
 
     @SubCommand(
-            desc = "Spawn cloned NPC",
-            usage = "<name> <tab> [[world:]x,y,z]] [newname]",
-            permission = 2
+        desc = "Spawn cloned NPC",
+        usage = "<name> <tab> [[world:]x,y,z]] [newname]",
+        permission = 2
     )
     public void grid(ICommandSender sender, String[] args) throws CommandException {
         String name = args[0].replaceAll("%", " "); // if name of npc separed by space, user must use % in place of space
         int tab = 0;
-        try{
+        try {
             tab = Integer.parseInt(args[1]);
-            if(tab < 0 || tab > 15){
-                sendError(sender, String.format("Tab must be within 1-15"));
+            if (tab < 0 || tab > 15) {
+                sendError(sender, "Tab must be within 1-15");
                 return;
             }
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             sendError(sender, String.format("Tab is not a number: %s", args[1]));
             return;
         }
 
         int width, height;
-        try{
+        try {
             width = Integer.parseInt(args[2]);
             height = Integer.parseInt(args[3]);
-        }
-        catch(NumberFormatException ex){
+        } catch (NumberFormatException ex) {
             sendError(sender, "length or width was not a number");
             return;
         }
 
 
-        String newname=null;
+        String newname = null;
         NBTTagCompound compound = ServerCloneController.Instance.getCloneData(sender, name, tab);
-        if(compound == null){
+        if (compound == null) {
             sendError(sender, "Unknown npc");
             return;
         }
@@ -254,33 +248,33 @@ public class CloneCommand extends CommandKamkeelBase {
         double posY = sender.getPlayerCoordinates().posY;
         double posZ = sender.getPlayerCoordinates().posZ;
 
-        if(args.length > 4){
+        if (args.length > 4) {
             String location = args[4];
             String[] par;
-            if (location.contains(":")){
+            if (location.contains(":")) {
                 par = location.split(":");
                 location = par[1];
                 world = Utils.getWorld(par[0]);
-                if (world == null){
+                if (world == null) {
                     sendError(sender, String.format("'%s' is an unknown world", par[0]));
                 }
             }
 
-            if (location.contains(",")){
+            if (location.contains(",")) {
                 par = location.split(",");
-                if (par.length != 3){
+                if (par.length != 3) {
                     sendError(sender, "Location need be x,y,z");
                     return;
                 }
-                try{
+                try {
                     posX = func_110666_a(sender, posX, par[0]);
                     posY = func_110665_a(sender, posY, par[1].trim(), 0, 0);
                     posZ = func_110666_a(sender, posZ, par[2]);
-                }  catch(NumberFormatException ex){
+                } catch (NumberFormatException ex) {
                     sendError(sender, "Location should be in numbers");
                     return;
                 }
-                if (args.length > 5){
+                if (args.length > 5) {
                     newname = args[5];
                 }
             } else {
@@ -288,46 +282,45 @@ public class CloneCommand extends CommandKamkeelBase {
             }
         }
 
-        if (posX == 0 && posY == 0 && posZ == 0){//incase it was called from the console and not pos was given
+        if (posX == 0 && posY == 0 && posZ == 0) {//incase it was called from the console and not pos was given
             sendError(sender, "Location needed");
             return;
         }
 
-        for(int x = 0; x < width; x++){
-            for(int z = 0; z < height; z++){
+        for (int x = 0; x < width; x++) {
+            for (int z = 0; z < height; z++) {
                 Entity entity = EntityList.createEntityFromNBT(compound, world);
                 int xx = MathHelper.floor_double(posX) + x;
                 int yy = Math.max(MathHelper.floor_double(posY) - 2, 1);
                 int zz = MathHelper.floor_double(posZ) + z;
 
-                for(int y = 0; y < 10; y++){
+                for (int y = 0; y < 10; y++) {
                     Block b = world.getBlock(xx, yy + y, zz);
                     Block b2 = world.getBlock(xx, yy + y + 1, zz);
-                    if(b != null && (b2 == null || b2.getCollisionBoundingBoxFromPool(world, xx, yy + y + 1, zz) == null)){
+                    if (b != null && (b2 == null || b2.getCollisionBoundingBoxFromPool(world, xx, yy + y + 1, zz) == null)) {
                         yy += y;
                         break;
                     }
                 }
                 entity.setPosition(posX + 0.5 + x, yy + 1, posZ + 0.5 + z);
-                if(entity instanceof EntityNPCInterface){
+                if (entity instanceof EntityNPCInterface) {
                     EntityNPCInterface npc = (EntityNPCInterface) entity;
                     npc.ais.startPos = new int[]{xx, yy, zz};
-                    if(newname != null && !newname.isEmpty())
+                    if (newname != null && !newname.isEmpty())
                         npc.display.name = newname.replaceAll("%", " "); // like name, newname must use % in place of space to keep a logical way
                 }
                 world.spawnEntityInWorld(entity);
             }
         }
-        return;
     }
 
-    public World getWorld(String t){
-        WorldServer[] ws=MinecraftServer.getServer().worldServers;
-        for (WorldServer w:ws){
-            if (w!=null){
-                 if ((w.provider.dimensionId + "").equalsIgnoreCase(t)){
-                     return w;
-                 }
+    public World getWorld(String t) {
+        WorldServer[] ws = MinecraftServer.getServer().worldServers;
+        for (WorldServer w : ws) {
+            if (w != null) {
+                if ((w.provider.dimensionId + "").equalsIgnoreCase(t)) {
+                    return w;
+                }
             }
         }
         return null;

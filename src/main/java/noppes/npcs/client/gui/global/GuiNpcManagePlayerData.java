@@ -23,7 +23,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
 
     private GuiCustomScroll playerScroll;
     private String selectedPlayer = null;
-    private HashMap<String, Integer> playerData = new HashMap<>();
+    private final HashMap<String, Integer> playerData = new HashMap<>();
     private String search = "";
 
     public GuiNpcManagePlayerData(EntityNPCInterface npcInterface) {
@@ -61,14 +61,15 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
     }
 
     @Override
-    public void mouseClicked(int i, int j, int k) {;
+    public void mouseClicked(int i, int j, int k) {
         super.mouseClicked(i, j, k);
         if (k == 0 && playerScroll != null)
             playerScroll.mouseClicked(i, j, k);
     }
 
     @Override
-    public void save() {}
+    public void save() {
+    }
 
     @Override
     public void keyTyped(char c, int i) {
@@ -147,8 +148,10 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
 
-    public void subGuiClosed(SubGuiInterface subgui) {}
+    public void subGuiClosed(SubGuiInterface subgui) {
+    }
 }

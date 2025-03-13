@@ -12,7 +12,7 @@ public class PlayerEffectData {
     private final PlayerData parent;
     private ConcurrentHashMap<EffectKey, PlayerEffect> effects = new ConcurrentHashMap<>();
 
-    public PlayerEffectData(PlayerData playerData){
+    public PlayerEffectData(PlayerData playerData) {
         this.parent = playerData;
     }
 

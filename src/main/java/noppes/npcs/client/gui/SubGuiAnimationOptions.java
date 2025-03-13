@@ -34,7 +34,7 @@ public class SubGuiAnimationOptions extends SubGuiInterface {
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         super.actionPerformed(guibutton);
-        int value = ((GuiNpcButton)guibutton).getValue();
+        int value = ((GuiNpcButton) guibutton).getValue();
 
         if (guibutton.id == 11) {
             animation.whileStanding = value == 0;

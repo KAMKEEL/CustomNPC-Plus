@@ -1,25 +1,24 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.controllers.data.ProfileOptions;
 
-public class SubGuiNpcProfileOptions extends SubGuiInterface
-{
-	private final ProfileOptions options;
+public class SubGuiNpcProfileOptions extends SubGuiInterface {
+    private final ProfileOptions options;
 
-    public SubGuiNpcProfileOptions(ProfileOptions options)
-    {
-    	this.options = options;
-		setBackground("menubg.png");
-		xSize = 256;
-		ySize = 216;
-		closeOnEsc = true;
+    public SubGuiNpcProfileOptions(ProfileOptions options) {
+        this.options = options;
+        setBackground("menubg.png");
+        xSize = 256;
+        ySize = 216;
+        closeOnEsc = true;
     }
 
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
 
         int y = 0;
@@ -43,9 +42,8 @@ public class SubGuiNpcProfileOptions extends SubGuiInterface
         addButton(new GuiNpcButton(66, guiLeft + 200, guiTop + 192, 50, 20, "gui.done"));
     }
 
-	protected void actionPerformed(GuiButton guibutton)
-    {
-		int id = guibutton.id;
+    protected void actionPerformed(GuiButton guibutton) {
+        int id = guibutton.id;
         switch (id) {
             case 0:
                 options.enableOptions = !options.enableOptions;

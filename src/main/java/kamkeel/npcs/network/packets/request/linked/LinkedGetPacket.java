@@ -24,7 +24,8 @@ public final class LinkedGetPacket extends AbstractPacket {
     private int id;
     private String name;
 
-    public LinkedGetPacket() {}
+    public LinkedGetPacket() {
+    }
 
     public LinkedGetPacket(Action action, int id) {
         this.action = action;
@@ -50,7 +51,7 @@ public final class LinkedGetPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(this.action.ordinal());
-        if(action == Action.NPC){
+        if (action == Action.NPC) {
             ByteBufUtils.writeString(out, this.name);
         } else {
             out.writeInt(this.id);
@@ -65,7 +66,7 @@ public final class LinkedGetPacket extends AbstractPacket {
             return;
 
         Action action = Action.values()[in.readInt()];
-        if(action == Action.NPC){
+        if (action == Action.NPC) {
             String name = ByteBufUtils.readString(in);
             LinkedNpcController.LinkedData data = LinkedNpcController.Instance.getData(name);
             NBTTagCompound compound = data.getNBT();

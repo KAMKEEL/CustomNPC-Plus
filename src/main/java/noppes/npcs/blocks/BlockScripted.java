@@ -45,7 +45,7 @@ public class BlockScripted extends BlockContainer {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
         if (tile != null && tile.isPassible && (tile.blockModel == null || tile.blockModel == Blocks.air))
             return AABB_EMPTY;
-        return AABB.getOffsetBoundingBox(x,y,z);
+        return AABB.getOffsetBoundingBox(x, y, z);
     }
 
     @Override
@@ -53,12 +53,11 @@ public class BlockScripted extends BlockContainer {
         TileScripted tile = (TileScripted) world.getTileEntity(x, y, z);
         if (tile != null && tile.isPassible)
             return AABB_EMPTY;
-        return AABB.getOffsetBoundingBox(x,y,z);
+        return AABB.getOffsetBoundingBox(x, y, z);
     }
 
     @Override
-    public boolean getBlocksMovement(IBlockAccess worldIn, int x, int y, int z)
-    {
+    public boolean getBlocksMovement(IBlockAccess worldIn, int x, int y, int z) {
         TileScripted tile = (TileScripted) worldIn.getTileEntity(x, y, z);
         return tile != null && tile.isPassible;
     }
@@ -118,6 +117,7 @@ public class BlockScripted extends BlockContainer {
     public int getRenderType() {
         return renderId;
     }
+
     @Override
     public boolean isOpaqueCube() {
         return false;
@@ -235,7 +235,7 @@ public class BlockScripted extends BlockContainer {
         int power = 0;
         for (EnumFacing enumfacing : EnumFacing.values()) {
             int p = world.getIndirectPowerLevelTo(x + enumfacing.getFrontOffsetX(),
-                    y + enumfacing.getFrontOffsetZ(), z + enumfacing.getFrontOffsetZ(), enumfacing.ordinal());
+                y + enumfacing.getFrontOffsetZ(), z + enumfacing.getFrontOffsetZ(), enumfacing.ordinal());
             if (p > power)
                 power = p;
         }

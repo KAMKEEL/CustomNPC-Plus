@@ -2,6 +2,7 @@ package kamkeel.npcs.controllers.data.attribute.requirement;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;

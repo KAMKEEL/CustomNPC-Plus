@@ -26,7 +26,8 @@ public final class TransportCategoryRemovePacket extends AbstractPacket {
         this.categoryId = categoryId;
     }
 
-    public TransportCategoryRemovePacket() {}
+    public TransportCategoryRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

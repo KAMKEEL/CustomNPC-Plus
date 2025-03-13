@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
-    private HashMap<Integer,Class<?>> scriptGuiClasses = new HashMap<>();
+    private final HashMap<Integer, Class<?>> scriptGuiClasses = new HashMap<>();
 
     public GuiScriptGlobal() {
         this.xSize = 176;
@@ -48,7 +48,7 @@ public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
     //For examples of what kind of GUI class to create, look at GuiScriptForge.
     public void addScriptGui(Class<?> guiClass, String buttonText, boolean enabled) {
         int buttonId = this.buttons.size();
-        this.scriptGuiClasses.put(buttonId,guiClass);
+        this.scriptGuiClasses.put(buttonId, guiClass);
 
         GuiNpcButton npcButton = new GuiNpcButton(buttonId, this.guiLeft + 38, this.guiTop + 80 + (buttonId - 2) * 30, 100, 20, buttonText);
         npcButton.setEnabled(enabled);
@@ -77,7 +77,8 @@ public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
             try {
                 Class<?> guiClass = this.scriptGuiClasses.get(guibutton.id);
                 this.displayGuiScreen((GuiScreen) guiClass.newInstance());
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 

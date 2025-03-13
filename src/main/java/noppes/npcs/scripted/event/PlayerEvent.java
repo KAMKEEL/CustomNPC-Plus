@@ -117,7 +117,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final int mouseWheel;
         public final boolean buttonDown;
 
-        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys){
+        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys) {
             super(player);
             this.button = button;
             this.mouseWheel = mouseWheel;
@@ -234,7 +234,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final int fromDim;
         public final int toDim;
 
-        public ChangedDimension(IPlayer player, int fromDim, int toDim){
+        public ChangedDimension(IPlayer player, int fromDim, int toDim) {
             super(player);
             this.fromDim = fromDim;
             this.toDim = toDim;
@@ -274,7 +274,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class AttackedEvent extends PlayerEvent implements IPlayerEvent.AttackedEvent {
         public final IDamageSource damageSource;
         public final IEntity source;
-        public final float damage;
+        public float damage;
 
         public AttackedEvent(IPlayer player, Entity source, float damage, DamageSource damagesource) {
             super(player);
@@ -298,6 +298,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
+
     }
 
     @Cancelable
@@ -329,6 +331,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
     }
 
     @Cancelable
@@ -376,7 +379,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class FallEvent extends PlayerEvent implements IPlayerEvent.FallEvent {
         public final float distance;
 
-        public FallEvent(IPlayer player, float distance){
+        public FallEvent(IPlayer player, float distance) {
             super(player);
             this.distance = distance;
         }
@@ -391,7 +394,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     }
 
     public static class JumpEvent extends PlayerEvent implements IPlayerEvent.JumpEvent {
-        public JumpEvent(IPlayer player){
+        public JumpEvent(IPlayer player) {
             super(player);
         }
 
@@ -498,6 +501,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
+
     }
 
     @Cancelable
@@ -528,6 +533,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public float getDamage() {
             return damage;
         }
+
+
     }
 
     public static class ContainerClosed extends PlayerEvent implements IPlayerEvent.ContainerClosed {
@@ -667,7 +674,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public StartUsingItem(IPlayer player, ItemStack item, int duration){
+        public StartUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -692,7 +699,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public UsingItem(IPlayer player, ItemStack item, int duration){
+        public UsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -717,7 +724,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public StopUsingItem(IPlayer player, ItemStack item, int duration){
+        public StopUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -741,7 +748,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public FinishUsingItem(IPlayer player, ItemStack item, int duration){
+        public FinishUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -973,6 +980,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             }
 
         }
+
         public static class Ticked extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Ticked {
 
             public Ticked(IPlayer player, IPlayerEffect statusEffect) {
@@ -980,6 +988,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             }
 
         }
+
         public static class Removed extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Removed {
 
             private final ExpirationType type;
@@ -1011,11 +1020,13 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class ProfileEvent extends PlayerEvent implements IPlayerEvent.ProfileEvent {
         public final IProfile profile;
         public final int slot;
+        public final boolean post;
 
-        public ProfileEvent(IPlayer player, IProfile profile, int slot) {
+        public ProfileEvent(IPlayer player, IProfile profile, int slot, boolean post) {
             super(player);
             this.profile = profile;
             this.slot = slot;
+            this.post = post;
         }
 
         public String getHookName() {
@@ -1032,12 +1043,17 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             return this.slot;
         }
 
+        @Override
+        public boolean isPost() {
+            return this.post;
+        }
+
         @Cancelable
         public static class Changed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Changed {
             public final int prevSlot;
 
-            public Changed(IPlayer player, IProfile profile, int slot, int prevSlot) {
-                super(player, profile, slot);
+            public Changed(IPlayer player, IProfile profile, int slot, int prevSlot, boolean post) {
+                super(player, profile, slot, post);
                 this.prevSlot = prevSlot;
             }
 
@@ -1054,8 +1070,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         @Cancelable
         public static class Removed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Removed {
 
-            public Removed(IPlayer player, IProfile profile, int slot) {
-                super(player, profile, slot);
+            public Removed(IPlayer player, IProfile profile, int slot, boolean post) {
+                super(player, profile, slot, post);
             }
 
             public String getHookName() {
@@ -1066,8 +1082,8 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         @Cancelable
         public static class Create extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Create {
 
-            public Create(IPlayer player, IProfile profile, int slot) {
-                super(player, profile, slot);
+            public Create(IPlayer player, IProfile profile, int slot, boolean post) {
+                super(player, profile, slot, post);
             }
 
             public String getHookName() {

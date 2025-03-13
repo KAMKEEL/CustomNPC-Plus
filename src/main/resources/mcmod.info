@@ -1,24 +1,26 @@
 {
-	"modListVersion": 2,
-	"modList": [{
-		"modid": "${modId}",
-		"name": "${modName}",
-		"description": "CustomNPC+ is a continuation of the Custom NPCs Mod which allows you to create NPCs with various different functionalities",
-		"version": "${modVersion}",
-		"mcversion": "${minecraftVersion}",
-		"url": "https://tinyurl.com/customnpc-plus",
-		"updateUrl": "",
-		"authorList": [
-			"KAMKEEL (CNPC+)",
-			"Louis XII (CNPC+ Scripting)"
-		],
-		"credits": "Noppes (CNPC), DarkSignal (AI), Foxz (Retro-Commands), PopsicleNate (Textures), Goodbird (CustomModel)",
-		"logoFile": "assets/customnpcs/textures/gui/logo.png",
-		"screenshots": [],
-		"parent": "",
-		"requiredMods": [],
-		"dependencies": [],
-		"dependants": [],
-		"useDependencyInformation": false
-	}]
+  "modListVersion": 2,
+  "modList": [
+    {
+      "modid": "${modId}",
+      "name": "${modName}",
+      "description": "CustomNPC+ is a continuation of the Custom NPCs Mod which allows you to create NPCs with various different functionalities",
+      "version": "${modVersion}",
+      "mcversion": "${minecraftVersion}",
+      "url": "https://tinyurl.com/customnpc-plus",
+      "updateUrl": "",
+      "authorList": [
+        "KAMKEEL (CNPC+)",
+        "Louis XII (CNPC+ Scripting)"
+      ],
+      "credits": "Noppes (CNPC), DarkSignal (AI), Foxz (Retro-Commands), PopsicleNate (Textures), Goodbird (CustomModel)",
+      "logoFile": "assets/customnpcs/textures/gui/logo.png",
+      "screenshots": [],
+      "parent": "",
+      "requiredMods": [],
+      "dependencies": [],
+      "dependants": [],
+      "useDependencyInformation": false
+    }
+  ]
 }

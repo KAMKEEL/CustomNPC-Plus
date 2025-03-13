@@ -1,20 +1,15 @@
-TODO List
-
-Magic:
-- Create MagicData Class -- Done
--- Magic Data: Magic ID, % Split, Bonus Damage
-
-- Store Magic on PlayerData and NPCs -- Done
-
-Profile:
-- On Profile Slot Change Event
-- On Profile Slot Create Event
-- On Profile Slot Delete Event
-
-ScriptPlayer and ScriptNPC
--- Apply, Removing and Checking Magic Types
-
 Interfaces:
-- IMagic
 - IProfile -- Need Work
-- ISlot -- Done
+- ISlot -- Need Work
+
+-- Fix Default Magic Cycle Load Up
+
+--- FIX MAGIC CYCLE
+---- Add Two Way arrows in Diagram Support
+
+Item Attribute Scripting
+-- Item Attribute Recalc
+-- Durability Attribute
+-- Get Attributes
+-- View Attributes on Profiles
+--

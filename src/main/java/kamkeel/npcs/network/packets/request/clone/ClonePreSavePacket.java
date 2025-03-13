@@ -25,7 +25,8 @@ public final class ClonePreSavePacket extends AbstractPacket {
     private String name;
     private int tab;
 
-    public ClonePreSavePacket() {}
+    public ClonePreSavePacket() {
+    }
 
     public ClonePreSavePacket(String name, int tab) {
         this.name = name;
@@ -43,7 +44,7 @@ public final class ClonePreSavePacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.NPC_CLONE;
     }
 

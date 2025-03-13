@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncController {
 
-    public static void syncPlayer(EntityPlayerMP player){
+    public static void syncPlayer(EntityPlayerMP player) {
 
         // Login Packet
         PacketHandler.Instance.sendToPlayer(new LoginPacket(), player);
@@ -99,43 +99,43 @@ public class SyncController {
         syncPlayerData(player, false);
     }
 
-    public static NBTTagCompound workbenchNBT(){
+    public static NBTTagCompound workbenchNBT() {
         RecipeController controller = RecipeController.Instance;
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for(RecipeCarpentry recipe : controller.globalRecipes.values()){
+        for (RecipeCarpentry recipe : controller.globalRecipes.values()) {
             list.appendTag(recipe.writeNBT());
         }
         compound.setTag("recipes", list);
         return compound;
     }
 
-    public static NBTTagCompound carpentryNBT(){
+    public static NBTTagCompound carpentryNBT() {
         RecipeController controller = RecipeController.Instance;
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for(RecipeCarpentry recipe : controller.carpentryRecipes.values()){
+        for (RecipeCarpentry recipe : controller.carpentryRecipes.values()) {
             list.appendTag(recipe.writeNBT());
         }
         compound.setTag("recipes", list);
         return compound;
     }
 
-    public static NBTTagCompound anvilNBT(){
+    public static NBTTagCompound anvilNBT() {
         RecipeController controller = RecipeController.Instance;
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for(RecipeAnvil recipe : controller.anvilRecipes.values()){
+        for (RecipeAnvil recipe : controller.anvilRecipes.values()) {
             list.appendTag(recipe.writeNBT());
         }
         compound.setTag("recipes", list);
         return compound;
     }
 
-    public static NBTTagCompound factionsNBT(){
+    public static NBTTagCompound factionsNBT() {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
-        for(Faction faction : FactionController.getInstance().factions.values()){
+        for (Faction faction : FactionController.getInstance().factions.values()) {
             NBTTagCompound factioNBT = new NBTTagCompound();
             faction.writeNBT(factioNBT);
             list.appendTag(factioNBT);
@@ -144,13 +144,13 @@ public class SyncController {
         return compound;
     }
 
-    public static NBTTagCompound dialogCategoriesNBT(){
+    public static NBTTagCompound dialogCategoriesNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         NBTTagList categoryList = new NBTTagList();
-        for(DialogCategory category : DialogController.Instance.categories.values()){
+        for (DialogCategory category : DialogController.Instance.categories.values()) {
             NBTTagCompound questCompound = new NBTTagCompound();
             NBTTagList dialogList = new NBTTagList();
-            for(int dialogID : category.dialogs.keySet()){
+            for (int dialogID : category.dialogs.keySet()) {
                 Dialog quest = category.dialogs.get(dialogID);
                 dialogList.appendTag(quest.writeToNBT(new NBTTagCompound()));
             }
@@ -162,13 +162,13 @@ public class SyncController {
         return compound;
     }
 
-    public static NBTTagCompound questCategoriesNBT(){
+    public static NBTTagCompound questCategoriesNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         NBTTagList categoryList = new NBTTagList();
-        for(QuestCategory category : QuestController.Instance.categories.values()){
-            NBTTagCompound questCompound = new NBTTagCompound();;
+        for (QuestCategory category : QuestController.Instance.categories.values()) {
+            NBTTagCompound questCompound = new NBTTagCompound();
             NBTTagList questList = new NBTTagList();
-            for(int questID : category.quests.keySet()){
+            for (int questID : category.quests.keySet()) {
                 Quest quest = category.quests.get(questID);
                 questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
             }
@@ -180,7 +180,7 @@ public class SyncController {
         return compound;
     }
 
-    public static NBTTagCompound customEffectsNBT(){
+    public static NBTTagCompound customEffectsNBT() {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (CustomEffect effect : CustomEffectController.getInstance().getCustomEffects().values()) {
@@ -190,7 +190,7 @@ public class SyncController {
         return compound;
     }
 
-    public static NBTTagCompound magicsNBT(){
+    public static NBTTagCompound magicsNBT() {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (Magic magic : MagicController.getInstance().magics.values()) {
@@ -202,7 +202,7 @@ public class SyncController {
         return compound;
     }
 
-    public static NBTTagCompound magicCyclesNBT(){
+    public static NBTTagCompound magicCyclesNBT() {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
@@ -214,10 +214,10 @@ public class SyncController {
         return compound;
     }
 
-    public static void syncPlayerData(EntityPlayerMP player, boolean update){
+    public static void syncPlayerData(EntityPlayerMP player, boolean update) {
         PlayerData data = PlayerData.get(player);
-        if(data != null){
-            if(update){
+        if (data != null) {
+            if (update) {
                 PacketHandler.Instance.sendToPlayer(new SyncPacket(
                         EnumSyncType.PLAYERDATA,
                         EnumSyncAction.UPDATE,
@@ -234,7 +234,7 @@ public class SyncController {
         }
     }
 
-    public static void syncRemove(EnumSyncType enumSyncType, int id){
+    public static void syncRemove(EnumSyncType enumSyncType, int id) {
         PacketHandler.Instance.sendToAll(new SyncPacket(
             enumSyncType,
             EnumSyncAction.REMOVE,
@@ -299,7 +299,7 @@ public class SyncController {
 
     @SideOnly(Side.CLIENT)
     public static void clientSync(EnumSyncType enumSyncType, NBTTagCompound fullCompound) {
-        switch (enumSyncType){
+        switch (enumSyncType) {
             case FACTION: {
                 NBTTagList list = fullCompound.getTagList("Factions", 10);
                 for (int i = 0; i < list.tagCount(); i++) {
@@ -312,22 +312,21 @@ public class SyncController {
                 break;
             }
             case DIALOG_CATEGORY: {
-                if(!fullCompound.hasNoTags()){
+                if (!fullCompound.hasNoTags()) {
                     NBTTagList categories = fullCompound.getTagList("DialogCategories", 10);
-                    for(int j = 0; j < fullCompound.getTagList("DialogCategories", 10).tagCount(); j++) {
+                    for (int j = 0; j < fullCompound.getTagList("DialogCategories", 10).tagCount(); j++) {
                         NBTTagCompound categoryCompound = categories.getCompoundTagAt(j);
-                        if(categoryCompound.hasNoTags())
+                        if (categoryCompound.hasNoTags())
                             continue;
 
                         DialogCategory category = new DialogCategory();
                         category.readSmallNBT(categoryCompound.getCompoundTag("CatNBT"));
                         NBTTagList dialogList = categoryCompound.getTagList("Data", 10);
-                        if(DialogController.Instance.categoriesSync.containsKey(category.id)){
+                        if (DialogController.Instance.categoriesSync.containsKey(category.id)) {
                             category = DialogController.Instance.categoriesSync.get(category.id);
                             category.readSmallNBT(categoryCompound.getCompoundTag("CatNBT"));
                         }
-                        for(int i = 0; i < dialogList.tagCount(); i++)
-                        {
+                        for (int i = 0; i < dialogList.tagCount(); i++) {
                             Dialog dialog = new Dialog();
                             dialog.readNBT(dialogList.getCompoundTagAt(i));
                             dialog.category = category;
@@ -338,8 +337,8 @@ public class SyncController {
                 }
 
                 HashMap<Integer, Dialog> dialogs = new HashMap<Integer, Dialog>();
-                for(DialogCategory category : DialogController.Instance.categoriesSync.values()){
-                    for(Dialog dialog : category.dialogs.values()){
+                for (DialogCategory category : DialogController.Instance.categoriesSync.values()) {
+                    for (Dialog dialog : category.dialogs.values()) {
                         dialogs.put(dialog.id, dialog);
                     }
                 }
@@ -350,22 +349,21 @@ public class SyncController {
                 break;
             }
             case QUEST_CATEGORY: {
-                if(!fullCompound.hasNoTags()){
+                if (!fullCompound.hasNoTags()) {
                     NBTTagList categories = fullCompound.getTagList("QuestCategories", 10);
-                    for(int j = 0; j < fullCompound.getTagList("QuestCategories", 10).tagCount(); j++) {
+                    for (int j = 0; j < fullCompound.getTagList("QuestCategories", 10).tagCount(); j++) {
                         NBTTagCompound categoryCompound = categories.getCompoundTagAt(j);
-                        if(categoryCompound.hasNoTags())
+                        if (categoryCompound.hasNoTags())
                             continue;
 
                         QuestCategory category = new QuestCategory();
                         category.readSmallNBT(categoryCompound.getCompoundTag("CatNBT"));
                         NBTTagList questList = categoryCompound.getTagList("Data", 10);
-                        if(QuestController.Instance.categoriesSync.containsKey(category.id)){
+                        if (QuestController.Instance.categoriesSync.containsKey(category.id)) {
                             category = QuestController.Instance.categoriesSync.get(category.id);
                             category.readSmallNBT(categoryCompound.getCompoundTag("CatNBT"));
                         }
-                        for(int i = 0; i < questList.tagCount(); i++)
-                        {
+                        for (int i = 0; i < questList.tagCount(); i++) {
                             Quest quest = new Quest();
                             quest.readNBT(questList.getCompoundTagAt(i));
                             quest.category = category;
@@ -375,9 +373,9 @@ public class SyncController {
                     }
                 }
 
-                HashMap<Integer,Quest> quests = new HashMap<Integer, Quest>();
-                for(QuestCategory category : QuestController.Instance.categoriesSync.values()){
-                    for(Quest quest : category.quests.values()){
+                HashMap<Integer, Quest> quests = new HashMap<Integer, Quest>();
+                for (QuestCategory category : QuestController.Instance.categoriesSync.values()) {
+                    for (Quest quest : category.quests.values()) {
                         quests.put(quest.id, quest);
                     }
                 }
@@ -423,13 +421,12 @@ public class SyncController {
             }
             case WORKBENCH_RECIPES: {
                 NBTTagList list = fullCompound.getTagList("recipes", 10);
-                if(list == null)
+                if (list == null)
                     return;
 
-                for(int i = 0; i < list.tagCount(); i++)
-                {
+                for (int i = 0; i < list.tagCount(); i++) {
                     RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
-                    RecipeController.syncRecipes.put(recipe.id,recipe);
+                    RecipeController.syncRecipes.put(recipe.id, recipe);
                 }
 
                 RecipeController.reloadGlobalRecipes(RecipeController.syncRecipes);
@@ -438,13 +435,12 @@ public class SyncController {
             }
             case CARPENTRY_RECIPES: {
                 NBTTagList list = fullCompound.getTagList("recipes", 10);
-                if(list == null)
+                if (list == null)
                     return;
 
-                for(int i = 0; i < list.tagCount(); i++)
-                {
+                for (int i = 0; i < list.tagCount(); i++) {
                     RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
-                    RecipeController.syncRecipes.put(recipe.id,recipe);
+                    RecipeController.syncRecipes.put(recipe.id, recipe);
                 }
 
                 RecipeController.Instance.carpentryRecipes = RecipeController.syncRecipes;
@@ -453,11 +449,10 @@ public class SyncController {
             }
             case ANVIL_RECIPES: {
                 NBTTagList list = fullCompound.getTagList("recipes", 10);
-                if(list == null)
+                if (list == null)
                     return;
 
-                for(int i = 0; i < list.tagCount(); i++)
-                {
+                for (int i = 0; i < list.tagCount(); i++) {
                     RecipeAnvil recipe = RecipeAnvil.read(list.getCompoundTagAt(i));
                     RecipeController.syncAnvilRecipes.put(recipe.id, recipe);
                 }
@@ -490,7 +485,7 @@ public class SyncController {
      */
     @SideOnly(Side.CLIENT)
     public static void clientUpdate(EnumSyncType enumSyncType, int category_id, NBTTagCompound compound) {
-        switch (enumSyncType){
+        switch (enumSyncType) {
             case FACTION: {
                 Faction faction = new Faction();
                 faction.readNBT(compound);
@@ -519,12 +514,11 @@ public class SyncController {
                 QuestCategory category = new QuestCategory();
                 category.readSmallNBT(compound.getCompoundTag("CatNBT"));
                 NBTTagList list = compound.getTagList("Data", 10);
-                if(QuestController.Instance.categoriesSync.containsKey(category.id)){
+                if (QuestController.Instance.categoriesSync.containsKey(category.id)) {
                     category = QuestController.Instance.categoriesSync.get(category.id);
                     category.readSmallNBT(compound.getCompoundTag("CatNBT"));
                 }
-                for(int i = 0; i < list.tagCount(); i++)
-                {
+                for (int i = 0; i < list.tagCount(); i++) {
                     Quest quest = new Quest();
                     quest.readNBT(list.getCompoundTagAt(i));
                     quest.category = category;
@@ -537,12 +531,11 @@ public class SyncController {
                 DialogCategory category = new DialogCategory();
                 category.readSmallNBT(compound.getCompoundTag("CatNBT"));
                 NBTTagList list = compound.getTagList("Data", 10);
-                if(DialogController.Instance.categoriesSync.containsKey(category.id)){
+                if (DialogController.Instance.categoriesSync.containsKey(category.id)) {
                     category = DialogController.Instance.categoriesSync.get(category.id);
                     category.readSmallNBT(compound.getCompoundTag("CatNBT"));
                 }
-                for(int i = 0; i < list.tagCount(); i++)
-                {
+                for (int i = 0; i < list.tagCount(); i++) {
                     Dialog dialog = new Dialog();
                     dialog.readNBT(list.getCompoundTagAt(i));
                     dialog.category = category;
@@ -591,7 +584,7 @@ public class SyncController {
     public static NBTTagCompound updateQuestCat(QuestCategory questCategory) {
         NBTTagCompound questCompound = new NBTTagCompound();
         NBTTagList questList = new NBTTagList();
-        for(int questID : questCategory.quests.keySet()){
+        for (int questID : questCategory.quests.keySet()) {
             Quest quest = questCategory.quests.get(questID);
             questList.appendTag(quest.writeToNBT(new NBTTagCompound()));
         }
@@ -603,7 +596,7 @@ public class SyncController {
     public static NBTTagCompound updateDialogCat(DialogCategory dialogCategory) {
         NBTTagCompound dialogCompound = new NBTTagCompound();
         NBTTagList dialogList = new NBTTagList();
-        for(int questID : dialogCategory.dialogs.keySet()){
+        for (int questID : dialogCategory.dialogs.keySet()) {
             Dialog dialog = dialogCategory.dialogs.get(questID);
             dialogList.appendTag(dialog.writeToNBT(new NBTTagCompound()));
         }
@@ -614,36 +607,36 @@ public class SyncController {
 
     @SideOnly(Side.CLIENT)
     public static void clientSyncRemove(EnumSyncType enumSyncType, int id) {
-        switch (enumSyncType){
+        switch (enumSyncType) {
             case FACTION:
                 FactionController.getInstance().factions.remove(id);
                 break;
             case DIALOG:
                 Dialog dialog = DialogController.Instance.dialogs.remove(id);
-                if(dialog != null) {
+                if (dialog != null) {
                     dialog.category.dialogs.remove(id);
                 }
                 break;
             case DIALOG_CATEGORY:
                 DialogCategory dialogCategory = DialogController.Instance.categories.remove(id);
-                if(dialogCategory != null) {
+                if (dialogCategory != null) {
                     DialogController.Instance.dialogs.keySet().removeAll(dialogCategory.dialogs.keySet());
                 }
                 break;
             case QUEST:
                 Quest quest = QuestController.Instance.quests.remove(id);
-                if(quest != null) {
+                if (quest != null) {
                     quest.category.quests.remove(id);
                 }
                 break;
             case QUEST_CATEGORY:
                 QuestCategory questCategory = QuestController.Instance.categories.remove(id);
-                if(questCategory != null) {
+                if (questCategory != null) {
                     QuestController.Instance.quests.keySet().removeAll(questCategory.quests.keySet());
                 }
                 break;
             case MAGIC:
-                for(MagicCycle cycle : MagicController.getInstance().cycles.values()){
+                for (MagicCycle cycle : MagicController.getInstance().cycles.values()) {
                     cycle.associations.remove(id);
                 }
                 MagicController.getInstance().cycles.remove(id);
@@ -657,7 +650,7 @@ public class SyncController {
         }
     }
 
-    public static void syncEffects(EntityPlayerMP playerMP){
+    public static void syncEffects(EntityPlayerMP playerMP) {
         ConcurrentHashMap<EffectKey, PlayerEffect> playerEffects = CustomEffectController.getInstance().getPlayerEffects(playerMP);
         PlayerData playerData = PlayerData.get(playerMP);
         playerData.effectData.setEffects(playerEffects);
@@ -669,7 +662,7 @@ public class SyncController {
     @SideOnly(Side.CLIENT)
     public static void clientSyncEffects(NBTTagCompound compound) {
         PlayerData playerData = PlayerData.get(Minecraft.getMinecraft().thePlayer);
-        if(playerData != null){
+        if (playerData != null) {
             playerData.setPlayerEffects(compound);
         }
     }

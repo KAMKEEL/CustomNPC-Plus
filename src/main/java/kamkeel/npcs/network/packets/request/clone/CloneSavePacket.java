@@ -29,7 +29,8 @@ public final class CloneSavePacket extends AbstractPacket {
     private NBTTagCompound tagExtra;
     private NBTTagCompound tagCompound;
 
-    public CloneSavePacket() {}
+    public CloneSavePacket() {
+    }
 
     public CloneSavePacket(String name, int tab, NBTTagCompound tagExtra, NBTTagCompound tagCompound) {
         this.name = name;
@@ -49,7 +50,7 @@ public final class CloneSavePacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.NPC_CLONE;
     }
 
@@ -70,7 +71,7 @@ public final class CloneSavePacket extends AbstractPacket {
             return;
 
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-        if(data.cloned == null)
+        if (data.cloned == null)
             return;
 
         String name = ByteBufUtils.readString(in);

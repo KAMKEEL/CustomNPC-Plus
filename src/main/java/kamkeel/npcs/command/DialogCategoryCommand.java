@@ -16,22 +16,22 @@ import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class DialogCategoryCommand extends CommandKamkeelBase {
 
-	@Override
-	public String getCommandName() {
-		return "dialogcat";
-	}
+    @Override
+    public String getCommandName() {
+        return "dialogcat";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Dialog Category operations";
-	}
+    @Override
+    public String getDescription() {
+        return "Dialog Category operations";
+    }
 
     @SubCommand(
-            desc = "Find dialog category id number by its name",
-            usage = "<dialog cat name>"
+        desc = "Find dialog category id number by its name",
+        usage = "<dialog cat name>"
     )
-    public void id(ICommandSender sender, String args[]) throws CommandException {
-        if(args.length == 0){
+    public void id(ICommandSender sender, String[] args) throws CommandException {
+        if (args.length == 0) {
             sendError(sender, "Please provide a name for the dialog category");
             return;
         }
@@ -39,48 +39,47 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         String catName = String.join(" ", args).toLowerCase();
         final Collection<DialogCategory> dialogCats = DialogController.Instance.categories.values();
         int count = 0;
-        for(DialogCategory cat : dialogCats){
-            if(cat.getName().toLowerCase().contains(catName)){
+        for (DialogCategory cat : dialogCats) {
+            if (cat.getName().toLowerCase().contains(catName)) {
                 sendResult(sender, String.format("Dialog Cat \u00A7e%d\u00A77 - \u00A7c'%s'", cat.id, cat.getName()));
                 count++;
             }
         }
-        if(count == 0){
+        if (count == 0) {
             sendResult(sender, String.format("No Dialog Cat found with name: \u00A7c'%s'", catName));
         }
     }
 
 
     @SubCommand(
-            desc = "Read a dialog category for a player",
-            usage = "<player> <dialogcatid>"
+        desc = "Read a dialog category for a player",
+        usage = "<player> <dialogcatid>"
     )
-    public void read(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void read(ICommandSender sender, String[] args) throws CommandException {
+        String playername = args[0];
         int dialogCatId;
         try {
-        	dialogCatId = Integer.parseInt(args[1]);
-        }
-        catch (NumberFormatException ex) {
-        	sendError(sender, "DialogCatID must be an integer: " + args[1]);
+            dialogCatId = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "DialogCatID must be an integer: " + args[1]);
             return;
         }
 
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-        	sendError(sender, String.format("Unknown player '%s'", playername));
+            sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
 
         DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
-        if (dialogCategory == null){
-        	sendError(sender, "Unknown DialogCatID: " + dialogCatId);
+        if (dialogCategory == null) {
+            sendError(sender, "Unknown DialogCatID: " + dialogCatId);
             return;
         }
 
         int count = 0;
-        for(PlayerData playerdata : data){
-            for(Dialog dialog : dialogCategory.dialogs.values()){
+        for (PlayerData playerdata : data) {
+            for (Dialog dialog : dialogCategory.dialogs.values()) {
                 playerdata.dialogData.dialogsRead.add(dialog.id);
                 count++;
             }
@@ -94,16 +93,15 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
 
 
     @SubCommand(
-            desc = "Unread a dialog category for a player",
-            usage = "<player> <dialogcatid>"
+        desc = "Unread a dialog category for a player",
+        usage = "<player> <dialogcatid>"
     )
-    public void unread(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void unread(ICommandSender sender, String[] args) throws CommandException {
+        String playername = args[0];
         int dialogCatId;
         try {
             dialogCatId = Integer.parseInt(args[1]);
-        }
-        catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             sendError(sender, "DialogCatID must be an integer: " + args[1]);
             return;
         }
@@ -115,14 +113,14 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         }
 
         DialogCategory dialogCategory = DialogController.Instance.categories.get(dialogCatId);
-        if (dialogCategory == null){
+        if (dialogCategory == null) {
             sendError(sender, "Unknown DialogCatID: " + dialogCatId);
             return;
         }
 
         int count = 0;
-        for(PlayerData playerdata : data){
-            for(Dialog dialog : dialogCategory.dialogs.values()){
+        for (PlayerData playerdata : data) {
+            for (Dialog dialog : dialogCategory.dialogs.values()) {
                 playerdata.dialogData.dialogsRead.remove(dialog.id);
                 count++;
             }

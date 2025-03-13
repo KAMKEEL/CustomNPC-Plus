@@ -7,33 +7,34 @@ import noppes.npcs.roles.JobFollower;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobFollower extends ScriptJobInterface implements IJobFollower {
-	private JobFollower job;
-	public ScriptJobFollower(EntityNPCInterface npc){
-		super(npc);
-		this.job = (JobFollower) npc.jobInterface;
-	}
-	
-	public String getFollowingName(){
-		return job.name;
-	}
-	
-	public void setFollowingName(String name){
-		job.name = name;
-	}
-	
-	public ICustomNpc getFollowingNpc() {
-		if(!isFollowing())
-			return null;
-		return job.following.script.dummyNpc;
-	}
-	
-	public boolean isFollowing(){
-		return job.isFollowing();
-	}
-	
-	@Override
-	public int getType(){
-		return JobType.FOLLOWER;
-	}
-	
+    private final JobFollower job;
+
+    public ScriptJobFollower(EntityNPCInterface npc) {
+        super(npc);
+        this.job = (JobFollower) npc.jobInterface;
+    }
+
+    public String getFollowingName() {
+        return job.name;
+    }
+
+    public void setFollowingName(String name) {
+        job.name = name;
+    }
+
+    public ICustomNpc getFollowingNpc() {
+        if (!isFollowing())
+            return null;
+        return job.following.script.dummyNpc;
+    }
+
+    public boolean isFollowing() {
+        return job.isFollowing();
+    }
+
+    @Override
+    public int getType() {
+        return JobType.FOLLOWER;
+    }
+
 }

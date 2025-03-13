@@ -52,7 +52,8 @@ public class ImageData {
                 } else {
                     this.getURLWidthHeight();
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         return !this.invalid && this.location != null && this.gotWidthHeight;
     }
@@ -94,7 +95,8 @@ public class ImageData {
                     IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
                     InputStream inputstream = iresource.getInputStream();
                     this.bufferedImage = ImageIO.read(inputstream);
-                } catch (IOException ignored) {}
+                } catch (IOException ignored) {
+                }
             } else {
                 this.bufferedImage = this.imageDownloadAlt.getBufferedImage();
             }
@@ -126,8 +128,8 @@ public class ImageData {
         }
     }
 
-    private void getURLWidthHeight(){
-        if(this.imageDownloadAlt.getBufferedImage() != null && !this.invalid) {
+    private void getURLWidthHeight() {
+        if (this.imageDownloadAlt.getBufferedImage() != null && !this.invalid) {
             this.gotWidthHeight = true;
             this.totalWidth = this.imageDownloadAlt.getBufferedImage().getWidth();
             this.totalHeight = this.imageDownloadAlt.getBufferedImage().getHeight();
@@ -135,7 +137,7 @@ public class ImageData {
         }
     }
 
-    private void correctWidthHeight(){
+    private void correctWidthHeight() {
         this.totalWidth = Math.max(this.totalWidth, 1);
         this.totalHeight = Math.max(this.totalHeight, 1);
     }

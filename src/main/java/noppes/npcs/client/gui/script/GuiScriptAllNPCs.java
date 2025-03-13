@@ -9,7 +9,7 @@ import noppes.npcs.controllers.data.GlobalNPCDataScript;
 import java.util.List;
 
 public class GuiScriptAllNPCs extends GuiScriptInterface {
-    private GlobalNPCDataScript script = new GlobalNPCDataScript(null);
+    private final GlobalNPCDataScript script = new GlobalNPCDataScript(null);
 
     public GuiScriptAllNPCs() {
         hookList.add("init");
@@ -48,7 +48,7 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
                     script.getScripts().add(new ScriptContainer(script));
                 }
             }
-            script.getScripts().set(tab,container);
+            script.getScripts().set(tab, container);
             initGui();
         }
     }

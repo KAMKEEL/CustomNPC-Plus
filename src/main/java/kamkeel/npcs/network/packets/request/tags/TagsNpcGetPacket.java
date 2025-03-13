@@ -24,7 +24,8 @@ import java.util.UUID;
 public final class TagsNpcGetPacket extends AbstractPacket {
     public static final String packetName = "Request|NpcTagsGet";
 
-    public TagsNpcGetPacket() {}
+    public TagsNpcGetPacket() {
+    }
 
     @Override
     public Enum getType() {

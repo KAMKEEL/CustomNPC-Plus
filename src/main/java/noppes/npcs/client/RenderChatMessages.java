@@ -15,46 +15,46 @@ import org.lwjgl.opengl.GL11;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class RenderChatMessages implements IChatMessages{
-	private Map<Long,TextBlockClient> messages = new TreeMap<Long,TextBlockClient>();
+public class RenderChatMessages implements IChatMessages {
+    private Map<Long, TextBlockClient> messages = new TreeMap<Long, TextBlockClient>();
 
-	private int boxLength = 46;
-	private float scale = 0.5f;
+    private final int boxLength = 46;
+    private final float scale = 0.5f;
 
-	private String lastMessage = "";
-	private long lastMessageTime = 0;
+    private String lastMessage = "";
+    private long lastMessageTime = 0;
 
-	@Override
-	public void addMessage(String message, EntityNPCInterface npc){
-		if(!ConfigClient.EnableChatBubbles)
-			return;
-		long time = System.currentTimeMillis();
-		if(message.equals(lastMessage) && lastMessageTime + 5000 > time){
-			return;
-		}
-		Map<Long,TextBlockClient> messages = new TreeMap<Long,TextBlockClient>(this.messages);
-		messages.put(time, new TextBlockClient(message, (int) (boxLength * 4), true, Minecraft.getMinecraft().thePlayer, npc));
+    @Override
+    public void addMessage(String message, EntityNPCInterface npc) {
+        if (!ConfigClient.EnableChatBubbles)
+            return;
+        long time = System.currentTimeMillis();
+        if (message.equals(lastMessage) && lastMessageTime + 5000 > time) {
+            return;
+        }
+        Map<Long, TextBlockClient> messages = new TreeMap<Long, TextBlockClient>(this.messages);
+        messages.put(time, new TextBlockClient(message, boxLength * 4, true, Minecraft.getMinecraft().thePlayer, npc));
 
-		if(messages.size() > 3){
-			messages.remove(messages.keySet().iterator().next());
-		}
-		this.messages = messages;
-		lastMessage = message;
-		lastMessageTime = time;
-	}
+        if (messages.size() > 3) {
+            messages.remove(messages.keySet().iterator().next());
+        }
+        this.messages = messages;
+        lastMessage = message;
+        lastMessageTime = time;
+    }
 
     @Override
     public void renderMessages(double par3, double par5, double par7, float scale, boolean inRange) {
-        Map<Long,TextBlockClient> messages = getMessages();
-        if(messages.isEmpty())
+        Map<Long, TextBlockClient> messages = getMessages();
+        if (messages.isEmpty())
             return;
-        if(inRange)
+        if (inRange)
             render(par3, par5, par7, scale, false);
         render(par3, par5, par7, scale, true);
     }
 
-    public void render(double par3, double par5, double par7, float textscale, boolean depth){
-		FontRenderer font = Minecraft.getMinecraft().fontRenderer;
+    public void render(double par3, double par5, double par7, float textscale, boolean depth) {
+        FontRenderer font = Minecraft.getMinecraft().fontRenderer;
         float var13 = 1.6F;
         float var14 = 0.016666668F * var13;
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
@@ -64,13 +64,13 @@ public class RenderChatMessages implements IChatMessages{
             size += block.lines.size();
 
         int fontHeight;
-        if(ConfigClient.ChatBubblesFontType)
+        if (ConfigClient.ChatBubblesFontType)
             fontHeight = ClientProxy.Font.height();
         else
             fontHeight = font.FONT_HEIGHT;
 
         int textYSize = (int) (size * fontHeight * scale);
-        GL11.glTranslatef((float)par3 + 0.0F, (float)par5 + textYSize * textscale * var14, (float)par7);
+        GL11.glTranslatef((float) par3 + 0.0F, (float) par5 + textYSize * textscale * var14, (float) par7);
         GL11.glScalef(textscale, textscale, textscale);
         GL11.glNormal3f(0.0F, 1.0F, 0.0F);
         GL11.glRotatef(-RenderManager.instance.playerViewY, 0.0F, 1F, 0.0F);
@@ -123,10 +123,10 @@ public class RenderChatMessages implements IChatMessages{
 
         GL11.glScalef(scale, scale, scale);
         int index = 0;
-        for(TextBlockClient block : messages.values()){
-            for(IChatComponent chat : block.lines){
+        for (TextBlockClient block : messages.values()) {
+            for (IChatComponent chat : block.lines) {
                 String message = chat.getFormattedText();
-                if(ConfigClient.ChatBubblesFontType)
+                if (ConfigClient.ChatBubblesFontType)
                     ClientProxy.Font.drawString(message, -ClientProxy.Font.width(message) / 2, index * fontHeight, black);
                 else
                     font.drawString(message, -font.getStringWidth(message) / 2, index * fontHeight, black);
@@ -144,48 +144,45 @@ public class RenderChatMessages implements IChatMessages{
         GL11.glPopAttrib();
     }
 
-	private void drawRect(int par0, int par1, int par2, int par3, int par4, double par5)
-    {
+    private void drawRect(int par0, int par1, int par2, int par3, int par4, double par5) {
         int j1;
 
-        if (par0 < par2)
-        {
+        if (par0 < par2) {
             j1 = par0;
             par0 = par2;
             par2 = j1;
         }
 
-        if (par1 < par3)
-        {
+        if (par1 < par3) {
             j1 = par1;
             par1 = par3;
             par3 = j1;
         }
 
-        float f = (float)(par4 >> 24 & 255) / 255.0F;
-        float f1 = (float)(par4 >> 16 & 255) / 255.0F;
-        float f2 = (float)(par4 >> 8 & 255) / 255.0F;
-        float f3 = (float)(par4 & 255) / 255.0F;
+        float f = (float) (par4 >> 24 & 255) / 255.0F;
+        float f1 = (float) (par4 >> 16 & 255) / 255.0F;
+        float f2 = (float) (par4 >> 8 & 255) / 255.0F;
+        float f3 = (float) (par4 & 255) / 255.0F;
         Tessellator tessellator = Tessellator.instance;
         GL11.glColor4f(f1, f2, f3, f);
         tessellator.startDrawingQuads();
-        tessellator.addVertex((double)par0, (double)par3, par5);
-        tessellator.addVertex((double)par2, (double)par3, par5);
-        tessellator.addVertex((double)par2, (double)par1, par5);
-        tessellator.addVertex((double)par0, (double)par1, par5);
+        tessellator.addVertex(par0, par3, par5);
+        tessellator.addVertex(par2, par3, par5);
+        tessellator.addVertex(par2, par1, par5);
+        tessellator.addVertex(par0, par1, par5);
         tessellator.draw();
     }
 
-	private Map<Long,TextBlockClient> getMessages(){
-		Map<Long,TextBlockClient> messages = new TreeMap<Long,TextBlockClient>();
-		long time = System.currentTimeMillis();
-		for(long timestamp : this.messages.keySet()){
-			if(time > timestamp + 10000)
-				continue;
-			TextBlockClient message = this.messages.get(timestamp);
-			messages.put(timestamp, message);
-		}
-		this.messages = messages;
-		return messages;
-	}
+    private Map<Long, TextBlockClient> getMessages() {
+        Map<Long, TextBlockClient> messages = new TreeMap<Long, TextBlockClient>();
+        long time = System.currentTimeMillis();
+        for (long timestamp : this.messages.keySet()) {
+            if (time > timestamp + 10000)
+                continue;
+            TextBlockClient message = this.messages.get(timestamp);
+            messages.put(timestamp, message);
+        }
+        this.messages = messages;
+        return messages;
+    }
 }

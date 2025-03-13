@@ -10,123 +10,120 @@ import noppes.npcs.constants.EnumPartyRequirements;
 import java.util.Vector;
 
 public class PartyOptions implements IPartyOptions {
-	public boolean allowParty = false;
+    public boolean allowParty = false;
     public boolean onlyParty = false;
 
     public EnumPartyRequirements partyRequirements = EnumPartyRequirements.Leader;
 
     public EnumPartyExchange rewardControl = EnumPartyExchange.Leader;
-	public EnumPartyExchange completeFor = EnumPartyExchange.Leader;
+    public EnumPartyExchange completeFor = EnumPartyExchange.Leader;
     public EnumPartyExchange executeCommand = EnumPartyExchange.Leader;
 
     public EnumPartyObjectives objectiveRequirement = EnumPartyObjectives.Shared;
 
     public int minPartySize = ConfigMain.DefaultMinPartySize;
-	public int maxPartySize = ConfigMain.DefaultMaxPartySize;
+    public int maxPartySize = ConfigMain.DefaultMaxPartySize;
 
-    public void readFromNBT(NBTTagCompound compound)
-    {
-		// Party Management
-		allowParty = compound.getBoolean("AllowParty");
-		if(allowParty){
+    public void readFromNBT(NBTTagCompound compound) {
+        // Party Management
+        allowParty = compound.getBoolean("AllowParty");
+        if (allowParty) {
             onlyParty = compound.getBoolean("OnlyParty");
-			partyRequirements = EnumPartyRequirements.values()[compound.getInteger("PartyRequirements")];
-			rewardControl = EnumPartyExchange.values()[compound.getInteger("RewardControl")];
-			completeFor = EnumPartyExchange.values()[compound.getInteger("CompleteFor")];
+            partyRequirements = EnumPartyRequirements.values()[compound.getInteger("PartyRequirements")];
+            rewardControl = EnumPartyExchange.values()[compound.getInteger("RewardControl")];
+            completeFor = EnumPartyExchange.values()[compound.getInteger("CompleteFor")];
             executeCommand = EnumPartyExchange.values()[compound.getInteger("ExecuteCommand")];
             minPartySize = compound.getInteger("MinPartySize");
-			maxPartySize = compound.getInteger("MaxPartySize");
+            maxPartySize = compound.getInteger("MaxPartySize");
             objectiveRequirement = EnumPartyObjectives.values()[compound.getInteger("ObjectiveRequirement")];
-		}
-		else {
-            if(compound.hasKey("OnlyParty")){
+        } else {
+            if (compound.hasKey("OnlyParty")) {
                 compound.removeTag("OnlyParty");
             }
-			if(compound.hasKey("PartyRequirements")){
-				compound.removeTag("PartyRequirements");
-			}
-			if(compound.hasKey("RewardControl")){
-				compound.removeTag("RewardControl");
-			}
-			if(compound.hasKey("CompleteFor")){
-				compound.removeTag("CompleteFor");
-			}
-            if(compound.hasKey("ExecuteCommand")){
+            if (compound.hasKey("PartyRequirements")) {
+                compound.removeTag("PartyRequirements");
+            }
+            if (compound.hasKey("RewardControl")) {
+                compound.removeTag("RewardControl");
+            }
+            if (compound.hasKey("CompleteFor")) {
+                compound.removeTag("CompleteFor");
+            }
+            if (compound.hasKey("ExecuteCommand")) {
                 compound.removeTag("ExecuteCommand");
             }
-            if(compound.hasKey("MinPartySize")){
+            if (compound.hasKey("MinPartySize")) {
                 compound.removeTag("MinPartySize");
             }
-			if(compound.hasKey("MaxPartySize")){
-				compound.removeTag("MaxPartySize");
-			}
-            if(compound.hasKey("ObjectiveRequirement")){
+            if (compound.hasKey("MaxPartySize")) {
+                compound.removeTag("MaxPartySize");
+            }
+            if (compound.hasKey("ObjectiveRequirement")) {
                 compound.removeTag("ObjectiveRequirement");
             }
 
             onlyParty = false;
             partyRequirements = EnumPartyRequirements.Leader;
-			rewardControl = EnumPartyExchange.Leader;
-			completeFor = EnumPartyExchange.Leader;
+            rewardControl = EnumPartyExchange.Leader;
+            completeFor = EnumPartyExchange.Leader;
             executeCommand = EnumPartyExchange.Leader;
             minPartySize = ConfigMain.DefaultMinPartySize;
-			maxPartySize = ConfigMain.DefaultMaxPartySize;
+            maxPartySize = ConfigMain.DefaultMaxPartySize;
             objectiveRequirement = EnumPartyObjectives.Shared;
-		}
+        }
     }
-	public NBTTagCompound writeToNBT()
-    {
-		NBTTagCompound compound = new NBTTagCompound();
-		compound.setBoolean("AllowParty", allowParty);
-		if(allowParty){
+
+    public NBTTagCompound writeToNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setBoolean("AllowParty", allowParty);
+        if (allowParty) {
             compound.setBoolean("OnlyParty", onlyParty);
-			compound.setInteger("PartyRequirements", partyRequirements.ordinal());
-			compound.setInteger("RewardControl", rewardControl.ordinal());
-			compound.setInteger("CompleteFor", completeFor.ordinal());
+            compound.setInteger("PartyRequirements", partyRequirements.ordinal());
+            compound.setInteger("RewardControl", rewardControl.ordinal());
+            compound.setInteger("CompleteFor", completeFor.ordinal());
             compound.setInteger("ExecuteCommand", executeCommand.ordinal());
             compound.setInteger("MinPartySize", minPartySize);
-			compound.setInteger("MaxPartySize", maxPartySize);
+            compound.setInteger("MaxPartySize", maxPartySize);
             compound.setInteger("ObjectiveRequirement", objectiveRequirement.ordinal());
-		}
-		else {
-            if(compound.hasKey("OnlyParty")){
+        } else {
+            if (compound.hasKey("OnlyParty")) {
                 compound.removeTag("OnlyParty");
             }
-			if(compound.hasKey("PartyRequirements")){
-				compound.removeTag("PartyRequirements");
-			}
-			if(compound.hasKey("RewardControl")){
-				compound.removeTag("RewardControl");
-			}
-			if(compound.hasKey("CompleteFor")){
-				compound.removeTag("CompleteFor");
-			}
-            if(compound.hasKey("ExecuteCommand")){
+            if (compound.hasKey("PartyRequirements")) {
+                compound.removeTag("PartyRequirements");
+            }
+            if (compound.hasKey("RewardControl")) {
+                compound.removeTag("RewardControl");
+            }
+            if (compound.hasKey("CompleteFor")) {
+                compound.removeTag("CompleteFor");
+            }
+            if (compound.hasKey("ExecuteCommand")) {
                 compound.removeTag("ExecuteCommand");
             }
-            if(compound.hasKey("MinPartySize")){
+            if (compound.hasKey("MinPartySize")) {
                 compound.removeTag("MinPartySize");
             }
-			if(compound.hasKey("MaxPartySize")){
-				compound.removeTag("MaxPartySize");
-			}
-            if(compound.hasKey("ObjectiveRequirement")){
+            if (compound.hasKey("MaxPartySize")) {
+                compound.removeTag("MaxPartySize");
+            }
+            if (compound.hasKey("ObjectiveRequirement")) {
                 compound.removeTag("ObjectiveRequirement");
             }
-		}
+        }
 
-		return compound;
+        return compound;
     }
 
     @Override
-	public boolean isAllowParty() {
-		return allowParty;
-	}
+    public boolean isAllowParty() {
+        return allowParty;
+    }
 
     @Override
-	public void setAllowParty(boolean allowParty) {
-		this.allowParty = allowParty;
-	}
+    public void setAllowParty(boolean allowParty) {
+        this.allowParty = allowParty;
+    }
 
     @Override
     public boolean isOnlyParty() {
@@ -139,43 +136,43 @@ public class PartyOptions implements IPartyOptions {
     }
 
     @Override
-	public int getPartyRequirements() {
-		return partyRequirements.ordinal();
-	}
+    public int getPartyRequirements() {
+        return partyRequirements.ordinal();
+    }
 
     @Override
-	public void setPartyRequirements(int partyReq) {
-		if (partyReq < 0 || partyReq >= EnumPartyRequirements.values().length) {
-			return;
-		}
-		this.partyRequirements = EnumPartyRequirements.values()[partyReq];
-	}
+    public void setPartyRequirements(int partyReq) {
+        if (partyReq < 0 || partyReq >= EnumPartyRequirements.values().length) {
+            return;
+        }
+        this.partyRequirements = EnumPartyRequirements.values()[partyReq];
+    }
 
     @Override
-	public int getRewardControl() {
-		return rewardControl.ordinal();
-	}
+    public int getRewardControl() {
+        return rewardControl.ordinal();
+    }
 
     @Override
-	public void setRewardControl(int rewardCon) {
-		if (rewardCon < 0 || rewardCon >= EnumPartyExchange.values().length) {
-			return;
-		}
-		this.rewardControl = EnumPartyExchange.values()[rewardCon];
-	}
+    public void setRewardControl(int rewardCon) {
+        if (rewardCon < 0 || rewardCon >= EnumPartyExchange.values().length) {
+            return;
+        }
+        this.rewardControl = EnumPartyExchange.values()[rewardCon];
+    }
 
     @Override
-	public int getCompleteFor() {
-		return completeFor.ordinal();
-	}
+    public int getCompleteFor() {
+        return completeFor.ordinal();
+    }
 
     @Override
-	public void setCompleteFor(int compFor) {
-		if (compFor < 0 || compFor >= EnumPartyExchange.values().length) {
-			return;
-		}
-		this.completeFor = EnumPartyExchange.values()[compFor];
-	}
+    public void setCompleteFor(int compFor) {
+        if (compFor < 0 || compFor >= EnumPartyExchange.values().length) {
+            return;
+        }
+        this.completeFor = EnumPartyExchange.values()[compFor];
+    }
 
     @Override
     public int getExecuteCommandFor() {
@@ -210,31 +207,31 @@ public class PartyOptions implements IPartyOptions {
 
     @Override
     public void setMinPartySize(int newSize) {
-        if(newSize < 1)
+        if (newSize < 1)
             newSize = 1;
 
-        if(newSize > maxPartySize)
+        if (newSize > maxPartySize)
             newSize = maxPartySize;
 
         minPartySize = newSize;
     }
 
     @Override
-	public int getMaxPartySize() {
-		return maxPartySize;
-	}
+    public int getMaxPartySize() {
+        return maxPartySize;
+    }
 
-	@Override
-	public void setMaxPartySize(int newSize) {
-        if(newSize < minPartySize)
+    @Override
+    public void setMaxPartySize(int newSize) {
+        if (newSize < minPartySize)
             newSize = minPartySize;
 
-		maxPartySize = newSize;
-	}
+        maxPartySize = newSize;
+    }
 
     public Vector<String> getPartyOptionsList() {
         Vector<String> vec = new Vector<String>();
-        if(onlyParty){
+        if (onlyParty) {
             vec.add("party.only" + ":" + "gui.yes");
         }
         vec.add("party.partyRequirements" + ":" + partyRequirements.name);

@@ -22,11 +22,13 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
     public CustomNPCsEvent() {
     }
 
-    public void setCancelled(boolean bo){
+    public void setCancelled(boolean bo) {
         this.setCanceled(bo);
     }
 
-    public boolean isCancelled(){return this.isCanceled();}
+    public boolean isCancelled() {
+        return this.isCanceled();
+    }
 
     @Cancelable
     public static class CNPCNaturalSpawnEvent extends CustomNPCsEvent implements ICustomNPCsEvent.CNPCNaturalSpawnEvent {
@@ -95,7 +97,7 @@ public class CustomNPCsEvent extends Event implements ICustomNPCsEvent {
         public String[] args;
         public String replyMessage = "";
 
-        public ScriptedCommandEvent(IWorld world, IPos pos, String senderName, String id, String[] args){
+        public ScriptedCommandEvent(IWorld world, IPos pos, String senderName, String id, String[] args) {
             this.world = world;
             this.pos = pos;
             this.senderName = senderName;

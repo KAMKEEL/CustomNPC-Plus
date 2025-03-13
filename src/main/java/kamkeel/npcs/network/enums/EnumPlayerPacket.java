@@ -19,4 +19,9 @@ public enum EnumPlayerPacket {
     CustomGuiScrollClick,
     CustomGuiClose,
     CustomGuiUnfocused,
+
+    ProfileCreate,
+    ProfileRemove,
+    ProfileRename,
+    ProfileChange, ProfileGet, ProfileGetInfo,
 }

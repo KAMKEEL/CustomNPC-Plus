@@ -35,7 +35,8 @@ public class CustomEffect implements ICustomEffect {
 
     public int index = 0;
 
-    public CustomEffect() {}
+    public CustomEffect() {
+    }
 
     public CustomEffect(int id) {
         this.id = id;
@@ -298,6 +299,7 @@ public class CustomEffect implements ICustomEffect {
     public EffectScript getScriptHandler() {
         return CustomEffectController.getInstance().customEffectScriptHandlers.get(this.id);
     }
+
     public void setScriptHandler(EffectScript handler) {
         CustomEffectController.getInstance().customEffectScriptHandlers.put(this.id, handler);
     }
@@ -305,7 +307,7 @@ public class CustomEffect implements ICustomEffect {
     public EffectScript getOrCreateScriptHandler() {
         EffectScript data = getScriptHandler();
         if (data == null)
-            setScriptHandler(data =new EffectScript());
+            setScriptHandler(data = new EffectScript());
         return data;
     }
 

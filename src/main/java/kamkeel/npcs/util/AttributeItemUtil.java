@@ -2,7 +2,10 @@ package kamkeel.npcs.util;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import kamkeel.npcs.CustomAttributes;
 import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
+import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
 import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import net.minecraft.client.Minecraft;
@@ -11,9 +14,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.StatCollector;
-import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
-import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
-import kamkeel.npcs.CustomAttributes;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
@@ -25,11 +25,11 @@ import java.util.regex.Pattern;
 /**
  * Provides helper functions to write/read item attributes to/from NBT.
  * All data is now stored under a hierarchical structure:
- *
+ * <p>
  * "RPGCore"
- *    ├─ "Attributes"
- *    ├─ "Magic"
- *    └─ "Requirements"
+ * ├─ "Attributes"
+ * ├─ "Magic"
+ * └─ "Requirements"
  */
 public class AttributeItemUtil {
     // New hierarchical keys.
@@ -352,7 +352,7 @@ public class AttributeItemUtil {
                         Magic magic = MagicController.getInstance().getMagic(magicId);
                         if (magic != null) {
                             // Build the magic display name without formatting for sorting.
-                            String rawMagicName = magic.getDisplayName() + " " + getMagicAppendix(magicKey);
+                            String rawMagicName = magic.getDisplayName().replace("&", "\u00A7") + " \u00A77" + getMagicAppendix(magicKey);
                             String plainName = stripFormatting(rawMagicName);
                             String formattedLine = formatAttributeLine(def, section, value, rawMagicName);
                             TooltipEntry entry = new TooltipEntry(plainName, formattedLine);
@@ -380,8 +380,8 @@ public class AttributeItemUtil {
     }
 
     @SideOnly(Side.CLIENT)
-    private static String getMagicAppendix(String type){
-        switch(type){
+    private static String getMagicAppendix(String type) {
+        switch (type) {
             case CustomAttributes.MAGIC_DEFENSE_KEY:
                 return StatCollector.translateToLocal("rpgcore:attribute.defense");
             case CustomAttributes.MAGIC_RESISTANCE_KEY:
@@ -423,7 +423,7 @@ public class AttributeItemUtil {
             String sign = value >= 0 ? "+" : "";
             String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
             String valueString = color + sign + formattedValue;
-            if (def != null && def.getValueType() == AttributeValueType.PERCENT)
+            if (def != null && (def.getValueType() == AttributeValueType.PERCENT || def.getValueType() == AttributeValueType.MAGIC))
                 valueString += "%";
             valueString += EnumChatFormatting.GRAY;
             return valueString + " " + displayName;
@@ -432,8 +432,11 @@ public class AttributeItemUtil {
                 displayName = "\u00A7" + def.getColorCode() + displayName;
             else
                 displayName = EnumChatFormatting.AQUA + displayName;
-            formattedValue = EnumChatFormatting.GRAY + formattedValue;
-            return displayName + "\u00A77: " + formattedValue;
+
+            String sign = value >= 0 ? "+" : "";
+            String color = value >= 0 ? EnumChatFormatting.GREEN.toString() : EnumChatFormatting.RED.toString();
+            String valueString = color + sign + formattedValue;
+            return displayName + "\u00A77: " + valueString;
         }
     }
 
@@ -447,6 +450,7 @@ public class AttributeItemUtil {
     private static class TooltipEntry {
         public String sortKey;
         public String line;
+
         public TooltipEntry(String sortKey, String line) {
             this.sortKey = sortKey;
             this.line = line;

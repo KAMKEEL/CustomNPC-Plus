@@ -29,7 +29,8 @@ public final class RecipeGetPacket extends AbstractPacket {
         this.isAnvil = anvil;
     }
 
-    public RecipeGetPacket() {}
+    public RecipeGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -57,7 +58,7 @@ public final class RecipeGetPacket extends AbstractPacket {
             return;
         int id = in.readInt();
         boolean anvil = in.readBoolean();
-        if(anvil){
+        if (anvil) {
             RecipeAnvil recipe = RecipeController.Instance.getAnvilRecipe(id);
             NoppesUtilServer.setRecipeAnvilGui((EntityPlayerMP) player, recipe);
         } else {

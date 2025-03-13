@@ -1,22 +1,22 @@
 package noppes.npcs.client.gui.global;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Vector;
-
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.*;
-import noppes.npcs.client.gui.SubGuiMagicCycle;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.SubGuiMagic;
+import noppes.npcs.client.gui.SubGuiMagicCycle;
 import noppes.npcs.client.gui.SubGuiMagicCycleViewer;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.entity.EntityNPCInterface;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.nbt.NBTTagCompound;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Vector;
 
 import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIcons;
 
@@ -47,8 +47,8 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
     private int dividerOffset = 143; // Initial offset from regionLeft.
     private final int dividerWidth = 5;
     private final int minScrollWidth = 50;
-    private int dividerLineHeight = 20;
-    private int dividerLineYOffset = 0;
+    private final int dividerLineHeight = 20;
+    private final int dividerLineYOffset = 0;
 
     // Search strings.
     // cycleSearch filters the left scroll (cycles).
@@ -69,7 +69,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
         // Toggle button to switch between global and cycle views.
         addButton(new GuiToggleButton(50, guiLeft + 368, guiTop + ySize - 60, viewByCycle));
         ((GuiToggleButton) getButton(50)).setTextureOff(specialIcons).setTextureOffPos(16, 0);
-        ((GuiToggleButton) getButton(50)).setIconTexture(specialIcons).setIconPos(16, 16, 16, 0);
+        getButton(50).setIconTexture(specialIcons).setIconPos(16, 16, 16, 0);
 
         if (!viewByCycle) {
             // --- Cycle View: Two Scrolls (cycles on left, magics on right) ---
@@ -121,7 +121,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
             addButton(new GuiNpcButton(2, guiLeft + 358, guiTop + 94, 58, 20, "gui.edit"));
 
             addLabel(new GuiNpcLabel(200, "ID", guiLeft + 4, guiTop + 4 + 3 + 185));
-            addLabel(new GuiNpcLabel(201, "" + "", guiLeft + 4, guiTop + 4 + 3 + 195));
+            addLabel(new GuiNpcLabel(201, "", guiLeft + 4, guiTop + 4 + 3 + 195));
         } else {
             // --- Global Magic View: Single Scroll (all magics) ---
             if (rightScroll == null) {
@@ -160,7 +160,7 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
         }
 
         addLabel(new GuiNpcLabel(100, "ID", guiLeft + 358, guiTop + 4 + 3 + 185));
-        addLabel(new GuiNpcLabel(101, "" + "", guiLeft + 358, guiTop + 4 + 3 + 195));
+        addLabel(new GuiNpcLabel(101, "", guiLeft + 358, guiTop + 4 + 3 + 195));
 
         updateButtons();
     }
@@ -201,45 +201,45 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
 
     }
 
-    public void updateButtons(){
+    public void updateButtons() {
         // Magic Buttons
         GuiButton button = getButton(2);
-        if(button != null){
+        if (button != null) {
             button.enabled = selectedMagic != null;
         }
 
-        if(viewByCycle){
+        if (viewByCycle) {
             button = getButton(1);
-            if(button != null){
+            if (button != null) {
                 button.enabled = selectedMagic != null;
             }
         }
 
         button = getButton(5);
-        if(button != null){
+        if (button != null) {
             button.enabled = selectedCycle != null;
         }
 
         button = getButton(6);
-        if(button != null){
+        if (button != null) {
             button.enabled = selectedCycle != null;
         }
 
         button = getButton(20);
-        if(button != null){
+        if (button != null) {
             button.enabled = selectedCycle != null;
         }
 
-        if(getLabel(201) != null){
-            if(selectedCycle != null){
+        if (getLabel(201) != null) {
+            if (selectedCycle != null) {
                 getLabel(201).label = selectedCycle.id + "";
             } else {
                 getLabel(201).label = "";
             }
         }
 
-        if(getLabel(101) != null){
-            if(selectedMagic != null){
+        if (getLabel(101) != null) {
+            if (selectedMagic != null) {
                 getLabel(101).label = selectedMagic.id + "";
             } else {
                 getLabel(101).label = "";
@@ -248,7 +248,8 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
     }
 
     @Override
-    public void save() {}
+    public void save() {
+    }
 
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
@@ -366,10 +367,10 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                     currentMagicList.clear();
                 }
 
-                if(rightScroll != null)
+                if (rightScroll != null)
                     rightScroll.selected = -1;
 
-                if(leftScroll != null)
+                if (leftScroll != null)
                     leftScroll.selected = -1;
 
                 initGui();
@@ -456,7 +457,8 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
@@ -512,7 +514,8 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
     }
 
     @Override
-    public void setSelected(String selected) {}
+    public void setSelected(String selected) {
+    }
 
     @Override
     public void setGuiData(NBTTagCompound compound) {

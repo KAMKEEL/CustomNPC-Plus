@@ -15,32 +15,30 @@ import noppes.npcs.entity.data.ModelPartData;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer,
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNpcEnderchibi extends EntityNPCInterface
-{
-    public EntityNpcEnderchibi(World world)
-    {
+public class EntityNpcEnderchibi extends EntityNPCInterface {
+    public EntityNpcEnderchibi(World world) {
         super(world);
         display.texture = "customnpcs:textures/entity/enderchibi/MrEnderchibi.png";
     }
+
     @Override
-    public void onUpdate()
-    {
-    	isDead = true;
+    public void onUpdate() {
+        isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
 
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	ModelData data = npc.modelData;
-			data.modelScale.legs.setScale(0.65f,0.75f);
-			data.modelScale.arms.setScale(0.50f,1.45f);
-			ModelPartData part = data.getOrCreatePart("particles");
-			part.playerTexture = true;
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            ModelData data = npc.modelData;
+            data.modelScale.legs.setScale(0.65f, 0.75f);
+            data.modelScale.arms.setScale(0.50f, 1.45f);
+            ModelPartData part = data.getOrCreatePart("particles");
+            part.playerTexture = true;
 
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
+            worldObj.spawnEntityInWorld(npc);
+        }
         super.onUpdate();
     }
 

@@ -34,7 +34,8 @@ public class Animation implements IAnimation {
     //Client-sided
     public boolean paused;
 
-    public Animation(){}
+    public Animation() {
+    }
 
     public Animation(int id, String name) {
         this.name = name;

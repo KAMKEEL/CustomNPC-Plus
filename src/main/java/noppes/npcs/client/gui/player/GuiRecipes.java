@@ -18,91 +18,92 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
-public class GuiRecipes extends GuiNPCInterface
-{
-	private static final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/slot.png");
+public class GuiRecipes extends GuiNPCInterface {
+    private static final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/slot.png");
     private int page = 0;
     private GuiNpcLabel label;
     private GuiNpcButton left, right;
     private List<IRecipe> recipes = new ArrayList<IRecipe>();
-	private String search = "";
+    private String search = "";
 
-    public GuiRecipes(){
+    public GuiRecipes() {
         this.ySize = 182;
         this.xSize = 256;
         setBackground("recipes.png");
         this.closeOnEsc = true;
-		recipes.addAll(RecipeController.Instance.carpentryRecipes.values());
+        recipes.addAll(RecipeController.Instance.carpentryRecipes.values());
     }
+
     @Override
-    public void initGui(){
-    	super.initGui();
-		guiTop += 10;
+    public void initGui() {
+        super.initGui();
+        guiTop += 10;
 
-		addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft + 2, guiTop - 25, 250, 20, search));
+        addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft + 2, guiTop - 25, 250, 20, search));
 
-		addLabel(new GuiNpcLabel(0, "Recipe List", guiLeft + 5, guiTop + 5));
-    	addLabel(label = new GuiNpcLabel(1, "", guiLeft + 5, guiTop + 168));
+        addLabel(new GuiNpcLabel(0, "Recipe List", guiLeft + 5, guiTop + 5));
+        addLabel(label = new GuiNpcLabel(1, "", guiLeft + 5, guiTop + 168));
 
         addButton(this.left = new GuiButtonNextPage(1, guiLeft + 150, guiTop + 164, true));
         addButton(this.right = new GuiButtonNextPage(2, guiLeft + 80, guiTop + 164, false));
 
         updateButton();
     }
-    private void updateButton(){
-    	right.visible = right.enabled = page > 0;
-    	left.visible = left.enabled = page + 1 < MathHelper.ceiling_float_int(recipes.size() / 4f);
+
+    private void updateButton() {
+        right.visible = right.enabled = page > 0;
+        left.visible = left.enabled = page + 1 < MathHelper.ceiling_float_int(recipes.size() / 4f);
     }
 
-	public void keyTyped(char c, int i)
-	{
-		super.keyTyped(c, i);
-		if(search.equals(getTextField(3).getText()))
-			return;
-		search = getTextField(3).getText().toLowerCase();
-		recipes = getSearchList();
-		updateButton();
-	}
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c, i);
+        if (search.equals(getTextField(3).getText()))
+            return;
+        search = getTextField(3).getText().toLowerCase();
+        recipes = getSearchList();
+        updateButton();
+    }
 
-	private List<IRecipe> getSearchList(){
-		if(search.isEmpty()){
-			return new ArrayList<IRecipe>(RecipeController.Instance.carpentryRecipes.values());
-		}
-		List<IRecipe> list = new ArrayList<IRecipe>();
-		for(IRecipe recipe : RecipeController.Instance.carpentryRecipes.values()){
-			if(recipe.getRecipeOutput() == null)
-				continue;
+    private List<IRecipe> getSearchList() {
+        if (search.isEmpty()) {
+            return new ArrayList<IRecipe>(RecipeController.Instance.carpentryRecipes.values());
+        }
+        List<IRecipe> list = new ArrayList<IRecipe>();
+        for (IRecipe recipe : RecipeController.Instance.carpentryRecipes.values()) {
+            if (recipe.getRecipeOutput() == null)
+                continue;
 
-			if(recipe.getRecipeOutput().getDisplayName() == null)
-				continue;
+            if (recipe.getRecipeOutput().getDisplayName() == null)
+                continue;
 
-			if(recipe.getRecipeOutput().getDisplayName().trim().equals(""))
-				continue;
+            if (recipe.getRecipeOutput().getDisplayName().trim().equals(""))
+                continue;
 
-			if(recipe.getRecipeOutput().getDisplayName().toLowerCase().contains(search.toLowerCase()))
-				list.add(recipe);
-		}
-		return list;
-	}
+            if (recipe.getRecipeOutput().getDisplayName().toLowerCase().contains(search.toLowerCase()))
+                list.add(recipe);
+        }
+        return list;
+    }
 
-    protected void actionPerformed(GuiButton button){
-    	if(!button.enabled)
-    		return;
+    protected void actionPerformed(GuiButton button) {
+        if (!button.enabled)
+            return;
 
-    	if(button == right)
-    		page--;
-    	if(button == left)
-    		page++;
+        if (button == right)
+            page--;
+        if (button == left)
+            page++;
         updateButton();
     }
 
     private static class ItemOverlayData {
         public final int x, y;
         public final ItemStack item;
+
         public ItemOverlayData(int x, int y, ItemStack item) {
             this.x = x;
             this.y = y;
@@ -115,7 +116,7 @@ public class GuiRecipes extends GuiNPCInterface
         public final List<String> textLines;
 
         public TextOverlayData(int x, int y, int width, int height, String text) {
-            this(x, y, width, height, Arrays.asList(text));
+            this(x, y, width, height, Collections.singletonList(text));
         }
 
         public TextOverlayData(int x, int y, int width, int height, List<String> textLines) {
@@ -128,12 +129,12 @@ public class GuiRecipes extends GuiNPCInterface
     }
 
     @Override
-    public void drawScreen(int xMouse, int yMouse, float f){
-    	super.drawScreen(xMouse, yMouse, f);
-    	mc.renderEngine.bindTexture(resource);
+    public void drawScreen(int xMouse, int yMouse, float f) {
+        super.drawScreen(xMouse, yMouse, f);
+        mc.renderEngine.bindTexture(resource);
 
-		label.label = page + 1 + "/" + MathHelper.ceiling_float_int(recipes.size() / 4f);
-		label.x = guiLeft + (256 - Minecraft.getMinecraft().fontRenderer.getStringWidth(label.label)) / 2;
+        label.label = page + 1 + "/" + MathHelper.ceiling_float_int(recipes.size() / 4f);
+        label.x = guiLeft + (256 - Minecraft.getMinecraft().fontRenderer.getStringWidth(label.label)) / 2;
 
         List<ItemOverlayData> itemOverlays = new ArrayList<ItemOverlayData>();
         List<TextOverlayData> textOverlays = new ArrayList<TextOverlayData>();
@@ -150,8 +151,8 @@ public class GuiRecipes extends GuiNPCInterface
             int y = guiTop + 15 + (i % 2) * 76;
 
             drawItem(irecipe.getRecipeOutput(), x + 98, y + 28, xMouse, yMouse);
-            if (func_146978_c((x+98) - guiLeft, (y+28) - guiTop, 16, 16, xMouse, yMouse)) {
-                itemOverlays.add(new ItemOverlayData(x+98, y+28, irecipe.getRecipeOutput()));
+            if (func_146978_c((x + 98) - guiLeft, (y + 28) - guiTop, 16, 16, xMouse, yMouse)) {
+                itemOverlays.add(new ItemOverlayData(x + 98, y + 28, irecipe.getRecipeOutput()));
             }
 
             if (irecipe instanceof RecipeCarpentry) {
@@ -169,8 +170,8 @@ public class GuiRecipes extends GuiNPCInterface
                         iconStr = "!";
                         iconColor = CustomNpcResourceListener.DefaultTextColor;
                     }
-                    int iconWidth = (int)(fontRendererObj.getStringWidth(iconStr) * scale);
-                    int iconHeight = (int)(fontRendererObj.FONT_HEIGHT * scale);
+                    int iconWidth = (int) (fontRendererObj.getStringWidth(iconStr) * scale);
+                    int iconHeight = (int) (fontRendererObj.FONT_HEIGHT * scale);
                     // Center the icon below the output slot (16x16 slot).
                     int iconX = outputX + (16 - iconWidth) / 2;
                     int iconY = outputY + 16;
@@ -207,8 +208,8 @@ public class GuiRecipes extends GuiNPCInterface
                         if (item == null)
                             continue;
                         drawItem(item, gridX + j * 18 + 1, gridY + k * 18 + 1, xMouse, yMouse);
-                        if (func_146978_c((gridX+j*18+1)-guiLeft, (gridY+k*18+1)-guiTop, 16, 16, xMouse, yMouse)) {
-                            itemOverlays.add(new ItemOverlayData(gridX+j*18+1, gridY+k*18+1, item));
+                        if (func_146978_c((gridX + j * 18 + 1) - guiLeft, (gridY + k * 18 + 1) - guiTop, 16, 16, xMouse, yMouse)) {
+                            itemOverlays.add(new ItemOverlayData(gridX + j * 18 + 1, gridY + k * 18 + 1, item));
                         }
                     }
                 }
@@ -225,8 +226,8 @@ public class GuiRecipes extends GuiNPCInterface
         }
     }
 
-    private void drawItem(ItemStack item, int x, int y, int xMouse, int yMouse){
-    	GL11.glPushMatrix();
+    private void drawItem(ItemStack item, int x, int y, int xMouse, int yMouse) {
+        GL11.glPushMatrix();
         GL11.glEnable(GL12.GL_RESCALE_NORMAL);
         RenderHelper.enableGUIStandardItemLighting();
         itemRender.zLevel = 100.0F;
@@ -235,16 +236,16 @@ public class GuiRecipes extends GuiNPCInterface
         itemRender.zLevel = 0.0F;
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-    	GL11.glPopMatrix();
+        GL11.glPopMatrix();
     }
 
-    private void drawOverlay(ItemStack item, int x, int y, int xMouse, int yMouse){
-        if (this.func_146978_c(x - guiLeft, y - guiTop, 16, 16, xMouse, yMouse)){
+    private void drawOverlay(ItemStack item, int x, int y, int xMouse, int yMouse) {
+        if (this.func_146978_c(x - guiLeft, y - guiTop, 16, 16, xMouse, yMouse)) {
             this.renderToolTip(item, xMouse, yMouse);
         }
     }
-    protected boolean func_146978_c(int p_146978_1_, int p_146978_2_, int p_146978_3_, int p_146978_4_, int p_146978_5_, int p_146978_6_)
-    {
+
+    protected boolean func_146978_c(int p_146978_1_, int p_146978_2_, int p_146978_3_, int p_146978_4_, int p_146978_5_, int p_146978_6_) {
         int k1 = this.guiLeft;
         int l1 = this.guiTop;
         p_146978_5_ -= k1;
@@ -252,7 +253,7 @@ public class GuiRecipes extends GuiNPCInterface
         return p_146978_5_ >= p_146978_1_ - 1 && p_146978_5_ < p_146978_1_ + p_146978_3_ + 1 && p_146978_6_ >= p_146978_2_ - 1 && p_146978_6_ < p_146978_2_ + p_146978_4_ + 1;
     }
 
-	@Override
-	public void save() {
-	}
+    @Override
+    public void save() {
+    }
 }

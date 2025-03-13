@@ -27,7 +27,8 @@ public final class EventScriptPacket extends AbstractPacket {
     private int maxSize;
     private NBTTagCompound compound;
 
-    public EventScriptPacket() {}
+    public EventScriptPacket() {
+    }
 
     public EventScriptPacket(Action type, int page, int maxSize, NBTTagCompound compound) {
         this.type = type;
@@ -47,12 +48,12 @@ public final class EventScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public boolean needsNPC(){
+    public boolean needsNPC() {
         return true;
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_NPC;
     }
 
@@ -61,7 +62,7 @@ public final class EventScriptPacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             out.writeInt(this.page);
             out.writeInt(this.maxSize);
             ByteBufUtils.writeNBT(out, this.compound);
@@ -81,14 +82,14 @@ public final class EventScriptPacket extends AbstractPacket {
 
         Action requestedAction = Action.values()[in.readInt()];
         DataScript data = npc.script;
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             PacketUtil.getScripts(data, (EntityPlayerMP) player);
         } else {
             PacketUtil.saveScripts(data, in);
             npc.updateAI = true;
             npc.script.hasInited = false;
-            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-                LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+            if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+                LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int) npc.posX, (int) (npc).posY, (int) npc.posZ, npc.worldObj.getWorldInfo().getWorldName()));
             }
         }
     }
@@ -96,6 +97,7 @@ public final class EventScriptPacket extends AbstractPacket {
     public static void Save(int id, int maxSize, NBTTagCompound compound) {
         PacketClient.sendClient(new EventScriptPacket(Action.SAVE, id, maxSize, compound));
     }
+
     public static void Get() {
         PacketClient.sendClient(new EventScriptPacket(Action.GET, -1, -1, new NBTTagCompound()));
     }

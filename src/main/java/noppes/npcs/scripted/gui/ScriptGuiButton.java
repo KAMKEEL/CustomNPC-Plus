@@ -135,8 +135,8 @@ public class ScriptGuiButton extends ScriptGuiComponent implements IButton {
             nbt.setIntArray("size", new int[]{this.width, this.height});
         }
 
-        nbt.setFloat("scale",this.scale);
-        nbt.setBoolean("enabled",this.enabled);
+        nbt.setFloat("scale", this.scale);
+        nbt.setBoolean("enabled", this.enabled);
 
         nbt.setString("label", this.label);
         if (this.hasTexture()) {

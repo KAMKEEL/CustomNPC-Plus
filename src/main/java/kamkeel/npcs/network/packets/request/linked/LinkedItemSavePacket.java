@@ -26,9 +26,10 @@ public final class LinkedItemSavePacket extends AbstractPacket {
     private String prevName;
     private NBTTagCompound compound;
 
-    public LinkedItemSavePacket(){}
+    public LinkedItemSavePacket() {
+    }
 
-    public LinkedItemSavePacket(NBTTagCompound compound, String prev){
+    public LinkedItemSavePacket(NBTTagCompound compound, String prev) {
         this.compound = compound;
         this.prevName = prev;
     }
@@ -67,7 +68,7 @@ public final class LinkedItemSavePacket extends AbstractPacket {
         linkedItem.readFromNBT(ByteBufUtils.readNBT(in));
         LinkedItemController.getInstance().saveLinkedItem(linkedItem);
 
-        if(!prevName.isEmpty() && !prevName.equals(linkedItem.name)){
+        if (!prevName.isEmpty() && !prevName.equals(linkedItem.name)) {
             LinkedItemController.getInstance().deleteLinkedItemFile(prevName);
         }
 

@@ -5,6 +5,8 @@ package kamkeel.npcs.controllers.data.attribute;
  */
 public interface ICustomAttribute {
     AttributeDefinition getAttribute();
+
     float getValue();
+
     void setValue(float value);
 }

@@ -12,7 +12,7 @@ public class ScriptedCommand extends CommandBase implements ICommand {
     private String commandName;
     private int permissionLevel;
     private String commandUsage;
-    private ArrayList<String> aliases;
+    private final ArrayList<String> aliases;
 
     public ScriptedCommand(String commandName, int permissionLevel) {
         this.commandName = commandName;
@@ -51,12 +51,13 @@ public class ScriptedCommand extends CommandBase implements ICommand {
     public void processCommand(ICommandSender p_71515_1_, String[] p_71515_2_) {
     }
 
-    public int getRequiredPermissionLevel()
-    {
+    public int getRequiredPermissionLevel() {
         return this.permissionLevel;
     }
 
-    public int getPermissionLevel() { return this.getRequiredPermissionLevel(); }
+    public int getPermissionLevel() {
+        return this.getRequiredPermissionLevel();
+    }
 
     public List<?> getCommandAliases() {
         return this.aliases;

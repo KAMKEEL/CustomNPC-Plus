@@ -23,7 +23,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
     public CustomEffect effect;
     private final String originalName;
 
-    private List<GuiMenuTopButton> topButtons = new ArrayList<>();
+    private final List<GuiMenuTopButton> topButtons = new ArrayList<>();
 
     public SubGuiEffectGeneral(GuiNPCManageEffects parent, CustomEffect effect) {
         this.effect = effect;
@@ -71,7 +71,7 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         y += 23;
 
         addTextField(setIntegerOnly(
-            new GuiNpcTextField(3, this, x + 70, y, 83, 20, ""+effect.everyXTick),
+            new GuiNpcTextField(3, this, x + 70, y, 83, 20, "" + effect.everyXTick),
             10,
             1200,
             effect.everyXTick
@@ -81,20 +81,20 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         addLabel(new GuiNpcLabel(3, "effect.editor.runsEveryX", x, y + 5));
 
         int oldX = x;
-        int xEnd = guiLeft+xSize-10;
+        int xEnd = guiLeft + xSize - 10;
         x = getTextField(3).xPosition + getTextField(3).width;
-        addButton(new GuiNpcButtonYesNo(10, (x+xEnd - 83) / 2, y + 23, 83, 20, effect.lossOnDeath));
+        addButton(new GuiNpcButtonYesNo(10, (x + xEnd - 83) / 2, y + 23, 83, 20, effect.lossOnDeath));
         GuiNpcLabel label = new GuiNpcLabel(10, "effect.editor.lossOnDeath", x, y + 5);
-        label.x = (x+xEnd - fontRendererObj.getStringWidth(label.label))/2;
+        label.x = (x + xEnd - fontRendererObj.getStringWidth(label.label)) / 2;
         addLabel(label);
         x = oldX;
         y += 23;
 
         addTextField(setIntegerOnly(
-            new GuiNpcTextField(4, this, x + 70, y, 83, 20, ""+effect.length),
+            new GuiNpcTextField(4, this, x + 70, y, 83, 20, "" + effect.length),
             -100,
             86400,
-                effect.length
+            effect.length
         ));
 
         addLabel(new GuiNpcLabel(4, "effect.editor.defaultLength", x, y + 5));
@@ -141,20 +141,20 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
         x = 116;
         scrollWindow.addLabel(new GuiNpcLabel(5, "display.texture", x, y, 0xFFFFFF));
         y += 12;
-        scrollWindow.addTextField(new GuiNpcTextField(5, this, x, y, scrollWindow.clipWidth-x-10, 20, effect.icon));
+        scrollWindow.addTextField(new GuiNpcTextField(5, this, x, y, scrollWindow.clipWidth - x - 10, 20, effect.icon));
         scrollWindow.getTextField(5).setMaxStringLength(100);
 
         y += 25;
 
         scrollWindow.addLabel(new GuiNpcLabel(6, "effect.editor.xPos", x, y + 6, 0xFFFFFF));
         scrollWindow.addTextField(setIntegerOnly(
-            new GuiNpcTextField(6, this, x + 43, y, 60, 20, ""+effect.iconX),
+            new GuiNpcTextField(6, this, x + 43, y, 60, 20, "" + effect.iconX),
             0,
             10240,
             effect.iconX
         ));
         scrollWindow.addTextField(setIntegerOnly(
-            new GuiNpcTextField(7, this, scrollWindow.clipWidth - 60 - 10, y, 60, 20, ""+effect.iconY),
+            new GuiNpcTextField(7, this, scrollWindow.clipWidth - 60 - 10, y, 60, 20, "" + effect.iconY),
             0,
             10240,
             effect.iconY
@@ -164,13 +164,13 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
 
         scrollWindow.addLabel(new GuiNpcLabel(8, "effect.editor.width", x, y + 6, 0xFFFFFF));
         scrollWindow.addTextField(setIntegerOnly(
-            new GuiNpcTextField(8, this, x + 43, y, 60, 20, ""+effect.width),
+            new GuiNpcTextField(8, this, x + 43, y, 60, 20, "" + effect.width),
             0,
             10240,
             effect.width
         ));
         scrollWindow.addTextField(setIntegerOnly(
-            new GuiNpcTextField(9, this, scrollWindow.clipWidth - 60 - 10, y, 60, 20, ""+effect.height),
+            new GuiNpcTextField(9, this, scrollWindow.clipWidth - 60 - 10, y, 60, 20, "" + effect.height),
             0,
             10240,
             effect.height
@@ -220,13 +220,13 @@ public class SubGuiEffectGeneral extends SubGuiInterface implements ITextfieldLi
                 break;
             case 3:
                 effect.setEveryXTick(guiNpcTextField.getInteger());
-                guiNpcTextField.setText(effect.everyXTick+"");
+                guiNpcTextField.setText(effect.everyXTick + "");
                 break;
             case 4:
                 int length = guiNpcTextField.getInteger();
                 if (length < 0)
                     length = -100;
-                guiNpcTextField.setText(length+"");
+                guiNpcTextField.setText(length + "");
                 effect.length = length;
                 break;
             case 5:

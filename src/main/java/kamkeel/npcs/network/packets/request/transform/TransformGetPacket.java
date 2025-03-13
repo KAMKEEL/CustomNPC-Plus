@@ -20,7 +20,8 @@ import java.io.IOException;
 public final class TransformGetPacket extends AbstractPacket {
     public static String packetName = "Request|TransformGet";
 
-    public TransformGetPacket() { }
+    public TransformGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -44,7 +45,8 @@ public final class TransformGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

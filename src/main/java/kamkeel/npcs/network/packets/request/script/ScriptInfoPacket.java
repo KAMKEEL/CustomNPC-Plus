@@ -22,7 +22,8 @@ public final class ScriptInfoPacket extends AbstractPacket {
     private ScriptInfoPacket.Action type;
     private NBTTagCompound compound;
 
-    public ScriptInfoPacket() {}
+    public ScriptInfoPacket() {
+    }
 
     public ScriptInfoPacket(Action type, NBTTagCompound compound) {
         this.type = type;
@@ -40,7 +41,7 @@ public final class ScriptInfoPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_GLOBAL;
     }
 
@@ -49,7 +50,7 @@ public final class ScriptInfoPacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             ByteBufUtils.writeNBT(out, this.compound);
         }
     }
@@ -66,7 +67,7 @@ public final class ScriptInfoPacket extends AbstractPacket {
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setBoolean("ScriptsEnabled", ConfigScript.ScriptingEnabled);
             compound.setBoolean("PlayerScriptsEnabled", ConfigScript.GlobalPlayerScripts);
@@ -85,6 +86,7 @@ public final class ScriptInfoPacket extends AbstractPacket {
     public static void Save(NBTTagCompound compound) {
         PacketClient.sendClient(new ScriptInfoPacket(Action.SAVE, compound));
     }
+
     public static void Get() {
         PacketClient.sendClient(new ScriptInfoPacket(Action.GET, new NBTTagCompound()));
     }

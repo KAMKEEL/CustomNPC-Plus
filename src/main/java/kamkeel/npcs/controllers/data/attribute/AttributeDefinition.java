@@ -50,6 +50,6 @@ public class AttributeDefinition {
         MODIFIER,
         STATS,
         INFO,
-        EXTRA;
+        EXTRA
     }
 }

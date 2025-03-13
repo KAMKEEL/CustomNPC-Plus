@@ -39,17 +39,18 @@ public abstract class AbstractPacket {
     }
 
     public abstract Enum getType();
+
     public abstract PacketChannel getChannel();
 
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return null;
     }
 
-    public boolean needsNPC(){
+    public boolean needsNPC() {
         return false;
     }
 
-    public void setNPC(EntityNPCInterface npc){
+    public void setNPC(EntityNPCInterface npc) {
         this.npc = npc;
     }
 

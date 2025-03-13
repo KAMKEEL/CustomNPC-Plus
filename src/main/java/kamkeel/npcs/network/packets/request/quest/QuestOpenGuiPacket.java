@@ -31,7 +31,8 @@ public final class QuestOpenGuiPacket extends AbstractPacket {
         this.questNBT = questNBT;
     }
 
-    public QuestOpenGuiPacket() {}
+    public QuestOpenGuiPacket() {
+    }
 
     @Override
     public Enum getType() {

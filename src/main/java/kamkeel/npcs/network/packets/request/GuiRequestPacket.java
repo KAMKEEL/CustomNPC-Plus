@@ -28,7 +28,8 @@ public final class GuiRequestPacket extends AbstractPacket {
         this.posZ = posZ;
     }
 
-    public GuiRequestPacket() {}
+    public GuiRequestPacket() {
+    }
 
     @Override
     public Enum getType() {

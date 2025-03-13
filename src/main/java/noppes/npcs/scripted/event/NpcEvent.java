@@ -43,7 +43,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
             return EnumScriptType.TIMER.function;
         }
 
-        public int getId(){
+        public int getId() {
             return id;
         }
     }
@@ -92,38 +92,38 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         /**
          * @return The source of the damage
          */
-        public IEntity getSource(){
+        public IEntity getSource() {
             return source;
         }
 
-        public IDamageSource getDamageSource(){
+        public IDamageSource getDamageSource() {
             return damageSource;
         }
 
         /**
          * @return Returns the damage value
          */
-        public float getDamage(){
+        public float getDamage() {
             return damage;
         }
 
         /**
          * @param damage The new damage value
          */
-        public void setDamage(float damage){
+        public void setDamage(float damage) {
             this.damage = damage;
         }
 
-        public void setClearTarget(boolean bo){
+        public void setClearTarget(boolean bo) {
             this.clearTarget = bo;
             this.clear = bo;
         }
 
-        public boolean getClearTarget(){
+        public boolean getClearTarget() {
             return clearTarget && clear;
         }
 
-        public String getType(){
+        public String getType() {
             return damageSource.getMCDamageSource().damageType;
         }
     }
@@ -135,7 +135,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public RangedLaunchedEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
-            this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
+            this.target = (IEntityLivingBase) NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
         }
 
@@ -147,14 +147,14 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
          * @return The source of the damage
          * @deprecated
          */
-        public IEntityLivingBase getTarget(){
+        public IEntityLivingBase getTarget() {
             return target;
         }
 
         /**
          * @param damage The new damage value
          */
-        public void setDamage(float damage){
+        public void setDamage(float damage) {
             this.damage = damage;
         }
 
@@ -162,14 +162,14 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         /**
          * @return Returns the damage value
          */
-        public float getDamage(){
+        public float getDamage() {
             return damage;
         }
 
         /**
          * @return Returns the damage type
          */
-        public boolean isRange(){
+        public boolean isRange() {
             return true;
         }
     }
@@ -181,7 +181,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public MeleeAttackEvent(ICustomNpc npc, float damage, EntityLivingBase target) {
             super(npc);
-            this.target = (IEntityLivingBase)NpcAPI.Instance().getIEntity(target);
+            this.target = (IEntityLivingBase) NpcAPI.Instance().getIEntity(target);
             this.damage = damage;
         }
 
@@ -193,7 +193,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
          * @return The source of the damage
          * @deprecated
          */
-        public IEntityLivingBase getTarget(){
+        public IEntityLivingBase getTarget() {
             return target;
         }
 
@@ -201,21 +201,21 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         /**
          * @return Returns the damage value
          */
-        public float getDamage(){
+        public float getDamage() {
             return damage;
         }
 
         /**
          * @param damage The new damage value
          */
-        public void setDamage(float damage){
+        public void setDamage(float damage) {
             this.damage = damage;
         }
 
         /**
          * @return Returns the damage type
          */
-        public boolean isRange(){
+        public boolean isRange() {
             return false;
         }
     }
@@ -226,7 +226,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public SwingEvent(ICustomNpc npc, ItemStack itemStack) {
             super(npc);
-            this.itemStack = itemStack == null ? null : (IItemStack)NpcAPI.Instance().getIItemStack(itemStack);
+            this.itemStack = itemStack == null ? null : NpcAPI.Instance().getIItemStack(itemStack);
         }
 
         public String getHookName() {
@@ -246,7 +246,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public KilledEntityEvent(ICustomNpc npc, EntityLivingBase entity) {
             super(npc);
-            this.entity = (IEntityLivingBase)NpcAPI.Instance().getIEntity(entity);
+            this.entity = (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity);
         }
 
         public String getHookName() {
@@ -288,16 +288,18 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         /**
          * @return The source of the damage
          */
-        public IEntity getSource(){
+        public IEntity getSource() {
             return source;
         }
 
-        public IDamageSource getDamageSource() { return damageSource; }
+        public IDamageSource getDamageSource() {
+            return damageSource;
+        }
 
         /**
          * @return Returns the damage type
          */
-        public String getType(){
+        public String getType() {
             return damageSource.getMCDamageSource().damageType;
         }
 
@@ -324,7 +326,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public InteractEvent(ICustomNpc npc, EntityPlayer player) {
             super(npc);
-            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.player = (IPlayer) NpcAPI.Instance().getIEntity(player);
         }
 
         public String getHookName() {
@@ -345,7 +347,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public DialogEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
-            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.player = (IPlayer) NpcAPI.Instance().getIEntity(player);
             this.id = id;
             this.optionId = optionId;
             this.dialogObj = dialog;
@@ -374,7 +376,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         /**
          * @deprecated
          */
-        public boolean isClosing(){
+        public boolean isClosing() {
             return true;
         }
     }
@@ -387,7 +389,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public DialogClosedEvent(ICustomNpc npc, EntityPlayer player, int id, int optionId, Dialog dialog) {
             super(npc);
-            this.player = (IPlayer)NpcAPI.Instance().getIEntity(player);
+            this.player = (IPlayer) NpcAPI.Instance().getIEntity(player);
             this.id = id;
             this.optionId = optionId;
             this.dialogObj = dialog;
@@ -416,7 +418,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
         /**
          * @deprecated
          */
-        public boolean isClosing(){
+        public boolean isClosing() {
             return true;
         }
     }
@@ -458,14 +460,14 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
             return EnumScriptType.TARGET.function;
         }
 
-        public void setTarget(IEntityLivingBase entity){
+        public void setTarget(IEntityLivingBase entity) {
             this.entity = entity;
         }
 
         /**
          * @return The target source
          */
-        public IEntityLivingBase getTarget(){
+        public IEntityLivingBase getTarget() {
             return entity;
         }
     }

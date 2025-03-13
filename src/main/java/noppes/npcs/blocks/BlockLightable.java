@@ -14,19 +14,20 @@ import java.util.Random;
 
 public abstract class BlockLightable extends BlockRotated {
 
-	protected BlockLightable(Block block, boolean lit) {
-		super(block);
+    protected BlockLightable(Block block, boolean lit) {
+        super(block);
 
         if (lit)
             this.setLightLevel(1.0F);
-	}
+    }
 
-	public abstract Block unlitBlock();
-	public abstract Block litBlock();
+    public abstract Block unlitBlock();
+
+    public abstract Block litBlock();
 
 
     @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9){
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7, float par8, float par9) {
         // Get the current tile entity and store its NBT
         TileEntity oldTile = world.getTileEntity(x, y, z);
         NBTTagCompound compound = new NBTTagCompound();
@@ -41,7 +42,7 @@ public abstract class BlockLightable extends BlockRotated {
 
         // Get the new tile and load the stored NBT
         TileEntity newTile = world.getTileEntity(x, y, z);
-        if(newTile != null){
+        if (newTile != null) {
             newTile.readFromNBT(compound);
             newTile.markDirty();
         }
@@ -53,18 +54,18 @@ public abstract class BlockLightable extends BlockRotated {
     }
 
     @Override
-    public Item getItemDropped(int p_149650_1_, Random p_149650_2_, int p_149650_3_){
+    public Item getItemDropped(int p_149650_1_, Random p_149650_2_, int p_149650_3_) {
         return Item.getItemFromBlock(litBlock());
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public Item getItem(World p_149694_1_, int p_149694_2_, int p_149694_3_, int p_149694_4_){
+    public Item getItem(World p_149694_1_, int p_149694_2_, int p_149694_3_, int p_149694_4_) {
         return Item.getItemFromBlock(litBlock());
     }
 
     @Override
-    protected ItemStack createStackedBlock(int p_149644_1_){
+    protected ItemStack createStackedBlock(int p_149644_1_) {
         return new ItemStack(litBlock());
     }
 

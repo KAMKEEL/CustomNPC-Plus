@@ -27,7 +27,8 @@ public class EffectRemovePacket extends AbstractPacket {
         this.effectID = outlineID;
     }
 
-    public EffectRemovePacket() {}
+    public EffectRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

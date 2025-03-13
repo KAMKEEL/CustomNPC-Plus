@@ -27,7 +27,8 @@ public final class PlayerDataRemovePacket extends AbstractPacket {
     private int type;
     private String selected;
 
-    public PlayerDataRemovePacket() {}
+    public PlayerDataRemovePacket() {
+    }
 
     public PlayerDataRemovePacket(EnumPlayerData playerData, String name, String selected) {
         this.playerData = playerData;
@@ -59,13 +60,13 @@ public final class PlayerDataRemovePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-       out.writeInt(playerData.ordinal());
-       ByteBufUtils.writeString(out, this.name);
-       if(playerData == EnumPlayerData.Players){
-           ByteBufUtils.writeString(out, this.selected);
-       } else {
-           out.writeInt(this.type);
-       }
+        out.writeInt(playerData.ordinal());
+        ByteBufUtils.writeString(out, this.name);
+        if (playerData == EnumPlayerData.Players) {
+            ByteBufUtils.writeString(out, this.selected);
+        } else {
+            out.writeInt(this.type);
+        }
     }
 
     @Override

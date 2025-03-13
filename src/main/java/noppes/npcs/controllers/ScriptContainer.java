@@ -44,8 +44,8 @@ public class ScriptContainer {
         String prevScript = this.script;
         this.script = compound.getString("Script");
         for (int i = 0; i < ConfigScript.ExpandedScriptLimit; i++) {
-            if (compound.hasKey("ExpandedScript"+i)) {
-                this.script += compound.getString("ExpandedScript"+i);
+            if (compound.hasKey("ExpandedScript" + i)) {
+                this.script += compound.getString("ExpandedScript" + i);
             } else {
                 break;
             }
@@ -91,18 +91,18 @@ public class ScriptContainer {
     }
 
     private String getFullCode() {
-        if(!this.evaluated) {
+        if (!this.evaluated) {
             this.fullscript = this.script;
-            if(!this.fullscript.isEmpty()) {
+            if (!this.fullscript.isEmpty()) {
                 this.fullscript = this.fullscript + "\n";
             }
 
             Iterator var1 = this.scripts.iterator();
 
-            while(var1.hasNext()) {
-                String loc = (String)var1.next();
-                String code = (String)ScriptController.Instance.scripts.get(loc);
-                if(code != null && !code.isEmpty()) {
+            while (var1.hasNext()) {
+                String loc = (String) var1.next();
+                String code = ScriptController.Instance.scripts.get(loc);
+                if (code != null && !code.isEmpty()) {
                     this.fullscript = this.fullscript + code + "\n";
                 }
             }
@@ -112,17 +112,17 @@ public class ScriptContainer {
         return this.fullscript;
     }
 
-    public void run(ScriptEngine engine){
+    public void run(ScriptEngine engine) {
         StringWriter sw = new StringWriter();
         PrintWriter pw = new PrintWriter(sw);
         this.engine.getContext().setWriter(pw);
         this.engine.getContext().setErrorWriter(pw);
 
         try {
-            if(compScript == null && engine instanceof Compilable)
-                compScript = ((Compilable)engine).compile(getFullCode());
+            if (compScript == null && engine instanceof Compilable)
+                compScript = ((Compilable) engine).compile(getFullCode());
 
-            if(compScript != null){
+            if (compScript != null) {
                 compScript.eval(engine.getContext());
             } else {
                 engine.eval(getFullCode());
@@ -138,21 +138,21 @@ public class ScriptContainer {
     }
 
     public void run(EnumScriptType type, Event event) {
-        if(!ConfigScript.ScriptingEnabled)
+        if (!ConfigScript.ScriptingEnabled)
             return;
 
-        this.run((String)type.function, (Object)event);
+        this.run(type.function, event);
     }
 
     public void run(String type, Object event) {
-        if(!ConfigScript.ScriptingEnabled || errored || !hasCode() || unknownFunctions.contains(type))
+        if (!ConfigScript.ScriptingEnabled || errored || !hasCode() || unknownFunctions.contains(type))
             return;
 
         this.setEngine(handler.getLanguage());
-        if(engine == null)
+        if (engine == null)
             return;
 
-        if(ScriptController.Instance.lastLoaded > this.lastCreated){
+        if (ScriptController.Instance.lastLoaded > this.lastCreated) {
             this.lastCreated = ScriptController.Instance.lastLoaded;
             evaluated = false;
         }
@@ -168,39 +168,36 @@ public class ScriptContainer {
             engine.getContext().setErrorWriter(pw);
 
             engine.put("API", NpcAPI.Instance());
-            HashMap<String,Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
-            for (Map.Entry<String,Object> objectEntry : engineEntries.entrySet()) {
-                engine.put(objectEntry.getKey(),objectEntry.getValue());
+            HashMap<String, Object> engineEntries = new HashMap<>(NpcAPI.engineObjects);
+            for (Map.Entry<String, Object> objectEntry : engineEntries.entrySet()) {
+                engine.put(objectEntry.getKey(), objectEntry.getValue());
             }
 
             try {
-                if(!evaluated){
+                if (!evaluated) {
                     engine.eval(getFullCode());
                     evaluated = true;
                 }
-                if(engine.getFactory().getLanguageName().equals("lua")){
+                if (engine.getFactory().getLanguageName().equals("lua")) {
                     Object ob = engine.get(type);
-                    if(ob != null){
-                        if(luaCoerce == null){
+                    if (ob != null) {
+                        if (luaCoerce == null) {
                             luaCoerce = Class.forName("org.luaj.vm2.lib.jse.CoerceJavaToLua").getMethod("coerce", Object.class);
                             luaCall = ob.getClass().getMethod("call", Class.forName("org.luaj.vm2.LuaValue"));
                         }
                         luaCall.invoke(ob, luaCoerce.invoke(null, event));
-                    }
-                    else{
+                    } else {
                         unknownFunctions.add(type);
                     }
-                }
-                else{
-                    ((Invocable)engine).invokeFunction(type, event);
+                } else {
+                    ((Invocable) engine).invokeFunction(type, event);
                 }
             } catch (NoSuchMethodException e) {
                 unknownFunctions.add(type);
             } catch (Throwable e) {
                 errored = true;
                 e.printStackTrace(pw);
-            }
-            finally {
+            } finally {
                 appendConsole(sw.getBuffer().toString().trim());
                 pw.close();
                 Current = null;
@@ -212,12 +209,12 @@ public class ScriptContainer {
         if (message != null && !message.isEmpty()) {
             long time = System.currentTimeMillis();
             if (this.console.containsKey(time)) {
-                message = (String)this.console.get(time) + "\n" + message;
+                message = this.console.get(time) + "\n" + message;
             }
 
             this.console.put(time, message);
 
-            while(this.console.size() > 40) {
+            while (this.console.size() > 40) {
                 this.console.remove(this.console.firstKey());
             }
         }
@@ -228,7 +225,7 @@ public class ScriptContainer {
     }
 
     public boolean hasCode() {
-        if(!scripts.isEmpty())
+        if (!scripts.isEmpty())
             return true;
         return !this.getFullCode().isEmpty();
     }

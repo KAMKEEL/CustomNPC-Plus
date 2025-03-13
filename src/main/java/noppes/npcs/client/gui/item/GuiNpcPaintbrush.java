@@ -30,7 +30,7 @@ public class GuiNpcPaintbrush extends GuiNPCInterface {
         setBackground("menubg.png");
 
         ItemStack brush = this.player.getHeldItem();
-        if(brush == null)
+        if (brush == null)
             return;
 
         color = ItemNpcTool.getColor(brush.getTagCompound());
@@ -86,7 +86,7 @@ public class GuiNpcPaintbrush extends GuiNPCInterface {
     }
 
     @Override
-    public void close(){
+    public void close() {
         PacketClient.sendClient(new ColorBrushPacket(this.color));
         super.close();
     }

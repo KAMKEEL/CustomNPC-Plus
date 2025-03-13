@@ -121,7 +121,6 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
     }
 
 
-
     @Override
     public void drawScreen(int i, int j, float f) {
         super.drawScreen(i, j, f);
@@ -183,7 +182,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
         String translated = StatCollector.translateToLocal("gui.name") + ": " + effect.name;
         fontRendererObj.drawString(translated, x, y, 0xFFFFFF, false);
         int transLength = getStringWidthWithoutColor(translated);
-        fontRendererObj.drawString(" (ID: "+ effect.id+ ")", x + transLength, y, 0xB5B5B5, false);
+        fontRendererObj.drawString(" (ID: " + effect.id + ")", x + transLength, y, 0xB5B5B5, false);
         y += 12;
         fontRendererObj.drawString(StatCollector.translateToLocal("general.menuName") + ": " + effect.menuName, x, y, 0xFFFFFF, false);
         y += 12;

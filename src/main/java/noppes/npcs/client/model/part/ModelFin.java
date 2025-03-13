@@ -8,33 +8,31 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelFin extends ModelPartInterface {
 
-	private Model2DRenderer model;
+    private final Model2DRenderer model;
 
-	public ModelFin(ModelMPM base) {
-		super(base);
-		model = new Model2DRenderer(base, 48, 8, 16, 24, 64, 32);
-		model.setRotationPoint(-0.5F, 12, 10);
-		model.setScale(0.74f);
-		model.rotateAngleY = (float)Math.PI / 2;
-		this.addChild(model);
-	}
+    public ModelFin(ModelMPM base) {
+        super(base);
+        model = new Model2DRenderer(base, 48, 8, 16, 24, 64, 32);
+        model.setRotationPoint(-0.5F, 12, 10);
+        model.setScale(0.74f);
+        model.rotateAngleY = (float) Math.PI / 2;
+        this.addChild(model);
+    }
 
-	@Override
-	public void initData(ModelData data) {
-		ModelPartData config = data.getPartData("fin");
-		if(config == null)
-		{
-			isHidden = true;
-			return;
-		}
-		color = config.color;
-		isHidden = false;
+    @Override
+    public void initData(ModelData data) {
+        ModelPartData config = data.getPartData("fin");
+        if (config == null) {
+            isHidden = true;
+            return;
+        }
+        color = config.color;
+        isHidden = false;
 
-		if(!config.playerTexture){
-			location = config.getResource();
-		}
-		else
-			location = null;
-	}
+        if (!config.playerTexture) {
+            location = config.getResource();
+        } else
+            location = null;
+    }
 
 }

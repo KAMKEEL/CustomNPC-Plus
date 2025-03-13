@@ -22,7 +22,7 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
     private GuiCustomScroll npcMagicScroll;
     private final HashMap<String, Integer> allMagic = new HashMap<>();
     // Initialize npcMagicData here so we don't need to check for null.
-    private MagicData npcMagicData = new MagicData();
+    private final MagicData npcMagicData = new MagicData();
     private String search = "";
 
     private GuiNpcTextField splitField, damageField;
@@ -72,7 +72,8 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
         addButton(new GuiNpcButton(71, guiLeft + 185, guiTop + 112, 55, 20, "<")); // Remove
 
         // Standardize button: evenly distribute split value among all magic entries.
-        addButton(new GuiNpcButton(72, guiLeft + 185, guiTop + 140, 55, 20, "Std"));
+        addButton(new GuiNpcButton(72, guiLeft + 185, guiTop + 140, 55, 20, "magic.dist"));
+        getButton(72).setHoverText("magic.distInfo");
 
         // Add Split and Bonus Damage text fields.
         int tfY = guiTop + 24 + 155;
@@ -260,12 +261,14 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
                         try {
                             float split = Float.parseFloat(textField.getText());
                             npcMagicData.getMagic(id).split = split;
-                        } catch (NumberFormatException e) { }
+                        } catch (NumberFormatException e) {
+                        }
                     } else if (textField.id == 74) {
                         try {
                             float bonus = Float.parseFloat(textField.getText());
                             npcMagicData.getMagic(id).damage = bonus;
-                        } catch (NumberFormatException e) { }
+                        } catch (NumberFormatException e) {
+                        }
                     }
                     save();
                 }

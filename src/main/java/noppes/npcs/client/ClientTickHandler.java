@@ -34,40 +34,39 @@ import java.util.ArrayList;
 
 import static noppes.npcs.client.ClientEventHandler.renderCNPCPlayer;
 
-public class ClientTickHandler{
-	private World prevWorld;
-	private int prevWidth = 0;
-	private int prevHeight = 0;
-	private boolean otherContainer = false;
-	private int buttonPressed = -1;
-	private long buttonTime = 0L;
-	private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
+public class ClientTickHandler {
+    private World prevWorld;
+    private int prevWidth = 0;
+    private int prevHeight = 0;
+    private boolean otherContainer = false;
+    private final int buttonPressed = -1;
+    private final long buttonTime = 0L;
+    private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
 
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onClientTick(TickEvent.ClientTickEvent event){
-		Minecraft mc = Minecraft.getMinecraft();
-		if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        Minecraft mc = Minecraft.getMinecraft();
+        if ((this.prevWorld == null || mc.theWorld == null) && this.prevWorld != mc.theWorld) {
             if (mc.theWorld == null) {
                 ClientCacheHandler.clearCache();
             }
-			this.prevWorld = mc.theWorld;
-		}
-		if(event.phase == Phase.END) {
-			if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {
-				renderCNPCPlayer.itemRenderer.updateEquippedItem();
-			}
-			return;
-		}
-		if(mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer){
-			if(otherContainer){
+            this.prevWorld = mc.theWorld;
+        }
+        if (event.phase == Phase.END) {
+            if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {
+                renderCNPCPlayer.itemRenderer.updateEquippedItem();
+            }
+            return;
+        }
+        if (mc.thePlayer != null && mc.thePlayer.openContainer instanceof ContainerPlayer) {
+            if (otherContainer) {
                 PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
-				otherContainer = false;
-			}
-		}
-		else
-			otherContainer = true;
-		CustomNpcs.ticks++;
-		RenderNPCInterface.LastTextureTick++;
+                otherContainer = false;
+            }
+        } else
+            otherContainer = true;
+        CustomNpcs.ticks++;
+        RenderNPCInterface.LastTextureTick++;
 
         if (MusicController.Instance.isPlaying() && MusicController.Instance.getEntity() != null) {
             Entity entity = MusicController.Instance.getEntity();
@@ -80,105 +79,105 @@ public class ClientTickHandler{
         }
 
         MusicController.Instance.onUpdate();
-		ScriptSoundController.Instance.onUpdate();
-		if(Minecraft.getMinecraft().thePlayer!=null && (prevWidth!=mc.displayWidth || prevHeight!=mc.displayHeight)){
-			prevWidth = mc.displayWidth;
-			prevHeight = mc.displayHeight;
-            PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth,mc.displayHeight));
-		}
+        ScriptSoundController.Instance.onUpdate();
+        if (Minecraft.getMinecraft().thePlayer != null && (prevWidth != mc.displayWidth || prevHeight != mc.displayHeight)) {
+            prevWidth = mc.displayWidth;
+            prevHeight = mc.displayHeight;
+            PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth, mc.displayHeight));
+        }
 
-        if(mc.theWorld == null)
+        if (mc.theWorld == null)
             return;
 
-        if(mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
+        if (mc.theWorld.getTotalWorldTime() % 20 == 0) { // Update every second
             updateCompassMarks();
         }
-	}
+    }
 
-	@SubscribeEvent
-	public void onMouse(InputEvent.MouseInputEvent event){
-		if(Mouse.getEventButton() == -1 && Mouse.getEventDWheel() == 0)
-			return;
+    @SubscribeEvent
+    public void onMouse(InputEvent.MouseInputEvent event) {
+        if (Mouse.getEventButton() == -1 && Mouse.getEventDWheel() == 0)
+            return;
 
-		InputDevicePacket.sendMouse(Mouse.getEventButton(),Mouse.getEventDWheel(),Mouse.isButtonDown(Mouse.getEventButton()));
-	}
+        InputDevicePacket.sendMouse(Mouse.getEventButton(), Mouse.getEventDWheel(), Mouse.isButtonDown(Mouse.getEventButton()));
+    }
 
-	@SubscribeEvent
-	public void onKey(InputEvent.KeyInputEvent event){
-		if(ClientProxy.NPCButton.isPressed()){
-			Minecraft mc = Minecraft.getMinecraft();
-			if(mc.currentScreen == null){
+    @SubscribeEvent
+    public void onKey(InputEvent.KeyInputEvent event) {
+        if (ClientProxy.NPCButton.isPressed()) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (mc.currentScreen == null) {
                 InventoryTabCustomNpc.tabHelper();
-            }
-			else if(mc.currentScreen instanceof GuiCNPCInventory)
-				mc.setIngameFocus();
-		}
+            } else if (mc.currentScreen instanceof GuiCNPCInventory)
+                mc.setIngameFocus();
+        }
 
-		if(!Keyboard.isRepeatEvent()) {
-			int key = Keyboard.getEventKey();
-			boolean keyDown = Keyboard.isKeyDown(key);
+        if (!Keyboard.isRepeatEvent()) {
+            int key = Keyboard.getEventKey();
+            boolean keyDown = Keyboard.isKeyDown(key);
 
             InputDevicePacket.sendKeyboard(key, keyDown);
-		}
-	}
+        }
+    }
 
-	private boolean isIgnoredKey(int key) {
-		int[] var2 = this.ignoreKeys;
-		int var3 = var2.length;
+    private boolean isIgnoredKey(int key) {
+        int[] var2 = this.ignoreKeys;
+        int var3 = var2.length;
 
-		for(int var4 = 0; var4 < var3; ++var4) {
-			int i = var2[var4];
-			if(i == key) {
-				return true;
-			}
-		}
+        for (int var4 = 0; var4 < var3; ++var4) {
+            int i = var2[var4];
+            if (i == key) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
     private final int SCAN_RANGE = 128;
+
     private void updateCompassMarks() {
         Minecraft mc = Minecraft.getMinecraft();
         EntityPlayer player = mc.thePlayer;
 
-        if(player == null || mc.theWorld == null)
+        if (player == null || mc.theWorld == null)
             return;
 
-        if(ClientHudManager.getInstance() == null || ClientHudManager.getInstance().getHudComponents() == null)
+        if (ClientHudManager.getInstance() == null || ClientHudManager.getInstance().getHudComponents() == null)
             return;
 
         // Update compass
         HudComponent compass = ClientHudManager.getInstance()
             .getHudComponents().get(EnumHudComponent.QuestCompass);
 
-        if(!(compass instanceof CompassHudComponent))
+        if (!(compass instanceof CompassHudComponent))
             return;
 
-        if(!compass.enabled)
+        if (!compass.enabled)
             return;
 
         ArrayList<CompassHudComponent.MarkTargetEntry> marks = new ArrayList<>();
 
         // Scan entities in loaded chunks
-        for(Object entity : mc.theWorld.loadedEntityList) {
-            if(entity instanceof EntityNPCInterface) {
+        for (Object entity : mc.theWorld.loadedEntityList) {
+            if (entity instanceof EntityNPCInterface) {
                 EntityNPCInterface npc = (EntityNPCInterface) entity;
 
-                if(npc.dimension != player.dimension)
+                if (npc.dimension != player.dimension)
                     continue;
 
                 // Check distance
-                if(player.getDistanceToEntity(npc) > SCAN_RANGE)
+                if (player.getDistanceToEntity(npc) > SCAN_RANGE)
                     continue;
 
                 // Get marks
                 MarkData markData = MarkData.get(npc);
-                for(MarkData.Mark mark : markData.marks) {
-                    if(mark.getType() != MarkType.NONE &&
+                for (MarkData.Mark mark : markData.marks) {
+                    if (mark.getType() != MarkType.NONE &&
                         mark.availability.isAvailable(player)) {
                         marks.add(new CompassHudComponent.MarkTargetEntry(
-                            (int)npc.posX,
-                            (int)npc.posZ,
+                            npc.posX,
+                            npc.posZ,
                             mark.getType(),
                             mark.color
                         ));

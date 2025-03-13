@@ -12,58 +12,59 @@ import net.minecraft.world.IBlockAccess;
 
 import java.util.List;
 
-public class BlockCrystal extends BlockBreakable{
-    
-	public BlockCrystal() {
-		super("customnpcs:npcCrystal",Material.glass, false);
-		setLightLevel(0.8f);
-	}
+public class BlockCrystal extends BlockBreakable {
+
+    public BlockCrystal() {
+        super("customnpcs:npcCrystal", Material.glass, false);
+        setLightLevel(0.8f);
+    }
 
     @Override
-    public boolean isOpaqueCube(){
+    public boolean isOpaqueCube() {
         return false;
     }
-    
-    @Override
-    public boolean renderAsNormalBlock(){
-        return false;
-    }    
 
     @Override
-    public int getRenderBlockPass(){
+    public boolean renderAsNormalBlock() {
+        return false;
+    }
+
+    @Override
+    public int getRenderBlockPass() {
         return 1;
     }
 
     @Override
-    public int damageDropped(int meta){
+    public int damageDropped(int meta) {
         return meta;
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public void getSubBlocks(Item item, CreativeTabs tab, List list){
-        for (int i = 0; i < 16; ++i){
-        	list.add(new ItemStack(item, 1, i));
+    public void getSubBlocks(Item item, CreativeTabs tab, List list) {
+        for (int i = 0; i < 16; ++i) {
+            list.add(new ItemStack(item, 1, i));
         }
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public int colorMultiplier(IBlockAccess world, int x, int y, int z){
+    public int colorMultiplier(IBlockAccess world, int x, int y, int z) {
         return getRenderColor(world.getBlockMetadata(x, y, z));
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public int getRenderColor(int meta){
+    public int getRenderColor(int meta) {
         return MapColor.getMapColorForBlockColored(meta).colorValue;
     }
 
-    public MapColor getMapColor(int p_149728_1_){
+    public MapColor getMapColor(int p_149728_1_) {
         return MapColor.getMapColorForBlockColored(p_149728_1_);
     }
-    @Override   
-    public String getUnlocalizedName(){
-    	return "item.npcCrystal";
+
+    @Override
+    public String getUnlocalizedName() {
+        return "item.npcCrystal";
     }
 }

@@ -14,21 +14,21 @@ import java.util.Set;
 public class Profile implements IProfile {
     public EntityPlayer player;
     public int currentSlotId;
-    private Map<Integer, ISlot> slots = new HashMap<>();
+    private final Map<Integer, ISlot> slots = new HashMap<>();
     private boolean locked = false;
 
     public Profile(EntityPlayer player, NBTTagCompound compound) {
         this.player = player;
-        if(compound.hasKey("CurrentSlotId")){
+        if (compound.hasKey("CurrentSlotId")) {
             this.currentSlotId = compound.getInteger("CurrentSlotId");
         } else {
             this.currentSlotId = 0;
         }
 
-        if(compound.hasKey("Slots")){
+        if (compound.hasKey("Slots")) {
             NBTTagCompound slotsCompound = compound.getCompoundTag("Slots");
             Set<String> keys = slotsCompound.func_150296_c();
-            for(String key : keys) {
+            for (String key : keys) {
                 try {
                     int slotId = Integer.parseInt(key);
                     NBTTagCompound slotNBT = slotsCompound.getCompoundTag(key);
@@ -76,13 +76,13 @@ public class Profile implements IProfile {
     @Override
     public NBTTagCompound writeToNBT() {
         NBTTagCompound compound = new NBTTagCompound();
-        if(player != null)
+        if (player != null)
             compound.setString("Name", player.getCommandSenderName());
         compound.setInteger("CurrentSlotId", currentSlotId);
         NBTTagCompound slotsCompound = new NBTTagCompound();
-        for(Map.Entry<Integer, ISlot> entry : slots.entrySet()) {
+        for (Map.Entry<Integer, ISlot> entry : slots.entrySet()) {
             // Save only non-temporary slots.
-            if(entry.getValue().isTemporary())
+            if (entry.getValue().isTemporary())
                 continue;
             slotsCompound.setTag(String.valueOf(entry.getKey()), entry.getValue().toNBT());
         }

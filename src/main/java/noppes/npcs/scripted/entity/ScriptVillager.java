@@ -8,9 +8,9 @@ import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptVillager<T extends EntityVillager> extends ScriptLiving<T> implements IVillager {
 
-	public ScriptVillager(T entity) {
-		super(entity);
-	}
+    public ScriptVillager(T entity) {
+        super(entity);
+    }
 
     @Override
     public int getProfession() {
@@ -23,18 +23,17 @@ public class ScriptVillager<T extends EntityVillager> extends ScriptLiving<T> im
     }
 
     @Override
-    public IEntityLivingBase getCustomer()
-    {
-        return (IEntityLivingBase) NpcAPI.Instance().getPlayer(entity.getCustomer().getCommandSenderName());
+    public IEntityLivingBase getCustomer() {
+        return NpcAPI.Instance().getPlayer(entity.getCustomer().getCommandSenderName());
     }
 
-	@Override
-	public int getType(){
-		return EntityType.VILLAGER;
-	}
+    @Override
+    public int getType() {
+        return EntityType.VILLAGER;
+    }
 
     @Override
-    public boolean typeOf(int type){
+    public boolean typeOf(int type) {
         return type == EntityType.VILLAGER || super.typeOf(type);
     }
 

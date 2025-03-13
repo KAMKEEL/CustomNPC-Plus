@@ -1,8 +1,8 @@
 package kamkeel.npcs.util;
 
 import kamkeel.npcs.CustomAttributes;
-import net.minecraft.entity.player.EntityPlayer;
 import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
+import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
@@ -22,6 +22,7 @@ public class AttributeAttackUtil {
     private static class AllocationResult {
         public Map<Integer, Float> allocation;
         public float leftover;
+
         public AllocationResult(Map<Integer, Float> allocation, float leftover) {
             this.allocation = allocation;
             this.leftover = leftover;
@@ -43,7 +44,7 @@ public class AttributeAttackUtil {
             totalSplit += splitVal;
         }
         // Ensure double arithmetic for subtraction, then cast back to float.
-        float leftover = physicalDamage * (float)Math.max(0d, 1d - totalSplit);
+        float leftover = physicalDamage * (float) Math.max(0d, 1d - totalSplit);
         return new AllocationResult(allocation, leftover);
     }
 
@@ -159,7 +160,7 @@ public class AttributeAttackUtil {
         return applyCrit(leftover + adjustedMagic, attacker);
     }
 
-    public static float applyCrit(float damage, PlayerAttributeTracker tracker){
+    public static float applyCrit(float damage, PlayerAttributeTracker tracker) {
         if (ConfigMain.AttributesEnabled) {
             float critChance = tracker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
             float critBonus = tracker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
@@ -169,7 +170,7 @@ public class AttributeAttackUtil {
         return damage;
     }
 
-    public static float applyMainAttack(float damage, PlayerAttributeTracker tracker){
+    public static float applyMainAttack(float damage, PlayerAttributeTracker tracker) {
         if (ConfigMain.AttributesEnabled) {
             float mainAttack = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
             float mainBoost = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
@@ -178,7 +179,7 @@ public class AttributeAttackUtil {
         return damage;
     }
 
-    public static float applyNeutral(float leftover, PlayerAttributeTracker tracker){
+    public static float applyNeutral(float leftover, PlayerAttributeTracker tracker) {
         if (ConfigMain.AttributesEnabled) {
             float neutralDamage = tracker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
             float neutralBoost = tracker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST);

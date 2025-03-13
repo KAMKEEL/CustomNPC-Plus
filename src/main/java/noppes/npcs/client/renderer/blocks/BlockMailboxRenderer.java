@@ -11,36 +11,37 @@ import net.minecraft.world.IBlockAccess;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockMailbox;
 import noppes.npcs.client.model.blocks.ModelMailbox;
-import noppes.npcs.client.model.blocks.legacy.ModelLegacyMailboxUS;
 import noppes.npcs.client.model.blocks.ModelMailboxWow;
+import noppes.npcs.client.model.blocks.legacy.ModelLegacyMailboxUS;
 import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 
-public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
+public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
 
     private final ModelMailbox mailbox = new ModelMailbox();
-    private static final ResourceLocation mailbox_texture = new ResourceLocation("customnpcs","textures/models/mailbox.png");
+    private static final ResourceLocation mailbox_texture = new ResourceLocation("customnpcs", "textures/models/mailbox.png");
 
-	private final ModelLegacyMailboxUS model = new ModelLegacyMailboxUS();
-	private final ModelMailboxWow model2 = new ModelMailboxWow();
+    private final ModelLegacyMailboxUS model = new ModelLegacyMailboxUS();
+    private final ModelMailboxWow model2 = new ModelMailboxWow();
 
-    private static final ResourceLocation text1 = new ResourceLocation("customnpcs","textures/models/legacy/mailbox1.png");
-    private static final ResourceLocation text2 = new ResourceLocation("customnpcs","textures/models/mailbox2.png");
+    private static final ResourceLocation text1 = new ResourceLocation("customnpcs", "textures/models/legacy/mailbox1.png");
+    private static final ResourceLocation text2 = new ResourceLocation("customnpcs", "textures/models/mailbox2.png");
 
-    public BlockMailboxRenderer(){
-		((BlockMailbox)CustomItems.mailbox).renderId = RenderingRegistry.getNextAvailableRenderId();
-		RenderingRegistry.registerBlockHandler(this);
+    public BlockMailboxRenderer() {
+        ((BlockMailbox) CustomItems.mailbox).renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(this);
     }
-	@Override
-	public void renderTileEntityAt(TileEntity var1, double var2, double var4, double var6, float var8) {
-		int meta = var1.getBlockMetadata() | 4;
-		int type = var1.getBlockMetadata() >> 2;
+
+    @Override
+    public void renderTileEntityAt(TileEntity var1, double var2, double var4, double var6, float var8) {
+        int meta = var1.getBlockMetadata() | 4;
+        int type = var1.getBlockMetadata() >> 2;
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 1.5f, (float) var6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * meta, 0, 1, 0);
-        if(type == 0){
-            if(ConfigClient.LegacyMailbox){
+        if (type == 0) {
+            if (ConfigClient.LegacyMailbox) {
                 this.bindTexture(text1);
                 model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             } else {
@@ -49,23 +50,23 @@ public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements I
                 mailbox.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             }
         }
-        if(type == 1){
-	        this.bindTexture(text2);
-	        model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        if (type == 1) {
+            this.bindTexture(text2);
+            model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelID,
-			RenderBlocks renderer) {
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelID,
+                                     RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 0.74f, 0);
         GL11.glScalef(0.9f, 0.86f, 0.9f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(180, 0, 1, 0);
-        if(metadata == 0){
-            if(ConfigClient.LegacyMailbox){
+        if (metadata == 0) {
+            if (ConfigClient.LegacyMailbox) {
                 this.bindTexture(text1);
                 model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             } else {
@@ -73,26 +74,26 @@ public class BlockMailboxRenderer extends TileEntitySpecialRenderer implements I
                 mailbox.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             }
         }
-        if(metadata == 1){
-	        this.bindTexture(text2);
-	        model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
+        if (metadata == 1) {
+            this.bindTexture(text2);
+            model2.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-	@Override
-	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
-			Block block, int modelId, RenderBlocks renderer) {
-		return false;
-	}
+    @Override
+    public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
+                                    Block block, int modelId, RenderBlocks renderer) {
+        return false;
+    }
 
-	@Override
-	public int getRenderId() {
-		return CustomItems.mailbox.getRenderType();
-	}
+    @Override
+    public int getRenderId() {
+        return CustomItems.mailbox.getRenderType();
+    }
 
-	@Override
-	public boolean shouldRender3DInInventory(int modelId) {
-		return true;
-	}
+    @Override
+    public boolean shouldRender3DInInventory(int modelId) {
+        return true;
+    }
 }

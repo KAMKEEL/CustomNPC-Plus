@@ -219,6 +219,7 @@ settings.clearTrack=Clear Tracked Quest
 settings.confirmClearTrack=Are you sure you want to clear your tracked quest?
 settings.clearSkin=Clear Skin Cache
 settings.confirmClearSkin=Are you sure you want to clear your skin cache?
+settings.hud=Hud Editor
 
 scale.shared=Shared
 filter.contains=Contains
@@ -801,6 +802,7 @@ item.npcDiamondGun.name=Diamond Gun
 item.npcBronzeGun.name=Bronze Gun
 item.npcEmeraldGun.name=Emerald Gun
 item.npcMachineGun.name=Machine Gun
+item.npcMachineGun.info=Remaining
 
 item.npcWoodenBullet.name=Wooden Bullet
 item.npcStoneBullet.name=Stone Bullet
@@ -1346,6 +1348,9 @@ magic.index=Index
 magic.priority=Priority
 magic.split=Split
 magic.bonus=Bonus
+magic.dist=Dist
+magic.distribute=Distribute
+magic.distInfo=Distributes Magic Split through all selected Magic
 
 diagram.circular=Circular
 diagram.square=Square

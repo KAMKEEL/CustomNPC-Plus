@@ -25,12 +25,12 @@ public class CommandNoppes extends CommandBase {
     }
 
     @Override
-    public List addTabCompletionOptions(ICommandSender par1, String[] par2){
+    public List addTabCompletionOptions(ICommandSender par1, String[] par2) {
         return noppes.addTabCompletion(par1, par2);
     }
 
     @Override
-    public int getRequiredPermissionLevel(){
+    public int getRequiredPermissionLevel() {
         return 2;
     }
 }

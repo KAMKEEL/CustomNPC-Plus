@@ -16,8 +16,9 @@ public class DialogSelectPacket extends AbstractPacket {
 
     private int dialogID, optionID;
 
-    public DialogSelectPacket(){
+    public DialogSelectPacket() {
     }
+
     public DialogSelectPacket(int dialogID, int optionID) {
         this.dialogID = dialogID;
         this.optionID = optionID;

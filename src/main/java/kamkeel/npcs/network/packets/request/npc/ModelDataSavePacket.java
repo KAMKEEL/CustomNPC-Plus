@@ -23,7 +23,8 @@ public final class ModelDataSavePacket extends AbstractPacket {
 
     private NBTTagCompound save;
 
-    public ModelDataSavePacket() { }
+    public ModelDataSavePacket() {
+    }
 
     public ModelDataSavePacket(NBTTagCompound save) {
         this.save = save;
@@ -63,7 +64,7 @@ public final class ModelDataSavePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc instanceof EntityCustomNpc)
-            ((EntityCustomNpc)npc).modelData.readFromNBT(ByteBufUtils.readNBT(in));
+        if (npc instanceof EntityCustomNpc)
+            ((EntityCustomNpc) npc).modelData.readFromNBT(ByteBufUtils.readNBT(in));
     }
 }

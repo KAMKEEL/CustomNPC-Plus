@@ -30,37 +30,36 @@ import noppes.npcs.client.model.blocks.legacy.ModelLegacyWallBannerFlag;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.item.ScriptItemStack;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-public class BlockWallBannerRenderer extends BlockRendererInterface{
+public class BlockWallBannerRenderer extends BlockRendererInterface {
 
-	public static final ModelLegacyWallBanner modelLegacyWallBanner = new ModelLegacyWallBanner();
+    public static final ModelLegacyWallBanner modelLegacyWallBanner = new ModelLegacyWallBanner();
     public static final ModelLegacyWallBannerFlag modelLegacyWallBannerFlag = new ModelLegacyWallBannerFlag();
 
     public static final ModelBannerWall model = new ModelBannerWall();
     public static final ModelBannerWallFlag flag = new ModelBannerWallFlag();
 
-    public BlockWallBannerRenderer(){
-		((BlockWallBanner)CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
-		RenderingRegistry.registerBlockHandler(this);
+    public BlockWallBannerRenderer() {
+        ((BlockWallBanner) CustomItems.wallBanner).renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(this);
     }
 
-	@Override
-	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
-			double var6, float var8) {
-		TileWallBanner tile = (TileWallBanner) var1;
+    @Override
+    public void renderTileEntityAt(TileEntity var1, double var2, double var4,
+                                   double var6, float var8) {
+        TileWallBanner tile = (TileWallBanner) var1;
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 +0.4f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 0.4f, (float) var6 + 0.5f);
         //GL11.glScalef(0.95f, 0.95f, 0.95f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
 
-        if(ConfigClient.LegacyBanner){
+        if (ConfigClient.LegacyBanner) {
             setMaterialTexture(var1.getBlockMetadata());
             GL11.glColor3f(1, 1, 1);
             modelLegacyWallBanner.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -72,11 +71,10 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 
             GL11.glPopMatrix();
             GL11.glColor3f(1, 1, 1);
-            if(tile.icon != null && !this.playerTooFar(tile)){
+            if (tile.icon != null && !this.playerTooFar(tile)) {
                 doRender(var2, var4, var6, tile.rotation, tile.icon, 0);
             }
-        }
-        else {
+        } else {
             long worldTime = tile.getWorldObj() != null ? tile.getWorldObj().getTotalWorldTime() : 0;
             // 100 is one full revolution, so we can just mod by 100 without affecting the result
             int animationProgress100 = (((tile.xCoord % 100) * 7 + (tile.yCoord % 100) * 9 + (tile.zCoord % 100) * 13) + (int) (worldTime % 100)) % 100;
@@ -96,17 +94,17 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
 
             GL11.glPopMatrix();
             GL11.glColor3f(1, 1, 1);
-            if(tile.icon != null && !this.playerTooFar(tile)){
+            if (tile.icon != null && !this.playerTooFar(tile)) {
                 doRender(var2, var4, var6, tile.rotation, tile.icon, angle_x);
             }
         }
         GL11.glPopAttrib();
-	}
+    }
 
     public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon, float rotate) {
         GL11.glPushMatrix();
         bindTexture(TextureMap.locationItemsTexture);
-        GL11.glTranslatef((float)par2 + 0.5f, (float)par4 + 0.2f, (float)par6 + 0.5f);
+        GL11.glTranslatef((float) par2 + 0.5f, (float) par4 + 0.2f, (float) par6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * meta, 0, 1, 0);
         if (ConfigClient.LegacyBanner) {
@@ -164,8 +162,7 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
     }
 
 
-    public void renderItemBanner(TextureManager txtMng, ItemStack item, int p_77015_4_, int p_77015_5_, boolean renderEffect)
-    {
+    public void renderItemBanner(TextureManager txtMng, ItemStack item, int p_77015_4_, int p_77015_5_, boolean renderEffect) {
         Object object = item.getIconIndex();
         int l;
         float f;
@@ -178,35 +175,31 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         ResourceLocation resourcelocation = txtMng.getResourceLocation(item.getItemSpriteNumber());
         txtMng.bindTexture(resourcelocation);
 
-        if (object == null)
-        {
-            object = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(resourcelocation)).getAtlasSprite("missingno");
+        if (object == null) {
+            object = ((TextureMap) Minecraft.getMinecraft().getTextureManager().getTexture(resourcelocation)).getAtlasSprite("missingno");
         }
 
         l = item.getItem().getColorFromItemStack(item, 0);
 
         Item loadingItem = item.getItem();
-        if(loadingItem instanceof ItemBlock) {
+        if (loadingItem instanceof ItemBlock) {
             Block block = ((ItemBlock) loadingItem).field_150939_a;
-            if(block != null){
-                if(block == Blocks.enchanting_table || block == Blocks.end_portal_frame){
+            if (block != null) {
+                if (block == Blocks.enchanting_table || block == Blocks.end_portal_frame) {
                     object = block.getIcon(1, item.getItemDamage());
-                }
-                else if (block == Blocks.furnace || block == Blocks.tnt){
+                } else if (block == Blocks.furnace || block == Blocks.tnt) {
                     object = block.getIcon(2, 1);
-                }
-                else {
+                } else {
                     object = block.getIcon(0, item.getItemDamage());
                 }
             }
         }
 
-        f3 = (float)(l >> 16 & 255) / 255.0F;
-        f4 = (float)(l >> 8 & 255) / 255.0F;
-        f = (float)(l & 255) / 255.0F;
+        f3 = (float) (l >> 16 & 255) / 255.0F;
+        f4 = (float) (l >> 8 & 255) / 255.0F;
+        f = (float) (l & 255) / 255.0F;
 
-        if (renderer.renderWithColor)
-        {
+        if (renderer.renderWithColor) {
             GL11.glColor4f(f3, f4, f, 1.0F);
         }
 
@@ -214,14 +207,13 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_BLEND);
 
-        renderer.renderIcon(p_77015_4_, p_77015_5_, (IIcon)object, 16, 16);
+        renderer.renderIcon(p_77015_4_, p_77015_5_, (IIcon) object, 16, 16);
 
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glDisable(GL11.GL_BLEND);
 
-        if (renderEffect && item.hasEffect(0))
-        {
+        if (renderEffect && item.hasEffect(0)) {
             renderer.renderEffect(txtMng, p_77015_4_, p_77015_5_);
         }
         GL11.glEnable(GL11.GL_LIGHTING);
@@ -229,16 +221,17 @@ public class BlockWallBannerRenderer extends BlockRendererInterface{
     }
 
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {}
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelId,
+                                     RenderBlocks renderer) {
+    }
 
-	@Override
-	public int getRenderId() {
-		return CustomItems.wallBanner.getRenderType();
-	}
+    @Override
+    public int getRenderId() {
+        return CustomItems.wallBanner.getRenderType();
+    }
 
-	public int specialRenderDistance(){
-		return 26;
-	}
+    public int specialRenderDistance() {
+        return 26;
+    }
 }

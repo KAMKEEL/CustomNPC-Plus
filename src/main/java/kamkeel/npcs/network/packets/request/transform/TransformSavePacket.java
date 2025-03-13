@@ -22,7 +22,8 @@ public final class TransformSavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public TransformSavePacket() { }
+    public TransformSavePacket() {
+    }
 
     public TransformSavePacket(NBTTagCompound compound) {
         this.compound = compound;

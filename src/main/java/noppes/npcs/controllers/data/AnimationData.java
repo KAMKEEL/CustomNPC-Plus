@@ -41,7 +41,7 @@ public class AnimationData implements IAnimationData {
     public int finishedTime = -1;
     public int finishedFrame = -1;
 
-    public AnimationData(Object parent){
+    public AnimationData(Object parent) {
         this.parent = parent;
     }
 
@@ -56,7 +56,7 @@ public class AnimationData implements IAnimationData {
         if (entity instanceof EntityPlayerMP) {
             return PlayerData.get((EntityPlayer) entity).animationData;
         } else if (entity instanceof EntityNPCInterface) {
-            return ((EntityNPCInterface)entity).display.animationData;
+            return ((EntityNPCInterface) entity).display.animationData;
         } else {
             return null;
         }
@@ -72,7 +72,7 @@ public class AnimationData implements IAnimationData {
 
     public EntityLivingBase getMCEntity() {
         if (this.parent instanceof DataDisplay) {
-            return  ((DataDisplay) this.parent).npc;
+            return ((DataDisplay) this.parent).npc;
         } else {
             if (this.parent instanceof PlayerData) {
                 return ((PlayerData) this.parent).player;
@@ -90,7 +90,7 @@ public class AnimationData implements IAnimationData {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
         if (sendingEntity != null) {
-            if(sendingEntity.dimension != sendingEntity.worldObj.provider.dimensionId)
+            if (sendingEntity.dimension != sendingEntity.worldObj.provider.dimensionId)
                 sendingEntity.dimension = sendingEntity.worldObj.provider.dimensionId;
 
             this.animatingTime = 0;
@@ -137,7 +137,7 @@ public class AnimationData implements IAnimationData {
             return false;
 
         if (this.parent instanceof DataDisplay) {
-            EntityNPCInterface npc = ((DataDisplay)this.parent).npc;
+            EntityNPCInterface npc = ((DataDisplay) this.parent).npc;
             if (!npc.isEntityAlive())
                 return false;
 
@@ -152,7 +152,7 @@ public class AnimationData implements IAnimationData {
             if (!player.isEntityAlive())
                 return false;
 
-            boolean moving = Math.sqrt(player.motionX*player.motionX + player.motionY*player.motionY + player.motionZ*player.motionZ) != 0.0D;
+            boolean moving = Math.sqrt(player.motionX * player.motionX + player.motionY * player.motionY + player.motionZ * player.motionZ) != 0.0D;
 
             return animation.whileAttacking && player.getLastAttackerTime() - player.ticksExisted < 20 || animation.whileMoving && moving || animation.whileStanding && !moving;
         }

@@ -16,7 +16,8 @@ public final class PlayerDataGetInfoPacket extends AbstractPacket {
     public static final String packetName = "Request|PlayerDataGetNew";
     private String playerName;
 
-    public PlayerDataGetInfoPacket() {}
+    public PlayerDataGetInfoPacket() {
+    }
 
     public PlayerDataGetInfoPacket(String playerName) {
         this.playerName = playerName;

@@ -13,9 +13,9 @@ public class OpOnly extends AbstractPermission {
 
     @Override
     public boolean delegate(AbstractCommandHelper parent, String[] args) {
-    	if(!(parent.pcParam instanceof EntityPlayer))
-    		return true;
-        return MinecraftServer.getServer().getConfigurationManager().func_152596_g(((EntityPlayer)parent.pcParam).getGameProfile());
+        if (!(parent.pcParam instanceof EntityPlayer))
+            return true;
+        return MinecraftServer.getServer().getConfigurationManager().func_152596_g(((EntityPlayer) parent.pcParam).getGameProfile());
     }
 
 }

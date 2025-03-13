@@ -7,11 +7,11 @@ import noppes.npcs.constants.EnumBannerVariant;
 
 public class TileBanner extends TileColorable implements ITileIcon {
 
-	public ItemStack icon;
+    public ItemStack icon;
     public EnumBannerVariant bannerTrim = EnumBannerVariant.Normal;
-	public long time = 0;
+    public long time = 0;
 
-    public void readFromNBT(NBTTagCompound compound){
+    public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         icon = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("BannerIcon"));
 
@@ -23,30 +23,40 @@ public class TileBanner extends TileColorable implements ITileIcon {
         }
     }
 
-    public void writeToNBT(NBTTagCompound compound){
-    	super.writeToNBT(compound);
-    	if(icon != null)
-    		compound.setTag("BannerIcon", icon.writeToNBT(new NBTTagCompound()));
+    public void writeToNBT(NBTTagCompound compound) {
+        super.writeToNBT(compound);
+        if (icon != null)
+            compound.setTag("BannerIcon", icon.writeToNBT(new NBTTagCompound()));
         compound.setInteger("BannerVariant", bannerTrim.ordinal());
     }
 
-	@Override
-    public AxisAlignedBB getRenderBoundingBox(){
-		return AxisAlignedBB.getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 2, zCoord + 1);
+    @Override
+    public AxisAlignedBB getRenderBoundingBox() {
+        return AxisAlignedBB.getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 2, zCoord + 1);
     }
 
     @Override
-    public boolean canEdit(){
-		return System.currentTimeMillis() - time  < 20000;
-	}
+    public boolean canEdit() {
+        return System.currentTimeMillis() - time < 20000;
+    }
 
     @Override
-    public void setTime(long time){
+    public void setTime(long time) {
         this.time = time;
     }
 
     @Override
-    public void setIcon(ItemStack stack){
+    public void setIcon(ItemStack stack) {
         this.icon = stack;
+    }
+
+
+    public void changeVariant() {
+        EnumBannerVariant[] variants = EnumBannerVariant.values();
+        int nextIndex = (bannerTrim.ordinal() + 1) % variants.length;
+        bannerTrim = variants[nextIndex];
+
+        this.markDirty();
+        this.worldObj.markBlockForUpdate(this.xCoord, this.yCoord, this.zCoord);
     }
 }

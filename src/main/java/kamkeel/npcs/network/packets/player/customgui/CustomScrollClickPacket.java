@@ -7,7 +7,6 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,7 +27,8 @@ public final class CustomScrollClickPacket extends AbstractPacket {
     private boolean doubleClick;
     private NBTTagCompound compound;
 
-    public CustomScrollClickPacket() {}
+    public CustomScrollClickPacket() {
+    }
 
     public CustomScrollClickPacket(NBTTagCompound compound, int scrollId, int scrollIndex, NBTTagCompound selection, boolean doubleClick) {
         this.compound = compound;

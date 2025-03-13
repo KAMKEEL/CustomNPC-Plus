@@ -33,9 +33,10 @@ import static kamkeel.npcs.network.packets.request.party.PartyInvitePacket.sendI
 public class PartyController implements IPartyHandler {
     private static PartyController Instance;
 
-    private HashMap<UUID, Party> parties = new HashMap<>();
+    private final HashMap<UUID, Party> parties = new HashMap<>();
 
-    private PartyController() {}
+    private PartyController() {
+    }
 
     public static PartyController Instance() {
         if (Instance == null) {
@@ -51,16 +52,16 @@ public class PartyController implements IPartyHandler {
     }
 
     @Override
-    public IParty createParty(IPlayer player){
-        if(player == null)
+    public IParty createParty(IPlayer player) {
+        if (player == null)
             return null;
 
-        if(player.getMCEntity() == null)
+        if (player.getMCEntity() == null)
             return null;
 
         EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
         PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
-        if(playerData.partyUUID != null)
+        if (playerData.partyUUID != null)
             return getParty(playerData.partyUUID);
 
         Party party = new Party();
@@ -71,19 +72,18 @@ public class PartyController implements IPartyHandler {
     }
 
     @Override
-    public void disbandParty(IPlayer player){
-        if(player == null)
+    public void disbandParty(IPlayer player) {
+        if (player == null)
             return;
 
-        if(player.getMCEntity() == null)
+        if (player.getMCEntity() == null)
             return;
 
         EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
         PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
-        if(playerData.partyUUID != null)
+        if (playerData.partyUUID != null)
             disbandParty(playerData.partyUUID);
 
-        return;
     }
 
     public Party getParty(UUID partyUUID) {
@@ -95,20 +95,19 @@ public class PartyController implements IPartyHandler {
         if (party != null) {
             PartyEvent.PartyDisbandEvent partyEvent = new PartyEvent.PartyDisbandEvent(party, party.getQuest());
             EventHooks.onPartyDisband(partyEvent);
-            for (UUID uuid: party.getPlayerUUIDs()) {
+            for (UUID uuid : party.getPlayerUUIDs()) {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                 PlayerData playerData;
-                if(player != null){
+                if (player != null) {
                     playerData = PlayerDataController.Instance.getPlayerData(player);
-                }
-                else {
+                } else {
                     playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                 }
-                if(playerData != null){
+                if (playerData != null) {
                     playerData.partyUUID = null;
-                    if(player != null){
+                    if (player != null) {
                         sendInviteData((EntityPlayerMP) player);
-                        AchievementPacket.sendAchievement((EntityPlayerMP) player, true,  "party.disbandAlert", "");
+                        AchievementPacket.sendAchievement((EntityPlayerMP) player, true, "party.disbandAlert", "");
                         ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "\u00A7c", "party.disbandMessage", "!");
                     }
                 }
@@ -117,41 +116,41 @@ public class PartyController implements IPartyHandler {
         }
     }
 
-    public void sendKickMessages(Party party, EntityPlayer kickPlayer, String kickPlayerName){
-        if(party == null)
+    public void sendKickMessages(Party party, EntityPlayer kickPlayer, String kickPlayerName) {
+        if (party == null)
             return;
 
-        for(String name : party.getPlayerNames()){
+        for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
-            if(playerMP != null){
-                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true,  "party.kickOtherAlert", kickPlayerName);
+            if (playerMP != null) {
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true, "party.kickOtherAlert", kickPlayerName);
                 ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", kickPlayerName, " \u00A74", "party.kickOtherChat", "!");
             }
         }
 
-        if(kickPlayer != null){
-            AchievementPacket.sendAchievement((EntityPlayerMP) kickPlayer, true,  "party.kickYouAlert", "");
+        if (kickPlayer != null) {
+            AchievementPacket.sendAchievement((EntityPlayerMP) kickPlayer, true, "party.kickYouAlert", "");
             ChatAlertPacket.sendChatAlert((EntityPlayerMP) kickPlayer, "\u00A74", "party.kickYouChat", "!");
         }
     }
 
-    public void sendLeavingMessages(Party party, EntityPlayer leavingPlayer){
-        if(leavingPlayer == null || party == null)
+    public void sendLeavingMessages(Party party, EntityPlayer leavingPlayer) {
+        if (leavingPlayer == null || party == null)
             return;
 
-        for(String name : party.getPlayerNames()){
+        for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
-            if(playerMP != null){
-                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true,  "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
+            if (playerMP != null) {
+                AchievementPacket.sendAchievement((EntityPlayerMP) playerMP, true, "party.leaveOtherAlert", leavingPlayer.getCommandSenderName());
                 ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerMP, "\u00A7e", leavingPlayer.getCommandSenderName(), " \u00A7c", "party.leaveOtherChat", "!");
             }
         }
-        AchievementPacket.sendAchievement((EntityPlayerMP) leavingPlayer, true,  "party.leaveYouAlert", "");
+        AchievementPacket.sendAchievement((EntityPlayerMP) leavingPlayer, true, "party.leaveYouAlert", "");
         ChatAlertPacket.sendChatAlert((EntityPlayerMP) leavingPlayer, "\u00A7c", "party.leaveYouChat", "!");
     }
 
-    public void pingPartyUpdate(Party party){
-        if(party == null)
+    public void pingPartyUpdate(Party party) {
+        if (party == null)
             return;
 
         NBTTagCompound compound = party.writeToNBT();
@@ -164,24 +163,24 @@ public class PartyController implements IPartyHandler {
                 list.appendTag(new NBTTagString(s));
             }
             compound.setTag("QuestProgress", list);
-            if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
+            if (quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
                 compound.setString("QuestCompleteWith", quest.completerNpc);
             }
         }
 
-        for(String name : party.getPlayerNames()){
+        for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
-            if(playerMP != null){
+            if (playerMP != null) {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
-                if(playerData != null){
+                if (playerData != null) {
                     PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
         }
     }
 
-    public void pingPartyQuestObjectiveUpdate(Party party){
-        if(party == null)
+    public void pingPartyQuestObjectiveUpdate(Party party) {
+        if (party == null)
             return;
 
         NBTTagCompound compound = new NBTTagCompound();
@@ -195,16 +194,16 @@ public class PartyController implements IPartyHandler {
                 list.appendTag(new NBTTagString(s));
             }
             compound.setTag("QuestProgress", list);
-            if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
+            if (quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
                 compound.setString("QuestCompleteWith", quest.completerNpc);
             }
         }
 
-        for(String name : party.getPlayerNames()){
+        for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
-            if(playerMP != null){
+            if (playerMP != null) {
                 PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
-                if(playerData != null){
+                if (playerData != null) {
                     PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
             }
@@ -230,11 +229,11 @@ public class PartyController implements IPartyHandler {
 
     public boolean checkQuestCompletion(Party party, EnumQuestType type) {
         QuestData questData = party.getQuestData();
-        if(questData != null){
-            if(questData.quest.type == type || type == null){
-                QuestInterface inter =  questData.quest.questInterface;
-                if(inter.isPartyCompleted(party)){
-                    if((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)){
+        if (questData != null) {
+            if (questData.quest.type == type || type == null) {
+                QuestInterface inter = questData.quest.questInterface;
+                if (inter.isPartyCompleted(party)) {
+                    if ((!questData.isCompleted && questData.quest.completion == EnumQuestCompletion.Npc) || questData.quest.instantPartyComplete(party)) {
                         questData.isCompleted = true;
                         if (questData.quest.completion == EnumQuestCompletion.Npc) {
                             EventHooks.onPartyFinished(party, questData.quest);
@@ -252,7 +251,7 @@ public class PartyController implements IPartyHandler {
                     EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
                     if (playerMP != null) {
                         PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
-                        if(playerData != null){
+                        if (playerData != null) {
                             if (playerData.questData.getTrackedQuest() != null && questData.quest.getId() == playerData.questData.getTrackedQuest().getId()) {
                                 NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) playerMP, party);
                             }

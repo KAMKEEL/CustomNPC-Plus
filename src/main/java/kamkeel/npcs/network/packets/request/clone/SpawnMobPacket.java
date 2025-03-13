@@ -4,10 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.AbstractPacket;
-import kamkeel.npcs.network.PacketChannel;
-import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -39,7 +36,8 @@ public class SpawnMobPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public SpawnMobPacket() {}
+    public SpawnMobPacket() {
+    }
 
     public SpawnMobPacket(Action type, int posX, int posY, int posz, String selectedName, int tab) {
         this.type = type;
@@ -58,11 +56,12 @@ public class SpawnMobPacket extends AbstractPacket {
         this.compound = compound;
     }
 
-    public static SpawnMobPacket Server(int x, int y, int z, String name, int tab) {
-        return new SpawnMobPacket(Action.Server, x, y, z, name, tab);
+    public static void Server(int x, int y, int z, String name, int tab) {
+        PacketClient.sendClient(new SpawnMobPacket(Action.Server, x, y, z, name, tab));
     }
-    public static SpawnMobPacket Client(int x, int y, int z, NBTTagCompound compound) {
-        return new SpawnMobPacket(Action.Client, x, y, z, compound);
+
+    public static void Client(int x, int y, int z, NBTTagCompound compound) {
+        PacketClient.sendClient(new SpawnMobPacket(Action.Client, x, y, z, compound));
     }
 
     @Override
@@ -110,15 +109,15 @@ public class SpawnMobPacket extends AbstractPacket {
         int z = in.readInt();
         NBTTagCompound compound;
 
-        if(requestedAction == Action.Server)
+        if (requestedAction == Action.Server)
             compound = ServerCloneController.Instance.getCloneData(player, ByteBufUtils.readString(in), in.readInt());
         else
             compound = ByteBufUtils.readNBT(in);
 
-        if(compound == null)
+        if (compound == null)
             return;
         Entity entity = NoppesUtilServer.spawnClone(compound, x, y, z, player.worldObj);
-        if(entity == null){
+        if (entity == null) {
             player.addChatMessage(new ChatComponentText("Failed to create an entity out of your clone"));
             return;
         }
@@ -128,7 +127,7 @@ public class SpawnMobPacket extends AbstractPacket {
             npc.script.setEnabled(false);
         }
 
-        if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+        if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
             LogWriter.script(String.format("[%s] (Player) %s SPAWNED ENTITY %s", "CLONER", player.getCommandSenderName(), entity));
         }
     }

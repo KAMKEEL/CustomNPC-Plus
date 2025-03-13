@@ -22,9 +22,9 @@ public class CacheHashMap<K, V extends CacheHashMap.CachedObject<?>> extends Has
         V object = super.get(key);
         object.updateTimeAccessed();
 
-        Iterator<Map.Entry<K,V>> iterator = this.entrySet().iterator();
+        Iterator<Map.Entry<K, V>> iterator = this.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<K,V> entry = iterator.next();
+            Map.Entry<K, V> entry = iterator.next();
             long lifeTimeDiff = entry.getValue().timeSinceAccessed();
             if (lifeTimeDiff > this.maxCacheTime) {
                 entry.getValue().save();
@@ -68,7 +68,8 @@ public class CacheHashMap<K, V extends CacheHashMap.CachedObject<?>> extends Has
             this.timeSaved = System.currentTimeMillis();
         }
 
-        public void save(){}
+        public void save() {
+        }
 
         public T getObject() {
             return this.object;

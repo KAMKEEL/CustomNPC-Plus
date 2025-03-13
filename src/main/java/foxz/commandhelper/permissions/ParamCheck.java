@@ -15,9 +15,9 @@ public class ParamCheck extends AbstractPermission {
     public boolean delegate(AbstractCommandHelper parent, String[] args) {
         String[] np = parent.currentHelper.usage.split(" ");
         int countRequired = 0;
-        for(String command : np){
-        	if(command.startsWith("<"))
-        		countRequired++;
+        for (String command : np) {
+            if (command.startsWith("<"))
+                countRequired++;
         }
         if (args.length < countRequired) {
             err = np[args.length] + " missing";

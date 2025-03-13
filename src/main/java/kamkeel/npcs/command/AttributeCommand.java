@@ -1,19 +1,19 @@
 package kamkeel.npcs.command;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import net.minecraft.command.CommandException;
-import net.minecraft.command.ICommandSender;
-import net.minecraft.item.ItemStack;
-import net.minecraft.entity.player.EntityPlayer;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
 import kamkeel.npcs.util.AttributeItemUtil;
+import net.minecraft.command.CommandException;
+import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import noppes.npcs.controllers.MagicController;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendResult;
@@ -38,7 +38,7 @@ public class AttributeCommand extends CommandKamkeelBase {
     public void list(ICommandSender sender, String[] args) throws CommandException {
         // Get all registered attributes.
         List<AttributeDefinition> defs = new ArrayList<AttributeDefinition>(AttributeController.getAllAttributes());
-        if(defs.isEmpty()){
+        if (defs.isEmpty()) {
             sendError(sender, "No attributes found.");
             return;
         }
@@ -52,18 +52,18 @@ public class AttributeCommand extends CommandKamkeelBase {
 
         // Determine which page to show.
         int page = 1;
-        if(args.length > 0) {
+        if (args.length > 0) {
             try {
                 page = Integer.parseInt(args[0]);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 // If parsing fails, default to page 1.
             }
         }
         int perPage = 10;
         int total = defs.size();
-        int totalPages = (int)Math.ceil(total / (double) perPage);
-        if(page < 1) page = 1;
-        if(page > totalPages) page = totalPages;
+        int totalPages = (int) Math.ceil(total / (double) perPage);
+        if (page < 1) page = 1;
+        if (page > totalPages) page = totalPages;
         int startIndex = (page - 1) * perPage;
         int endIndex = Math.min(startIndex + perPage, total);
 
@@ -85,28 +85,28 @@ public class AttributeCommand extends CommandKamkeelBase {
         desc = "Applies an attribute to your held item. For magic attributes, provide a magicID."
     )
     public void apply(ICommandSender sender, String[] args) throws CommandException {
-        if(!(sender instanceof EntityPlayer)){
+        if (!(sender instanceof EntityPlayer)) {
             sendError(sender, "Only players can use this command.");
             return;
         }
 
-        EntityPlayer player = (EntityPlayer)sender;
+        EntityPlayer player = (EntityPlayer) sender;
         ItemStack held = player.getHeldItem();
-        if(held == null){
+        if (held == null) {
             sendError(sender, "You are not holding an item.");
             return;
         }
 
         String attrKey = args[0];
         AttributeDefinition def = AttributeController.getAttribute(attrKey);
-        if(def == null){
+        if (def == null) {
             sendError(sender, "Unknown attribute: " + attrKey);
             return;
         }
 
         // Check if this is a magic attribute.
-        if(def.getValueType() == AttributeValueType.MAGIC) {
-            if(args.length < 3){
+        if (def.getValueType() == AttributeValueType.MAGIC) {
+            if (args.length < 3) {
                 sendError(sender, "Usage for magic attribute: apply <attribute> <value> <magicID>");
                 return;
             }
@@ -115,12 +115,12 @@ public class AttributeCommand extends CommandKamkeelBase {
             try {
                 value = Float.parseFloat(args[1]);
                 magicId = Integer.parseInt(args[2]);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 sendError(sender, "Invalid number format for magicID or value.");
                 return;
             }
 
-            if(MagicController.getInstance().getMagic(magicId) == null){
+            if (MagicController.getInstance().getMagic(magicId) == null) {
                 sendError(sender, "No Magic Found for Magic ID %d", magicId);
                 return;
             }
@@ -128,14 +128,14 @@ public class AttributeCommand extends CommandKamkeelBase {
             AttributeItemUtil.writeMagicAttribute(held, attrKey, magicId, value);
             sendResult(sender, "Applied magic attribute " + attrKey + " with magicID " + magicId + " and value " + value + " to held item.");
         } else {
-            if(args.length < 2){
+            if (args.length < 2) {
                 sendError(sender, "Usage: <attribute> <value>");
                 return;
             }
             float value;
             try {
                 value = Float.parseFloat(args[1]);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 sendError(sender, "Invalid number format for value.");
                 return;
             }
@@ -150,38 +150,38 @@ public class AttributeCommand extends CommandKamkeelBase {
         desc = "Removes an attribute from your held item. For magic attributes, provide a magicID."
     )
     public void remove(ICommandSender sender, String[] args) throws CommandException {
-        if(!(sender instanceof EntityPlayer)){
+        if (!(sender instanceof EntityPlayer)) {
             sendError(sender, "Only players can use this command.");
             return;
         }
-        EntityPlayer player = (EntityPlayer)sender;
+        EntityPlayer player = (EntityPlayer) sender;
         ItemStack held = player.getHeldItem();
-        if(held == null){
+        if (held == null) {
             sendError(sender, "You are not holding an item.");
             return;
         }
 
         String attrKey = args[0];
         AttributeDefinition def = AttributeController.getAttribute(attrKey);
-        if(def == null){
+        if (def == null) {
             sendError(sender, "Unknown attribute: " + attrKey);
             return;
         }
 
-        if(def.getValueType() == AttributeValueType.MAGIC) {
-            if(args.length < 2){
+        if (def.getValueType() == AttributeValueType.MAGIC) {
+            if (args.length < 2) {
                 sendError(sender, "Usage for magic attribute: remove <attribute> <magicID>");
                 return;
             }
             int magicId;
             try {
                 magicId = Integer.parseInt(args[1]);
-            } catch(NumberFormatException e) {
+            } catch (NumberFormatException e) {
                 sendError(sender, "Invalid magicID format.");
                 return;
             }
 
-            if(MagicController.getInstance().getMagic(magicId) == null){
+            if (MagicController.getInstance().getMagic(magicId) == null) {
                 sendError(sender, "No Magic Found for Magic ID %d", magicId);
                 return;
             }

@@ -16,97 +16,97 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ScriptJobItemGiver extends ScriptJobInterface implements IJobItemGiver {
-	private JobItemGiver job;
+    private final JobItemGiver job;
 
-	public ScriptJobItemGiver(JobItemGiver job) {
-		super(job);
-		this.job = job;
-	}
+    public ScriptJobItemGiver(JobItemGiver job) {
+        super(job);
+        this.job = job;
+    }
 
-	public ScriptJobItemGiver(EntityNPCInterface npc){
-		super(npc);
-		this.job = (JobItemGiver) npc.jobInterface;
-	}
-		
-	@Override
-	public int getType(){
-		return JobType.ITEMGIVER;
-	}
+    public ScriptJobItemGiver(EntityNPCInterface npc) {
+        super(npc);
+        this.job = (JobItemGiver) npc.jobInterface;
+    }
 
-	public void setCooldown(int cooldown) {
-		if (cooldown < 0)
-			cooldown = 0;
+    @Override
+    public int getType() {
+        return JobType.ITEMGIVER;
+    }
 
-		job.cooldown = cooldown;
-	}
+    public void setCooldown(int cooldown) {
+        if (cooldown < 0)
+            cooldown = 0;
 
-	public void setCooldownType(int type) {
-		if (type < 0) {
-			type = 0;
-		} else if (type > 2) {
-			type = 2;
-		}
-		job.cooldownType = type;
-	}
+        job.cooldown = cooldown;
+    }
 
-	public int getCooldownType() {
-		return job.cooldownType;
-	}
+    public void setCooldownType(int type) {
+        if (type < 0) {
+            type = 0;
+        } else if (type > 2) {
+            type = 2;
+        }
+        job.cooldownType = type;
+    }
 
-	public void setGivingMethod(int method) {
-		if (method < 0) {
-			method = 0;
-		} else if (method > 4) {
-			method = 4;
-		}
-		job.givingMethod = method;
-	}
+    public int getCooldownType() {
+        return job.cooldownType;
+    }
 
-	public int getGivingMethod() {
-		return job.givingMethod;
-	}
+    public void setGivingMethod(int method) {
+        if (method < 0) {
+            method = 0;
+        } else if (method > 4) {
+            method = 4;
+        }
+        job.givingMethod = method;
+    }
 
-	public void setLines(String[] lines) {
-		job.lines = new ArrayList<>(Arrays.asList(lines));
-	}
+    public int getGivingMethod() {
+        return job.givingMethod;
+    }
 
-	public String[] getLines() {
-		return job.lines.toArray(new String[0]);
-	}
+    public void setLines(String[] lines) {
+        job.lines = new ArrayList<>(Arrays.asList(lines));
+    }
 
-	public void setAvailability(IAvailability availability) {
-		job.availability = (Availability) availability;
-	}
+    public String[] getLines() {
+        return job.lines.toArray(new String[0]);
+    }
 
-	public IAvailability getAvailability() {
-		return job.availability;
-	}
+    public void setAvailability(IAvailability availability) {
+        job.availability = (Availability) availability;
+    }
 
-	public void setItem(int slot, IItemStack item) {
-		if (slot < 0) {
-			slot = 0;
-		} else if (slot > 8) {
-			slot = 8;
-		}
+    public IAvailability getAvailability() {
+        return job.availability;
+    }
 
-		job.inventory.items.put(slot, item.getMCItemStack());
-	}
+    public void setItem(int slot, IItemStack item) {
+        if (slot < 0) {
+            slot = 0;
+        } else if (slot > 8) {
+            slot = 8;
+        }
 
-	public IItemStack[] getItems() {
-		ArrayList<IItemStack> items = new ArrayList<>();
+        job.inventory.items.put(slot, item.getMCItemStack());
+    }
 
-		for (int i = 0; i < job.inventory.getSizeInventory(); i++) {
-			items.add(NpcAPI.Instance().getIItemStack(job.inventory.getStackInSlot(i)));
-		}
+    public IItemStack[] getItems() {
+        ArrayList<IItemStack> items = new ArrayList<>();
 
-		return items.toArray(new IItemStack[0]);
-	}
+        for (int i = 0; i < job.inventory.getSizeInventory(); i++) {
+            items.add(NpcAPI.Instance().getIItemStack(job.inventory.getStackInSlot(i)));
+        }
 
-	public boolean giveItems(IPlayer player) {
-		return job.giveItems((EntityPlayer) player.getMCEntity());
-	}
+        return items.toArray(new IItemStack[0]);
+    }
 
-	public boolean canPlayerInteract(IPlayer player) {
-		return job.canPlayerInteract((PlayerItemGiverData) player.getData().getItemGiverData());
-	}
+    public boolean giveItems(IPlayer player) {
+        return job.giveItems((EntityPlayer) player.getMCEntity());
+    }
+
+    public boolean canPlayerInteract(IPlayer player) {
+        return job.canPlayerInteract((PlayerItemGiverData) player.getData().getItemGiverData());
+    }
 }

@@ -95,7 +95,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
     public static class SpawnEvent extends ItemEvent implements IItemEvent.SpawnEvent {
         public final IEntity entity;
 
-        public SpawnEvent(IItemCustomizable item, IEntity entity){
+        public SpawnEvent(IItemCustomizable item, IEntity entity) {
             super(item);
             this.entity = entity;
         }
@@ -208,7 +208,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public StartUsingItem(IItemCustomizable item, IPlayer player, int duration){
+        public StartUsingItem(IItemCustomizable item, IPlayer player, int duration) {
             super(item);
             this.player = player;
             this.duration = duration;
@@ -232,7 +232,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public UsingItem(IItemCustomizable item, IPlayer player, int duration){
+        public UsingItem(IItemCustomizable item, IPlayer player, int duration) {
             super(item);
             this.player = player;
             this.duration = duration;
@@ -256,7 +256,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public StopUsingItem(IItemCustomizable item, IPlayer player, int duration){
+        public StopUsingItem(IItemCustomizable item, IPlayer player, int duration) {
             super(item);
             this.player = player;
             this.duration = duration;
@@ -280,7 +280,7 @@ public class ItemEvent extends CustomNPCsEvent implements IItemEvent {
         public final IPlayer player;
         public final int duration;
 
-        public FinishUsingItem(IItemCustomizable item, IPlayer player, int duration){
+        public FinishUsingItem(IItemCustomizable item, IPlayer player, int duration) {
             super(item);
             this.player = player;
             this.duration = duration;

@@ -18,7 +18,8 @@ import java.io.IOException;
 public final class FactionsGetPacket extends AbstractPacket {
     public static String packetName = "Request|FactionsGet";
 
-    public FactionsGetPacket() {}
+    public FactionsGetPacket() {
+    }
 
 
     @Override
@@ -33,7 +34,8 @@ public final class FactionsGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

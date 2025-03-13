@@ -17,7 +17,10 @@ import net.minecraft.util.Util;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.IPlayerDataInfo;
+import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
@@ -36,50 +39,52 @@ import java.util.Vector;
 
 public class NoppesUtil {
 
-	public static void requestOpenGUI(EnumGuiType gui) {
-		requestOpenGUI(gui, 0, 0, 0);
-	}
+    public static void requestOpenGUI(EnumGuiType gui) {
+        requestOpenGUI(gui, 0, 0, 0);
+    }
 
-	public static void requestOpenGUI(EnumGuiType gui, int i, int j, int k) {
+    public static void requestOpenGUI(EnumGuiType gui, int i, int j, int k) {
         PacketClient.sendClient(new GuiRequestPacket(gui.ordinal(), i, j, k));
-	}
+    }
 
     public static void updateSkinOverlayData(EntityPlayer player, NBTTagCompound compound) {
-		HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
-		HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
-		NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData",10);
-		if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
-			oldOverlays = ClientCacheHandler.skinOverlays.get(player.getUniqueID());
-		}
+        HashMap<Integer, SkinOverlay> skinOverlays = new HashMap<>();
+        HashMap<Integer, SkinOverlay> oldOverlays = new HashMap<>();
+        NBTTagList skinOverlayList = compound.getTagList("SkinOverlayData", 10);
+        if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
+            oldOverlays = ClientCacheHandler.skinOverlays.get(player.getUniqueID());
+        }
 
-		for (int i = 0; i < skinOverlayList.tagCount(); i++) {
-			int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
-			SkinOverlay overlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
-			if (oldOverlays.containsKey(tagID)) {
-				overlay.ticks = oldOverlays.get(tagID).ticks;
-			}
-			skinOverlays.put(tagID,overlay);
-		}
-		ClientCacheHandler.skinOverlays.put(player.getUniqueID(), skinOverlays);
-	}
+        for (int i = 0; i < skinOverlayList.tagCount(); i++) {
+            int tagID = skinOverlayList.getCompoundTagAt(i).getInteger("SkinOverlayID");
+            SkinOverlay overlay = (SkinOverlay) SkinOverlay.overlayFromNBT(skinOverlayList.getCompoundTagAt(i));
+            if (oldOverlays.containsKey(tagID)) {
+                overlay.ticks = oldOverlays.get(tagID).ticks;
+            }
+            skinOverlays.put(tagID, overlay);
+        }
+        ClientCacheHandler.skinOverlays.put(player.getUniqueID(), skinOverlays);
+    }
 
     public static void clickSound() {
         Minecraft.getMinecraft().getSoundHandler().playSound(PositionedSoundRecord.func_147674_a(new ResourceLocation("gui.button.press"), 1.0F));
-	}
+    }
 
-	private static EntityNPCInterface lastNpc;
-	public static EntityNPCInterface getLastNpc() {
-		return lastNpc;
-	}
-	public static void setLastNpc(EntityNPCInterface npc) {
-		lastNpc = npc;
-	}
+    private static EntityNPCInterface lastNpc;
 
-	public static void openGUI(EntityPlayer player, Object guiscreen) {
-		CustomNpcs.proxy.openGui(player, guiscreen);
-	}
+    public static EntityNPCInterface getLastNpc() {
+        return lastNpc;
+    }
 
-	public static void openFolder(File dir){
+    public static void setLastNpc(EntityNPCInterface npc) {
+        lastNpc = npc;
+    }
+
+    public static void openGUI(EntityPlayer player, Object guiscreen) {
+        CustomNpcs.proxy.openGui(player, guiscreen);
+    }
+
+    public static void openFolder(File dir) {
         if (dir == null || !dir.exists() || !dir.isDirectory()) {
             // Log an error or simply return if there's nothing to open
             return;
@@ -87,158 +92,148 @@ public class NoppesUtil {
 
         String s = dir.getAbsolutePath();
 
-        if (Util.getOSType() == Util.EnumOS.OSX)
-        {
-            try
-            {
+        if (Util.getOSType() == Util.EnumOS.OSX) {
+            try {
                 //logger.info(s);
-                Runtime.getRuntime().exec(new String[] {"/usr/bin/open", s});
+                Runtime.getRuntime().exec(new String[]{"/usr/bin/open", s});
                 return;
-            }
-            catch (IOException ioexception1)
-            {
+            } catch (IOException ioexception1) {
                 //logger.error("Couldn\'t open file", ioexception1);
             }
-        }
-        else if (Util.getOSType() == Util.EnumOS.WINDOWS)
-        {
-            String s1 = String.format("cmd.exe /C start \"Open file\" \"%s\"", new Object[] {s});
+        } else if (Util.getOSType() == Util.EnumOS.WINDOWS) {
+            String s1 = String.format("cmd.exe /C start \"Open file\" \"%s\"", s);
 
-            try
-            {
+            try {
                 Runtime.getRuntime().exec(s1);
                 return;
-            }
-            catch (IOException ioexception)
-            {
+            } catch (IOException ioexception) {
                 //logger.error("Couldn\'t open file", ioexception);
             }
         }
 
         boolean flag = false;
 
-        try
-        {
+        try {
             Class oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke((Object)null, new Object[0]);
-            oclass.getMethod("browse", new Class[] {URI.class}).invoke(object, new Object[] {dir.toURI()});
-        }
-        catch (Throwable throwable)
-        {
+            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
+            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, dir.toURI());
+        } catch (Throwable throwable) {
             //logger.error("Couldn\'t open link", throwable);
             flag = true;
         }
 
-        if (flag)
-        {
+        if (flag) {
             //logger.info("Opening via system class!");
             Sys.openURL("file://" + s);
         }
-	}
+    }
 
-	public static void setScrollList(ByteBuf buffer) {
-		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-		if(gui instanceof GuiNPCInterface && ((GuiNPCInterface)gui).hasSubGui())
-			gui = ((GuiNPCInterface)gui).getSubGui();
-		if(gui == null || !(gui instanceof IScrollData))
-			return;
-		Vector<String> data = new Vector<String>();
-		String line;
-
-        EnumScrollData dataType = EnumScrollData.values()[buffer.readInt()];
-
-		try {
-			int size = buffer.readInt();
-			for(int i = 0; i < size; i++){
-				data.add(ByteBufUtils.readString(buffer));
-			}
-		} catch (Exception e) {
-
-		}
-
-		((IScrollData)gui).setData(data,null, dataType);
-	}
-
-	private static HashMap<String,Integer> data = new HashMap<String,Integer>();
-	public static void setScrollData(ByteBuf buffer) {
-		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-		if(gui == null)
-			return;
+    public static void setScrollList(ByteBuf buffer) {
+        GuiScreen gui = Minecraft.getMinecraft().currentScreen;
+        if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui())
+            gui = ((GuiNPCInterface) gui).getSubGui();
+        if (gui == null || !(gui instanceof IScrollData))
+            return;
+        Vector<String> data = new Vector<String>();
+        String line;
 
         EnumScrollData dataType = EnumScrollData.values()[buffer.readInt()];
-		try {
-			int size = buffer.readInt();
-			for(int i = 0; i < size; i++){
-				int id = buffer.readInt();
-				String name = ByteBufUtils.readString(buffer);
-				data.put(name, id);
-			}
-		} catch (Exception e) {
-		}
-		if(gui instanceof GuiNPCInterface && ((GuiNPCInterface)gui).hasSubGui()){
-			gui = (GuiScreen) ((GuiNPCInterface)gui).getSubGui();
-		}
-		if(gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface)gui).hasSubGui()){
-			gui = (GuiScreen) ((GuiContainerNPCInterface)gui).getSubGui();
-		}
-		if(gui instanceof IScrollData)
-			((IScrollData)gui).setData(new Vector<String>(data.keySet()), data, dataType);
-		data = new HashMap<String,Integer>();
-	}
 
-	public static void guiQuestCompletion(EntityPlayer player, NBTTagCompound read) {
-		Quest quest = new Quest();
-		quest.readNBT(read);
-		if (!quest.completeText.isEmpty()) {
-			NoppesUtil.openGUI(player, new GuiQuestCompletion(quest));
-		}
-	}
+        try {
+            int size = buffer.readInt();
+            for (int i = 0; i < size; i++) {
+                data.add(ByteBufUtils.readString(buffer));
+            }
+        } catch (Exception e) {
 
-	public static void openDialog(NBTTagCompound compound, EntityNPCInterface npc, EntityPlayer player){
-		Dialog dialog = new Dialog();
-		dialog.readNBT(compound);
-		GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-		if(gui == null || !(gui instanceof GuiDialogInteract))
-			CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
-		else{
-			GuiDialogInteract dia = (GuiDialogInteract) gui;
-			dia.appendDialog(dialog);
-		}
-	}
-	public static void saveRedstoneBlock(EntityPlayer player, NBTTagCompound compound){
-		int x = compound.getInteger("x");
-		int y = compound.getInteger("y");
-		int z = compound.getInteger("z");
+        }
 
-		TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-		tile.readFromNBT(compound);
+        ((IScrollData) gui).setData(data, null, dataType);
+    }
 
-		CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.RedstoneBlock, player);
-	}
-	public static void saveWayPointBlock(EntityPlayer player, NBTTagCompound compound){
-		int x = compound.getInteger("x");
-		int y = compound.getInteger("y");
-		int z = compound.getInteger("z");
+    private static HashMap<String, Integer> data = new HashMap<String, Integer>();
 
-		TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-		tile.readFromNBT(compound);
+    public static void setScrollData(ByteBuf buffer) {
+        GuiScreen gui = Minecraft.getMinecraft().currentScreen;
+        if (gui == null)
+            return;
 
-		CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Waypoint, player);
-	}
+        EnumScrollData dataType = EnumScrollData.values()[buffer.readInt()];
+        try {
+            int size = buffer.readInt();
+            for (int i = 0; i < size; i++) {
+                int id = buffer.readInt();
+                String name = ByteBufUtils.readString(buffer);
+                data.put(name, id);
+            }
+        } catch (Exception e) {
+        }
+        if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
+            gui = ((GuiNPCInterface) gui).getSubGui();
+        }
+        if (gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface) gui).hasSubGui()) {
+            gui = ((GuiContainerNPCInterface) gui).getSubGui();
+        }
+        if (gui instanceof IScrollData)
+            ((IScrollData) gui).setData(new Vector<String>(data.keySet()), data, dataType);
+        data = new HashMap<String, Integer>();
+    }
 
-	public static void isGUIOpen(boolean isGUIOpen) {
+    public static void guiQuestCompletion(EntityPlayer player, NBTTagCompound read) {
+        Quest quest = new Quest();
+        quest.readNBT(read);
+        if (!quest.completeText.isEmpty()) {
+            NoppesUtil.openGUI(player, new GuiQuestCompletion(quest));
+        }
+    }
+
+    public static void openDialog(NBTTagCompound compound, EntityNPCInterface npc, EntityPlayer player) {
+        Dialog dialog = new Dialog();
+        dialog.readNBT(compound);
+        GuiScreen gui = Minecraft.getMinecraft().currentScreen;
+        if (gui == null || !(gui instanceof GuiDialogInteract))
+            CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+        else {
+            GuiDialogInteract dia = (GuiDialogInteract) gui;
+            dia.appendDialog(dialog);
+        }
+    }
+
+    public static void saveRedstoneBlock(EntityPlayer player, NBTTagCompound compound) {
+        int x = compound.getInteger("x");
+        int y = compound.getInteger("y");
+        int z = compound.getInteger("z");
+
+        TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+        tile.readFromNBT(compound);
+
+        CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.RedstoneBlock, player);
+    }
+
+    public static void saveWayPointBlock(EntityPlayer player, NBTTagCompound compound) {
+        int x = compound.getInteger("x");
+        int y = compound.getInteger("y");
+        int z = compound.getInteger("z");
+
+        TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+        tile.readFromNBT(compound);
+
+        CustomNpcs.proxy.openGui(x, y, z, EnumGuiType.Waypoint, player);
+    }
+
+    public static void isGUIOpen(boolean isGUIOpen) {
         PacketClient.sendClient(new IsGuiOpenInform(isGUIOpen));
-	}
+    }
 
     /**
      * Handles the incoming large packet with full player data.
      * The packet writes:
-     *   - player name (String)
-     *   - questCategories, questActive, questFinished (maps)
-     *   - dialogCategories, dialogRead (maps)
-     *   - transportCategories, transportLocations (maps)
-     *   - bankData, factionData (maps)
-     *
+     * - player name (String)
+     * - questCategories, questActive, questFinished (maps)
+     * - dialogCategories, dialogRead (maps)
+     * - transportCategories, transportLocations (maps)
+     * - bankData, factionData (maps)
+     * <p>
      * The existing PlayerDataController functions are used on the server side;
      * here we simply update the active SubGuiPlayerDataNew if present.
      */
@@ -257,14 +252,14 @@ public class NoppesUtil {
         magicData.readToNBT(ByteBufUtils.readNBT(data));
 
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-        if(gui == null)
+        if (gui == null)
             return;
-        if(gui instanceof GuiNPCInterface && ((GuiNPCInterface)gui).hasSubGui()){
-            gui = (GuiScreen) ((GuiNPCInterface)gui).getSubGui();
+        if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
+            gui = ((GuiNPCInterface) gui).getSubGui();
         }
 
-        if(gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface)gui).hasSubGui()){
-            gui = (GuiScreen) ((GuiContainerNPCInterface)gui).getSubGui();
+        if (gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface) gui).hasSubGui()) {
+            gui = ((GuiContainerNPCInterface) gui).getSubGui();
         }
         if (gui instanceof IPlayerDataInfo) {
             IPlayerDataInfo info = (IPlayerDataInfo) gui;

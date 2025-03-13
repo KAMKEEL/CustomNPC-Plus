@@ -34,7 +34,7 @@ import java.util.Map.Entry;
 public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public List<ScriptContainer> scripts = new ArrayList<>();
 
-    public Map<String,Object> tempData = new HashMap<>();
+    public Map<String, Object> tempData = new HashMap<>();
 
     private NBTTagCompound customTileData;
 
@@ -82,38 +82,39 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public TextPlane text5 = new TextPlane();
     public TextPlane text6 = new TextPlane();
 
-    public IBlock getBlock(){
-        if(blockDummy == null)
-            blockDummy = new BlockScriptedWrapper(worldObj, this.getBlockType(), xCoord,yCoord,zCoord);
+    public IBlock getBlock() {
+        if (blockDummy == null)
+            blockDummy = new BlockScriptedWrapper(worldObj, this.getBlockType(), xCoord, yCoord, zCoord);
         return blockDummy;
     }
 
     @Override
-    public void readFromNBT(NBTTagCompound compound){
+    public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);
         setNBT(compound);
         setDisplayNBT(compound);
         timers.readFromNBT(compound);
     }
 
-    public void setNBT(NBTTagCompound compound){
+    public void setNBT(NBTTagCompound compound) {
         scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
         scriptLanguage = compound.getString("ScriptLanguage");
         enabled = compound.getBoolean("ScriptEnabled");
         activePowering = powering = compound.getInteger("BlockPowering");
         prevPower = compound.getInteger("BlockPrevPower");
 
-        if(compound.hasKey("BlockHardness")){
+        if (compound.hasKey("BlockHardness")) {
             blockHardness = compound.getFloat("BlockHardness");
             blockResistance = compound.getFloat("BlockResistance");
         }
 
     }
-    public void setDisplayNBT(NBTTagCompound compound){
+
+    public void setDisplayNBT(NBTTagCompound compound) {
         itemModel = ItemStack.loadItemStackFromNBT(compound.getCompoundTag("ScriptBlockModel"));
-        if(itemModel==null || itemModel.stackSize == 0)
+        if (itemModel == null || itemModel.stackSize == 0)
             itemModel = new ItemStack(Item.getItemFromBlock(CustomItems.scripted));
-        if(compound.hasKey("ScriptBlockModelBlock"))
+        if (compound.hasKey("ScriptBlockModelBlock"))
             blockModel = Block.getBlockFromName(compound.getString("ScriptBlockModelBlock"));
         renderTileUpdate = null;
         renderTile = null;
@@ -131,36 +132,36 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         scaleY = compound.getFloat("ScaleY");
         scaleZ = compound.getFloat("ScaleZ");
 
-        if(scaleX <= 0)
+        if (scaleX <= 0)
             scaleX = 1;
-        if(scaleY <= 0)
+        if (scaleY <= 0)
             scaleY = 1;
-        if(scaleZ <= 0)
+        if (scaleZ <= 0)
             scaleZ = 1;
 
-        if(compound.hasKey("Text1"))
+        if (compound.hasKey("Text1"))
             text1.setNBT(compound.getCompoundTag("Text1"));
-        if(compound.hasKey("Text2"))
+        if (compound.hasKey("Text2"))
             text2.setNBT(compound.getCompoundTag("Text2"));
-        if(compound.hasKey("Text3"))
+        if (compound.hasKey("Text3"))
             text3.setNBT(compound.getCompoundTag("Text3"));
-        if(compound.hasKey("Text4"))
+        if (compound.hasKey("Text4"))
             text4.setNBT(compound.getCompoundTag("Text4"));
-        if(compound.hasKey("Text5"))
+        if (compound.hasKey("Text5"))
             text5.setNBT(compound.getCompoundTag("Text5"));
-        if(compound.hasKey("Text6"))
+        if (compound.hasKey("Text6"))
             text6.setNBT(compound.getCompoundTag("Text6"));
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound compound){
+    public void writeToNBT(NBTTagCompound compound) {
         super.writeToNBT(compound);
         getNBT(compound);
         getDisplayNBT(compound);
         timers.writeToNBT(compound);
     }
 
-    public NBTTagCompound getNBT(NBTTagCompound compound){
+    public NBTTagCompound getNBT(NBTTagCompound compound) {
         compound.setTag("Scripts", NBTTags.NBTScript(scripts));
         compound.setString("ScriptLanguage", scriptLanguage);
         compound.setBoolean("ScriptEnabled", enabled);
@@ -171,10 +172,10 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         return compound;
     }
 
-    public void getDisplayNBT(NBTTagCompound compound){
+    public void getDisplayNBT(NBTTagCompound compound) {
         NBTTagCompound itemcompound = new NBTTagCompound();
         itemModel.writeToNBT(itemcompound);
-        if(blockModel != null){
+        if (blockModel != null) {
             compound.setString("ScriptBlockModelBlock", Block.blockRegistry.getNameForObject(blockModel));
         }
         compound.setTag("ScriptBlockModel", itemcompound);
@@ -205,25 +206,24 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     @Override
     public void updateEntity() {
-        if(renderTileUpdate != null){
-            try{
+        if (renderTileUpdate != null) {
+            try {
                 renderTileUpdate.tick();
-            }
-            catch(Exception e){
+            } catch (Exception e) {
                 renderTileUpdate = null;
             }
         }
         ticksExisted++;
-        if (prevPower != newPower && powering <= 0){
+        if (prevPower != newPower && powering <= 0) {
             EventHooks.onScriptBlockRedstonePower(this, prevPower, newPower);
             prevPower = newPower;
         }
 
         timers.update();
-        if(ticksExisted >= 10){
+        if (ticksExisted >= 10) {
             EventHooks.onScriptBlockUpdate(this);
             ticksExisted = 0;
-            if(needsClientUpdate){
+            if (needsClientUpdate) {
                 worldObj.func_147451_t(xCoord, yCoord, zCoord);
                 worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
                 worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, CustomItems.scripted);
@@ -267,33 +267,31 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         return super.shouldRenderInPass(arg0);
     }
 
-    public void handleUpdateTag(NBTTagCompound tag){
+    public void handleUpdateTag(NBTTagCompound tag) {
         int light = lightValue;
         setDisplayNBT(tag);
-        if(light != lightValue)
-            checkLight(worldObj,xCoord,yCoord,zCoord);
+        if (light != lightValue)
+            checkLight(worldObj, xCoord, yCoord, zCoord);
         worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
     }
 
-    public boolean checkLight(World world, int x, int y, int z)
-    {
+    public boolean checkLight(World world, int x, int y, int z) {
         boolean flag = false;
 
-        if (!world.provider.hasNoSky)
-        {
-            flag |= world.updateLightByType(EnumSkyBlock.Sky, x,y,z);
+        if (!world.provider.hasNoSky) {
+            flag |= world.updateLightByType(EnumSkyBlock.Sky, x, y, z);
         }
 
-        flag = flag | world.updateLightByType(EnumSkyBlock.Block, x,y,z);
+        flag = flag | world.updateLightByType(EnumSkyBlock.Block, x, y, z);
         return flag;
     }
 
     @Override
     public Packet getDescriptionPacket() {
-        return new S35PacketUpdateTileEntity(xCoord,yCoord,zCoord, 0, getUpdateTag());
+        return new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, getUpdateTag());
     }
 
-    public NBTTagCompound getUpdateTag(){
+    public NBTTagCompound getUpdateTag() {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("x", xCoord);
         compound.setInteger("y", yCoord);
@@ -303,10 +301,10 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     }
 
     public void setItemModel(ItemStack item, Block b) {
-        if(item == null || item.stackSize==0){
+        if (item == null || item.stackSize == 0) {
             item = new ItemStack(CustomItems.scripted);
         }
-        if(NoppesUtilPlayer.compareItems(item, itemModel, false, false) && b != blockModel)
+        if (NoppesUtilPlayer.compareItems(item, itemModel, false, false) && b != blockModel)
             return;
 
         metadata = item.getItemDamage();
@@ -317,24 +315,24 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         needsClientUpdate = true;
     }
 
-    public void setLightValue(int value){
-        if(value == lightValue)
+    public void setLightValue(int value) {
+        if (value == lightValue)
             return;
         lightValue = ValueUtil.clamp(value, 0, 15);
         needsClientUpdate = true;
     }
 
-    public void setRedstonePower(int strength){
-        if(powering == strength)
+    public void setRedstonePower(int strength) {
+        if (powering == strength)
             return;
         //using activePowering to prevent the RedstonePower script event from going crazy
         prevPower = activePowering = ValueUtil.clamp(strength, 0, 15);
-        worldObj.notifyBlockChange(xCoord,yCoord,zCoord, getBlockType());
+        worldObj.notifyBlockChange(xCoord, yCoord, zCoord, getBlockType());
         powering = activePowering;
     }
 
-    public void setScale(float x, float y, float z){
-        if(scaleX == x && scaleY == y && scaleZ == z)
+    public void setScale(float x, float y, float z) {
+        if (scaleX == x && scaleY == y && scaleZ == z)
             return;
         scaleX = ValueUtil.clamp(x, 0, 10);
         scaleY = ValueUtil.clamp(y, 0, 10);
@@ -342,8 +340,8 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         needsClientUpdate = true;
     }
 
-    public void setRotation(int x, int y, int z){
-        if(rotationX == x && rotationY == y && rotationZ == z)
+    public void setRotation(int x, int y, int z) {
+        if (rotationX == x && rotationY == y && rotationZ == z)
             return;
         rotationX = ValueUtil.clamp(x, 0, 359);
         rotationY = ValueUtil.clamp(y, 0, 359);
@@ -353,22 +351,22 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     @Override
     public void callScript(EnumScriptType type, Event event) {
-        if(!isEnabled())
+        if (!isEnabled())
             return;
-        if(ScriptController.Instance.lastLoaded > lastInited){
+        if (ScriptController.Instance.lastLoaded > lastInited) {
             lastInited = ScriptController.Instance.lastLoaded;
-            if(type != EnumScriptType.INIT)
+            if (type != EnumScriptType.INIT)
                 EventHooks.onScriptBlockInit(this);
         }
 
-        for(ScriptContainer script : scripts){
+        for (ScriptContainer script : scripts) {
             script.run(type, event);
         }
     }
 
     @Override
     public void callScript(String hookName, Event event) {
-        callScript(EnumScriptType.valueOf(hookName),event);
+        callScript(EnumScriptType.valueOf(hookName), event);
     }
 
     @Override
@@ -388,7 +386,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     @Override
     public String noticeString() {
-        return "x: "+xCoord+", y: "+yCoord+", z: "+zCoord;
+        return "x: " + xCoord + ", y: " + yCoord + ", z: " + zCoord;
     }
 
     @Override
@@ -412,12 +410,12 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     }
 
     @Override
-    public Map<Long, String> getConsoleText(){
+    public Map<Long, String> getConsoleText() {
         Map<Long, String> map = new TreeMap<>();
         int tab = 0;
-        for(ScriptContainer script : getScripts()){
+        for (ScriptContainer script : getScripts()) {
             tab++;
-            for(Entry<Long, String> entry : script.console.entrySet()){
+            for (Entry<Long, String> entry : script.console.entrySet()) {
                 map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
             }
         }
@@ -426,22 +424,20 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     @Override
     public void clearConsole() {
-        for(ScriptContainer script : getScripts()){
+        for (ScriptContainer script : getScripts()) {
             script.console.clear();
         }
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public AxisAlignedBB getRenderBoundingBox(){
+    public AxisAlignedBB getRenderBoundingBox() {
         return AxisAlignedBB.getBoundingBox(0.0, 0.0, 0.0, 1.0, 1.0, 1.0)
-                .offset(xCoord,yCoord,zCoord);
+            .offset(xCoord, yCoord, zCoord);
     }
 
-    public NBTTagCompound getTileData()
-    {
-        if (this.customTileData == null)
-        {
+    public NBTTagCompound getTileData() {
+        if (this.customTileData == null) {
             this.customTileData = new NBTTagCompound();
         }
         return this.customTileData;
@@ -465,93 +461,108 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         public String getText() {
             return text;
         }
+
         @Override
         public void setText(String text) {
-            if(this.text.equals(text))
+            if (this.text.equals(text))
                 return;
             this.text = text;
             textHasChanged = true;
             needsClientUpdate = true;
         }
+
         @Override
         public int getRotationX() {
             return rotationX;
         }
+
         @Override
         public int getRotationY() {
             return rotationY;
         }
+
         @Override
         public int getRotationZ() {
             return rotationZ;
         }
+
         @Override
         public void setRotationX(int x) {
             x = ValueUtil.clamp(x % 360, 0, 359);
-            if(rotationX == x)
+            if (rotationX == x)
                 return;
             rotationX = x;
             needsClientUpdate = true;
         }
+
         @Override
         public void setRotationY(int y) {
             y = ValueUtil.clamp(y % 360, 0, 359);
-            if(rotationY == y)
+            if (rotationY == y)
                 return;
             rotationY = y;
             needsClientUpdate = true;
         }
+
         @Override
         public void setRotationZ(int z) {
             z = ValueUtil.clamp(z % 360, 0, 359);
-            if(rotationZ == z)
+            if (rotationZ == z)
                 return;
             rotationZ = z;
             needsClientUpdate = true;
         }
+
         @Override
         public float getOffsetX() {
             return offsetX;
         }
+
         @Override
         public float getOffsetY() {
             return offsetY;
         }
+
         @Override
         public float getOffsetZ() {
             return offsetZ;
         }
+
         @Override
         public void setOffsetX(float x) {
             x = ValueUtil.clamp(x, -1, 1);
-            if(offsetX == x)
+            if (offsetX == x)
                 return;
             offsetX = x;
             needsClientUpdate = true;
         }
+
         @Override
         public void setOffsetY(float y) {
             y = ValueUtil.clamp(y, -1, 1);
-            if(offsetY == y)
+            if (offsetY == y)
                 return;
             offsetY = y;
             needsClientUpdate = true;
         }
+
         @Override
         public void setOffsetZ(float z) {
             z = ValueUtil.clamp(z, -1, 1);
-            if(offsetZ == z)
+            if (offsetZ == z)
                 return;
             offsetZ = z;
             needsClientUpdate = true;
         }
+
         @Override
         public float getScale() {
             return scale;
         }
+
         @Override
         public void setScale(float scale) {
-            if(this.scale == scale)
+            if (this.scale == scale)
                 return;
             this.scale = scale;
             needsClientUpdate = true;

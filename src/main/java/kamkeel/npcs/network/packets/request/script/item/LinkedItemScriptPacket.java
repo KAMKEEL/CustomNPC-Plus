@@ -15,7 +15,6 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 
@@ -30,7 +29,8 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
     private int maxSize;
     private NBTTagCompound compound;
 
-    public LinkedItemScriptPacket() {}
+    public LinkedItemScriptPacket() {
+    }
 
     public LinkedItemScriptPacket(Action type, int id, int page, int maxSize, NBTTagCompound compound) {
         this.type = type;
@@ -51,7 +51,7 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_PLAYER;
     }
 
@@ -61,7 +61,7 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
         out.writeInt(type.ordinal());
         out.writeInt(id);
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             out.writeInt(this.page);
             out.writeInt(this.maxSize);
             ByteBufUtils.writeNBT(out, this.compound);
@@ -78,15 +78,15 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
 
         Action requestedAction = Action.values()[in.readInt()];
         LinkedItem linkedItem = LinkedItemController.getInstance().get(in.readInt());
-        if(linkedItem == null)
+        if (linkedItem == null)
             return;
 
         LinkedItemScript data = linkedItem.getOrCreateScriptHandler();
-        if(requestedAction == Action.GET){
-            PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
+        if (requestedAction == Action.GET) {
+            PacketUtil.getScripts(data, (EntityPlayerMP) player);
         } else {
             data.saveScript(in);
-            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+            if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
                 LogWriter.script(String.format("[%s] (Player) %s SAVED EFFECT %s [%s]", "LINKED ITEM SCRIPTS", player.getCommandSenderName(), linkedItem.getName()));
             }
         }
@@ -95,6 +95,7 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
     public static void Save(int effectID, int id, int maxSize, NBTTagCompound compound) {
         PacketClient.sendClient(new LinkedItemScriptPacket(Action.SAVE, effectID, id, maxSize, compound));
     }
+
     public static void Get(int effectID) {
         PacketClient.sendClient(new LinkedItemScriptPacket(Action.GET, effectID, -1, -1, new NBTTagCompound()));
     }

@@ -52,7 +52,7 @@ public class GuiNPCEventScripts extends GuiScriptInterface {
                     script.getScripts().add(new ScriptContainer(script));
                 }
             }
-            script.getScripts().set(tab,container);
+            script.getScripts().set(tab, container);
             initGui();
         }
     }

@@ -5,7 +5,6 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.controllers.data.CustomEffect;
@@ -111,7 +110,7 @@ public class GuiEffectBar extends GuiScreen {
         // Draw vertical scrollbar
         if (totalHeight > height) {
             int scrollBarWidth = 4;
-            int scrollBarX = x + width - scrollBarWidth - 2 + 10    ;
+            int scrollBarX = x + width - scrollBarWidth - 2 + 10;
             drawRect(scrollBarX, y, scrollBarX + scrollBarWidth, y + height, 0xFF333333);
             int thumbHeight = Math.max(20, height * height / totalHeight);
             int thumbY = y + (scrollY * (height - thumbHeight)) / (totalHeight - height);
@@ -205,6 +204,7 @@ public class GuiEffectBar extends GuiScreen {
     public static class EffectEntry {
         public CustomEffect effect;
         public PlayerEffect playerEffect;
+
         public EffectEntry(CustomEffect effect, PlayerEffect playerEffect) {
             this.effect = effect;
             this.playerEffect = playerEffect;

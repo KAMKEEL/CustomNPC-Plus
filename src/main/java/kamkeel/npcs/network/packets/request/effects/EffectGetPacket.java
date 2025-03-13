@@ -52,7 +52,7 @@ public final class EffectGetPacket extends AbstractPacket {
         int effectID = in.readInt();
         NBTTagCompound compound = new NBTTagCompound();
         if (effectID != -1 && CustomEffectController.getInstance().has(effectID)) {
-            CustomEffect Effect = (CustomEffect) CustomEffectController.getInstance().get(effectID);
+            CustomEffect Effect = CustomEffectController.getInstance().get(effectID);
             if (Effect != null) {
                 compound = Effect.writeToNBT(false);
             }

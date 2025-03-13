@@ -7,21 +7,18 @@ import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumPartyRequirements;
 import noppes.npcs.controllers.data.PartyOptions;
 
-public class SubGuiNpcPartyOptions extends SubGuiInterface implements ITextfieldListener
-{
-	private final PartyOptions options;
+public class SubGuiNpcPartyOptions extends SubGuiInterface implements ITextfieldListener {
+    private final PartyOptions options;
 
-    public SubGuiNpcPartyOptions(PartyOptions options)
-    {
-    	this.options = options;
-		setBackground("menubg.png");
-		xSize = 256;
-		ySize = 216;
-		closeOnEsc = true;
+    public SubGuiNpcPartyOptions(PartyOptions options) {
+        this.options = options;
+        setBackground("menubg.png");
+        xSize = 256;
+        ySize = 216;
+        closeOnEsc = true;
     }
 
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
 
         int y = 0;
@@ -88,9 +85,8 @@ public class SubGuiNpcPartyOptions extends SubGuiInterface implements ITextfield
         addButton(new GuiNpcButton(66, guiLeft + 200, guiTop + 192, 50, 20, "gui.done"));
     }
 
-	protected void actionPerformed(GuiButton guibutton)
-    {
-		int id = guibutton.id;
+    protected void actionPerformed(GuiButton guibutton) {
+        int id = guibutton.id;
         switch (id) {
             case 0:
                 options.allowParty = !options.allowParty;
