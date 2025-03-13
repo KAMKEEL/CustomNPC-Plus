@@ -161,6 +161,53 @@ public class GridPointManager {
             point.highlighted = true;
     }
 
+    public Point getNext(Point point) {
+        TreeMap<Double, Point> points = pointsOf(point.type);
+        if (points == null)
+            return null;
+
+        Map.Entry<Double, Point> entry = points.higherEntry(point.worldX);
+        if (entry != null)
+            return entry.getValue();
+
+        return null;
+    }
+
+    public void drawEasedCurve(Point from, Point to) {
+        if (from == null || to == null)
+            return;
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+        GL11.glLineWidth(2F); // Increase line thickness
+
+        GL11.glPushMatrix();
+        GL11.glTranslatef(grid.startX, grid.startY, 0);
+        GL11.glColor4f(1, 1, 1, 1);
+
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawing(GL11.GL_LINE_STRIP);
+
+
+        for (float t = 0; t <= 1; t += 0.005) {
+            float easedT = Ease.OUTEXPO.apply(t);
+            double xt = ValueUtil.lerp(from.screenX() + 0.5, to.screenX() + 0.5, easedT);
+            double yt = ValueUtil.lerp(from.screenY() + 0.5, to.screenY() + 0.5, easedT);
+            tessellator.addVertex(xt, yt, 0);
+        }
+
+        tessellator.draw();
+        GL11.glPopMatrix();
+
+        GL11.glLineWidth(1F); // Increase line thickness
+        GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+    }
+
     public void draw(int mouseX, int mouseY, float partialTicks) {
 
 
@@ -279,6 +326,8 @@ public class GridPointManager {
 
             GL11.glPopMatrix();
             GL11.glDisable(GL11.GL_BLEND);
+            drawEasedCurve(this, getNext(this));
+
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
