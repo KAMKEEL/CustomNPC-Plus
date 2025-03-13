@@ -1,25 +1,25 @@
 package noppes.npcs.client.gui.util.animation;
 
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
 import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.constants.animation.EnumFrameType;
+import noppes.npcs.util.Ease;
+import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public class GridPointManager {
     public Grid grid;
     public AnimationKeyPresets keys;
-    public HashMap<EnumFrameType, HashMap<Double, Point>> typePoints = new HashMap<>();
+    public HashMap<EnumFrameType, TreeMap<Double, Point>> typePoints = new HashMap<>();
     public List<EnumFrameType> highlightedTypes = new ArrayList<>();
     public List<Point> highlightedPoints = new ArrayList<>();
     public Point selectedPoint;
@@ -50,7 +50,7 @@ public class GridPointManager {
                 if (!highlightedTypes.contains(type))
                     highlightedTypes.add(type);
 
-                HashMap<Double, Point> points = pointsOf(type);
+                TreeMap<Double, Point> points = pointsOf(type);
                 Point point = points != null ? points.get((double) playhead.worldX) : null; //check if it exists
                 if (point == null)
                     point = addPoint(type, playhead.worldX, 0); // worldX(mouseX - startX), worldY(mouseY - startY)
@@ -106,9 +106,9 @@ public class GridPointManager {
     }
 
     public Point addPoint(EnumFrameType type, Point point) {
-        HashMap<Double, Point> points = pointsOf(type);
+        TreeMap<Double, Point> points = pointsOf(type);
         if (points == null) {
-            points = new HashMap<>();
+            points = new TreeMap<>();
             typePoints.put(type, points);
         }
 
@@ -117,7 +117,7 @@ public class GridPointManager {
     }
 
     public void deletePoint(EnumFrameType type, double x) {
-        HashMap<Double, Point> points = pointsOf(type);
+        TreeMap<Double, Point> points = pointsOf(type);
         if (points == null)
             return;
 
@@ -126,19 +126,19 @@ public class GridPointManager {
             setSelectedPoint(null);
     }
     public Point getPoint(EnumFrameType type, double x) {
-        HashMap<Double, Point> points = pointsOf(type);
+        TreeMap<Double, Point> points = pointsOf(type);
         if (points == null)
             return null;
 
         return points.get(x);
     }
 
-    public HashMap<Double, Point> pointsOf(EnumFrameType type) {
+    public TreeMap<Double, Point> pointsOf(EnumFrameType type) {
         return typePoints.get(type);
     }
 
     public void forEachActive(BiConsumer<EnumFrameType, Point> consumer) {
-        for (Map.Entry<EnumFrameType, HashMap<Double, Point>> entry : typePoints.entrySet()) {
+        for (Map.Entry<EnumFrameType, TreeMap<Double, Point>> entry : typePoints.entrySet()) {
             EnumFrameType type = entry.getKey();
 
             if (!highlightedTypes.contains(type))
@@ -162,6 +162,8 @@ public class GridPointManager {
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks) {
+
+
         ////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////
         // Free transform logic
@@ -249,7 +251,7 @@ public class GridPointManager {
         }
 
         public void updateKey() {
-            HashMap<Double, Point> points = pointsOf(type);
+            TreeMap<Double, Point> points = pointsOf(type);
             if (points == null)
                 return;
 
@@ -259,6 +261,7 @@ public class GridPointManager {
         }
 
         public void draw(int mouseX, int mouseY, float partialTicks) {
+
             float scale = 0.1f;
             int textureWidth = 32, textureHeight = 32;
             float offsetX = (textureHeight / 2) * scale - 0.5f, offsetY = (textureHeight / 2) * scale - 0.5f;
@@ -291,6 +294,7 @@ public class GridPointManager {
         }
 
         public double screenX() {
+
             return grid.screenX(worldX);
         }
 
@@ -325,13 +329,14 @@ public class GridPointManager {
             ////////////////////////////////////////////////////////////
             // Head lines
             double screenX = screenX();
+            float height = grid.endY - grid.startY;
 
             GL11.glPushMatrix();
-            GL11.glTranslatef(grid.startX, 0, 0);
+            GL11.glTranslated(grid.startX + screenX, grid.startY, 0);
             GL11.glDepthMask(false);
-            GuiUtil.drawVerticalLine(screenX - 1, grid.startY, grid.endY, 0xFF212121);
-            GuiUtil.drawVerticalLine(screenX, grid.startY - 5, grid.endY, 0xFF4772b3);
-            GuiUtil.drawVerticalLine(screenX + 1, grid.startY, grid.endY, 0xFF212121);
+            GuiUtil.drawVerticalLine(-1, 0, height, 0xFF212121);
+            GuiUtil.drawVerticalLine(0, -5, height, 0xFF4772b3);
+            GuiUtil.drawVerticalLine(1, 0, height, 0xFF212121);
             GL11.glPopMatrix();
 
             ////////////////////////////////////////////////////////////
