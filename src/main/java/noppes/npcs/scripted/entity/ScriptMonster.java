@@ -6,18 +6,18 @@ import noppes.npcs.scripted.constants.EntityType;
 
 public class ScriptMonster<T extends EntityMob> extends ScriptLiving<T> implements IMonster {
 
-	public ScriptMonster(T entity) {
-		super(entity);
-	}
-	
-	@Override
-	public int getType(){
-		return EntityType.MONSTER;
-	}
+    public ScriptMonster(T entity) {
+        super(entity);
+    }
 
-	@Override
-	public boolean typeOf(int type){
-		return type == EntityType.MONSTER?true:super.typeOf(type);
-	}
+    @Override
+    public int getType() {
+        return EntityType.MONSTER;
+    }
+
+    @Override
+    public boolean typeOf(int type) {
+        return type == EntityType.MONSTER || super.typeOf(type);
+    }
 
 }

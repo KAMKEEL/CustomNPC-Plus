@@ -25,7 +25,8 @@ public final class AnimationRemovePacket extends AbstractPacket {
 
     private int animationID;
 
-    public AnimationRemovePacket() { }
+    public AnimationRemovePacket() {
+    }
 
     public AnimationRemovePacket(int animationID) {
         this.animationID = animationID;
@@ -49,7 +50,7 @@ public final class AnimationRemovePacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(this.animationID );
+        out.writeInt(this.animationID);
     }
 
     @Override

@@ -8,23 +8,23 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleInterface implements IRole {
-	public final EntityNPCInterface npc;
-	public final RoleInterface role;
+    public final EntityNPCInterface npc;
+    public final RoleInterface role;
 
-	public ScriptRoleInterface(EntityNPCInterface npc){
-		this.npc = npc;
-		this.role = npc.roleInterface;
-	}
+    public ScriptRoleInterface(EntityNPCInterface npc) {
+        this.npc = npc;
+        this.role = npc.roleInterface;
+    }
 
-	public INpc getNpc() {
-		return (INpc) NpcAPI.Instance().getIEntity(npc);
-	}
+    public INpc getNpc() {
+        return (INpc) NpcAPI.Instance().getIEntity(npc);
+    }
 
-	/**
-	 * @see noppes.npcs.scripted.constants.RoleType
-	 * @return The RoleType of this role
-	 */
-	public int getType(){
-		return RoleType.UNKNOWN;
-	}
+    /**
+     * @return The RoleType of this role
+     * @see noppes.npcs.scripted.constants.RoleType
+     */
+    public int getType() {
+        return RoleType.UNKNOWN;
+    }
 }

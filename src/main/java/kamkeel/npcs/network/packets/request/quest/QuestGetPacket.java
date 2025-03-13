@@ -20,7 +20,8 @@ public final class QuestGetPacket extends AbstractPacket {
 
     private int questID;
 
-    public QuestGetPacket() {}
+    public QuestGetPacket() {
+    }
 
     public QuestGetPacket(int questID) {
         this.questID = questID;
@@ -51,15 +52,15 @@ public final class QuestGetPacket extends AbstractPacket {
             return;
 
         Quest quest = QuestController.Instance.quests.get(in.readInt());
-        if(quest != null){
+        if (quest != null) {
             NBTTagCompound compound = new NBTTagCompound();
-            if(quest.hasNewQuest())
+            if (quest.hasNewQuest())
                 compound.setString("NextQuestTitle", quest.getNextQuest().title);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, quest.writeToNBT(compound));
         }
     }
 
-    public static void getQuest(int id){
+    public static void getQuest(int id) {
         PacketClient.sendClient(new QuestGetPacket(id));
     }
 }

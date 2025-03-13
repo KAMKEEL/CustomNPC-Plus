@@ -19,17 +19,17 @@ import noppes.npcs.items.ItemNpcTool;
 
 import java.util.List;
 
-public class BlockChair extends BlockRotated{
+public class BlockChair extends BlockRotated {
 
-	public BlockChair() {
+    public BlockChair() {
         super(Blocks.planks);
         setBlockBounds(0.1f, 0, 0.1f, 0.9f, 1, 0.9f);
-	}
+    }
 
     @Override
-    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
-    	super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);
-        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
+    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack) {
+        super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);
+        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
     }
 
     public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
@@ -37,7 +37,7 @@ public class BlockChair extends BlockRotated{
         if (te instanceof TileChair && ((TileChair) te).isPushed()) {
             // Use the rotation to set a vertical slab hitbox on the pushed side.
             int rotation = ((TileVariant) te).rotation;
-            switch(rotation) {
+            switch (rotation) {
                 case 0: // North: slab from z to z+0.3.
                     return AxisAlignedBB.getBoundingBox(x + 0.1, y, z, x + 0.9, y + 1, z + 0.3);
                 case 1: // East: slab from x+0.7 to x+1.
@@ -88,10 +88,8 @@ public class BlockChair extends BlockRotated{
     }
 
 
-
-
     @Override
-    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
+    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List) {
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
         par3List.add(new ItemStack(par1, 1, 2));
@@ -101,19 +99,19 @@ public class BlockChair extends BlockRotated{
     }
 
     @Override
-    public int damageDropped(int par1){
+    public int damageDropped(int par1) {
         return par1;
     }
 
-	@Override
-	public TileEntity createNewTileEntity(World var1, int var2) {
-		return new TileChair();
-	}
+    @Override
+    public TileEntity createNewTileEntity(World var1, int var2) {
+        return new TileChair();
+    }
 
-	@Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int p_149727_6_, float p_149727_7_, float p_149727_8_, float p_149727_9_){
+    @Override
+    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int p_149727_6_, float p_149727_7_, float p_149727_8_, float p_149727_9_) {
         ItemStack item = player.inventory.getCurrentItem();
-        if(item != null && item.getItem() != null && item.getItem() instanceof ItemNpcTool)
+        if (item != null && item.getItem() != null && item.getItem() instanceof ItemNpcTool)
             return false;
 
         return MountBlock(world, x, y, z, player);

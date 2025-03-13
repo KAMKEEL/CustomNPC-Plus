@@ -29,8 +29,8 @@ public class GuiTexturedButton extends GuiNpcButton {
     public float scale;
 
     private int totalWidth, totalHeight;
-    private ImageDownloadAlt imageDownloadAlt = null;
-    private boolean isUrl = false;
+    private final ImageDownloadAlt imageDownloadAlt = null;
+    private final boolean isUrl = false;
     private boolean gotWidthHeight = false;
 
     public GuiTexturedButton(int id, String buttonText, int x, int y) {
@@ -55,9 +55,9 @@ public class GuiTexturedButton extends GuiNpcButton {
         this.alpha = 1.0F;
         if (texture != null && !texture.isEmpty()) {
             this.location = new ResourceLocation(texture);
-            if(texture.startsWith("https://")){
+            if (texture.startsWith("https://")) {
                 TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-                ITextureObject object = new ImageDownloadAlt(null, texture, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
+                ITextureObject object = new ImageDownloadAlt(null, texture, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true, false));
                 texturemanager.loadTexture(this.location, object);
             } else {
                 try {
@@ -71,15 +71,13 @@ public class GuiTexturedButton extends GuiNpcButton {
         }
     }
 
-    public void drawButton(Minecraft mc, int mouseX, int mouseY)
-    {
-        if (!this.visible)
-        {
+    public void drawButton(Minecraft mc, int mouseX, int mouseY) {
+        if (!this.visible) {
             return;
         }
         this.field_146123_n = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width * this.scale && mouseY < this.yPosition + this.height * this.scale;
 
-        if(imageDownloadAlt != null && isUrl && !gotWidthHeight){
+        if (imageDownloadAlt != null && isUrl && !gotWidthHeight) {
             getURLWidthHeight();
         }
 
@@ -89,67 +87,61 @@ public class GuiTexturedButton extends GuiNpcButton {
         }
 
         GL11.glPushMatrix();
-            if (this.location != null) {
-                mc.getTextureManager().bindTexture(this.location);
-                this.drawTexturedModalRect(0, 0, this.textureX, this.textureY, this.width, this.height);
-                GL11.glTranslated(0.0D, 0.0D, 0.1D);
-                this.drawCenteredString(mc.fontRenderer, this.label, this.width / 2, (this.height - 8) / 2, this.color);
-            } else {
-                FontRenderer fontrenderer = mc.fontRenderer;
-                mc.getTextureManager().bindTexture(buttonTextures);
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                int k = this.getHoverState(this.field_146123_n);
-                GL11.glEnable(GL11.GL_BLEND);
-                OpenGlHelper.glBlendFunc(770, 771, 1, 0);
-                this.drawTexturedModalRect(0, 0, 0, 46 + k * 20, this.width / 2, this.height);
-                this.drawTexturedModalRect(this.width / 2, 0, 200 - this.width / 2, 46 + k * 20, this.width / 2, this.height);
-                this.mouseDragged(mc, mouseX, mouseY);
-                int l = 14737632;
+        if (this.location != null) {
+            mc.getTextureManager().bindTexture(this.location);
+            this.drawTexturedModalRect(0, 0, this.textureX, this.textureY, this.width, this.height);
+            GL11.glTranslated(0.0D, 0.0D, 0.1D);
+            this.drawCenteredString(mc.fontRenderer, this.label, this.width / 2, (this.height - 8) / 2, this.color);
+        } else {
+            FontRenderer fontrenderer = mc.fontRenderer;
+            mc.getTextureManager().bindTexture(buttonTextures);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            int k = this.getHoverState(this.field_146123_n);
+            GL11.glEnable(GL11.GL_BLEND);
+            OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+            this.drawTexturedModalRect(0, 0, 0, 46 + k * 20, this.width / 2, this.height);
+            this.drawTexturedModalRect(this.width / 2, 0, 200 - this.width / 2, 46 + k * 20, this.width / 2, this.height);
+            this.mouseDragged(mc, mouseX, mouseY);
+            int l = 14737632;
 
-                if (packedFGColour != 0)
-                {
-                    l = packedFGColour;
-                }
-                else if (!this.enabled)
-                {
-                    l = 10526880;
-                }
-                else if (this.field_146123_n)
-                {
-                    l = 16777120;
-                }
-
-                this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, l);
+            if (packedFGColour != 0) {
+                l = packedFGColour;
+            } else if (!this.enabled) {
+                l = 10526880;
+            } else if (this.field_146123_n) {
+                l = 16777120;
             }
+
+            this.drawCenteredString(fontrenderer, this.displayString, this.xPosition + this.width / 2, this.yPosition + (this.height - 8) / 2, l);
+        }
         GL11.glPopMatrix();
     }
 
-    public void drawTexturedModalRect(int x, int y, int textureX, int textureY, int width, int height)
-    {
+    public void drawTexturedModalRect(int x, int y, int textureX, int textureY, int width, int height) {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glPushMatrix();
         float red = (color >> 16 & 255) / 255f;
-        float green = (color >> 8  & 255) / 255f;
+        float green = (color >> 8 & 255) / 255f;
         float blue = (color & 255) / 255f;
-        GL11.glColor4f(red,green,blue,this.alpha);
+        GL11.glColor4f(red, green, blue, this.alpha);
 
-        float u1 = (float)textureX/(float)totalWidth;
-        float u2 = u1 + (float)width/(float)totalWidth;
-        float v1 = (float)textureY/(float)totalHeight;
-        float v2 = v1 + (float)height/(float)totalHeight;
+        float u1 = (float) textureX / (float) totalWidth;
+        float u2 = u1 + (float) width / (float) totalWidth;
+        float v1 = (float) textureY / (float) totalHeight;
+        float v2 = v1 + (float) height / (float) totalHeight;
 
         if (this.location != null && this.enabled) {
             if (this.field_146123_n) {
-                v1 = (float)(textureY + 2 * this.height)/(float)totalHeight;
+                v1 = (float) (textureY + 2 * this.height) / (float) totalHeight;
             } else {
-                v1 = (float)(textureY + this.height)/(float)totalHeight;
+                v1 = (float) (textureY + this.height) / (float) totalHeight;
             }
-            v2 = v1 + (float)height/(float)totalHeight;
+            v2 = v1 + (float) height / (float) totalHeight;
         }
 
         GL11.glTranslatef(x + this.xPosition - u1 * totalWidth * this.scale, y + this.yPosition - v1 * totalHeight * this.scale, this.zLevel);
 
-        GL11.glScalef(this.scale,this.scale,1.0F);
+        GL11.glScalef(this.scale, this.scale, 1.0F);
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
@@ -164,9 +156,8 @@ public class GuiTexturedButton extends GuiNpcButton {
     }
 
     @Override
-    public boolean mousePressed(Minecraft minecraft, int i, int j)
-    {
-        return super.mousePressed(minecraft,i,j) || this.field_146123_n;
+    public boolean mousePressed(Minecraft minecraft, int i, int j) {
+        return super.mousePressed(minecraft, i, j) || this.field_146123_n;
     }
 
     public void getWidthHeight() throws IOException {
@@ -189,8 +180,8 @@ public class GuiTexturedButton extends GuiNpcButton {
         }
     }
 
-    public void getURLWidthHeight(){
-        if(imageDownloadAlt.getBufferedImage() != null) {
+    public void getURLWidthHeight() {
+        if (imageDownloadAlt.getBufferedImage() != null) {
             gotWidthHeight = true;
             this.totalWidth = imageDownloadAlt.getBufferedImage().getWidth();
             this.totalHeight = imageDownloadAlt.getBufferedImage().getHeight();
@@ -198,7 +189,7 @@ public class GuiTexturedButton extends GuiNpcButton {
         }
     }
 
-    public void correctWidthHeight(){
+    public void correctWidthHeight() {
         totalWidth = Math.max(totalWidth, 1);
         totalHeight = Math.max(totalHeight, 1);
         this.width = width < 0 ? totalWidth : width;

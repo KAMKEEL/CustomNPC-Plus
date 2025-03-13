@@ -21,7 +21,8 @@ public final class JobSavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public JobSavePacket() { }
+    public JobSavePacket() {
+    }
 
     public JobSavePacket(NBTTagCompound compound) {
         this.compound = compound;
@@ -64,14 +65,14 @@ public final class JobSavePacket extends AbstractPacket {
         NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
         Set<String> names = compound.func_150296_c();
-        for(String name : names)
+        for (String name : names)
             original.setTag(name, compound.getTag(name));
 
         npc.jobInterface.readFromNBT(original);
         npc.updateClient = true;
     }
 
-    public static void saveJob(JobInterface job){
+    public static void saveJob(JobInterface job) {
         PacketClient.sendClient(new JobSavePacket(job.writeToNBT(new NBTTagCompound())));
     }
 }

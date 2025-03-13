@@ -80,7 +80,7 @@ public final class ParticlePacket extends AbstractPacket {
         float yOffset = buffer.readFloat();
 
         String particle = ByteBufUtils.readString(buffer);
-        if(particle != null){
+        if (particle != null) {
             World worldObj = Minecraft.getMinecraft().theWorld;
 
             Random rand = worldObj.rand;

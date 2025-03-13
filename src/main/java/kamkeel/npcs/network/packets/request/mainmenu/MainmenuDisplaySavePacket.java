@@ -22,7 +22,8 @@ public final class MainmenuDisplaySavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public MainmenuDisplaySavePacket() {}
+    public MainmenuDisplaySavePacket() {
+    }
 
     public MainmenuDisplaySavePacket(NBTTagCompound compound) {
         this.compound = compound;

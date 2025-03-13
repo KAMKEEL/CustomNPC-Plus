@@ -16,10 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public abstract class CommandKamkeelBase extends CommandBase{
-	public Map<String, Method> subcommands = new HashMap<String, Method>();
+public abstract class CommandKamkeelBase extends CommandBase {
+    public Map<String, Method> subcommands = new HashMap<String, Method>();
 
-	public CommandKamkeelBase(){
+    public CommandKamkeelBase() {
         for (Method m : this.getClass().getDeclaredMethods()) {
             SubCommand sc = m.getAnnotation(SubCommand.class);
             if (sc != null) {
@@ -29,107 +29,107 @@ public abstract class CommandKamkeelBase extends CommandBase{
                 subcommands.put(name.toLowerCase(), m);
             }
         }
-	}
+    }
 
-	@Override
-	public void processCommand(ICommandSender sender, String[] args) throws CommandException {
+    @Override
+    public void processCommand(ICommandSender sender, String[] args) throws CommandException {
 
-	}
+    }
 
-	@Override
-	public String getCommandUsage(ICommandSender sender) {
-		return getDescription();
-	}
+    @Override
+    public String getCommandUsage(ICommandSender sender) {
+        return getDescription();
+    }
 
-	public abstract String getDescription();
+    public abstract String getDescription();
 
-	/**
-	 * @return Should return a string in the format of <arg> <arg2> <arg3> [arg4] where <> is a required parameter and [] optional
-	 */
-	public String getUsage(){
-		return "";
-	}
+    /**
+     * @return Should return a string in the format of <arg> <arg2> <arg3> [arg4] where <> is a required parameter and [] optional
+     */
+    public String getUsage() {
+        return "";
+    }
 
-	public boolean runSubCommands(){
-		return !subcommands.isEmpty();
-	}
+    public boolean runSubCommands() {
+        return !subcommands.isEmpty();
+    }
 
-	@Retention(value = RetentionPolicy.RUNTIME)
-	@Target(ElementType.METHOD)
-	public @interface SubCommand {
+    @Retention(value = RetentionPolicy.RUNTIME)
+    @Target(ElementType.METHOD)
+    public @interface SubCommand {
 
-	    String name() default "";
+        String name() default "";
 
-	    /**
-	     * @return Should return a string in the format of <arg> <arg2> <arg3> [arg4] where <> is a required parameter and [] optional
-	     */
-	    String usage() default "";
+        /**
+         * @return Should return a string in the format of <arg> <arg2> <arg3> [arg4] where <> is a required parameter and [] optional
+         */
+        String usage() default "";
 
-	    String desc();
+        String desc();
 
-		int permission() default 2;
-	}
+        int permission() default 2;
+    }
 
-	public void processSubCommand(ICommandSender sender, String command, String[] args) throws CommandException {
-		Method m = subcommands.get(command.toLowerCase());
-		if(m == null)
-			throw new CommandException("Unknown subcommand " + command);
+    public void processSubCommand(ICommandSender sender, String command, String[] args) throws CommandException {
+        Method m = subcommands.get(command.toLowerCase());
+        if (m == null)
+            throw new CommandException("Unknown subcommand " + command);
 
-		SubCommand sc = m.getAnnotation(SubCommand.class);
-		if(!canSendCommand(sender, sc, command))
-			throw new CommandException("You are not allowed to use this command: " + command);
+        SubCommand sc = m.getAnnotation(SubCommand.class);
+        if (!canSendCommand(sender, sc, command))
+            throw new CommandException("You are not allowed to use this command: " + command);
 
-		canRun(sender, sc.usage(), args);
-		try {
-			m.invoke(this, sender, args);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        canRun(sender, sc.usage(), args);
+        try {
+            m.invoke(this, sender, args);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
-	public void canRun(ICommandSender sender, String usage, String[] args) throws CommandException{
-		String[] np = usage.split(" ");
-		List<String> required = new ArrayList<String>();
-		for(int i = 0; i < np.length; i++){
-			String command = np[i];
-			if(command.startsWith("<")){
-				required.add(command);
-			}
-			if(command.equals("<player>") && args.length > i){
-				CommandBase.getPlayer(sender, args[i]); //throws PlayerNotFoundException if no player is found
-			}
+    public void canRun(ICommandSender sender, String usage, String[] args) throws CommandException {
+        String[] np = usage.split(" ");
+        List<String> required = new ArrayList<String>();
+        for (int i = 0; i < np.length; i++) {
+            String command = np[i];
+            if (command.startsWith("<")) {
+                required.add(command);
+            }
+            if (command.equals("<player>") && args.length > i) {
+                CommandBase.getPlayer(sender, args[i]); //throws PlayerNotFoundException if no player is found
+            }
 
-		}
-		if (args.length < required.size()) {
-			throw new CommandException("Missing parameter: " + required.get(args.length));
-		}
-	}
+        }
+        if (args.length < required.size()) {
+            throw new CommandException("Missing parameter: " + required.get(args.length));
+        }
+    }
 
-    public int getRequiredPermissionLevel(){
+    public int getRequiredPermissionLevel() {
         return 2;
     }
 
-	public String getSubCommandPermission(String subCommand){
-		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "." + subCommand.toLowerCase();
-	}
+    public String getSubCommandPermission(String subCommand) {
+        return "cnpc.kamkeel." + getCommandName().toLowerCase() + "." + subCommand.toLowerCase();
+    }
 
-	public String getSubUniversalPermission(){
-		return "cnpc.kamkeel." + getCommandName().toLowerCase() + "*";
-	}
+    public String getSubUniversalPermission() {
+        return "cnpc.kamkeel." + getCommandName().toLowerCase() + "*";
+    }
 
-	public boolean canSendCommand(ICommandSender sender, SubCommand command, String subCommand){
-		if(sender.canCommandSenderUseCommand(command.permission(), getSubUniversalPermission())){
-			return true;
-		}
+    public boolean canSendCommand(ICommandSender sender, SubCommand command, String subCommand) {
+        if (sender.canCommandSenderUseCommand(command.permission(), getSubUniversalPermission())) {
+            return true;
+        }
 
-		if(sender.canCommandSenderUseCommand(command.permission(), getSubCommandPermission(subCommand))){
-			return true;
-		}
+        if (sender.canCommandSenderUseCommand(command.permission(), getSubCommandPermission(subCommand))) {
+            return true;
+        }
 
-		if(sender instanceof EntityPlayer){
-			return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getSubCommandPermission(subCommand));
-		}
+        if (sender instanceof EntityPlayer) {
+            return CustomNpcsPermissions.hasCustomPermission((EntityPlayer) sender, getSubCommandPermission(subCommand));
+        }
 
-		return false;
-	}
+        return false;
+    }
 }

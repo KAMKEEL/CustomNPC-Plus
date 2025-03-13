@@ -33,7 +33,7 @@ public class ScriptSoundController {
             soundHandler.stopSound(sound);
             sounds.get(id).stopSound();
         }
-        sounds.put(id,sound);
+        sounds.put(id, sound);
         soundHandler.playSound(sound);
     }
 

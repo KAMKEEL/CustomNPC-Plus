@@ -31,7 +31,7 @@ public class DataTimers implements ITimers {
     }
 
     public void start(int id, int ticks, boolean repeat) {
-        if(this.timers.containsKey(id)) {
+        if (this.timers.containsKey(id)) {
             throw new CustomNPCsException("There is already a timer with id: " + id);
         } else {
             this.timers.put(id, new DataTimers.Timer(id, ticks, repeat));
@@ -56,46 +56,46 @@ public class DataTimers implements ITimers {
         timer.ticks = 0;
     }
 
-    public int ticks(int id){
+    public int ticks(int id) {
         this.timerException(id);
         return this.timers.get(id).ticks;
     }
 
-    public void setTicks(int id, int ticks){
+    public void setTicks(int id, int ticks) {
         this.timerException(id);
 
         DataTimers.Timer timer = this.timers.get(id);
-        if(ticks < 0)
+        if (ticks < 0)
             ticks = 0;
-        if(ticks > timer.timerTicks)
+        if (ticks > timer.timerTicks)
             ticks = timer.timerTicks;
 
         timer.ticks = ticks;
     }
 
-    public int maxTicks(int id){
+    public int maxTicks(int id) {
         this.timerException(id);
         return this.timers.get(id).timerTicks;
     }
 
-    public void setMaxTicks(int id, int maxTicks){
+    public void setMaxTicks(int id, int maxTicks) {
         this.timerException(id);
 
         DataTimers.Timer timer = this.timers.get(id);
-        if(maxTicks < 0)
+        if (maxTicks < 0)
             maxTicks = 0;
-        if(timer.ticks > maxTicks)
+        if (timer.ticks > maxTicks)
             timer.ticks = maxTicks;
 
         timer.timerTicks = maxTicks;
     }
 
-    public boolean repeats(int id){
+    public boolean repeats(int id) {
         this.timerException(id);
         return this.timers.get(id).repeat;
     }
 
-    public void setRepeats(int id, boolean repeat){
+    public void setRepeats(int id, boolean repeat) {
         this.timerException(id);
         this.timers.get(id).repeat = repeat;
     }
@@ -104,8 +104,8 @@ public class DataTimers implements ITimers {
         NBTTagList list = new NBTTagList();
         Iterator var3 = this.timers.values().iterator();
 
-        while(var3.hasNext()) {
-            DataTimers.Timer timer = (DataTimers.Timer)var3.next();
+        while (var3.hasNext()) {
+            DataTimers.Timer timer = (DataTimers.Timer) var3.next();
             NBTTagCompound c = new NBTTagCompound();
             c.setInteger("ID", timer.id);
             c.setInteger("TimerTicks", timer.timerTicks);
@@ -127,7 +127,7 @@ public class DataTimers implements ITimers {
         HashMap<Integer, DataTimers.Timer> timers = new HashMap<>();
         NBTTagList list = compound.getTagList("NpcsTimers", 10);
 
-        if(list != null) {
+        if (list != null) {
             for (int i = 0; i < list.tagCount(); ++i) {
                 NBTTagCompound c = list.getCompoundTagAt(i);
                 DataTimers.Timer t = new DataTimers.Timer(c.getInteger("ID"), c.getInteger("TimerTicks"), c.getBoolean("Repeat"));
@@ -152,7 +152,9 @@ public class DataTimers implements ITimers {
         this.timers = new HashMap<>();
     }
 
-    public int size() { return this.timers.size(); }
+    public int size() {
+        return this.timers.size();
+    }
 
     class Timer {
         public int id;
@@ -168,8 +170,8 @@ public class DataTimers implements ITimers {
         }
 
         public void update() {
-            if(this.ticks-- <= 0) {
-                if(this.repeat) {
+            if (this.ticks-- <= 0) {
+                if (this.repeat) {
                     this.ticks = this.timerTicks;
                 } else {
                     DataTimers.this.stop(this.id);
@@ -177,13 +179,11 @@ public class DataTimers implements ITimers {
 
                 Object ob = DataTimers.this.parent;
                 if (ob instanceof EntityNPCInterface) {
-                    EventHooks.onNPCTimer((EntityNPCInterface)ob, this.id);
-                }
-                else if(ob instanceof PlayerData) {
-                    EventHooks.onPlayerTimer((PlayerData)ob, this.id);
-                }
-                else if(ob instanceof TileScripted) {
-                    EventHooks.onScriptBlockTimer((TileScripted)ob, this.id);
+                    EventHooks.onNPCTimer((EntityNPCInterface) ob, this.id);
+                } else if (ob instanceof PlayerData) {
+                    EventHooks.onPlayerTimer((PlayerData) ob, this.id);
+                } else if (ob instanceof TileScripted) {
+                    EventHooks.onScriptBlockTimer((TileScripted) ob, this.id);
                 }
             }
         }

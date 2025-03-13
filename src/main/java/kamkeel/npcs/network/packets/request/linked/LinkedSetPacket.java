@@ -26,7 +26,8 @@ public final class LinkedSetPacket extends AbstractPacket {
         this.linkedName = linkedName;
     }
 
-    public LinkedSetPacket() {}
+    public LinkedSetPacket() {
+    }
 
     @Override
     public Enum getType() {

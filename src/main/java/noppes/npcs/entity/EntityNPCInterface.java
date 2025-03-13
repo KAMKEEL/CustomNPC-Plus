@@ -191,10 +191,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     protected void entityInit() {
         super.entityInit();
-        this.dataWatcher.addObject(13, String.valueOf(""));//faction
+        this.dataWatcher.addObject(13, "");//faction
         this.dataWatcher.addObject(14, Integer.valueOf(0)); // Animation
         this.dataWatcher.addObject(15, Integer.valueOf(0)); // isWalking
-        this.dataWatcher.addObject(16, String.valueOf("")); // Role
+        this.dataWatcher.addObject(16, ""); // Role
     }
 
     protected boolean isAIEnabled() {
@@ -274,7 +274,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             if (getOwner() instanceof EntityPlayer)
                 NPCEntityHelper.setRecentlyHit((EntityLivingBase) receiver);
             if (stats.knockback > 0) {
-                receiver.addVelocity((double) (-MathHelper.sin(this.rotationYaw * (float) Math.PI / 180.0F) * (float) stats.knockback * 0.5F), 0.1D, (double) (MathHelper.cos(this.rotationYaw * (float) Math.PI / 180.0F) * (float) stats.knockback * 0.5F));
+                receiver.addVelocity(-MathHelper.sin(this.rotationYaw * (float) Math.PI / 180.0F) * (float) stats.knockback * 0.5F, 0.1D, MathHelper.cos(this.rotationYaw * (float) Math.PI / 180.0F) * (float) stats.knockback * 0.5F);
                 this.motionX *= 0.6D;
                 this.motionZ *= 0.6D;
             }
@@ -566,7 +566,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             return false;
 
         // Attribute
-        if(!DBCAddon.IsAvailable() && attackingEntity instanceof EntityPlayer)
+        if (!DBCAddon.IsAvailable() && attackingEntity instanceof EntityPlayer)
             i = AttributeAttackUtil.calculateDamagePlayerToNPC((EntityPlayer) attackingEntity, this, i);
 
         //  Resistances
@@ -727,7 +727,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (isKilled())
             return;
 
-        if(!faction.isPassive()){
+        if (!faction.isPassive()) {
             IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
             this.targetTasks.addTask(0, new EntityAIClearTarget(this));
             this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
@@ -1131,8 +1131,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (isKilled() && stats.hideKilledBody) {
             width = 0.00001f;
         }
-        if (width / 2 > worldObj.MAX_ENTITY_RADIUS) {
-            worldObj.MAX_ENTITY_RADIUS = width / 2;
+        if (width / 2 > World.MAX_ENTITY_RADIUS) {
+            World.MAX_ENTITY_RADIUS = width / 2;
         }
         this.setPosition(posX, posY, posZ);
     }
@@ -1179,7 +1179,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         getNavigator().clearPathEntity();
         if (this.canFly()) {
             ((PathNavigateFlying) getNavigator()).targetPos = null;
-            ((PathNavigateFlying) getNavigator()).clearPathEntity();
+            getNavigator().clearPathEntity();
             ((FlyingMoveHelper) getMoveHelper()).update = false;
         }
         moveEntityWithHeading(0, 0);
@@ -1388,7 +1388,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             setSprinting(false);
             getNavigator().clearPathEntity();
             if (killedtime <= 0)
-                killedtime = stats.respawnTime * 1000 + System.currentTimeMillis();
+                killedtime = stats.respawnTime * 1000L + System.currentTimeMillis();
 
             if (advanced.role != EnumRoleType.None && roleInterface != null)
                 roleInterface.killed();
@@ -1425,9 +1425,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         double zz = posZ - getStartZPos();
         if (xx < -0.2 || xx > 0.2)
             return false;
-        if (zz < -0.2 || zz > 0.2)
-            return false;
-        return true;
+        return !(zz < -0.2) && !(zz > 0.2);
     }
 
     @Override
@@ -1811,7 +1809,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             double d2 = MathHelper.abs_max(d0, d1);
 
             if (d2 >= 0.009999999776482582D) {
-                d2 = (double) MathHelper.sqrt_double(d2);
+                d2 = MathHelper.sqrt_double(d2);
                 d0 /= d2;
                 d1 /= d2;
                 double d3 = 1.0D / d2;
@@ -1824,8 +1822,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 d1 *= d3;
                 d0 *= 0.05000000074505806D;
                 d1 *= 0.05000000074505806D;
-                d0 *= (double) (1.0F - this.entityCollisionReduction);
-                d1 *= (double) (1.0F - this.entityCollisionReduction);
+                d0 *= 1.0F - this.entityCollisionReduction;
+                d1 *= 1.0F - this.entityCollisionReduction;
                 if (this.canBePushed() || (entity instanceof EntityNPCInterface && (this.stats.collidesWith == 2 || this.stats.collidesWith == 4)) || (entity instanceof EntityPlayerMP && (this.stats.collidesWith == 3 || this.stats.collidesWith == 4)))
                     this.addVelocity(-d0, 0.0D, -d1);
                 entity.addVelocity(d0, 0.0D, d1);

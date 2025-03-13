@@ -12,7 +12,7 @@ public class TintData {
 
     public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
         nbttagcompound.setBoolean("TintEnabled", tintEnabled);
-        if(tintEnabled) {
+        if (tintEnabled) {
             nbttagcompound.setBoolean("HurtTintEnabled", hurtTintEnabled);
             nbttagcompound.setBoolean("GeneralTintEnabled", generalTintEnabled);
             nbttagcompound.setInteger("HurtTint", hurtTint);
@@ -24,7 +24,7 @@ public class TintData {
 
     public void readFromNBT(NBTTagCompound nbttagcompound) {
         tintEnabled = nbttagcompound.getBoolean("TintEnabled");
-        if(tintEnabled) {
+        if (tintEnabled) {
             hurtTintEnabled = nbttagcompound.getBoolean("HurtTintEnabled");
             generalTintEnabled = nbttagcompound.getBoolean("GeneralTintEnabled");
             hurtTint = nbttagcompound.getInteger("HurtTint");
@@ -81,8 +81,8 @@ public class TintData {
         this.generalAlpha = generalAlpha;
     }
 
-    public boolean processColor(boolean isHurt){
-        if(isHurt){
+    public boolean processColor(boolean isHurt) {
+        if (isHurt) {
             return (isTintEnabled() && (!isHurtTintEnabled() && !isGeneralTintEnabled()));
         } else {
             return !(isTintEnabled() && isGeneralTintEnabled());

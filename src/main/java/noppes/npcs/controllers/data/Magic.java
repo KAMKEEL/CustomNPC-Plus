@@ -24,7 +24,8 @@ public class Magic implements IMagic {
     public String iconTexture = "";
     public Map<Integer, Float> interactions = new HashMap<>();
 
-    public Magic() {}
+    public Magic() {
+    }
 
     public Magic(int id, String name, int color) {
         this.name = name;
@@ -46,7 +47,7 @@ public class Magic implements IMagic {
 
         type = EnumTextureType.values()[compound.getInteger("Type")];
         iconTexture = compound.getString("IconTexture");
-        if(type == EnumTextureType.ITEM && !iconTexture.isEmpty()){
+        if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {
             String[] parts = iconTexture.split(":");
             if (parts.length == 2) {
                 String modID = parts[0];
@@ -57,9 +58,9 @@ public class Magic implements IMagic {
         }
 
         interactions.clear();
-        if(compound.hasKey("Interactions")) {
+        if (compound.hasKey("Interactions")) {
             NBTTagList interactionsList = compound.getTagList("Interactions", 10);
-            for (int i = 0; i < interactionsList.tagCount(); i++){
+            for (int i = 0; i < interactionsList.tagCount(); i++) {
                 NBTTagCompound interactionTag = interactionsList.getCompoundTagAt(i);
                 int magicId = interactionTag.getInteger("MagicID");
                 float percentage = interactionTag.getFloat("Percentage");
@@ -76,7 +77,7 @@ public class Magic implements IMagic {
         compound.setString("IconTexture", iconTexture);
         compound.setInteger("Type", type.ordinal());
         NBTTagList interactionsList = new NBTTagList();
-        for (Map.Entry<Integer, Float> entry : interactions.entrySet()){
+        for (Map.Entry<Integer, Float> entry : interactions.entrySet()) {
             NBTTagCompound interactionTag = new NBTTagCompound();
             interactionTag.setInteger("MagicID", entry.getKey());
             interactionTag.setFloat("Percentage", entry.getValue());
@@ -84,7 +85,7 @@ public class Magic implements IMagic {
         }
         compound.setTag("Interactions", interactionsList);
 
-        if(type == EnumTextureType.ITEM && !iconTexture.isEmpty()){
+        if (type == EnumTextureType.ITEM && !iconTexture.isEmpty()) {
             String[] parts = iconTexture.split(":");
             if (parts.length == 2) {
                 String modID = parts[0];
@@ -130,7 +131,7 @@ public class Magic implements IMagic {
 
     public void setItem(ItemStack item) {
         GameRegistry.UniqueIdentifier identifier = GameRegistry.findUniqueIdentifierFor(item.getItem());
-        if(identifier != null){
+        if (identifier != null) {
             this.item = item;
             this.type = EnumTextureType.ITEM;
             this.iconTexture = identifier.modId + ":" + identifier.name;

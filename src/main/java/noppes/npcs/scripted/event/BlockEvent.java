@@ -13,7 +13,8 @@ import noppes.npcs.scripted.NpcAPI;
 
 public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     public IBlock block;
-    public BlockEvent(IBlock block){
+
+    public BlockEvent(IBlock block) {
         this.block = block;
     }
 
@@ -26,10 +27,11 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
      * fallenUpon
      */
     @Cancelable
-    public static class EntityFallenUponEvent extends BlockEvent implements IBlockEvent.EntityFallenUponEvent{
+    public static class EntityFallenUponEvent extends BlockEvent implements IBlockEvent.EntityFallenUponEvent {
         public final IEntity entity;
         public float distanceFallen;
-        public EntityFallenUponEvent(IBlock block, Entity entity, float distance){
+
+        public EntityFallenUponEvent(IBlock block, Entity entity, float distance) {
             super(block);
             this.distanceFallen = distance;
             this.entity = NpcAPI.Instance().getIEntity(entity);
@@ -55,7 +57,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
      * interact
      */
     @Cancelable
-    public static class InteractEvent extends BlockEvent implements IBlockEvent.InteractEvent{
+    public static class InteractEvent extends BlockEvent implements IBlockEvent.InteractEvent {
         public final IPlayer player;
 
         public final float hitX, hitY, hitZ;
@@ -106,8 +108,9 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * redstone
      */
-    public static class RedstoneEvent extends BlockEvent implements IBlockEvent.RedstoneEvent{
+    public static class RedstoneEvent extends BlockEvent implements IBlockEvent.RedstoneEvent {
         public final int prevPower, power;
+
         public RedstoneEvent(IBlock block, int prevPower, int power) {
             super(block);
             this.power = power;
@@ -134,7 +137,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * broken
      */
-    public static class BreakEvent extends BlockEvent implements IBlockEvent.BreakEvent{
+    public static class BreakEvent extends BlockEvent implements IBlockEvent.BreakEvent {
         public BreakEvent(IBlock block) {
             super(block);
         }
@@ -149,7 +152,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
      * exploded
      */
     @Cancelable
-    public static class ExplodedEvent extends BlockEvent implements IBlockEvent.ExplodedEvent{
+    public static class ExplodedEvent extends BlockEvent implements IBlockEvent.ExplodedEvent {
         public ExplodedEvent(IBlock block) {
             super(block);
         }
@@ -163,7 +166,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * rainFilled
      */
-    public static class RainFillEvent extends BlockEvent implements IBlockEvent.RainFillEvent{
+    public static class RainFillEvent extends BlockEvent implements IBlockEvent.RainFillEvent {
         public RainFillEvent(IBlock block) {
             super(block);
         }
@@ -177,8 +180,9 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * neighborChanged
      */
-    public static class NeighborChangedEvent extends BlockEvent implements IBlockEvent.NeighborChangedEvent{
+    public static class NeighborChangedEvent extends BlockEvent implements IBlockEvent.NeighborChangedEvent {
         public final IPos changedPos;
+
         public NeighborChangedEvent(IBlock block, IPos changedPos) {
             super(block);
             this.changedPos = changedPos;
@@ -198,7 +202,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * init
      */
-    public static class InitEvent extends BlockEvent implements IBlockEvent.InitEvent{
+    public static class InitEvent extends BlockEvent implements IBlockEvent.InitEvent {
         public InitEvent(IBlock block) {
             super(block);
         }
@@ -212,7 +216,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * tick
      */
-    public static class UpdateEvent extends BlockEvent implements IBlockEvent.UpdateEvent{
+    public static class UpdateEvent extends BlockEvent implements IBlockEvent.UpdateEvent {
         public UpdateEvent(IBlock block) {
             super(block);
         }
@@ -226,8 +230,9 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * clicked
      */
-    public static class ClickedEvent extends BlockEvent implements IBlockEvent.ClickedEvent{
+    public static class ClickedEvent extends BlockEvent implements IBlockEvent.ClickedEvent {
         public final IPlayer player;
+
         public ClickedEvent(IBlock block, EntityPlayer player) {
             super(block);
             this.player = (IPlayer) NpcAPI.Instance().getIEntity(player);
@@ -248,8 +253,9 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
      * harvested
      */
     @Cancelable
-    public static class HarvestedEvent extends BlockEvent implements IBlockEvent.HarvestedEvent{
+    public static class HarvestedEvent extends BlockEvent implements IBlockEvent.HarvestedEvent {
         public final IPlayer player;
+
         public HarvestedEvent(IBlock block, EntityPlayer player) {
             super(block);
             this.player = (IPlayer) NpcAPI.Instance().getIEntity(player);
@@ -269,8 +275,9 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * collide
      */
-    public static class CollidedEvent extends BlockEvent implements IBlockEvent.CollidedEvent{
+    public static class CollidedEvent extends BlockEvent implements IBlockEvent.CollidedEvent {
         public final IEntity entity;
+
         public CollidedEvent(IBlock block, Entity entity) {
             super(block);
             this.entity = NpcAPI.Instance().getIEntity(entity);
@@ -290,7 +297,7 @@ public class BlockEvent extends CustomNPCsEvent implements IBlockEvent {
     /**
      * timer
      */
-    public static class TimerEvent extends BlockEvent implements IBlockEvent.TimerEvent{
+    public static class TimerEvent extends BlockEvent implements IBlockEvent.TimerEvent {
         public final int id;
 
         public TimerEvent(IBlock block, int id) {

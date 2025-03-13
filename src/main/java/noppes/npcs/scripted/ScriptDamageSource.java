@@ -5,7 +5,7 @@ import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.entity.IEntity;
 
 public class ScriptDamageSource implements IDamageSource {
-    private DamageSource source;
+    private final DamageSource source;
 
     public ScriptDamageSource(DamageSource source) {
         this.source = source;

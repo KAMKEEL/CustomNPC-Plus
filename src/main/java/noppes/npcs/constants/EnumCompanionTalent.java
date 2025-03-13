@@ -6,12 +6,13 @@ import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
 
 public enum EnumCompanionTalent {
-	INVENTORY(CustomItems.satchel), ARMOR(Items.iron_chestplate), 
-	SWORD(Items.diamond_sword), RANGED(Items.bow), 
-	ACROBATS(Items.leather_boots), INTEL(CustomItems.letter);
+    INVENTORY(CustomItems.satchel), ARMOR(Items.iron_chestplate),
+    SWORD(Items.diamond_sword), RANGED(Items.bow),
+    ACROBATS(Items.leather_boots), INTEL(CustomItems.letter);
 
-	public ItemStack item;
-	private EnumCompanionTalent(Item item){
-		this.item = new ItemStack(item);
-	}
+    public ItemStack item;
+
+    EnumCompanionTalent(Item item) {
+        this.item = new ItemStack(item);
+    }
 }

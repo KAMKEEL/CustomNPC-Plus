@@ -5,9 +5,9 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.data.SpawnData;
 
 public class SubGuiSpawningOptions extends SubGuiInterface implements ITextfieldListener {
-    private SpawnData data;
+    private final SpawnData data;
 
-    public SubGuiSpawningOptions(SpawnData data){
+    public SubGuiSpawningOptions(SpawnData data) {
         this.data = data;
         setBackground("menubg.png");
         xSize = 216;

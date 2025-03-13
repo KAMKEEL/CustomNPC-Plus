@@ -61,7 +61,7 @@ public final class GuiOpenBookPacket extends AbstractPacket {
         int z = in.readInt();
         NBTTagCompound nbt = ByteBufUtils.readNBT(in);
         ItemStack book = ItemStack.loadItemStackFromNBT(nbt);
-        if(book != null)
+        if (book != null)
             NoppesUtil.openGUI(player, new GuiBook(player, book, x, y, z));
     }
 }

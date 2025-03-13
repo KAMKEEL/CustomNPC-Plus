@@ -13,7 +13,7 @@ import org.lwjgl.opengl.GL11;
 public class GuiNpcAnvil extends GuiContainerNPCInterface {
 
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/anvil.png");
-    private ContainerAnvilRepair container;
+    private final ContainerAnvilRepair container;
     private GuiNpcButton button;
 
     public GuiNpcAnvil(ContainerAnvilRepair container) {

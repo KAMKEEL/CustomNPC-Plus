@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.util;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -70,10 +69,10 @@ public class GuiModelInterface extends GuiNPCInterface {
         return false;
     }
 
-    private long start = -1;
+    private final long start = -1;
 
     public boolean isMouseOverRenderer(int x, int y) {
-        if(!allowRotate){
+        if (!allowRotate) {
             return false;
         }
         // Center of the entity rendering
@@ -105,9 +104,9 @@ public class GuiModelInterface extends GuiNPCInterface {
             } else if (this.right.mousePressed(this.mc, par1, par2)) {
                 rotation -= par3 * 1.5F;
             } else if (this.zoom.mousePressed(this.mc, par1, par2) && zoomed < maxSize) {
-                zoomed += par3 * 1.0F;
+                zoomed += par3;
             } else if (this.unzoom.mousePressed(this.mc, par1, par2) && zoomed > minSize) {
-                zoomed -= par3 * 1.0F;
+                zoomed -= par3;
             }
         }
 
@@ -190,7 +189,7 @@ public class GuiModelInterface extends GuiNPCInterface {
     }
 
     public void close() {
-        this.mc.displayGuiScreen((GuiScreen) null);
+        this.mc.displayGuiScreen(null);
         this.mc.setIngameFocus();
     }
 

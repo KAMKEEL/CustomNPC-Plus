@@ -37,6 +37,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.texture = texture;
         this.updateClient();
     }
+
     public String getTexture() {
         return this.texture;
     }
@@ -45,6 +46,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.glow = glow;
         this.updateClient();
     }
+
     public boolean getGlow() {
         return glow;
     }
@@ -53,6 +55,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.blend = blend;
         this.updateClient();
     }
+
     public boolean getBlend() {
         return blend;
     }
@@ -61,6 +64,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.alpha = alpha;
         this.updateClient();
     }
+
     public float getAlpha() {
         return alpha;
     }
@@ -69,6 +73,7 @@ public class SkinOverlay implements ISkinOverlay {
         this.size = size;
         this.updateClient();
     }
+
     public float getSize() {
         return size;
     }
@@ -78,9 +83,11 @@ public class SkinOverlay implements ISkinOverlay {
         this.scaleY = scaleY;
         this.updateClient();
     }
+
     public float getTextureScaleX() {
         return scaleX;
     }
+
     public float getTextureScaleY() {
         return scaleY;
     }
@@ -90,9 +97,11 @@ public class SkinOverlay implements ISkinOverlay {
         this.speedY = speedY;
         this.updateClient();
     }
+
     public float getSpeedX() {
         return speedX;
     }
+
     public float getSpeedY() {
         return speedY;
     }
@@ -103,12 +112,15 @@ public class SkinOverlay implements ISkinOverlay {
         this.offsetZ = offsetZ;
         this.updateClient();
     }
+
     public float getOffsetX() {
         return offsetX;
     }
+
     public float getOffsetY() {
         return offsetY;
     }
+
     public float getOffsetZ() {
         return offsetZ;
     }

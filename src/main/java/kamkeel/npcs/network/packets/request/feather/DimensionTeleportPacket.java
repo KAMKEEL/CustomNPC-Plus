@@ -23,7 +23,8 @@ public final class DimensionTeleportPacket extends AbstractPacket {
 
     private int dimensionID;
 
-    public DimensionTeleportPacket() {}
+    public DimensionTeleportPacket() {
+    }
 
     public DimensionTeleportPacket(int dimensionID) {
         this.dimensionID = dimensionID;
@@ -56,15 +57,15 @@ public final class DimensionTeleportPacket extends AbstractPacket {
         int dimension = in.readInt();
         WorldServer world = MinecraftServer.getServer().worldServerForDimension(dimension);
         ChunkCoordinates coords = world.getEntrancePortalLocation();
-        if(coords == null){
+        if (coords == null) {
             coords = world.getSpawnPoint();
-            if(!world.isAirBlock(coords.posX, coords.posY, coords.posZ))
+            if (!world.isAirBlock(coords.posX, coords.posY, coords.posZ))
                 coords.posY = world.getTopSolidOrLiquidBlock(coords.posX, coords.posZ);
-            else{
-                while(world.isAirBlock(coords.posX, coords.posY - 1, coords.posZ) && coords.posY > 0){
+            else {
+                while (world.isAirBlock(coords.posX, coords.posY - 1, coords.posZ) && coords.posY > 0) {
                     coords.posY--;
                 }
-                if(coords.posY == 0)
+                if (coords.posY == 0)
                     coords.posY = world.getTopSolidOrLiquidBlock(coords.posX, coords.posZ);
             }
         }

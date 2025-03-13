@@ -6,5 +6,5 @@ public abstract class AbstractPermission {
 
     abstract public String errorMsg();
 
-    abstract public boolean delegate(AbstractCommandHelper parent, String args[]);
+    abstract public boolean delegate(AbstractCommandHelper parent, String[] args);
 }

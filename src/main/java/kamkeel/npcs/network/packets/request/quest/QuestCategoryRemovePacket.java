@@ -26,7 +26,8 @@ public final class QuestCategoryRemovePacket extends AbstractPacket {
         this.categoryId = categoryId;
     }
 
-    public QuestCategoryRemovePacket() {}
+    public QuestCategoryRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

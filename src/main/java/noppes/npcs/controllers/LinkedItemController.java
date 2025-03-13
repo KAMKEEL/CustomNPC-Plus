@@ -25,7 +25,8 @@ public class LinkedItemController {
 
     private HashMap<Integer, String> bootOrder;
 
-    private LinkedItemController() {}
+    private LinkedItemController() {
+    }
 
     public static LinkedItemController getInstance() {
         if (Instance == null) {
@@ -33,6 +34,7 @@ public class LinkedItemController {
         }
         return Instance;
     }
+
     public LinkedItem createItem(String name) {
         return new LinkedItem(name);
     }
@@ -90,7 +92,7 @@ public class LinkedItemController {
     ////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////
 
-    public void load(){
+    public void load() {
         bootOrder = new HashMap<>();
         linkedItems = new HashMap<>();
         LogWriter.info("Loading linked items...");
@@ -99,7 +101,7 @@ public class LinkedItemController {
         LogWriter.info("Done loading linked items.");
     }
 
-    private void loadLinkedItems(){
+    private void loadLinkedItems() {
         linkedItems.clear();
 
         File dir = getDir();
@@ -114,28 +116,28 @@ public class LinkedItemController {
                     linkedItem.readFromNBT(NBTJsonUtil.LoadFile(file));
                     linkedItem.name = file.getName().substring(0, file.getName().length() - 5);
 
-                    if(linkedItem.id == -1){
+                    if (linkedItem.id == -1) {
                         linkedItem.id = getUnusedId();
                     }
 
                     int originalID = linkedItem.id;
                     int setID = linkedItem.id;
-                    while (bootOrder.containsKey(setID) || linkedItems.containsKey(setID)){
-                        if(bootOrder.containsKey(setID))
-                            if(bootOrder.get(setID).equals(linkedItem.name))
+                    while (bootOrder.containsKey(setID) || linkedItems.containsKey(setID)) {
+                        if (bootOrder.containsKey(setID))
+                            if (bootOrder.get(setID).equals(linkedItem.name))
                                 break;
 
                         setID++;
                     }
 
                     linkedItem.id = setID;
-                    if(originalID != setID){
+                    if (originalID != setID) {
                         LogWriter.info("Found Linked Item ID Mismatch: " + linkedItem.name + ", New ID: " + setID);
                         linkedItem.save();
                     }
 
                     linkedItems.put(linkedItem.id, linkedItem);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
                 }
             }
@@ -148,10 +150,10 @@ public class LinkedItemController {
         return new File(CustomNpcs.getWorldSaveDirectory(), "linkeditems");
     }
 
-    public int getUnusedId(){
-        if(lastUsedID == 0){
-            for(int catid : linkedItems.keySet()){
-                if(catid > lastUsedID)
+    public int getUnusedId() {
+        if (lastUsedID == 0) {
+            for (int catid : linkedItems.keySet()) {
+                if (catid > lastUsedID)
                     lastUsedID = catid;
             }
 
@@ -161,15 +163,15 @@ public class LinkedItemController {
     }
 
     public boolean hasName(String newName) {
-        if(newName.trim().isEmpty())
+        if (newName.trim().isEmpty())
             return true;
-        for(LinkedItem linkedItem : linkedItems.values())
-            if(linkedItem.name.equals(newName))
+        for (LinkedItem linkedItem : linkedItems.values())
+            if (linkedItem.name.equals(newName))
                 return true;
         return false;
     }
 
-    public ILinkedItem saveLinkedItem(ILinkedItem linkedItem){
+    public ILinkedItem saveLinkedItem(ILinkedItem linkedItem) {
         if (linkedItem.getId() < 0) {
             linkedItem.setId(getUnusedId());
             while (hasName(linkedItem.getName()))
@@ -185,15 +187,15 @@ public class LinkedItemController {
 
         // Save Linked Item File
         File dir = this.getDir();
-        if(!dir.exists())
+        if (!dir.exists())
             dir.mkdirs();
 
         File file = new File(dir, linkedItem.getName() + ".json_new");
-        File file2 = new File(dir, linkedItem.getName() +  ".json");
+        File file2 = new File(dir, linkedItem.getName() + ".json");
 
         try {
-            NBTJsonUtil.SaveFile(file, ((LinkedItem)linkedItem).writeToNBT(true));
-            if(file2.exists())
+            NBTJsonUtil.SaveFile(file, ((LinkedItem) linkedItem).writeToNBT(true));
+            if (file2.exists())
                 file2.delete();
             file.renameTo(file2);
         } catch (Exception e) {
@@ -243,37 +245,38 @@ public class LinkedItemController {
     ////////////////////////////////////////////////////////
     // LINKED ITEMS MAP
 
-    public File getMapDir(){
+    public File getMapDir() {
         File dir = CustomNpcs.getWorldSaveDirectory();
-        if(!dir.exists())
+        if (!dir.exists())
             dir.mkdir();
         return dir;
     }
 
-    public void readLinkedMap(){
+    public void readLinkedMap() {
         bootOrder.clear();
 
         try {
             File file = new File(getMapDir(), "linkeditems.dat");
-            if(file.exists()){
+            if (file.exists()) {
                 loadLinkedMap(file);
             }
         } catch (Exception e) {
             try {
                 File file = new File(getMapDir(), "linkeditems.dat_old");
-                if(file.exists()){
+                if (file.exists()) {
                     loadLinkedMap(file);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
-    public NBTTagCompound writeMapNBT(){
+    public NBTTagCompound writeMapNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
         NBTTagList linkedList = new NBTTagList();
-        for(Integer key: linkedItems.keySet()){
+        for (Integer key : linkedItems.keySet()) {
             LinkedItem linkedItem = linkedItems.get(key);
-            if(!linkedItem.getName().isEmpty()){
+            if (!linkedItem.getName().isEmpty()) {
                 NBTTagCompound linkedCompound = new NBTTagCompound();
                 linkedCompound.setString("Name", linkedItem.getName());
                 linkedCompound.setInteger("ID", key);
@@ -285,11 +288,10 @@ public class LinkedItemController {
         return nbt;
     }
 
-    public void readMapNBT(NBTTagCompound compound){
+    public void readMapNBT(NBTTagCompound compound) {
         NBTTagList list = compound.getTagList("LinkedItems", 10);
-        if(list != null){
-            for(int i = 0; i < list.tagCount(); i++)
-            {
+        if (list != null) {
+            for (int i = 0; i < list.tagCount(); i++) {
                 NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
                 String linkedName = nbttagcompound.getString("Name");
                 Integer key = nbttagcompound.getInteger("ID");
@@ -304,30 +306,27 @@ public class LinkedItemController {
         var1.close();
     }
 
-    public void readLinkedMap(DataInputStream stream) throws IOException{
+    public void readLinkedMap(DataInputStream stream) throws IOException {
         NBTTagCompound nbtCompound = CompressedStreamTools.read(stream);
         this.readMapNBT(nbtCompound);
     }
 
-    public void saveLinkedItemsMap(){
+    public void saveLinkedItemsMap() {
         try {
             File saveDir = getMapDir();
             File file = new File(saveDir, "linkeditems.dat_new");
             File file1 = new File(saveDir, "linkeditems.dat_old");
             File file2 = new File(saveDir, "linkeditems.dat");
             CompressedStreamTools.writeCompressed(this.writeMapNBT(), new FileOutputStream(file));
-            if(file1.exists())
-            {
+            if (file1.exists()) {
                 file1.delete();
             }
             file2.renameTo(file1);
-            if(file2.exists())
-            {
+            if (file2.exists()) {
                 file2.delete();
             }
             file.renameTo(file2);
-            if(file.exists())
-            {
+            if (file.exists()) {
                 file.delete();
             }
         } catch (Exception e) {

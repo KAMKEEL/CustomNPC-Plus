@@ -18,7 +18,7 @@ public class DBCAddon {
      * The Addon Mod will replace all blank functions within
      * this class to change the ongoing code.
      */
-    public DBCAddon(){
+    public DBCAddon() {
         instance = this;
     }
 
@@ -26,21 +26,29 @@ public class DBCAddon {
         return Loader.isModLoaded("npcdbc");
     }
 
-    public void dbcCopyData(EntityLivingBase copied, EntityLivingBase entity){}
+    public void dbcCopyData(EntityLivingBase copied, EntityLivingBase entity) {
+    }
 
     // AI / STATS
-    public boolean canDBCAttack(EntityNPCInterface npc, float attackStrength, Entity receiver){
+    public boolean canDBCAttack(EntityNPCInterface npc, float attackStrength, Entity receiver) {
         return false;
     }
-    public void doDBCDamage(EntityNPCInterface npc, float attackStrength, Entity receiver){}
-    public boolean isKO(EntityNPCInterface npc, EntityPlayer player){
+
+    public void doDBCDamage(EntityNPCInterface npc, float attackStrength, Entity receiver) {
+    }
+
+    public boolean isKO(EntityNPCInterface npc, EntityPlayer player) {
         return false;
     }
 
     // PlayerData NBT
-    public void writeToNBT(PlayerData playerData, NBTTagCompound nbtTagCompound){}
-    public void readFromNBT(PlayerData playerData, NBTTagCompound nbtTagCompound){}
+    public void writeToNBT(PlayerData playerData, NBTTagCompound nbtTagCompound) {
+    }
+
+    public void readFromNBT(PlayerData playerData, NBTTagCompound nbtTagCompound) {
+    }
 
     // Client Sync
-    public void syncPlayer(EntityPlayerMP playerMP){}
+    public void syncPlayer(EntityPlayerMP playerMP) {
+    }
 }

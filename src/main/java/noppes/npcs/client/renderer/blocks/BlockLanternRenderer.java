@@ -22,59 +22,57 @@ import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-public class BlockLanternRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler{
+public class BlockLanternRenderer extends TileEntitySpecialRenderer implements ISimpleBlockRenderingHandler {
 
-	private final ModelLegacyLantern modelLegacyLantern = new ModelLegacyLantern();
-	private final ModelLegacyCeiling modelLegacyCeiling = new ModelLegacyCeiling();
-	private final ModelLegacyWall modelLegacyWall = new ModelLegacyWall();
-	private static final ResourceLocation legacyTexture = new ResourceLocation("customnpcs","textures/models/legacy/Lamp.png");
+    private final ModelLegacyLantern modelLegacyLantern = new ModelLegacyLantern();
+    private final ModelLegacyCeiling modelLegacyCeiling = new ModelLegacyCeiling();
+    private final ModelLegacyWall modelLegacyWall = new ModelLegacyWall();
+    private static final ResourceLocation legacyTexture = new ResourceLocation("customnpcs", "textures/models/legacy/Lamp.png");
 
     private final LanternFloor modelLantern = new LanternFloor();
     private final LanternWall modelLanternWall = new LanternWall();
     private final LanternCeiling modelLanternCeiling = new LanternCeiling();
-    private static final ResourceLocation texture = new ResourceLocation("customnpcs","textures/models/lantern.png");
+    private static final ResourceLocation texture = new ResourceLocation("customnpcs", "textures/models/lantern.png");
 
-    public BlockLanternRenderer(){
-		((BlockLantern)CustomItems.lantern).renderId = RenderingRegistry.getNextAvailableRenderId();
-		((BlockLantern)CustomItems.lantern_unlit).renderId = ((BlockLantern)CustomItems.lantern).renderId;
-		RenderingRegistry.registerBlockHandler(this);
+    public BlockLanternRenderer() {
+        ((BlockLantern) CustomItems.lantern).renderId = RenderingRegistry.getNextAvailableRenderId();
+        ((BlockLantern) CustomItems.lantern_unlit).renderId = ((BlockLantern) CustomItems.lantern).renderId;
+        RenderingRegistry.registerBlockHandler(this);
     }
 
-	@Override
-	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
-			double var6, float var8) {
-		TileLamp tile = (TileLamp) var1;
+    @Override
+    public void renderTileEntityAt(TileEntity var1, double var2, double var4,
+                                   double var6, float var8) {
+        TileLamp tile = (TileLamp) var1;
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 1.5f, (float) var6 + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glColor3f(1, 1, 1);
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glEnable(GL11.GL_ALPHA_TEST);
 
-        if(ConfigClient.LegacyLantern){
+        if (ConfigClient.LegacyLantern) {
             GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
             Minecraft.getMinecraft().getTextureManager().bindTexture(legacyTexture);
-            if(tile.variant == 0)
+            if (tile.variant == 0)
                 modelLegacyLantern.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            else if(tile.variant == 1)
+            else if (tile.variant == 1)
                 modelLegacyCeiling.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else
                 modelLegacyWall.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         } else {
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
-            if(tile.variant == 0){
+            if (tile.variant == 0) {
                 GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
                 modelLantern.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            }
-            else if(tile.variant == 1){
+            } else if (tile.variant == 1) {
                 GL11.glRotatef(90, 0, 1, 0);
                 modelLanternCeiling.Chain.render(0.0625F);
                 GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
                 modelLanternCeiling.Lantern.render(0.0625F);
                 modelLanternCeiling.Light.render(0.0625F);
-            }
-            else {
+            } else {
                 GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
                 GL11.glTranslatef(0, 0.3f, 0);
                 modelLanternWall.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
@@ -83,24 +81,23 @@ public class BlockLanternRenderer extends TileEntitySpecialRenderer implements I
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glPopAttrib();
 
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelId,
+                                     RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 2.2f, 0);
         GL11.glScalef(2f, 2f, 2f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(180, 0, 1, 0);
 
-        if(ConfigClient.LegacyLantern){
+        if (ConfigClient.LegacyLantern) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(legacyTexture);
             GL11.glColor3f(1, 1, 1);
             modelLegacyLantern.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-        else {
+        } else {
             GL11.glScalef(0.7f, 0.7f, 0.7f);
             GL11.glTranslatef(0, 0.4f, 0);
             Minecraft.getMinecraft().getTextureManager().bindTexture(texture);
@@ -108,25 +105,25 @@ public class BlockLanternRenderer extends TileEntitySpecialRenderer implements I
             modelLantern.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
 
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
 
-	@Override
-	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
-			Block block, int modelId, RenderBlocks renderer) {
-		return false;
-	}
+    @Override
+    public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z,
+                                    Block block, int modelId, RenderBlocks renderer) {
+        return false;
+    }
 
 
-	@Override
-	public boolean shouldRender3DInInventory(int modelId) {
+    @Override
+    public boolean shouldRender3DInInventory(int modelId) {
         return ConfigClient.LegacyLantern;
-	}
+    }
 
 
-	@Override
-	public int getRenderId() {
-		return CustomItems.lantern.getRenderType();
-	}
+    @Override
+    public int getRenderId() {
+        return CustomItems.lantern.getRenderType();
+    }
 }

@@ -11,38 +11,40 @@ import java.io.FileOutputStream;
 import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
 public class GlobalDataController {
-	public static GlobalDataController Instance;
-	private int itemGiverId = 0;
+    public static GlobalDataController Instance;
+    private int itemGiverId = 0;
 
-	public GlobalDataController(){
-		Instance = this;
-		load();
-	}
+    public GlobalDataController() {
+        Instance = this;
+        load();
+    }
 
-	private void load(){
-		File saveDir = CustomNpcs.getWorldSaveDirectory();
-		try {
-	        File file = new File(saveDir, "global.dat");
-	        if(file.exists()){
-	        	loadData(file);
-	        }
-		} catch (Exception e) {
-			try {
-		        File file = new File(saveDir, "global.dat_old");
-		        if(file.exists()){
-		        	loadData(file);
-		        }
+    private void load() {
+        File saveDir = CustomNpcs.getWorldSaveDirectory();
+        try {
+            File file = new File(saveDir, "global.dat");
+            if (file.exists()) {
+                loadData(file);
+            }
+        } catch (Exception e) {
+            try {
+                File file = new File(saveDir, "global.dat_old");
+                if (file.exists()) {
+                    loadData(file);
+                }
 
-			} catch (Exception ee) {
-				ee.printStackTrace();
-			}
-		}
-	}
-	private void loadData(File file) throws Exception {
+            } catch (Exception ee) {
+                ee.printStackTrace();
+            }
+        }
+    }
+
+    private void loadData(File file) throws Exception {
         NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
         itemGiverId = nbttagcompound1.getInteger("itemGiverId");
-	}
-	public void saveData(){
+    }
+
+    public void saveData() {
         customNPCThread.execute(() -> {
             try {
                 File saveDir = CustomNpcs.getWorldSaveDirectory();
@@ -54,28 +56,26 @@ public class GlobalDataController {
                 File file1 = new File(saveDir, "global.dat_old");
                 File file2 = new File(saveDir, "global.dat");
                 CompressedStreamTools.writeCompressed(nbttagcompound, new FileOutputStream(file));
-                if(file1.exists())
-                {
+                if (file1.exists()) {
                     file1.delete();
                 }
                 file2.renameTo(file1);
-                if(file2.exists())
-                {
+                if (file2.exists()) {
                     file2.delete();
                 }
                 file.renameTo(file2);
-                if(file.exists())
-                {
+                if (file.exists()) {
                     file.delete();
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         });
-	}
-	public int incrementItemGiverId(){
-		itemGiverId++;
+    }
+
+    public int incrementItemGiverId() {
+        itemGiverId++;
         saveData();
-		return itemGiverId;
-	}
+        return itemGiverId;
+    }
 }

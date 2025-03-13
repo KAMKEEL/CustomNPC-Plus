@@ -20,40 +20,39 @@ import noppes.npcs.blocks.tiles.TileVariant;
 
 import java.util.List;
 
-public class BlockPedestal extends BlockTrigger{
+public class BlockPedestal extends BlockTrigger {
 
-	public BlockPedestal() {
+    public BlockPedestal() {
         super(Blocks.stone);
-	}
-
-    @Override
-    public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int side, float hitX, float hitY, float hitZ){
-    	if(par1World.isRemote)
-    		return true;
-
-    	TilePedestal tile = (TilePedestal) par1World.getTileEntity(i, j, k);
-
-    	ItemStack item = player.getCurrentEquippedItem();
-    	ItemStack weapon = tile.getStackInSlot(0);
-    	if(item == null && weapon != null){
-    		tile.setInventorySlotContents(0, null);
-    		player.inventory.setInventorySlotContents(player.inventory.currentItem, weapon);
-	    	par1World.markBlockForUpdate(i, j, k);
-	    	updateSurrounding(par1World, i, j, k);
-    	}
-    	else if(item == null || item.getItem() == null || item.getItem() instanceof ItemBlock)
-			return true;
-    	else if(item != null && weapon == null){
-    		tile.setInventorySlotContents(0, item);
-    		player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
-	    	par1World.markBlockForUpdate(i, j, k);
-	    	updateSurrounding(par1World, i, j, k);
-    	}
-    	return true;
     }
 
     @Override
-    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List){
+    public boolean onBlockActivated(World par1World, int i, int j, int k, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+        if (par1World.isRemote)
+            return true;
+
+        TilePedestal tile = (TilePedestal) par1World.getTileEntity(i, j, k);
+
+        ItemStack item = player.getCurrentEquippedItem();
+        ItemStack weapon = tile.getStackInSlot(0);
+        if (item == null && weapon != null) {
+            tile.setInventorySlotContents(0, null);
+            player.inventory.setInventorySlotContents(player.inventory.currentItem, weapon);
+            par1World.markBlockForUpdate(i, j, k);
+            updateSurrounding(par1World, i, j, k);
+        } else if (item == null || item.getItem() == null || item.getItem() instanceof ItemBlock)
+            return true;
+        else if (item != null && weapon == null) {
+            tile.setInventorySlotContents(0, item);
+            player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+            par1World.markBlockForUpdate(i, j, k);
+            updateSurrounding(par1World, i, j, k);
+        }
+        return true;
+    }
+
+    @Override
+    public void getSubBlocks(Item par1, CreativeTabs par2CreativeTabs, List par3List) {
         par3List.add(new ItemStack(par1, 1, 0));
         par3List.add(new ItemStack(par1, 1, 1));
         par3List.add(new ItemStack(par1, 1, 2));
@@ -62,58 +61,57 @@ public class BlockPedestal extends BlockTrigger{
     }
 
     @Override
-    public int damageDropped(int par1){
+    public int damageDropped(int par1) {
         return par1;
-    }
-    @Override
-    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z){
-    	TileEntity tileentity = world.getTileEntity(x, y, z);
-    	if(!(tileentity instanceof TileVariant)){
-    		super.setBlockBoundsBasedOnState(world, x, y, z);
-    		return;
-    	}
-    	TileVariant tile = (TileVariant) tileentity;
-    	if(tile.rotation % 2 == 0){
-	        setBlockBounds(0f, 0, 0.2f, 1, 0.5f, 0.8f );
-		}
-		else{
-	        setBlockBounds(0.2f, 0, 0, 0.8f, 0.5f, 1 );
-		}
     }
 
     @Override
-    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack){
+    public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+        TileEntity tileentity = world.getTileEntity(x, y, z);
+        if (!(tileentity instanceof TileVariant)) {
+            super.setBlockBoundsBasedOnState(world, x, y, z);
+            return;
+        }
+        TileVariant tile = (TileVariant) tileentity;
+        if (tile.rotation % 2 == 0) {
+            setBlockBounds(0f, 0, 0.2f, 1, 0.5f, 0.8f);
+        } else {
+            setBlockBounds(0.2f, 0, 0, 0.8f, 0.5f, 1);
+        }
+    }
+
+    @Override
+    public void onBlockPlacedBy(World par1World, int par2, int par3, int par4, EntityLivingBase par5EntityLivingBase, ItemStack par6ItemStack) {
         super.onBlockPlacedBy(par1World, par2, par3, par4, par5EntityLivingBase, par6ItemStack);
-        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage() , 2);
+        par1World.setBlockMetadataWithNotify(par2, par3, par4, par6ItemStack.getItemDamage(), 2);
     }
 
     @Override
     @SideOnly(Side.CLIENT)
-    public IIcon getIcon(int p_149691_1_, int meta)
-    {
-    	meta %= 7;
-    	if(meta == 1)
+    public IIcon getIcon(int p_149691_1_, int meta) {
+        meta %= 7;
+        if (meta == 1)
             return Blocks.stone.getIcon(p_149691_1_, 0);
-    	else if(meta == 2)
+        else if (meta == 2)
             return Blocks.iron_block.getIcon(p_149691_1_, 0);
-    	else if(meta == 3)
+        else if (meta == 3)
             return Blocks.gold_block.getIcon(p_149691_1_, 0);
-    	else if(meta == 4)
+        else if (meta == 4)
             return Blocks.diamond_block.getIcon(p_149691_1_, 0);
         return Blocks.planks.getIcon(p_149691_1_, 0);
     }
 
 
-	@Override
-	public TileEntity createNewTileEntity(World var1, int var2) {
-		return new TilePedestal();
-	}
+    @Override
+    public TileEntity createNewTileEntity(World var1, int var2) {
+        return new TilePedestal();
+    }
 
-	@Override
-    public void breakBlock(World world, int x, int y, int z, Block block, int p_149749_6_){
-		TileNpcContainer tile = (TileNpcContainer)world.getTileEntity(x, y, z);
+    @Override
+    public void breakBlock(World world, int x, int y, int z, Block block, int p_149749_6_) {
+        TileNpcContainer tile = (TileNpcContainer) world.getTileEntity(x, y, z);
         if (tile == null)
-        	return;
+            return;
         tile.dropItems(world, x, y, z);
 
         world.func_147453_f(x, y, z, block);

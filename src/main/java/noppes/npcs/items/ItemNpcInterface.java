@@ -9,48 +9,48 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import org.lwjgl.opengl.GL11;
 
-public class ItemNpcInterface extends Item implements ItemRenderInterface{
-    
-	public ItemNpcInterface(int par1) {
-		this();
-	}
-	public ItemNpcInterface() {
-		setCreativeTab(CustomItems.tab);
-		CustomNpcs.proxy.registerItem(this);
-	}
-	public void renderSpecial(){
-        GL11.glScalef(0.66f, 0.66f,0.66f);
+public class ItemNpcInterface extends Item implements ItemRenderInterface {
+
+    public ItemNpcInterface(int par1) {
+        this();
+    }
+
+    public ItemNpcInterface() {
+        setCreativeTab(CustomItems.tab);
+        CustomNpcs.proxy.registerItem(this);
+    }
+
+    public void renderSpecial() {
+        GL11.glScalef(0.66f, 0.66f, 0.66f);
         GL11.glTranslatef(0, 0.3f, 0);
-    };
+    }
 
     @Override
-    public int getItemEnchantability()
-    {
+    public int getItemEnchantability() {
         //return this.toolMaterial.getEnchantability();
-    	return super.getItemEnchantability();
+        return super.getItemEnchantability();
     }
 
     @Override
-    public Item setUnlocalizedName(String name){
-    	super.setUnlocalizedName(name);
-		GameRegistry.registerItem(this, name);
-    	return this;
+    public Item setUnlocalizedName(String name) {
+        super.setUnlocalizedName(name);
+        GameRegistry.registerItem(this, name);
+        return this;
     }
 
     @Override
-    public boolean hitEntity(ItemStack par1ItemStack, EntityLivingBase par2EntityLiving, EntityLivingBase par3EntityLiving)
-    {
-    	if(par2EntityLiving.getHealth() <= 0)
-    		return false;
+    public boolean hitEntity(ItemStack par1ItemStack, EntityLivingBase par2EntityLiving, EntityLivingBase par3EntityLiving) {
+        if (par2EntityLiving.getHealth() <= 0)
+            return false;
         par1ItemStack.damageItem(1, par3EntityLiving);
         return true;
     }
 
-	public boolean hasItem(EntityPlayer player, Item item) {
-		return player.inventory.hasItem(item);
-	}
-	
-	public boolean consumeItem(EntityPlayer player, Item item) {
-		return player.inventory.consumeInventoryItem(item);
-	}
+    public boolean hasItem(EntityPlayer player, Item item) {
+        return player.inventory.hasItem(item);
+    }
+
+    public boolean consumeItem(EntityPlayer player, Item item) {
+        return player.inventory.consumeInventoryItem(item);
+    }
 }

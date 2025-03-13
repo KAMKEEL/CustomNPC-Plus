@@ -9,12 +9,12 @@ public class AddonManager {
     // Manager class to easily disable mixin manipulated
     // addons for debugging and testing
 
-    public AddonManager(){
+    public AddonManager() {
         Instance = this;
         load();
     }
 
-    public void load(){
+    public void load() {
         // Gecko Addon Initialization
         new GeckoAddon();
         new GeckoAddonClient();

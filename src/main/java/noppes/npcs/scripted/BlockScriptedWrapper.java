@@ -19,34 +19,34 @@ import noppes.npcs.blocks.tiles.TileScripted;
 
 import java.util.Set;
 
-public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
+public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted {
     private TileScripted tile;
 
     public BlockScriptedWrapper(World world, Block block, int x, int y, int z) {
-        super(world, block, new BlockPos(x,y,z));
+        super(world, block, new BlockPos(x, y, z));
         tile = (TileScripted) super.tile.getMCTileEntity();
     }
 
     @Override
-    public void setModel(IItemStack item){
-        if(item == null)
+    public void setModel(IItemStack item) {
+        if (item == null)
             tile.setItemModel(null, null);
         else
             tile.setItemModel(item.getMCItemStack(), Block.getBlockFromItem(item.getMCItemStack().getItem()));
     }
 
     @Override
-    public void setModel(String name){
-        if(name == null)
+    public void setModel(String name) {
+        if (name == null)
             tile.setItemModel(null, null);
-        else{
+        else {
             Block block = Block.getBlockFromName(name);
-            if(block!=null) {
+            if (block != null) {
                 tile.setItemModel(new ItemStack(Item.getItemFromBlock(block)), block);
-            }else{
-                if(Item.itemRegistry.containsKey(name)) {
+            } else {
+                if (Item.itemRegistry.containsKey(name)) {
                     tile.setItemModel(new ItemStack((Item) Item.itemRegistry.getObject(name)), null);
-                }else{
+                } else {
                     tile.setItemModel(null, null);
                 }
             }
@@ -54,103 +54,103 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     }
 
     @Override
-    public IItemStack getModel(){
+    public IItemStack getModel() {
         return NpcAPI.Instance().getIItemStack(tile.itemModel);
     }
 
     @Override
-    public void setRedstonePower(int strength){
+    public void setRedstonePower(int strength) {
         tile.setRedstonePower(strength);
     }
 
     @Override
-    public int getRedstonePower(){
+    public int getRedstonePower() {
         return tile.powering;
     }
 
     @Override
-    public void setIsLadder(boolean bo){
+    public void setIsLadder(boolean bo) {
         tile.isLadder = bo;
         tile.needsClientUpdate = true;
     }
 
     @Override
-    public boolean getIsLadder(){
+    public boolean getIsLadder() {
         return tile.isLadder;
     }
 
     @Override
-    public void setIsPassible(boolean bo){
+    public void setIsPassible(boolean bo) {
         setIsPassable(bo);
     }
 
     @Override
-    public boolean getIsPassible(){
+    public boolean getIsPassible() {
         return getIsPassable();
     }
 
     @Override
-    public void setIsPassable(boolean bo){
+    public void setIsPassable(boolean bo) {
         tile.isPassible = bo;
         tile.needsClientUpdate = true;
     }
 
     @Override
-    public boolean getIsPassable(){
-        if(tile == null)
+    public boolean getIsPassable() {
+        if (tile == null)
             return false;
         return tile.isPassible;
     }
 
     @Override
-    public void setLight(int value){
+    public void setLight(int value) {
         tile.setLightValue(value);
     }
 
     @Override
-    public int getLight(){
-        if(tile == null)
+    public int getLight() {
+        if (tile == null)
             return 0;
         return tile.lightValue;
     }
 
     @Override
-    public void setScale(float x, float y, float z){
+    public void setScale(float x, float y, float z) {
         tile.setScale(x, y, z);
     }
 
     @Override
-    public float getScaleX(){
+    public float getScaleX() {
         return tile.scaleX;
     }
 
     @Override
-    public float getScaleY(){
+    public float getScaleY() {
         return tile.scaleY;
     }
 
     @Override
-    public float getScaleZ(){
+    public float getScaleZ() {
         return tile.scaleZ;
     }
 
     @Override
-    public void setRotation(int x, int y, int z){
-        tile.setRotation(x % 360, y  % 360, z  % 360);
+    public void setRotation(int x, int y, int z) {
+        tile.setRotation(x % 360, y % 360, z % 360);
     }
 
     @Override
-    public int getRotationX(){
+    public int getRotationX() {
         return tile.rotationX;
     }
 
     @Override
-    public int getRotationY(){
+    public int getRotationY() {
         return tile.rotationY;
     }
 
     @Override
-    public int getRotationZ(){
+    public int getRotationZ() {
         return tile.rotationZ;
     }
 
@@ -175,8 +175,8 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     }
 
     @Override
-    public void executeCommand(String command){
-        if(!MinecraftServer.getServer().isCommandBlockEnabled())
+    public void executeCommand(String command) {
+        if (!MinecraftServer.getServer().isCommandBlockEnabled())
             throw new CustomNPCsException("Command blocks need to be enabled to executeCommands");
         NoppesUtilServer.runCommand(world.getMCWorld(), "ScriptedBlock", command);
     }
@@ -217,16 +217,16 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     }
 
     @Override
-    public void setTileEntity(ITileEntity tile){
+    public void setTileEntity(ITileEntity tile) {
         this.tile = (TileScripted) tile;
         super.setTileEntity(tile);
     }
 
-    private NBTTagCompound getNBT(){
-        if(tile == null)
+    private NBTTagCompound getNBT() {
+        if (tile == null)
             return null;
         NBTTagCompound compound = tile.getTileData().getCompoundTag("CustomNPCsData");
-        if(compound.hasNoTags() && !tile.getTileData().hasKey("CustomNPCsData")){
+        if (compound.hasNoTags() && !tile.getTileData().hasKey("CustomNPCsData")) {
             tile.getTileData().setTag("CustomNPCsData", compound);
         }
         return compound;
@@ -235,31 +235,31 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     @Override
     public void setStoredData(String key, Object value) {
         NBTTagCompound compound = getNBT();
-        if(compound == null)
+        if (compound == null)
             return;
-        if(value instanceof Number)
+        if (value instanceof Number)
             compound.setDouble(key, ((Number) value).doubleValue());
-        else if(value instanceof String)
-            compound.setString(key, (String)value);
+        else if (value instanceof String)
+            compound.setString(key, (String) value);
     }
 
     @Override
     public Object getStoredData(String key) {
         NBTTagCompound compound = getNBT();
-        if(compound == null)
+        if (compound == null)
             return null;
-        if(!compound.hasKey(key))
+        if (!compound.hasKey(key))
             return null;
         NBTBase base = compound.getTag(key);
-        if(base instanceof NBTBase.NBTPrimitive)
-            return ((NBTBase.NBTPrimitive)base).func_150286_g();
-        return ((NBTTagString)base).func_150285_a_();
+        if (base instanceof NBTBase.NBTPrimitive)
+            return ((NBTBase.NBTPrimitive) base).func_150286_g();
+        return ((NBTTagString) base).func_150285_a_();
     }
 
     @Override
     public void removeStoredData(String key) {
         NBTTagCompound compound = getNBT();
-        if(compound == null)
+        if (compound == null)
             return;
         compound.removeTag(key);
     }
@@ -267,14 +267,14 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     @Override
     public boolean hasStoredData(String key) {
         NBTTagCompound compound = getNBT();
-        if(compound == null)
+        if (compound == null)
             return false;
         return compound.hasKey(key);
     }
 
     @Override
     public void clearStoredData() {
-        if(tile == null)
+        if (tile == null)
             return;
         tile.getTileData().setTag("CustomNPCsData", new NBTTagCompound());
     }
@@ -282,41 +282,42 @@ public class BlockScriptedWrapper extends ScriptBlock implements IBlockScripted{
     @Override
     public String[] getStoredDataKeys() {
         NBTTagCompound compound = getNBT();
-        if(compound == null)
+        if (compound == null)
             return new String[0];
-        return ((Set<String>)compound.func_150296_c()).toArray(new String[0]);
+        return ((Set<String>) compound.func_150296_c()).toArray(new String[0]);
     }
 
     @Override
     public void removeTempData(String key) {
-        if(tile == null)
+        if (tile == null)
             return;
         tile.tempData.remove(key);
     }
 
     @Override
     public void setTempData(String key, Object value) {
-        if(tile == null)
+        if (tile == null)
             return;
         tile.tempData.put(key, value);
     }
 
     @Override
     public boolean hasTempData(String key) {
-        if(tile == null)
+        if (tile == null)
             return false;
         return tile.tempData.containsKey(key);
     }
 
     @Override
     public Object getTempData(String key) {
-        if(tile == null)
+        if (tile == null)
             return null;
         return tile.tempData.get(key);
     }
+
     @Override
     public void clearTempData() {
-        if(tile == null)
+        if (tile == null)
             return;
         tile.tempData.clear();
     }

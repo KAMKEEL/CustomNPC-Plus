@@ -34,7 +34,7 @@ public class ProjectileEvent extends CustomNPCsEvent implements IProjectileEvent
     /**
      * projectileImpact
      */
-    public static class ImpactEvent extends ProjectileEvent implements  IProjectileEvent.ImpactEvent {
+    public static class ImpactEvent extends ProjectileEvent implements IProjectileEvent.ImpactEvent {
         /**
          * 0:entity, 1:block
          */
@@ -52,13 +52,13 @@ public class ProjectileEvent extends CustomNPCsEvent implements IProjectileEvent
         }
 
         public IEntity getEntity() {
-            if(type == 0)
+            if (type == 0)
                 return (IEntity) target;
             return null;
         }
 
         public IBlock getBlock() {
-            if(type == 1)
+            if (type == 1)
                 return (IBlock) target;
             return null;
         }

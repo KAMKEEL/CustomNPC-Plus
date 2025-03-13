@@ -10,14 +10,12 @@ import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.IOException;
 
@@ -30,7 +28,8 @@ public final class CloneListPacket extends AbstractPacket {
         this.tab = tab;
     }
 
-    public CloneListPacket() {}
+    public CloneListPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -57,11 +56,11 @@ public final class CloneListPacket extends AbstractPacket {
 
         NBTTagList list = new NBTTagList();
         int tab = in.readInt();
-        for(String name : ServerCloneController.Instance.getClones(tab))
+        for (String name : ServerCloneController.Instance.getClones(tab))
             list.appendTag(new NBTTagString(name));
 
         NBTTagList listDate = new NBTTagList();
-        for(String name : ServerCloneController.Instance.getClonesDate(tab))
+        for (String name : ServerCloneController.Instance.getClonesDate(tab))
             listDate.appendTag(new NBTTagString(name));
 
         NBTTagCompound compound = new NBTTagCompound();

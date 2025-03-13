@@ -30,11 +30,12 @@ public class ScriptSound implements ISound {
         for (Field field : ScriptSound.class.getDeclaredFields()) {
             try {
                 if (field.getName().equals("sourceEntity") && this.sourceEntity != null) {
-                    compound.setInteger("EntityID",this.sourceEntity.getEntityId());
+                    compound.setInteger("EntityID", this.sourceEntity.getEntityId());
                 } else if (!field.get(this).equals(field.get(newSound))) {
                     compound = writeNBTTag(compound, field.getType(), field.getName(), field.get(this));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return compound;
@@ -94,7 +95,8 @@ public class ScriptSound implements ISound {
                         }
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return particle;
@@ -128,8 +130,7 @@ public class ScriptSound implements ISound {
         this.volume = volume;
     }
 
-    public float getVolume()
-    {
+    public float getVolume() {
         return this.volume;
     }
 
@@ -137,8 +138,7 @@ public class ScriptSound implements ISound {
         this.pitch = pitch;
     }
 
-    public float getPitch()
-    {
+    public float getPitch() {
         return this.pitch;
     }
 

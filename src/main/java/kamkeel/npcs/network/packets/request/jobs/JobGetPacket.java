@@ -22,7 +22,8 @@ import java.io.IOException;
 public final class JobGetPacket extends AbstractPacket {
     public static String packetName = "Request|JobGet";
 
-    public JobGetPacket() { }
+    public JobGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -46,7 +47,8 @@ public final class JobGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException { }
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
@@ -56,16 +58,16 @@ public final class JobGetPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc.jobInterface == null)
+        if (npc.jobInterface == null)
             return;
 
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("JobData", true);
         npc.jobInterface.writeToNBT(compound);
-        if(npc.advanced.job == EnumJobType.Spawner)
-            ((JobSpawner)npc.jobInterface).cleanCompound(compound);
+        if (npc.advanced.job == EnumJobType.Spawner)
+            ((JobSpawner) npc.jobInterface).cleanCompound(compound);
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
-        if(npc.advanced.job == EnumJobType.Spawner)
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, ((JobSpawner)npc.jobInterface).getTitles());
+        if (npc.advanced.job == EnumJobType.Spawner)
+            GuiDataPacket.sendGuiData((EntityPlayerMP) player, ((JobSpawner) npc.jobInterface).getTitles());
     }
 }

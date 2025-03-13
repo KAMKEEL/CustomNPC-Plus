@@ -14,52 +14,48 @@ import java.util.Map;
 
 public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
 
-    public static void fillBuffer(ByteBuf buffer, Object... obs) throws IOException{
-        for(Object ob : obs){
-            if(ob == null)
+    public static void fillBuffer(ByteBuf buffer, Object... obs) throws IOException {
+        for (Object ob : obs) {
+            if (ob == null)
                 continue;
-            if(ob instanceof Map){
-                Map<String,Integer> map = (Map<String, Integer>) ob;
+            if (ob instanceof Map) {
+                Map<String, Integer> map = (Map<String, Integer>) ob;
 
                 buffer.writeInt(map.size());
-                for(String key : map.keySet()){
+                for (String key : map.keySet()) {
                     int value = map.get(key);
                     buffer.writeInt(value);
                     writeString(buffer, key);
                 }
-            }
-            else if(ob instanceof MerchantRecipeList)
-                ((MerchantRecipeList)ob).func_151391_a(new PacketBuffer(buffer));
-            else if(ob instanceof List){
+            } else if (ob instanceof MerchantRecipeList)
+                ((MerchantRecipeList) ob).func_151391_a(new PacketBuffer(buffer));
+            else if (ob instanceof List) {
                 List<String> list = (List<String>) ob;
                 buffer.writeInt(list.size());
-                for(String s : list)
+                for (String s : list)
                     writeString(buffer, s);
-            }
-            else if(ob instanceof Enum)
+            } else if (ob instanceof Enum)
                 buffer.writeInt(((Enum<?>) ob).ordinal());
-            else if(ob instanceof Integer)
+            else if (ob instanceof Integer)
                 buffer.writeInt((Integer) ob);
-            else if(ob instanceof Boolean)
+            else if (ob instanceof Boolean)
                 buffer.writeBoolean((Boolean) ob);
-            else if(ob instanceof String)
+            else if (ob instanceof String)
                 writeString(buffer, (String) ob);
-            else if(ob instanceof Float)
+            else if (ob instanceof Float)
                 buffer.writeFloat((Float) ob);
-            else if(ob instanceof Long)
+            else if (ob instanceof Long)
                 buffer.writeLong((Long) ob);
-            else if(ob instanceof Double)
+            else if (ob instanceof Double)
                 buffer.writeDouble((Double) ob);
             else if (ob instanceof byte[]) {
                 // Write byte array length followed by bytes
                 byte[] byteArray = (byte[]) ob;
                 buffer.writeShort((short) byteArray.length);
                 buffer.writeBytes(byteArray);
-            }
-            else if(ob instanceof NBTTagCompound)
+            } else if (ob instanceof NBTTagCompound)
                 writeNBT(buffer, (NBTTagCompound) ob);
         }
-        return;
     }
 
     public static void writeIntArray(ByteBuf buffer, int[] arr) {
@@ -80,7 +76,7 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
 
     public static void writeNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
         byte[] bytes = CompressedStreamTools.compress(compound);
-        buffer.writeShort((short)bytes.length);
+        buffer.writeShort((short) bytes.length);
         buffer.writeBytes(bytes);
     }
 
@@ -103,19 +99,18 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
         return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(31457280L));
     }
 
-    public static void writeString(ByteBuf buffer, String s){
+    public static void writeString(ByteBuf buffer, String s) {
         byte[] bytes = s.getBytes(Charsets.UTF_8);
-        buffer.writeShort((short)bytes.length);
+        buffer.writeShort((short) bytes.length);
         buffer.writeBytes(bytes);
     }
 
-    public static String readString(ByteBuf buffer){
-        try{
+    public static String readString(ByteBuf buffer) {
+        try {
             byte[] bytes = new byte[buffer.readShort()];
             buffer.readBytes(bytes);
             return new String(bytes, Charsets.UTF_8);
-        }
-        catch(IndexOutOfBoundsException ex){
+        } catch (IndexOutOfBoundsException ex) {
             return null;
         }
     }

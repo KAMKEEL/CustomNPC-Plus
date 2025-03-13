@@ -30,7 +30,8 @@ public final class BlockScriptPacket extends AbstractPacket {
     private int z;
     private NBTTagCompound compound;
 
-    public BlockScriptPacket() {}
+    public BlockScriptPacket() {
+    }
 
     public BlockScriptPacket(Action type, int x, int y, int z, NBTTagCompound compound) {
         this.type = type;
@@ -51,7 +52,7 @@ public final class BlockScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_BLOCK;
     }
 
@@ -62,7 +63,7 @@ public final class BlockScriptPacket extends AbstractPacket {
         out.writeInt(x);
         out.writeInt(y);
         out.writeInt(z);
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             ByteBufUtils.writeNBT(out, this.compound);
         }
     }
@@ -76,9 +77,9 @@ public final class BlockScriptPacket extends AbstractPacket {
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
-            if(!(tile instanceof TileScripted))
+            if (!(tile instanceof TileScripted))
                 return;
             NBTTagCompound compound = ((TileScripted) tile).getNBT(new NBTTagCompound());
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
@@ -88,7 +89,7 @@ public final class BlockScriptPacket extends AbstractPacket {
                 return;
             }
             TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());
-            if(!(tile instanceof TileScripted))
+            if (!(tile instanceof TileScripted))
                 return;
             TileScripted script = (TileScripted) tile;
             script.setNBT(ByteBufUtils.readNBT(in));
@@ -99,6 +100,7 @@ public final class BlockScriptPacket extends AbstractPacket {
     public static void Save(int x, int y, int z, NBTTagCompound compound) {
         PacketClient.sendClient(new BlockScriptPacket(Action.SAVE, x, y, z, compound));
     }
+
     public static void Get(int x, int y, int z) {
         PacketClient.sendClient(new BlockScriptPacket(Action.GET, x, y, z, new NBTTagCompound()));
     }

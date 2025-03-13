@@ -19,9 +19,9 @@ import noppes.npcs.entity.EntityDialogNpc;
 import java.util.List;
 
 @Command(
-        name="dialog",
-        desc="dialog operations",
-        usage="help"
+    name = "dialog",
+    desc = "dialog operations",
+    usage = "help"
 )
 public class CmdDialog extends ChMcLogger {
 
@@ -31,15 +31,15 @@ public class CmdDialog extends ChMcLogger {
 
 
     @SubCommand(
-            desc="force read",
-            usage="<player> <dialog>",
-            permissions={OpOnly.class, ParamCheck.class}
+        desc = "force read",
+        usage = "<player> <dialog>",
+        permissions = {OpOnly.class, ParamCheck.class}
     )
-    public boolean read(String args[]){
-        String playername=args[0];
+    public boolean read(String[] args) {
+        String playername = args[0];
         int diagid;
         try {
-        	diagid = Integer.parseInt(args[1]);
+            diagid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
             sendmessage("DialogID must be an integer");
             return false;
@@ -49,24 +49,24 @@ public class CmdDialog extends ChMcLogger {
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        for(PlayerData playerdata : data){
-	        playerdata.dialogData.dialogsRead.add(diagid);
-	        playerdata.save();
+        for (PlayerData playerdata : data) {
+            playerdata.dialogData.dialogsRead.add(diagid);
+            playerdata.save();
             playerdata.updateClient = true;
         }
         return true;
     }
 
     @SubCommand(
-            desc="force unread dialog",
-            usage="<player> <dialog>",
-            permissions={OpOnly.class, ParamCheck.class}
+        desc = "force unread dialog",
+        usage = "<player> <dialog>",
+        permissions = {OpOnly.class, ParamCheck.class}
     )
-    public boolean unread(String args[]){
-        String playername=args[0];
+    public boolean unread(String[] args) {
+        String playername = args[0];
         int diagid;
         try {
-        	diagid = Integer.parseInt(args[1]);
+            diagid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
             sendmessage("DialogID must be an integer");
             return false;
@@ -76,56 +76,57 @@ public class CmdDialog extends ChMcLogger {
             sendmessage(String.format("Unknow player '%s'", playername));
             return false;
         }
-        for(PlayerData playerdata : data){
-	        playerdata.dialogData.dialogsRead.remove(diagid);
-	        playerdata.save();
+        for (PlayerData playerdata : data) {
+            playerdata.dialogData.dialogsRead.remove(diagid);
+            playerdata.save();
             playerdata.updateClient = true;
         }
         return true;
     }
+
     @SubCommand(
-            desc="reload dialogs from disk",
-            permissions={OpOnly.class}
+        desc = "reload dialogs from disk",
+        permissions = {OpOnly.class}
     )
-    public boolean reload(String args[]){
-    	new DialogController().load();
+    public boolean reload(String[] args) {
+        new DialogController().load();
         SyncController.syncAllDialogs();
-    	return true;
+        return true;
     }
 
 
     @SubCommand(
-            desc="show dialog",
-            usage="<player> <dialog> <name>",
-            permissions={OpOnly.class}
+        desc = "show dialog",
+        usage = "<player> <dialog> <name>",
+        permissions = {OpOnly.class}
     )
-    public void show(String args[]){
-    	EntityPlayer player = CommandBase.getPlayer(pcParam, args[0]);
-    	if(player == null){
+    public void show(String[] args) {
+        EntityPlayer player = CommandBase.getPlayer(pcParam, args[0]);
+        if (player == null) {
             sendmessage(String.format("Unknow player '%s'", args[0]));
             return;
-    	}
+        }
 
         int diagid;
         try {
-        	diagid = Integer.parseInt(args[1]);
+            diagid = Integer.parseInt(args[1]);
         } catch (NumberFormatException ex) {
             sendmessage("DialogID must be an integer: " + args[1]);
             return;
         }
         Dialog dialog = DialogController.Instance.dialogs.get(diagid);
-        if(dialog == null){
+        if (dialog == null) {
             sendmessage("Unknown dialog id: " + args[1]);
             return;
         }
 
-    	EntityDialogNpc npc = new EntityDialogNpc(this.pcParam.getEntityWorld());
-    	npc.display.name = args[2];
-		EntityUtil.Copy(player, npc);
-    	DialogOption option = new DialogOption();
-    	option.dialogId = diagid;
-		option.title = dialog.title;
-    	npc.dialogs.put(0, option);
-    	NoppesUtilServer.openDialog(player, npc, dialog, 0);
+        EntityDialogNpc npc = new EntityDialogNpc(this.pcParam.getEntityWorld());
+        npc.display.name = args[2];
+        EntityUtil.Copy(player, npc);
+        DialogOption option = new DialogOption();
+        option.dialogId = diagid;
+        option.title = dialog.title;
+        npc.dialogs.put(0, option);
+        NoppesUtilServer.openDialog(player, npc, dialog, 0);
     }
 }

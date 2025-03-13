@@ -29,7 +29,9 @@ public final class AnimationSavePacket extends AbstractPacket {
     public AnimationSavePacket(NBTTagCompound animationNBT) {
         this.animationNBT = animationNBT;
     }
-    public AnimationSavePacket(){}
+
+    public AnimationSavePacket() {
+    }
 
     @Override
     public Enum getType() {

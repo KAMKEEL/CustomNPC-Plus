@@ -32,14 +32,14 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
     public void onRender(Minecraft mc, int mouseX, int mouseY, int mouseWheel, float partialTicks) {
         boolean hovered = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
         float red = (color >> 16 & 255) / 255f;
-        float green = (color >> 8  & 255) / 255f;
+        float green = (color >> 8 & 255) / 255f;
         float blue = (color & 255) / 255f;
-        GL11.glColor4f(red,green,blue,this.alpha);
+        GL11.glColor4f(red, green, blue, this.alpha);
         GL11.glPushMatrix();
-        GL11.glTranslatef(0.0F,0.0F,(float)this.id);
+        GL11.glTranslatef(0.0F, 0.0F, (float) this.id);
         this.drawTextBox();
         GL11.glPopMatrix();
-        GL11.glColor4f(1.0F,1.0F,1.0F,1.0F);
+        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         if (hovered && this.hoverText != null && this.hoverText.length > 0) {
             this.parent.hoverText = this.hoverText;
         }
@@ -88,7 +88,7 @@ public class CustomGuiTextField extends GuiTextField implements IKeyListener, ID
     public boolean mouseClicked(GuiCustom gui, int mouseX, int mouseY, int mouseButton) {
         boolean flag = mouseX >= this.xPosition && mouseX < this.xPosition + this.width && mouseY >= this.yPosition && mouseY < this.yPosition + this.height;
 
-        if (this.isFocused() && mouseButton == 0 && !flag){
+        if (this.isFocused() && mouseButton == 0 && !flag) {
             parent.onTextFieldUnfocused(this);
         }
 

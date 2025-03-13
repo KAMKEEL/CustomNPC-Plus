@@ -16,10 +16,10 @@ public class ScriptOverlay implements ICustomOverlay {
     int defaultAlignment = 0;
     List<ICustomOverlayComponent> components = new ArrayList();
 
-    public ScriptOverlay(){
+    public ScriptOverlay() {
     }
 
-    public ScriptOverlay(int id){
+    public ScriptOverlay(int id) {
         this.id = id;
     }
 
@@ -31,7 +31,7 @@ public class ScriptOverlay implements ICustomOverlay {
         return this.components;
     }
 
-    public int getDefaultAlignment(){
+    public int getDefaultAlignment() {
         return this.defaultAlignment;
     }
 
@@ -42,25 +42,25 @@ public class ScriptOverlay implements ICustomOverlay {
     public IOverlayTexturedRect addTexturedRect(int id, String texture, int x, int y, int width, int height) {
         ScriptOverlayTexturedRect component = new ScriptOverlayTexturedRect(id, texture, x, y, width, height);
         this.components.add(component);
-        return (IOverlayTexturedRect)this.components.get(this.components.size() - 1);
+        return (IOverlayTexturedRect) this.components.get(this.components.size() - 1);
     }
 
     public IOverlayTexturedRect addTexturedRect(int id, String texture, int x, int y, int width, int height, int textureX, int textureY) {
         ScriptOverlayTexturedRect component = new ScriptOverlayTexturedRect(id, texture, x, y, width, height, textureX, textureY);
         this.components.add(component);
-        return (IOverlayTexturedRect)this.components.get(this.components.size() - 1);
+        return (IOverlayTexturedRect) this.components.get(this.components.size() - 1);
     }
 
     public IOverlayLabel addLabel(int id, String label, int x, int y, int width, int height) {
         ScriptOverlayLabel component = new ScriptOverlayLabel(id, label, x, y, width, height);
         this.components.add(component);
-        return (IOverlayLabel)this.components.get(this.components.size() - 1);
+        return (IOverlayLabel) this.components.get(this.components.size() - 1);
     }
 
     public IOverlayLabel addLabel(int id, String label, int x, int y, int width, int height, int color) {
         ScriptOverlayLabel component = new ScriptOverlayLabel(id, label, x, y, width, height, color);
         this.components.add(component);
-        return (IOverlayLabel)this.components.get(this.components.size() - 1);
+        return (IOverlayLabel) this.components.get(this.components.size() - 1);
     }
 
     public IOverlayLine addLine(int id, int x1, int y1, int x2, int y2, int color, int thickness) {
@@ -84,15 +84,15 @@ public class ScriptOverlay implements ICustomOverlay {
                 return null;
             }
 
-            component = (ICustomOverlayComponent)var2.next();
-        } while(component.getID() != componentID);
+            component = (ICustomOverlayComponent) var2.next();
+        } while (component.getID() != componentID);
 
         return component;
     }
 
     public void removeComponent(int componentID) {
-        for(int i = 0; i < this.components.size(); ++i) {
-            if (((ICustomOverlayComponent)this.components.get(i)).getID() == componentID) {
+        for (int i = 0; i < this.components.size(); ++i) {
+            if (this.components.get(i).getID() == componentID) {
                 this.components.remove(i);
                 return;
             }
@@ -101,8 +101,8 @@ public class ScriptOverlay implements ICustomOverlay {
     }
 
     public void updateComponent(ICustomOverlayComponent component) {
-        for(int i = 0; i < this.components.size(); ++i) {
-            ICustomOverlayComponent c = (ICustomOverlayComponent)this.components.get(i);
+        for (int i = 0; i < this.components.size(); ++i) {
+            ICustomOverlayComponent c = this.components.get(i);
             if (c.getID() == component.getID()) {
                 this.components.set(i, component);
                 return;
@@ -120,9 +120,9 @@ public class ScriptOverlay implements ICustomOverlay {
         List<ICustomOverlayComponent> components = new ArrayList();
 
         NBTTagList list = tag.getTagList("components", 10);
-        for(int i = 0; i < list.tagCount(); i++){
+        for (int i = 0; i < list.tagCount(); i++) {
             NBTBase b = list.getCompoundTagAt(i);
-            ScriptOverlayComponent component = ScriptOverlayComponent.createFromNBT((NBTTagCompound)b);
+            ScriptOverlayComponent component = ScriptOverlayComponent.createFromNBT((NBTTagCompound) b);
             components.add(component);
         }
 
@@ -139,9 +139,9 @@ public class ScriptOverlay implements ICustomOverlay {
         Iterator var3 = this.components.iterator();
 
         ICustomOverlayComponent c;
-        while(var3.hasNext()) {
-            c = (ICustomOverlayComponent)var3.next();
-            list.appendTag(((ScriptOverlayComponent)c).toNBT(new NBTTagCompound()));
+        while (var3.hasNext()) {
+            c = (ICustomOverlayComponent) var3.next();
+            list.appendTag(c.toNBT(new NBTTagCompound()));
         }
 
         tag.setTag("components", list);

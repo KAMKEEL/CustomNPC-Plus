@@ -1,6 +1,5 @@
 package noppes.npcs.client;
 
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.controllers.MusicController;
@@ -18,7 +17,6 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
 import noppes.npcs.util.CacheHashMap;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -74,7 +72,7 @@ public class ClientCacheHandler {
 
         // Clear Quest Tracker
         HudComponent component = ClientHudManager.getInstance().getHudComponents().get(EnumHudComponent.QuestTracker);
-        if(component != null){
+        if (component != null) {
             component.loadData(new NBTTagCompound());
             component.hasData = false;
         }

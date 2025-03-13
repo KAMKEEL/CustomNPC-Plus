@@ -26,39 +26,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IScrollData, IGuiData, ICustomScrollListener, ITextfieldListener, ISubGuiListener  {
+public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IScrollData, IGuiData, ICustomScrollListener, ITextfieldListener, ISubGuiListener {
     public static int tab = 1;
     public GuiCustomScroll scroll;
-	public HashMap<String,Integer> data = new HashMap<String,Integer>();
-	private ContainerManageRecipes container;
-	private String selected = null;
-	private ResourceLocation slot;
-	private String search = "";
+    public HashMap<String, Integer> data = new HashMap<String, Integer>();
+    private final ContainerManageRecipes container;
+    private String selected = null;
+    private final ResourceLocation slot;
+    private String search = "";
 
-    public GuiNpcManageRecipes(EntityNPCInterface npc,ContainerManageRecipes container){
-    	super(npc,container);
-    	this.container = container;
-    	drawDefaultBackground = false;
+    public GuiNpcManageRecipes(EntityNPCInterface npc, ContainerManageRecipes container) {
+        super(npc, container);
+        this.container = container;
+        drawDefaultBackground = false;
         PacketClient.sendClient(new RecipesGetPacket(container.width));
         setBackground("inventorymenu.png");
         slot = getResource("slot.png");
         ySize = 200;
 
-        if(container.width == 1){
+        if (container.width == 1) {
             tab = 2;
-        } else if (container.width == 3){
+        } else if (container.width == 3) {
             tab = 0;
         } else {
             tab = 1;
         }
     }
 
-	@Override
-    public void initGui(){
+    @Override
+    public void initGui() {
         super.initGui();
 
-        if(scroll == null)
-        	scroll = new GuiCustomScroll(this,0,0);
+        if (scroll == null)
+            scroll = new GuiCustomScroll(this, 0, 0);
         scroll.setSize(130, 150);
         scroll.guiLeft = guiLeft + 280;
         scroll.guiTop = guiTop + 38;
@@ -66,13 +66,13 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
         int y = guiTop + 10;
 
-		this.addButton(new GuiButtonBiDirectional(0,guiLeft + 280, y, 130, 20, new String[]{"menu.global", "tile.npcCarpentyBench.name", "tile.anvil.name"}, tab));
+        this.addButton(new GuiButtonBiDirectional(0, guiLeft + 280, y, 130, 20, new String[]{"menu.global", "tile.npcCarpentyBench.name", "tile.anvil.name"}, tab));
 
-        y+= 106;
+        y += 106;
 
-        this.addButton(new GuiNpcButton(3,guiLeft + 226, y += 22, 50, 20, "gui.add"));
-        this.addButton(new GuiNpcButton(4,guiLeft + 226, y += 22, 50, 20, "gui.remove"));
-        this.addButton(new GuiNpcButton(10,guiLeft + 226, y += 30, 50, 20, "gui.copy"));
+        this.addButton(new GuiNpcButton(3, guiLeft + 226, y += 22, 50, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(4, guiLeft + 226, y += 22, 50, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(10, guiLeft + 226, y += 30, 50, 20, "gui.copy"));
 
         if (container.width != 1) {
             int buttonPos = guiTop + 72;
@@ -125,64 +125,63 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipeAnvil.name));
             this.getTextField(0).enabled = false;
         }
-		this.addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 280, guiTop + 8 + 3 + 180, 130, 20, search));
-	}
+        this.addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 280, guiTop + 8 + 3 + 180, 130, 20, search));
+    }
 
-	@Override
-	protected void actionPerformed(GuiButton guibutton){
-		GuiNpcButton button = (GuiNpcButton) guibutton;
-        if(button.id == 0){
+    @Override
+    protected void actionPerformed(GuiButton guibutton) {
+        GuiNpcButton button = (GuiNpcButton) guibutton;
+        if (button.id == 0) {
             GuiButtonBiDirectional buttonBiDirectional = (GuiButtonBiDirectional) button;
             tab = buttonBiDirectional.getValue();
-            if(tab == 0){
+            if (tab == 0) {
                 getTextField(55).setText("");
                 search = "";
                 scroll.clear();
                 save();
-                NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes,3,0,0);
-            } else if (tab == 1){
+                NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes, 3, 0, 0);
+            } else if (tab == 1) {
                 getTextField(55).setText("");
                 search = "";
                 scroll.clear();
                 save();
-                NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes,4,0,0);
+                NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes, 4, 0, 0);
             } else {
                 getTextField(55).setText("");
                 search = "";
                 scroll.clear();
                 save();
-                NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes,1,0,0);
+                NoppesUtil.requestOpenGUI(EnumGuiType.ManageRecipes, 1, 0, 0);
             }
         }
-        if(button.id == 3){
-        	save();
-        	scroll.clear();
-        	String name = "New";
-        	while(data.containsKey(name))
-        		name += "_";
+        if (button.id == 3) {
+            save();
+            scroll.clear();
+            String name = "New";
+            while (data.containsKey(name))
+                name += "_";
 
-            if(container.width == 1){
+            if (container.width == 1) {
                 RecipeAnvil recipe = new RecipeAnvil();
                 recipe.name = name;
                 PacketClient.sendClient(new RecipeSavePacket(recipe.writeNBT()));
-            }
-            else {
+            } else {
                 RecipeCarpentry recipe = new RecipeCarpentry(name);
                 recipe.isGlobal = container.width == 3;
                 PacketClient.sendClient(new RecipeSavePacket(recipe.writeNBT()));
             }
         }
-        if(button.id == 4){
-        	if(data.containsKey(scroll.getSelected())){
+        if (button.id == 4) {
+            if (data.containsKey(scroll.getSelected())) {
                 PacketClient.sendClient(new RecipeRemovePacket(data.get(scroll.getSelected()), container.width == 1));
-        		scroll.clear();
-        	}
+                scroll.clear();
+            }
         }
-        if(button.id == 5){
-        	container.recipe.ignoreDamage = button.getValue() == 1;
+        if (button.id == 5) {
+            container.recipe.ignoreDamage = button.getValue() == 1;
         }
-        if(button.id == 6){
-        	container.recipe.ignoreNBT = button.getValue() == 1;
+        if (button.id == 6) {
+            container.recipe.ignoreNBT = button.getValue() == 1;
         }
         if (button.id == 7) {
             container.recipeAnvil.ignoreRepairMaterialDamage = button.getValue() == 1;
@@ -193,9 +192,9 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         if (button.id == 9) {
             container.recipeAnvil.ignoreRepairItemNBT = button.getValue() == 1;
         }
-        if(button.id == 15){
+        if (button.id == 15) {
             save();
-            if(container.width == 1){
+            if (container.width == 1) {
                 setSubGui(new SubGuiNpcAvailability(container.recipeAnvil.availability));
             } else {
                 setSubGui(new SubGuiNpcAvailability(container.recipe.availability));
@@ -203,32 +202,31 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         }
     }
 
-	@Override
-	public void keyTyped(char c, int i)
-	{
-		super.keyTyped(c, i);
-		if(getTextField(55) != null){
-			if(getTextField(55).isFocused()){
-				if(search.equals(getTextField(55).getText()))
-					return;
-				search = getTextField(55).getText().toLowerCase();
+    @Override
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c, i);
+        if (getTextField(55) != null) {
+            if (getTextField(55).isFocused()) {
+                if (search.equals(getTextField(55).getText()))
+                    return;
+                search = getTextField(55).getText().toLowerCase();
                 scroll.resetScroll();
-				scroll.setList(getSearchList());
-			}
-		}
-	}
+                scroll.setList(getSearchList());
+            }
+        }
+    }
 
-	private List<String> getSearchList(){
-		if(search.isEmpty()){
-			return new ArrayList<String>(this.data.keySet());
-		}
-		List<String> list = new ArrayList<String>();
-		for(String name : this.data.keySet()){
-			if(name.toLowerCase().contains(search))
-				list.add(name);
-		}
-		return list;
-	}
+    private List<String> getSearchList() {
+        if (search.isEmpty()) {
+            return new ArrayList<String>(this.data.keySet());
+        }
+        List<String> list = new ArrayList<String>();
+        for (String name : this.data.keySet()) {
+            if (name.toLowerCase().contains(search))
+                list.add(name);
+        }
+        return list;
+    }
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
@@ -245,8 +243,8 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         }
     }
 
-    private void fixButtons(){
-        if(tab == 2){
+    private void fixButtons() {
+        if (tab == 2) {
             getTextField(0).setText(container.recipeAnvil.name);
             getTextField(1).setText(container.recipeAnvil.getRepairPercentage() + "");
             getTextField(2).setText(container.recipeAnvil.getXpCost() + "");
@@ -256,9 +254,9 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             getTextField(1).enabled = true;
             getTextField(2).enabled = true;
 
-            GuiNpcButtonYesNo btnMatDamage = (GuiNpcButtonYesNo)this.getButton(7);
-            GuiNpcButtonYesNo btnMatNBT = (GuiNpcButtonYesNo)this.getButton(8);
-            GuiNpcButtonYesNo btnItemNBT = (GuiNpcButtonYesNo)this.getButton(9);
+            GuiNpcButtonYesNo btnMatDamage = (GuiNpcButtonYesNo) this.getButton(7);
+            GuiNpcButtonYesNo btnMatNBT = (GuiNpcButtonYesNo) this.getButton(8);
+            GuiNpcButtonYesNo btnItemNBT = (GuiNpcButtonYesNo) this.getButton(9);
             if (btnMatDamage != null) {
                 btnMatDamage.setDisplay(container.recipeAnvil.ignoreRepairMaterialDamage ? 1 : 0);
                 btnMatDamage.setEnabled(true);
@@ -273,7 +271,7 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             }
 
             GuiNpcButton avail = this.getButton(15);
-            if(avail != null)
+            if (avail != null)
                 avail.setEnabled(true);
         } else {
             getTextField(0).setText(container.recipe.name);
@@ -285,41 +283,42 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             this.getButton(6).setDisplay(container.recipe.ignoreNBT ? 1 : 0);
             setSelected(container.recipe.name);
 
-            if(!container.recipe.isGlobal){
+            if (!container.recipe.isGlobal) {
                 GuiNpcButton avail = this.getButton(15);
-                if(avail != null)
+                if (avail != null)
                     avail.setEnabled(true);
             }
         }
     }
 
-	@Override
-    protected void drawGuiContainerBackgroundLayer(float f, int x, int y){
-    	super.drawGuiContainerBackgroundLayer(f, x, y);
+    @Override
+    protected void drawGuiContainerBackgroundLayer(float f, int x, int y) {
+        super.drawGuiContainerBackgroundLayer(f, x, y);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(slot);
 
-    	for(int i = 0; i < container.width;i++){
-        	for(int j = 0; j < container.width;j++){
-        		drawTexturedModalRect(guiLeft + i*18 + 7, guiTop + j*18 + 34, 0, 0, 18, 18);
-        	}
-    	}
+        for (int i = 0; i < container.width; i++) {
+            for (int j = 0; j < container.width; j++) {
+                drawTexturedModalRect(guiLeft + i * 18 + 7, guiTop + j * 18 + 34, 0, 0, 18, 18);
+            }
+        }
 
-        if(container.width == 1){
+        if (container.width == 1) {
             drawTexturedModalRect(guiLeft + 101, guiTop + 34, 0, 0, 18, 18);
             this.fontRendererObj.drawString(StatCollector.translateToLocal("gui.material"), guiLeft + 28, guiTop + 38, CustomNpcResourceListener.DefaultTextColor);
         } else {
             drawTexturedModalRect(guiLeft + 86, guiTop + 60, 0, 0, 18, 18);
         }
     }
-	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-		String name = scroll.getSelected();
-		this.data = data;
-		scroll.setList(getSearchList());
+
+    @Override
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        String name = scroll.getSelected();
+        this.data = data;
+        scroll.setList(getSearchList());
         this.getTextField(0).enabled = name != null;
 
-        if(container.width == 1){
+        if (container.width == 1) {
             this.getButton(7).setEnabled(name != null);
             this.getButton(8).setEnabled(name != null);
             this.getButton(9).setEnabled(name != null);
@@ -328,79 +327,79 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             this.getButton(6).setEnabled(name != null);
         }
 
-		if(name != null)
-			scroll.setSelected(name);
-	}
+        if (name != null)
+            scroll.setSelected(name);
+    }
 
-	@Override
-	public void setSelected(String selected) {
-		this.selected = selected;
-		scroll.setSelected(selected);
-	}
+    @Override
+    public void setSelected(String selected) {
+        this.selected = selected;
+        scroll.setSelected(selected);
+    }
 
-	@Override
-	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-		save();
-		selected = scroll.getSelected();
-        if(container.width == 1){
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        save();
+        selected = scroll.getSelected();
+        if (container.width == 1) {
             PacketClient.sendClient(new RecipeGetPacket(data.get(selected), true));
         } else {
             PacketClient.sendClient(new RecipeGetPacket(data.get(selected), false));
         }
-	}
+    }
 
-	@Override
-	public void save() {
-		GuiNpcTextField.unfocus();
-		if(selected != null && data.containsKey(selected)){
-			container.saveRecipe();
-            if(container.width == 1){
+    @Override
+    public void save() {
+        GuiNpcTextField.unfocus();
+        if (selected != null && data.containsKey(selected)) {
+            container.saveRecipe();
+            if (container.width == 1) {
                 PacketClient.sendClient(new RecipeSavePacket(container.recipeAnvil.writeNBT()));
             } else {
                 PacketClient.sendClient(new RecipeSavePacket(container.recipe.writeNBT()));
             }
-		}
-	}
+        }
+    }
 
-	@Override
-	public void unFocused(GuiNpcTextField guiNpcTextField) {
-		if(guiNpcTextField.id == 0){
-			String name = guiNpcTextField.getText();
-			if(!name.isEmpty() && !data.containsKey(name)){
-                if(container.width == 1){
+    @Override
+    public void unFocused(GuiNpcTextField guiNpcTextField) {
+        if (guiNpcTextField.id == 0) {
+            String name = guiNpcTextField.getText();
+            if (!name.isEmpty() && !data.containsKey(name)) {
+                if (container.width == 1) {
                     String old = container.recipeAnvil.name;
                     data.remove(container.recipeAnvil.name);
                     container.recipeAnvil.name = name;
                     data.put(container.recipeAnvil.name, container.recipeAnvil.id);
                     selected = name;
-                    scroll.replace(old,container.recipeAnvil.name);
+                    scroll.replace(old, container.recipeAnvil.name);
                 } else {
                     String old = container.recipe.name;
                     data.remove(container.recipe.name);
                     container.recipe.name = name;
                     data.put(container.recipe.name, container.recipe.id);
                     selected = name;
-                    scroll.replace(old,container.recipe.name);
+                    scroll.replace(old, container.recipe.name);
                 }
-			}
-		}
-        if(guiNpcTextField.id == 1){
+            }
+        }
+        if (guiNpcTextField.id == 1) {
             float percent = guiNpcTextField.getFloat();
-            if(container.width == 1){
+            if (container.width == 1) {
                 container.recipeAnvil.repairPercentage = percent;
             }
         }
-        if(guiNpcTextField.id == 2){
+        if (guiNpcTextField.id == 2) {
             int xpCost = guiNpcTextField.getInteger();
-            if(container.width == 1){
+            if (container.width == 1) {
                 container.recipeAnvil.xpCost = xpCost;
             }
         }
-	}
+    }
 
     @Override
-    public void subGuiClosed(SubGuiInterface subgui){
-        if(subgui instanceof SubGuiNpcAvailability)
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiNpcAvailability)
             fixButtons();
     }
 }

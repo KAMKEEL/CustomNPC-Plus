@@ -6,12 +6,12 @@ import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleMailman extends ScriptRoleInterface implements IRoleMailman {
 
-	public ScriptRoleMailman(EntityNPCInterface npc) {
-		super(npc);
-	}
+    public ScriptRoleMailman(EntityNPCInterface npc) {
+        super(npc);
+    }
 
-	@Override
-	public int getType(){
-		return RoleType.POSTMAN;
-	}
+    @Override
+    public int getType() {
+        return RoleType.POSTMAN;
+    }
 }

@@ -26,7 +26,8 @@ public final class QuestDialogGetTitlePacket extends AbstractPacket {
     private int dialogTwo;
     private int dialogThree;
 
-    public QuestDialogGetTitlePacket() {}
+    public QuestDialogGetTitlePacket() {
+    }
 
     public QuestDialogGetTitlePacket(int dialogOne, int dialogTwo, int dialogThree) {
         this.dialogOne = dialogOne;

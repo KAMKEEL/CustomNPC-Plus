@@ -10,7 +10,7 @@ public class DialogEvent extends CustomNPCsEvent implements IDialogEvent {
     public final IDialog dialog;
     public final IPlayer player;
 
-    public DialogEvent(IPlayer player, IDialog dialog){
+    public DialogEvent(IPlayer player, IDialog dialog) {
         this.dialog = dialog;
         this.player = player;
     }
@@ -51,7 +51,7 @@ public class DialogEvent extends CustomNPCsEvent implements IDialogEvent {
     }
 
     public static class DialogClosed extends DialogEvent implements IDialogEvent.DialogClosed {
-        public DialogClosed(IPlayer player, IDialog dialog){
+        public DialogClosed(IPlayer player, IDialog dialog) {
             super(player, dialog);
         }
 

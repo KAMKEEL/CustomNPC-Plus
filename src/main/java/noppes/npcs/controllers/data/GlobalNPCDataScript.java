@@ -27,18 +27,20 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
     public boolean enabled = false;
 
     public GlobalNPCDataScript(EntityNPCInterface npc) {
-        if(npc != null) {
+        if (npc != null) {
             this.npc = npc;
         }
     }
+
     public void clear() {
         this.scripts = new ArrayList();
     }
+
     public void readFromNBT(NBTTagCompound compound) {
         if (compound.hasKey("Scripts")) {
             this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
         } else {
-            this.scripts = NBTTags.GetScript(compound,this);
+            this.scripts = NBTTags.GetScript(compound, this);
         }
         this.scriptLanguage = compound.getString("ScriptLanguage");
         if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
@@ -50,10 +52,11 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
     }
+
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setInteger("TotalScripts",this.scripts.size());
+        compound.setInteger("TotalScripts", this.scripts.size());
         for (int i = 0; i < this.scripts.size(); i++) {
-            compound.setTag("Tab"+i,this.scripts.get(i).writeToNBT(new NBTTagCompound()));
+            compound.setTag("Tab" + i, this.scripts.get(i).writeToNBT(new NBTTagCompound()));
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
@@ -81,7 +84,7 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
             }
 
             for (ScriptContainer script : this.scripts) {
-                if(script == null || script.errored || !script.hasCode() )
+                if (script == null || script.errored || !script.hasCode())
                     continue;
 
                 script.run(hookName, event);
@@ -92,32 +95,40 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
     public boolean isClient() {
         return this.npc.isClientWorld();
     }
+
     public boolean getEnabled() {
         return this.enabled;
     }
+
     public void setEnabled(boolean bo) {
         this.enabled = bo;
     }
+
     public String getLanguage() {
         return this.scriptLanguage;
     }
+
     public void setLanguage(String lang) {
         this.scriptLanguage = lang;
     }
+
     public void setScripts(List<ScriptContainer> list) {
         this.scripts = list;
     }
+
     public List<ScriptContainer> getScripts() {
         return this.scripts;
     }
+
     public String noticeString() {
-        if(this.npc == null) {
+        if (this.npc == null) {
             return "Global script";
         } else {
             BlockPos pos = new BlockPos(this.npc);
             return GlobalNPCDataScript.toStringHelper(this.npc).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
     }
+
     public ICustomNpc getNpc() {
         if (this.npcAPI == null) {
             this.npcAPI = (ICustomNpc) NpcAPI.Instance().getIEntity(this.npc);
@@ -149,89 +160,107 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
         private final GlobalNPCDataScript.ToStringHelper.ValueHolder holderHead;
         private GlobalNPCDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
-        private boolean omitEmptyValues;
+        private final boolean omitEmptyValues;
+
         private ToStringHelper(String className) {
             this.holderHead = new GlobalNPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
-            this.className = (String) Preconditions.checkNotNull(className);
+            this.className = Preconditions.checkNotNull(className);
         }
+
         public GlobalNPCDataScript.ToStringHelper omitNullValues() {
             this.omitNullValues = true;
             return this;
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
             return this.addHolder(name, value);
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, boolean value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, char value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, double value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, float value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, int value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper add(String name, long value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(@CheckForNull Object value) {
             return this.addHolder(value);
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(boolean value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(char value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(double value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(float value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(int value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public GlobalNPCDataScript.ToStringHelper addValue(long value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         private static boolean isEmpty(Object value) {
             if (value instanceof CharSequence) {
-                return ((CharSequence)value).length() == 0;
+                return ((CharSequence) value).length() == 0;
             } else if (value instanceof Collection) {
-                return ((Collection)value).isEmpty();
+                return ((Collection) value).isEmpty();
             } else if (value instanceof Map) {
-                return ((Map)value).isEmpty();
+                return ((Map) value).isEmpty();
             } else if (value instanceof Optional) {
-                return !((Optional)value).isPresent();
+                return !((Optional) value).isPresent();
             } else if (value instanceof OptionalInt) {
-                return !((OptionalInt)value).isPresent();
+                return !((OptionalInt) value).isPresent();
             } else if (value instanceof OptionalLong) {
-                return !((OptionalLong)value).isPresent();
+                return !((OptionalLong) value).isPresent();
             } else if (value instanceof OptionalDouble) {
-                return !((OptionalDouble)value).isPresent();
+                return !((OptionalDouble) value).isPresent();
             } else if (value instanceof com.google.common.base.Optional) {
-                return !((com.google.common.base.Optional)value).isPresent();
+                return !((com.google.common.base.Optional) value).isPresent();
             } else if (value.getClass().isArray()) {
                 return Array.getLength(value) == 0;
             } else {
                 return false;
             }
         }
+
         public String toString() {
             boolean omitNullValuesSnapshot = this.omitNullValues;
             boolean omitEmptyValuesSnapshot = this.omitEmptyValues;
             String nextSeparator = "";
             StringBuilder builder = (new StringBuilder(32)).append(this.className).append('{');
-            for(GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
+            for (GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
                 Object value = valueHolder.value;
                 if (!(valueHolder instanceof GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder)) {
                     if (value == null) {
@@ -257,43 +286,51 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
             }
             return builder.append('}').toString();
         }
+
         private GlobalNPCDataScript.ToStringHelper.ValueHolder addHolder() {
             GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = new GlobalNPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
+
         private GlobalNPCDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
             GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             return this;
         }
+
         private GlobalNPCDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
             GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
-            valueHolder.name = (String)Preconditions.checkNotNull(name);
+            valueHolder.name = Preconditions.checkNotNull(name);
             return this;
         }
+
         private GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
             GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
+
         private GlobalNPCDataScript.ToStringHelper addUnconditionalHolder(Object value) {
             GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             return this;
         }
+
         private GlobalNPCDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
             GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
-            valueHolder.name = (String)Preconditions.checkNotNull(name);
+            valueHolder.name = Preconditions.checkNotNull(name);
             return this;
         }
+
         private static final class UnconditionalValueHolder extends GlobalNPCDataScript.ToStringHelper.ValueHolder {
             private UnconditionalValueHolder() {
                 super();
             }
         }
+
         private static class ValueHolder {
             @CheckForNull
             String name;
@@ -301,10 +338,12 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
             Object value;
             @CheckForNull
             GlobalNPCDataScript.ToStringHelper.ValueHolder next;
+
             private ValueHolder() {
             }
         }
     }
+
     public static GlobalNPCDataScript.ToStringHelper toStringHelper(Object self) {
         return new GlobalNPCDataScript.ToStringHelper(self.getClass().getSimpleName());
     }

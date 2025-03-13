@@ -180,7 +180,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         super.mouseMovedOrUp(mouseX, mouseY, state);
     }
 
-    public void mouseEvent(int i, int j, int k){}
+    public void mouseEvent(int i, int j, int k) {
+    }
 
     @Override
     protected void actionPerformed(GuiButton guibutton) {
@@ -191,7 +192,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
         }
     }
 
-    public void buttonEvent(GuiButton guibutton){}
+    public void buttonEvent(GuiButton guibutton) {
+    }
 
     @Override
     public void keyTyped(char c, int i) {
@@ -440,7 +442,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         float f4 = entity.rotationPitch;
         float f7 = entity.rotationYawHead;
         float f5 = (float) (guiLeft + x) - mouseX;
-        float f6 = (float) ((guiTop + y) - 50 * scale * zoomed) - mouseY;
+        float f6 = (guiTop + y) - 50 * scale * zoomed - mouseY;
         int orientation = 0;
         if (npc != null) {
             orientation = npc.ais.orientation;
@@ -482,8 +484,8 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public void openLink(String link) {
         try {
             Class oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke((Object) null, new Object[0]);
-            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new Object[]{new URI(link)});
+            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
+            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new URI(link));
         } catch (Throwable throwable) {
         }
     }

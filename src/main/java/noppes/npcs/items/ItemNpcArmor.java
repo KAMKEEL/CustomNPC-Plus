@@ -7,28 +7,28 @@ import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
 
-public class ItemNpcArmor extends ItemArmor{
+public class ItemNpcArmor extends ItemArmor {
 
-	private String texture;
-	public ItemNpcArmor(int par1, ArmorMaterial par2EnumArmorMaterial,int par4, String texture) {
-		super(par2EnumArmorMaterial, 0, par4);
-		this.texture = texture;
-		setCreativeTab(CustomItems.tabArmor);
-	}
-	
-	
-	@Override
-    public String getArmorTexture(ItemStack stack, Entity entity, int slot, String type)
-    {
-		if(armorType == 2)
-			return "customnpcs:textures/armor/" + texture + "_2.png";
-		return "customnpcs:textures/armor/" + texture + "_1.png";
+    private final String texture;
+
+    public ItemNpcArmor(int par1, ArmorMaterial par2EnumArmorMaterial, int par4, String texture) {
+        super(par2EnumArmorMaterial, 0, par4);
+        this.texture = texture;
+        setCreativeTab(CustomItems.tabArmor);
     }
 
 
     @Override
-    public Item setUnlocalizedName(String name){
-		GameRegistry.registerItem(this, name);
-    	return super.setUnlocalizedName(name);
+    public String getArmorTexture(ItemStack stack, Entity entity, int slot, String type) {
+        if (armorType == 2)
+            return "customnpcs:textures/armor/" + texture + "_2.png";
+        return "customnpcs:textures/armor/" + texture + "_1.png";
+    }
+
+
+    @Override
+    public Item setUnlocalizedName(String name) {
+        GameRegistry.registerItem(this, name);
+        return super.setUnlocalizedName(name);
     }
 }

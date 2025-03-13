@@ -29,18 +29,20 @@ public class PlayerDataScript implements INpcScriptHandler {
     public boolean enabled = false;
 
     public PlayerDataScript(EntityPlayer player) {
-        if(player != null) {
+        if (player != null) {
             this.player = player;
         }
     }
+
     public void clear() {
         this.scripts = new ArrayList();
     }
+
     public void readFromNBT(NBTTagCompound compound) {
         if (compound.hasKey("Scripts")) {
             this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
         } else {
-            this.scripts = NBTTags.GetScript(compound,this);
+            this.scripts = NBTTags.GetScript(compound, this);
         }
         this.scriptLanguage = compound.getString("ScriptLanguage");
         if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
@@ -52,10 +54,11 @@ public class PlayerDataScript implements INpcScriptHandler {
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
     }
+
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
-        compound.setInteger("TotalScripts",this.scripts.size());
+        compound.setInteger("TotalScripts", this.scripts.size());
         for (int i = 0; i < this.scripts.size(); i++) {
-            compound.setTag("Tab"+i,this.scripts.get(i).writeToNBT(new NBTTagCompound()));
+            compound.setTag("Tab" + i, this.scripts.get(i).writeToNBT(new NBTTagCompound()));
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
@@ -82,13 +85,13 @@ public class PlayerDataScript implements INpcScriptHandler {
                 }
 
                 if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
-                    noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent)event;
+                    noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent) event;
                     EventHooks.onPlayerInit(this, playerEvent.player);
                 }
             }
 
             for (ScriptContainer script : this.scripts) {
-                if(script == null || script.errored || !script.hasCode() )
+                if (script == null || script.errored || !script.hasCode())
                     continue;
 
                 script.run(hookName, event);
@@ -99,33 +102,41 @@ public class PlayerDataScript implements INpcScriptHandler {
     public boolean isClient() {
         return this.player != null && this.player.isClientWorld();
     }
+
     public boolean getEnabled() {
         return ScriptController.Instance.playerScripts.enabled;
     }
+
     public void setEnabled(boolean bo) {
         ScriptController.Instance.playerScripts.enabled = bo;
         this.enabled = bo;
     }
+
     public String getLanguage() {
         return ScriptController.Instance.playerScripts.scriptLanguage;
     }
+
     public void setLanguage(String lang) {
         this.scriptLanguage = lang;
     }
+
     public void setScripts(List<ScriptContainer> list) {
         this.scripts = list;
     }
+
     public List<ScriptContainer> getScripts() {
         return this.scripts;
     }
+
     public String noticeString() {
-        if(this.player == null) {
+        if (this.player == null) {
             return "Global script";
         } else {
             BlockPos pos = new BlockPos(this.player);
             return PlayerDataScript.toStringHelper(this.player).add("x", pos.getX()).add("y", pos.getY()).add("z", pos.getZ()).toString();
         }
     }
+
     public IPlayer getPlayer() {
         if (this.playerAPI == null) {
             this.playerAPI = (IPlayer) NpcAPI.Instance().getIEntity(this.player);
@@ -157,89 +168,107 @@ public class PlayerDataScript implements INpcScriptHandler {
         private final PlayerDataScript.ToStringHelper.ValueHolder holderHead;
         private PlayerDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
-        private boolean omitEmptyValues;
+        private final boolean omitEmptyValues;
+
         private ToStringHelper(String className) {
             this.holderHead = new PlayerDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
-            this.className = (String) Preconditions.checkNotNull(className);
+            this.className = Preconditions.checkNotNull(className);
         }
+
         public PlayerDataScript.ToStringHelper omitNullValues() {
             this.omitNullValues = true;
             return this;
         }
+
         public PlayerDataScript.ToStringHelper add(String name, @CheckForNull Object value) {
             return this.addHolder(name, value);
         }
+
         public PlayerDataScript.ToStringHelper add(String name, boolean value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper add(String name, char value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper add(String name, double value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper add(String name, float value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper add(String name, int value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper add(String name, long value) {
             return this.addUnconditionalHolder(name, String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper addValue(@CheckForNull Object value) {
             return this.addHolder(value);
         }
+
         public PlayerDataScript.ToStringHelper addValue(boolean value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper addValue(char value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper addValue(double value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper addValue(float value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper addValue(int value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         public PlayerDataScript.ToStringHelper addValue(long value) {
             return this.addUnconditionalHolder(String.valueOf(value));
         }
+
         private static boolean isEmpty(Object value) {
             if (value instanceof CharSequence) {
-                return ((CharSequence)value).length() == 0;
+                return ((CharSequence) value).length() == 0;
             } else if (value instanceof Collection) {
-                return ((Collection)value).isEmpty();
+                return ((Collection) value).isEmpty();
             } else if (value instanceof Map) {
-                return ((Map)value).isEmpty();
+                return ((Map) value).isEmpty();
             } else if (value instanceof Optional) {
-                return !((Optional)value).isPresent();
+                return !((Optional) value).isPresent();
             } else if (value instanceof OptionalInt) {
-                return !((OptionalInt)value).isPresent();
+                return !((OptionalInt) value).isPresent();
             } else if (value instanceof OptionalLong) {
-                return !((OptionalLong)value).isPresent();
+                return !((OptionalLong) value).isPresent();
             } else if (value instanceof OptionalDouble) {
-                return !((OptionalDouble)value).isPresent();
+                return !((OptionalDouble) value).isPresent();
             } else if (value instanceof com.google.common.base.Optional) {
-                return !((com.google.common.base.Optional)value).isPresent();
+                return !((com.google.common.base.Optional) value).isPresent();
             } else if (value.getClass().isArray()) {
                 return Array.getLength(value) == 0;
             } else {
                 return false;
             }
         }
+
         public String toString() {
             boolean omitNullValuesSnapshot = this.omitNullValues;
             boolean omitEmptyValuesSnapshot = this.omitEmptyValues;
             String nextSeparator = "";
             StringBuilder builder = (new StringBuilder(32)).append(this.className).append('{');
-            for(PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
+            for (PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.holderHead.next; valueHolder != null; valueHolder = valueHolder.next) {
                 Object value = valueHolder.value;
                 if (!(valueHolder instanceof PlayerDataScript.ToStringHelper.UnconditionalValueHolder)) {
                     if (value == null) {
@@ -265,43 +294,51 @@ public class PlayerDataScript implements INpcScriptHandler {
             }
             return builder.append('}').toString();
         }
+
         private PlayerDataScript.ToStringHelper.ValueHolder addHolder() {
             PlayerDataScript.ToStringHelper.ValueHolder valueHolder = new PlayerDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
+
         private PlayerDataScript.ToStringHelper addHolder(@CheckForNull Object value) {
             PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
             return this;
         }
+
         private PlayerDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
             PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
-            valueHolder.name = (String)Preconditions.checkNotNull(name);
+            valueHolder.name = Preconditions.checkNotNull(name);
             return this;
         }
+
         private PlayerDataScript.ToStringHelper.UnconditionalValueHolder addUnconditionalHolder() {
             PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = new PlayerDataScript.ToStringHelper.UnconditionalValueHolder();
             this.holderTail = this.holderTail.next = valueHolder;
             return valueHolder;
         }
+
         private PlayerDataScript.ToStringHelper addUnconditionalHolder(Object value) {
             PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
             return this;
         }
+
         private PlayerDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
             PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
-            valueHolder.name = (String)Preconditions.checkNotNull(name);
+            valueHolder.name = Preconditions.checkNotNull(name);
             return this;
         }
+
         private static final class UnconditionalValueHolder extends PlayerDataScript.ToStringHelper.ValueHolder {
             private UnconditionalValueHolder() {
                 super();
             }
         }
+
         private static class ValueHolder {
             @CheckForNull
             String name;
@@ -309,10 +346,12 @@ public class PlayerDataScript implements INpcScriptHandler {
             Object value;
             @CheckForNull
             PlayerDataScript.ToStringHelper.ValueHolder next;
+
             private ValueHolder() {
             }
         }
     }
+
     public static PlayerDataScript.ToStringHelper toStringHelper(Object self) {
         return new PlayerDataScript.ToStringHelper(self.getClass().getSimpleName());
     }

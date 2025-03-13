@@ -13,11 +13,11 @@ public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
         this.world = NpcAPI.Instance().getIWorld(tileEntity.getWorldObj());
     }
 
-    public int getBlockMetadata(){
+    public int getBlockMetadata() {
         return tileEntity.getBlockMetadata();
     }
 
-    public IWorld getWorld(){
+    public IWorld getWorld() {
         return world;
     }
 
@@ -30,32 +30,31 @@ public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
         return this.tileEntity;
     }
 
-    public void markDirty()
-    {
+    public void markDirty() {
         this.tileEntity.markDirty();
     }
 
-    public void readFromNBT(INbt nbt){
+    public void readFromNBT(INbt nbt) {
         this.tileEntity.readFromNBT(nbt.getMCNBT());
     }
 
-    public double getDistanceFrom(double x, double y, double z){
-        return this.tileEntity.getDistanceFrom(x,y,z);
+    public double getDistanceFrom(double x, double y, double z) {
+        return this.tileEntity.getDistanceFrom(x, y, z);
     }
 
-    public double getDistanceFrom(IPos pos){
-        return this.getDistanceFrom(pos.getXD(),pos.getYD(),pos.getZD());
+    public double getDistanceFrom(IPos pos) {
+        return this.getDistanceFrom(pos.getXD(), pos.getYD(), pos.getZD());
     }
 
-    public IBlock getBlockType(){
+    public IBlock getBlockType() {
         return NpcAPI.Instance().getIBlock(world, tileEntity.xCoord, tileEntity.yCoord, tileEntity.zCoord);
     }
 
-    public boolean isInvalid(){
+    public boolean isInvalid() {
         return tileEntity.isInvalid();
     }
 
-    public void invalidate(){
+    public void invalidate() {
         tileEntity.invalidate();
     }
 
@@ -63,7 +62,7 @@ public class ScriptTileEntity<T extends TileEntity> implements ITileEntity {
         tileEntity.validate();
     }
 
-    public void updateContainingBlockInfo(){
+    public void updateContainingBlockInfo() {
         tileEntity.updateContainingBlockInfo();
     }
 

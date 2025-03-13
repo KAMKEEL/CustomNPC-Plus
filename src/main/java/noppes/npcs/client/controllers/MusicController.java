@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 public class MusicController {
-	public static MusicController Instance;
+    public static MusicController Instance;
     private final HashMap<String, ScriptClientSound> sounds = new HashMap<>();
     private int playDelay;
     public ScriptClientSound playingSound;
@@ -19,9 +19,9 @@ public class MusicController {
     private Entity entity;
     private int offRange;
 
-	public MusicController(){
-		Instance = this;
-	}
+    public MusicController() {
+        Instance = this;
+    }
 
     public void onUpdate() {
         if (this.playingSound != null
@@ -54,33 +54,34 @@ public class MusicController {
         }
     }
 
-	public void stopMusic(){
+    public void stopMusic() {
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
         if (soundHandler != null) {
             try {
                 soundHandler.stopSounds();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         if (this.playingSound != null) {
             this.playingSound.stopSound();
             this.playingSound = null;
         }
-	}
+    }
 
-	public void playMusicJukebox(String music, Entity entity, int offRange){
+    public void playMusicJukebox(String music, Entity entity, int offRange) {
         if (this.playDelay > 0) {
             return;
         }
         this.playDelay = 20;
 
         if (this.isPlaying(music)) {
-			return;
-		}
+            return;
+        }
         this.stopMusic();
 
         ScriptClientSound clientSound = new ScriptClientSound(music);
         clientSound.setEntity(entity);
-        clientSound.setVolume(Math.max(1, offRange/16.0F));
+        clientSound.setVolume(Math.max(1, offRange / 16.0F));
         clientSound.setAttenuationType(ISound.AttenuationType.LINEAR);
         clientSound.setRepeat(true);
         this.playingSound = clientSound;
@@ -94,9 +95,9 @@ public class MusicController {
         } catch (Exception e) {
             this.stopAllSounds();
         }
-	}
+    }
 
-	public void playMusicBackground(String music, Entity entity, int offRange) {
+    public void playMusicBackground(String music, Entity entity, int offRange) {
         if (this.playDelay > 0) {
             return;
         }
@@ -121,7 +122,7 @@ public class MusicController {
         } catch (Exception e) {
             this.stopAllSounds();
         }
-	}
+    }
 
     public void playSound(String music, float x, float y, float z) {
         if (this.playDelay > 0) {
@@ -145,7 +146,7 @@ public class MusicController {
         this.sounds.put(clientSound.sound, clientSound);
     }
 
-	public boolean isPlaying(String music) {
+    public boolean isPlaying(String music) {
         if (this.sounds.containsKey(music)) return true;
 
         if (this.playingSound != null && this.playingSound.sound.equals(music)) {
@@ -157,7 +158,7 @@ public class MusicController {
         } else {
             return false;
         }
-	}
+    }
 
     public boolean isPlaying() {
         return this.playingSound != null;

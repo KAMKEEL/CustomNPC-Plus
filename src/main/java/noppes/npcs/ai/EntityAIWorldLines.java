@@ -6,23 +6,23 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIWorldLines extends EntityAIBase {
 
-    private EntityNPCInterface npc;
+    private final EntityNPCInterface npc;
     private int cooldown = 100;
 
-    public EntityAIWorldLines(EntityNPCInterface npc){
+    public EntityAIWorldLines(EntityNPCInterface npc) {
         this.npc = npc;
         this.setMutexBits(AiMutex.PASSIVE);
     }
 
     @Override
     public boolean shouldExecute() {
-        if(cooldown > 0){
+        if (cooldown > 0) {
             cooldown--;
         }
         return !npc.isAttacking() && !npc.isKilled() && npc.advanced.hasWorldLines() && npc.getRNG().nextInt(1800) == 1;
     }
 
-    public void startExecuting(){
+    public void startExecuting() {
         cooldown = 100;
         npc.saySurrounding(npc.advanced.getWorldLine());
     }

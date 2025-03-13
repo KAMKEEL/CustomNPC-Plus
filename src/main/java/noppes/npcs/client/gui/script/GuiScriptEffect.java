@@ -10,11 +10,9 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectScript;
 
@@ -51,16 +49,16 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
     }
 
     public void initGui() {
-        this.ySize = (int)((double)this.xSize * 0.56);
-        if ((double)this.ySize > (double)this.height * 0.95) {
-            this.ySize = (int)((double)this.height * 0.95);
-            this.xSize = (int)((double)this.ySize / 0.56);
+        this.ySize = (int) ((double) this.xSize * 0.56);
+        if ((double) this.ySize > (double) this.height * 0.95) {
+            this.ySize = (int) ((double) this.height * 0.95);
+            this.xSize = (int) ((double) this.ySize / 0.56);
         }
 
-        this.bgScale = (float)this.xSize / 400.0F;
+        this.bgScale = (float) this.xSize / 400.0F;
         super.initGui();
         this.guiTop += 10;
-        int yoffset = (int)((double)this.ySize * 0.02);
+        int yoffset = (int) ((double) this.ySize * 0.02);
         GuiMenuTopButton top;
         this.addTopButton(top = new GuiMenuTopButton(0, this.guiLeft + 4, this.guiTop - 17, "gui.settings"));
         int topXoffset = 0;
@@ -94,7 +92,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
             hookLabel.color = 11184810;
             this.addLabel(hookLabel);
             ScriptContainer container = this.scriptHandler.container;
-            GuiScriptTextArea ta = new GuiScriptTextArea(this, 2, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int)((double)this.ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
+            GuiScriptTextArea ta = new GuiScriptTextArea(this, 2, this.guiLeft + 1 + yoffset, this.guiTop + yoffset, this.xSize - 108 - yoffset, (int) ((double) this.ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
             ta.enableCodeHighlighting();
             ta.setListener(this);
             this.addTextField(ta);
@@ -108,7 +106,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
             this.getButton(107).enabled = false;
 
             GuiCustomScroll scroll = (new GuiCustomScroll(this, 0)).setUnselectable();
-            scroll.setSize(100, (int)((double)this.ySize * 0.54) - yoffset * 2);
+            scroll.setSize(100, (int) ((double) this.ySize * 0.54) - yoffset * 2);
             scroll.guiLeft = left1;
             scroll.guiTop = this.guiTop + 88 + yoffset;
             if (container != null) {
@@ -117,7 +115,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
 
             this.addScroll(scroll);
         } else {
-            GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int)((float)this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
+            GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int) ((float) this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
             var8.enabled = false;
             this.addTextField(var8);
             int var9 = this.guiLeft + this.xSize - 150;
@@ -164,9 +162,9 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
         StringBuilder builder = new StringBuilder();
         Iterator var3 = map.entrySet().iterator();
 
-        while(var3.hasNext()) {
-            Map.Entry<Long, String> entry = (Map.Entry)var3.next();
-            builder.insert(0, new Date((Long)entry.getKey()) + (String)entry.getValue() + "\n");
+        while (var3.hasNext()) {
+            Map.Entry<Long, String> entry = (Map.Entry) var3.next();
+            builder.insert(0, new Date(entry.getKey()) + entry.getValue() + "\n");
         }
 
         return builder.toString();
@@ -175,8 +173,8 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
     private int getScriptIndex() {
         int i = 0;
 
-        for(Iterator var2 = this.languages.keySet().iterator(); var2.hasNext(); ++i) {
-            String language = (String)var2.next();
+        for (Iterator var2 = this.languages.keySet().iterator(); var2.hasNext(); ++i) {
+            String language = (String) var2.next();
             if (language.equalsIgnoreCase(this.scriptHandler.getLanguage())) {
                 return i;
             }
@@ -280,11 +278,11 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
         }
 
         if (guibutton.id == 104) {
-            this.scriptHandler.setEnabled(((GuiNpcButton)guibutton).getValue() == 1);
+            this.scriptHandler.setEnabled(((GuiNpcButton) guibutton).getValue() == 1);
         }
 
         if (guibutton.id == 105) {
-            container1 = new GuiYesNo(this, "", ((GuiNpcButton)guibutton).displayString, 10);
+            container1 = new GuiYesNo(this, "", guibutton.displayString, 10);
             this.displayGuiScreen(container1);
         }
 
@@ -335,12 +333,12 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
         NBTTagList data = compound.getTagList("Languages", 10);
         HashMap languages = new HashMap();
 
-        for(int i = 0; i < data.tagCount(); ++i) {
+        for (int i = 0; i < data.tagCount(); ++i) {
             NBTTagCompound comp = data.getCompoundTagAt(i);
             ArrayList scripts = new ArrayList();
             NBTTagList list = comp.getTagList("Scripts", 8);
 
-            for(int j = 0; j < list.tagCount(); ++j) {
+            for (int j = 0; j < list.tagCount(); ++j) {
                 scripts.add(list.getStringTagAt(j));
             }
 

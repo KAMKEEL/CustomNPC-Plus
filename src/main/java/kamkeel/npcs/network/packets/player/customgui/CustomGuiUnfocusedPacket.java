@@ -7,7 +7,6 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -24,7 +23,8 @@ public final class CustomGuiUnfocusedPacket extends AbstractPacket {
     private NBTTagCompound compound;
     private int id;
 
-    public CustomGuiUnfocusedPacket() {}
+    public CustomGuiUnfocusedPacket() {
+    }
 
     public CustomGuiUnfocusedPacket(int id, NBTTagCompound comp) {
         this.compound = comp;

@@ -19,7 +19,7 @@ public class ScreenSizePacket extends AbstractPacket {
     public ScreenSizePacket() {
     }
 
-    public ScreenSizePacket(int width, int height){
+    public ScreenSizePacket(int width, int height) {
         this.width = width;
         this.height = height;
     }
@@ -44,6 +44,6 @@ public class ScreenSizePacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         int width = in.readInt(), height = in.readInt();
-        PlayerDataController.Instance.getPlayerData(player).screenSize.setSize(width,height);
+        PlayerDataController.Instance.getPlayerData(player).screenSize.setSize(width, height);
     }
 }

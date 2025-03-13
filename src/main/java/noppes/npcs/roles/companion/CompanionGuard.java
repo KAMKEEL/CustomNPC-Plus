@@ -7,35 +7,32 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.entity.EntityNPCInterface;
 
-public class CompanionGuard extends CompanionJobInterface{
-	public boolean isStanding = false;
-	@Override
-	public NBTTagCompound getNBT() {
-		NBTTagCompound compound = new NBTTagCompound();
-		compound.setBoolean("CompanionGuardStanding", isStanding);
-		return compound;
-	}
+public class CompanionGuard extends CompanionJobInterface {
+    public boolean isStanding = false;
 
-	@Override
-	public void setNBT(NBTTagCompound compound) {
-		isStanding = compound.getBoolean("CompanionGuardStanding");
-	}
-	
-	public boolean isEntityApplicable(Entity entity) {
-		
-    	if(entity instanceof EntityPlayer || entity instanceof EntityNPCInterface)
-    		return false;
+    @Override
+    public NBTTagCompound getNBT() {
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setBoolean("CompanionGuardStanding", isStanding);
+        return compound;
+    }
 
-    	else if (entity instanceof EntityCreeper) {
-			return false;
-    	}
-    	else if(entity instanceof IMob){
-    		return true;
-    	}
-		return false;
-	}
+    @Override
+    public void setNBT(NBTTagCompound compound) {
+        isStanding = compound.getBoolean("CompanionGuardStanding");
+    }
 
-	public boolean isSelfSufficient(){
-		return isStanding;
-	}
+    public boolean isEntityApplicable(Entity entity) {
+
+        if (entity instanceof EntityPlayer || entity instanceof EntityNPCInterface)
+            return false;
+
+        else if (entity instanceof EntityCreeper) {
+            return false;
+        } else return entity instanceof IMob;
+    }
+
+    public boolean isSelfSufficient() {
+        return isStanding;
+    }
 }

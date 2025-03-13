@@ -26,7 +26,7 @@ import org.lwjgl.opengl.GL11;
 import java.awt.*;
 import java.util.Random;
 
-public class BlockScriptedRenderer extends BlockRendererInterface{
+public class BlockScriptedRenderer extends BlockRendererInterface {
     private static final RenderBlocks renderBlocks = new RenderBlocks();
     private static final Random random = new Random();
 
@@ -148,7 +148,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
             if (!ForgeHooksClient.renderEntityItem(new EntityItem(tile.getWorldObj(), tile.xCoord, tile.yCoord, tile.zCoord, stack), stack, 0F, 0F, tile.getWorldObj().rand, mc.renderEngine, renderBlocks, 1)) {
                 GL11.glScalef(0.5F, 0.5F, 0.5F);
                 if (stack.getItem() instanceof ItemBlock && (RenderBlocks.renderItemIn3d(Block.getBlockFromItem(stack.getItem()).getRenderType())
-                        || Block.getBlockFromItem(stack.getItem()) instanceof BlockScripted)) {
+                    || Block.getBlockFromItem(stack.getItem()) instanceof BlockScripted)) {
                     renderBlocks.renderBlockAsItem(Block.getBlockFromItem(stack.getItem()), stack.getItemDamage(), 1F);
                 } else {
                     int renderPass = 0;
@@ -166,7 +166,7 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
                             GL11.glColor3f(1F, 1F, 1F);
                         }
                         renderPass++;
-                    } while(renderPass < stack.getItem().getRenderPasses(stack.getItemDamage()));
+                    } while (renderPass < stack.getItem().getRenderPasses(stack.getItemDamage()));
                 }
             }
         }
@@ -195,7 +195,8 @@ public class BlockScriptedRenderer extends BlockRendererInterface{
     }
 
     @Override
-    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {}
+    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
+    }
 
     @Override
     public boolean shouldRender3DInInventory(int modelId) {

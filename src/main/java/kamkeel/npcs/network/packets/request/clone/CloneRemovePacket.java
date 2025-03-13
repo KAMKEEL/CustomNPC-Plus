@@ -27,7 +27,8 @@ public final class CloneRemovePacket extends AbstractPacket {
     private int tab;
     private String name;
 
-    public CloneRemovePacket() {}
+    public CloneRemovePacket() {
+    }
 
     public CloneRemovePacket(int tab, String name) {
         this.tab = tab;
@@ -45,7 +46,7 @@ public final class CloneRemovePacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.NPC_CLONE;
     }
 
@@ -68,11 +69,11 @@ public final class CloneRemovePacket extends AbstractPacket {
 
         NBTTagList list = new NBTTagList();
 
-        for(String name : ServerCloneController.Instance.getClones(tab))
+        for (String name : ServerCloneController.Instance.getClones(tab))
             list.appendTag(new NBTTagString(name));
 
         NBTTagList listDate = new NBTTagList();
-        for(String name : ServerCloneController.Instance.getClonesDate(tab))
+        for (String name : ServerCloneController.Instance.getClonesDate(tab))
             listDate.appendTag(new NBTTagString(name));
 
         NBTTagCompound compound = new NBTTagCompound();

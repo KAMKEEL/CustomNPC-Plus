@@ -22,7 +22,8 @@ public final class PlayerDataSaveInfoPacket extends AbstractPacket {
     private EnumPlayerData tabType;
     private NBTTagCompound value;
 
-    public PlayerDataSaveInfoPacket() {}
+    public PlayerDataSaveInfoPacket() {
+    }
 
     public PlayerDataSaveInfoPacket(String playerName, EnumPlayerData tabType, NBTTagCompound compound) {
         this.playerName = playerName;

@@ -26,7 +26,8 @@ public final class NPCScriptPacket extends AbstractPacket {
     private NPCScriptPacket.Action type;
     private NBTTagCompound compound;
 
-    public NPCScriptPacket() {}
+    public NPCScriptPacket() {
+    }
 
     public NPCScriptPacket(Action type, NBTTagCompound compound) {
         this.type = type;
@@ -44,12 +45,12 @@ public final class NPCScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_NPC;
     }
 
     @Override
-    public boolean needsNPC(){
+    public boolean needsNPC() {
         return true;
     }
 
@@ -58,7 +59,7 @@ public final class NPCScriptPacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             ByteBufUtils.writeNBT(out, this.compound);
         }
     }
@@ -75,7 +76,7 @@ public final class NPCScriptPacket extends AbstractPacket {
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             NBTTagCompound compound = npc.script.writeToNBT(new NBTTagCompound());
             compound.setTag("Languages", ScriptController.Instance.nbtLanguages());
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
@@ -83,8 +84,8 @@ public final class NPCScriptPacket extends AbstractPacket {
             npc.script.readFromNBT(ByteBufUtils.readNBT(in));
             npc.updateAI = true;
             npc.script.hasInited = false;
-            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-                LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int)npc.posX, (int)(npc).posY, (int)npc.posZ,  npc.worldObj.getWorldInfo().getWorldName()));
+            if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
+                LogWriter.script(String.format("[%s] (Player) %s SAVED NPC %s (%s, %s, %s) [%s]", "SCRIPTER", player.getCommandSenderName(), npc.display.getName(), (int) npc.posX, (int) (npc).posY, (int) npc.posZ, npc.worldObj.getWorldInfo().getWorldName()));
             }
         }
     }
@@ -92,6 +93,7 @@ public final class NPCScriptPacket extends AbstractPacket {
     public static void Save(NBTTagCompound compound) {
         PacketClient.sendClient(new NPCScriptPacket(Action.SAVE, compound));
     }
+
     public static void Get() {
         PacketClient.sendClient(new NPCScriptPacket(Action.GET, new NBTTagCompound()));
     }

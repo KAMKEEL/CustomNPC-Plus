@@ -25,7 +25,8 @@ public final class TagSetPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public TagSetPacket() {}
+    public TagSetPacket() {
+    }
 
     public TagSetPacket(NBTTagCompound compound) {
         this.compound = compound;

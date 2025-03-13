@@ -35,7 +35,8 @@ public final class ColorSetPacket extends AbstractPacket {
         this.z = z;
     }
 
-    public ColorSetPacket() {}
+    public ColorSetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -73,16 +74,16 @@ public final class ColorSetPacket extends AbstractPacket {
 
         TileEntity tile = player.worldObj.getTileEntity(x, y, z);
         ItemStack stack = player.getHeldItem();
-        if(tile instanceof TileColorable) {
+        if (tile instanceof TileColorable) {
             int color = getColor(stack.getTagCompound());
             TileColorable colorable = (TileColorable) tile;
             colorable.setColor(color);
         }
     }
 
-    public static void setBrushColor(ItemStack brush, int color){
+    public static void setBrushColor(ItemStack brush, int color) {
         NBTTagCompound brushCompound = brush.getTagCompound();
-        if(brushCompound == null)
+        if (brushCompound == null)
             brushCompound = new NBTTagCompound();
 
         brushCompound.setInteger(BRUSH_COLOR_TAG, color);

@@ -5,22 +5,22 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.roles.RoleCompanion;
 
-class SlotCompanionWeapon extends Slot{
+class SlotCompanionWeapon extends Slot {
 
     final RoleCompanion role;
 
-    public SlotCompanionWeapon(RoleCompanion role, IInventory iinventory, int id, int x, int y){
+    public SlotCompanionWeapon(RoleCompanion role, IInventory iinventory, int id, int x, int y) {
         super(iinventory, id, x, y);
         this.role = role;
     }
 
-	@Override
-	public int getSlotStackLimit() {
-		return 1;
-	}
+    @Override
+    public int getSlotStackLimit() {
+        return 1;
+    }
 
-	@Override
-	public boolean isItemValid(ItemStack itemstack) {	
-		return role.canWearSword(itemstack);
-	}
+    @Override
+    public boolean isItemValid(ItemStack itemstack) {
+        return role.canWearSword(itemstack);
+    }
 }

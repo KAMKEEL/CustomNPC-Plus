@@ -139,10 +139,13 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
     protected abstract void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException;
 
     @Override
-    public final FMLProxyPacket generatePacket() {return null;}
+    public final FMLProxyPacket generatePacket() {
+        return null;
+    }
 
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     /**
      * Simple storage class to keep track of partial data and how many bytes we've received so far.

@@ -18,41 +18,41 @@ import noppes.npcs.client.model.blocks.ModelSign;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-public class BlockSignRenderer extends BlockRendererInterface{
+public class BlockSignRenderer extends BlockRendererInterface {
 
-	private final ModelSign model = new ModelSign();
-    
-	public BlockSignRenderer(){
-		((BlockRotated)CustomItems.sign).renderId = RenderingRegistry.getNextAvailableRenderId();
-		RenderingRegistry.registerBlockHandler(this);
-	}
-	@Override
-	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
-			double var6, float var8) {
-		TileSign tile = (TileSign) var1;
+    private final ModelSign model = new ModelSign();
+
+    public BlockSignRenderer() {
+        ((BlockRotated) CustomItems.sign).renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(this);
+    }
+
+    @Override
+    public void renderTileEntityAt(TileEntity var1, double var2, double var4,
+                                   double var6, float var8) {
+        TileSign tile = (TileSign) var1;
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.62f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 1.62f, (float) var6 + 0.5f);
         //GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation + 90, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
-        
+
         Minecraft.getMinecraft().getTextureManager().bindTexture(Steel);
         model.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
 
         setWoodTexture(tile.getBlockMetadata());
         model.Sign.render(0.0625F);
-        
-        if(tile.icon != null && !this.playerTooFar(tile)){
-        	doRender(var2, var4, var6, tile.rotation, tile.icon);
+
+        if (tile.icon != null && !this.playerTooFar(tile)) {
+            doRender(var2, var4, var6, tile.rotation, tile.icon);
         }
-        
-		GL11.glPopMatrix();
-	}
-	
-    public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon)
-    {
+
+        GL11.glPopMatrix();
+    }
+
+    public void doRender(double par2, double par4, double par6, int meta, ItemStack iicon) {
         GL11.glPushMatrix();
         bindTexture(TextureMap.locationItemsTexture);
         GL11.glTranslatef(0, 1.02f, -0.03f);
@@ -69,8 +69,7 @@ public class BlockSignRenderer extends BlockRendererInterface{
     }
 
 
-    public void renderItemBanner(TextureManager txtMng, ItemStack item, int p_77015_4_, int p_77015_5_, boolean renderEffect)
-    {
+    public void renderItemBanner(TextureManager txtMng, ItemStack item, int p_77015_4_, int p_77015_5_, boolean renderEffect) {
         Object object = item.getIconIndex();
         int l;
         float f;
@@ -83,18 +82,16 @@ public class BlockSignRenderer extends BlockRendererInterface{
         ResourceLocation resourcelocation = txtMng.getResourceLocation(item.getItemSpriteNumber());
         txtMng.bindTexture(resourcelocation);
 
-        if (object == null)
-        {
-            object = ((TextureMap)Minecraft.getMinecraft().getTextureManager().getTexture(resourcelocation)).getAtlasSprite("missingno");
+        if (object == null) {
+            object = ((TextureMap) Minecraft.getMinecraft().getTextureManager().getTexture(resourcelocation)).getAtlasSprite("missingno");
         }
 
         l = item.getItem().getColorFromItemStack(item, 0);
-        f3 = (float)(l >> 16 & 255) / 255.0F;
-        f4 = (float)(l >> 8 & 255) / 255.0F;
-        f = (float)(l & 255) / 255.0F;
+        f3 = (float) (l >> 16 & 255) / 255.0F;
+        f4 = (float) (l >> 8 & 255) / 255.0F;
+        f = (float) (l & 255) / 255.0F;
 
-        if (renderer.renderWithColor)
-        {
+        if (renderer.renderWithColor) {
             GL11.glColor4f(f3, f4, f, 1.0F);
         }
 
@@ -102,23 +99,22 @@ public class BlockSignRenderer extends BlockRendererInterface{
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_BLEND);
 
-        renderer.renderIcon(p_77015_4_, p_77015_5_, (IIcon)object, 16, 16);
+        renderer.renderIcon(p_77015_4_, p_77015_5_, (IIcon) object, 16, 16);
 
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glDisable(GL11.GL_BLEND);
 
-        if (renderEffect && item.hasEffect(0))
-        {
+        if (renderEffect && item.hasEffect(0)) {
             renderer.renderEffect(txtMng, p_77015_4_, p_77015_5_);
         }
         GL11.glEnable(GL11.GL_LIGHTING);
         GL11.glEnable(GL11.GL_CULL_FACE);
     }
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelId,
+                                     RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 0.6f, 0);
         GL11.glScalef(1f, 1f, 1f);
@@ -131,14 +127,13 @@ public class BlockSignRenderer extends BlockRendererInterface{
 
         setWoodTexture(metadata);
         model.Sign.render(0.0625F);
-        
-		GL11.glPopMatrix();
-	}
+
+        GL11.glPopMatrix();
+    }
 
 
-
-	@Override
-	public int getRenderId() {
-		return CustomItems.sign.getRenderType();
-	}
+    @Override
+    public int getRenderId() {
+        return CustomItems.sign.getRenderType();
+    }
 }

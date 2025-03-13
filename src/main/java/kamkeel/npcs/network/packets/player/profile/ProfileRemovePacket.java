@@ -22,7 +22,8 @@ public final class ProfileRemovePacket extends AbstractPacket {
 
     private int slotID;
 
-    public ProfileRemovePacket() {}
+    public ProfileRemovePacket() {
+    }
 
     public ProfileRemovePacket(int slotID) {
         this.slotID = slotID;
@@ -54,7 +55,7 @@ public final class ProfileRemovePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if(!ConfigMain.ProfilesEnabled)
+        if (!ConfigMain.ProfilesEnabled)
             return;
 
         int slot = in.readInt();

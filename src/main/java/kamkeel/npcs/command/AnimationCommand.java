@@ -14,22 +14,22 @@ import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class AnimationCommand extends CommandKamkeelBase {
 
-	@Override
-	public String getCommandName() {
-		return "animation";
-	}
+    @Override
+    public String getCommandName() {
+        return "animation";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Animation operations";
-	}
+    @Override
+    public String getDescription() {
+        return "Animation operations";
+    }
 
     @SubCommand(
-            desc = "set an animation to a player",
-            usage = "<player> <num>"
+        desc = "set an animation to a player",
+        usage = "<player> <num>"
     )
-    public void set(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void set(ICommandSender sender, String[] args) throws CommandException {
+        String playername = args[0];
         int animationId;
         try {
             animationId = Integer.parseInt(args[1]);
@@ -44,12 +44,12 @@ public class AnimationCommand extends CommandKamkeelBase {
         }
 
         IAnimation animation = AnimationController.getInstance().get(animationId);
-        if(animation == null){
+        if (animation == null) {
             sendError(sender, "No Animation ID found: " + animationId);
             return;
         }
 
-        for(PlayerData playerdata : data){
+        for (PlayerData playerdata : data) {
             playerdata.animationData.setEnabled(false);
             playerdata.animationData.setAnimation(animation);
             playerdata.animationData.updateClient();
@@ -60,18 +60,18 @@ public class AnimationCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "clear an animation from a player",
-            usage = "<player>"
+        desc = "clear an animation from a player",
+        usage = "<player>"
     )
-    public void clear(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void clear(ICommandSender sender, String[] args) throws CommandException {
+        String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
 
-        for(PlayerData playerdata : data){
+        for (PlayerData playerdata : data) {
             playerdata.animationData.setEnabled(false);
             playerdata.animationData.setAnimation(null);
             playerdata.animationData.updateClient();
@@ -82,19 +82,19 @@ public class AnimationCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "enable an animation on a player",
-            usage = "<player>"
+        desc = "enable an animation on a player",
+        usage = "<player>"
     )
-    public void enable(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void enable(ICommandSender sender, String[] args) throws CommandException {
+        String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
 
-        for(PlayerData playerdata : data){
-            if(playerdata.animationData.getAnimation() == null){
+        for (PlayerData playerdata : data) {
+            if (playerdata.animationData.getAnimation() == null) {
                 sendError(sender, String.format("Player '\u00A7b%s\u00A74' does not have an animation set", playerdata.playername));
                 return;
             }
@@ -108,19 +108,19 @@ public class AnimationCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "disable an animation on a player",
-            usage = "<player>"
+        desc = "disable an animation on a player",
+        usage = "<player>"
     )
-    public void disable(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void disable(ICommandSender sender, String[] args) throws CommandException {
+        String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
             sendError(sender, "Unknown player: " + playername);
             return;
         }
 
-        for(PlayerData playerdata : data){
-            if(playerdata.animationData.getAnimation() == null){
+        for (PlayerData playerdata : data) {
+            if (playerdata.animationData.getAnimation() == null) {
                 sendError(sender, String.format("Player '\u00A7b%s\u00A74' does not have an animation set", playerdata.playername));
                 return;
             }
@@ -134,9 +134,9 @@ public class AnimationCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "reload animations"
+        desc = "reload animations"
     )
-    public void reload(ICommandSender sender, String args[]) {
+    public void reload(ICommandSender sender, String[] args) {
         AnimationController.Instance.load();
         sendResult(sender, "Animations Reloaded");
     }

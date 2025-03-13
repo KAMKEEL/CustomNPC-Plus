@@ -48,8 +48,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
     private int dividerOffset = 143;
     private final int dividerWidth = 5;
     private final int minScrollWidth = 50;
-    private int dividerLineHeight = 20;
-    private int dividerLineYOffset = 0;
+    private final int dividerLineHeight = 20;
+    private final int dividerLineYOffset = 0;
 
     public GuiNPCManageQuest(EntityNPCInterface npc) {
         super(npc);
@@ -315,7 +315,7 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
                         setPrevQuestName(name);
                     }
                     Quest quest = new Quest();
-                    quest.readNBTPartial(this.quest.writeToNBT(new NBTTagCompound()));
+                    quest.readNBTPartial(GuiNPCManageQuest.quest.writeToNBT(new NBTTagCompound()));
                     quest.title = name;
                     PacketClient.sendClient(new QuestSavePacket(category.id, quest.writeToNBT(new NBTTagCompound()), true));
                 }
@@ -457,11 +457,12 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
         }
     }
 
-    public void save() {}
+    public void save() {
+    }
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-        if(type == EnumScrollData.QUEST_GROUP){
+        if (type == EnumScrollData.QUEST_GROUP) {
             String name = questScroll.getSelected();
             this.questData = data;
             questScroll.setList(getQuestSearch());
@@ -488,7 +489,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
     }
 
     @Override
-    public void setSelected(String selected) {}
+    public void setSelected(String selected) {
+    }
 
     @Override
     public void confirmClicked(boolean result, int id) {

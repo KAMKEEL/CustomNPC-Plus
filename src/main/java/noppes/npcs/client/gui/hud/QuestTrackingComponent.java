@@ -1,23 +1,24 @@
 package noppes.npcs.client.gui.hud;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.config.ConfigClient;
-import org.lwjgl.opengl.GL11;
 import noppes.npcs.controllers.data.Quest;
+import org.lwjgl.opengl.GL11;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class QuestTrackingComponent extends HudComponent {
-    private Minecraft mc;
+    private final Minecraft mc;
     private ArrayList<String> questTitleLines = new ArrayList<>();
     private ArrayList<String> questCategoryLines = new ArrayList<>();
-    private ArrayList<String> objectiveLines = new ArrayList<>();
-    private ArrayList<String> turnInLines = new ArrayList<>();
+    private final ArrayList<String> objectiveLines = new ArrayList<>();
+    private final ArrayList<String> turnInLines = new ArrayList<>();
 
     public QuestTrackingComponent(Minecraft mc) {
         this.mc = mc;
@@ -49,23 +50,23 @@ public class QuestTrackingComponent extends HudComponent {
         String category = compound.getString("CategoryName");
 
         ArrayList<String> objectives = new ArrayList<>();
-        NBTTagList nbtTagList = compound.getTagList("ObjectiveList",8);
+        NBTTagList nbtTagList = compound.getTagList("ObjectiveList", 8);
         for (int i = 0; i < nbtTagList.tagCount(); i++) {
             String objective = nbtTagList.getStringTagAt(i);
 
             String[] split = objective.split(":");
-            split = split[split.length-1].split("/");
+            split = split[split.length - 1].split("/");
 
             boolean completed = false;
 
             try {
-                if(split.length < 2)
+                if (split.length < 2)
                     throw new NumberFormatException("catch");
 
                 int killed = Integer.parseInt(split[0].trim());
                 int total = Integer.parseInt(split[1].trim());
 
-                if (killed/total == 1) {
+                if (killed / total == 1) {
                     completed = true;
                 }
             } catch (NumberFormatException e) {
@@ -134,8 +135,8 @@ public class QuestTrackingComponent extends HudComponent {
             return;
 
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)(posX / 100F * res.getScaledWidth());
-        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        int actualX = (int) (posX / 100F * res.getScaledWidth());
+        int actualY = (int) (posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
@@ -168,8 +169,8 @@ public class QuestTrackingComponent extends HudComponent {
     public void renderEditing() {
         isEditting = true;
         ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int actualX = (int)(posX / 100F * res.getScaledWidth());
-        int actualY = (int)(posY / 100F * res.getScaledHeight());
+        int actualX = (int) (posX / 100F * res.getScaledWidth());
+        int actualY = (int) (posY / 100F * res.getScaledHeight());
         float effectiveScale = getEffectiveScale(res);
 
         GL11.glPushMatrix();
@@ -182,16 +183,16 @@ public class QuestTrackingComponent extends HudComponent {
         drawRect(overlayWidth - 10, overlayHeight - 10, overlayWidth, overlayHeight, 0xFFCCCCCC);
 
         int currentY = 5;
-        currentY = renderDemoTextBlock(new String[] { "Dummy Quest Title" }, currentY, textAlign, 0xFFFFFF);
+        currentY = renderDemoTextBlock(new String[]{"Dummy Quest Title"}, currentY, textAlign, 0xFFFFFF);
         drawDecorativeLine(currentY - 1);
         currentY += 8;
-        currentY = renderDemoTextBlock(new String[] { "Dummy Category" }, currentY, textAlign, 0xCCCCCC);
+        currentY = renderDemoTextBlock(new String[]{"Dummy Category"}, currentY, textAlign, 0xCCCCCC);
         drawDecorativeLine(currentY - 1);
         currentY += 8;
-        currentY = renderDemoTextBlock(new String[] { "Objective: Kill 10 mobs", "Objective: Collect 5 items" }, currentY, textAlign, 0xAAAAAA);
+        currentY = renderDemoTextBlock(new String[]{"Objective: Kill 10 mobs", "Objective: Collect 5 items"}, currentY, textAlign, 0xAAAAAA);
         drawDecorativeLine(currentY - 1);
         currentY += 8;
-        renderDemoTextBlock(new String[] { "Turn in with NPC" }, currentY, textAlign, 0xAAAAAA);
+        renderDemoTextBlock(new String[]{"Turn in with NPC"}, currentY, textAlign, 0xAAAAAA);
 
         GL11.glPopMatrix();
     }
@@ -213,12 +214,12 @@ public class QuestTrackingComponent extends HudComponent {
         } else if (button.id == 3) { // Reset to center.
             ScaledResolution res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
             float effectiveScale = getEffectiveScale(res);
-            int compWidth = (int)(overlayWidth * effectiveScale);
-            int compHeight = (int)(overlayHeight * effectiveScale);
+            int compWidth = (int) (overlayWidth * effectiveScale);
+            int compHeight = (int) (overlayHeight * effectiveScale);
             int centerX = (res.getScaledWidth() - compWidth) / 2;
             int centerY = (res.getScaledHeight() - compHeight) / 2;
-            posX = (int)(100F * centerX / res.getScaledWidth());
-            posY = (int)(100F * centerY / res.getScaledHeight());
+            posX = (int) (100F * centerX / res.getScaledWidth());
+            posY = (int) (100F * centerY / res.getScaledHeight());
         } else {
             super.onEditorButtonPressed(button);
         }
@@ -226,10 +227,14 @@ public class QuestTrackingComponent extends HudComponent {
 
     private String getAlignText() {
         switch (textAlign) {
-            case 0: return "Align: Left";
-            case 1: return "Align: Center";
-            case 2: return "Align: Right";
-            default: return "Align: Unknown";
+            case 0:
+                return "Align: Left";
+            case 1:
+                return "Align: Center";
+            case 2:
+                return "Align: Right";
+            default:
+                return "Align: Unknown";
         }
     }
 
@@ -292,7 +297,7 @@ public class QuestTrackingComponent extends HudComponent {
         StringBuilder current = new StringBuilder();
         FontRenderer font = mc.fontRenderer;
         for (String word : words) {
-            String test = current.length() == 0 ? word : current.toString() + " " + word;
+            String test = current.length() == 0 ? word : current + " " + word;
             if (font.getStringWidth(test) > maxWidth) {
                 if (current.length() > 0) {
                     lines.add(current.toString());

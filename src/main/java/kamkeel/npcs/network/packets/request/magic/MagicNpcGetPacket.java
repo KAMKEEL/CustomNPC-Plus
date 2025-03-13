@@ -13,19 +13,14 @@ import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
-import noppes.npcs.controllers.TagController;
-import noppes.npcs.controllers.data.MagicData;
-import noppes.npcs.controllers.data.Tag;
 
 import java.io.IOException;
-import java.util.UUID;
 
 public final class MagicNpcGetPacket extends AbstractPacket {
     public static final String packetName = "Request|NpcMagicGet";
 
-    public MagicNpcGetPacket() {}
+    public MagicNpcGetPacket() {
+    }
 
     @Override
     public Enum getType() {

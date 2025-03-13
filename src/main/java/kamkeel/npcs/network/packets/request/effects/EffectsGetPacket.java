@@ -25,7 +25,8 @@ public final class EffectsGetPacket extends AbstractPacket {
         this.effectID = outlineID;
     }
 
-    public EffectsGetPacket() {}
+    public EffectsGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -52,7 +53,7 @@ public final class EffectsGetPacket extends AbstractPacket {
         int effectID = in.readInt();
 
         if (effectID != -1) {
-            CustomEffect effect = (CustomEffect) CustomEffectController.getInstance().get(effectID);
+            CustomEffect effect = CustomEffectController.getInstance().get(effectID);
             if (effect != null) {
                 NBTTagCompound compound = effect.writeToNBT(false);
                 compound.setString("PACKETTYPE", "Effect");

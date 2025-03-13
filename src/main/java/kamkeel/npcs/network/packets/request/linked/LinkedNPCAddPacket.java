@@ -31,7 +31,8 @@ public final class LinkedNPCAddPacket extends AbstractPacket {
         this.data = data;
     }
 
-    public LinkedNPCAddPacket() {}
+    public LinkedNPCAddPacket() {
+    }
 
     @Override
     public Enum getType() {

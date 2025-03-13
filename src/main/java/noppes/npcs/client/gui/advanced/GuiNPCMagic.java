@@ -22,7 +22,7 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
     private GuiCustomScroll npcMagicScroll;
     private final HashMap<String, Integer> allMagic = new HashMap<>();
     // Initialize npcMagicData here so we don't need to check for null.
-    private MagicData npcMagicData = new MagicData();
+    private final MagicData npcMagicData = new MagicData();
     private String search = "";
 
     private GuiNpcTextField splitField, damageField;
@@ -261,12 +261,14 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
                         try {
                             float split = Float.parseFloat(textField.getText());
                             npcMagicData.getMagic(id).split = split;
-                        } catch (NumberFormatException e) { }
+                        } catch (NumberFormatException e) {
+                        }
                     } else if (textField.id == 74) {
                         try {
                             float bonus = Float.parseFloat(textField.getText());
                             npcMagicData.getMagic(id).damage = bonus;
-                        } catch (NumberFormatException e) { }
+                        } catch (NumberFormatException e) {
+                        }
                     }
                     save();
                 }

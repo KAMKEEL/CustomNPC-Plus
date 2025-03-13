@@ -13,32 +13,32 @@ import org.lwjgl.opengl.GL11;
 import java.util.HashMap;
 import java.util.Vector;
 
-public class GuiTransportSelection extends GuiNPCInterface implements ITopButtonListener,IScrollData{
+public class GuiTransportSelection extends GuiNPCInterface implements ITopButtonListener, IScrollData {
 
-	private final ResourceLocation resource = new ResourceLocation("customnpcs","textures/gui/smallbg.png");
+    private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
     protected int xSize;
     protected int guiLeft;
     protected int guiTop;
 
     private GuiCustomScroll scroll;
 
-	public GuiTransportSelection(EntityNPCInterface npc) {
-		super(npc);
+    public GuiTransportSelection(EntityNPCInterface npc) {
+        super(npc);
         xSize = 176;
         this.drawDefaultBackground = false;
         title = "";
-	}
-    public void initGui()
-    {
+    }
+
+    public void initGui() {
         super.initGui();
         guiLeft = (width - xSize) / 2;
         guiTop = (height - 222) / 2;
         //String name = "Location: " + npc.getDataWatcher().getWatchableObjectString(11);
         String name = "";
-        addLabel(new GuiNpcLabel(0,name, guiLeft + (xSize - this.fontRendererObj.getStringWidth(name))/2, guiTop + 10));
-        addButton(new GuiNpcButton(0, guiLeft+ 10, guiTop + 192,156,20, StatCollector.translateToLocal("transporter.travel")));
-        if(scroll == null)
-        	scroll = new GuiCustomScroll(this,0);
+        addLabel(new GuiNpcLabel(0, name, guiLeft + (xSize - this.fontRendererObj.getStringWidth(name)) / 2, guiTop + 10));
+        addButton(new GuiNpcButton(0, guiLeft + 10, guiTop + 192, 156, 20, StatCollector.translateToLocal("transporter.travel")));
+        if (scroll == null)
+            scroll = new GuiCustomScroll(this, 0);
         scroll.setSize(156, 165);
         scroll.guiLeft = guiLeft + 10;
         scroll.guiTop = guiTop + 20;
@@ -46,9 +46,8 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
     }
 
     @Override
-    public void drawScreen(int i, int j, float f)
-    {
-    	drawDefaultBackground();
+    public void drawScreen(int i, int j, float f) {
+        drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, 176, 222);
@@ -56,45 +55,45 @@ public class GuiTransportSelection extends GuiNPCInterface implements ITopButton
     }
 
     @Override
-	protected void actionPerformed(GuiButton guibutton)
-    {
-    	GuiNpcButton button = (GuiNpcButton) guibutton;
-    	String sel = scroll.getSelected();
-    	if(button.id == 0 && sel != null){
+    protected void actionPerformed(GuiButton guibutton) {
+        GuiNpcButton button = (GuiNpcButton) guibutton;
+        String sel = scroll.getSelected();
+        if (button.id == 0 && sel != null) {
             close();
             PacketClient.sendClient(new TransportPacket(sel));
-    	}
+        }
     }
-//    @Override
+
+    //    @Override
 //    protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
 //    {
 //    }
     @Override
-    public void mouseClicked(int i, int j, int k)
-    {
-    	super.mouseClicked(i, j, k);
-    	scroll.mouseClicked(i, j, k);
+    public void mouseClicked(int i, int j, int k) {
+        super.mouseClicked(i, j, k);
+        scroll.mouseClicked(i, j, k);
     }
+
     @Override
-    public void keyTyped(char c, int i)
-    {
-        if (i == 1 || isInventoryKey(i))
-        {
+    public void keyTyped(char c, int i) {
+        if (i == 1 || isInventoryKey(i)) {
             close();
         }
     }
 
-	@Override
-	public void save() {
-	}
-	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-		scroll.setList(list);
-	}
-	@Override
-	public void setSelected(String selected) {
+    @Override
+    public void save() {
+    }
+
+    @Override
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        scroll.setList(list);
+    }
+
+    @Override
+    public void setSelected(String selected) {
 
 
-	}
+    }
 
 }

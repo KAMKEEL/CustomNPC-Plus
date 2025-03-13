@@ -36,7 +36,7 @@ public class DataDisplay {
     private int markovGeneratorId = 8; //roman,japanese,slavic,welsh,sami,oldnorse,ancientgreek,aztec,classic,spanish (0 - 9 inclusively)
     private int markovGender = 0; //0:random, 1:male, 2:female
 
-    public byte skinType = 0;	//0:normal, 1:player, 2:url, 3:url64
+    public byte skinType = 0;    //0:normal, 1:player, 2:url, 3:url64
 
     public String url = "";
 
@@ -53,7 +53,7 @@ public class DataDisplay {
 
     public String glowTexture = "";
 
-    public int visible = 0;		//0:visible 1:Invisible 2:semi-invisible
+    public int visible = 0;        //0:visible 1:Invisible 2:semi-invisible
     public int modelSize = 5;
     public int showName = 0;
     public int modelType = 0;
@@ -68,9 +68,9 @@ public class DataDisplay {
     @SideOnly(Side.CLIENT)
     public HashSet<Integer> tempInvisIds;
 
-    public DataDisplay(EntityNPCInterface npc){
+    public DataDisplay(EntityNPCInterface npc) {
         this.npc = npc;
-        markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length-1);
+        markovGeneratorId = new Random().nextInt(CustomNpcs.MARKOV_GENERATOR.length - 1);
         skinOverlayData = new DataSkinOverlays(npc);
         name = getRandomName();
         animationData = new AnimationData(this);
@@ -100,8 +100,7 @@ public class DataDisplay {
         nbttagcompound = hitboxData.writeToNBT(nbttagcompound);
         nbttagcompound = tintData.writeToNBT(nbttagcompound);
 
-        if (this.playerProfile != null)
-        {
+        if (this.playerProfile != null) {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
             NBTUtil.func_152460_a(nbttagcompound1, this.playerProfile);
             nbttagcompound.setTag("SkinUsername", nbttagcompound1);
@@ -120,16 +119,16 @@ public class DataDisplay {
         ArrayList<Integer> nonPersistedIDs = new ArrayList<>();
 
         NBTTagList list = new NBTTagList();
-        for(UUID uuid : invisibleToList){
-            if(saveNonPersistendIDs){
+        for (UUID uuid : invisibleToList) {
+            if (saveNonPersistendIDs) {
                 EntityPlayer p = NoppesUtilServer.getPlayer(uuid);
-                if(p != null)
+                if (p != null)
                     nonPersistedIDs.add(p.getEntityId());
             }
             list.appendTag(new NBTTagString(uuid.toString()));
         }
 
-        if(!nonPersistedIDs.isEmpty()) {
+        if (!nonPersistedIDs.isEmpty()) {
             int[] tempIDArr = nonPersistedIDs.stream().filter(Objects::nonNull).mapToInt(i -> i).toArray();
             nbttagcompound.setIntArray("InvisibleToNonPersistentID", tempIDArr);
         }
@@ -137,6 +136,7 @@ public class DataDisplay {
         nbttagcompound.setTag("InvisibleToList", list);
         return nbttagcompound;
     }
+
     public void readToNBT(NBTTagCompound nbttagcompound) {
         setName(nbttagcompound.getString("Name"));
         setMarkovGeneratorId(nbttagcompound.getInteger("MarkovGeneratorId"));
@@ -151,11 +151,10 @@ public class DataDisplay {
         skinType = nbttagcompound.getByte("UsingSkinUrl");
 
         this.playerProfile = null;
-        if(skinType == 1){
-            if (nbttagcompound.hasKey("SkinUsername", 10)){
+        if (skinType == 1) {
+            if (nbttagcompound.hasKey("SkinUsername", 10)) {
                 this.playerProfile = NBTUtil.func_152459_a(nbttagcompound.getCompoundTag("SkinUsername"));
-            }
-            else if (nbttagcompound.hasKey("SkinUsername", 8) && !StringUtils.isNullOrEmpty(nbttagcompound.getString("SkinUsername"))){
+            } else if (nbttagcompound.hasKey("SkinUsername", 8) && !StringUtils.isNullOrEmpty(nbttagcompound.getString("SkinUsername"))) {
                 this.playerProfile = new GameProfile(null, nbttagcompound.getString("SkinUsername"));
             }
             this.loadProfile();
@@ -190,7 +189,7 @@ public class DataDisplay {
         tintData.readFromNBT(nbttagcompound);
 
         modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
-        if(modelSize > ConfigMain.NpcSizeLimit)
+        if (modelSize > ConfigMain.NpcSizeLimit)
             modelSize = ConfigMain.NpcSizeLimit;
 
         modelType = nbttagcompound.getInteger("modelType");
@@ -201,21 +200,20 @@ public class DataDisplay {
         disableLivingAnimation = nbttagcompound.getBoolean("NoLivingAnimation");
         showBossBar = nbttagcompound.getByte("BossBar");
 
-        NBTTagList tagList = (NBTTagList)nbttagcompound.getTag("InvisibleToList");
-        if(tagList != null) {
+        NBTTagList tagList = (NBTTagList) nbttagcompound.getTag("InvisibleToList");
+        if (tagList != null) {
             invisibleToList.clear();
             for (int i = 0; i < tagList.tagCount(); i++) {
                 String nbtTagString = tagList.getStringTagAt(i);
                 invisibleToList.add(UUID.fromString(nbtTagString));
             }
-        }
-        else {
+        } else {
             invisibleToList = new ArrayList<>();
         }
 
-        if(FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT){
+        if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
 
-            if(tempInvisIds == null){
+            if (tempInvisIds == null) {
                 tempInvisIds = new HashSet<>();
             } else {
                 tempInvisIds.clear();
@@ -223,28 +221,28 @@ public class DataDisplay {
 
             int[] tempEntityIDList = nbttagcompound.getIntArray("InvisibleToNonPersistentID");
             final int playerID = Minecraft.getMinecraft().thePlayer.getEntityId();
-            for(int i : tempEntityIDList){
-                if(i == playerID){
+            for (int i : tempEntityIDList) {
+                if (i == playerID) {
                     isInvisibleToMe = true;
                 }
                 tempInvisIds.add(i);
             }
         }
 
-        if(prevSkinType != skinType || !texture.equals(prevTexture)|| !url.equals(prevUrl))
+        if (prevSkinType != skinType || !texture.equals(prevTexture) || !url.equals(prevUrl))
             npc.textureLocation = null;
         npc.updateHitbox();
     }
 
-    public void loadProfile(){
-        if (this.playerProfile != null && !StringUtils.isNullOrEmpty(this.playerProfile.getName()) && MinecraftServer.getServer() != null){
-            if (!this.playerProfile.isComplete() || !this.playerProfile.getProperties().containsKey("textures")){
+    public void loadProfile() {
+        if (this.playerProfile != null && !StringUtils.isNullOrEmpty(this.playerProfile.getName()) && MinecraftServer.getServer() != null) {
+            if (!this.playerProfile.isComplete() || !this.playerProfile.getProperties().containsKey("textures")) {
                 GameProfile gameprofile = MinecraftServer.getServer().func_152358_ax().func_152655_a(this.playerProfile.getName());
 
-                if (gameprofile != null){
-                    Property property = (Property)Iterables.getFirst(gameprofile.getProperties().get("textures"), (Object)null);
+                if (gameprofile != null) {
+                    Property property = (Property) Iterables.getFirst(gameprofile.getProperties().get("textures"), (Object) null);
 
-                    if (property == null){
+                    if (property == null) {
                         gameprofile = MinecraftServer.getServer().func_147130_as().fillProfileProperties(gameprofile, false);
                     }
 
@@ -255,17 +253,17 @@ public class DataDisplay {
     }
 
     public boolean showName() {
-        if(npc.isKilled())
+        if (npc.isKilled())
             return false;
         return showName == 0 || (showName == 2 && npc.isAttacking());
     }
 
-    public String getSkinTexture(){
+    public String getSkinTexture() {
         return texture;
     }
 
-    public void setSkinTexture(String texture){
-        if(this.texture.equals(texture))
+    public void setSkinTexture(String texture) {
+        if (this.texture.equals(texture))
             return;
         this.texture = texture;
         npc.textureLocation = null;
@@ -273,35 +271,35 @@ public class DataDisplay {
         npc.updateClient = true;
     }
 
-    public String getName(){
+    public String getName() {
         return name;
     }
 
-    public void setName(String name){
-        if(this.name.equals(name))
+    public void setName(String name) {
+        if (this.name.equals(name))
             return;
         this.name = name;
         npc.updateClient = true;
     }
 
-    public int getMarkovGender(){
+    public int getMarkovGender() {
         return markovGender;
     }
 
     public void setMarkovGender(int gender) {
-        if(markovGender == gender)
+        if (markovGender == gender)
             return;
         this.markovGender = ValueUtil.clamp(gender, 0, 2);
     }
 
-    public int getMarkovGeneratorId(){
+    public int getMarkovGeneratorId() {
         return markovGeneratorId;
     }
 
     public void setMarkovGeneratorId(int id) {
-        if(markovGeneratorId == id)
+        if (markovGeneratorId == id)
             return;
-        this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length-1);
+        this.markovGeneratorId = ValueUtil.clamp(id, 0, CustomNpcs.MARKOV_GENERATOR.length - 1);
     }
 
     @SideOnly(Side.CLIENT)

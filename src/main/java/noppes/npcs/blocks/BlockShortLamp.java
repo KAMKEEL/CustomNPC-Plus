@@ -43,7 +43,7 @@ public class BlockShortLamp extends BlockContainer {
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player,
                                     int side, float hitX, float hitY, float hitZ) {
         ItemStack item = player.inventory.getCurrentItem();
-        if(TileColorable.allowColorChange(item) != TileColorable.ColorChangeType.DYE)
+        if (TileColorable.allowColorChange(item) != TileColorable.ColorChangeType.DYE)
             return false;
         int meta = world.getBlockMetadata(x, y, z);
         TileColorable tile = (TileColorable) world.getTileEntity(x, y, z);
@@ -78,13 +78,13 @@ public class BlockShortLamp extends BlockContainer {
 
     @Override
     public void onBlockPlacedBy(World world, int x, int y, int z,
-                                  EntityLivingBase entity, ItemStack stack) {
-        int l = MathHelper.floor_double((double)(entity.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
+                                EntityLivingBase entity, ItemStack stack) {
+        int l = MathHelper.floor_double((double) (entity.rotationYaw * 4.0F / 360.0F) + 0.5D) & 3;
         l %= 4;
         TileColorable tile = (TileColorable) world.getTileEntity(x, y, z);
         tile.rotation = l;
         tile.color = colorTableInts[15 - stack.getItemDamage()];
-        if(stack.hasTagCompound() && stack.getTagCompound().hasKey(BRUSH_COLOR_TAG)){
+        if (stack.hasTagCompound() && stack.getTagCompound().hasKey(BRUSH_COLOR_TAG)) {
             tile.color = stack.getTagCompound().getInteger(BRUSH_COLOR_TAG);
         }
 
@@ -97,17 +97,17 @@ public class BlockShortLamp extends BlockContainer {
     }
 
     @Override
-    public boolean isOpaqueCube(){
+    public boolean isOpaqueCube() {
         return false;
     }
 
     @Override
-    public boolean renderAsNormalBlock(){
+    public boolean renderAsNormalBlock() {
         return false;
     }
 
     @Override
-    public int getRenderType(){
+    public int getRenderType() {
         return renderId;
     }
 
@@ -120,13 +120,13 @@ public class BlockShortLamp extends BlockContainer {
     @Override
     @SideOnly(Side.CLIENT)
     public IIcon getIcon(int side, int meta) {
-        if(meta == 1)
+        if (meta == 1)
             return Blocks.stone.getIcon(side, 0);
-        else if(meta == 2)
+        else if (meta == 2)
             return Blocks.iron_block.getIcon(side, 0);
-        else if(meta == 3)
+        else if (meta == 3)
             return Blocks.gold_block.getIcon(side, 0);
-        else if(meta == 4)
+        else if (meta == 4)
             return Blocks.diamond_block.getIcon(side, 0);
         return Blocks.planks.getIcon(side, 0);
     }

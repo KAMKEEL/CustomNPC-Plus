@@ -20,7 +20,8 @@ public final class FactionGetPacket extends AbstractPacket {
 
     private int factionID;
 
-    public FactionGetPacket() {}
+    public FactionGetPacket() {
+    }
 
     public FactionGetPacket(int factionID) {
         this.factionID = factionID;
@@ -56,7 +57,7 @@ public final class FactionGetPacket extends AbstractPacket {
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 
-    public static void getFaction(int id){
+    public static void getFaction(int id) {
         PacketClient.sendClient(new FactionGetPacket(id));
     }
 }

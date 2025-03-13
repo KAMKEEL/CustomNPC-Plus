@@ -17,11 +17,11 @@ import org.lwjgl.input.Keyboard;
 
 public class GuiNpcMenu implements GuiYesNoCallback {
 
-    private GuiScreen parent;
+    private final GuiScreen parent;
     public GuiMenuTopButton[] topButtons;
 
     private int activeMenu;
-    private EntityNPCInterface npc;
+    private final EntityNPCInterface npc;
     public boolean saveNPC = true;
 
     public GuiNpcMenu(GuiScreen parent, int activeMenu, EntityNPCInterface npc) {

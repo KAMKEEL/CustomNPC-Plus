@@ -20,14 +20,14 @@ public class BlockShortLampRenderer extends BlockRendererInterface {
 
     public static final ModelShortLamp model = new ModelShortLamp();
 
-    public static final ResourceLocation wood = new ResourceLocation("customnpcs","textures/models/lamp/short/wood.png");
-    public static final ResourceLocation stone = new ResourceLocation("customnpcs","textures/models/lamp/short/stone.png");
-    public static final ResourceLocation iron = new ResourceLocation("customnpcs","textures/models/lamp/short/iron.png");
-    public static final ResourceLocation gold = new ResourceLocation("customnpcs","textures/models/lamp/short/gold.png");
-    public static final ResourceLocation diamond = new ResourceLocation("customnpcs","textures/models/lamp/short/diamond.png");
+    public static final ResourceLocation wood = new ResourceLocation("customnpcs", "textures/models/lamp/short/wood.png");
+    public static final ResourceLocation stone = new ResourceLocation("customnpcs", "textures/models/lamp/short/stone.png");
+    public static final ResourceLocation iron = new ResourceLocation("customnpcs", "textures/models/lamp/short/iron.png");
+    public static final ResourceLocation gold = new ResourceLocation("customnpcs", "textures/models/lamp/short/gold.png");
+    public static final ResourceLocation diamond = new ResourceLocation("customnpcs", "textures/models/lamp/short/diamond.png");
 
-    public BlockShortLampRenderer(){
-        ((BlockShortLamp)CustomItems.shortLamp).renderId = RenderingRegistry.getNextAvailableRenderId();
+    public BlockShortLampRenderer() {
+        ((BlockShortLamp) CustomItems.shortLamp).renderId = RenderingRegistry.getNextAvailableRenderId();
         RenderingRegistry.registerBlockHandler(this);
     }
 
@@ -38,7 +38,7 @@ public class BlockShortLampRenderer extends BlockRendererInterface {
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
 
-        GL11.glTranslatef((float)x + 0.5f, (float)y + 1.5f, (float)z + 0.5f);
+        GL11.glTranslatef((float) x + 0.5f, (float) y + 1.5f, (float) z + 0.5f);
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
@@ -53,10 +53,10 @@ public class BlockShortLampRenderer extends BlockRendererInterface {
         int fullBright = 0xF000F0;
         int fullBrightX = fullBright % 65536;
         int fullBrightY = fullBright / 65536;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)fullBrightX, (float)fullBrightY);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) fullBrightX, (float) fullBrightY);
         model.Light.render(0.0625F);
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)brightX, (float)brightY);
-        float[] color =  ColorUtil.hexToRGB(tile.color);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) brightX, (float) brightY);
+        float[] color = ColorUtil.hexToRGB(tile.color);
         GL11.glColor3f(color[0], color[1], color[2]);
         model.Shade.render(0.0625F);
 
@@ -65,17 +65,18 @@ public class BlockShortLampRenderer extends BlockRendererInterface {
     }
 
     @Override
-    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer){}
+    public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
+    }
 
-    public static void setLampTexture(int meta){
+    public static void setLampTexture(int meta) {
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
-        if(meta == 1)
+        if (meta == 1)
             manager.bindTexture(stone);
-        else if(meta == 2)
+        else if (meta == 2)
             manager.bindTexture(iron);
-        else if(meta == 3)
+        else if (meta == 3)
             manager.bindTexture(gold);
-        else if(meta == 4)
+        else if (meta == 4)
             manager.bindTexture(diamond);
         else
             manager.bindTexture(wood);

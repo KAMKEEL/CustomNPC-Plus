@@ -1,10 +1,10 @@
 package kamkeel.npcs.controllers;
 
-import net.minecraft.entity.player.EntityPlayer;
+import kamkeel.npcs.CustomAttributes;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
-import kamkeel.npcs.CustomAttributes;
 import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
+import net.minecraft.entity.player.EntityPlayer;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -24,7 +24,7 @@ public class AttributeController {
     private static final Map<UUID, PlayerAttributeTracker> trackers = new HashMap<>();
     private static final Map<String, AttributeDefinition> definitions = new HashMap<>();
 
-    public AttributeController(){
+    public AttributeController() {
         this.Instance = this;
         definitions.clear();
         trackers.clear();

@@ -4,8 +4,8 @@ import net.minecraft.tileentity.TileEntity;
 
 public class TileMailbox extends TileEntity {
 
-	
-    public boolean canUpdate(){
+
+    public boolean canUpdate() {
         return false;
     }
 }

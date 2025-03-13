@@ -4,11 +4,9 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.global.GuiNpcManageMagic;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumDiagramLayout;
-import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicAssociation;
 import noppes.npcs.controllers.data.MagicCycle;
 
@@ -26,7 +24,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     private GuiCustomScroll associationScroll;
 
     // The MagicCycle we are editing
-    private MagicCycle cycle;
+    private final MagicCycle cycle;
 
     // Search string for available magics
     private String search = "";
@@ -41,7 +39,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     // The currently selected associated magic (by its name)
     private String selectedAssociation;
     // A mapping of magic names (from parent.magicData) to their MagicAssociation objects.
-    private HashMap<String, MagicAssociation> associationMap = new HashMap<>();
+    private final HashMap<String, MagicAssociation> associationMap = new HashMap<>();
 
     public SubGuiMagicCycle(GuiNpcManageMagic parent, MagicCycle cycle) {
         this.parent = parent;
@@ -62,7 +60,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
         addLabel(new GuiNpcLabel(1, "gui.name", guiLeft + 4, y + 5));
         addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 80, y, 200, 20, cycle.name));
 
-        addLabel(new GuiNpcLabel(-10,"ID", guiLeft + 200 + 80 + 5, y + 2));
+        addLabel(new GuiNpcLabel(-10, "ID", guiLeft + 200 + 80 + 5, y + 2));
         addLabel(new GuiNpcLabel(-11, cycle.id + "", guiLeft + 200 + 80 + 5, y + 12));
 
         // Layout button – cycles through available layouts
@@ -96,7 +94,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
 
         // --- Association Management ---
         // Scroll for available magics to add
-        if(allMagic == null){
+        if (allMagic == null) {
             allMagic = new GuiCustomScroll(this, 0);
             allMagic.setSize(150, 100);
         }
@@ -110,7 +108,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
         addTextField(new GuiNpcTextField(34, this, fontRendererObj, guiLeft + 5, y + 105, 150, 20, search));
 
         // Scroll for current associations
-        if(associationScroll == null){
+        if (associationScroll == null) {
             associationScroll = new GuiCustomScroll(this, 1);
             associationScroll.setSize(150, 125);
         }
@@ -133,12 +131,12 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     @Override
     public void actionPerformed(GuiButton button) {
         // Layout button: update cycle layout.
-        if(button.id == 13) {
-            cycle.layout = EnumDiagramLayout.values()[((GuiNpcButton)button).getValue()];
+        if (button.id == 13) {
+            cycle.layout = EnumDiagramLayout.values()[((GuiNpcButton) button).getValue()];
         }
         // Add single association
-        if(button.id == 60 && allMagic.hasSelected() && !associationMap.containsKey(allMagic.getSelected())
-                && parent.magicData.containsKey(allMagic.getSelected())) {
+        if (button.id == 60 && allMagic.hasSelected() && !associationMap.containsKey(allMagic.getSelected())
+            && parent.magicData.containsKey(allMagic.getSelected())) {
             MagicAssociation assoc = new MagicAssociation();
             assoc.magicId = parent.magicData.get(allMagic.getSelected());
             assoc.index = 0;
@@ -147,7 +145,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
             associationScroll.list.add(allMagic.getSelected());
         }
         // Remove single association
-        if(button.id == 61 && associationScroll.hasSelected()) {
+        if (button.id == 61 && associationScroll.hasSelected()) {
             associationMap.remove(associationScroll.getSelected());
             associationScroll.list.remove(associationScroll.selected);
             associationScroll.selected = -1;
@@ -157,9 +155,9 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
             priorityField.setText("");
         }
         // Add All available associations
-        if(button.id == 62) {
-            for(String name : parent.magicData.keySet()){
-                if(!associationMap.containsKey(name)){
+        if (button.id == 62) {
+            for (String name : parent.magicData.keySet()) {
+                if (!associationMap.containsKey(name)) {
                     MagicAssociation assoc = new MagicAssociation();
                     assoc.magicId = parent.magicData.get(name);
                     assoc.index = 0;
@@ -170,7 +168,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
             associationScroll.setList(new ArrayList<>(associationMap.keySet()));
         }
         // Remove All associations
-        if(button.id == 63) {
+        if (button.id == 63) {
             associationMap.clear();
             associationScroll.setList(new ArrayList<>());
             associationScroll.selected = -1;
@@ -180,7 +178,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
             priorityField.setText("");
         }
         // Done – save changes and close
-        if(button.id == 99) {
+        if (button.id == 99) {
             close();
         }
     }
@@ -188,24 +186,26 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     @Override
     public void unFocused(GuiNpcTextField textField) {
         // Update cycle basic data.
-        if(textField.id == 1) {
+        if (textField.id == 1) {
             cycle.name = textField.getText();
         }
-        if(textField.id == 2) {
+        if (textField.id == 2) {
             cycle.displayName = textField.getText();
         }
         // Update association ordering values when fields lose focus.
-        if(textField.id == 91 && selectedAssociation != null) {
+        if (textField.id == 91 && selectedAssociation != null) {
             try {
                 int idx = Integer.parseInt(textField.getText());
                 associationMap.get(selectedAssociation).index = idx;
-            } catch(NumberFormatException e) { }
+            } catch (NumberFormatException e) {
+            }
         }
-        if(textField.id == 92 && selectedAssociation != null) {
+        if (textField.id == 92 && selectedAssociation != null) {
             try {
                 int prio = Integer.parseInt(textField.getText());
                 associationMap.get(selectedAssociation).priority = prio;
-            } catch(NumberFormatException e) { }
+            } catch (NumberFormatException e) {
+            }
         }
     }
 
@@ -213,8 +213,8 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
         // Available magic search (text field ID 34)
-        if(getTextField(34) != null && getTextField(34).isFocused()){
-            if(search.equals(getTextField(34).getText()))
+        if (getTextField(34) != null && getTextField(34).isFocused()) {
+            if (search.equals(getTextField(34).getText()))
                 return;
             search = getTextField(34).getText().toLowerCase();
             allMagic.setList(getAvailableMagicList());
@@ -226,11 +226,11 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
      * Returns a filtered list of available magic names based on parent's magicData and the search string.
      * Only those not already in the associationMap are shown.
      */
-    private List<String> getAvailableMagicList(){
+    private List<String> getAvailableMagicList() {
         List<String> original = new ArrayList<>(parent.magicData.keySet());
         List<String> filtered = new ArrayList<>();
-        for(String name : original){
-            if(!associationMap.containsKey(name) && name.toLowerCase().contains(search)){
+        for (String name : original) {
+            if (!associationMap.containsKey(name) && name.toLowerCase().contains(search)) {
                 filtered.add(name);
             }
         }
@@ -240,12 +240,12 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     /**
      * Populates associationMap from cycle.associations using parent's magicData.
      */
-    public void processAssociations(){
+    public void processAssociations() {
         associationMap.clear();
         // For each association stored in the cycle, find the corresponding magic name.
-        for(MagicAssociation assoc : cycle.associations.values()){
-            for(String name : parent.magicData.keySet()){
-                if(parent.magicData.get(name) == assoc.magicId){
+        for (MagicAssociation assoc : cycle.associations.values()) {
+            for (String name : parent.magicData.keySet()) {
+                if (parent.magicData.get(name) == assoc.magicId) {
                     associationMap.put(name, assoc);
                     break;
                 }
@@ -256,9 +256,9 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     @Override
     public void customScrollClicked(int id, int index, int clickType, GuiCustomScroll scroll) {
         // When clicking the association scroll, update the ordering text fields.
-        if(scroll.id == 1){
+        if (scroll.id == 1) {
             selectedAssociation = scroll.getSelected();
-            if(selectedAssociation != null && associationMap.containsKey(selectedAssociation)){
+            if (selectedAssociation != null && associationMap.containsKey(selectedAssociation)) {
                 indexField.enabled = true;
                 priorityField.enabled = true;
                 indexField.setText(associationMap.get(selectedAssociation).index + "");
@@ -268,7 +268,8 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) { }
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
     @Override
     public void subGuiClosed(SubGuiInterface subgui) {
@@ -279,10 +280,10 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
      * Called when the user clicks "Done". Updates the cycle's associations from associationMap,
      * writes the NBT data, and sends a MagicCycleSavePacket.
      */
-    public void close(){
+    public void close() {
         // Clear the cycle's associations and update them from our associationMap.
         cycle.associations.clear();
-        for(String name : associationMap.keySet()){
+        for (String name : associationMap.keySet()) {
             cycle.associations.put(associationMap.get(name).magicId, associationMap.get(name));
         }
         NBTTagCompound compound = new NBTTagCompound();

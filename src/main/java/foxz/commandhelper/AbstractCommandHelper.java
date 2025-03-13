@@ -37,16 +37,16 @@ public abstract class AbstractCommandHelper extends CommandHelper {
     }
 
     public void ctor() {
-        this.commandHelper.name = ((Command) this.getClass().getAnnotation(Command.class)).name();
-        this.commandHelper.usage = ((Command) this.getClass().getAnnotation(Command.class)).usage();
-        this.commandHelper.desc = ((Command) this.getClass().getAnnotation(Command.class)).desc();
+        this.commandHelper.name = this.getClass().getAnnotation(Command.class).name();
+        this.commandHelper.usage = this.getClass().getAnnotation(Command.class).usage();
+        this.commandHelper.desc = this.getClass().getAnnotation(Command.class).desc();
         // sub
         for (Class c : this.getClass().getAnnotation(Command.class).sub()) {
             try {
                 String name = ((Command) c.getAnnotation(Command.class)).name().toUpperCase();
                 Constructor<AbstractCommandHelper> ctor = c.getConstructor(Object.class);
                 ctor.setAccessible(true);
-                AbstractCommandHelper sc = (AbstractCommandHelper) ctor.newInstance(ctorParm);
+                AbstractCommandHelper sc = ctor.newInstance(ctorParm);
                 commands.put(name, sc);
             } catch (Exception ex) {
                 Logger.getLogger(AbstractCommandHelper.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,16 +99,17 @@ public abstract class AbstractCommandHelper extends CommandHelper {
                 }
             }
         }
+
         @Override
-    	public List addTabCompletion(ICommandSender par1, String[] args) {
+        public List addTabCompletion(ICommandSender par1, String[] args) {
             String[] np = currentHelper.usage.split(" ");
-            if(np.length < args.length)
-            	return null;
+            if (np.length < args.length)
+                return null;
             String parameter = np[args.length - 1];
-            if(parameter.equals("<player>"))
+            if (parameter.equals("<player>"))
                 return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());
 
-        	return null;
+            return null;
         }
 
         public Method method;
@@ -119,12 +120,12 @@ public abstract class AbstractCommandHelper extends CommandHelper {
         for (CommandHelper cur : commands.values()) {
             help(cur.commandHelper.name, cur.commandHelper.desc, "");
         }
-        sendMsg(String.format("\u00A74noppes cmds are no longer supported |\u00A76 use /kamkeel"));
-        sendMsg(String.format("\u00A77All bugs and issues will not be patched or maintained"));
+        sendMsg("\u00A74noppes cmds are no longer supported |\u00A76 use /kamkeel");
+        sendMsg("\u00A77All bugs and issues will not be patched or maintained");
     }
 
     public void sendMsg(String msg) {
-        ICommandSender sender = (ICommandSender) pcParam;
+        ICommandSender sender = pcParam;
         sender.addChatMessage(new ChatComponentText(msg));
     }
 
@@ -144,7 +145,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
         args = Arrays.copyOfRange(args, 1, args.length);
 
         if ((cmd.equals("HELP") || args.length == 0) && doHelp(param, args, cmd)) {
-        	return true;
+            return true;
         }
 
         CommandHelper ch = commands.get(cmd);
@@ -157,8 +158,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
             f.parentCmdHelper = this;
             f.rootCmdHelper = this.rootCmdHelper;
             return f.processCommand(param, args);
-        }
-        else if (ch instanceof MethodSubCmd) {
+        } else if (ch instanceof MethodSubCmd) {
             MethodSubCmd m = (MethodSubCmd) ch;
             m.method.setAccessible(true);
             currentHelper = ch.commandHelper;
@@ -174,72 +174,68 @@ public abstract class AbstractCommandHelper extends CommandHelper {
                 Logger.getLogger(AbstractCommandHelper.class.getName()).log(Level.SEVERE, m.commandHelper.name, ex);
             }
             return true;
-        }
-        else
+        } else
             cmdError(cmd);
         return false;
     }
 
-    private boolean doHelp(ICommandSender param, String[] args, String cmd){
-    	boolean isHelp = cmd.equals("HELP");
-    	if(args.length > 0){
-    		cmd = args[0];
-    	}
-		CommandHelper ch = commands.get(cmd.toUpperCase());
-		if(ch != null){
-			if(ch.commandHelper.hasEmptyCall && !isHelp)
-				return false;
-			if(ch instanceof AbstractCommandHelper){
-				((AbstractCommandHelper)ch).pcParam = param;
-				((AbstractCommandHelper)ch).allHelp();
-			}
-			else if(ch instanceof MethodSubCmd && ((MethodSubCmd)ch).commandHelper.usage.isEmpty())
-				return false;
-			else
-				help(ch.commandHelper.name, ch.commandHelper.desc, ch.commandHelper.usage);
-		}
-		else
-			allHelp();
+    private boolean doHelp(ICommandSender param, String[] args, String cmd) {
+        boolean isHelp = cmd.equals("HELP");
+        if (args.length > 0) {
+            cmd = args[0];
+        }
+        CommandHelper ch = commands.get(cmd.toUpperCase());
+        if (ch != null) {
+            if (ch.commandHelper.hasEmptyCall && !isHelp)
+                return false;
+            if (ch instanceof AbstractCommandHelper) {
+                ((AbstractCommandHelper) ch).pcParam = param;
+                ((AbstractCommandHelper) ch).allHelp();
+            } else if (ch instanceof MethodSubCmd && ch.commandHelper.usage.isEmpty())
+                return false;
+            else
+                help(ch.commandHelper.name, ch.commandHelper.desc, ch.commandHelper.usage);
+        } else
+            allHelp();
         return true;
     }
 
     @Override
-	public List addTabCompletion(ICommandSender par1, String[] args) {
-		if(args.length  <= 1){
-			List<String> list = new ArrayList<String>();
-			for(String command : commands.keySet())
-				list.add(command.toLowerCase());
-			list.add("help");
-			return CommandBase.getListOfStringsMatchingLastWord(args, list.toArray(new String[list.size()]));
-		}
+    public List addTabCompletion(ICommandSender par1, String[] args) {
+        if (args.length <= 1) {
+            List<String> list = new ArrayList<String>();
+            for (String command : commands.keySet())
+                list.add(command.toLowerCase());
+            list.add("help");
+            return CommandBase.getListOfStringsMatchingLastWord(args, list.toArray(new String[list.size()]));
+        }
         CommandHelper ch = commands.get(args[0].toUpperCase());
-		if(ch == null)
-			return null;
+        if (ch == null)
+            return null;
         args = Arrays.copyOfRange(args, 1, args.length);
         currentHelper = ch.commandHelper;
-    	return ch.addTabCompletion(par1, args);
-	}
+        return ch.addTabCompletion(par1, args);
+    }
 
-    public List<PlayerData> getPlayersData(String username){
-    	ArrayList<PlayerData> list = new ArrayList<PlayerData>();
-    	EntityPlayerMP[] players = PlayerSelector.matchPlayers(pcParam, username);
-    	if(players == null || players.length == 0){
-    		PlayerData data = PlayerDataController.Instance.getDataFromUsername(username);
-    		if(data != null)
-    			list.add(data);
-    	}
-    	else{
-            for(EntityPlayer player : players){
-    	        list.add(PlayerDataController.Instance.getPlayerData(player));
+    public List<PlayerData> getPlayersData(String username) {
+        ArrayList<PlayerData> list = new ArrayList<PlayerData>();
+        EntityPlayerMP[] players = PlayerSelector.matchPlayers(pcParam, username);
+        if (players == null || players.length == 0) {
+            PlayerData data = PlayerDataController.Instance.getDataFromUsername(username);
+            if (data != null)
+                list.add(data);
+        } else {
+            for (EntityPlayer player : players) {
+                list.add(PlayerDataController.Instance.getPlayerData(player));
             }
-    	}
+        }
 
-    	return list;
+        return list;
     }
 
     public <T> List<T> getNearbeEntityFromPlayer(Class<? extends T> cls, World world, int x, int y, int z, int range) {
-    	AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1).expand(range, range, range);
-    	List<T> list = world.getEntitiesWithinAABB(cls, bb);
-		return list;
-	}
+        AxisAlignedBB bb = AxisAlignedBB.getBoundingBox(x, y, z, x + 1, y + 1, z + 1).expand(range, range, range);
+        List<T> list = world.getEntitiesWithinAABB(cls, bb);
+        return list;
+    }
 }

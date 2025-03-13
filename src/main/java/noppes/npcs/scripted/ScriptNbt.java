@@ -7,7 +7,7 @@ import noppes.npcs.util.NBTJsonUtil;
 import java.util.Iterator;
 
 public class ScriptNbt implements INbt {
-    private NBTTagCompound compound;
+    private final NBTTagCompound compound;
 
     public ScriptNbt(NBTTagCompound compound) {
         this.compound = compound;
@@ -105,18 +105,18 @@ public class ScriptNbt implements INbt {
         NBTTagList list = this.compound.getTagList(key, type);
         Object[] nbts = new Object[list.tagCount()];
 
-        for(int i = 0; i < list.tagCount(); ++i) {
-            if(list.func_150303_d() == 10) {
+        for (int i = 0; i < list.tagCount(); ++i) {
+            if (list.func_150303_d() == 10) {
                 nbts[i] = new ScriptNbt(list.getCompoundTagAt(i));
-            } else if(list.func_150303_d() == 8) {
+            } else if (list.func_150303_d() == 8) {
                 nbts[i] = list.getStringTagAt(i);
-            } else if(list.func_150303_d() == 6) {
+            } else if (list.func_150303_d() == 6) {
                 nbts[i] = Double.valueOf(list.func_150309_d(i));
-            } else if(list.func_150303_d() == 5) {
+            } else if (list.func_150303_d() == 5) {
                 nbts[i] = Float.valueOf(list.func_150308_e(i));
-            } else if(list.func_150303_d() == 3) {
+            } else if (list.func_150303_d() == 3) {
                 nbts[i] = Integer.valueOf(list.getStringTagAt(i));
-            } else if(list.func_150303_d() == 11) {
+            } else if (list.func_150303_d() == 11) {
                 nbts[i] = list.func_150306_c(i);
             }
         }
@@ -126,12 +126,12 @@ public class ScriptNbt implements INbt {
 
     public int getListType(String key) {
         NBTBase b = this.compound.getTag(key);
-        if(b == null) {
+        if (b == null) {
             return 0;
-        } else if(b.getId() != 9) {
-            throw new CustomNPCsException("NBT tag " + key + " isn\'t a list", new Object[0]);
+        } else if (b.getId() != 9) {
+            throw new CustomNPCsException("NBT tag " + key + " isn't a list");
         } else {
-            return ((NBTTagList)b).func_150303_d();
+            return ((NBTTagList) b).func_150303_d();
         }
     }
 
@@ -140,20 +140,20 @@ public class ScriptNbt implements INbt {
         Object[] var4 = value;
         int var5 = value.length;
 
-        for(int var6 = 0; var6 < var5; ++var6) {
+        for (int var6 = 0; var6 < var5; ++var6) {
             Object nbt = var4[var6];
-            if(nbt instanceof INbt) {
+            if (nbt instanceof INbt) {
                 list.appendTag(((INbt) nbt).getMCNBT());
-            } else if(nbt instanceof String) {
+            } else if (nbt instanceof String) {
                 list.appendTag(new NBTTagString((String) nbt));
-            } else if(nbt instanceof Double) {
+            } else if (nbt instanceof Double) {
                 list.appendTag(new NBTTagDouble(((Double) nbt).doubleValue()));
-            } else if(nbt instanceof Float) {
+            } else if (nbt instanceof Float) {
                 list.appendTag(new NBTTagFloat(((Float) nbt).floatValue()));
-            } else if(nbt instanceof Integer) {
+            } else if (nbt instanceof Integer) {
                 list.appendTag(new NBTTagInt(((Integer) nbt).intValue()));
-            } else if(nbt instanceof int[]) {
-                list.appendTag(new NBTTagIntArray((int[]) ((int[]) nbt)));
+            } else if (nbt instanceof int[]) {
+                list.appendTag(new NBTTagIntArray(nbt));
             }
         }
 
@@ -165,15 +165,15 @@ public class ScriptNbt implements INbt {
     }
 
     public void setCompound(String key, INbt value) {
-        if(value == null) {
-            throw new CustomNPCsException("Value cant be null", new Object[0]);
+        if (value == null) {
+            throw new CustomNPCsException("Value cant be null");
         } else {
             this.compound.setTag(key, value.getMCNBT());
         }
     }
 
     public String[] getKeys() {
-        return (String[])this.compound.func_150296_c().toArray(new String[this.compound.func_150296_c().size()]);
+        return (String[]) this.compound.func_150296_c().toArray(new String[this.compound.func_150296_c().size()]);
     }
 
     public int getType(String key) {
@@ -195,8 +195,8 @@ public class ScriptNbt implements INbt {
     public void clear() {
         Iterator var1 = this.compound.func_150296_c().iterator();
 
-        while(var1.hasNext()) {
-            String name = (String)var1.next();
+        while (var1.hasNext()) {
+            String name = (String) var1.next();
             this.compound.removeTag(name);
         }
 

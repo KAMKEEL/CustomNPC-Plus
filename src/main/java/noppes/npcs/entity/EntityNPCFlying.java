@@ -14,30 +14,29 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
     }
 
     @Override
-    public boolean canFly(){
+    public boolean canFly() {
         return ais.movementType == 1;
     }
 
     @Override
     public void fall(float distance) {
-        if(!canFly())
+        if (!canFly())
             super.fall(distance);
     }
 
     @Override
     protected void updateFallState(double p_180433_1_, boolean p_180433_3_) {
-        if(!canFly())
+        if (!canFly())
             super.updateFallState(p_180433_1_, p_180433_3_);
     }
 
     @Override
-    public boolean isOnLadder(){
+    public boolean isOnLadder() {
         return false;
     }
 
-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_)
-    {
-        if(!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
+    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_) {
+        if (!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
             super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
             return;
         }
@@ -45,9 +44,9 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         boolean aboveLimit = false;
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
         if (heightOffGround < 0) {
-            Vec3 pos = Vec3.createVectorHelper(this.posX,this.posY,this.posZ);
-            Vec3 posLimit = Vec3.createVectorHelper(this.posX,this.posY - this.ais.flyHeightLimit,this.posZ);
-            MovingObjectPosition mob = this.worldObj.rayTraceBlocks(pos,posLimit,true);
+            Vec3 pos = Vec3.createVectorHelper(this.posX, this.posY, this.posZ);
+            Vec3 posLimit = Vec3.createVectorHelper(this.posX, this.posY - this.ais.flyHeightLimit, this.posZ);
+            MovingObjectPosition mob = this.worldObj.rayTraceBlocks(pos, posLimit, true);
             if (mob == null || mob.typeOfHit == MovingObjectPosition.MovingObjectType.MISS) {
                 aboveLimit = true;
             }

@@ -101,11 +101,8 @@ public class GuiNpcSquareButton extends GuiNpcButton {
             return textButton.mousePressed(mc, mouseX, mouseY);
         }
         // Or if click is in the icon area, we also treat it as a click.
-        if (mouseX >= xPosition && mouseX < xPosition + size &&
-            mouseY >= yPosition && mouseY < yPosition + iconAreaHeight) {
-            return true;
-        }
-        return false;
+        return mouseX >= xPosition && mouseX < xPosition + size &&
+                mouseY >= yPosition && mouseY < yPosition + iconAreaHeight;
     }
 
     @Override

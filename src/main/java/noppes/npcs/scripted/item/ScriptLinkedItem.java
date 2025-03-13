@@ -11,6 +11,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     public LinkedItem linkedItem = new LinkedItem();
     public double durabilityValue = 1.0D;
     public int linkedVersion = 1;
+
     public ScriptLinkedItem(ItemStack item) {
         super(item);
         setDefaults();
@@ -26,7 +27,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         saveItemData();
     }
 
-    public void setDefaults(){
+    public void setDefaults() {
         this.itemDisplay.texture = null;
         this.itemDisplay.translateX = null;
         this.itemDisplay.translateY = null;
@@ -51,7 +52,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     @Override
     public INpcScriptHandler getScriptHandler() {
-        if(this.getLinkedItem() == null)
+        if (this.getLinkedItem() == null)
             return null;
         return this.getLinkedItem().getScriptHandler();
     }
@@ -192,7 +193,7 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
 
     public void loadItemData() {
         NBTTagCompound c = this.item.getTagCompound();
-        if (c != null && !c.getCompoundTag("ItemData").hasNoTags()){
+        if (c != null && !c.getCompoundTag("ItemData").hasNoTags()) {
             this.setItemNBT(c.getCompoundTag("ItemData"));
         }
     }

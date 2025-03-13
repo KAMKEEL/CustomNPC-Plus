@@ -27,7 +27,8 @@ public final class ItemScriptPacket extends AbstractPacket {
     private ItemScriptPacket.Action type;
     private NBTTagCompound compound;
 
-    public ItemScriptPacket() {}
+    public ItemScriptPacket() {
+    }
 
     public ItemScriptPacket(Action type, NBTTagCompound compound) {
         this.type = type;
@@ -45,7 +46,7 @@ public final class ItemScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_ITEM;
     }
 
@@ -54,7 +55,7 @@ public final class ItemScriptPacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(type.ordinal());
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             ByteBufUtils.writeNBT(out, this.compound);
         }
     }
@@ -68,7 +69,7 @@ public final class ItemScriptPacket extends AbstractPacket {
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             ScriptCustomItem iw = (ScriptCustomItem) NpcAPI.Instance().getIItemStack(player.getHeldItem());
             iw.loadScriptData();
             NBTTagCompound compound = iw.getMCNbt();
@@ -93,6 +94,7 @@ public final class ItemScriptPacket extends AbstractPacket {
     public static void Save(NBTTagCompound compound) {
         PacketClient.sendClient(new ItemScriptPacket(Action.SAVE, compound));
     }
+
     public static void Get() {
         PacketClient.sendClient(new ItemScriptPacket(Action.GET, new NBTTagCompound()));
     }

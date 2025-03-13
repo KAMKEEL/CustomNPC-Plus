@@ -38,7 +38,7 @@ public class GetNPCRole extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if(!(player instanceof EntityPlayerMP))
+        if (!(player instanceof EntityPlayerMP))
             return;
         if (npc.advanced.role == EnumRoleType.None)
             return;

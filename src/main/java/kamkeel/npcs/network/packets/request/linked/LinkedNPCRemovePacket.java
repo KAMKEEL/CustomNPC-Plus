@@ -30,7 +30,8 @@ public final class LinkedNPCRemovePacket extends AbstractPacket {
         this.data = data;
     }
 
-    public LinkedNPCRemovePacket() {}
+    public LinkedNPCRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

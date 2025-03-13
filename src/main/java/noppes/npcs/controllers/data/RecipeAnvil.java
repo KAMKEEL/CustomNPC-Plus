@@ -23,7 +23,8 @@ public class RecipeAnvil implements IAnvilRecipe {
 
     private boolean isAnvil = true;
 
-    public RecipeAnvil() { }
+    public RecipeAnvil() {
+    }
 
     public RecipeAnvil(String name, ItemStack itemToRepair, ItemStack repairMaterial, int xpCost, float repairPercentage) {
         this.name = name;
@@ -56,10 +57,10 @@ public class RecipeAnvil implements IAnvilRecipe {
         compound.setTag("Availability", availability.writeToNBT(new NBTTagCompound()));
         compound.setInteger("XPCost", xpCost);
         compound.setFloat("RepairPercentage", repairPercentage);
-        if(itemToRepair != null){
+        if (itemToRepair != null) {
             compound.setTag("ItemToRepair", NoppesUtilServer.writeItem(itemToRepair, new NBTTagCompound()));
         }
-        if(repairMaterial != null){
+        if (repairMaterial != null) {
             compound.setTag("RepairMaterial", NoppesUtilServer.writeItem(repairMaterial, new NBTTagCompound()));
         }
         compound.setBoolean("IgnoreRepairMatNBT", ignoreRepairMaterialNBT);
@@ -85,10 +86,7 @@ public class RecipeAnvil implements IAnvilRecipe {
         if (!NoppesUtilPlayer.compareItems(this.itemToRepair, inputItem, true, this.ignoreRepairItemNBT)) {
             return false;
         }
-        if (!NoppesUtilPlayer.compareItems(this.repairMaterial, inputRepairMaterial, this.ignoreRepairMaterialDamage, this.ignoreRepairMaterialNBT)) {
-            return false;
-        }
-        return true;
+        return NoppesUtilPlayer.compareItems(this.repairMaterial, inputRepairMaterial, this.ignoreRepairMaterialDamage, this.ignoreRepairMaterialNBT);
     }
 
     @Override
@@ -144,7 +142,7 @@ public class RecipeAnvil implements IAnvilRecipe {
         this.ignoreRepairMaterialDamage = recipe.ignoreRepairMaterialDamage;
         this.ignoreRepairItemNBT = recipe.ignoreRepairItemNBT;
         this.ignoreRepairMaterialNBT = recipe.ignoreRepairMaterialNBT;
-        this.repairPercentage = recipe.repairPercentage;;
+        this.repairPercentage = recipe.repairPercentage;
         this.xpCost = recipe.xpCost;
     }
 }

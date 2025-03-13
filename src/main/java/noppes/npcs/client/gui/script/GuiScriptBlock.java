@@ -5,9 +5,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileScripted;
 
 
-
 public class GuiScriptBlock extends GuiScriptInterface {
-    private TileScripted tileScripted;
+    private final TileScripted tileScripted;
 
     public GuiScriptBlock(int x, int y, int z) {
         hookList.add("init");

@@ -23,7 +23,8 @@ public final class DialogCategoryGetPacket extends AbstractPacket {
 
     private int categoryID;
 
-    public DialogCategoryGetPacket() {}
+    public DialogCategoryGetPacket() {
+    }
 
     public DialogCategoryGetPacket(int categoryID) {
         this.categoryID = categoryID;

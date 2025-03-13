@@ -15,71 +15,72 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.HashMap;
 
 
-public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelectionListener, IGuiData{
-	private GuiScreen parent;
-	private HashMap<Integer, DialogOption> data = new HashMap<Integer,DialogOption>();
+public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelectionListener, IGuiData {
+    private final GuiScreen parent;
+    private final HashMap<Integer, DialogOption> data = new HashMap<Integer, DialogOption>();
 
-	public GuiNPCDialogNpcOptions(EntityNPCInterface npc, GuiScreen parent) {
-		super(npc);
-		this.parent = parent;
-		this.drawDefaultBackground = true;
+    public GuiNPCDialogNpcOptions(EntityNPCInterface npc, GuiScreen parent) {
+        super(npc);
+        this.parent = parent;
+        this.drawDefaultBackground = true;
         PacketClient.sendClient(new DialogNpcGetPacket());
-	}
+    }
 
-	public void initGui() {
-		super.initGui();
-		for (int i = 0; i < 12; i++) {
-			int offset = i >=6 ?200:0;
-			this.addButton(new GuiNpcButton(i + 20, guiLeft + 20 + offset, guiTop + 13 + i % 6 * 22, 20, 20, "X"));
-			this.addLabel(new GuiNpcLabel(i, "" + i, guiLeft + 6 + offset, guiTop + 18 + i % 6 * 22));
+    public void initGui() {
+        super.initGui();
+        for (int i = 0; i < 12; i++) {
+            int offset = i >= 6 ? 200 : 0;
+            this.addButton(new GuiNpcButton(i + 20, guiLeft + 20 + offset, guiTop + 13 + i % 6 * 22, 20, 20, "X"));
+            this.addLabel(new GuiNpcLabel(i, "" + i, guiLeft + 6 + offset, guiTop + 18 + i % 6 * 22));
 
-			String title = "dialog.selectoption";
-			if(data.containsKey(i))
-				title = data.get(i).title;
-			this.addButton(new GuiNpcButton(i, guiLeft + 44 + offset, guiTop + 13 +  i % 6 * 22, 140, 20, title));
+            String title = "dialog.selectoption";
+            if (data.containsKey(i))
+                title = data.get(i).title;
+            this.addButton(new GuiNpcButton(i, guiLeft + 44 + offset, guiTop + 13 + i % 6 * 22, 140, 20, title));
 
-		}
-	}
+        }
+    }
 
-	public void drawScreen(int i, int j, float f) {
-		super.drawScreen(i, j, f);
-	}
-	private int selectedSlot;
-	protected void actionPerformed(GuiButton guibutton) {
-		int id = guibutton.id;
-		if (id >= 0 && id < 20) {
-			selectedSlot = id;
-			int dialogID = -1;
-			if(data.containsKey(id))
-				dialogID = data.get(id).dialogId;
+    public void drawScreen(int i, int j, float f) {
+        super.drawScreen(i, j, f);
+    }
+
+    private int selectedSlot;
+
+    protected void actionPerformed(GuiButton guibutton) {
+        int id = guibutton.id;
+        if (id >= 0 && id < 20) {
+            selectedSlot = id;
+            int dialogID = -1;
+            if (data.containsKey(id))
+                dialogID = data.get(id).dialogId;
             setSubGui(new GuiDialogSelection(dialogID));
-		}
-		if (id >= 20 && id < 40) {
-			int slot = id - 20;
-			data.remove(slot);
+        }
+        if (id >= 20 && id < 40) {
+            int slot = id - 20;
+            data.remove(slot);
             PacketClient.sendClient(new DialogNpcRemovePacket(slot));
-			initGui();
-		}
-	}
+            initGui();
+        }
+    }
 
-	public void save() {
-		return;
-	}
+    public void save() {
+    }
 
-	@Override
-	public void selected(int id, String name) {
+    @Override
+    public void selected(int id, String name) {
         PacketClient.sendClient(new DialogNpcSetPacket(selectedSlot, id));
-	}
+    }
 
 
-	@Override
-	public void setGuiData(NBTTagCompound compound) {
-		int pos = compound.getInteger("Position");
+    @Override
+    public void setGuiData(NBTTagCompound compound) {
+        int pos = compound.getInteger("Position");
 
-		DialogOption dialog = new DialogOption();
-		dialog.readNBT(compound);
+        DialogOption dialog = new DialogOption();
+        dialog.readNBT(compound);
 
-		data.put(pos, dialog);
-		initGui();
-	}
+        data.put(pos, dialog);
+        initGui();
+    }
 }

@@ -22,7 +22,8 @@ public final class TileEntitySavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public TileEntitySavePacket() {}
+    public TileEntitySavePacket() {
+    }
 
     public TileEntitySavePacket(NBTTagCompound compound) {
         this.compound = compound;

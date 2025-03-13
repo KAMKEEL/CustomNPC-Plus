@@ -10,68 +10,67 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 public class PlayerTransportData implements IPlayerTransportData {
-	private final PlayerData parent;
-	public HashSet<Integer> transports = new HashSet<Integer>();
+    private final PlayerData parent;
+    public HashSet<Integer> transports = new HashSet<Integer>();
 
-	public PlayerTransportData(PlayerData parent) {
-		this.parent = parent;
-	}
+    public PlayerTransportData(PlayerData parent) {
+        this.parent = parent;
+    }
 
-	public void loadNBTData(NBTTagCompound compound) {
-		HashSet<Integer> dialogsRead = new HashSet<Integer>();
-		if(compound == null)
-			return;
+    public void loadNBTData(NBTTagCompound compound) {
+        HashSet<Integer> dialogsRead = new HashSet<Integer>();
+        if (compound == null)
+            return;
         NBTTagList list = compound.getTagList("TransportData", 10);
-        if(list == null){
-        	return;
+        if (list == null) {
+            return;
         }
 
-        for(int i = 0; i < list.tagCount(); i++)
-        {
+        for (int i = 0; i < list.tagCount(); i++) {
             NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
             dialogsRead.add(nbttagcompound.getInteger("Transport"));
         }
         this.transports = dialogsRead;
-	}
+    }
 
-	public void saveNBTData(NBTTagCompound compound) {
-		NBTTagList list = new NBTTagList();
-		for(int dia : transports){
-			NBTTagCompound nbttagcompound = new NBTTagCompound();
-			nbttagcompound.setInteger("Transport", dia);
-			list.appendTag(nbttagcompound);
-		}
-		
-		compound.setTag("TransportData", list);
-	}
+    public void saveNBTData(NBTTagCompound compound) {
+        NBTTagList list = new NBTTagList();
+        for (int dia : transports) {
+            NBTTagCompound nbttagcompound = new NBTTagCompound();
+            nbttagcompound.setInteger("Transport", dia);
+            list.appendTag(nbttagcompound);
+        }
 
-	public boolean hasTransport(int id) {
-		return transports.contains(id);
-	}
+        compound.setTag("TransportData", list);
+    }
 
-	public void addTransport(int id) {
-		transports.add(id);
-	}
+    public boolean hasTransport(int id) {
+        return transports.contains(id);
+    }
 
-	public void addTransport(ITransportLocation location) {
-		transports.add(location.getId());
-	}
+    public void addTransport(int id) {
+        transports.add(id);
+    }
 
-	public ITransportLocation getTransport(int id) {
-		return TransportController.getInstance().getTransport(id);
-	}
+    public void addTransport(ITransportLocation location) {
+        transports.add(location.getId());
+    }
 
-	public ITransportLocation[] getTransports() {
-		ArrayList<ITransportLocation> list = new ArrayList<>();
-		for (int id : transports) {
-			ITransportLocation location = TransportController.getInstance().getTransport(id);
-			list.add(location);
-		}
+    public ITransportLocation getTransport(int id) {
+        return TransportController.getInstance().getTransport(id);
+    }
 
-		return list.toArray(new ITransportLocation[0]);
-	}
+    public ITransportLocation[] getTransports() {
+        ArrayList<ITransportLocation> list = new ArrayList<>();
+        for (int id : transports) {
+            ITransportLocation location = TransportController.getInstance().getTransport(id);
+            list.add(location);
+        }
 
-	public void removeTransport(int id) {
-		transports.remove(id);
-	}
+        return list.toArray(new ITransportLocation[0]);
+    }
+
+    public void removeTransport(int id) {
+        transports.remove(id);
+    }
 }

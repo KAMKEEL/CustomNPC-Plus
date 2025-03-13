@@ -20,7 +20,8 @@ import java.io.IOException;
 public final class ProfileGetPacket extends AbstractPacket {
     public static String packetName = "Request|ProfileGet";
 
-    public ProfileGetPacket() {}
+    public ProfileGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -34,20 +35,21 @@ public final class ProfileGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if(!ConfigMain.ProfilesEnabled)
+        if (!ConfigMain.ProfilesEnabled)
             return;
 
         sendProfileNBT(player);
     }
 
-    public static void sendProfileNBT(EntityPlayer player){
+    public static void sendProfileNBT(EntityPlayer player) {
         Profile profile = ProfileController.Instance.getProfile(player);
         NBTTagCompound compound = profile.writeToNBT();
         compound.setBoolean("PROFILE", true);

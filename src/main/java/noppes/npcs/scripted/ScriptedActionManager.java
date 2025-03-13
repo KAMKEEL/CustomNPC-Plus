@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 
 public class ScriptedActionManager implements IActionManager {
     private boolean isWorking;
-    private Queue<IAction> actionQueue = new LinkedList<>();
+    private final Queue<IAction> actionQueue = new LinkedList<>();
 
     @Override
     public IAction createAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
@@ -67,9 +67,10 @@ public class ScriptedActionManager implements IActionManager {
         return actionQueue;
     }
 
-    public void clear(){
+    public void clear() {
         actionQueue.clear();
     }
+
     public void tick(int ticksExisted) {
         if (isWorking) {
             CustomAction current = (CustomAction) getCurrentAction();
@@ -86,12 +87,13 @@ public class ScriptedActionManager implements IActionManager {
     //Nested not static to access outer class instance
     public class CustomAction implements IAction {
         Consumer<IAction> action;
-        private HashMap<String, Object> data = new HashMap<>();
+        private final HashMap<String, Object> data = new HashMap<>();
 
-        private String name;
+        private final String name;
         private int startAfterTicks; //number of ticks to start action after
         private int count; //number of times action ran
-        private int duration, maxDuration;  //duration since action began
+        private int duration;
+        private final int maxDuration;  //duration since action began
         private int updateEveryXTick = 5;
 
         private boolean isDone;

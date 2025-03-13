@@ -15,36 +15,34 @@ import noppes.npcs.entity.data.ModelPartData;
 //            EntityAnimal, Item, EntityPlayer, InventoryPlayer,
 //            ItemStack, World, NBTTagCompound
 
-public class EntityNpcNagaFemale extends EntityNPCInterface
-{
-    public EntityNpcNagaFemale(World world)
-    {
+public class EntityNpcNagaFemale extends EntityNPCInterface {
+    public EntityNpcNagaFemale(World world) {
         super(world);
         scaleX = scaleY = scaleZ = 0.9075f;
         display.texture = "customnpcs:textures/entity/nagafemale/Claire.png";
     }
-    public void onUpdate()
-    {
-    	isDead = true;
 
-    	if(!worldObj.isRemote){
-	    	NBTTagCompound compound = new NBTTagCompound();
+    public void onUpdate() {
+        isDead = true;
 
-	    	writeToNBT(compound);
-	    	EntityCustomNpc npc = new EntityCustomNpc(worldObj);
-	    	npc.readFromNBT(compound);
-	    	ModelData data = npc.modelData;
-			data.breasts = 2;
-			data.modelScale.head.setScale(0.95f,0.95f);
-			data.modelScale.legs.setScale(0.92f,0.92f);
-			data.modelScale.arms.setScale(0.80f,0.92f);
-			data.modelScale.body.setScale(0.92f, 0.92f);
-	    	ModelPartData legs = data.legParts;
-	    	legs.playerTexture = true;
-	    	legs.type = 1;
+        if (!worldObj.isRemote) {
+            NBTTagCompound compound = new NBTTagCompound();
 
-	    	worldObj.spawnEntityInWorld(npc);
-    	}
+            writeToNBT(compound);
+            EntityCustomNpc npc = new EntityCustomNpc(worldObj);
+            npc.readFromNBT(compound);
+            ModelData data = npc.modelData;
+            data.breasts = 2;
+            data.modelScale.head.setScale(0.95f, 0.95f);
+            data.modelScale.legs.setScale(0.92f, 0.92f);
+            data.modelScale.arms.setScale(0.80f, 0.92f);
+            data.modelScale.body.setScale(0.92f, 0.92f);
+            ModelPartData legs = data.legParts;
+            legs.playerTexture = true;
+            legs.type = 1;
+
+            worldObj.spawnEntityInWorld(npc);
+        }
         super.onUpdate();
     }
 }

@@ -7,7 +7,7 @@ import net.minecraft.entity.Entity;
 
 public class ModelCampfireFlame extends ModelBase {
     private final ModelRenderer[] frames;
-    private static int frameDuration = 2;
+    private static final int frameDuration = 2;
 
     public ModelCampfireFlame() {
         textureWidth = 16;

@@ -15,7 +15,9 @@ import java.io.IOException;
 
 public final class LoginPacket extends AbstractPacket {
     public static final String packetName = "CNPC+|Login";
-    public LoginPacket() {}
+
+    public LoginPacket() {
+    }
 
     @Override
     public Enum getType() {

@@ -5,9 +5,9 @@ import net.minecraft.nbt.NBTTagCompound;
 
 public interface IRequirementChecker {
 
-    public String getKey();
+    String getKey();
 
-    public String getTranslation();
+    String getTranslation();
 
     String getTooltipValue(NBTTagCompound nbt);
 

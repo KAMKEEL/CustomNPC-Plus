@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
@@ -11,7 +10,7 @@ import noppes.npcs.controllers.data.PlayerDataScript;
 import java.util.List;
 
 public class GuiScriptPlayers extends GuiScriptInterface {
-    private PlayerDataScript script = new PlayerDataScript((EntityPlayer)null);
+    private final PlayerDataScript script = new PlayerDataScript(null);
 
     public GuiScriptPlayers() {
         hookList.add(EnumScriptType.INIT.function);
@@ -99,7 +98,7 @@ public class GuiScriptPlayers extends GuiScriptInterface {
                     script.getScripts().add(new ScriptContainer(script));
                 }
             }
-            script.getScripts().set(tab,container);
+            script.getScripts().set(tab, container);
             initGui();
         }
     }

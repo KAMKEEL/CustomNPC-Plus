@@ -18,7 +18,7 @@ import static noppes.npcs.client.gui.player.inventory.GuiCNPCInventory.specialIc
 public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
 
     // Store all composite buttons keyed by their IDs.
-    private Map<Integer, GuiNpcSquareButton> buttonMap = new HashMap<>();
+    private final Map<Integer, GuiNpcSquareButton> buttonMap = new HashMap<>();
 
     private GuiNpcSquareButton bankButton;
     private GuiNpcSquareButton factionButton;
@@ -101,14 +101,14 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
     /**
      * Compute the optimal layout by iterating over candidate row counts from 1 to total.
      * For each candidate:
-     *   - Let c = ceil(total / r)
-     *   - candidateHoriz = (availWidth - (c+1)*padding) / c
-     *   - candidateVert  = (availHeight - (r+1)*padding) / r
-     *   - candidate = min(candidateHoriz, candidateVert)
-     *   - usedWidth = candidate * c + (c+1)*padding
-     *   - usedHeight = candidate * r + (r+1)*padding
-     *   - ratio = (usedWidth * usedHeight) / (availWidth * availHeight)
-     *
+     * - Let c = ceil(total / r)
+     * - candidateHoriz = (availWidth - (c+1)*padding) / c
+     * - candidateVert  = (availHeight - (r+1)*padding) / r
+     * - candidate = min(candidateHoriz, candidateVert)
+     * - usedWidth = candidate * c + (c+1)*padding
+     * - usedHeight = candidate * r + (r+1)*padding
+     * - ratio = (usedWidth * usedHeight) / (availWidth * availHeight)
+     * <p>
      * We choose the candidate (r, candidate) that maximizes this ratio.
      *
      * @param total   Total number of buttons.
@@ -130,7 +130,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
                 continue;
             int usedWidth = candidate * cols + (cols + 1) * padding;
             int usedHeight = candidate * r + (r + 1) * padding;
-            double ratio = (double)(usedWidth * usedHeight) / (availWidth * availHeight);
+            double ratio = (double) (usedWidth * usedHeight) / (availWidth * availHeight);
             if (ratio > bestRatio || (Math.abs(ratio - bestRatio) < 0.0001 && candidate > bestCandidate)) {
                 bestRatio = ratio;
                 bestCandidate = candidate;

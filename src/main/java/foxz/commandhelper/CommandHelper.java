@@ -13,8 +13,10 @@ public abstract class CommandHelper {
         public String desc;
         public boolean hasEmptyCall;
     }
+
     public Helper commandHelper = new Helper();
-	public List addTabCompletion(ICommandSender par1, String[] args) {
-		return null;
-	}
+
+    public List addTabCompletion(ICommandSender par1, String[] args) {
+        return null;
+    }
 }

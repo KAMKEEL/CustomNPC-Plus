@@ -24,7 +24,8 @@ public final class ProfileRenamePacket extends AbstractPacket {
     private int slotID;
     private String name;
 
-    public ProfileRenamePacket() {}
+    public ProfileRenamePacket() {
+    }
 
     public ProfileRenamePacket(int slotID, String name) {
         this.slotID = slotID;
@@ -58,14 +59,14 @@ public final class ProfileRenamePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if(!ConfigMain.ProfilesEnabled)
+        if (!ConfigMain.ProfilesEnabled)
             return;
 
         int slot = in.readInt();
         String newName = ByteBufUtils.readString(in);
 
         Profile profile = ProfileController.Instance.getProfile(player);
-        if(!profile.getSlots().containsKey(slot)) {
+        if (!profile.getSlots().containsKey(slot)) {
             ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "No slot found");
             return;
         }

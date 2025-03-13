@@ -7,19 +7,19 @@ import net.minecraft.client.model.TexturedQuad;
 import net.minecraft.client.renderer.Tessellator;
 import noppes.npcs.client.renderer.EnumPlanePosition;
 
-public class ModelPlane extends ModelBox{
+public class ModelPlane extends ModelBox {
 
-    private PositionTextureVertex[] vertexPositions;
+    private final PositionTextureVertex[] vertexPositions;
     private TexturedQuad quad;
-    
-	public ModelPlane(ModelRenderer par1ModelRenderer, int textureOffsetX, int textureOffsetY, float par4, float par5, float par6,
-			int par7, int par8, int par9, float par10, EnumPlanePosition position) {
-		super(par1ModelRenderer, textureOffsetX, textureOffsetY, par4, par5, par6, par7, par8, par9, par10);
+
+    public ModelPlane(ModelRenderer par1ModelRenderer, int textureOffsetX, int textureOffsetY, float par4, float par5, float par6,
+                      int par7, int par8, int par9, float par10, EnumPlanePosition position) {
+        super(par1ModelRenderer, textureOffsetX, textureOffsetY, par4, par5, par6, par7, par8, par9, par10);
 
         this.vertexPositions = new PositionTextureVertex[8];
-        float var11 = par4 + (float)par7;
-        float var12 = par5 + (float)par8;
-        float var13 = par6 + (float)par9;
+        float var11 = par4 + (float) par7;
+        float var12 = par5 + (float) par8;
+        float var13 = par6 + (float) par9;
         par4 -= par10;
         par5 -= par10;
         par6 -= par10;
@@ -27,8 +27,7 @@ public class ModelPlane extends ModelBox{
         var12 += par10;
         var13 += par10;
 
-        if (par1ModelRenderer.mirror)
-        {
+        if (par1ModelRenderer.mirror) {
             float var14 = var11;
             var11 = par4;
             par4 = var14;
@@ -50,26 +49,25 @@ public class ModelPlane extends ModelBox{
         this.vertexPositions[5] = var19;
         this.vertexPositions[6] = var20;
         this.vertexPositions[7] = var21;
-        
-        if(position == EnumPlanePosition.LEFT)
-        	this.quad = new TexturedQuad(new PositionTextureVertex[] {var19, var15, var16, var20}, textureOffsetX, textureOffsetY, textureOffsetX + par9, textureOffsetY + par8, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
+
+        if (position == EnumPlanePosition.LEFT)
+            this.quad = new TexturedQuad(new PositionTextureVertex[]{var19, var15, var16, var20}, textureOffsetX, textureOffsetY, textureOffsetX + par9, textureOffsetY + par8, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
         //this.quad = new TexturedQuad(new PositionTextureVertex[] {var23, var18, var21, var17}, textureOffsetX, textureOffsetY + par9, textureOffsetX + par9, textureOffsetY + par9 + par8, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
-        
-        if(position == EnumPlanePosition.TOP)
-        	this.quad = new TexturedQuad(new PositionTextureVertex[] {var19, var18, var23, var15}, textureOffsetX, textureOffsetY, textureOffsetX + par7, textureOffsetY + par9, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
+
+        if (position == EnumPlanePosition.TOP)
+            this.quad = new TexturedQuad(new PositionTextureVertex[]{var19, var18, var23, var15}, textureOffsetX, textureOffsetY, textureOffsetX + par7, textureOffsetY + par9, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
         //this.quad = new TexturedQuad(new PositionTextureVertex[] {var16, var17, var21, var20}, textureOffsetX + par9 + par7, textureOffsetY + par9, textureOffsetX + par9 + par7 + par7, textureOffsetY, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
-        
-        if(position == EnumPlanePosition.BACK)
-        	this.quad = new TexturedQuad(new PositionTextureVertex[] {var15, var23, var17, var16}, textureOffsetX, textureOffsetY, textureOffsetX + par7, textureOffsetY + par8, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
+
+        if (position == EnumPlanePosition.BACK)
+            this.quad = new TexturedQuad(new PositionTextureVertex[]{var15, var23, var17, var16}, textureOffsetX, textureOffsetY, textureOffsetX + par7, textureOffsetY + par8, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
         //this.quad = new TexturedQuad(new PositionTextureVertex[] {var18, var19, var20, var21}, textureOffsetX + par9 + par7, textureOffsetY + par9, textureOffsetX + par9 + par7 + par7, textureOffsetY + par9 + par8, par1ModelRenderer.textureWidth, par1ModelRenderer.textureHeight);
-        
+
         if (par1ModelRenderer.mirror)
-        	quad.flipFace();
-	}
-	
+            quad.flipFace();
+    }
+
     @Override
-    public void render(Tessellator par1Tessellator, float par2)
-    {
-    	quad.draw(par1Tessellator, par2);
+    public void render(Tessellator par1Tessellator, float par2) {
+        quad.draw(par1Tessellator, par2);
     }
 }

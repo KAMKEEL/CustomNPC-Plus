@@ -298,7 +298,7 @@ public class ScriptGui implements ICustomGui {
         ICustomGuiComponent c;
         while (var3.hasNext()) {
             c = (ICustomGuiComponent) var3.next();
-            list.appendTag(((ScriptGuiComponent) c).toNBT(new NBTTagCompound()));
+            list.appendTag(c.toNBT(new NBTTagCompound()));
         }
         tag.setTag("components", list);
         list = new NBTTagList();
@@ -308,7 +308,7 @@ public class ScriptGui implements ICustomGui {
             if (c.getID() == -1) {
                 c.setID(this.getMaxId() + 1);
             }
-            list.appendTag(((ScriptGuiComponent) c).toNBT(new NBTTagCompound()));
+            list.appendTag(c.toNBT(new NBTTagCompound()));
         }
         tag.setTag("slots", list);
         tag.setBoolean("showPlayerInv", this.showPlayerInv);

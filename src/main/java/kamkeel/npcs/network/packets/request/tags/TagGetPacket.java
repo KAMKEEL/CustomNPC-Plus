@@ -23,7 +23,8 @@ public final class TagGetPacket extends AbstractPacket {
 
     private int tagID;
 
-    public TagGetPacket() {}
+    public TagGetPacket() {
+    }
 
     public TagGetPacket(int tagID) {
         this.tagID = tagID;

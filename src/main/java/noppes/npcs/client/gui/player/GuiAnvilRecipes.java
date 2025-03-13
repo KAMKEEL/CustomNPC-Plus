@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
@@ -67,7 +67,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
     @Override
     public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
-        if(search.equals(getTextField(3).getText()))
+        if (search.equals(getTextField(3).getText()))
             return;
         search = getTextField(3).getText().toLowerCase();
         recipes = getSearchList();
@@ -76,19 +76,19 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
     }
 
     private List<RecipeAnvil> getSearchList() {
-        if(search.isEmpty()) {
+        if (search.isEmpty()) {
             return new ArrayList<RecipeAnvil>(RecipeController.Instance.anvilRecipes.values());
         }
         List<RecipeAnvil> list = new ArrayList<RecipeAnvil>();
-        for(RecipeAnvil recipe : RecipeController.Instance.anvilRecipes.values()) {
+        for (RecipeAnvil recipe : RecipeController.Instance.anvilRecipes.values()) {
             ItemStack repairItem = recipe.itemToRepair;
-            if(repairItem == null)
+            if (repairItem == null)
                 continue;
-            if(repairItem.getDisplayName() == null)
+            if (repairItem.getDisplayName() == null)
                 continue;
-            if(repairItem.getDisplayName().trim().isEmpty())
+            if (repairItem.getDisplayName().trim().isEmpty())
                 continue;
-            if(repairItem.getDisplayName().toLowerCase().contains(search))
+            if (repairItem.getDisplayName().toLowerCase().contains(search))
                 list.add(recipe);
         }
         return list;
@@ -96,15 +96,15 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
     @Override
     protected void actionPerformed(GuiButton button) {
-        if(!button.enabled)
+        if (!button.enabled)
             return;
-        if(button == btnRight) {
-            if(page > 0)
+        if (button == btnRight) {
+            if (page > 0)
                 page--;
         }
-        if(button == btnLeft) {
+        if (button == btnLeft) {
             int maxPages = MathHelper.ceiling_float_int(recipes.size() / 8.0F);
-            if(page < maxPages - 1)
+            if (page < maxPages - 1)
                 page++;
         }
         updateButton();
@@ -113,6 +113,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
     private static class ItemOverlayData {
         public final int x, y;
         public final ItemStack item;
+
         public ItemOverlayData(int x, int y, ItemStack item) {
             this.x = x;
             this.y = y;
@@ -125,7 +126,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
         public final List<String> textLines;
 
         public TextOverlayData(int x, int y, int width, int height, String text) {
-            this(x, y, width, height, Arrays.asList(text));
+            this(x, y, width, height, Collections.singletonList(text));
         }
 
         public TextOverlayData(int x, int y, int width, int height, List<String> textLines) {
@@ -161,7 +162,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
         for (int i = startIndex; i < endIndex; i++) {
             RecipeAnvil recipe = recipes.get(i);
-            if(!recipe.isValid())
+            if (!recipe.isValid())
                 continue;
 
             int localIndex = i - startIndex; // 0 to 7
@@ -190,8 +191,8 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
                 }
                 drawItem(halfItem, slotX + 1, slotY + 1, mouseX, mouseY);
                 // Instead of drawing overlay immediately, add to list.
-                if (func_146978_c((slotX+1) - guiLeft, (slotY+1) - guiTop, 16, 16, mouseX, mouseY)) {
-                    itemOverlays.add(new ItemOverlayData(slotX+1, slotY+1, halfItem));
+                if (func_146978_c((slotX + 1) - guiLeft, (slotY + 1) - guiTop, 16, 16, mouseX, mouseY)) {
+                    itemOverlays.add(new ItemOverlayData(slotX + 1, slotY + 1, halfItem));
                 }
             }
 
@@ -199,8 +200,8 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
             ItemStack material = recipe.repairMaterial;
             if (material != null) {
                 drawItem(material, slotX + 23, slotY + 1, mouseX, mouseY);
-                if (func_146978_c((slotX+23) - guiLeft, (slotY+1) - guiTop, 16, 16, mouseX, mouseY)) {
-                    itemOverlays.add(new ItemOverlayData(slotX+23, slotY+1, material));
+                if (func_146978_c((slotX + 23) - guiLeft, (slotY + 1) - guiTop, 16, 16, mouseX, mouseY)) {
+                    itemOverlays.add(new ItemOverlayData(slotX + 23, slotY + 1, material));
                 }
             }
 
@@ -230,12 +231,12 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
                 textOverlays.add(new TextOverlayData(percentTextX, percentTextY, percentWidth, fontRendererObj.FONT_HEIGHT, String.valueOf(recipe.getRepairPercentage())));
             }
 
-            if(!recipe.availability.isDefault()){
-                if(!recipe.availability.isAvailable(this.player)){
+            if (!recipe.availability.isDefault()) {
+                if (!recipe.availability.isAvailable(this.player)) {
                     String helpChar = "?";
                     float scale = 1F;  // Adjust for a very small size
-                    int questionWidth = (int)(fontRendererObj.getStringWidth(helpChar) * scale);
-                    int questionHeight = (int)(fontRendererObj.FONT_HEIGHT * scale);
+                    int questionWidth = (int) (fontRendererObj.getStringWidth(helpChar) * scale);
+                    int questionHeight = (int) (fontRendererObj.FONT_HEIGHT * scale);
                     // Center the "?" under the percentage text.
                     int questionX = percentCenterX - (questionWidth / 2) - 1 - row;
                     int questionY = percentTextY + fontRendererObj.FONT_HEIGHT; // You can tweak the vertical offset if needed
@@ -255,8 +256,8 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
                     // Draw a very small "?" under the percentage text.
                     String helpChar = "!";
                     float scale = 1F;  // Adjust for a very small size
-                    int questionWidth = (int)(fontRendererObj.getStringWidth(helpChar) * scale);
-                    int questionHeight = (int)(fontRendererObj.FONT_HEIGHT * scale);
+                    int questionWidth = (int) (fontRendererObj.getStringWidth(helpChar) * scale);
+                    int questionHeight = (int) (fontRendererObj.FONT_HEIGHT * scale);
                     // Center the "?" under the percentage text.
                     int questionX = percentCenterX - (questionWidth / 2) - 1 - row;
                     int questionY = percentTextY + fontRendererObj.FONT_HEIGHT; // You can tweak the vertical offset if needed
@@ -280,7 +281,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
             int digitCount = xpCostStr.length();
             float xpScale = 1.0F - 0.1F * (digitCount - 1);
             int rawTextWidth = fontRendererObj.getStringWidth(xpCostStr);
-            int scaledTextWidth = (int)(rawTextWidth * xpScale);
+            int scaledTextWidth = (int) (rawTextWidth * xpScale);
             int xpCenterX = (col == 0) ? (guiLeft + 76) : (guiLeft + 76 + colSpacing);
             int xpTextX = xpCenterX - (scaledTextWidth / 2) + col;
             int xpTextY = slotY - 4 + row;
@@ -305,6 +306,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
             this.drawHoveringText(tod.textLines, mouseX, mouseY, this.fontRendererObj);
         }
     }
+
     protected boolean func_146978_c(int p_146978_1_, int p_146978_2_, int p_146978_3_, int p_146978_4_, int p_146978_5_, int p_146978_6_) {
         int k1 = this.guiLeft;
         int l1 = this.guiTop;
@@ -318,8 +320,8 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
             return String.valueOf(xp);
         }
         double xpK = xp / 1000.0;
-        if (xpK == (int)xpK) {
-            return ((int)xpK) + "K";
+        if (xpK == (int) xpK) {
+            return ((int) xpK) + "K";
         } else {
             return String.format("%.1fK", xpK);
         }
@@ -339,5 +341,6 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
     }
 
     @Override
-    public void save() {}
+    public void save() {
+    }
 }

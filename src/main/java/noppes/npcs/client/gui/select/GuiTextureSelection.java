@@ -19,7 +19,6 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.File;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +46,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     private static HashMap<String, List<TextureData>> cachedDomains = new HashMap<>();
     public static HashMap<String, TextureData> cachedTextures = new HashMap<>();
 
-    public GuiTextureSelection(EntityNPCInterface npc, String texture){
+    public GuiTextureSelection(EntityNPCInterface npc, String texture) {
         this.npc = npc;
         drawDefaultBackground = false;
         title = "";
@@ -57,69 +56,65 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 
         // First, try to use cached domain data if it exists and is recent
         long now = System.currentTimeMillis();
-        if(cachedDomains != null && now - lastCacheTime < CACHE_DURATION) {
+        if (cachedDomains != null && now - lastCacheTime < CACHE_DURATION) {
             domains.putAll(cachedDomains);
             textures.putAll(cachedTextures);
-        }
-        else {
+        } else {
             // Build the domains and textures maps
             SimpleReloadableResourceManager simplemanager = (SimpleReloadableResourceManager) Minecraft.getMinecraft().getResourceManager();
             Map<String, FallbackResourceManager> map = ObfuscationReflectionHelper.getPrivateValue(SimpleReloadableResourceManager.class, simplemanager, 2);
             HashSet<String> set = new HashSet<String>();
-            for(String name: map.keySet()){
-                if(!(map.get(name) instanceof FallbackResourceManager))
+            for (String name : map.keySet()) {
+                if (!(map.get(name) instanceof FallbackResourceManager))
                     continue;
-                FallbackResourceManager manager = (FallbackResourceManager) map.get(name);
+                FallbackResourceManager manager = map.get(name);
                 List<IResourcePack> list = ObfuscationReflectionHelper.getPrivateValue(FallbackResourceManager.class, manager, 0);
-                for(IResourcePack pack : list){
-                    if(pack instanceof AbstractResourcePack){
+                for (IResourcePack pack : list) {
+                    if (pack instanceof AbstractResourcePack) {
                         AbstractResourcePack p = (AbstractResourcePack) pack;
                         File file = NPCResourceHelper.getPackFile(p);
-                        if(file != null)
+                        if (file != null)
                             set.add(file.getAbsolutePath());
                     }
                 }
             }
-            for(String file : set){
+            for (String file : set) {
                 File f = new File(file);
-                if(f.isDirectory()) {
+                if (f.isDirectory()) {
                     checkFolder(new File(f, "assets"), f.getAbsolutePath().length());
-                }
-                else {
+                } else {
                     progressFile(f);
                 }
             }
             for (ModContainer mod : Loader.instance().getModList()) {
-                if(mod.getSource().exists())
+                if (mod.getSource().exists())
                     progressFile(mod.getSource());
             }
             ResourcePackRepository repos = Minecraft.getMinecraft().getResourcePackRepository();
             repos.updateRepositoryEntriesAll();
             List<ResourcePackRepository.Entry> list = repos.getRepositoryEntries();
-            for(ResourcePackRepository.Entry entry : list) {
+            for (ResourcePackRepository.Entry entry : list) {
                 File file = new File(repos.getDirResourcepacks(), entry.getResourcePackName());
-                if(file.exists()){
+                if (file.exists()) {
                     progressFile(file);
                 }
             }
             checkFolder(new File(CustomNpcs.Dir, "assets"), CustomNpcs.Dir.getAbsolutePath().length());
             URL url = DefaultResourcePack.class.getResource("/");
-            if(url != null) {
+            if (url != null) {
                 File f = decodeFile(url.getFile());
-                if(f.isDirectory()) {
+                if (f.isDirectory()) {
                     checkFolder(new File(f, "assets"), url.getFile().length());
-                }
-                else {
+                } else {
                     progressFile(f);
                 }
             }
             url = CraftingManager.class.getResource("/assets/.mcassetsroot");
-            if(url != null) {
+            if (url != null) {
                 File f = decodeFile(url.getFile());
-                if(f.isDirectory()) {
+                if (f.isDirectory()) {
                     checkFolder(new File(f, "assets"), url.getFile().length());
-                }
-                else {
+                } else {
                     progressFile(f);
                 }
             }
@@ -129,10 +124,10 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
             lastCacheTime = now;
         }
 
-        if(texture != null && !texture.isEmpty()){
+        if (texture != null && !texture.isEmpty()) {
             selectedResource = new ResourceLocation(texture);
             selectedDomain = selectedResource.getResourceDomain();
-            if(!domains.containsKey(selectedDomain)) {
+            if (!domains.containsKey(selectedDomain)) {
                 selectedDomain = null;
             }
             int i = selectedResource.getResourcePath().lastIndexOf('/');
@@ -141,56 +136,52 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     }
 
     private File decodeFile(String url) {
-        if(url.startsWith("file:")) {
+        if (url.startsWith("file:")) {
             url = url.substring(5);
         }
         url = url.replace('/', File.separatorChar);
         int i = url.indexOf('!');
-        if(i > 0) {
+        if (i > 0) {
             url = url.substring(0, i);
         }
-        try {
-            url = URLDecoder.decode(url, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException ignored) {}
+        url = URLDecoder.decode(url, StandardCharsets.UTF_8);
         return new File(url);
     }
 
     @Override
-    public void initGui(){
+    public void initGui() {
         super.initGui();
 
-        if(selectedDomain != null) {
+        if (selectedDomain != null) {
             title = selectedDomain + ":" + location;
-        }
-        else {
+        } else {
             title = "";
         }
 
         this.addButton(new GuiNpcButton(2, guiLeft + 264, guiTop + 170, 90, 20, "gui.done"));
         this.addButton(new GuiNpcButton(1, guiLeft + 264, guiTop + 190, 90, 20, "gui.cancel"));
 
-        if(scrollCategories == null){
+        if (scrollCategories == null) {
             scrollCategories = new GuiCustomScroll(this, 0);
             scrollCategories.setSize(120, 200);
         }
-        if(selectedDomain == null) {
+        if (selectedDomain == null) {
             scrollCategories.setList(Lists.newArrayList(domains.keySet()));
-            if(selectedDomain != null) {
+            if (selectedDomain != null) {
                 scrollCategories.setSelected(selectedDomain);
             }
-        }
-        else {
+        } else {
             List<String> list = new ArrayList<String>();
             list.add(up);
             List<TextureData> data = domains.get(selectedDomain);
-            for(TextureData td : data) {
-                if(location.isEmpty() || td.path.startsWith(location) && !td.path.equals(location)) {
+            for (TextureData td : data) {
+                if (location.isEmpty() || td.path.startsWith(location) && !td.path.equals(location)) {
                     String path = td.path.substring(location.length());
                     int i = path.indexOf('/');
-                    if(i < 0)
+                    if (i < 0)
                         continue;
                     path = path.substring(0, i);
-                    if(!path.isEmpty() && !list.contains(path)) {
+                    if (!path.isEmpty() && !list.contains(path)) {
                         list.add(path);
                     }
                 }
@@ -201,27 +192,27 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         scrollCategories.guiTop = guiTop + 14;
         this.addScroll(scrollCategories);
 
-        if(scrollTextures == null){
+        if (scrollTextures == null) {
             scrollTextures = new GuiCustomScroll(this, 1);
             scrollTextures.setSize(130, 200);
         }
-        if(selectedDomain != null) {
+        if (selectedDomain != null) {
             textures.clear();
             List<TextureData> data = domains.get(selectedDomain);
             List<String> list = new ArrayList<String>();
             String loc = location;
-            if(scrollCategories.hasSelected() && !scrollCategories.getSelected().equals(up)) {
+            if (scrollCategories.hasSelected() && !scrollCategories.getSelected().equals(up)) {
                 loc += scrollCategories.getSelected() + '/';
             }
-            for(TextureData td : data) {
-                if(td.path.equals(loc) && !list.contains(td.name)) {
+            for (TextureData td : data) {
+                if (td.path.equals(loc) && !list.contains(td.name)) {
                     list.add(td.name);
                     textures.put(td.name, td);
                 }
             }
             scrollTextures.setList(list);
         }
-        if(selectedResource != null) {
+        if (selectedResource != null) {
             scrollTextures.setSelected(selectedResource.getResourcePath());
         }
         scrollTextures.guiLeft = guiLeft + 125;
@@ -230,9 +221,9 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         super.actionPerformed(guibutton);
-        if(guibutton.id == 2){
+        if (guibutton.id == 2) {
             npc.display.setSkinTexture(selectedResource.toString());
         }
         npc.textureLocation = null;
@@ -241,7 +232,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     }
 
     @Override
-    public void drawScreen(int i, int j, float f){
+    public void drawScreen(int i, int j, float f) {
         super.drawScreen(i, j, f);
         npc.textureLocation = selectedResource;
         drawNpc(npc, 307, 150, 1.5F, 0);
@@ -249,13 +240,12 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 
     @Override
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
-        if(scroll == scrollTextures) {
-            if(scroll.id == 1){
+        if (scroll == scrollTextures) {
+            if (scroll.id == 1) {
                 TextureData data = textures.get(scroll.getSelected());
                 selectedResource = new ResourceLocation(selectedDomain, data.absoluteName);
             }
-        }
-        else {
+        } else {
             initGui();
             scrollTextures.resetScroll();
         }
@@ -263,49 +253,44 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
 
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
-        if(scroll == scrollCategories) {
-            if(selectedDomain == null) {
+        if (scroll == scrollCategories) {
+            if (selectedDomain == null) {
                 selectedDomain = selection;
-            }
-            else if(selection.equals(up)) {
+            } else if (selection.equals(up)) {
                 int i = location.lastIndexOf('/', location.length() - 2);
-                if(i < 0) {
-                    if(location.isEmpty()) {
+                if (i < 0) {
+                    if (location.isEmpty()) {
                         selectedDomain = null;
                     }
                     location = "";
-                }
-                else {
+                } else {
                     location = location.substring(0, i + 1);
                 }
-            }
-            else {
+            } else {
                 location = location + selection + '/';
             }
             scrollCategories.selected = -1;
             scrollTextures.selected = -1;
             initGui();
-        }
-        else {
+        } else {
             npc.display.setSkinTexture(selectedResource.toString());
             close();
             parent.initGui();
         }
     }
 
-    private void progressFile(File file){
+    private void progressFile(File file) {
         try {
             if (!file.isDirectory() && (file.getName().endsWith(".jar") || file.getName().endsWith(".zip"))) {
                 ZipFile zip = new ZipFile(file);
                 Enumeration<? extends ZipEntry> entries = zip.entries();
-                while(entries.hasMoreElements()){
+                while (entries.hasMoreElements()) {
                     ZipEntry zipentry = entries.nextElement();
                     String entryName = zipentry.getName();
                     addFile(entryName);
                 }
                 zip.close();
-            }
-            else if(file.isDirectory()){
+            } else if (file.isDirectory()) {
                 int length = file.getAbsolutePath().length();
                 checkFolder(file, length);
             }
@@ -314,35 +299,34 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         }
     }
 
-    private void checkFolder(File file, int length){
+    private void checkFolder(File file, int length) {
         File[] files = file.listFiles();
-        if(files == null){
+        if (files == null) {
             return;
         }
-        for(File f : files){
+        for (File f : files) {
             String name = null;
             try {
                 name = f.getAbsolutePath().substring(length);
                 name = name.replace("\\", "/");
-                if(!name.startsWith("/"))
+                if (!name.startsWith("/"))
                     name = "/" + name;
-                if(f.isDirectory()){
+                if (f.isDirectory()) {
                     addFile(name + "/");
                     checkFolder(f, length);
-                }
-                else
+                } else
                     addFile(name);
-            }
-            catch(Throwable e) {
+            } catch (Throwable e) {
                 LogWriter.error("error with: " + name);
             }
         }
     }
+
     private void addFile(String name) {
-        if(name.startsWith("/")) {
+        if (name.startsWith("/")) {
             name = name.substring(1);
         }
-        if(!name.startsWith("assets/") || !name.endsWith(".png")) {
+        if (!name.startsWith("assets/") || !name.endsWith(".png")) {
             return;
         }
         name = name.substring(7);
@@ -351,17 +335,17 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         name = name.substring(i + 1);
 
         List<TextureData> list = domains.get(domain);
-        if(list == null) {
+        if (list == null) {
             domains.put(domain, list = new ArrayList<TextureData>());
         }
         boolean contains = false;
-        for(TextureData data : list) {
-            if(data.absoluteName.equals(name)) {
+        for (TextureData data : list) {
+            if (data.absoluteName.equals(name)) {
                 contains = true;
                 break;
             }
         }
-        if(!contains)
+        if (!contains)
             list.add(new TextureData(domain, name));
     }
 
@@ -370,6 +354,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         String absoluteName;
         String name;
         String path;
+
         public TextureData(String domain, String absoluteName) {
             this.domain = domain;
             int i = absoluteName.lastIndexOf('/');

@@ -1,9 +1,9 @@
 package kamkeel.npcs.controllers.data.attribute.tracker;
 
+import kamkeel.npcs.util.AttributeItemUtil;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import kamkeel.npcs.util.AttributeItemUtil;
 
 public class PlayerEquipmentTracker {
     public ItemStack heldItem;
@@ -36,8 +36,7 @@ public class PlayerEquipmentTracker {
         if (!areItemStacksEquivalent(boots, armor[0])) return false;
         if (!areItemStacksEquivalent(leggings, armor[1])) return false;
         if (!areItemStacksEquivalent(chestplate, armor[2])) return false;
-        if (!areItemStacksEquivalent(helmet, armor[3])) return false;
-        return true;
+        return areItemStacksEquivalent(helmet, armor[3]);
     }
 
     /**

@@ -6,7 +6,7 @@ import noppes.npcs.api.handler.data.IMagicData;
 import java.util.HashMap;
 
 public class MagicData implements IMagicData {
-    private HashMap<Integer, MagicEntry> magics = new HashMap<>();
+    private final HashMap<Integer, MagicEntry> magics = new HashMap<>();
 
     public void writeToNBT(NBTTagCompound compound) {
         NBTTagCompound magicData = new NBTTagCompound();
@@ -19,7 +19,7 @@ public class MagicData implements IMagicData {
     public void readToNBT(NBTTagCompound compound) {
         NBTTagCompound magicData = compound.getCompoundTag("MagicData");
         magics.clear();
-        if(magicData == null)
+        if (magicData == null)
             return;
         for (Object key : magicData.func_150296_c()) {
             int i = Integer.parseInt((String) key);

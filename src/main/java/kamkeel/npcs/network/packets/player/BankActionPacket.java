@@ -42,9 +42,11 @@ public class BankActionPacket extends AbstractPacket {
     public static void Open(int bankID, int slotID) {
         PacketClient.sendClient(new BankActionPacket(Action.OpenSlot, bankID, slotID));
     }
+
     public static void Upgrade() {
         PacketClient.sendClient(new BankActionPacket(Action.Upgrade, -1, -1));
     }
+
     public static void Unlock() {
         PacketClient.sendClient(new BankActionPacket(Action.Unlock, -1, -1));
     }
@@ -79,7 +81,7 @@ public class BankActionPacket extends AbstractPacket {
 
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
 
-        if(npc.advanced.role != EnumRoleType.Bank)
+        if (npc.advanced.role != EnumRoleType.Bank)
             return;
 
         switch (requestedAction) {
@@ -92,7 +94,7 @@ public class BankActionPacket extends AbstractPacket {
             case OpenSlot:
                 int bankID = in.readInt();
                 int slotID = in.readInt();
-                BankData data = PlayerDataController.Instance.getBankData(playerMP,bankID).getBankOrDefault(bankID);
+                BankData data = PlayerDataController.Instance.getBankData(playerMP, bankID).getBankOrDefault(bankID);
                 data.openBankGui(playerMP, npc, bankID, slotID);
                 break;
         }

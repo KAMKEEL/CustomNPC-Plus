@@ -25,7 +25,8 @@ public final class TileEntityGetPacket extends AbstractPacket {
     private int z;
 
 
-    public TileEntityGetPacket() {}
+    public TileEntityGetPacket() {
+    }
 
     public TileEntityGetPacket(int x, int y, int z) {
         this.x = x;

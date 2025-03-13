@@ -20,7 +20,8 @@ public final class TransportsGetPacket extends AbstractPacket {
 
     private int id;
 
-    public TransportsGetPacket() {}
+    public TransportsGetPacket() {
+    }
 
     public TransportsGetPacket(int id) {
         this.id = id;
