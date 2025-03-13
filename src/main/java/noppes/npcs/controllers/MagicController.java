@@ -9,6 +9,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.IMagicHandler;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.controllers.data.MagicAssociation;
@@ -22,7 +23,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
-public class MagicController {
+public class MagicController implements IMagicHandler {
     public HashMap<Integer, Magic> magics = new HashMap<>();
     public HashMap<Integer, Magic> magicSync = new HashMap<>();
 
@@ -42,10 +43,12 @@ public class MagicController {
         return instance;
     }
 
+    @Override
     public Magic getMagic(int magicId) {
         return magics.get(magicId);
     }
 
+    @Override
     public MagicCycle getCycle(int cycleID) {
         return cycles.get(cycleID);
     }
@@ -326,6 +329,7 @@ public class MagicController {
     /**
      * Associates a magic with a category along with its per-category ordering data.
      */
+    @Override
     public void addMagicToCycle(int magicId, int cycleId, int index, int priority) {
         MagicCycle cat = cycles.get(cycleId);
         if (cat == null)
@@ -344,6 +348,7 @@ public class MagicController {
         saveCycle(cat);
     }
 
+    @Override
     public void removeMagicFromCycle(int magicId, int cycleId) {
         MagicCycle cat = cycles.get(cycleId);
         if (cat == null) return;

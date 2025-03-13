@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.api.handler.data.IMagicCycle;
 import noppes.npcs.constants.EnumDiagramLayout;
 
 import java.util.HashMap;
@@ -10,7 +11,7 @@ import java.util.HashMap;
  * Holds category information for magic.
  * Each category can have many magic associations.
  */
-public class MagicCycle {
+public class MagicCycle implements IMagicCycle {
     public int id = -1;
     public String name = "";
     public String displayName = "";
@@ -51,22 +52,27 @@ public class MagicCycle {
         compound.setTag("Associations", list);
     }
 
+    @Override
     public int getId() {
         return id;
     }
 
+    @Override
     public String getName() {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
@@ -75,8 +81,20 @@ public class MagicCycle {
         return layout;
     }
 
+    @Override
+    public int getLayoutType() {
+        return layout.ordinal();
+    }
+
     public void setLayout(EnumDiagramLayout layout) {
         this.layout = layout;
+    }
+
+    @Override
+    public void setLayoutType(int layout) {
+        if(layout < 0 || layout > EnumDiagramLayout.values().length - 1)
+            return;
+        this.layout = EnumDiagramLayout.values()[layout];
     }
 
     public HashMap<Integer, MagicAssociation> getAssociations() {

@@ -116,14 +116,17 @@ public class Magic implements IMagic {
         return this.color;
     }
 
+    @Override
     public String getDisplayName() {
         return displayName;
     }
 
+    @Override
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
+    @Override
     public void save() {
         MagicController.getInstance().saveMagic(this);
     }
@@ -155,5 +158,22 @@ public class Magic implements IMagic {
 
     public Map<Integer, Float> getInteractions() {
         return this.interactions;
+    }
+
+    @Override
+    public boolean hasInteraction(int magicID) {
+        return interactions.containsKey(magicID);
+    }
+
+    @Override
+    public void setInteraction(int magicID, float value) {
+        interactions.put(magicID, value);
+    }
+
+    @Override
+    public float getInteraction(int magicID, float value) {
+        if(hasInteraction(magicID))
+            return interactions.get(magicID);
+        return 0.0f;
     }
 }

@@ -650,35 +650,62 @@ public abstract class GuiDiagram extends Gui {
             GL11.glEnable(GL11.GL_TEXTURE_2D);
             GL11.glPopAttrib();
         } else {
-            Point start = new Point(x1, y1);
-            Point end = new Point(x2, y2);
-            double dx = x2 - x1, dy = y2 - y1;
-            double len = Math.sqrt(dx * dx + dy * dy);
-            if (len == 0) len = 1;
-            double angleRad = Math.toRadians(curveAngle);
-            double offset = len * Math.tan(angleRad) / 2;
-            double perpX = -dy / len, perpY = dx / len;
-            Point control = new Point((x1 + x2) / 2 + (int)(perpX * offset),
-                (y1 + y2) / 2 + (int)(perpY * offset));
-            int segments = 100;
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glLineWidth(2.0F);
-            float rr = ((color >> 16) & 0xFF) / 255f;
-            float gg = ((color >> 8) & 0xFF) / 255f;
-            float bb = (color & 0xFF) / 255f;
-            if (dim) { rr *= 0.4f; gg *= 0.4f; bb *= 0.4f; }
-            GL11.glColor4f(rr, gg, bb, 1f);
-            GL11.glBegin(GL11.GL_LINE_STRIP);
-            for (int i = 0; i <= segments; i++) {
-                double t = (double)i / segments;
-                int bx = (int)((1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * control.x + t * t * end.x);
-                int by = (int)((1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * control.y + t * t * end.y);
-                GL11.glVertex2i(bx, by);
+            if (conn.polyline != null && !conn.polyline.isEmpty()) {
+                GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glLineWidth(2.0F);
+                float r = ((color >> 16) & 0xFF) / 255f;
+                float g = ((color >> 8) & 0xFF) / 255f;
+                float b = (color & 0xFF) / 255f;
+                if (dim) {
+                    r *= 0.4f;
+                    g *= 0.4f;
+                    b *= 0.4f;
+                }
+                GL11.glColor4f(r, g, b, 1f);
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (Point p : conn.polyline) {
+                    GL11.glVertex2i(p.x, p.y);
+                }
+                GL11.glEnd();
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glPopAttrib();
+            } else {
+                // Fallback to original method if polyline isn’t computed
+                Point start = new Point(x1, y1);
+                Point end = new Point(x2, y2);
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                double angleRad = Math.toRadians(curveAngle);
+                double offset = len * Math.tan(angleRad) / 2;
+                double perpX = -dy / len, perpY = dx / len;
+                Point control = new Point((x1 + x2) / 2 + (int) (perpX * offset),
+                    (y1 + y2) / 2 + (int) (perpY * offset));
+                int segments = 100;
+                GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glLineWidth(2.0F);
+                float rr = ((color >> 16) & 0xFF) / 255f;
+                float gg = ((color >> 8) & 0xFF) / 255f;
+                float bb = (color & 0xFF) / 255f;
+                if (dim) {
+                    rr *= 0.4f;
+                    gg *= 0.4f;
+                    bb *= 0.4f;
+                }
+                GL11.glColor4f(rr, gg, bb, 1f);
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (int i = 0; i <= segments; i++) {
+                    double t = (double) i / segments;
+                    int bx = (int) ((1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * control.x + t * t * end.x);
+                    int by = (int) ((1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * control.y + t * t * end.y);
+                    GL11.glVertex2i(bx, by);
+                }
+                GL11.glEnd();
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glPopAttrib();
             }
-            GL11.glEnd();
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glPopAttrib();
         }
     }
 
@@ -692,19 +719,28 @@ public abstract class GuiDiagram extends Gui {
         if (!curvedArrows) {
             angle = Math.atan2(y2 - y1, x2 - x1);
         } else {
-            double dx = x2 - x1, dy = y2 - y1;
-            double len = Math.sqrt(dx * dx + dy * dy);
-            if (len == 0) len = 1;
-            double offset = len * Math.tan(Math.toRadians(curveAngle)) / 2;
-            double perpX = -dy / len, perpY = dx / len;
-            int cx = (x1 + x2) / 2 + (int)(perpX * offset);
-            int cy = (y1 + y2) / 2 + (int)(perpY * offset);
-            double t = 0.95;
-            double bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
-            double by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
-            double dBx = 2 * (1 - t) * (cx - x1) + 2 * t * (x2 - cx);
-            double dBy = 2 * (1 - t) * (cy - y1) + 2 * t * (y2 - cy);
-            angle = Math.atan2(dBy, dBx);
+            if (conn.polyline != null && conn.polyline.size() >= 2) {
+                Point last = conn.polyline.get(conn.polyline.size() - 1);
+                Point secondLast = conn.polyline.get(conn.polyline.size() - 2);
+                double dx = last.x - secondLast.x;
+                double dy = last.y - secondLast.y;
+                angle = Math.atan2(dy, dx);
+            } else {
+                // Fallback to original method
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                double offset = len * Math.tan(Math.toRadians(curveAngle)) / 2;
+                double perpX = -dy / len, perpY = dx / len;
+                int cx = (x1 + x2) / 2 + (int) (perpX * offset);
+                int cy = (y1 + y2) / 2 + (int) (perpY * offset);
+                double t = 0.95;
+                double bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2;
+                double by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2;
+                double dBx = 2 * (1 - t) * (cx - x1) + 2 * t * (x2 - cx);
+                double dBy = 2 * (1 - t) * (cy - y1) + 2 * t * (y2 - cy);
+                angle = Math.atan2(dBy, dBx);
+            }
         }
         float defenderEdgeX = x2 - (slotSize / 2f) * (float)Math.cos(angle);
         float defenderEdgeY = y2 - (slotSize / 2f) * (float)Math.sin(angle);
@@ -750,37 +786,6 @@ public abstract class GuiDiagram extends Gui {
         int g = (int)(g1 + (g2 - g1) * ratio);
         int b = (int)(b1 + (b2 - b1) * ratio);
         return (a << 24) | (r << 16) | (g << 8) | b;
-    }
-
-    // --- Hit-detection helpers ---
-    private double distanceToBezier(Point start, Point control, Point end, int segments, int px, int py) {
-        double minDist = Double.MAX_VALUE;
-        Point prev = null;
-        for (int i = 0; i <= segments; i++) {
-            double t = (double)i / segments;
-            int x = (int)((1 - t) * (1 - t) * start.x + 2 * (1 - t) * t * control.x + t * t * end.x);
-            int y = (int)((1 - t) * (1 - t) * start.y + 2 * (1 - t) * t * control.y + t * t * end.y);
-            Point curr = new Point(x, y);
-            if (prev != null) {
-                double d = distancePointToSegment(px, py, prev, curr);
-                if(d < minDist) minDist = d;
-            }
-            prev = curr;
-        }
-        return minDist;
-    }
-    private double distancePointToSegment(int px, int py, Point a, Point b) {
-        double A = px - a.x, B = py - a.y;
-        double C = b.x - a.x, D = b.y - a.y;
-        double dot = A * C + B * D;
-        double lenSq = C * C + D * D;
-        double param = (lenSq != 0) ? (dot / lenSq) : -1;
-        double xx, yy;
-        if(param < 0){ xx = a.x; yy = a.y; }
-        else if(param > 1){ xx = b.x; yy = b.y; }
-        else { xx = a.x + param * C; yy = a.y + param * D; }
-        double dx = px - xx, dy = py - yy;
-        return Math.sqrt(dx * dx + dy * dy);
     }
 
     // --- CHART Layout Drawing ---
@@ -1019,6 +1024,37 @@ public abstract class GuiDiagram extends Gui {
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int factor = sr.getScaleFactor();
         Map<Integer, Point> positions = calculatePositions();
+        if (layout != EnumDiagramLayout.CHART) {
+            for (DiagramConnection conn : getConnections()) {
+                if (conn.polyline == null && curvedArrows) {
+                    DiagramIcon iconFrom = getIconById(conn.idFrom);
+                    DiagramIcon iconTo = getIconById(conn.idTo);
+                    if (iconFrom == null || iconTo == null || !iconFrom.enabled || !iconTo.enabled)
+                        continue;
+                    Point pFrom = positions.get(conn.idFrom);
+                    Point pTo = positions.get(conn.idTo);
+                    if (pFrom == null || pTo == null) continue;
+                    int x1 = pFrom.x, y1 = pFrom.y, x2 = pTo.x, y2 = pTo.y;
+                    double dx = x2 - x1, dy = y2 - y1;
+                    double len = Math.sqrt(dx * dx + dy * dy);
+                    if (len == 0) len = 1;
+                    double angleRad = Math.toRadians(curveAngle);
+                    double offset = len * Math.tan(angleRad) / 2;
+                    double perpX = -dy / len, perpY = dx / len;
+                    int cx = (x1 + x2) / 2 + (int) (perpX * offset);
+                    int cy = (y1 + y2) / 2 + (int) (perpY * offset);
+                    conn.polyline = new ArrayList<>();
+                    int segments = 50; // Reduced from 100 for performance
+                    for (int i = 0; i <= segments; i++) {
+                        double t = (double) i / segments;
+                        int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cx + t * t * x2);
+                        int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cy + t * t * y2);
+                        conn.polyline.add(new Point(bx, by));
+                    }
+                }
+            }
+        }
+
         int centerX = x + width / 2, centerY = y + height / 2;
         int effectiveMouseX = (int)(((float)mouseX - (centerX + panX)) / zoom + centerX);
         int effectiveMouseY = (int)(((float)mouseY - (centerY + panY)) / zoom + centerY);
@@ -1042,7 +1078,6 @@ public abstract class GuiDiagram extends Gui {
         // If no icon was hovered, check connections.
         if (hoveredIconId == null) {
             final double threshold = 5.0;
-            outer:
             for (DiagramConnection conn : getConnections()) {
                 DiagramIcon iconFrom = getIconById(conn.idFrom);
                 DiagramIcon iconTo = getIconById(conn.idTo);
@@ -1052,15 +1087,15 @@ public abstract class GuiDiagram extends Gui {
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
                 double dist;
-                if (curvedArrows) {
-                    double dx = pTo.x - pFrom.x, dy = pTo.y - pFrom.y;
-                    double len = Math.sqrt(dx * dx + dy * dy);
-                    if (len == 0) len = 1;
-                    double offset = len * Math.tan(Math.toRadians(curveAngle)) / 2;
-                    double perpX = -dy / len, perpY = dx / len;
-                    Point control = new Point((pFrom.x + pTo.x) / 2 + (int)(perpX * offset),
-                        (pFrom.y + pTo.y) / 2 + (int)(perpY * offset));
-                    dist = distanceToBezier(pFrom, control, pTo, 200, effectiveMouseX, effectiveMouseY);
+                if (curvedArrows && conn.polyline != null && !conn.polyline.isEmpty()) {
+                    double minDist = Double.MAX_VALUE;
+                    for (int i = 0; i < conn.polyline.size() - 1; i++) {
+                        Point a = conn.polyline.get(i);
+                        Point b = conn.polyline.get(i + 1);
+                        double d = pointLineDistance(effectiveMouseX, effectiveMouseY, a.x, a.y, b.x, b.y);
+                        if (d < minDist) minDist = d;
+                    }
+                    dist = minDist;
                 } else {
                     dist = pointLineDistance(effectiveMouseX, effectiveMouseY, pFrom.x, pFrom.y, pTo.x, pTo.y);
                 }
@@ -1070,7 +1105,6 @@ public abstract class GuiDiagram extends Gui {
                     selectedIconIds.add(conn.idFrom);
                     selectedIconIds.add(conn.idTo);
                     onConnectionHover(conn);
-                    break outer;
                 }
             }
         }
@@ -1204,6 +1238,8 @@ public abstract class GuiDiagram extends Gui {
         public int idFrom, idTo;
         public float percent;
         public String hoverText;
+        public List<Point> polyline = null;
+
         public DiagramConnection(int idFrom, int idTo, float percent, String hoverText) {
             this.idFrom = idFrom;
             this.idTo = idTo;
