@@ -13,6 +13,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
+import noppes.npcs.client.gui.util.animation.ViewportGraphEditor;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -37,6 +38,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     protected HashMap<Integer, GuiNpcSlider> sliders = new HashMap<Integer, GuiNpcSlider>();
     protected HashMap<Integer, GuiScreen> extra = new HashMap<Integer, GuiScreen>();
     protected HashMap<Integer, GuiScrollWindow> scrollWindows = new HashMap<>();
+    protected HashMap<Integer, ViewportGraphEditor> graphEditors = new HashMap<>();
     protected HashMap<Integer, GuiDiagram> diagrams = new HashMap<>();
 
     public static boolean resizingActive = false;
@@ -92,6 +94,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         scrolls.clear();
         sliders.clear();
         scrollWindows.clear();
+        graphEditors.clear();
         diagrams.clear();
         Keyboard.enableRepeatEvents(true);
     }
@@ -107,9 +110,12 @@ public abstract class GuiNPCInterface extends GuiScreen {
             }
             super.updateScreen();
 
-            for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+            for (GuiScrollWindow guiScrollableComponent : scrollWindows.values())
                 guiScrollableComponent.updateScreen();
-            }
+
+            for (ViewportGraphEditor graphEditor : graphEditors.values())
+                graphEditor.updateScreen();
+
         }
     }
 
@@ -122,6 +128,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
         gui.setWorldAndResolution(mc, width, height);
         gui.initGui();
         scrollWindows.put(id, gui);
+    }
+
+    public void addGraphEditor(int id, ViewportGraphEditor graph) {
+        graphEditors.put(id, graph);
     }
 
     /**
@@ -148,6 +158,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
             for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
                 guiScrollableComponent.mouseClicked(i, j, k);
             }
+
+            for (ViewportGraphEditor graphEditor : graphEditors.values())
+                graphEditor.mouseClicked(i, j, k);
 
             if (k == 0) {
                 for (GuiCustomScroll scroll : new ArrayList<GuiCustomScroll>(scrolls.values())) {
@@ -211,9 +224,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
         for (GuiNpcTextField tf : textfields.values())
             tf.textboxKeyTyped(c, i);
 
-        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values())
             guiScrollableComponent.keyTyped(c, i);
-        }
+
+        for (ViewportGraphEditor graphEditor : graphEditors.values())
+            graphEditor.keyTyped(c, i);
 
         // Fixes closing sub with escape closes all of its parents
         boolean enoughTimeSinceSubClosed = Minecraft.getSystemTime() - timeClosedSubGui > 50;
@@ -319,16 +334,22 @@ public abstract class GuiNPCInterface extends GuiScreen {
         for (GuiNpcTextField tf : textfields.values()) {
             tf.drawTextBox(i, j);
         }
+        int wheel = Mouse.getDWheel();
         for (GuiCustomScroll scroll : scrolls.values()) {
             scroll.updateSubGUI(subGui);
-            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? wheel : 0);
         }
         for (GuiScreen gui : extra.values())
             gui.drawScreen(i, j, f);
+
         // Draw scrollable windows.
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
+            guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? wheel : 0);
         }
+
+        for (ViewportGraphEditor graphEditor : graphEditors.values())
+            graphEditor.drawScreen(i, j, f, wheel);
+
         for (GuiDiagram diagram : diagrams.values()) {
             diagram.drawDiagram(i, j, subGui);
         }

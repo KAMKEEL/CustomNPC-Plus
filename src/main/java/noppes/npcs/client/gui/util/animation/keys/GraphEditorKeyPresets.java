@@ -2,7 +2,7 @@ package noppes.npcs.client.gui.util.animation.keys;
 
 import org.lwjgl.input.Keyboard;
 
-public class AnimationKeyPresets extends KeyPresetManager {
+public class GraphEditorKeyPresets extends KeyPresetManager {
 
     ////////////////////
     //Grid controls
@@ -16,10 +16,10 @@ public class AnimationKeyPresets extends KeyPresetManager {
     //Grid Point controls
     public final KeyPreset SELECT_POINT = add("Select Point").setDefaultState(KeyPreset.LEFT_MOUSE, false, false, false).setDescription("Select point under cursor");
     public final KeyPreset ADD_POINT = add("Add Point").setDefaultState(Keyboard.KEY_Z, false, false, false).setDescription("Add a new point at the play-head's X");
-    public final KeyPreset DELETE_POINT = add("Delete Point").setDefaultState(Keyboard.KEY_X, false, false, false).setDescription("Delete selected point");
+    public final KeyPreset DELETE_POINT = add("Delete Point").setDefaultState(Keyboard.KEY_X, true, false, false).setDescription("Delete selected point");
     public final KeyPreset FREE_TRANSFORM = add("Free Transform").setDefaultState(Keyboard.KEY_G, false, false, false).setDescription("Freely transform the selected point with the mouse").markDone(this);
 
-    public AnimationKeyPresets() {
-        super("animation");
+    public GraphEditorKeyPresets() {
+        super("graph_editor");
     }
 }

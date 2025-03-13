@@ -2,10 +2,9 @@ package noppes.npcs.client.gui.util.animation;
 
 import net.minecraft.client.gui.Gui;
 import noppes.npcs.client.gui.util.GuiUtil;
-import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
+import noppes.npcs.client.gui.util.animation.keys.GraphEditorKeyPresets;
 import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.util.ValueUtil;
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -18,33 +17,25 @@ public class Grid {
 
     public int mouseX, mouseY;
 
-    public float zoomX = 1.0f, targetZoomX = 1f, zoomY = 1f, targetZoomY = 1f; //Zoom smoothness
+    public float zoomX = 20f, targetZoomX = 20f, zoomY = 1f, targetZoomY = 1f; //Zoom smoothness
     public float panX = 0, panY = 0, targetPanX, targetPanY; //  pan offsets
     public int startPanX, startPanY;
     public boolean smoothenPanX, smoothenPanY;
-    public int subDivisionX = 1, subDivisionY = 1;
+    public int subDivisionX = 1, subDivisionY = 2;
 
     public boolean isDragging, isResetting;
     public boolean centerAroundMouse = true;
 
     public GridPointManager manager;
 
-    public Grid(ViewportGraphEditor parent, int startX, int startY, int endX, int endY) {
+    public Grid(ViewportGraphEditor parent) {
         this.parent = parent;
-        this.startX = startX;
-        this.startY = startY;
-        this.endX = endX;
-        this.endY = endY;
-
         manager = new GridPointManager(this);
         keys();
-        zoomX = targetZoomX = 20;
-        subDivisionY = 2;
-        panY = -(parent.clipHeight * subDivisionY / 2);
     }
 
     public void keys() {
-        AnimationKeyPresets keys = parent.keys;
+        GraphEditorKeyPresets keys = parent.keys;
 
         keys.RESET_GRID.setTask((pressType) -> {
             if (pressType == KeyPreset.PRESS) {
@@ -54,11 +45,11 @@ public class Grid {
                         targetZoomX = 20;
                         smoothenPanX = true;
                     } else if (yDown()) {
-                        targetPanY = -((parent.clipHeight) * subDivisionY / 2);
+                        targetPanY = -((parent.height) * subDivisionY / 2);
                         targetZoomY = 1.0f;
                         smoothenPanY = true;
                     } else {
-                        targetPanY = -((parent.clipHeight) * subDivisionY / 2);
+                        targetPanY = -((parent.height) * subDivisionY / 2);
                         targetPanX = 0;
                         targetZoomX = 20;
                         targetZoomY = 1.0f;
@@ -80,11 +71,13 @@ public class Grid {
         });
     }
 
-    public void setPos(int startX, int startY, int endX, int endY) {
+    public void init(int startX, int startY, int endX, int endY) {
         this.startX = startX;
         this.startY = startY;
         this.endX = endX;
         this.endY = endY;
+
+        panY = -(parent.height * subDivisionY / 2);
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks, int wheel) {
@@ -155,6 +148,7 @@ public class Grid {
         //////////////////////////////////////////////////////////////
         Gui.drawRect(startX, startY - yAxisHeight, endX, startY, 0xFF161616); //background
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GuiUtil.setScissorClip(startX, startY, parent.width, parent.height);
 
         GL11.glDepthMask(false);
         drawLines(mouseX, mouseY);
@@ -215,9 +209,13 @@ public class Grid {
             glPopMatrix();
         }
 
+        //Expand boundaries of scissor clip
+        GuiUtil.setScissorClip(startX, startY - yAxisHeight, parent.width, parent.height + yAxisHeight);
         for (double x = firstGridX; x <= worldX(endX); x += stepX)
             drawXValue((int) screenX(x), (int) x);
 
+        //Reset clip
+        GuiUtil.setScissorClip(startX, startY, parent.width, parent.height);
         ////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////
         // Horizontal
@@ -238,19 +236,6 @@ public class Grid {
 
         ////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////
-        boolean debug = false;
-        if (debug) {
-            int my = mouseY;
-            parent.getFontRenderer().drawString("panX: " + panX, mouseX + 5, my, 0xffffffff);
-            parent.getFontRenderer().drawString("panY: " + panY, mouseX + 5, my += 10, 0xffffffff);
-            parent.getFontRenderer().drawString("zoomX: " + zoomX, mouseX + 5, my += 10, 0xffffffff);
-            parent.getFontRenderer().drawString("zoomY: " + zoomY, mouseX + 5, my += 10, 0xffffffff);
-            parent.getFontRenderer().drawString("tZoomY: " + targetZoomY, mouseX + 5, my += 10, 0xffffffff);
-            // parent.getFontRenderer().drawString("Raw Step: " + rawStep, mouseX + 5, my += 10, 0xffffffff);
-            //  parent.getFontRenderer().drawString("Magnitude: " + magnitude, mouseX + 5, my += 10, 0xffffffff);
-            //   parent.getFontRenderer().drawString("raw/mag: " + rawStep / magnitude, mouseX + 5, my += 10, 0xffffffff);
-            parent.getFontRenderer().drawString("stepSize: " + stepX, mouseX + 5, my += 10, 0xffffffff);
-        }
     }
 
     public double getStepX() {
@@ -304,9 +289,6 @@ public class Grid {
     }
 
     public void drawXValue(int screenX, int value) {
-        //Expand boundaries of scissor clip
-        parent.setClip(startX, startY - yAxisHeight, parent.clipWidth, parent.clipHeight + yAxisHeight);
-
         GL11.glPushMatrix();
         float scale = 0.75f;
         int adjustedX = (int) ((screenX + 1) / scale); // Offset to the left of grid line
@@ -316,9 +298,6 @@ public class Grid {
         GL11.glScalef(scale, scale, 1f);
         parent.drawString(String.valueOf(value), adjustedX, adjustedY, 0xFFA0A0A0);
         GL11.glPopMatrix();
-
-        //Reset clip
-        parent.setClip(startX, startY, parent.clipWidth, parent.clipHeight);
     }
 
     public void drawYValue(int screenY, int value) {

@@ -1,67 +1,54 @@
 package noppes.npcs.client.gui.util.animation;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiScrollWindow;
-import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
+import noppes.npcs.client.gui.util.GuiUtil;
+import noppes.npcs.client.gui.util.animation.keys.GraphEditorKeyPresets;
 
-public class ViewportGraphEditor extends GuiScrollWindow {
+public class ViewportGraphEditor {
+    public Minecraft mc = Minecraft.getMinecraft();
+    public GuiNPCInterface parent;
+
     public int startX, startY, endX, endY, width, height;
 
+    public GraphEditorKeyPresets keys = new GraphEditorKeyPresets();
+    public OverlayKeyPresetViewer presetOverlay = new OverlayKeyPresetViewer(keys);
 
-    public Grid grid;
-    public AnimationKeyPresets keys = new AnimationKeyPresets();
-    public OverlayKeyPresetViewer presetOverlay;
+    public Grid grid = new Grid(this);
 
-
-    public ViewportGraphEditor(GuiNPCInterface parent, int posX, int posY, int clipWidth, int clipHeight, int maxScroll) {
-        super(parent, posX, posY, clipWidth, clipHeight, maxScroll);
-        drawDefaultBackground = false;
-
-
-        this.grid = new Grid(this, startX, startY, endX, endY);
-        presetOverlay = new OverlayKeyPresetViewer(keys);
+    public ViewportGraphEditor(GuiNPCInterface parent) {
+        this.parent = parent;
     }
 
-    public void initGui() {
-        super.initGui();
-        endX = (startX = xPos) + clipWidth;
-        endY = (startY = yPos) + clipHeight;
+    public void initGui(int startX, int startY, int endX, int endY) {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
+        this.width = endX - this.startX;
+        this.height = endY - this.startY;
 
-        grid.setPos(startX, startY, endX, endY);
-
-        presetOverlay.initGui(endX - (clipWidth / 2) - 37, startY + (clipHeight / 4), endX, endY);
+        grid.init(this.startX, this.startY, endX, endY);
+        presetOverlay.initGui(endX - (width / 2) - 37, startY + (height / 4), endX, endY);
         presetOverlay.viewButton.initGui(endX + 1, endY + 2);
     }
 
     public void updateScreen(){
-        super.updateScreen();
         keys.tick();
     }
 
-    @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int wheel) {
-        super.drawScreen(mouseX, mouseY, partialTicks);
-        this.drawGradientRect(startX, startY, endX, endY, 0xFF303030, 0xFF303030);
-
+        GuiUtil.drawGradientRect(startX, startY, endX, endY, 0xFF303030, 0xFF303030);
         grid.draw(mouseX, mouseY, partialTicks, wheel);
         presetOverlay.draw(mouseX, mouseY, wheel);
-
-        // int heigh = presetOverlay.list.get(0).getHeight();
-        grid.parent.getFontRenderer().drawString("abovebox: " + presetOverlay.list.get(0).isMouseAboveBox(mouseX, mouseY), mouseX + 5, mouseY, 0xffffffff);
-        //  grid.parent.getFontRenderer().drawString("y: " + presetOverlay.startY, mouseX, mouseY+40, 0xffffffff);
-        grid.parent.getFontRenderer().drawString("mouseX: " + mouseX, mouseX, mouseY + 10, 0xffffffff);
-        //   grid.parent.getFontRenderer().drawString("mY+height: " +(heigh+mouseY), mouseX, mouseY+20, 0xffffffff);
     }
 
-    @Override
     public void mouseClicked(int mouseX, int mouseY, int button) {
         grid.mouseClicked(mouseX, mouseY, button);
         presetOverlay.mouseClicked(mouseX, mouseY, button);
     }
-    @Override
     public void keyTyped(char c, int i) {
-        super.keyTyped(c,i);
         grid.keyTyped(c,i);
         presetOverlay.keyTyped(c, i);
     }
@@ -70,15 +57,15 @@ public class ViewportGraphEditor extends GuiScrollWindow {
         if (parent.hasSubGui())
             return false;
 
-        return mouseX >= startX && mouseX <= startX + clipWidth && mouseY >= startY && mouseY <= startY + clipHeight;
+        return mouseX >= startX && mouseX <= startX + width && mouseY >= startY && mouseY <= startY + height;
     }
 
     public void drawString(String text, int x, int y, int color) {
-        drawCenteredString(fontRendererObj, text, x, y, color);
+        parent.drawCenteredString(getFontRenderer(), text, x, y, color);
     }
 
     public FontRenderer getFontRenderer() {
-        return fontRendererObj;
+        return parent.getFontRenderer();
     }
 
     public void close() {

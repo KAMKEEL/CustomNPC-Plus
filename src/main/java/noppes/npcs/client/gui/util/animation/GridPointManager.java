@@ -4,7 +4,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiUtil;
-import noppes.npcs.client.gui.util.animation.keys.AnimationKeyPresets;
+import noppes.npcs.client.gui.util.animation.keys.GraphEditorKeyPresets;
 import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.constants.animation.EnumFrameType;
@@ -18,7 +18,7 @@ import java.util.function.BiConsumer;
 
 public class GridPointManager {
     public Grid grid;
-    public AnimationKeyPresets keys;
+    public GraphEditorKeyPresets keys;
     public HashMap<EnumFrameType, TreeMap<Double, Point>> typePoints = new HashMap<>();
     public List<EnumFrameType> highlightedTypes = new ArrayList<>();
     public List<Point> highlightedPoints = new ArrayList<>();
@@ -182,7 +182,7 @@ public class GridPointManager {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
-        GL11.glLineWidth(2F); // Increase line thickness
+        GL11.glLineWidth(2F);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(grid.startX, grid.startY, 0);
@@ -203,7 +203,7 @@ public class GridPointManager {
         tessellator.draw();
         GL11.glPopMatrix();
 
-        GL11.glLineWidth(1F); // Increase line thickness
+        GL11.glLineWidth(1F);
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
@@ -371,7 +371,7 @@ public class GridPointManager {
                 worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
 
             //Expand clip boundary
-            grid.parent.setClip(grid.startX, grid.startY - grid.yAxisHeight, grid.parent.clipWidth, grid.parent.clipHeight + grid.yAxisHeight);
+           GuiUtil.setScissorClip(grid.startX, grid.startY - grid.yAxisHeight, grid.parent.width, grid.parent.height + grid.yAxisHeight);
 
             ////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////
@@ -432,7 +432,7 @@ public class GridPointManager {
             ////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////
             //Reset clip
-            grid.parent.setClip(grid.startX, grid.startY, grid.parent.clipWidth, grid.parent.clipHeight);
+           GuiUtil.setScissorClip(grid.startX, grid.startY, grid.parent.width, grid.parent.height);
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
