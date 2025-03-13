@@ -192,10 +192,11 @@ public class GridPointManager {
         tessellator.startDrawing(GL11.GL_LINE_STRIP);
 
 
-        for (float t = 0; t <= 1; t += 0.005) {
-            float easedT = Ease.OUTEXPO.apply(t);
-            double xt = ValueUtil.lerp(from.screenX() + 0.5, to.screenX() + 0.5, easedT);
+        for (float t = 0; t <= 1; t += 0.01) {
+            float easedT = Ease.INOUTQUINT.apply(t);
+            double xt = ValueUtil.lerp(from.screenX() + 0.5, to.screenX() + 0.5, t);
             double yt = ValueUtil.lerp(from.screenY() + 0.5, to.screenY() + 0.5, easedT);
+
             tessellator.addVertex(xt, yt, 0);
         }
 
@@ -228,6 +229,7 @@ public class GridPointManager {
         playhead.draw(mouseX, mouseY, partialTicks);
 
         forEachActive((type, point) -> {
+            drawEasedCurve(point, getNext(point));
             point.draw(mouseX, mouseY, partialTicks);
         });
 
@@ -308,7 +310,6 @@ public class GridPointManager {
         }
 
         public void draw(int mouseX, int mouseY, float partialTicks) {
-
             float scale = 0.1f;
             int textureWidth = 32, textureHeight = 32;
             float offsetX = (textureHeight / 2) * scale - 0.5f, offsetY = (textureHeight / 2) * scale - 0.5f;
@@ -326,8 +327,6 @@ public class GridPointManager {
 
             GL11.glPopMatrix();
             GL11.glDisable(GL11.GL_BLEND);
-            drawEasedCurve(this, getNext(this));
-
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
