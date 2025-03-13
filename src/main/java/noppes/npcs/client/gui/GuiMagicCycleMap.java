@@ -36,8 +36,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
         // If cycle is null, leave cycleMagics empty.
         if (this.cycle == null) {
             setLayout(EnumDiagramLayout.CIRCULAR_MANUAL);
-            setCurvedArrows(true);
-            setCurveAngle(-20);
+            setCurvedArrows(false);
             invalidateCache();
             return;
         }
@@ -55,7 +54,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
         // Use the cycle's layout if set; otherwise default to CIRCULAR_MANUAL.
         setLayout(cycle.layout != null ? cycle.layout : EnumDiagramLayout.CIRCULAR_MANUAL);
         setCurvedArrows(true);
-        setCurveAngle(-20);
+        setCurveAngle(30);
         invalidateCache();
 
         this.iconSize = 20;
@@ -170,7 +169,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
     protected List<String> getIconTooltip(DiagramIcon icon) {
         Magic magic = ((MagicIcon) icon).magic;
         List<String> tooltip = new ArrayList<>();
-        tooltip.add(magic.getDisplayName());
+        tooltip.add(magic.getDisplayName().replace("&", "\u00A7"));
         return tooltip;
     }
 
