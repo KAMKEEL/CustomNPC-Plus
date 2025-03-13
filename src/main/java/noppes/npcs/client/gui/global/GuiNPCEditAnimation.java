@@ -8,6 +8,7 @@ import noppes.npcs.client.gui.SubGuiAnimationFrame;
 import noppes.npcs.client.gui.SubGuiAnimationOptions;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.animation.AnimationGraphEditor;
 import noppes.npcs.client.gui.util.animation.ViewportGraphEditor;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.constants.animation.EnumFrameType;
@@ -45,7 +46,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
     private final int visibleFrames = 25;
     private boolean overrideFrame = false;
 
-    public ViewportGraphEditor graphEditor;
+    public AnimationGraphEditor graphEditor;
     public GuiNpcButton toggleGraph;
     private boolean toggleGraphEditor = true;
 
@@ -70,7 +71,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             this.pivotSliders[i] = new GuiNpcSlider(this, 95 + i, guiLeft + bodyPartX, guiTop + bodyPartY + 115 + (20 * i), 0.5F);
         }
 
-        graphEditor = new ViewportGraphEditor(this);
+        graphEditor = new AnimationGraphEditor(this);
         this.frameSlider = new GuiNpcSlider(this, 350, 0, 0, 0.0F);
     }
 
