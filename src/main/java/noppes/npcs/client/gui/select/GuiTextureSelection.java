@@ -19,6 +19,7 @@ import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -144,7 +145,11 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         if (i > 0) {
             url = url.substring(0, i);
         }
-        url = URLDecoder.decode(url, StandardCharsets.UTF_8);
+        try {
+            url = URLDecoder.decode(url, StandardCharsets.UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
         return new File(url);
     }
 
