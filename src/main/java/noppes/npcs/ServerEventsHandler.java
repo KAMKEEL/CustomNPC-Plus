@@ -79,10 +79,12 @@ public class ServerEventsHandler {
 		}
 
 		if(!isRemote && item.getItem() == CustomItems.soulstoneEmpty) {
-			((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
-			if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
-				LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
-			}
+            if(event.target instanceof EntityLivingBase){
+                ((ItemSoulstoneEmpty)item.getItem()).store((EntityLivingBase)event.target, item, event.entityPlayer);
+                if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+                    LogWriter.script(String.format("[%s] (Player) %s PICKED ENTITY %s", "SOULSTONE", event.entityPlayer.getCommandSenderName(), event.target));
+                }
+            }
 		}
 
 		if(item.getItem() == CustomItems.wand && npcInteracted && !isRemote){
