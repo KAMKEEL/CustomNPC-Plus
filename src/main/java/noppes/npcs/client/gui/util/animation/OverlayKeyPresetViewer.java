@@ -98,7 +98,7 @@ public class OverlayKeyPresetViewer {
     }
 
     public void keyTyped(char c, int i) {
-        if (!isMouseAbove(mouseX, mouseY))
+        if (!showOverlay)
             return;
 
         list.forEach((element) -> {
@@ -108,6 +108,9 @@ public class OverlayKeyPresetViewer {
     }
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
+        if (!showOverlay)
+            return;
+
         list.forEach((element) -> {
             if (!element.isMouseAboveBox(mouseX, mouseY)) {
                 if (element.isEditing)
