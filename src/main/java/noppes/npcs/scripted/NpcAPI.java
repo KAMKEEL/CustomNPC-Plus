@@ -3,6 +3,7 @@ package noppes.npcs.scripted;
 import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.eventhandler.EventBus;
 import foxz.command.ScriptedCommand;
+import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
 import net.minecraft.block.Block;
 import net.minecraft.command.CommandHandler;
@@ -259,6 +260,10 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IPartyHandler getPartyHandler() {
         return PartyController.Instance();
+    }
+
+    public IAttributeHandler getAttributeHandler() {
+        return AttributeController.Instance;
     }
 
     public ITransportHandler getLocations() {

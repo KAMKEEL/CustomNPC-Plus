@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -836,4 +837,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     public IMagicData getMagicData() {
         return this.getData().magicData;
     }
+
+    public IPlayerAttributes getAttributes(){ return AttributeController.getTracker(this.player); }
 }

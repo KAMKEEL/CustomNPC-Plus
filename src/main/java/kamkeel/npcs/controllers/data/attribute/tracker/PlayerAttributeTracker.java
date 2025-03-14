@@ -3,7 +3,9 @@ package kamkeel.npcs.controllers.data.attribute.tracker;
 import kamkeel.npcs.CustomAttributes;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
-import kamkeel.npcs.controllers.data.attribute.ICustomAttribute;
+import kamkeel.npcs.controllers.data.attribute.PlayerAttribute;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ICustomAttribute;
 import kamkeel.npcs.controllers.data.attribute.PlayerAttributeMap;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import kamkeel.npcs.util.AttributeAttackUtil;
@@ -14,13 +16,14 @@ import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.data.IPlayerAttributes;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
 
-public class PlayerAttributeTracker {
+public class PlayerAttributeTracker implements IPlayerAttributes {
 
     public static UUID healthUUID = UUID.fromString("48a0ad75-2cf8-4838-ad2f-9a0aadc57dfe");
     public static UUID healthBoostUUID = UUID.fromString("93cfba41-294a-4e6b-a98b-bee76a9f813b");
@@ -48,10 +51,6 @@ public class PlayerAttributeTracker {
         this.playerId = playerId;
         // Initial recalc with base damage 0.
         recalcAttributes(null);
-    }
-
-    public PlayerAttributeMap getPlayerAttributes() {
-        return playerAttributes;
     }
 
     public void recalcAttributes(EntityPlayer player) {
@@ -83,11 +82,11 @@ public class PlayerAttributeTracker {
                         float value = entry.getValue();
                         AttributeDefinition def = AttributeController.getAttribute(key);
                         if (def != null) {
-                            ICustomAttribute inst = playerAttributes.getAttributeInstance(def);
+                            PlayerAttribute inst = playerAttributes.getAttributeInstance(def);
                             if (inst == null) {
                                 inst = playerAttributes.registerAttribute(def, 0.0f);
                             }
-                            inst.setValue(inst.getValue() + value);
+                            inst.value = (inst.getValue() + value);
                         }
                     }
                     // Process Magic
@@ -216,5 +215,44 @@ public class PlayerAttributeTracker {
     public float getAttributeValue(AttributeDefinition def) {
         ICustomAttribute inst = playerAttributes.getAttributeInstance(def);
         return inst != null ? inst.getValue() : 0.0f;
+    }
+
+    public void recalculate(IPlayer player) {
+        if(player == null || player.getMCEntity() == null)
+            return;
+
+        recalcAttributes((EntityPlayer) player.getMCEntity());
+    }
+
+    public ICustomAttribute[] getAttributes() {
+        return playerAttributes.map.values().toArray(new ICustomAttribute[playerAttributes.map.size()]);
+    }
+
+    public float getAttributeValue(String key) {
+        for (ICustomAttribute inst : getAttributes()) {
+            if (inst.getAttribute().getKey().equalsIgnoreCase(key)) {
+                return inst.getValue();
+            }
+        }
+        return 0.0f;
+    }
+
+
+    public boolean hasAttribute(String key) {
+        for (ICustomAttribute inst : getAttributes()) {
+            if (inst.getAttribute().getKey().equalsIgnoreCase(key)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public ICustomAttribute getAttribute(String key) {
+        for (ICustomAttribute inst : getAttributes()) {
+            if (inst.getAttribute().getKey().equalsIgnoreCase(key)) {
+                return inst;
+            }
+        }
+        return null;
     }
 }

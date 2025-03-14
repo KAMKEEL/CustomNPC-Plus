@@ -1,6 +1,8 @@
 package kamkeel.npcs.controllers.data.attribute;
 
-public class AttributeDefinition {
+import noppes.npcs.api.handler.data.IAttributeDefinition;
+
+public class AttributeDefinition implements IAttributeDefinition {
     private final String key;
     private String translationKey;// e.g., "main_attack_flat"
     private final String displayName; // Human‑readable name

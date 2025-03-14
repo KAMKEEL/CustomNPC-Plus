@@ -1,6 +1,9 @@
 package noppes.npcs.scripted.item;
 
 import com.google.common.collect.Multimap;
+import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
+import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
+import kamkeel.npcs.util.AttributeItemUtil;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
@@ -22,10 +25,7 @@ import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptNbt;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScriptItemStack implements IItemStack {
     public ItemStack item;
@@ -453,5 +453,132 @@ public class ScriptItemStack implements IItemStack {
     @Override
     public boolean compare(IItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
         return NoppesUtilPlayer.compareItems(getMCItemStack(), item.getMCItemStack(), ignoreDamage, ignoreNBT);
+    }
+
+    @Override
+    public void setCustomAttribute(String key, double value) {
+        AttributeItemUtil.applyAttribute(item, key, (float) value);
+    }
+
+    @Override
+    public boolean hasCustomAttribute(String key) {
+        return AttributeItemUtil.readAttributes(item).containsKey(key);
+    }
+
+    @Override
+    public float getCustomAttribute(String key) {
+        return hasCustomAttribute(key) ? AttributeItemUtil.readAttributes(item).get(key) : 0.0f;
+    }
+
+    @Override
+    public void removeCustomAttribute(String key) {
+        AttributeItemUtil.removeAttribute(item, key);
+    }
+
+    @Override
+    public void setMagicAttribute(String key, int magicId, double value) {
+        AttributeItemUtil.writeMagicAttribute(item, key, magicId, (float) value);
+    }
+
+    @Override
+    public float getMagicAttribute(String key, int magicId) {
+        Map<Integer, Float> magicMap = AttributeItemUtil.readMagicAttributeMap(item, key);
+        return magicMap.getOrDefault(magicId, 0.0f);
+    }
+
+    @Override
+    public boolean hasMagicAttribute(String key, int magicId) {
+        Map<Integer, Float> magicMap = AttributeItemUtil.readMagicAttributeMap(item, key);
+        return magicMap.containsKey(magicId);
+    }
+
+    @Override
+    public void removeMagicAttribute(String key, int magicId) {
+        AttributeItemUtil.removeMagicAttribute(item, key, magicId);
+    }
+
+    @Override
+    public void setRequirement(String reqKey, Object value) {
+        // Delegate to the utility method that applies the requirement into the item's NBT.
+        AttributeItemUtil.applyRequirement(item, reqKey, value);
+    }
+
+    @Override
+    public boolean hasRequirement(String reqKey) {
+        if (item == null || item.stackTagCompound == null)
+            return false;
+        NBTTagCompound root = item.stackTagCompound;
+        if (!root.hasKey(AttributeItemUtil.TAG_RPGCORE))
+            return false;
+        NBTTagCompound rpgCore = root.getCompoundTag(AttributeItemUtil.TAG_RPGCORE);
+        if (!rpgCore.hasKey(AttributeItemUtil.TAG_REQUIREMENTS))
+            return false;
+        NBTTagCompound reqTag = rpgCore.getCompoundTag(AttributeItemUtil.TAG_REQUIREMENTS);
+        return reqTag.hasKey(reqKey);
+    }
+
+    @Override
+    public Object getRequirement(String reqKey) {
+        if (item == null || item.stackTagCompound == null)
+            return null;
+        NBTTagCompound root = item.stackTagCompound;
+        if (!root.hasKey(AttributeItemUtil.TAG_RPGCORE))
+            return null;
+        NBTTagCompound rpgCore = root.getCompoundTag(AttributeItemUtil.TAG_RPGCORE);
+        if (!rpgCore.hasKey(AttributeItemUtil.TAG_REQUIREMENTS))
+            return null;
+        NBTTagCompound reqTag = rpgCore.getCompoundTag(AttributeItemUtil.TAG_REQUIREMENTS);
+        if (reqTag.hasKey(reqKey)) {
+            IRequirementChecker checker = RequirementCheckerRegistry.getChecker(reqKey);
+            if (checker != null) {
+                return checker.getValue(reqTag);
+            }
+            // If no checker exists, fall back to returning the raw stored value.
+            NBTBase tag = reqTag.getTag(reqKey);
+            if (tag instanceof NBTPrimitive)
+                return ((NBTPrimitive) tag).func_150286_g();
+            if (tag instanceof NBTTagString)
+                return ((NBTTagString) tag).func_150285_a_();
+            return tag;
+        }
+        return null;
+    }
+
+    @Override
+    public void removeRequirement(String reqKey) {
+        AttributeItemUtil.removeRequirement(item, reqKey);
+    }
+
+    @Override
+    public String[] getCustomAttributeKeys() {
+        Map<String, Float> attrs = AttributeItemUtil.readAttributes(item);
+        return attrs.keySet().toArray(new String[attrs.size()]);
+    }
+
+    @Override
+    public String[] getMagicAttributeKeys(String key) {
+        Map<Integer, Float> magicMap = AttributeItemUtil.readMagicAttributeMap(item, key);
+        // Convert the integer magic IDs to strings.
+        String[] keys = new String[magicMap.size()];
+        int i = 0;
+        for (Integer magicId : magicMap.keySet()) {
+            keys[i++] = magicId.toString();
+        }
+        return keys;
+    }
+
+    @Override
+    public String[] getRequirementKeys() {
+        if (item == null || item.stackTagCompound == null)
+            return new String[0];
+        NBTTagCompound root = item.stackTagCompound;
+        if (!root.hasKey(AttributeItemUtil.TAG_RPGCORE))
+            return new String[0];
+        NBTTagCompound rpgCore = root.getCompoundTag(AttributeItemUtil.TAG_RPGCORE);
+        if (!rpgCore.hasKey(AttributeItemUtil.TAG_REQUIREMENTS))
+            return new String[0];
+        NBTTagCompound reqTag = rpgCore.getCompoundTag(AttributeItemUtil.TAG_REQUIREMENTS);
+        Set<String> keys = reqTag.func_150296_c();
+        return keys.toArray(new String[keys.size()]);
     }
 }
