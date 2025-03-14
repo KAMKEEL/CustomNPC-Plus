@@ -11,8 +11,8 @@ public class PanelFrameType {
     public AnimationGraphEditor graph;
 
     public int startX, startY, endX, endY, width, height;
-    public float scale = 0.66f;
-    public int elementHeight = 5, elementSpacing = 7;
+    public float scale = 0.6f;
+    public int elementHeight = 12, elementSpacing = 3;
 
     public LinkedList<Element> list = new LinkedList<>();
 
@@ -35,8 +35,7 @@ public class PanelFrameType {
     public void draw() {
         //  GuiUtil.drawRectD(startX,startY,endX,endY, 0xffffffff);
         GL11.glPushMatrix();
-        GL11.glTranslatef((startX + 2), startY, 0);
-
+        GL11.glTranslatef(startX, startY, 0);
 
         for (int i = 0; i < list.size(); i++) {
             Element element = list.get(i);
@@ -73,16 +72,16 @@ public class PanelFrameType {
 
         public void draw(int index) {
 
-
             //  GuiUtil.drawRectD(100,100,endX,endY, type.color);
-            float offsetY = index * (elementHeight + elementSpacing + 2) / scale;
+            float offsetY = index * (elementHeight + elementSpacing) / 1;
             GL11.glPushMatrix();
-            GL11.glScalef(scale, scale, 1);
             GL11.glTranslatef(0, offsetY, 0);
-            GuiUtil.drawRectD(0, 0, width / scale, (elementHeight + elementSpacing) / scale, 0x0);
-            GuiUtil.drawRectD(0, 0, 3, (elementHeight + elementSpacing) / scale, type.color);
+            GuiUtil.drawRectD(0, 0, width / 1, (elementHeight) / 1, 0x0);
+            GuiUtil.drawRectD(0, 0, 3 / 1, (elementHeight) / 1, type.color);
 
-            GL11.glTranslatef(0, ((elementHeight + elementSpacing) / 2), 0);
+            GL11.glScalef(scale, scale, 1);
+
+            GL11.glTranslatef(0, elementHeight / 2, 0);
             String name = String.format("%s", type.toString());
             graph.getFontRenderer().drawString(name, 6, 0, 0xffffff);
 
