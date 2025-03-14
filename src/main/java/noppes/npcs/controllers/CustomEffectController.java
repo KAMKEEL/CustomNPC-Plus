@@ -251,7 +251,6 @@ public class CustomEffectController implements ICustomEffectHandler {
         CustomEffect parent = get(id, index);
         if (parent != null) {
             PlayerEffect playerEffect = new PlayerEffect(id, duration, level, index);
-            playerEffect.index = index;
             currentEffects.put(new EffectKey(id, index), playerEffect);
             parent.onAdded(player, playerEffect);
         }

@@ -6,6 +6,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.util.List;
@@ -80,6 +81,9 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         hookList.add(EnumScriptType.PROFILE_CHANGE.function);
         hookList.add(EnumScriptType.PROFILE_REMOVE.function);
         hookList.add(EnumScriptType.PROFILE_CREATE.function);
+        hookList.add(EffectScript.ScriptType.OnEffectAdd.function);
+        hookList.add(EffectScript.ScriptType.OnEffectTick.function);
+        hookList.add(EffectScript.ScriptType.OnEffectRemove.function);
 
         this.handler = this.script;
         PlayerScriptPacket.Get();

@@ -3,6 +3,7 @@ package noppes.npcs.controllers.data;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
+import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.data.ICustomEffect;
@@ -181,48 +182,62 @@ public class CustomEffect implements ICustomEffect {
 
     public void onAdded(EntityPlayer player, PlayerEffect playerEffect) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
+        if(playerEffect.index == 0){
+            PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(iPlayer, playerEffect);
 
-        PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(iPlayer, playerEffect);
-        if (onAddedConsumer != null) onAddedConsumer.accept(event);
-        EffectScript script = getScriptHandler();
-        if (script == null) {
-            return;
+            if (onAddedConsumer != null)
+                onAddedConsumer.accept(event);
+
+            EffectScript script = getScriptHandler();
+            if (script == null) {
+                return;
+            }
+
+            script.callScript(EffectScript.ScriptType.OnEffectAdd, event);
         }
 
-        script.callScript(EffectScript.ScriptType.OnAdd, event);
+        EventHooks.onEffectAdded(iPlayer, playerEffect);
     }
 
     public void onTick(EntityPlayer player, PlayerEffect playerEffect) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
-        PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(iPlayer, playerEffect);
+        if(playerEffect.index == 0){
+            PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(iPlayer, playerEffect);
 
-        if (onTickConsumer != null) {
-            onTickConsumer.accept(event);
+            if (onTickConsumer != null) {
+                onTickConsumer.accept(event);
+            }
+
+            EffectScript script = getScriptHandler();
+            if (script == null) {
+                return;
+            }
+
+            script.callScript(EffectScript.ScriptType.OnEffectTick, event);
         }
 
-        EffectScript script = getScriptHandler();
-        if (script == null) {
-            return;
-        }
-
-        script.callScript(EffectScript.ScriptType.OnTick, event);
+        EventHooks.onEffectTick(iPlayer, playerEffect);
     }
 
     public void onRemoved(EntityPlayer player, PlayerEffect playerEffect, PlayerEvent.EffectEvent.ExpirationType type) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
 
-        PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(iPlayer, playerEffect, type);
+        if(playerEffect.index == 0){
+            PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(iPlayer, playerEffect, type);
 
-        if (onRemovedConsumer != null) {
-            onRemovedConsumer.accept(event);
+            if (onRemovedConsumer != null) {
+                onRemovedConsumer.accept(event);
+            }
+
+            EffectScript script = getScriptHandler();
+            if (script == null) {
+                return;
+            }
+
+            script.callScript(EffectScript.ScriptType.OnEffectRemove, event);
         }
 
-        EffectScript script = getScriptHandler();
-        if (script == null) {
-            return;
-        }
-
-        script.callScript(EffectScript.ScriptType.OnRemove, event);
+        EventHooks.onEffectRemove(iPlayer, playerEffect, type);
     }
 
     public NBTTagCompound writeToNBT(boolean saveScripts) {

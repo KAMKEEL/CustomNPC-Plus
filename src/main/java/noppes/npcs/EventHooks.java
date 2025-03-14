@@ -21,6 +21,7 @@ import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
+import noppes.npcs.api.handler.data.IPlayerEffect;
 import noppes.npcs.api.handler.data.IProfile;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemLinked;
@@ -403,6 +404,27 @@ public class EventHooks {
     public static boolean onProfileCreate(PlayerDataScript handler, IPlayer player, IProfile profile, int slot, boolean post) {
         PlayerEvent.ProfileEvent.Create event = new PlayerEvent.ProfileEvent.Create(player, profile, slot, post);
         handler.callScript(EnumScriptType.PROFILE_CREATE, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onEffectAdded(IPlayer player, IPlayerEffect effect) {
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(player, effect);
+        handler.callScript(EffectScript.ScriptType.OnEffectAdd.function, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onEffectTick(IPlayer player, IPlayerEffect effect) {
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(player, effect);
+        handler.callScript(EffectScript.ScriptType.OnEffectTick.function, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onEffectRemove(IPlayer player, IPlayerEffect effect, EffectEvent.ExpirationType type) {
+        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(player, effect, type);
+        handler.callScript(EffectScript.ScriptType.OnEffectRemove.function, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 

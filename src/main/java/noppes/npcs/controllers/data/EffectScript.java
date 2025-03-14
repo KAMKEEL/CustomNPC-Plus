@@ -165,9 +165,9 @@ public class EffectScript implements INpcScriptHandler {
     }
 
     public enum ScriptType {
-        OnAdd("onAdded"),
-        OnTick("onTick"),
-        OnRemove("onRemove");
+        OnEffectAdd("onEffectAdd"),
+        OnEffectTick("onEffectTick"),
+        OnEffectRemove("onEffectRemove");
 
         public final String function;
 
