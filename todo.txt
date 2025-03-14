@@ -1,20 +1,2 @@
-TODO List
-
-Magic:
-- Create MagicData Class -- Done
--- Magic Data: Magic ID, % Split, Bonus Damage
-
-- Store Magic on PlayerData and NPCs -- Done
-
-Profile:
-- On Profile Slot Change Event -- WIP
-- On Profile Slot Create Event -- WIP
-- On Profile Slot Delete Event -- WIP
-
-ScriptPlayer and ScriptNPC
--- Apply, Removing and Checking Magic Types
-
-Interfaces:
-- IMagic -- Done
-- IProfile -- Need Work
-- ISlot -- Done
+- Port Animations for DBC Handling into DBC Addon
+- Fix Animation Editor not Playing Animations
