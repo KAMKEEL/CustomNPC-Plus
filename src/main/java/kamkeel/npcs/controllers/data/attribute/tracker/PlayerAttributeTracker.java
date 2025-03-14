@@ -23,12 +23,18 @@ import java.util.UUID;
 public class PlayerAttributeTracker {
 
     public static UUID healthUUID = UUID.fromString("48a0ad75-2cf8-4838-ad2f-9a0aadc57dfe");
-
+    public static UUID healthBoostUUID = UUID.fromString("93cfba41-294a-4e6b-a98b-bee76a9f813b");
+    public static UUID movementSpeedUUID = UUID.fromString("e7e0dd10-8ed5-42fb-8167-e71f8de4ea0c");
+    public static UUID knockbackResUUID = UUID.fromString("b2f261e8-34f0-4140-9828-b56c1f6e0ff2");
 
     private final UUID playerId;
     private PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
 
     public float extraHealth = 0;
+    public float extraHealthBoost = 0;
+    public float movementSpeed = 0;
+    public float knockbackRes = 0;
+
     public float gearOutput = 0.0f;
 
     public final Map<Integer, Float> magicDamage = new HashMap<>();
@@ -117,9 +123,16 @@ public class PlayerAttributeTracker {
             }
             equipmentTracker = currentEquip;
             gearOutput = AttributeAttackUtil.calculateGearOutput(this);
-            extraHealth = getAttributeValue(CustomAttributes.HEALTH);
 
+            extraHealth = getAttributeValue(CustomAttributes.HEALTH);
+            extraHealthBoost = getAttributeValue(CustomAttributes.HEALTH_BOOST);
+            movementSpeed = getAttributeValue(CustomAttributes.MOVEMENT_SPEED);
+            knockbackRes = getAttributeValue(CustomAttributes.KNOCKBACK_RES);
+
+            // Update vanilla attributes with our aggregated values.
             updatePlayerMaxHealth(player);
+            updatePlayerMovementSpeed(player);
+            updatePlayerKnockbackRes(player);
 
             // Post Recalculation Event to Listeners
             AttributeRecalcEvent.post(player, this);
@@ -134,21 +147,58 @@ public class PlayerAttributeTracker {
      */
     public void updatePlayerMaxHealth(EntityPlayer player) {
         float bonusHealth = extraHealth;
+        float healthBoostPercent = extraHealthBoost  / 100;
         IAttributeInstance maxHealthAttr = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.maxHealth);
         try {
-            AttributeModifier old = maxHealthAttr.getModifier(healthUUID);
-            if (old != null) {
-                maxHealthAttr.removeModifier(old);
+            AttributeModifier oldFlat = maxHealthAttr.getModifier(healthUUID);
+            if (oldFlat != null) {
+                maxHealthAttr.removeModifier(oldFlat);
             }
-        } catch (Exception ignored) {
-        }
+            AttributeModifier oldBoost = maxHealthAttr.getModifier(healthBoostUUID);
+            if (oldBoost != null) {
+                maxHealthAttr.removeModifier(oldBoost);
+            }
+        } catch (Exception ignored) { }
+        // Apply the flat bonus (operation 0)
         if (bonusHealth != 0) {
             maxHealthAttr.applyModifier(new AttributeModifier(healthUUID, "RPGCoreHealthBonus", bonusHealth, 0));
         }
-        // Ensure the player's current health does not exceed the new maximum.
+        // Apply the percent boost (operation 1 multiplies the base health, here assumed to be 20)
+        if (healthBoostPercent != 0) {
+            maxHealthAttr.applyModifier(new AttributeModifier(healthBoostUUID, "RPGCoreHealthBoost", healthBoostPercent, 1));
+        }
+        // Ensure current health is within the new maximum.
         float currentHealth = player.getHealth();
         if (currentHealth > maxHealthAttr.getAttributeValue()) {
             player.setHealth((float) maxHealthAttr.getAttributeValue());
+        }
+    }
+
+    public void updatePlayerMovementSpeed(EntityPlayer player) {
+        float extraSpeed = movementSpeed  / 100;
+        IAttributeInstance speedAttr = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.movementSpeed);
+        try {
+            AttributeModifier old = speedAttr.getModifier(movementSpeedUUID);
+            if (old != null) {
+                speedAttr.removeModifier(old);
+            }
+        } catch (Exception ignored) { }
+        if (extraSpeed != 0) {
+            speedAttr.applyModifier(new AttributeModifier(movementSpeedUUID, "RPGCoreMovementSpeed", extraSpeed, 1));
+        }
+    }
+
+    public void updatePlayerKnockbackRes(EntityPlayer player) {
+        float extraRes = knockbackRes / 100;
+        IAttributeInstance knockResAttr = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.knockbackResistance);
+        try {
+            AttributeModifier old = knockResAttr.getModifier(knockbackResUUID);
+            if (old != null) {
+                knockResAttr.removeModifier(old);
+            }
+        } catch (Exception ignored) { }
+        if (extraRes != 0) {
+            knockResAttr.applyModifier(new AttributeModifier(knockbackResUUID, "RPGCoreKnockbackRes", extraRes, 1));
         }
     }
 
