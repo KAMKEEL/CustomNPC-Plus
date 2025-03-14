@@ -12,7 +12,7 @@ public class PanelFrameType {
 
     public int startX, startY, endX, endY, width, height;
     public float scale = 0.6f;
-    public int elementHeight = 12, elementSpacing = 3;
+    public int elementHeight = 10, elementSpacing = 2;
 
     public LinkedList<Element> list = new LinkedList<>();
 
@@ -33,9 +33,10 @@ public class PanelFrameType {
     }
 
     public void draw() {
-        //  GuiUtil.drawRectD(startX,startY,endX,endY, 0xffffffff);
+
         GL11.glPushMatrix();
         GL11.glTranslatef(startX, startY, 0);
+        GuiUtil.drawRectD(0, 0, width, 6 * (elementHeight + elementSpacing)-2, 0x77000000);
 
         for (int i = 0; i < list.size(); i++) {
             Element element = list.get(i);
@@ -76,14 +77,16 @@ public class PanelFrameType {
             float offsetY = index * (elementHeight + elementSpacing) / 1;
             GL11.glPushMatrix();
             GL11.glTranslatef(0, offsetY, 0);
-            GuiUtil.drawRectD(0, 0, width / 1, (elementHeight) / 1, 0x0);
-            GuiUtil.drawRectD(0, 0, 3 / 1, (elementHeight) / 1, type.color);
+            GuiUtil.drawRectD(0, 0, width - 1, elementHeight, 0xaa000000); //type black bg
+
+            type.getColor().glColor();
+            GuiUtil.drawRectD(0, 0, 3, elementHeight); //type color
 
             GL11.glScalef(scale, scale, 1);
 
             GL11.glTranslatef(0, elementHeight / 2, 0);
             String name = String.format("%s", type.toString());
-            graph.getFontRenderer().drawString(name, 6, 0, 0xffffff);
+            graph.getFontRenderer().drawString(name, 7, 0, 0xffffff);
 
             GL11.glPopMatrix();
         }

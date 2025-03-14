@@ -154,11 +154,11 @@ public class OverlayKeyPresetViewer {
                 totalHeight += element.getHeight();
 
             totalHeight -= yStartSpacing;
+            scroll.maxScroll = Math.max(0, totalHeight - height);
+
             heightFactor = height / totalHeight;
             scrollbarHeight = Math.max((int) (height * heightFactor), 20);
             scrollFactor = (height - yStartSpacing - scrollbarHeight) / maxScroll;
-
-            scroll.maxScroll = Math.max(0, totalHeight - height);
         }
 
         public void update(int wheel) {

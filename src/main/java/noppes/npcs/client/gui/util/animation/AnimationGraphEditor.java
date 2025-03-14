@@ -13,7 +13,7 @@ public class AnimationGraphEditor extends ViewportGraphEditor {
 
     public void initGui(int startX, int startY, int endX, int endY) {
         super.initGui(startX, startY, endX, endY);
-        frameTypePanel.initGui(startX - 60, startY, startX, endY);
+        frameTypePanel.initGui(startX - 70, startY, startX, endY);
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int wheel) {
