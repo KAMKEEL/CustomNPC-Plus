@@ -1,6 +1,7 @@
 package noppes.npcs;
 
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
@@ -52,7 +53,9 @@ public class AnimationMixinFunctions {
             return false;
         }
 
-        if (!DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null) {
+        if(DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null){
+            DBCClient.Instance.applyRenderModel(modelRenderer);
+        } else if (!DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null) {
             ClientEventHandler.playerModel = (modelRenderer).baseModel;
             if (ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
                 AnimationData animData = ClientCacheHandler.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
@@ -221,8 +224,8 @@ public class AnimationMixinFunctions {
     }
 
     public static boolean mixin_renderFirstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model, RenderBlocks renderBlocksIr, ResourceLocation resItemGlint) {
-        if (!DBCAddon.IsAvailable()) {
-            return false;
+        if (DBCAddon.IsAvailable()) {
+            return DBCClient.Instance.firstPersonAnimation(partialRenderTick, player,model, renderBlocksIr, resItemGlint);
         }
 
         AnimationData animationData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());

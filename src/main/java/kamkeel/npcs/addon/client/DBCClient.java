@@ -1,6 +1,11 @@
 package kamkeel.npcs.addon.client;
 
+import net.minecraft.client.model.ModelBiped;
+import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.mainmenu.GuiNpcStats;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -42,4 +47,8 @@ public class DBCClient {
     public GuiNPCInterface2 manageCustomAuras(EntityNPCInterface npcInterface) {
         return null;
     }
+
+    // Animation Render Helper
+    public void applyRenderModel(ModelRenderer renderer){}
+    public boolean firstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model, RenderBlocks renderBlocksIr, ResourceLocation resItemGlint) { return false; }
 }
