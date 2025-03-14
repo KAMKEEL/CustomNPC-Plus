@@ -26,8 +26,7 @@ public class ItemToolRenderer implements IItemRenderer {
     private static final ResourceLocation RES_ITEM_GLINT = new ResourceLocation("textures/misc/enchanted_item_glint.png");
     private static final ResourceLocation PAINTBRUSH_HANDLE = new ResourceLocation("customnpcs", "textures/items/npcBrushHandle.png");
     private static final ResourceLocation PAINTBRUSH_BRUSH = new ResourceLocation("customnpcs", "textures/items/npcBrushHair.png");
-
-    private static final ResourceLocation HAMMER = new ResourceLocation("customnpcs", "textures/items/npcHammer.png");
+    private static final ResourceLocation HAMMER = new ResourceLocation("customnpcs", "textures/items/npcToolHammer.png");
 
     private final Random random = new Random();
 
