@@ -493,17 +493,24 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
     }
 
     public IItemStack[] getInventory() {
+        // Get the base inventory from the super class
+        IItemStack[] baseInventory = super.getInventory();
+
+        // Load extra items from the NBT data
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
-
-        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
-        IItemStack[] itemList = new IItemStack[list.tagCount()];
-        for (int i = 0; i < list.tagCount(); i++) {
-            ItemStack itemStack = ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
-            itemList[i] = NpcAPI.Instance().getIItemStack(itemStack);
+        NBTTagList extraList = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
+        IItemStack[] extraInventory = new IItemStack[extraList.tagCount()];
+        for (int i = 0; i < extraList.tagCount(); i++) {
+            ItemStack itemStack = ItemStack.loadItemStackFromNBT(extraList.getCompoundTagAt(i));
+            extraInventory[i] = NpcAPI.Instance().getIItemStack(itemStack);
         }
 
-        return itemList;
+        // Combine base and extra inventories
+        IItemStack[] fullInventory = new IItemStack[baseInventory.length + extraInventory.length];
+        System.arraycopy(baseInventory, 0, fullInventory, 0, baseInventory.length);
+        System.arraycopy(extraInventory, 0, fullInventory, baseInventory.length, extraInventory.length);
+        return fullInventory;
     }
 
     public void setForm(byte form) {
