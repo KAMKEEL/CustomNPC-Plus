@@ -43,6 +43,7 @@ import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.global.*;
+import noppes.npcs.client.gui.item.GuiNpcMagicBook;
 import noppes.npcs.client.gui.item.GuiNpcPaintbrush;
 import noppes.npcs.client.gui.mainmenu.*;
 import noppes.npcs.client.gui.player.*;
@@ -421,6 +422,9 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.Paintbrush)
             return new GuiNpcPaintbrush();
+
+        else if (gui == EnumGuiType.MagicBook)
+            return new GuiNpcMagicBook();
 
         else if (gui == EnumGuiType.GlobalRemote)
             return new GuiNPCGlobalMainMenu(null);

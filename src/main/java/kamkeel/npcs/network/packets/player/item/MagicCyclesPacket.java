@@ -1,50 +1,51 @@
-package kamkeel.npcs.network.packets.request.magic;
+package kamkeel.npcs.network.packets.player.item;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
+import kamkeel.npcs.network.packets.request.magic.MagicGetPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
 
 import java.io.IOException;
+import java.util.HashMap;
 
-public final class MagicGetPacket extends AbstractPacket {
-    public static String packetName = "Request|MagicGet";
+import static kamkeel.npcs.network.packets.data.large.ScrollDataPacket.sendScrollData;
 
-    private Action action;
+public class MagicCyclesPacket extends AbstractPacket {
+    public static String packetName = "Player|MagicCycles";
+
     private int id;
 
-    public MagicGetPacket() {
-    }
+    public MagicCyclesPacket() {}
 
-    public MagicGetPacket(Action action, int id) {
-        this.action = action;
+    public MagicCyclesPacket(int id) {
         this.id = id;
     }
 
-
     @Override
     public Enum getType() {
-        return EnumRequestPacket.MagicGet;
+        return EnumPlayerPacket.MagicCycles;
     }
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        out.writeInt(this.action.ordinal());
         out.writeInt(this.id);
     }
 
@@ -52,20 +53,20 @@ public final class MagicGetPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND))
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.MAGIC_BOOK))
             return;
 
-        Action action = Action.values()[in.readInt()];
         int id = in.readInt();
-        if (action == Action.MAGIC) {
-            Magic magic = MagicController.getInstance().getMagic(id);
-            NBTTagCompound compound = new NBTTagCompound();
-            NBTTagCompound magicCompound = new NBTTagCompound();
-            magic.writeNBT(magicCompound);
-            compound.setTag("Magic", magicCompound);
-            GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
-        } else if (action == Action.CYCLE) {
+        if(id == -1){
+            HashMap<String, Integer> map = new HashMap<>();
+            for (MagicCycle magicCycle : MagicController.getInstance().cycles.values()) {
+                map.put(magicCycle.displayName.replace("&", "\u00A7"), magicCycle.id);
+            }
+            sendScrollData((EntityPlayerMP) player, map, EnumScrollData.MAGIC_CYCLES);
+        } else {
             MagicCycle cycle = MagicController.getInstance().getCycle(id);
+            if(cycle == null)
+                return;
             NBTTagCompound compound = new NBTTagCompound();
             NBTTagCompound magicCompound = new NBTTagCompound();
             cycle.writeNBT(magicCompound);
@@ -74,16 +75,11 @@ public final class MagicGetPacket extends AbstractPacket {
         }
     }
 
-    public static void GetMagic(int id) {
-        PacketClient.sendClient(new MagicGetPacket(Action.MAGIC, id));
+    public static void GetAll() {
+        PacketClient.sendClient(new MagicCyclesPacket(-1));
     }
 
     public static void GetCycle(int id) {
-        PacketClient.sendClient(new MagicGetPacket(Action.CYCLE, id));
-    }
-
-    private enum Action {
-        MAGIC,
-        CYCLE
+        PacketClient.sendClient(new MagicCyclesPacket(id));
     }
 }

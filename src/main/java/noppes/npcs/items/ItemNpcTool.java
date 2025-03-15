@@ -2,6 +2,8 @@ package noppes.npcs.items;
 
 import cpw.mods.fml.common.registry.GameRegistry;
 import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.player.item.GuiMagicBookPacket;
+import kamkeel.npcs.network.packets.player.item.GuiPaintbrushPacket;
 import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import kamkeel.npcs.network.packets.request.item.ColorSetPacket;
 import kamkeel.npcs.network.packets.request.item.HammerPacket;
@@ -32,7 +34,7 @@ public class ItemNpcTool extends Item {
 
     // Define our tool types based on metadata:
     // meta 0: Hammer, meta 1: Paintbrush, meta 2: Wrench
-    public static final String[] toolTypes = new String[]{"hammer", "paintbrush"};
+    public static final String[] toolTypes = new String[]{"hammer", "paintbrush", "magic_book"};
     public static String BRUSH_COLOR_TAG = "BrushColor";
 
     public ItemNpcTool() {
@@ -62,13 +64,18 @@ public class ItemNpcTool extends Item {
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {
-        if (world.isRemote)
+        if (!world.isRemote)
             return stack;
 
         if (isPaintbrush(stack) && player.isSneaking()) {
             if (CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.PAINTBRUSH_GUI)) {
-                NoppesUtil.requestOpenGUI(EnumGuiType.Paintbrush);
+                PacketClient.sendClient(new GuiPaintbrushPacket(EnumGuiType.Paintbrush.ordinal(), 0, 0, 0));
             }
+            return stack;
+        }
+        if (isMagicBook(stack)) {
+            PacketClient.sendClient(new GuiMagicBookPacket(EnumGuiType.MagicBook.ordinal(), 0, 0, 0));
+            return stack;
         }
         return stack;
     }
@@ -143,6 +150,10 @@ public class ItemNpcTool extends Item {
 
     public static boolean isHammer(ItemStack itemStack) {
         return itemStack.getItemDamage() == 0;
+    }
+
+    public static boolean isMagicBook(ItemStack itemStack) {
+        return itemStack.getItemDamage() == 2;
     }
 
     @Override

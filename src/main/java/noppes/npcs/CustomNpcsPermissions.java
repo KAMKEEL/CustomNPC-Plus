@@ -41,7 +41,7 @@ public class CustomNpcsPermissions {
 
     public static final Permission GLOBAL_REMOTE = new Permission("customnpcs.global.remote");
 
-    // Save Globel Preferences
+    // Save Global Preferences
     public static final Permission GLOBAL_LINKED = new Permission("customnpcs.global.linked");
     public static final Permission GLOBAL_PLAYERDATA = new Permission("customnpcs.global.playerdata");
     public static final Permission GLOBAL_BANK = new Permission("customnpcs.global.bank");

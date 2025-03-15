@@ -1,5 +1,7 @@
 package kamkeel.npcs.network.enums;
 
+import noppes.npcs.client.gui.custom.components.CustomGuiButton;
+
 public enum EnumPlayerPacket {
     FollowerAction,
     Transport,
@@ -14,11 +16,15 @@ public enum EnumPlayerPacket {
     GetRole,
     InputDevice,
     ScreenSize,
+    MagicCycles,
 
     CustomGuiButton,
     CustomGuiScrollClick,
     CustomGuiClose,
     CustomGuiUnfocused,
+
+    GuiPaintbrush,
+    GuiMagicBook,
 
     ProfileCreate,
     ProfileRemove,

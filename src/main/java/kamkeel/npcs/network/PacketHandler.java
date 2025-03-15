@@ -20,6 +20,9 @@ import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
+import kamkeel.npcs.network.packets.player.item.GuiMagicBookPacket;
+import kamkeel.npcs.network.packets.player.item.GuiPaintbrushPacket;
+import kamkeel.npcs.network.packets.player.item.MagicCyclesPacket;
 import kamkeel.npcs.network.packets.player.profile.*;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
@@ -428,6 +431,11 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new CustomGuiClosePacket());
         PLAYER_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
         PLAYER_PACKET.registerPacket(new CustomScrollClickPacket());
+
+        // Item Gui Packets
+        PLAYER_PACKET.registerPacket(new GuiPaintbrushPacket());
+        PLAYER_PACKET.registerPacket(new GuiMagicBookPacket());
+        PLAYER_PACKET.registerPacket(new MagicCyclesPacket());
 
         // Profile Packets
         PLAYER_PACKET.registerPacket(new ProfileCreatePacket());

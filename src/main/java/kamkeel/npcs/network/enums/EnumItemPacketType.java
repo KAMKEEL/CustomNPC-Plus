@@ -9,5 +9,6 @@ public enum EnumItemPacketType {
     PATHER,
     BLOCK,
     BRUSH,
-    HAMMER
+    HAMMER,
+    MAGIC_BOOK
 }

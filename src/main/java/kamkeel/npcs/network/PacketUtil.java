@@ -95,7 +95,14 @@ public class PacketUtil {
                 break;
             case HAMMER:
                 if (item.getItem() != CustomItems.tool || item.getItemDamage() != 0) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Pather, they could be a hacker",
+                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Hammer, they could be a hacker",
+                        player.getCommandSenderName(), type));
+                    return false;
+                }
+                break;
+            case MAGIC_BOOK:
+                if (item.getItem() != CustomItems.tool || item.getItemDamage() != 2) {
+                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Magic Book, they could be a hacker",
                         player.getCommandSenderName(), type));
                     return false;
                 }
@@ -158,6 +165,8 @@ public class PacketUtil {
                 return item.getItem() == CustomItems.tool && item.getItemDamage() == 1;
             case HAMMER:
                 return item.getItem() == CustomItems.tool && item.getItemDamage() == 0;
+            case MAGIC_BOOK:
+                return item.getItem() == CustomItems.tool && item.getItemDamage() == 2;
             default:
                 return false;
         }
@@ -197,6 +206,8 @@ public class PacketUtil {
                 return "Paintbrush";
             case HAMMER:
                 return "Hammer";
+            case MAGIC_BOOK:
+                return "Magic Book";
             default:
                 return type.toString();
         }

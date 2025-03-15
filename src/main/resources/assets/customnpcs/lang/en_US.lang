@@ -775,6 +775,7 @@ item.scripted_item.name=Scripted Item
 item.linked_item.name=Linked Item
 item.npcTool.hammer.name=Npc Hammer
 item.npcTool.paintbrush.name=Npc Brush
+item.npcTool.magic_book.name=Magic Book
 
 
 item.npcBanjo.name=Banjo
