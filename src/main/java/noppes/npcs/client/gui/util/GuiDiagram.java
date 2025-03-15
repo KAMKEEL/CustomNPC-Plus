@@ -46,6 +46,8 @@ public abstract class GuiDiagram extends Gui {
     protected boolean showArrowHeads = true;
     protected boolean useColorScaling = true;
 
+    protected boolean allowTwoWay = false;
+
     // --- Layout Options ---
     protected EnumDiagramLayout layout = EnumDiagramLayout.CIRCULAR;
 
