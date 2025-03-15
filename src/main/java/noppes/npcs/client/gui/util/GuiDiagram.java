@@ -777,13 +777,15 @@ public abstract class GuiDiagram extends Gui {
 
 
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
-        int color = getConnectionColor(conn);
-        if (!useColorScaling) color = 0xFFFFFFFF;
+        DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
+        int color = (reverse != null) ? getConnectionColor(reverse) : getConnectionColor(conn);
+        if (!useColorScaling)
+            color = 0xFFFFFFFF;
+
         double angle;
         if (!curvedArrows) {
             angle = Math.atan2(y2 - y1, x2 - x1);
         } else {
-            // Compute two control points and choose the one farther from icons.
             double dx = x2 - x1, dy = y2 - y1;
             double len = Math.sqrt(dx * dx + dy * dy);
             if (len == 0) len = 1;
@@ -799,13 +801,16 @@ public abstract class GuiDiagram extends Gui {
             double dBy = 2 * (1 - t) * (control.y - y1) + 2 * t * (y2 - control.y);
             angle = Math.atan2(dBy, dBx);
         }
-        float defenderEdgeX = x2 - (slotSize / 2f) * (float) Math.cos(angle);
-        float defenderEdgeY = y2 - (slotSize / 2f) * (float) Math.sin(angle);
+
+        // Draw the arrow head at the target end.
+        float defenderEdgeX = x2 - (slotSize / 2f) * (float)Math.cos(angle);
+        float defenderEdgeY = y2 - (slotSize / 2f) * (float)Math.sin(angle);
         int arrowSize = 6;
-        float leftX = defenderEdgeX - arrowSize * (float) Math.cos(angle - Math.PI / 6);
-        float leftY = defenderEdgeY - arrowSize * (float) Math.sin(angle - Math.PI / 6);
-        float rightX = defenderEdgeX - arrowSize * (float) Math.cos(angle + Math.PI / 6);
-        float rightY = defenderEdgeY - arrowSize * (float) Math.sin(angle + Math.PI / 6);
+        float leftX = defenderEdgeX - arrowSize * (float)Math.cos(angle - Math.PI / 6);
+        float leftY = defenderEdgeY - arrowSize * (float)Math.sin(angle - Math.PI / 6);
+        float rightX = defenderEdgeX - arrowSize * (float)Math.cos(angle + Math.PI / 6);
+        float rightY = defenderEdgeY - arrowSize * (float)Math.sin(angle + Math.PI / 6);
+
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         float rr = ((color >> 16) & 0xFF) / 255f;
