@@ -10,6 +10,7 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.IMagicHandler;
+import noppes.npcs.constants.EnumDiagramLayout;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicAssociation;
 import noppes.npcs.controllers.data.MagicCycle;
@@ -99,26 +100,55 @@ public class MagicController implements IMagicHandler {
             arcane.setItem(new ItemStack(CustomItems.spellArcane));
 
             // Insiders
-            earth.interactions.put(air.id, 0.60f);
-            water.interactions.put(earth.id, 0.60f);
-            fire.interactions.put(water.id, 0.60f);
-            air.interactions.put(fire.id, 0.60f);
+            earth.interactions.put(air.id, -0.50f);
+            air.interactions.put(earth.id,  0.50f);
+
+            water.interactions.put(earth.id, -0.50f);
+            earth.interactions.put(water.id,  0.50f);
+
+            fire.interactions.put(water.id, -0.50f);
+            water.interactions.put(fire.id,  0.50f);
+
+            air.interactions.put(fire.id, -0.50f);
+            fire.interactions.put(air.id,  0.50f);
 
             // Outsiders
-            dark.interactions.put(nature.id, 0.60f);
-            nature.interactions.put(holy.id, 0.60f);
-            holy.interactions.put(arcane.id, 0.60f);
-            arcane.interactions.put(dark.id, 0.60f);
+            dark.interactions.put(nature.id, -0.50f);
+            nature.interactions.put(dark.id,  0.50f);
+
+            nature.interactions.put(holy.id, -0.50f);
+            holy.interactions.put(nature.id,  0.50f);
+
+            holy.interactions.put(arcane.id, -0.50f);
+            arcane.interactions.put(holy.id,  0.50f);
+
+            arcane.interactions.put(dark.id, -0.50f);
+            dark.interactions.put(arcane.id,  0.50f);
 
             // Cross Interactions
-            earth.interactions.put(nature.id, 0.30f);
-            water.interactions.put(holy.id, 0.30f);
-            fire.interactions.put(arcane.id, 0.30f);
-            air.interactions.put(dark.id, 0.30f);
-            dark.interactions.put(fire.id, 0.30f);
-            nature.interactions.put(air.id, 0.30f);
-            holy.interactions.put(earth.id, 0.30f);
-            arcane.interactions.put(water.id, 0.30f);
+            earth.interactions.put(nature.id, -0.25f);
+            nature.interactions.put(earth.id,  0.25f);
+
+            water.interactions.put(holy.id, -0.25f);
+            holy.interactions.put(water.id,  0.25f);
+
+            fire.interactions.put(arcane.id, -0.25f);
+            arcane.interactions.put(fire.id,  0.25f);
+
+            air.interactions.put(dark.id, -0.25f);
+            dark.interactions.put(air.id,  0.25f);
+
+            dark.interactions.put(fire.id, -0.25f);
+            fire.interactions.put(dark.id,  0.25f);
+
+            nature.interactions.put(air.id, -0.25f);
+            air.interactions.put(nature.id,  0.25f);
+
+            holy.interactions.put(earth.id, -0.25f);
+            earth.interactions.put(holy.id,  0.25f);
+
+            arcane.interactions.put(water.id, -0.25f);
+            water.interactions.put(arcane.id,  0.25f);
 
             // Add them to the registry
             magics.put(earth.id, earth);
@@ -133,6 +163,7 @@ public class MagicController implements IMagicHandler {
             MagicCycle defaultCycle = new MagicCycle();
             defaultCycle.id = getUnusedCycleId();
             defaultCycle.name = "Universal";
+            defaultCycle.layout = EnumDiagramLayout.CIRCULAR_MANUAL;
             defaultCycle.displayName = "Elementa Cycle";
             cycles.put(defaultCycle.id, defaultCycle);
 

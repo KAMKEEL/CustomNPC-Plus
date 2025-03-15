@@ -649,68 +649,132 @@ public abstract class GuiDiagram extends Gui {
 
     // --- Arrow Drawing Methods ---
     protected void drawConnectionLine(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
-        int color = getConnectionColor(conn);
-        if (!useColorScaling) color = 0xFFFFFFFF;
+        // Look up the reverse connection.
+        DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
+        boolean twoWay = (reverse != null);
+        // Only draw the arrow once (for example, when conn.idFrom is less than conn.idTo).
+        if (twoWay && conn.idFrom > conn.idTo) {
+            return;
+        }
+
         if (!curvedArrows) {
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glLineWidth(2.0F);
-            float r = ((color >> 16) & 0xFF) / 255f;
-            float g = ((color >> 8) & 0xFF) / 255f;
-            float b = (color & 0xFF) / 255f;
-            if (dim) {
-                r *= 0.4f;
-                g *= 0.4f;
-                b *= 0.4f;
+            if (twoWay) {
+                int midX = (x1 + x2) / 2;
+                int midY = (y1 + y2) / 2;
+                int color1 = getConnectionColor(conn);
+                int color2 = getConnectionColor(reverse);
+                if (!useColorScaling) {
+                    color1 = color2 = 0xFFFFFFFF;
+                }
+                drawColoredLine(x1, y1, midX, midY, color1, dim);
+                drawColoredLine(midX, midY, x2, y2, color2, dim);
+            } else {
+                int color = getConnectionColor(conn);
+                if (!useColorScaling) {
+                    color = 0xFFFFFFFF;
+                }
+                drawColoredLine(x1, y1, x2, y2, color, dim);
             }
-            GL11.glColor4f(r, g, b, 1f);
-            GL11.glBegin(GL11.GL_LINES);
-            GL11.glVertex2i(x1, y1);
-            GL11.glVertex2i(x2, y2);
-            GL11.glEnd();
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glPopAttrib();
         } else {
-            // Compute two potential control points and choose the one farther from nearby icons.
+            // For curved arrows, compute the control point as before.
             Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
             Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
             double d1 = getMinDistanceToIcon(cp1, conn);
             double d2 = getMinDistanceToIcon(cp2, conn);
             Point control = (d1 >= d2) ? cp1 : cp2;
             int segments = 400;
-
-            GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
-            GL11.glEnable(GL11.GL_BLEND);
-            GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-            GL11.glEnable(GL11.GL_LINE_SMOOTH);
-            GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
-            GL11.glDisable(GL11.GL_TEXTURE_2D);
-            GL11.glLineWidth(2.0F);
-            float rr = ((color >> 16) & 0xFF) / 255f;
-            float gg = ((color >> 8) & 0xFF) / 255f;
-            float bb = (color & 0xFF) / 255f;
-            if (dim) {
-                rr *= 0.4f;
-                gg *= 0.4f;
-                bb *= 0.4f;
+            if (twoWay) {
+                int color1 = getConnectionColor(conn);
+                int color2 = getConnectionColor(reverse);
+                if (!useColorScaling) {
+                    color1 = color2 = 0xFFFFFFFF;
+                }
+                int halfSegments = segments / 2;
+                GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glEnable(GL11.GL_LINE_SMOOTH);
+                GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glLineWidth(2.0F);
+                setColor(color1, dim);
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (int i = 0; i <= halfSegments; i++) {
+                    double t = (double) i / halfSegments;
+                    int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
+                    int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
+                    GL11.glVertex2i(bx, by);
+                }
+                GL11.glEnd();
+                setColor(color2, dim);
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (int i = halfSegments; i <= segments; i++) {
+                    double t = (double) i / segments;
+                    int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
+                    int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
+                    GL11.glVertex2i(bx, by);
+                }
+                GL11.glEnd();
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glDisable(GL11.GL_LINE_SMOOTH);
+                GL11.glDisable(GL11.GL_BLEND);
+                GL11.glPopAttrib();
+            } else {
+                int color = getConnectionColor(conn);
+                if (!useColorScaling) {
+                    color = 0xFFFFFFFF;
+                }
+                GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glEnable(GL11.GL_LINE_SMOOTH);
+                GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glLineWidth(2.0F);
+                setColor(color, dim);
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (int i = 0; i <= segments; i++) {
+                    double t = (double) i / segments;
+                    int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
+                    int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
+                    GL11.glVertex2i(bx, by);
+                }
+                GL11.glEnd();
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glDisable(GL11.GL_LINE_SMOOTH);
+                GL11.glDisable(GL11.GL_BLEND);
+                GL11.glPopAttrib();
             }
-            GL11.glColor4f(rr, gg, bb, 1f);
-
-            GL11.glBegin(GL11.GL_LINE_STRIP);
-            for (int i = 0; i <= segments; i++) {
-                double t = (double) i / segments;
-                int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
-                int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
-                GL11.glVertex2i(bx, by);
-            }
-            GL11.glEnd();
-
-            GL11.glEnable(GL11.GL_TEXTURE_2D);
-            GL11.glDisable(GL11.GL_LINE_SMOOTH);
-            GL11.glDisable(GL11.GL_BLEND);
-            GL11.glPopAttrib();
         }
     }
+
+    // Helper method to draw a straight colored line.
+    private void drawColoredLine ( int x1, int y1, int x2, int y2, int color, boolean dim){
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glLineWidth(2.0F);
+        setColor(color, dim);
+        GL11.glBegin(GL11.GL_LINES);
+        GL11.glVertex2i(x1, y1);
+        GL11.glVertex2i(x2, y2);
+        GL11.glEnd();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glPopAttrib();
+    }
+
+    // Helper to set color with dimming applied.
+    private void setColor ( int color, boolean dim){
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+        if (dim) {
+            r *= 0.4f;
+            g *= 0.4f;
+            b *= 0.4f;
+        }
+        GL11.glColor4f(r, g, b, 1f);
+    }
+
 
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         int color = getConnectionColor(conn);
@@ -993,20 +1057,43 @@ public abstract class GuiDiagram extends Gui {
     }
 
     protected int getConnectionColor(DiagramConnection conn) {
-        float percent = conn.percent;
-        if (percent <= 0.10f) return 0xFF80FF80;
-        else if (percent <= 0.40f) return 0xFFCCFF66;
-        else if (percent <= 0.50f) return 0xFFFFA500;
-        else {
-            float ratio = (percent - 0.50f) / 0.50f;
-            ratio = Math.min(1f, Math.max(0f, ratio));
-            int r1 = 0xFF, g1 = 0xA5, b1 = 0x00;
-            int r2 = 0xFF, g2 = 0x00, b2 = 0x00;
-            int r = r1 + (int) ((r2 - r1) * ratio);
-            int g = g1 + (int) ((g2 - g1) * ratio);
-            int b = b1 + (int) ((b2 - b1) * ratio);
-            return (0xFF << 24) | (r << 16) | (g << 8) | b;
+        // Clamp to [-1, 1]
+        float value = Math.max(-1f, Math.min(1f, conn.percent));
+        int r, g, b;
+        if (value >= 0f) {
+            // For positive values:
+            // 0.0: YELLOW (255,255,0)
+            // 0.5: LIGHT GREEN (173,255,47)
+            // 1.0: GREEN (0,255,0)
+            if (value <= 0.5f) {
+                float t = value / 0.5f;  // 0 at 0.0, 1 at 0.5
+                r = (int)(255 + (173 - 255) * t);
+                g = 255;
+                b = (int)(0 + (47 - 0) * t);
+            } else {
+                float t = (value - 0.5f) / 0.5f;  // 0 at 0.5, 1 at 1.0
+                r = (int)(173 + (0 - 173) * t);
+                g = 255;
+                b = (int)(47 + (0 - 47) * t);
+            }
+        } else {
+            // For negative values:
+            // 0.0: YELLOW (255,255,0)
+            // -0.5: ORANGE (255,165,0)
+            // -1.0: RED (255,0,0)
+            if (value >= -0.5f) {
+                float t = (-value) / 0.5f;  // 0 at 0, 1 at -0.5
+                r = 255;
+                g = (int)(255 + (165 - 255) * t);
+                b = 0;
+            } else {
+                float t = (-value - 0.5f) / 0.5f;  // 0 at -0.5, 1 at -1.0
+                r = 255;
+                g = (int)(165 + (0 - 165) * t);
+                b = 0;
+            }
         }
+        return (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
 
     private double pointLineDistance(int px, int py, int x1, int y1, int x2, int y2) {
