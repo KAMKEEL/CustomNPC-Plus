@@ -18,8 +18,13 @@ import java.util.*;
  * Abstract GUI class for drawing diagrams with icons (nodes) and connections (arrows).
  * <p>
  * This revised version ensures that non‑Chart layouts use the full diagram bounds for positioning
- * (so that the outer icons lie flush with the edges) and that curved arrow drawing selects the
- * best control point (using both curveAngle and its negative) to avoid icons.
+ * and that curved arrow drawing selects the best control point (using both curveAngle and its negative)
+ * to avoid icons.
+ *
+ * Changes for separate two‑way connections (when allowTwoWay is false):
+ * - When a reverse connection is found, the line is drawn with a slight perpendicular offset.
+ * - The hit detection uses the same offset endpoints.
+ * - Arrow head placement is adjusted to match the offset.
  */
 public abstract class GuiDiagram extends Gui {
 
@@ -46,6 +51,9 @@ public abstract class GuiDiagram extends Gui {
     protected boolean showArrowHeads = true;
     protected boolean useColorScaling = true;
 
+    // This flag determines how two‑way connections are drawn.
+    // When true, a two‑way connection is drawn as one line with dual arrowheads and combined tooltips.
+    // When false, each direction is drawn as a separate line with its own hitbox and tooltip.
     protected boolean allowTwoWay = false;
 
     // --- Layout Options ---
@@ -118,6 +126,10 @@ public abstract class GuiDiagram extends Gui {
         return null;
     }
 
+    /**
+     * Returns the tooltip for a connection. When allowTwoWay is true the tooltip combines both directions,
+     * otherwise it shows only the current connection's info.
+     */
     protected List<String> getConnectionTooltip(DiagramConnection conn) {
         List<String> tooltip = new ArrayList<>();
         DiagramIcon iconFrom = getIconById(conn.idFrom);
@@ -126,10 +138,12 @@ public abstract class GuiDiagram extends Gui {
         String nameTo = iconTo != null ? getIconName(iconTo) : "Unknown";
         tooltip.add(nameFrom + " > " + nameTo + ":");
         tooltip.add(conn.hoverText);
-        DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
-        if (reverse != null) {
-            tooltip.add(nameTo + " > " + nameFrom + ":");
-            tooltip.add(reverse.hoverText);
+        if (allowTwoWay) {
+            DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
+            if (reverse != null) {
+                tooltip.add(nameTo + " > " + nameFrom + ":");
+                tooltip.add(reverse.hoverText);
+            }
         }
         return tooltip;
     }
@@ -196,7 +210,7 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
-    // Square: fill the entire bounds
+    // Square: fill the entire bounds.
     protected Map<Integer, Point> calculateSquarePositions() {
         List<DiagramIcon> icons = getIcons();
         Map<Integer, Point> positions = new HashMap<>();
@@ -205,7 +219,6 @@ public abstract class GuiDiagram extends Gui {
         int n = (int) Math.ceil(Math.sqrt(count));
         int cellWidth = width / n;
         int cellHeight = height / n;
-        // Start exactly at the diagram bounds.
         int startX = x, startY = y;
         for (int i = 0; i < count; i++) {
             int row = i / n, col = i % n;
@@ -216,29 +229,18 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
-    // Tree: distribute levels vertically and icons horizontally so that the top and bottom icons touch y and y+height.
+    // Tree: distribute levels vertically and icons horizontally.
     protected Map<Integer, Point> calculateTreePositions() {
         List<DiagramIcon> icons = getIcons();
         Map<Integer, Point> positions = new HashMap<>();
         int count = icons.size();
         if (count == 0) return positions;
-        // Determine number of levels by a simple breadth-first approach.
         int levels = (int) Math.ceil(Math.log(count + 1) / Math.log(2));
-        // If only one level, place the icon in the center.
         for (int level = 0; level < levels; level++) {
-            // Determine number of nodes at this level.
             int nodesThisLevel = (level == 0) ? 1 : (int) Math.min(Math.pow(2, level), count - (int) Math.pow(2, level) + 1);
-            // Calculate vertical position: if more than one level, linearly space from y to y+height.
             int posY = (levels == 1) ? y + height / 2 : y + (int) ((height * level) / (levels - 1.0));
-            // Horizontal spacing: if only one node, center it; otherwise, nodes are evenly spaced from x to x+width.
             for (int i = 0; i < nodesThisLevel; i++) {
-                int posX;
-                if (nodesThisLevel == 1) {
-                    posX = x + width / 2;
-                } else {
-                    posX = x + (int) ((width * i) / (nodesThisLevel - 1.0));
-                }
-                // Here we assign IDs in order. (You may want to use your own ordering.)
+                int posX = (nodesThisLevel == 1) ? x + width / 2 : x + (int) ((width * i) / (nodesThisLevel - 1.0));
                 int index = (int) (Math.pow(2, level) - 1 + i);
                 if (index < count) {
                     positions.put(icons.get(index).id, new Point(posX, posY));
@@ -248,14 +250,13 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
-    // Generated: Break icons into clusters and fill each cluster’s area exactly.
+    // Generated layout methods (unchanged)...
     protected Map<Integer, Point> calculateGeneratedPositions() {
         List<DiagramIcon> icons = getIcons();
         List<DiagramConnection> connections = getConnections();
         Map<Integer, List<Integer>> graph = buildGraph(icons, connections);
         List<Set<Integer>> clusters = getConnectedComponents(graph);
         int clusterCount = clusters.size();
-        // Arrange clusters in a grid that fills the diagram exactly.
         int gridCols = (int) Math.ceil(Math.sqrt(clusterCount));
         int gridRows = (int) Math.ceil((double) clusterCount / gridCols);
         Map<Integer, Point> globalPositions = new HashMap<>();
@@ -348,8 +349,7 @@ public abstract class GuiDiagram extends Gui {
         return sqrt * sqrt == n;
     }
 
-    // --- Layout Algorithms for Clusters ---
-    // Cycle: now use the full available circle.
+    // Layout algorithms for clusters (unchanged methods: layoutCycle, layoutTree, layoutSquare, layoutForceDirected)...
     private Map<Integer, Point> layoutCycle(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight) {
         Map<Integer, Point> positions = new HashMap<>();
         if (cluster.isEmpty()) return positions;
@@ -366,13 +366,11 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
-    // Tree for clusters: use full comp area.
     private Map<Integer, Point> layoutTree(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight,
                                            Map<Integer, List<Integer>> fullGraph) {
         Map<Integer, Point> positions = new HashMap<>();
         if (cluster.isEmpty()) return positions;
 
-        // Build a subgraph
         Map<Integer, List<Integer>> subgraph = new HashMap<>();
         for (Integer id : cluster) {
             List<Integer> neighbors = new ArrayList<>();
@@ -382,9 +380,7 @@ public abstract class GuiDiagram extends Gui {
             }
             subgraph.put(id, neighbors);
         }
-        // Pick a root (lowest id)
         Integer root = Collections.min(cluster);
-        // Perform BFS to assign levels.
         Map<Integer, Integer> levelMap = new HashMap<>();
         Map<Integer, List<Integer>> levels = new HashMap<>();
         Queue<Integer> queue = new LinkedList<>();
@@ -405,7 +401,6 @@ public abstract class GuiDiagram extends Gui {
             }
         }
         int maxLevel = levels.keySet().stream().max(Integer::compare).orElse(0);
-        // Vertical positions: if only one level, center; otherwise span from compY to compY+compHeight.
         for (Map.Entry<Integer, List<Integer>> entry : levels.entrySet()) {
             int lvl = entry.getKey();
             int posY = (maxLevel == 0) ? compY + compHeight / 2 : compY + (int) ((compHeight * lvl) / (maxLevel));
@@ -420,7 +415,6 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
-    // Square: fill the available comp area.
     private Map<Integer, Point> layoutSquare(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight) {
         Map<Integer, Point> positions = new HashMap<>();
         if (cluster.isEmpty()) return positions;
@@ -441,7 +435,6 @@ public abstract class GuiDiagram extends Gui {
         return positions;
     }
 
-    // Force-directed layout (unchanged)
     private Map<Integer, Point> layoutForceDirected(Set<Integer> cluster, int compX, int compY, int compWidth, int compHeight,
                                                     List<DiagramConnection> connections) {
         Map<Integer, Point> positions = new HashMap<>();
@@ -522,6 +515,7 @@ public abstract class GuiDiagram extends Gui {
         List<DiagramIcon> icons = getIcons();
         Map<Integer, Point> positions = new HashMap<>();
         if (icons.isEmpty()) return positions;
+        // Group icons by their manual index.
         Map<Integer, List<DiagramIcon>> groups = new TreeMap<>();
         for (DiagramIcon icon : icons) {
             groups.computeIfAbsent(icon.index, k -> new ArrayList<>()).add(icon);
@@ -529,13 +523,13 @@ public abstract class GuiDiagram extends Gui {
         int centerX = x + width / 2, centerY = y + height / 2;
         int maxRing = groups.isEmpty() ? 0 : Collections.max(groups.keySet());
         int maxRadius = (Math.min(width, height) - iconSize) / 2;
-        double ringSpacing = (maxRing + 1) > 0 ? (double) maxRadius / (maxRing + 1) : 0;
+        // Use a power function to space rings non-linearly.
         for (Map.Entry<Integer, List<DiagramIcon>> entry : groups.entrySet()) {
             int ring = entry.getKey();
             List<DiagramIcon> groupIcons = entry.getValue();
             if (groupIcons.isEmpty()) continue;
             groupIcons.sort(Comparator.comparingInt(icon -> icon.priority));
-            double radius = ringSpacing * (ring + 1);
+            double radius = maxRadius * Math.pow((ring + 1) / (double)(maxRing + 1), 1.5);
             int count = groupIcons.size();
             double startAngle = (ring == 0) ? -Math.PI / 2 : -3 * Math.PI / 4;
             for (int i = 0; i < count; i++) {
@@ -599,7 +593,6 @@ public abstract class GuiDiagram extends Gui {
         Map<Integer, Point> positions = new HashMap<>();
         if (icons.isEmpty()) return positions;
         int maxLevel = levels.isEmpty() ? 0 : Collections.max(levels.keySet());
-        // If more than one level, span vertically from y to y+height.
         for (Map.Entry<Integer, List<DiagramIcon>> entry : levels.entrySet()) {
             int level = entry.getKey();
             List<DiagramIcon> levelIcons = entry.getValue();
@@ -631,7 +624,7 @@ public abstract class GuiDiagram extends Gui {
     }
 
     /**
-     * Returns the minimum distance from the given control point to any icon (except the endpoints of the connection).
+     * Returns the minimum distance from the given control point to any icon (except endpoints).
      */
     private double getMinDistanceToIcon(Point control, DiagramConnection conn) {
         double minDist = Double.MAX_VALUE;
@@ -650,12 +643,37 @@ public abstract class GuiDiagram extends Gui {
     }
 
     // --- Arrow Drawing Methods ---
+    /**
+     * Draws a connection line between two endpoints.
+     * If a reverse connection exists and allowTwoWay is false, the line is drawn with a perpendicular offset.
+     */
     protected void drawConnectionLine(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
-        // Look up the reverse connection.
         DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
-        boolean twoWay = (reverse != null);
+        boolean twoWay = (reverse != null && allowTwoWay);
+        // When allowTwoWay is false and reverse exists, draw each connection separately.
+        boolean separateTwoWay = (reverse != null && !allowTwoWay);
         if (!curvedArrows) {
-            if (twoWay) {
+            if (separateTwoWay) {
+                int offsetAmount = 4;
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                double offsetX = -dy / len * offsetAmount;
+                double offsetY = dx / len * offsetAmount;
+                if (conn.idFrom >= conn.idTo) {
+                    offsetX = -offsetX;
+                    offsetY = -offsetY;
+                }
+                int newX1 = x1 + (int) offsetX;
+                int newY1 = y1 + (int) offsetY;
+                int newX2 = x2 + (int) offsetX;
+                int newY2 = y2 + (int) offsetY;
+                int color = getConnectionColor(conn);
+                if (!useColorScaling) {
+                    color = 0xFFFFFFFF;
+                }
+                drawColoredLine(newX1, newY1, newX2, newY2, color, dim);
+            } else if (twoWay) {
                 int midX = (x1 + x2) / 2;
                 int midY = (y1 + y2) / 2;
                 int color1 = getConnectionColor(reverse);
@@ -673,14 +691,51 @@ public abstract class GuiDiagram extends Gui {
                 drawColoredLine(x1, y1, x2, y2, color, dim);
             }
         } else {
-            // For curved arrows, compute the control point as before.
-            Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
-            Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
-            double d1 = getMinDistanceToIcon(cp1, conn);
-            double d2 = getMinDistanceToIcon(cp2, conn);
-            Point control = (d1 >= d2) ? cp1 : cp2;
-            int segments = 800;
-            if (twoWay) {
+            // For curved arrows.
+            if (separateTwoWay) {
+                int offsetAmount = 4;
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                double normX = -dy / len;
+                double normY = dx / len;
+                double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
+                // Compute the base control point and then apply offset.
+                Point baseControl = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
+                    baseControl.y + (int) (normY * offsetAmount * sign));
+                int segments = 800;
+                int color = getConnectionColor(conn);
+                if (!useColorScaling) {
+                    color = 0xFFFFFFFF;
+                }
+                GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glEnable(GL11.GL_LINE_SMOOTH);
+                GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glLineWidth(2.0F);
+                setColor(color, dim);
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (int i = 0; i <= segments; i++) {
+                    double t = (double) i / segments;
+                    int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * offsetControl.x + t * t * x2);
+                    int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * offsetControl.y + t * t * y2);
+                    GL11.glVertex2i(bx, by);
+                }
+                GL11.glEnd();
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glDisable(GL11.GL_LINE_SMOOTH);
+                GL11.glDisable(GL11.GL_BLEND);
+                GL11.glPopAttrib();
+            } else if (twoWay) {
+                Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
+                double d1 = getMinDistanceToIcon(cp1, conn);
+                double d2 = getMinDistanceToIcon(cp2, conn);
+                Point control = (d1 >= d2) ? cp1 : cp2;
+                int segments = 800;
                 int color1 = getConnectionColor(reverse);
                 int color2 = getConnectionColor(conn);
                 if (!useColorScaling) {
@@ -721,6 +776,8 @@ public abstract class GuiDiagram extends Gui {
                 if (!useColorScaling) {
                     color = 0xFFFFFFFF;
                 }
+                Point cp = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                int segments = 800;
                 GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
                 GL11.glEnable(GL11.GL_BLEND);
                 GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
@@ -732,8 +789,8 @@ public abstract class GuiDiagram extends Gui {
                 GL11.glBegin(GL11.GL_LINE_STRIP);
                 for (int i = 0; i <= segments; i++) {
                     double t = (double) i / segments;
-                    int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2);
-                    int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2);
+                    int bx = (int) ((1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cp.x + t * t * x2);
+                    int by = (int) ((1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * cp.y + t * t * y2);
                     GL11.glVertex2i(bx, by);
                 }
                 GL11.glEnd();
@@ -746,7 +803,7 @@ public abstract class GuiDiagram extends Gui {
     }
 
     // Helper method to draw a straight colored line.
-    private void drawColoredLine ( int x1, int y1, int x2, int y2, int color, boolean dim){
+    private void drawColoredLine(int x1, int y1, int x2, int y2, int color, boolean dim) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         GL11.glLineWidth(2.0F);
@@ -760,7 +817,7 @@ public abstract class GuiDiagram extends Gui {
     }
 
     // Helper to set color with dimming applied.
-    private void setColor ( int color, boolean dim){
+    private void setColor(int color, boolean dim) {
         float r = ((color >> 16) & 0xFF) / 255f;
         float g = ((color >> 8) & 0xFF) / 255f;
         float b = (color & 0xFF) / 255f;
@@ -772,41 +829,82 @@ public abstract class GuiDiagram extends Gui {
         GL11.glColor4f(r, g, b, 1f);
     }
 
-
+    /**
+     * Draws the arrow head for a connection.
+     * When the connection is drawn separately (two-way with allowTwoWay false),
+     * the arrow head is positioned using the same offset.
+     */
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idFrom, conn.idTo);
         int color = (reverse != null) ? getConnectionColor(reverse) : getConnectionColor(conn);
         if (!useColorScaling)
             color = 0xFFFFFFFF;
-
+        boolean separateTwoWay = (reverse != null && !allowTwoWay);
         double angle;
         if (!curvedArrows) {
-            angle = Math.atan2(y2 - y1, x2 - x1);
+            if (separateTwoWay) {
+                int offsetAmount = 4;
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                double offsetX = -dy / len * offsetAmount;
+                double offsetY = dx / len * offsetAmount;
+                if (conn.idFrom >= conn.idTo) {
+                    offsetX = -offsetX;
+                    offsetY = -offsetY;
+                }
+                int newX2 = x2 + (int) offsetX;
+                int newY2 = y2 + (int) offsetY;
+                // Compute angle based on adjusted target.
+                angle = Math.atan2(newY2 - y1, newX2 - x1);
+                x2 = newX2;
+                y2 = newY2;
+            } else {
+                angle = Math.atan2(y2 - y1, x2 - x1);
+            }
         } else {
-            double dx = x2 - x1, dy = y2 - y1;
-            double len = Math.sqrt(dx * dx + dy * dy);
-            if (len == 0) len = 1;
-            Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
-            Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
-            double d1 = getMinDistanceToIcon(cp1, conn);
-            double d2 = getMinDistanceToIcon(cp2, conn);
-            Point control = (d1 >= d2) ? cp1 : cp2;
-            double t = 0.95;
-            double bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2;
-            double by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2;
-            double dBx = 2 * (1 - t) * (control.x - x1) + 2 * t * (x2 - control.x);
-            double dBy = 2 * (1 - t) * (control.y - y1) + 2 * t * (y2 - control.y);
-            angle = Math.atan2(dBy, dBx);
+            if (separateTwoWay) {
+                int offsetAmount = 4;
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                double normX = -dy / len;
+                double normY = dx / len;
+                double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
+                Point baseControl = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
+                    baseControl.y + (int) (normY * offsetAmount * sign));
+                double t = 0.95;
+                double bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * offsetControl.x + t * t * x2;
+                double by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * offsetControl.y + t * t * y2;
+                double dBx = 2 * (1 - t) * (offsetControl.x - x1) + 2 * t * (x2 - offsetControl.x);
+                double dBy = 2 * (1 - t) * (offsetControl.y - y1) + 2 * t * (y2 - offsetControl.y);
+                angle = Math.atan2(dBy, dBx);
+            } else {
+                double dx = x2 - x1, dy = y2 - y1;
+                double len = Math.sqrt(dx * dx + dy * dy);
+                if (len == 0) len = 1;
+                Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
+                double d1 = getMinDistanceToIcon(cp1, conn);
+                double d2 = getMinDistanceToIcon(cp2, conn);
+                Point control = (d1 >= d2) ? cp1 : cp2;
+                double t = 0.95;
+                double bx = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * control.x + t * t * x2;
+                double by = (1 - t) * (1 - t) * y1 + 2 * (1 - t) * t * control.y + t * t * y2;
+                double dBx = 2 * (1 - t) * (control.x - x1) + 2 * t * (x2 - control.x);
+                double dBy = 2 * (1 - t) * (control.y - y1) + 2 * t * (y2 - control.y);
+                angle = Math.atan2(dBy, dBx);
+            }
         }
 
-        // Draw the arrow head at the target end.
-        float defenderEdgeX = x2 - (slotSize / 2f) * (float)Math.cos(angle);
-        float defenderEdgeY = y2 - (slotSize / 2f) * (float)Math.sin(angle);
+        float defenderEdgeX = x2 - (slotSize / 2f) * (float) Math.cos(angle);
+        float defenderEdgeY = y2 - (slotSize / 2f) * (float) Math.sin(angle);
         int arrowSize = 6;
-        float leftX = defenderEdgeX - arrowSize * (float)Math.cos(angle - Math.PI / 6);
-        float leftY = defenderEdgeY - arrowSize * (float)Math.sin(angle - Math.PI / 6);
-        float rightX = defenderEdgeX - arrowSize * (float)Math.cos(angle + Math.PI / 6);
-        float rightY = defenderEdgeY - arrowSize * (float)Math.sin(angle + Math.PI / 6);
+        float leftX = defenderEdgeX - arrowSize * (float) Math.cos(angle - Math.PI / 6);
+        float leftY = defenderEdgeY - arrowSize * (float) Math.sin(angle - Math.PI / 6);
+        float rightX = defenderEdgeX - arrowSize * (float) Math.cos(angle + Math.PI / 6);
+        float rightY = defenderEdgeY - arrowSize * (float) Math.sin(angle + Math.PI / 6);
 
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
@@ -828,28 +926,6 @@ public abstract class GuiDiagram extends Gui {
         GL11.glEnable(GL11.GL_CULL_FACE);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glPopAttrib();
-    }
-
-    // --- Standard Icon Box Drawing ---
-    protected void drawIconBox(int slotX, int slotY, int slotSize, boolean highlighted) {
-        int bg = highlighted ? mixColors(iconBackgroundColor, 0xFFFFFFFF, 0.2f) : iconBackgroundColor;
-        drawRect(slotX, slotY, slotX + slotSize, slotY + slotSize, bg);
-        for (int i = 0; i < iconBorderThickness; i++) {
-            drawHorizontalLine(slotX + i, slotX + slotSize - i, slotY + i, iconBorderColor);
-            drawHorizontalLine(slotX + i, slotX + slotSize - i, slotY + slotSize - 1 - i, iconBorderColor);
-            drawVerticalLine(slotX + i, slotY + i, slotY + slotSize - i, iconBorderColor);
-            drawVerticalLine(slotX + slotSize - 1 - i, slotY + i, slotY + slotSize - i, iconBorderColor);
-        }
-    }
-
-    protected int mixColors(int color1, int color2, float ratio) {
-        int a1 = (color1 >> 24) & 0xFF, r1 = (color1 >> 16) & 0xFF, g1 = (color1 >> 8) & 0xFF, b1 = color1 & 0xFF;
-        int a2 = (color2 >> 24) & 0xFF, r2 = (color2 >> 16) & 0xFF, g2 = (color2 >> 8) & 0xFF, b2 = color2 & 0xFF;
-        int a = (int) (a1 + (a2 - a1) * ratio);
-        int r = (int) (r1 + (r2 - r1) * ratio);
-        int g = (int) (g1 + (g2 - g1) * ratio);
-        int b = (int) (b1 + (b2 - b1) * ratio);
-        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     // --- Hit-detection helpers ---
@@ -892,7 +968,6 @@ public abstract class GuiDiagram extends Gui {
 
     // --- CHART Layout Drawing (unchanged) ---
     private void drawChartDiagram(int mouseX, int mouseY, boolean subGui) {
-        // ... (chart layout code remains unchanged)
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int factor = sr.getScaleFactor();
@@ -911,8 +986,8 @@ public abstract class GuiDiagram extends Gui {
 
     /**
      * Main method for drawing the diagram.
-     * For non‑Chart layouts, applies pan/zoom, draws connections (with improved curved hit-detection)
-     * and icons, and shows tooltips.
+     * Applies pan/zoom, draws connections (using adjusted endpoints for separate two-way lines),
+     * icons, and shows tooltips.
      */
     public void drawDiagram(int mouseX, int mouseY, boolean subGui) {
         boolean allowInput = (parent == null || !parent.hasSubGui());
@@ -957,18 +1032,49 @@ public abstract class GuiDiagram extends Gui {
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
                 double dist;
-                if (curvedArrows) {
-                    // Compute both potential control points
-                    Point cp1 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, curveAngle);
-                    Point cp2 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, -curveAngle);
-                    // Choose the control point that's farther from interfering icons (as done when drawing)
-                    double d1 = getMinDistanceToIcon(cp1, conn);
-                    double d2 = getMinDistanceToIcon(cp2, conn);
-                    Point control = (d1 >= d2) ? cp1 : cp2;
-                    // Use the chosen control point for hit detection
-                    dist = distanceToBezier(pFrom, control, pTo, 200, effectiveMouseX, effectiveMouseY);
+                // If drawing separate two-way connections, use the offset endpoints for hit detection.
+                boolean separateTwoWay = (getConnectionByIds(conn.idTo, conn.idFrom) != null && !allowTwoWay);
+                if (separateTwoWay) {
+                    if (curvedArrows) {
+                        int offsetAmount = 4;
+                        double dx = pTo.x - pFrom.x, dy = pTo.y - pFrom.y;
+                        double len = Math.sqrt(dx * dx + dy * dy);
+                        if (len == 0) len = 1;
+                        double normX = -dy / len;
+                        double normY = dx / len;
+                        double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
+                        Point baseControl = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, curveAngle);
+                        Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
+                            baseControl.y + (int) (normY * offsetAmount * sign));
+                        dist = distanceToBezier(pFrom, offsetControl, pTo, 200, effectiveMouseX, effectiveMouseY);
+                    } else {
+                        int offsetAmount = 4;
+                        double dx = pTo.x - pFrom.x, dy = pTo.y - pFrom.y;
+                        double len = Math.sqrt(dx * dx + dy * dy);
+                        if (len == 0) len = 1;
+                        double offsetX = -dy / len * offsetAmount;
+                        double offsetY = dx / len * offsetAmount;
+                        if (conn.idFrom >= conn.idTo) {
+                            offsetX = -offsetX;
+                            offsetY = -offsetY;
+                        }
+                        int newX1 = pFrom.x + (int) offsetX;
+                        int newY1 = pFrom.y + (int) offsetY;
+                        int newX2 = pTo.x + (int) offsetX;
+                        int newY2 = pTo.y + (int) offsetY;
+                        dist = pointLineDistance(effectiveMouseX, effectiveMouseY, newX1, newY1, newX2, newY2);
+                    }
                 } else {
-                    dist = pointLineDistance(effectiveMouseX, effectiveMouseY, pFrom.x, pFrom.y, pTo.x, pTo.y);
+                    if (curvedArrows) {
+                        Point cp1 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, curveAngle);
+                        Point cp2 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, -curveAngle);
+                        double d1 = getMinDistanceToIcon(cp1, conn);
+                        double d2 = getMinDistanceToIcon(cp2, conn);
+                        Point control = (d1 >= d2) ? cp1 : cp2;
+                        dist = distanceToBezier(pFrom, control, pTo, 200, effectiveMouseX, effectiveMouseY);
+                    } else {
+                        dist = pointLineDistance(effectiveMouseX, effectiveMouseY, pFrom.x, pFrom.y, pTo.x, pTo.y);
+                    }
                 }
                 if (dist < threshold) {
                     hoveredConnFrom = conn.idFrom;
@@ -1043,6 +1149,28 @@ public abstract class GuiDiagram extends Gui {
         }
     }
 
+    protected void drawIconBox(int slotX, int slotY, int slotSize, boolean highlighted) {
+        int bg = highlighted ? mixColors(iconBackgroundColor, 0xFFFFFFFF, 0.2f) : iconBackgroundColor;
+        drawRect(slotX, slotY, slotX + slotSize, slotY + slotSize, bg);
+        for (int i = 0; i < iconBorderThickness; i++) {
+            drawHorizontalLine(slotX + i, slotX + slotSize - i, slotY + i, iconBorderColor);
+            drawHorizontalLine(slotX + i, slotX + slotSize - i, slotY + slotSize - 1 - i, iconBorderColor);
+            drawVerticalLine(slotX + i, slotY + i, slotY + slotSize - i, iconBorderColor);
+            drawVerticalLine(slotX + slotSize - 1 - i, slotY + i, slotY + slotSize - i, iconBorderColor);
+        }
+    }
+
+    protected int mixColors(int color1, int color2, float ratio) {
+        int a1 = (color1 >> 24) & 0xFF, r1 = (color1 >> 16) & 0xFF, g1 = (color1 >> 8) & 0xFF, b1 = color1 & 0xFF;
+        int a2 = (color2 >> 24) & 0xFF, r2 = (color2 >> 16) & 0xFF, g2 = (color2 >> 8) & 0xFF, b2 = color2 & 0xFF;
+        int a = (int) (a1 + (a2 - a1) * ratio);
+        int r = (int) (r1 + (r2 - r1) * ratio);
+        int g = (int) (g1 + (g2 - g1) * ratio);
+        int b = (int) (b1 + (b2 - b1) * ratio);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+
     // --- Utility Methods ---
     protected DiagramIcon getIconById(int id) {
         for (DiagramIcon icon : getIcons()) {
@@ -1059,22 +1187,15 @@ public abstract class GuiDiagram extends Gui {
     }
 
     protected int getConnectionColor(DiagramConnection conn) {
-        // Clamp to [-1, 1]
         float value = Math.max(-1f, Math.min(1f, conn.percent));
         int r, g, b;
         if (value >= 0f) {
-            // Positive values: interpolate from LIGHT LIME GREEN to DEEP GREEN
-            // At a tiny positive value, use LIGHT LIME GREEN: (144, 238, 144)
-            // At 1.0, use DEEP GREEN: (0, 100, 0)
-            float t = value; // t goes from 0 to 1
+            float t = value;
             r = (int)(144 + (0 - 144) * t);
             g = (int)(238 + (100 - 238) * t);
             b = (int)(144 + (0 - 144) * t);
         } else {
-            // Negative values: interpolate from LIGHT ORANGE to DARK RED
-            // At a tiny negative value, use LIGHT ORANGE: (255, 200, 0)
-            // At -1.0, use DARK RED: (139, 0, 0)
-            float t = -value; // t goes from 0 to 1 as value goes from 0 to -1
+            float t = -value;
             r = (int)(255 + (139 - 255) * t);
             g = (int)(200 + (0 - 200) * t);
             b = 0;
