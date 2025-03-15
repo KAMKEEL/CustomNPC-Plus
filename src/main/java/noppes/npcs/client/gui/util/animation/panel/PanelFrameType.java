@@ -4,9 +4,11 @@ import net.minecraft.client.Minecraft;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.AnimationGraphEditor;
+import noppes.npcs.client.gui.util.animation.GridPointManager;
 import noppes.npcs.client.gui.util.animation.OverlayKeyPresetViewer;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.constants.animation.EnumFrameType;
+import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -35,6 +37,16 @@ public class PanelFrameType {
         selectedElement = list.get(0);
     }
 
+    public void updateTypeValues(double playheadX) {
+        list.forEach(e -> {
+            String value = "0";
+            GridPointManager.Point p = graph.pointManager.getPoint(e.type, playheadX);
+            if (p != null)
+                value = ValueUtil.format(p.worldY);
+
+            e.text.setText(value);
+        });
+    }
 
     public void initGui(int startX, int startY, int endX, int endY) {
         this.startX = startX;
@@ -99,8 +111,10 @@ public class PanelFrameType {
 
         public Element(EnumFrameType key) {
             this.type = key;
-            text = new GuiNpcTextField(0, graph.parent, 0, 0, 45, 10, "400");
+            text = new GuiNpcTextField(0, graph.parent, 0, 0, 45, 10, "0");
             text.setEnableBackgroundDrawing(false);
+            text.setDoublesOnly();
+            text.setMinMaxDefaultDouble(0, 1000000000, 0);
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
@@ -201,11 +215,24 @@ public class PanelFrameType {
         public void keyTyped(char c, int typedKey) {
             if (typedKey == 28)
                 cancelEdit();
-            else
+            else {
+                String prev = text.getText();
                 text.textboxKeyTyped(c, typedKey);
+                String newText = text.getText();
+                if (typedKey != 14 && !newText.equals(prev)) { //backspace
+                    try {
+                        Double.parseDouble(text.getText());
+                    } catch (NumberFormatException var6) {
+                        text.setText(prev);
+                    }
+                }
+            }
         }
 
         public void cancelEdit() {
+            String s = text.getText();
+            text.setText(s.isEmpty() ? "0" : ValueUtil.format(text.getDouble()));
+            graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, text.getDouble());
             text.setFocused(false);
             isEditing = false;
         }

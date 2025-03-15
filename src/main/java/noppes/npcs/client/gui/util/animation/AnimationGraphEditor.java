@@ -45,5 +45,11 @@ public class AnimationGraphEditor extends ViewportGraphEditor {
     public EnumFrameType getSelectedType() {
         return frameTypePanel.selectedElement.type;
     }
+    public void setSelectedType(EnumFrameType type) {
+        frameTypePanel.list.forEach(element -> {
+            if(element.type == type)
+                frameTypePanel.selectedElement = element;
+        });
+    }
 
 }

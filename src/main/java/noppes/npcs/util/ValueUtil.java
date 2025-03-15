@@ -56,4 +56,8 @@ public class ValueUtil {
             return max;
         return given;
     }
+
+    public static String format(double value) {
+        return (value % 1 == 0) ? String.format("%.0f", value) : String.format("%.2f", value);
+    }
 }

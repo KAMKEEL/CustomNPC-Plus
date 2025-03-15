@@ -41,8 +41,11 @@ public class GridPointManager {
         keys.SELECT_POINT.setTask((pressType) -> {
             if (pressType == KeyPreset.PRESS) {
                 forEachActive((pointType, point) -> {
-                    if (point.isMouseAbove(grid.mouseX, grid.mouseY))
+                    if (point.isMouseAbove(grid.mouseX, grid.mouseY)) {
                         setSelectedPoint(point);
+                        graph.setSelectedType(pointType);
+                    }
+
                 });
             }
         });
@@ -63,7 +66,7 @@ public class GridPointManager {
 
         keys.DELETE_POINT.setTask((pressType) -> {
             if ((pressType == KeyPreset.PRESS) && selectedPoint != null && !grid.isDragging) {
-                deletePoint(graph.getSelectedType(), selectedPoint.worldX);
+                deletePoint(selectedPoint.type, selectedPoint.worldX);
             }
         });
 
@@ -103,6 +106,12 @@ public class GridPointManager {
         });
     }
 
+    public void updateTypeValues(double x) {
+        if (x != playhead.worldX)
+            return;
+        graph.frameTypePanel.updateTypeValues(playhead.worldX);
+    }
+
     public Point addPoint(EnumFrameType type, double x, double y) {
         return addPoint(type, new Point(type, x, y));
     }
@@ -115,6 +124,7 @@ public class GridPointManager {
         }
 
         points.put(point.worldX, point);
+        updateTypeValues(point.worldX);
         return point;
     }
 
@@ -124,6 +134,7 @@ public class GridPointManager {
             return;
 
         Point point = points.remove(x);
+        updateTypeValues(x);
         if (point == selectedPoint)
             setSelectedPoint(null);
     }
@@ -135,6 +146,7 @@ public class GridPointManager {
 
         return points.get(x);
     }
+
 
     public TreeMap<Double, Point> pointsOf(EnumFrameType type) {
         return typePoints.get(type);
@@ -197,11 +209,11 @@ public class GridPointManager {
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
-        GL11.glLineWidth(2F);
+        GL11.glLineWidth(3F);
 
         GL11.glPushMatrix();
         GL11.glTranslatef(grid.startX, grid.startY, 0);
-        from.type.getColor().glColor();
+        from.type.getColor().multiply(from.type == graph.getSelectedType() ? 1 : 0.55f).glColor();
 
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawing(GL11.GL_LINE_STRIP);
@@ -247,6 +259,8 @@ public class GridPointManager {
             drawEasedCurve(point, getNext(point));
             point.draw(mouseX, mouseY, partialTicks);
         });
+        if (selectedPoint != null)
+            selectedPoint.draw(mouseX, mouseY, partialTicks);
 
         if (Cursors.currentCursor != null)
             Cursors.currentCursor.draw(mouseX, mouseY);
@@ -305,10 +319,12 @@ public class GridPointManager {
 
         public void setX(double x) {
             worldX = (int) x;
+            updateTypeValues(worldX);
         }
 
         public void setY(double y) {
             worldY = y;
+            updateTypeValues(worldX);
         }
 
         public void set(double x, double y) {
@@ -385,7 +401,7 @@ public class GridPointManager {
                 isDragging = false;
 
             if (isDragging)
-                worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+                setX(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)));
 
             //Expand clip boundary
             GuiUtil.setScissorClip(grid.startX, grid.startY - grid.yAxisHeight, grid.parent.width, grid.parent.height + grid.yAxisHeight);
@@ -467,9 +483,15 @@ public class GridPointManager {
         public void mouseClicked(int mouseX, int mouseY, int button) {
 
             if (button == 0 && mouseX >= grid.startX && mouseX <= grid.endX && mouseY >= grid.startY - grid.yAxisHeight && mouseY <= grid.startY) {
-                worldX = (int) Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX));
+                setX(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)));
+                updateTypeValues(worldX);
                 isDragging = true;
             }
+        }
+
+        public void setX(double x) {
+            this.worldX = (int) x;
+            updateTypeValues(worldX);
         }
 
         public double screenX() {
