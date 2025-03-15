@@ -164,7 +164,7 @@ public class MagicController implements IMagicHandler {
             defaultCycle.id = getUnusedCycleId();
             defaultCycle.name = "Universal";
             defaultCycle.layout = EnumDiagramLayout.CIRCULAR_MANUAL;
-            defaultCycle.displayName = "Elementa Cycle";
+            defaultCycle.displayName = "&6Elementa Cycle";
             cycles.put(defaultCycle.id, defaultCycle);
 
             // Add magic associations using your old index and priority values:

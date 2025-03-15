@@ -654,17 +654,12 @@ public abstract class GuiDiagram extends Gui {
         // Look up the reverse connection.
         DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
         boolean twoWay = (reverse != null);
-        // Only draw the arrow once (for example, when conn.idFrom is less than conn.idTo).
-        if (twoWay && conn.idFrom > conn.idTo) {
-            return;
-        }
-
         if (!curvedArrows) {
             if (twoWay) {
                 int midX = (x1 + x2) / 2;
                 int midY = (y1 + y2) / 2;
-                int color1 = getConnectionColor(conn);
-                int color2 = getConnectionColor(reverse);
+                int color1 = getConnectionColor(reverse);
+                int color2 = getConnectionColor(conn);
                 if (!useColorScaling) {
                     color1 = color2 = 0xFFFFFFFF;
                 }
@@ -684,10 +679,10 @@ public abstract class GuiDiagram extends Gui {
             double d1 = getMinDistanceToIcon(cp1, conn);
             double d2 = getMinDistanceToIcon(cp2, conn);
             Point control = (d1 >= d2) ? cp1 : cp2;
-            int segments = 400;
+            int segments = 800;
             if (twoWay) {
-                int color1 = getConnectionColor(conn);
-                int color2 = getConnectionColor(reverse);
+                int color1 = getConnectionColor(reverse);
+                int color2 = getConnectionColor(conn);
                 if (!useColorScaling) {
                     color1 = color2 = 0xFFFFFFFF;
                 }
@@ -779,7 +774,7 @@ public abstract class GuiDiagram extends Gui {
 
 
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
-        DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
+        DiagramConnection reverse = getConnectionByIds(conn.idFrom, conn.idTo);
         int color = (reverse != null) ? getConnectionColor(reverse) : getConnectionColor(conn);
         if (!useColorScaling)
             color = 0xFFFFFFFF;
