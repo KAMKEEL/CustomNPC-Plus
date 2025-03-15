@@ -658,8 +658,15 @@ public abstract class GuiDiagram extends Gui {
      */
     protected void drawConnectionLine(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
+        if (allowTwoWay && reverse != null) {
+            DiagramIcon iconFrom = getIconById(conn.idFrom);
+            DiagramIcon iconTo = getIconById(conn.idTo);
+            if (iconFrom != null && iconTo != null && iconFrom.index > iconTo.index) {
+                return;
+            }
+        }
         boolean twoWay = (reverse != null && allowTwoWay);
-        // When allowTwoWay is false and reverse exists, draw each connection separately.
+        // When allowTwoWay is false and a reverse exists, draw each connection separately.
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
         if (!curvedArrows) {
             if (separateTwoWay) {
@@ -700,7 +707,7 @@ public abstract class GuiDiagram extends Gui {
                 drawColoredLine(x1, y1, x2, y2, color, dim);
             }
         } else {
-            // For curved arrows.
+            // Curved arrows
             if (separateTwoWay) {
                 int offsetAmount = 4;
                 double dx = x2 - x1, dy = y2 - y1;
@@ -709,7 +716,6 @@ public abstract class GuiDiagram extends Gui {
                 double normX = -dy / len;
                 double normY = dx / len;
                 double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
-                // Compute the base control point and then apply offset.
                 Point baseControl = computeControlPoint(x1, y1, x2, y2, curveAngle);
                 Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
                     baseControl.y + (int) (normY * offsetAmount * sign));
@@ -811,6 +817,7 @@ public abstract class GuiDiagram extends Gui {
         }
     }
 
+
     // Helper method to draw a straight colored line.
     private void drawColoredLine(int x1, int y1, int x2, int y2, int color, boolean dim) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
@@ -843,8 +850,18 @@ public abstract class GuiDiagram extends Gui {
      * When the connection is drawn separately (two-way with allowTwoWay false),
      * the arrow head is positioned using the same offset.
      */
+    // Fixed drawArrowHead:
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idFrom, conn.idTo);
+        // For merging two-way connections (when allowTwoWay is true),
+        // decide which arrow head to draw using the associated icon's index.
+        if (allowTwoWay && reverse != null) {
+            DiagramIcon iconFrom = getIconById(conn.idFrom);
+            DiagramIcon iconTo = getIconById(conn.idTo);
+            if (iconFrom != null && iconTo != null && iconFrom.index > iconTo.index) {
+                return;
+            }
+        }
         int color = (reverse != null) ? getConnectionColor(reverse) : getConnectionColor(conn);
         if (!useColorScaling)
             color = 0xFFFFFFFF;
@@ -864,7 +881,6 @@ public abstract class GuiDiagram extends Gui {
                 }
                 int newX2 = x2 + (int) offsetX;
                 int newY2 = y2 + (int) offsetY;
-                // Compute angle based on adjusted target.
                 angle = Math.atan2(newY2 - y1, newX2 - x1);
                 x2 = newX2;
                 y2 = newY2;
@@ -906,7 +922,6 @@ public abstract class GuiDiagram extends Gui {
                 angle = Math.atan2(dBy, dBx);
             }
         }
-
         float defenderEdgeX = x2 - (slotSize / 2f) * (float) Math.cos(angle);
         float defenderEdgeY = y2 - (slotSize / 2f) * (float) Math.sin(angle);
         int arrowSize = 6;
@@ -914,7 +929,6 @@ public abstract class GuiDiagram extends Gui {
         float leftY = defenderEdgeY - arrowSize * (float) Math.sin(angle - Math.PI / 6);
         float rightX = defenderEdgeX - arrowSize * (float) Math.cos(angle + Math.PI / 6);
         float rightY = defenderEdgeY - arrowSize * (float) Math.sin(angle + Math.PI / 6);
-
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
         float rr = ((color >> 16) & 0xFF) / 255f;
@@ -936,6 +950,7 @@ public abstract class GuiDiagram extends Gui {
         GL11.glEnable(GL11.GL_TEXTURE_2D);
         GL11.glPopAttrib();
     }
+
 
     // --- Hit-detection helpers ---
     private double distanceToBezier(Point start, Point control, Point end, int segments, int px, int py) {
