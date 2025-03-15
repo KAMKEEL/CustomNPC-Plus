@@ -523,13 +523,21 @@ public abstract class GuiDiagram extends Gui {
         int centerX = x + width / 2, centerY = y + height / 2;
         int maxRing = groups.isEmpty() ? 0 : Collections.max(groups.keySet());
         int maxRadius = (Math.min(width, height) - iconSize) / 2;
-        // Use a power function to space rings non-linearly.
+
+        // Adjustable parameters:
+        // spacingExponent controls the non-linear spacing between rings. Increasing this value will push outer rings farther apart.
+        double spacingExponent = 1.5; // default value; adjust as needed
+        // ringMultiplier lets you directly scale the computed radius of each ring.
+        double ringMultiplier = 1.5; // default value; adjust as needed
+
+        // Calculate positions for each ring using a power function and multiplier.
         for (Map.Entry<Integer, List<DiagramIcon>> entry : groups.entrySet()) {
             int ring = entry.getKey();
             List<DiagramIcon> groupIcons = entry.getValue();
             if (groupIcons.isEmpty()) continue;
             groupIcons.sort(Comparator.comparingInt(icon -> icon.priority));
-            double radius = maxRadius * Math.pow((ring + 1) / (double)(maxRing + 1), 1.5);
+            double normalizedRing = (ring + 1) / (double) (maxRing + 1);
+            double radius = maxRadius * Math.pow(normalizedRing, spacingExponent) * ringMultiplier;
             int count = groupIcons.size();
             double startAngle = (ring == 0) ? -Math.PI / 2 : -3 * Math.PI / 4;
             for (int i = 0; i < count; i++) {
@@ -541,6 +549,7 @@ public abstract class GuiDiagram extends Gui {
         }
         return positions;
     }
+
 
     private Map<Integer, Point> calculateSquareManualPositions() {
         List<DiagramIcon> icons = getIcons();
@@ -1082,7 +1091,6 @@ public abstract class GuiDiagram extends Gui {
                     selectedIconIds.add(conn.idFrom);
                     selectedIconIds.add(conn.idTo);
                     onConnectionHover(conn);
-                    break outer;
                 }
             }
         }
