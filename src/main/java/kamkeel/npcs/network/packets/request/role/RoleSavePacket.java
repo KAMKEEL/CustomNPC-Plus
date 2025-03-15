@@ -41,7 +41,7 @@ public final class RoleSavePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_ROLE;
     }
 
     @Override

@@ -39,6 +39,18 @@ public class CustomNpcsPermissions {
     public static final Permission NPC_STATS = new Permission("customnpcs.npc.stats");
     public static final Permission NPC_CLONE = new Permission("customnpcs.npc.clone");
 
+    public static final Permission NPC_ADVANCED_TRADER = new Permission("customnpcs.npc.advanced.trader");
+    public static final Permission NPC_ADVANCED_DIALOG = new Permission("customnpcs.npc.advanced.dialog");
+    public static final Permission NPC_ADVANCED_FACTION = new Permission("customnpcs.npc.advanced.faction");
+    public static final Permission NPC_ADVANCED_JOB = new Permission("customnpcs.npc.advanced.job");
+    public static final Permission NPC_ADVANCED_ROLE = new Permission("customnpcs.npc.advanced.role");
+    public static final Permission NPC_ADVANCED_TRANSPORT = new Permission("customnpcs.npc.advanced.transport");
+    public static final Permission NPC_ADVANCED_TRANSFORM = new Permission("customnpcs.npc.advanced.transform");
+    public static final Permission NPC_ADVANCED_LINKED = new Permission("customnpcs.npc.advanced.linked");
+    public static final Permission NPC_ADVANCED_MAGIC = new Permission("customnpcs.npc.advanced.linked");
+    public static final Permission NPC_ADVANCED_TAGS = new Permission("customnpcs.npc.advanced.tags");
+
+
     public static final Permission GLOBAL_REMOTE = new Permission("customnpcs.global.remote");
 
     // Save Global Preferences
