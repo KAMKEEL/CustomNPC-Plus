@@ -1068,37 +1068,21 @@ public abstract class GuiDiagram extends Gui {
         float value = Math.max(-1f, Math.min(1f, conn.percent));
         int r, g, b;
         if (value >= 0f) {
-            // For positive values:
-            // 0.0: YELLOW (255,255,0)
-            // 0.5: LIGHT GREEN (173,255,47)
-            // 1.0: GREEN (0,255,0)
-            if (value <= 0.5f) {
-                float t = value / 0.5f;  // 0 at 0.0, 1 at 0.5
-                r = (int)(255 + (173 - 255) * t);
-                g = 255;
-                b = (int)(0 + (47 - 0) * t);
-            } else {
-                float t = (value - 0.5f) / 0.5f;  // 0 at 0.5, 1 at 1.0
-                r = (int)(173 + (0 - 173) * t);
-                g = 255;
-                b = (int)(47 + (0 - 47) * t);
-            }
+            // Positive values: interpolate from LIGHT LIME GREEN to DEEP GREEN
+            // At a tiny positive value, use LIGHT LIME GREEN: (144, 238, 144)
+            // At 1.0, use DEEP GREEN: (0, 100, 0)
+            float t = value; // t goes from 0 to 1
+            r = (int)(144 + (0 - 144) * t);
+            g = (int)(238 + (100 - 238) * t);
+            b = (int)(144 + (0 - 144) * t);
         } else {
-            // For negative values:
-            // 0.0: YELLOW (255,255,0)
-            // -0.5: ORANGE (255,165,0)
-            // -1.0: RED (255,0,0)
-            if (value >= -0.5f) {
-                float t = (-value) / 0.5f;  // 0 at 0, 1 at -0.5
-                r = 255;
-                g = (int)(255 + (165 - 255) * t);
-                b = 0;
-            } else {
-                float t = (-value - 0.5f) / 0.5f;  // 0 at -0.5, 1 at -1.0
-                r = 255;
-                g = (int)(165 + (0 - 165) * t);
-                b = 0;
-            }
+            // Negative values: interpolate from LIGHT ORANGE to DARK RED
+            // At a tiny negative value, use LIGHT ORANGE: (255, 200, 0)
+            // At -1.0, use DARK RED: (139, 0, 0)
+            float t = -value; // t goes from 0 to 1 as value goes from 0 to -1
+            r = (int)(255 + (139 - 255) * t);
+            g = (int)(200 + (0 - 200) * t);
+            b = 0;
         }
         return (0xFF << 24) | (r << 16) | (g << 8) | b;
     }
