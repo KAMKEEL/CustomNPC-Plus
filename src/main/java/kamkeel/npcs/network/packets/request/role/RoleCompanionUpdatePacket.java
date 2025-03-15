@@ -42,7 +42,7 @@ public final class RoleCompanionUpdatePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_ROLE;
     }
 
     @Override

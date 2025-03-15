@@ -39,7 +39,7 @@ public final class FactionSetPacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_FACTION;
     }
 
     @Override
