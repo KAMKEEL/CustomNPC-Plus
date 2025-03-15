@@ -37,7 +37,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
         if (this.cycle == null) {
             setLayout(EnumDiagramLayout.CIRCULAR_MANUAL);
             setCurvedArrows(true);
-            setCurveAngle(20);
+            setCurveAngle(-20);
             invalidateCache();
             return;
         }
@@ -55,10 +55,9 @@ public class GuiMagicCycleMap extends GuiDiagram {
         // Use the cycle's layout if set; otherwise default to CIRCULAR_MANUAL.
         setLayout(cycle.layout != null ? cycle.layout : EnumDiagramLayout.CIRCULAR_MANUAL);
         setCurvedArrows(true);
-        setCurveAngle(20);
+        setCurveAngle(-20);
         invalidateCache();
 
-        this.allowTwoWay = false;
         this.iconSize = 20;
         this.slotSize = iconSize + slotPadding;
     }
