@@ -26,11 +26,8 @@ public class Grid {
     public boolean isDragging, isResetting;
     public boolean centerAroundMouse = true;
 
-    public GridPointManager manager;
-
     public Grid(ViewportGraphEditor parent) {
         this.parent = parent;
-        manager = new GridPointManager(this);
         keys();
     }
 
@@ -147,14 +144,12 @@ public class Grid {
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
         Gui.drawRect(startX, startY - yAxisHeight, endX, startY, 0xFF161616); //background
+
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.setScissorClip(startX, startY, parent.width, parent.height);
-
         GL11.glDepthMask(false);
         drawLines(mouseX, mouseY);
         GL11.glDepthMask(true);
-
-        manager.draw(mouseX, mouseY, partialTicks);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 
@@ -313,20 +308,20 @@ public class Grid {
     }
 
     public void mouseClicked(int mouseX, int mouseY, int button) {
-        manager.mouseClicked(mouseX, mouseY, button);
+
 
     }
 
     public void keyTyped(char c, int i) {
-        manager.keyTyped(c, i);
+
     }
 
     public boolean xDown() {
-        return manager.keys.LOCK_X.isDown;
+        return parent.keys.LOCK_X.isDown;
     }
 
     public boolean yDown() {
-        return manager.keys.LOCK_Y.isDown;
+        return parent.keys.LOCK_Y.isDown;
     }
 
     ////////////////////////////////////////////////////////////

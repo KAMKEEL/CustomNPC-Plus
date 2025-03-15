@@ -17,10 +17,11 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 public class GridPointManager {
+    public AnimationGraphEditor graph;
     public Grid grid;
     public GraphEditorKeyPresets keys;
+
     public HashMap<EnumFrameType, TreeMap<Double, Point>> typePoints = new HashMap<>();
-    public List<EnumFrameType> highlightedTypes = new ArrayList<>();
     public List<Point> highlightedPoints = new ArrayList<>();
     public Point selectedPoint;
     public Playhead playhead = new Playhead(0);
@@ -28,14 +29,14 @@ public class GridPointManager {
     public boolean isFreeTransforming;
     public double ftGrabX, ftGrabY; //where point is grabbed on free transforming
 
-    public GridPointManager(Grid grid) {
-        this.grid = grid;
+    public GridPointManager(AnimationGraphEditor graph) {
+        this.graph = graph;
+        this.grid = graph.grid;
         keys = grid.parent.keys;
         keys();
     }
 
     public void keys() {
-        EnumFrameType type = EnumFrameType.ROTATION_X;
 
         keys.SELECT_POINT.setTask((pressType) -> {
             if (pressType == KeyPreset.PRESS) {
@@ -48,13 +49,13 @@ public class GridPointManager {
 
         keys.ADD_POINT.setTask((pressType) -> {
             if (pressType == KeyPreset.PRESS) {
-                if (!highlightedTypes.contains(type))
-                    highlightedTypes.add(type);
+                //  if (!highlightedTypes.contains(type))
+                //   highlightedTypes.add(type);
 
-                TreeMap<Double, Point> points = pointsOf(type);
+                TreeMap<Double, Point> points = pointsOf(graph.getSelectedType());
                 Point point = points != null ? points.get((double) playhead.worldX) : null; //check if it exists
                 if (point == null)
-                    point = addPoint(type, playhead.worldX, 0); // worldX(mouseX - startX), worldY(mouseY - startY)
+                    point = addPoint(graph.getSelectedType(), playhead.worldX, 0); // worldX(mouseX - startX), worldY(mouseY - startY)
 
                 setSelectedPoint(point);
             }
@@ -62,7 +63,7 @@ public class GridPointManager {
 
         keys.DELETE_POINT.setTask((pressType) -> {
             if ((pressType == KeyPreset.PRESS) && selectedPoint != null && !grid.isDragging) {
-                deletePoint(type, selectedPoint.worldX);
+                deletePoint(graph.getSelectedType(), selectedPoint.worldX);
             }
         });
 
@@ -139,12 +140,24 @@ public class GridPointManager {
         return typePoints.get(type);
     }
 
+    public void forEach(BiConsumer<EnumFrameType, Point> consumer) {
+        for (Map.Entry<EnumFrameType, TreeMap<Double, Point>> entry : typePoints.entrySet()) {
+            EnumFrameType type = entry.getKey();
+
+
+            for (Map.Entry<Double, Point> points : entry.getValue().entrySet()) {
+                Point point = points.getValue();
+                consumer.accept(type, point);
+            }
+        }
+    }
+
     public void forEachActive(BiConsumer<EnumFrameType, Point> consumer) {
         for (Map.Entry<EnumFrameType, TreeMap<Double, Point>> entry : typePoints.entrySet()) {
             EnumFrameType type = entry.getKey();
 
-            if (!highlightedTypes.contains(type))
-                continue;
+            //  if (!highlightedTypes.contains(type))
+            //   continue;
 
             for (Map.Entry<Double, Point> points : entry.getValue().entrySet()) {
                 Point point = points.getValue();
@@ -188,7 +201,7 @@ public class GridPointManager {
 
         GL11.glPushMatrix();
         GL11.glTranslatef(grid.startX, grid.startY, 0);
-        GL11.glColor4f(1, 1, 1, 1);
+        from.type.getColor().glColor();
 
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawing(GL11.GL_LINE_STRIP);
@@ -213,7 +226,7 @@ public class GridPointManager {
 
     public void draw(int mouseX, int mouseY, float partialTicks) {
 
-
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
         ////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////
         // Free transform logic
@@ -237,6 +250,8 @@ public class GridPointManager {
 
         if (Cursors.currentCursor != null)
             Cursors.currentCursor.draw(mouseX, mouseY);
+
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
         ////////////////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////////////////

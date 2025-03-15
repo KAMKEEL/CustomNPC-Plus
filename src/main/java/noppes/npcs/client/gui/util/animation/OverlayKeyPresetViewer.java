@@ -15,7 +15,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class OverlayKeyPresetViewer {
-    private static final ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/keypreset_highres.png");
+    public static final ResourceLocation TEXTURE = new ResourceLocation("customnpcs:textures/gui/keypreset_highres.png");
 
     public int startX, startY, endX, endY, width, height;
     public int mouseX, mouseY;

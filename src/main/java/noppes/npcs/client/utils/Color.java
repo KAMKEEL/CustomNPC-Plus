@@ -42,6 +42,9 @@ public class Color {
     }
 
     public Color multiply(float multi) {
+        if (multi == 1)
+            return this.clone();
+
         int r = (int) ((getRed() * multi));
         int g = (int) ((getGreen() * multi));
         int b = (int) ((getBlue() * multi));
