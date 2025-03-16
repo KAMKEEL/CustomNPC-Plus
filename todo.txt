@@ -1,2 +1,0 @@
-- Port Animations for DBC Handling into DBC Addon
-- Fix Animation Editor not Playing Animations
