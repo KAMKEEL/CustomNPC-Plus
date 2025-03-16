@@ -84,7 +84,7 @@ public class PlayerDataScript implements INpcScriptHandler {
                     scriptContainer.errored = false;
                 }
 
-                if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
+                if (!Objects.equals(hookName, EnumScriptType.INIT.function) && event instanceof noppes.npcs.scripted.event.PlayerEvent) {
                     noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent) event;
                     EventHooks.onPlayerInit(this, playerEvent.player);
                 }
