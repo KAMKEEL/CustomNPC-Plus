@@ -510,7 +510,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     @Override
     public void drawScreen(int par1, int par2, float par3) {
-        super.drawScreen(par1, par2, par3);
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -518,6 +517,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         } else if (data.isActive()) {
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
+                npc.display.animationData.increaseTime();
                 GuiNpcLabel label = this.getLabel(213);
                 if (label != null) {
                     label.label += ".";
@@ -528,6 +528,8 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             }
             prevTick = time;
         }
+
+        super.drawScreen(par1, par2, par3);
 
         for (int i = 0; i < this.visibleFrames; i++) {
             if (getButton(300 + i) != null) {
