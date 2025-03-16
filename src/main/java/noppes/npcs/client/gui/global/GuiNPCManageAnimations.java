@@ -24,18 +24,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 
-public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrollData,ICustomScrollListener,ITextfieldListener, IGuiData, ISubGuiListener, GuiYesNoCallback
-{
+public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrollData, ICustomScrollListener, ITextfieldListener, IGuiData, ISubGuiListener, GuiYesNoCallback {
     private GuiCustomScroll scrollAnimations;
-    private HashMap<String,Integer> data = new HashMap<String,Integer>();
+    private HashMap<String, Integer> data = new HashMap<String, Integer>();
     private Animation animation = new Animation();
     public boolean playingAnimation = false;
     private long prevTick;
     private String selected = null;
     private String search = "";
 
-    public GuiNPCManageAnimations(EntityNPCInterface npc, boolean save)
-    {
+    public GuiNPCManageAnimations(EntityNPCInterface npc, boolean save) {
         super(npc);
         this.setSave(save);
         this.xOffset = -148 + 70;
@@ -46,15 +44,14 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         data.setEnabled(true);
     }
 
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
 
-        this.addButton(new GuiNpcButton(0,guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
-        this.addButton(new GuiNpcButton(1,guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(0, guiLeft + 368, guiTop + 8, 45, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(1, guiLeft + 368, guiTop + 32, 45, 20, "gui.remove"));
 
-        if(scrollAnimations == null){
-            scrollAnimations = new GuiCustomScroll(this,0, 0);
+        if (scrollAnimations == null) {
+            scrollAnimations = new GuiCustomScroll(this, 0, 0);
             scrollAnimations.setSize(143, 185);
         }
         scrollAnimations.guiLeft = guiLeft + 220;
@@ -65,7 +62,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         if (animation.id == -1)
             return;
 
-        addLabel(new GuiNpcLabel(10,"ID", guiLeft + 368, guiTop + 192));
+        addLabel(new GuiNpcLabel(10, "ID", guiLeft + 368, guiTop + 192));
         addLabel(new GuiNpcLabel(11, animation.id + "", guiLeft + 368, guiTop + 192 + 10));
 
         AnimationData data = npc.display.animationData;
@@ -107,9 +104,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3)
-    {
-        super.drawScreen(par1,par2,par3);
+    public void drawScreen(int par1, int par2, float partialTicks) {
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -117,25 +112,26 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         } else if (data.isActive()) {
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
+                npc.display.animationData.increaseTime();
                 GuiNpcLabel label = this.getLabel(94);
                 if (label != null) {
                     label.label += ".";
-                    if (label.label.length()%4 == 0) {
+                    if (label.label.length() % 4 == 0) {
                         label.label = "";
                     }
                 }
             }
             prevTick = time;
         }
+        super.drawScreen(par1, par2, partialTicks);
     }
 
     @Override
-    public void keyTyped(char c, int i)
-    {
+    public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
-        if(getTextField(55) != null){
-            if(getTextField(55).isFocused()){
-                if(search.equals(getTextField(55).getText()))
+        if (getTextField(55) != null) {
+            if (getTextField(55).isFocused()) {
+                if (search.equals(getTextField(55).getText()))
                     return;
                 search = getTextField(55).getText().toLowerCase();
                 scrollAnimations.resetScroll();
@@ -144,32 +140,32 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         }
     }
 
-    private List<String> getSearchList(){
-        if(search.isEmpty()){
+    private List<String> getSearchList() {
+        if (search.isEmpty()) {
             return new ArrayList<String>(this.data.keySet());
         }
         List<String> list = new ArrayList<String>();
-        for(String name : this.data.keySet()){
-            if(name.toLowerCase().contains(search))
+        for (String name : this.data.keySet()) {
+            if (name.toLowerCase().contains(search))
                 list.add(name);
         }
         return list;
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
 
-        if(button.id == 0){
-        	save();
-        	String name = "New";
-        	while(data.containsKey(name))
-        		name += "_";
-        	Animation animation = new Animation(-1, name);
+        if (button.id == 0) {
+            save();
+            String name = "New";
+            while (data.containsKey(name))
+                name += "_";
+            Animation animation = new Animation(-1, name);
             PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
         }
-        if(button.id == 1){
-            if(data.containsKey(scrollAnimations.getSelected())) {
+        if (button.id == 1) {
+            if (data.containsKey(scrollAnimations.getSelected())) {
                 GuiYesNo guiyesno = new GuiYesNo(this, scrollAnimations.getSelected(), StatCollector.translateToLocal("gui.delete"), 1);
                 displayGuiScreen(guiyesno);
             }
@@ -182,7 +178,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
                 animation.currentFrameTime = 0;
                 for (Frame frame : animation.frames) {
                     for (FramePart framePart : frame.frameParts.values()) {
-                        framePart.prevRotations = new float[]{0,0,0};
+                        framePart.prevRotations = new float[]{0, 0, 0};
                         framePart.prevPivots = new float[]{0, 0, 0};
                     }
                 }
@@ -221,7 +217,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         this.data = data;
         scrollAnimations.setList(getSearchList());
 
-        if(name != null)
+        if (name != null)
             scrollAnimations.setSelected(name);
     }
 
@@ -231,29 +227,28 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         scrollAnimations.setSelected(selected);
     }
 
-	@Override
-	public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
-		if(guiCustomScroll.id == 0)
-		{
-			selected = scrollAnimations.getSelected();
+    @Override
+    public void customScrollClicked(int i, int j, int k, GuiCustomScroll guiCustomScroll) {
+        if (guiCustomScroll.id == 0) {
+            selected = scrollAnimations.getSelected();
             PacketClient.sendClient(new AnimationGetPacket(data.get(selected)));
-		}
-	}
+        }
+    }
 
-	public void save() {
-		if(selected != null && data.containsKey(selected) && animation != null){
+    public void save() {
+        if (selected != null && data.containsKey(selected) && animation != null) {
             PacketClient.sendClient(new AnimationSavePacket(animation.writeToNBT()));
-		}
-	}
+        }
+    }
 
     @Override
     public void unFocused(GuiNpcTextField guiNpcTextField) {
-        if(animation.id == -1)
+        if (animation.id == -1)
             return;
 
-        if(guiNpcTextField.id == 0) {
+        if (guiNpcTextField.id == 0) {
             String name = guiNpcTextField.getText();
-            if(!name.isEmpty() && !data.containsKey(name)){
+            if (!name.isEmpty() && !data.containsKey(name)) {
                 String old = animation.name;
                 data.remove(animation.name);
                 animation.name = name;
@@ -265,15 +260,16 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     }
 
     @Override
-    public void subGuiClosed(SubGuiInterface subgui) {}
+    public void subGuiClosed(SubGuiInterface subgui) {
+    }
 
     @Override
     public void confirmClicked(boolean result, int id) {
         NoppesUtil.openGUI(player, this);
-        if(!result)
+        if (!result)
             return;
-        if(id == 1) {
-            if(data.containsKey(scrollAnimations.getSelected())) {
+        if (id == 1) {
+            if (data.containsKey(scrollAnimations.getSelected())) {
                 PacketClient.sendClient(new AnimationRemovePacket(data.get(selected)));
                 scrollAnimations.clear();
                 animation = new Animation();

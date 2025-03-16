@@ -22,27 +22,27 @@ public class SubGuiNpcTint extends SubGuiInterface implements ISubGuiListener, I
         int y = 30;
         addLabel(new GuiNpcLabel(0, "tint.enable", guiLeft + 5, guiTop + y + 5));
         addButton(new GuiNpcButtonYesNo(0, guiLeft + 122, guiTop + y, 56, 20, tintData.isTintEnabled()));
-        y+=22;
+        y += 22;
         if (tintData.isTintEnabled()) {
             addLabel(new GuiNpcLabel(1, "tint.enablegeneral", guiLeft + 5, guiTop + y + 5));
             addButton(new GuiNpcButtonYesNo(1, guiLeft + 122, guiTop + y, 56, 20, tintData.isGeneralTintEnabled()));
-            y+=22;
-            if(tintData.isGeneralTintEnabled()) {
+            y += 22;
+            if (tintData.isGeneralTintEnabled()) {
                 String color = Integer.toHexString(tintData.getGeneralTint());
                 while (color.length() < 6) color = 0 + color;
                 addLabel(new GuiNpcLabel(2, "tint.tint", guiLeft + 4, guiTop + y + 5));
                 addButton(new GuiNpcButton(2, guiLeft + 122, guiTop + y, 60, 20, color));
                 getButton(2).setTextColor(tintData.getGeneralTint());
-                y+=22;
-                addLabel(new GuiNpcLabel(3,"tint.alpha", guiLeft + 5, guiTop + y + 5));
-                addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 122, guiTop + y, 60, 20, tintData.getGeneralAlpha() + ""));
+                y += 22;
+                addLabel(new GuiNpcLabel(3, "tint.alpha", guiLeft + 5, guiTop + y + 5));
+                addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft + 122, guiTop + y, 60, 20, tintData.getGeneralAlpha() + ""));
                 getTextField(3).integersOnly = true;
                 getTextField(3).setMinMaxDefault(1, 100, 40);
-                y+=22;
+                y += 22;
             }
             addLabel(new GuiNpcLabel(4, "tint.enablehurt", guiLeft + 5, guiTop + y + 5));
             addButton(new GuiNpcButtonYesNo(4, guiLeft + 122, guiTop + y, 56, 20, tintData.isHurtTintEnabled()));
-            y+=22;
+            y += 22;
             if (tintData.isHurtTintEnabled()) {
                 String color2 = Integer.toHexString(tintData.getHurtTint());
                 while (color2.length() < 6) color2 = 0 + color2;
@@ -96,7 +96,7 @@ public class SubGuiNpcTint extends SubGuiInterface implements ISubGuiListener, I
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        if(textfield.id==3){
+        if (textfield.id == 3) {
             tintData.setGeneralAlpha(textfield.getInteger());
         }
     }

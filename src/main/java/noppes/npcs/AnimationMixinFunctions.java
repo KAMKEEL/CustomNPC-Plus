@@ -1,6 +1,7 @@
 package noppes.npcs;
 
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.addon.client.DBCClient;
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
@@ -52,7 +53,9 @@ public class AnimationMixinFunctions {
             return false;
         }
 
-        if (ClientEventHandler.renderingPlayer != null) {
+        if(DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null){
+            DBCClient.Instance.applyRenderModel(modelRenderer);
+        } else if (!DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null) {
             ClientEventHandler.playerModel = (modelRenderer).baseModel;
             if (ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
                 AnimationData animData = ClientCacheHandler.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());
@@ -133,7 +136,7 @@ public class AnimationMixinFunctions {
     }
 
     private static EnumAnimationPart pivotEqualPart(ModelRenderer renderer) {
-        if(renderer.baseModel instanceof ModelBiped){
+        if (renderer.baseModel instanceof ModelBiped) {
             ModelRenderer head = ((ModelBiped) renderer.baseModel).bipedHead;
             ModelRenderer body = ((ModelBiped) renderer.baseModel).bipedBody;
             ModelRenderer larm = ((ModelBiped) renderer.baseModel).bipedLeftArm;
@@ -141,22 +144,22 @@ public class AnimationMixinFunctions {
             ModelRenderer lleg = ((ModelBiped) renderer.baseModel).bipedLeftLeg;
             ModelRenderer rleg = ((ModelBiped) renderer.baseModel).bipedRightLeg;
 
-            if (pivotsEqual(renderer,head)) {
+            if (pivotsEqual(renderer, head)) {
                 return EnumAnimationPart.HEAD;
             }
-            if (pivotsEqual(renderer,body)) {
+            if (pivotsEqual(renderer, body)) {
                 return EnumAnimationPart.BODY;
             }
-            if (pivotsEqual(renderer,rarm)) {
+            if (pivotsEqual(renderer, rarm)) {
                 return EnumAnimationPart.RIGHT_ARM;
             }
-            if (pivotsEqual(renderer,larm)) {
+            if (pivotsEqual(renderer, larm)) {
                 return EnumAnimationPart.LEFT_ARM;
             }
-            if (pivotsEqual(renderer,rleg)) {
+            if (pivotsEqual(renderer, rleg)) {
                 return EnumAnimationPart.RIGHT_LEG;
             }
-            if (pivotsEqual(renderer,lleg)) {
+            if (pivotsEqual(renderer, lleg)) {
                 return EnumAnimationPart.LEFT_LEG;
             }
         }
@@ -179,7 +182,7 @@ public class AnimationMixinFunctions {
                 declared = ClientEventHandler.declaredFieldCache.get(RenderClass);
             } else {
                 declared = RenderClass.getDeclaredFields();
-                ClientEventHandler.declaredFieldCache.put(RenderClass,declared);
+                ClientEventHandler.declaredFieldCache.put(RenderClass, declared);
             }
             for (Field f : declared) {
                 f.setAccessible(true);
@@ -190,7 +193,8 @@ public class AnimationMixinFunctions {
                             if (partName.equals(f.getName()) && renderer == f.get(model)) {
                                 return entry.getKey();
                             }
-                        } catch (IllegalAccessException ignored) {}
+                        } catch (IllegalAccessException ignored) {
+                        }
                     }
                 }
             }
@@ -220,6 +224,10 @@ public class AnimationMixinFunctions {
     }
 
     public static boolean mixin_renderFirstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model, RenderBlocks renderBlocksIr, ResourceLocation resItemGlint) {
+        if (DBCAddon.IsAvailable()) {
+            return DBCClient.Instance.firstPersonAnimation(partialRenderTick, player,model, renderBlocksIr, resItemGlint);
+        }
+
         AnimationData animationData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());
         if (animationData != null && animationData.isActive()) {
             Frame frame = (Frame) animationData.animation.currentFrame();
@@ -268,7 +276,7 @@ public class AnimationMixinFunctions {
         int i = Minecraft.getMinecraft().theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(entityclientplayermp.posX), MathHelper.floor_double(entityclientplayermp.posY), MathHelper.floor_double(entityclientplayermp.posZ), 0);
         int j = i % 65536;
         int k = i / 65536;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j, (float)k);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
 
         float f3 = entityclientplayermp.prevRenderArmPitch + (entityclientplayermp.renderArmPitch - entityclientplayermp.prevRenderArmPitch) * partialRenderTick;
         float f4 = entityclientplayermp.prevRenderArmYaw + (entityclientplayermp.renderArmYaw - entityclientplayermp.prevRenderArmYaw) * partialRenderTick;
@@ -285,13 +293,11 @@ public class AnimationMixinFunctions {
 
         ItemRenderer itemRenderer = Minecraft.getMinecraft().entityRenderer.itemRenderer;
         ItemStack itemstack = itemRenderer.itemToRender;
-        if (frame.frameParts.containsKey(EnumAnimationPart.RIGHT_ARM) && itemstack != null)
-        {
+        if (frame.frameParts.containsKey(EnumAnimationPart.RIGHT_ARM) && itemstack != null) {
             float f11, f12;
             GL11.glPushMatrix();
 
-            if (player.fishEntity != null)
-            {
+            if (player.fishEntity != null) {
                 itemstack = new ItemStack(Items.stick);
             }
 
@@ -310,27 +316,23 @@ public class AnimationMixinFunctions {
             GL11.glRotatef(45, 1, 0, 0);
             GL11.glRotatef(80, 0, 0, 1);
 
-            float f6 = 1/1.5F;
+            float f6 = 1 / 1.5F;
             GL11.glScalef(f6, f6, f6);
 
-            if (itemstack.getItem().requiresMultipleRenderPasses())
-            {
-                for (k = 0; k < itemstack.getItem().getRenderPasses(itemstack.getItemDamage()); ++k)
-                {
+            if (itemstack.getItem().requiresMultipleRenderPasses()) {
+                for (k = 0; k < itemstack.getItem().getRenderPasses(itemstack.getItemDamage()); ++k) {
                     i = itemstack.getItem().getColorFromItemStack(itemstack, k);
-                    f12 = (float)(i >> 16 & 255) / 255.0F;
-                    f3 = (float)(i >> 8 & 255) / 255.0F;
-                    f4 = (float)(i & 255) / 255.0F;
+                    f12 = (float) (i >> 16 & 255) / 255.0F;
+                    f3 = (float) (i >> 8 & 255) / 255.0F;
+                    f4 = (float) (i & 255) / 255.0F;
                     GL11.glColor4f(f12, f3, f4, 1.0F);
                     mixin_renderItem(player, itemstack, k, EQUIPPED_FIRST_PERSON, renderBlocksIr, resItemGlint);
                 }
-            }
-            else
-            {
+            } else {
                 k = itemstack.getItem().getColorFromItemStack(itemstack, 0);
-                f11 = (float)(k >> 16 & 255) / 255.0F;
-                f12 = (float)(k >> 8 & 255) / 255.0F;
-                f3 = (float)(k & 255) / 255.0F;
+                f11 = (float) (k >> 16 & 255) / 255.0F;
+                f12 = (float) (k >> 8 & 255) / 255.0F;
+                f3 = (float) (k & 255) / 255.0F;
                 GL11.glColor4f(f11, f12, f3, 1.0F);
                 mixin_renderItem(player, itemstack, 0, EQUIPPED_FIRST_PERSON, renderBlocksIr, resItemGlint);
             }
@@ -469,7 +471,7 @@ public class AnimationMixinFunctions {
 
             boolean instantTransmission = blocking == 2;
             int id = blocking != 0 ? (instantTransmission ? 6 : 0) : (animKiShoot != 0 ? an[animKiShoot - 1] + 2 : -1);
-            if (!(boolean)JGConfigClientSettings.getField("CLIENT_DA4").get(null)) {
+            if (!(boolean) JGConfigClientSettings.getField("CLIENT_DA4").get(null)) {
                 id = -1;
             }
 
@@ -478,12 +480,12 @@ public class AnimationMixinFunctions {
             int jx;
             int j;
             if (dbcBool) {
-                String[] s = ((String) JRMCoreH.getMethod("data", String.class, int.class, String.class).invoke(null,acp.getCommandSenderName(), 1, "0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0")).split(";");
+                String[] s = ((String) JRMCoreH.getMethod("data", String.class, int.class, String.class).invoke(null, acp.getCommandSenderName(), 1, "0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0;0")).split(";");
                 tailCol = Integer.parseInt(s[2]);
                 if (tailCol == 1) {
                     String[] PlyrSkills = (String[]) JRMCoreH.getMethod("PlyrSkills", EntityPlayer.class).invoke(null, acp);
-                    jx = (int) JRMCoreH.getMethod("SklLvl", int.class, String[].class).invoke(null,12, PlyrSkills);
-                    j = (int) JRMCoreH.getMethod("SklLvl", int.class, String[].class).invoke(null,15, PlyrSkills);
+                    jx = (int) JRMCoreH.getMethod("SklLvl", int.class, String[].class).invoke(null, 12, PlyrSkills);
+                    j = (int) JRMCoreH.getMethod("SklLvl", int.class, String[].class).invoke(null, 15, PlyrSkills);
                     String ss = s[17];
                     boolean v = dbcBool && !ss.equals("-1");
                     GL11.glPushMatrix();
@@ -676,10 +678,10 @@ public class AnimationMixinFunctions {
 
                     if (State == 14) {
                         tailCol = race != 2 && bodytype == 0 ? 6498048 : bodytype;
-                        tailCol = (boolean)JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null) ? 13292516 : tailCol;
+                        tailCol = (boolean) JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null) ? 13292516 : tailCol;
                         tailCol = skintype == 1 ? bodyc1 : tailCol;
                         if ((boolean) JRMCoreH.getMethod("rSai", int.class).invoke(null, race) && tailCol == 6498048 && State == 14) {
-                            if ((boolean)JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null)) {
+                            if ((boolean) JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null)) {
                                 tailCol = 13292516;
                             } else {
                                 tailCol = 14292268;
@@ -703,8 +705,8 @@ public class AnimationMixinFunctions {
                 GL11.glDepthMask(false);
                 tailCol = Integer.parseInt((String) JRMCoreH.getMethod("data", String.class, int.class, String.class
                 ).invoke(null, par1EntityPlayer.getCommandSenderName(), 8, "200"));
-                float one = (float)tailCol / 100.0F;
-                j = (int)((float)tailCol / one);
+                float one = (float) tailCol / 100.0F;
+                j = (int) ((float) tailCol / one);
                 if (j < 70) {
                     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                     mc.getTextureManager().bindTexture(new ResourceLocation("jinryuumodscore:cc/bruises1.png"));
@@ -744,7 +746,7 @@ public class AnimationMixinFunctions {
             if (itemstack != null) {
                 item = itemstack.getItem();
                 if (item instanceof ItemArmor) {
-                    itemarmor = (ItemArmor)item;
+                    itemarmor = (ItemArmor) item;
                     GL11.glPushMatrix();
                     dbcarmor = itemarmor.getArmorTexture(itemstack, par1EntityPlayer, 2, null);
                     mcarmor = RenderBiped.getArmorResource(par1EntityPlayer, itemstack, 1, null);
@@ -875,10 +877,10 @@ public class AnimationMixinFunctions {
 
                     if (State == 14) {
                         tailCol = race != 2 && bodytype == 0 ? 6498048 : bodytype;
-                        tailCol = (boolean)JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null) ? 13292516 : tailCol;
+                        tailCol = (boolean) JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null) ? 13292516 : tailCol;
                         jx = skintype == 1 ? bodyc1 : tailCol;
                         if ((boolean) JRMCoreH.getMethod("rSai", int.class).invoke(null, race) && jx == 6498048 && State == 14) {
-                            if ((boolean)JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null)) {
+                            if ((boolean) JRMCoreH.getMethod("isAprilFoolsModeOn").invoke(null)) {
                                 jx = 13292516;
                             } else {
                                 jx = 14292268;
@@ -903,12 +905,12 @@ public class AnimationMixinFunctions {
                 tailCol = (int) JRMCoreH.getMethod(
                     "stat", Entity.class, int.class, int.class, int.class, int.class, int.class, int.class, float.class).invoke(null,
                     par1EntityPlayer, 2,
-                    (byte) JRMCoreH.getField("Pwrtyp").get(null), 2,
+                    JRMCoreH.getField("Pwrtyp").get(null), 2,
                     ((int[]) JRMCoreH.getField("PlyrAttrbts").get(null))[2], race,
-                    (byte) JRMCoreH.getField("Class").get(null), 0.0F);
+                    JRMCoreH.getField("Class").get(null), 0.0F);
                 jx = Integer.parseInt((String) JRMCoreH.getMethod("data", String.class, int.class, String.class).invoke(null, par1EntityPlayer.getCommandSenderName(), 8, "200"));
-                float one = (float)tailCol / 100.0F;
-                int perc = (int)((float)jx / one);
+                float one = (float) tailCol / 100.0F;
+                int perc = (int) ((float) jx / one);
                 if (perc < 70) {
                     GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                     mc.getTextureManager().bindTexture(new ResourceLocation("jinryuumodscore:cc/bruises1.png"));
@@ -942,7 +944,7 @@ public class AnimationMixinFunctions {
             if (itemstack != null) {
                 item = itemstack.getItem();
                 if (item instanceof ItemArmor) {
-                    itemarmor = (ItemArmor)item;
+                    itemarmor = (ItemArmor) item;
                     GL11.glPushMatrix();
                     dbcarmor = itemarmor.getArmorTexture(itemstack, par1EntityPlayer, 2, null);
                     mcarmor = RenderBiped.getArmorResource(par1EntityPlayer, itemstack, 1, null);
@@ -1020,9 +1022,9 @@ public class AnimationMixinFunctions {
     }
 
     private static void glColor3f(int c) throws ClassNotFoundException, InvocationTargetException, NoSuchMethodException, IllegalAccessException {
-        float h2 = (float)(c >> 16 & 255) / 255.0F;
-        float h3 = (float)(c >> 8 & 255) / 255.0F;
-        float h4 = (float)(c & 255) / 255.0F;
+        float h2 = (float) (c >> 16 & 255) / 255.0F;
+        float h3 = (float) (c >> 8 & 255) / 255.0F;
+        float h4 = (float) (c & 255) / 255.0F;
         float h1 = 1.0F;
         float r = h1 * h2;
         float g = h1 * h3;
@@ -1048,7 +1050,7 @@ public class AnimationMixinFunctions {
         } else if (p_78443_2_.getItemSpriteNumber() == 0 && item instanceof ItemBlock && RenderBlocks.renderItemIn3d(block.getRenderType())) {
             texturemanager.bindTexture(texturemanager.getResourceLocation(0));
 
-            GL11.glTranslatef(0.0F, 0.2F,-0.2F);
+            GL11.glTranslatef(0.0F, 0.2F, -0.2F);
             if (p_78443_2_ != null && block != null && block.getRenderBlockPass() != 0) {
                 GL11.glDepthMask(false);
                 renderBlocksIr.renderBlockAsItem(block, p_78443_2_.getItemDamage(), 1.0F);

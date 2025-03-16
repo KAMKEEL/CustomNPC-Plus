@@ -36,15 +36,15 @@ public class CustomNPCsMixinPlugin implements IMixinConfigPlugin {
     public List<String> getMixins() {
 
         // Load Mixin Config
-        String configPath = "config"  + File.separator + "CustomNpcPlus" + File.separator;
+        String configPath = "config" + File.separator + "CustomNpcPlus" + File.separator;
         ConfigMixin.init(new File(configPath + "mixin.cfg"));
         boolean client = FMLLaunchHandler.side().isClient();
 
         List<String> mixins = new ArrayList<>();
 
         // Client Only Mixins
-        if(client){
-            if (ConfigMixin.EntityRendererMixin){
+        if (client) {
+            if (ConfigMixin.EntityRendererMixin) {
                 mixins.add("MixinEntityRenderer");
             }
             if (ConfigMixin.AnimationMixin) {

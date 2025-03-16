@@ -30,26 +30,24 @@ public class TextContainer {
     public int linesCount;
 
 
-    public TextContainer(String text){
-        this.text = text;
-        text.replaceAll("\\r?\\n|\\r", "\n");
-        double l = 1d;
+    public TextContainer(String text) {
+        this.text = text.replaceAll("\\r?\\n|\\r", "\n");
     }
 
-    public void init(int width, int height){
+    public void init(int width, int height) {
         lineHeight = ClientProxy.Font.height();
-        if(lineHeight == 0)
+        if (lineHeight == 0)
             lineHeight = 12;
         String[] split = text.split("\n");
 
         int totalChars = 0;
-        for(String l : split){
+        for (String l : split) {
             StringBuilder line = new StringBuilder();
             Matcher m = regexWord.matcher(l);
             int i = 0;
-            while(m.find()){
+            while (m.find()) {
                 String word = l.substring(i, m.start());
-                if(ClientProxy.Font.width(line + word) > width - 10){
+                if (ClientProxy.Font.width(line + word) > width - 10) {
                     lines.add(new LineData(line.toString(), totalChars, totalChars + line.length()));
                     totalChars += line.length();
                     line = new StringBuilder();
@@ -69,7 +67,7 @@ public class TextContainer {
     public void formatCodeText() {
         MarkUp markup = null;
         int start = 0;
-        while((markup = getNextMatching(start)) != null) {
+        while ((markup = getNextMatching(start)) != null) {
             makeup.add(markup);
             start = markup.end;
         }
@@ -79,39 +77,39 @@ public class TextContainer {
         MarkUp markup = null;
         String s = text.substring(start);
         Matcher matcher = regexNumber.matcher(s);
-        if(matcher.find()) {
+        if (matcher.find()) {
             markup = new MarkUp(matcher.start(), matcher.end(), '6', 0);
         }
         matcher = regexFunction.matcher(s);
-        if(matcher.find()){
+        if (matcher.find()) {
             MarkUp markup2 = new MarkUp(matcher.start(), matcher.end(), '2', 0);
-            if(compareMarkUps(markup, markup2)) {
+            if (compareMarkUps(markup, markup2)) {
                 markup = markup2;
             }
         }
         matcher = regexType.matcher(s);
-        if(matcher.find()){
+        if (matcher.find()) {
             MarkUp markup2 = new MarkUp(matcher.start(), matcher.end(), '3', 0);
-            if(compareMarkUps(markup, markup2)) {
+            if (compareMarkUps(markup, markup2)) {
                 markup = markup2;
             }
         }
         matcher = regexString.matcher(s);
-        if(matcher.find()){
+        if (matcher.find()) {
             MarkUp markup2 = new MarkUp(matcher.start(), matcher.end(), '4', 7);
-            if(compareMarkUps(markup, markup2)) {
+            if (compareMarkUps(markup, markup2)) {
                 markup = markup2;
             }
         }
         matcher = regexComment.matcher(s);
-        if(matcher.find()){
+        if (matcher.find()) {
             MarkUp markup2 = new MarkUp(matcher.start(), matcher.end(), '8', 7);
-            if(compareMarkUps(markup, markup2)) {
+            if (compareMarkUps(markup, markup2)) {
                 markup = markup2;
             }
         }
 
-        if(markup != null) {
+        if (markup != null) {
             markup.start += start;
             markup.end += start;
         }
@@ -119,22 +117,22 @@ public class TextContainer {
     }
 
     public boolean compareMarkUps(MarkUp mu1, MarkUp mu2) {
-        if(mu1 == null)
+        if (mu1 == null)
             return true;
         return mu1.start > mu2.start;
     }
 
-    public void addMakeUp(int start, int end, char c, int level){
-        if(!removeConflictingMarkUp(start, end, level))
+    public void addMakeUp(int start, int end, char c, int level) {
+        if (!removeConflictingMarkUp(start, end, level))
             return;
         makeup.add(new MarkUp(start, end, c, level));
     }
 
-    private boolean removeConflictingMarkUp(int start, int end, int level){
+    private boolean removeConflictingMarkUp(int start, int end, int level) {
         List<MarkUp> conflicting = new ArrayList<MarkUp>();
-        for(MarkUp m : makeup){
-            if(start >= m.start && start <= m.end || end >= m.start && end <= m.end || start < m.start && end > m.start){
-                if(level < m.level || level == m.level && m.start <= start)
+        for (MarkUp m : makeup) {
+            if (start >= m.start && start <= m.end || end >= m.start && end <= m.end || start < m.start && end > m.start) {
+                if (level < m.level || level == m.level && m.start <= start)
                     return false;
                 conflicting.add(m);
             }
@@ -147,7 +145,7 @@ public class TextContainer {
         public String text;
         public int start, end;
 
-        public LineData(String text, int start, int end){
+        public LineData(String text, int start, int end) {
             this.text = text;
             this.start = start;
             this.end = end;
@@ -157,19 +155,19 @@ public class TextContainer {
             ClientProxy.Font.drawString(this.getFormattedString(), x, y, color);
         }
 
-        public String getFormattedString(){
+        public String getFormattedString() {
             StringBuilder builder = new StringBuilder(text);
             int found = 0;
-            for(MarkUp entry : makeup){
-                if(entry.start >= start && entry.start < end){
+            for (MarkUp entry : makeup) {
+                if (entry.start >= start && entry.start < end) {
                     builder.insert(entry.start - start + found * 2, Character.toString(colorChar) + Character.toString(entry.c));
                     found++;
                 }
-                if(entry.start < start && entry.end > start){
+                if (entry.start < start && entry.end > start) {
                     builder.insert(0, Character.toString(colorChar) + Character.toString(entry.c));
                     found++;
                 }
-                if(entry.end >= start && entry.end < end){
+                if (entry.end >= start && entry.end < end) {
                     builder.insert(entry.end - start + found * 2, Character.toString(colorChar) + Character.toString('r'));
                     found++;
                 }
@@ -182,7 +180,7 @@ public class TextContainer {
         public int start, end, level;
         public char c;
 
-        public MarkUp(int start, int end, char c, int level){
+        public MarkUp(int start, int end, char c, int level) {
             this.start = start;
             this.end = end;
             this.c = c;

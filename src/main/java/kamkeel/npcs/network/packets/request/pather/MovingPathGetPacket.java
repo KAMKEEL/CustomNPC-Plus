@@ -19,7 +19,8 @@ import java.io.IOException;
 public final class MovingPathGetPacket extends AbstractPacket {
     public static String packetName = "Request|MovingPathGet";
 
-    public MovingPathGetPacket() {}
+    public MovingPathGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -38,7 +39,8 @@ public final class MovingPathGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

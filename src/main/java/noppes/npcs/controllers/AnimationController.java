@@ -30,11 +30,11 @@ public class AnimationController implements IAnimationHandler {
         load();
     }
 
-    public static AnimationController getInstance(){
+    public static AnimationController getInstance() {
         return Instance;
     }
 
-    public void load(){
+    public void load() {
         bootOrder = new HashMap<>();
         animations = new HashMap<>();
         LogWriter.info("Loading animations...");
@@ -43,7 +43,7 @@ public class AnimationController implements IAnimationHandler {
         LogWriter.info("Done loading animations.");
     }
 
-    private void loadAnimations(){
+    private void loadAnimations() {
         animations.clear();
 
         File dir = getDir();
@@ -58,28 +58,28 @@ public class AnimationController implements IAnimationHandler {
                     animation.readFromNBT(NBTJsonUtil.LoadFile(file));
                     animation.name = file.getName().substring(0, file.getName().length() - 5);
 
-                    if(animation.id == -1){
+                    if (animation.id == -1) {
                         animation.id = getUnusedId();
                     }
 
                     int originalID = animation.id;
                     int setID = animation.id;
-                    while (bootOrder.containsKey(setID) || animations.containsKey(setID)){
-                        if(bootOrder.containsKey(setID))
-                            if(bootOrder.get(setID).equals(animation.name))
+                    while (bootOrder.containsKey(setID) || animations.containsKey(setID)) {
+                        if (bootOrder.containsKey(setID))
+                            if (bootOrder.get(setID).equals(animation.name))
                                 break;
 
                         setID++;
                     }
 
                     animation.id = setID;
-                    if(originalID != setID){
+                    if (originalID != setID) {
                         LogWriter.info("Found Animation ID Mismatch: " + animation.name + ", New ID: " + setID);
                         animation.save();
                     }
 
                     animations.put(animation.id, animation);
-                } catch(Exception e) {
+                } catch (Exception e) {
                     LogWriter.error("Error loading: " + file.getAbsolutePath(), e);
                 }
             }
@@ -92,10 +92,10 @@ public class AnimationController implements IAnimationHandler {
         return new File(CustomNpcs.getWorldSaveDirectory(), "animations");
     }
 
-    public int getUnusedId(){
-        if(lastUsedID == 0){
-            for(int catid : animations.keySet()){
-                if(catid > lastUsedID)
+    public int getUnusedId() {
+        if (lastUsedID == 0) {
+            for (int catid : animations.keySet()) {
+                if (catid > lastUsedID)
                     lastUsedID = catid;
             }
 
@@ -104,16 +104,15 @@ public class AnimationController implements IAnimationHandler {
         return lastUsedID;
     }
 
-    public IAnimation saveAnimation(IAnimation animation){
-        if(animation.getID() < 0){
+    public IAnimation saveAnimation(IAnimation animation) {
+        if (animation.getID() < 0) {
             animation.setID(getUnusedId());
-            while(hasName(animation.getName()))
+            while (hasName(animation.getName()))
                 animation.setName(animation.getName() + "_");
-        }
-        else{
+        } else {
             Animation existing = animations.get(animation.getID());
-            if(existing != null && !existing.name.equals(animation.getName()))
-                while(hasName(animation.getName()))
+            if (existing != null && !existing.name.equals(animation.getName()))
+                while (hasName(animation.getName()))
                     animation.setName(animation.getName() + "_");
         }
 
@@ -124,15 +123,15 @@ public class AnimationController implements IAnimationHandler {
 
         // Save Animation File
         File dir = this.getDir();
-        if(!dir.exists())
+        if (!dir.exists())
             dir.mkdirs();
 
         File file = new File(dir, animation.getName() + ".json_new");
-        File file2 = new File(dir, animation.getName() +  ".json");
+        File file2 = new File(dir, animation.getName() + ".json");
 
         try {
-            NBTJsonUtil.SaveFile(file, ((Animation)animation).writeToNBT());
-            if(file2.exists())
+            NBTJsonUtil.SaveFile(file, ((Animation) animation).writeToNBT());
+            if (file2.exists())
                 file2.delete();
             file.renameTo(file2);
         } catch (Exception e) {
@@ -142,24 +141,24 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public boolean hasName(String newName) {
-        if(newName.trim().isEmpty())
+        if (newName.trim().isEmpty())
             return true;
-        for(Animation animation : animations.values())
-            if(animation.name.equals(newName))
+        for (Animation animation : animations.values())
+            if (animation.name.equals(newName))
                 return true;
         return false;
     }
 
     public void delete(String name) {
-        Animation delete =  getAnimationFromName(name);
-        if(delete != null){
+        Animation delete = getAnimationFromName(name);
+        if (delete != null) {
             Animation foundAnimation = this.animations.remove(delete.getID());
-            if(foundAnimation != null && foundAnimation.name != null){
+            if (foundAnimation != null && foundAnimation.name != null) {
                 File dir = this.getDir();
                 for (File file : dir.listFiles()) {
                     if (!file.isFile() || !file.getName().endsWith(".json"))
                         continue;
-                    if (file.getName().equals(foundAnimation.name+".json")) {
+                    if (file.getName().equals(foundAnimation.name + ".json")) {
                         file.delete();
                         break;
                     }
@@ -171,16 +170,16 @@ public class AnimationController implements IAnimationHandler {
     }
 
     public void delete(int id) {
-        if(!this.animations.containsKey(id))
+        if (!this.animations.containsKey(id))
             return;
 
         Animation foundAnimation = this.animations.remove(id);
-        if(foundAnimation != null && foundAnimation.name != null){
+        if (foundAnimation != null && foundAnimation.name != null) {
             File dir = this.getDir();
             for (File file : dir.listFiles()) {
                 if (!file.isFile() || !file.getName().endsWith(".json"))
                     continue;
-                if (file.getName().equals(foundAnimation.name+".json")) {
+                if (file.getName().equals(foundAnimation.name + ".json")) {
                     file.delete();
                     break;
                 }
@@ -207,9 +206,9 @@ public class AnimationController implements IAnimationHandler {
         return animations.toArray(new IAnimation[0]);
     }
 
-    public Animation getAnimationFromName(String animation){
-        for (Map.Entry<Integer,Animation> entryAnimation : AnimationController.getInstance().animations.entrySet()){
-            if (entryAnimation.getValue().name.equalsIgnoreCase(animation)){
+    public Animation getAnimationFromName(String animation) {
+        for (Map.Entry<Integer, Animation> entryAnimation : AnimationController.getInstance().animations.entrySet()) {
+            if (entryAnimation.getValue().name.equalsIgnoreCase(animation)) {
                 return entryAnimation.getValue();
             }
         }
@@ -219,7 +218,7 @@ public class AnimationController implements IAnimationHandler {
     public String[] getNames() {
         String[] names = new String[animations.size()];
         int i = 0;
-        for(Animation animation : animations.values()){
+        for (Animation animation : animations.values()) {
             names[i] = animation.name.toLowerCase();
             i++;
         }
@@ -231,37 +230,38 @@ public class AnimationController implements IAnimationHandler {
     ////////////////////////////////////////////////////////
     // ANIMATION MAP
 
-    public File getMapDir(){
+    public File getMapDir() {
         File dir = CustomNpcs.getWorldSaveDirectory();
-        if(!dir.exists())
+        if (!dir.exists())
             dir.mkdir();
         return dir;
     }
 
-    public void readAnimationMap(){
+    public void readAnimationMap() {
         bootOrder.clear();
 
         try {
             File file = new File(getMapDir(), "animations.dat");
-            if(file.exists()){
+            if (file.exists()) {
                 loadAnimationMapFile(file);
             }
         } catch (Exception e) {
             try {
                 File file = new File(getMapDir(), "animations.dat_old");
-                if(file.exists()){
+                if (file.exists()) {
                     loadAnimationMapFile(file);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
-    public NBTTagCompound writeMapNBT(){
+    public NBTTagCompound writeMapNBT() {
         NBTTagCompound nbt = new NBTTagCompound();
         NBTTagList animationList = new NBTTagList();
-        for(Integer key: animations.keySet()){
+        for (Integer key : animations.keySet()) {
             Animation animation = animations.get(key);
-            if(!animation.getName().isEmpty()){
+            if (!animation.getName().isEmpty()) {
                 NBTTagCompound animationCompound = new NBTTagCompound();
                 animationCompound.setString("Name", animation.getName());
                 animationCompound.setInteger("ID", key);
@@ -273,11 +273,10 @@ public class AnimationController implements IAnimationHandler {
         return nbt;
     }
 
-    public void readMapNBT(NBTTagCompound compound){
+    public void readMapNBT(NBTTagCompound compound) {
         NBTTagList list = compound.getTagList("Animations", 10);
-        if(list != null){
-            for(int i = 0; i < list.tagCount(); i++)
-            {
+        if (list != null) {
+            for (int i = 0; i < list.tagCount(); i++) {
                 NBTTagCompound nbttagcompound = list.getCompoundTagAt(i);
                 String animationName = nbttagcompound.getString("Name");
                 Integer key = nbttagcompound.getInteger("ID");
@@ -292,30 +291,27 @@ public class AnimationController implements IAnimationHandler {
         var1.close();
     }
 
-    public void readAnimationMap(DataInputStream stream) throws IOException{
+    public void readAnimationMap(DataInputStream stream) throws IOException {
         NBTTagCompound nbtCompound = CompressedStreamTools.read(stream);
         this.readMapNBT(nbtCompound);
     }
 
-    public void saveAnimationMap(){
+    public void saveAnimationMap() {
         try {
             File saveDir = getMapDir();
             File file = new File(saveDir, "animations.dat_new");
             File file1 = new File(saveDir, "animations.dat_old");
             File file2 = new File(saveDir, "animations.dat");
             CompressedStreamTools.writeCompressed(this.writeMapNBT(), new FileOutputStream(file));
-            if(file1.exists())
-            {
+            if (file1.exists()) {
                 file1.delete();
             }
             file2.renameTo(file1);
-            if(file2.exists())
-            {
+            if (file2.exists()) {
                 file2.delete();
             }
             file.renameTo(file2);
-            if(file.exists())
-            {
+            if (file.exists()) {
                 file.delete();
             }
         } catch (Exception e) {

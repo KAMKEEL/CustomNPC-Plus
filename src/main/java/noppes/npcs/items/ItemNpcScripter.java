@@ -16,27 +16,27 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumGuiType;
 
-public class ItemNpcScripter extends Item{
+public class ItemNpcScripter extends Item {
 
-    public ItemNpcScripter(){
+    public ItemNpcScripter() {
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
     }
 
     @Override
-    public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
-		return 0x8B4513;
+    public int getColorFromItemStack(ItemStack par1ItemStack, int par2) {
+        return 0x8B4513;
     }
 
     @Override
-    public boolean requiresMultipleRenderPasses(){
+    public boolean requiresMultipleRenderPasses() {
         return true;
     }
 
     @Override
-    public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player){
+    public ItemStack onItemRightClick(ItemStack itemStack, World world, EntityPlayer player) {
         if (!world.isRemote) {
-            if(!ConfigScript.canScript(player, CustomNpcsPermissions.TOOL_SCRIPTER)){
+            if (!ConfigScript.canScript(player, CustomNpcsPermissions.TOOL_SCRIPTER)) {
                 player.addChatMessage(new ChatComponentTranslation("availability.permission"));
             }
             return itemStack;
@@ -47,13 +47,13 @@ public class ItemNpcScripter extends Item{
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void registerIcons(IIconRegister par1IconRegister){
+    public void registerIcons(IIconRegister par1IconRegister) {
         this.itemIcon = Items.iron_shovel.getIconFromDamage(0);
     }
 
     @Override
-    public Item setUnlocalizedName(String name){
-		GameRegistry.registerItem(this, name);
-    	return super.setUnlocalizedName(name);
+    public Item setUnlocalizedName(String name) {
+        GameRegistry.registerItem(this, name);
+        return super.setUnlocalizedName(name);
     }
 }

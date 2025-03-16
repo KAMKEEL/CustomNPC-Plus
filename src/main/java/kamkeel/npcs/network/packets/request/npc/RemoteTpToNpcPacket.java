@@ -21,7 +21,9 @@ public final class RemoteTpToNpcPacket extends AbstractPacket {
     public static String packetName = "Request|RemoteTpToNpc";
 
     private int entityID;
-    public RemoteTpToNpcPacket() {}
+
+    public RemoteTpToNpcPacket() {
+    }
 
     public RemoteTpToNpcPacket(int entityID) {
         this.entityID = entityID;
@@ -55,7 +57,7 @@ public final class RemoteTpToNpcPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
         Entity entity = player.worldObj.getEntityByID(in.readInt());
-        if(!(entity instanceof EntityNPCInterface))
+        if (!(entity instanceof EntityNPCInterface))
             return;
         npc = (EntityNPCInterface) entity;
         ((EntityPlayerMP) player).playerNetServerHandler.setPlayerLocation(npc.posX, npc.posY, npc.posZ, 0, 0);

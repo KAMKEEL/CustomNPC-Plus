@@ -24,7 +24,7 @@ public final class ScrollListPacket extends LargeAbstractPacket {
     public ScrollListPacket() {
     }
 
-    public ScrollListPacket(List<String> data,  EnumScrollData enumScrollData) {
+    public ScrollListPacket(List<String> data, EnumScrollData enumScrollData) {
         this.data = data;
         this.enumScrollData = enumScrollData;
     }

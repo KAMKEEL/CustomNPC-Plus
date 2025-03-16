@@ -26,7 +26,8 @@ public final class MerchantUpdatePacket extends AbstractPacket {
     private int entityID;
     private MerchantRecipeList list;
 
-    public MerchantUpdatePacket() { }
+    public MerchantUpdatePacket() {
+    }
 
     public MerchantUpdatePacket(int entityID, MerchantRecipeList list) {
         this.entityID = entityID;
@@ -68,6 +69,6 @@ public final class MerchantUpdatePacket extends AbstractPacket {
             return;
 
         MerchantRecipeList list = MerchantRecipeList.func_151390_b(new PacketBuffer(in));
-        ((EntityVillager)entity).setRecipes(list);
+        ((EntityVillager) entity).setRecipes(list);
     }
 }

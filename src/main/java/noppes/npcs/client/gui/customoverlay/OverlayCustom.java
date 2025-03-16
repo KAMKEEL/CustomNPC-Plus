@@ -31,32 +31,32 @@ public class OverlayCustom extends Gui {
         this.mc = mc;
     }
 
-    public void initOverlay(){
+    public void initOverlay() {
         res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        if(this.overlay != null){
+        if (this.overlay != null) {
             scaledWidth = res.getScaledWidth();
             scaledHeight = res.getScaledHeight();
 
             this.components.clear();
             Iterator var1 = this.overlay.getComponents().iterator();
 
-            while(var1.hasNext()) {
-                ICustomOverlayComponent c = (ICustomOverlayComponent)var1.next();
+            while (var1.hasNext()) {
+                ICustomOverlayComponent c = (ICustomOverlayComponent) var1.next();
                 this.addComponent(c);
             }
         }
     }
 
     private void addComponent(ICustomOverlayComponent component) {
-        ScriptOverlayComponent c = (ScriptOverlayComponent)component;
-        switch(c.getType()) {
+        ScriptOverlayComponent c = (ScriptOverlayComponent) component;
+        switch (c.getType()) {
             case 0:
                 CustomOverlayTexturedRect rect = CustomOverlayTexturedRect.fromComponent((ScriptOverlayTexturedRect) component);
                 rect.setParent(this);
                 this.components.put(rect.getID(), rect);
                 break;
             case 1:
-                CustomOverlayLabel lbl = CustomOverlayLabel.fromComponent((ScriptOverlayLabel)component);
+                CustomOverlayLabel lbl = CustomOverlayLabel.fromComponent((ScriptOverlayLabel) component);
                 lbl.setParent(this);
                 this.components.put(lbl.getID(), lbl);
                 break;
@@ -68,19 +68,19 @@ public class OverlayCustom extends Gui {
         }
     }
 
-    public void renderGameOverlay(float partialTicks){
+    public void renderGameOverlay(float partialTicks) {
         res = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         scaledWidth = res.getScaledWidth();
         scaledHeight = res.getScaledHeight();
 
         Iterator var4 = this.components.values().iterator();
 
-        while(var4.hasNext()) {
+        while (var4.hasNext()) {
             GL11.glEnable(GL11.GL_BLEND);
             OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
-            IOverlayComponent component = (IOverlayComponent)var4.next();
+            IOverlayComponent component = (IOverlayComponent) var4.next();
             component.onRender(this.mc, partialTicks);
 
             GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -90,7 +90,7 @@ public class OverlayCustom extends Gui {
     }
 
     public void setOverlayData(NBTTagCompound compound) {
-        this.overlay = (ScriptOverlay)(new ScriptOverlay()).fromNBT(compound);
+        this.overlay = (ScriptOverlay) (new ScriptOverlay()).fromNBT(compound);
         this.initOverlay();
     }
 }

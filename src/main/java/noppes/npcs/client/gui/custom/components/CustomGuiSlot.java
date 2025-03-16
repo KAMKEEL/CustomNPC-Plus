@@ -25,7 +25,7 @@ public class CustomGuiSlot extends Slot {
 
     @Override
     public void onSlotChanged() {
-        if(!player.worldObj.isRemote){
+        if (!player.worldObj.isRemote) {
             boolean changed;
             if (getStack() != null && slot.getStack() != null) {
                 changed = !getStack().equals(slot.getStack().getMCItemStack());
@@ -33,10 +33,10 @@ public class CustomGuiSlot extends Slot {
                 // Handle the case when either getStack() or slot.getStack() is null (indicating an empty slot)
                 changed = getStack() != null || slot.getStack() != null;
             }
-            if(changed) {
+            if (changed) {
                 slot.setStack(NpcAPI.Instance().getIItemStack(getStack()));
                 if (player.openContainer instanceof ContainerCustomGui) {
-                    EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui)player.openContainer).customGui,
+                    EventHooks.onCustomGuiSlot((IPlayer) NpcAPI.Instance().getIEntity(player), ((ContainerCustomGui) player.openContainer).customGui,
                         getSlotIndex(), getStack(), slot);
                 }
             }

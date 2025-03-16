@@ -3,10 +3,7 @@ package kamkeel.npcs.network.packets.request;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.AbstractPacket;
-import kamkeel.npcs.network.PacketChannel;
-import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.PacketUtil;
+import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
@@ -26,7 +23,8 @@ public final class MountPacket extends AbstractPacket {
     private Action action;
     private NBTTagCompound compound;
 
-    public MountPacket() {}
+    public MountPacket() {
+    }
 
     public MountPacket(Action action, NBTTagCompound nbtTagCompound) {
         this.action = action;
@@ -54,7 +52,7 @@ public final class MountPacket extends AbstractPacket {
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(action.ordinal());
-        if(action == Action.Spawn)
+        if (action == Action.Spawn)
             ByteBufUtils.writeNBT(out, this.compound);
     }
 
@@ -67,7 +65,7 @@ public final class MountPacket extends AbstractPacket {
             return;
 
         MountPacket.Action requestedAction = MountPacket.Action.values()[in.readInt()];
-        switch (requestedAction){
+        switch (requestedAction) {
             case Player:
                 player.mountEntity(ServerEventsHandler.mounted);
                 break;
@@ -79,11 +77,12 @@ public final class MountPacket extends AbstractPacket {
         }
     }
 
-    public static MountPacket Player() {
-        return new MountPacket(Action.Player, new NBTTagCompound());
+    public static void Player() {
+        PacketClient.sendClient(new MountPacket(Action.Player, new NBTTagCompound()));
     }
-    public static MountPacket Spawn(NBTTagCompound compound) {
-        return new MountPacket(Action.Spawn, compound);
+
+    public static void Spawn(NBTTagCompound compound) {
+        PacketClient.sendClient(new MountPacket(Action.Spawn, compound));
     }
 
     private enum Action {

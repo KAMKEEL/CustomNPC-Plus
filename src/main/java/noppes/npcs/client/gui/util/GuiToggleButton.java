@@ -122,7 +122,7 @@ public class GuiToggleButton extends GuiNpcButton {
         // Knob width equals half of the button (20 pixels).
         int knobWidth = FIXED_WIDTH / 2;
         // The knob slides from xPosition (OFF) to xPosition + (FIXED_WIDTH - knobWidth) (ON).
-        int knobX = this.xPosition + (int)((FIXED_WIDTH - knobWidth) * animProgress);
+        int knobX = this.xPosition + (int) ((FIXED_WIDTH - knobWidth) * animProgress);
         int knobY = this.yPosition;
 
         // Draw the knob with no tint.

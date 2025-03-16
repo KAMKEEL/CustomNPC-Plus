@@ -15,6 +15,7 @@ import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.data.IPlayerEffect;
+import noppes.npcs.api.handler.data.IProfile;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
@@ -116,7 +117,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final int mouseWheel;
         public final boolean buttonDown;
 
-        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys){
+        public MouseClickedEvent(IPlayer player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isAltPressed, boolean isShiftPressed, boolean isMetaPressed, int[] heldKeys) {
             super(player);
             this.button = button;
             this.mouseWheel = mouseWheel;
@@ -233,7 +234,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final int fromDim;
         public final int toDim;
 
-        public ChangedDimension(IPlayer player, int fromDim, int toDim){
+        public ChangedDimension(IPlayer player, int fromDim, int toDim) {
             super(player);
             this.fromDim = fromDim;
             this.toDim = toDim;
@@ -375,7 +376,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public static class FallEvent extends PlayerEvent implements IPlayerEvent.FallEvent {
         public final float distance;
 
-        public FallEvent(IPlayer player, float distance){
+        public FallEvent(IPlayer player, float distance) {
             super(player);
             this.distance = distance;
         }
@@ -390,7 +391,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     }
 
     public static class JumpEvent extends PlayerEvent implements IPlayerEvent.JumpEvent {
-        public JumpEvent(IPlayer player){
+        public JumpEvent(IPlayer player) {
             super(player);
         }
 
@@ -666,7 +667,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public StartUsingItem(IPlayer player, ItemStack item, int duration){
+        public StartUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -691,7 +692,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public UsingItem(IPlayer player, ItemStack item, int duration){
+        public UsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -716,7 +717,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public StopUsingItem(IPlayer player, ItemStack item, int duration){
+        public StopUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -740,7 +741,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
         public final IItemStack item;
         public final int duration;
 
-        public FinishUsingItem(IPlayer player, ItemStack item, int duration){
+        public FinishUsingItem(IPlayer player, ItemStack item, int duration) {
             super(player);
 
             this.item = NpcAPI.Instance().getIItemStack(item);
@@ -972,6 +973,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             }
 
         }
+
         public static class Ticked extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Ticked {
 
             public Ticked(IPlayer player, IPlayerEffect statusEffect) {
@@ -979,6 +981,7 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             }
 
         }
+
         public static class Removed extends PlayerEvent.EffectEvent implements IPlayerEvent.EffectEvent.Removed {
 
             private final ExpirationType type;
@@ -1003,6 +1006,82 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
             REMOVED,
             RUN_OUT,
             DEATH
+        }
+    }
+
+    @Cancelable
+    public static class ProfileEvent extends PlayerEvent implements IPlayerEvent.ProfileEvent {
+        public final IProfile profile;
+        public final int slot;
+        public final boolean post;
+
+        public ProfileEvent(IPlayer player, IProfile profile, int slot, boolean post) {
+            super(player);
+            this.profile = profile;
+            this.slot = slot;
+            this.post = post;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.PROFILE.function;
+        }
+
+        @Override
+        public IProfile getProfile() {
+            return this.profile;
+        }
+
+        @Override
+        public int getSlot() {
+            return this.slot;
+        }
+
+        @Override
+        public boolean isPost() {
+            return this.post;
+        }
+
+        @Cancelable
+        public static class Changed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Changed {
+            public final int prevSlot;
+
+            public Changed(IPlayer player, IProfile profile, int slot, int prevSlot, boolean post) {
+                super(player, profile, slot, post);
+                this.prevSlot = prevSlot;
+            }
+
+            @Override
+            public int getPrevSlot() {
+                return this.prevSlot;
+            }
+
+            public String getHookName() {
+                return EnumScriptType.PROFILE_CHANGE.function;
+            }
+        }
+
+        @Cancelable
+        public static class Removed extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Removed {
+
+            public Removed(IPlayer player, IProfile profile, int slot, boolean post) {
+                super(player, profile, slot, post);
+            }
+
+            public String getHookName() {
+                return EnumScriptType.PROFILE_REMOVE.function;
+            }
+        }
+
+        @Cancelable
+        public static class Create extends PlayerEvent.ProfileEvent implements IPlayerEvent.ProfileEvent.Create {
+
+            public Create(IPlayer player, IProfile profile, int slot, boolean post) {
+                super(player, profile, slot, post);
+            }
+
+            public String getHookName() {
+                return EnumScriptType.PROFILE_CREATE.function;
+            }
         }
     }
 }

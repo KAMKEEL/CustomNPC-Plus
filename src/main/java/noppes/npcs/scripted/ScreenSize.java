@@ -28,11 +28,11 @@ public class ScreenSize implements IScreenSize {
 
     @Override
     public int getWidthPercent(double percent) {
-        return (int) (((double)width)*percent/100);
+        return (int) (((double) width) * percent / 100);
     }
 
     @Override
     public int getHeightPercent(double percent) {
-        return (int) (((double)height)*percent/100);
+        return (int) (((double) height) * percent / 100);
     }
 }

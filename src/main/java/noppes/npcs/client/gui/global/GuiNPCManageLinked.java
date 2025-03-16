@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.global;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.linked.*;
+import kamkeel.npcs.util.ColorUtil;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
@@ -35,7 +36,7 @@ import java.util.List;
 import java.util.Vector;
 
 public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData, ISubGuiListener, ICustomScrollListener, IGuiData, GuiYesNoCallback {
-	private static int tab = 0;
+    private static int tab = 0;
     private boolean loadedNPC = false;
     private GuiCustomScroll scroll;
 
@@ -45,80 +46,79 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
     private LinkedItem linkedItem = null;
     public String originalName = "";
 
-	private String search = "";
+    private String search = "";
 
     private float zoomed = 36, rotation;
 
-    public GuiNPCManageLinked(EntityNPCInterface npc){
-    	super(npc);
+    public GuiNPCManageLinked(EntityNPCInterface npc) {
+        super(npc);
         resetNPC();
-        if(tab == 0)
+        if (tab == 0)
             LinkedGetAllPacket.GetNPCs();
-        else if(tab == 1)
+        else if (tab == 1)
             LinkedGetAllPacket.GetItems();
     }
 
-    public void resetNPC(){
-        this.npc =  new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
+    public void resetNPC() {
+        this.npc = new EntityCustomNpc(Minecraft.getMinecraft().theWorld);
         this.npc.display.name = "Linked NPC";
         this.npc.height = 1.62f;
         this.npc.width = 0.43f;
     }
 
     @Override
-    public void initGui(){
+    public void initGui() {
         super.initGui();
 
         int y = guiTop + 8;
 
-        this.addButton(new GuiNpcButton(10,guiLeft + 368, y, 45, 20, "gui.npcs"));
-        this.addButton(new GuiNpcButton(11,guiLeft + 368, y += 22, 45, 20, "gui.items"));
+        this.addButton(new GuiNpcButton(10, guiLeft + 368, y, 45, 20, "gui.npcs"));
+        this.addButton(new GuiNpcButton(11, guiLeft + 368, y += 22, 45, 20, "gui.items"));
         getButton(10).enabled = tab == 1;
         getButton(11).enabled = tab == 0;
 
-       	this.addButton(new GuiNpcButton(1,guiLeft + 368, y += 40, 45, 20, "gui.add"));
-    	this.addButton(new GuiNpcButton(2,guiLeft + 368, y += 22, 45, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(1, guiLeft + 368, y += 40, 45, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(2, guiLeft + 368, y += 22, 45, 20, "gui.remove"));
 
-        this.addButton(new GuiNpcButton(3,guiLeft + 368, y += 22, 45, 20, "gui.edit"));
-        this.addButton(new GuiNpcButton(4,guiLeft + 368, y += 22, 45, 20, "gui.copy"));
-        this.addButton(new GuiNpcButton(5,guiLeft + 368, y += 22, 45, 20, "gui.build"));
+        this.addButton(new GuiNpcButton(3, guiLeft + 368, y += 22, 45, 20, "gui.edit"));
+        this.addButton(new GuiNpcButton(4, guiLeft + 368, y += 22, 45, 20, "gui.copy"));
+        this.addButton(new GuiNpcButton(5, guiLeft + 368, y += 22, 45, 20, "gui.build"));
         getButton(3).enabled = tab == 1;
         getButton(4).enabled = tab == 1;
         getButton(5).enabled = tab == 1;
 
-        if(scroll == null){
-	        scroll = new GuiCustomScroll(this,0,0);
-	        scroll.setSize(143, 185);
+        if (scroll == null) {
+            scroll = new GuiCustomScroll(this, 0, 0);
+            scroll.setSize(143, 185);
         }
         scroll.guiLeft = guiLeft + 220;
         scroll.guiTop = guiTop + 4;
         scroll.setList(getSearchList());
         this.addScroll(scroll);
-		this.addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 4 + 3 + 185, 143, 20, search));
+        this.addTextField(new GuiNpcTextField(55, this, fontRendererObj, guiLeft + 220, guiTop + 4 + 3 + 185, 143, 20, search));
     }
 
-	@Override
-	public void keyTyped(char c, int i)
-	{
-		super.keyTyped(c, i);
-		if(getTextField(55) != null){
-			if(getTextField(55).isFocused()){
-				if(search.equals(getTextField(55).getText()))
-					return;
-				search = getTextField(55).getText().toLowerCase();
-				scroll.setList(getSearchList());
+    @Override
+    public void keyTyped(char c, int i) {
+        super.keyTyped(c, i);
+        if (getTextField(55) != null) {
+            if (getTextField(55).isFocused()) {
+                if (search.equals(getTextField(55).getText()))
+                    return;
+                search = getTextField(55).getText().toLowerCase();
+                scroll.setList(getSearchList());
                 scroll.resetScroll();
-			}
-		}
-	}
+            }
+        }
+    }
 
     @Override
     public void drawScreen(int i, int j, float f) {
         super.drawScreen(i, j, f);
-        if(hasSubGui())
+        if (hasSubGui())
             return;
 
-        if(tab == 0) {
+        if (tab == 0) {
             // (Existing NPC rendering code...)
             if (isMouseOverRenderer(i, j)) {
                 zoomed += Mouse.getDWheel() * 0.035f;
@@ -148,17 +148,18 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
             RenderHelper.enableStandardItemLighting();
             GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-            GL11.glRotatef(-(float)Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
+            GL11.glRotatef(-(float) Math.atan(f6 / 800F) * 20F, 1.0F, 0.0F, 0.0F);
             entity.prevRenderYawOffset = entity.renderYawOffset = rotation;
-            entity.prevRotationYaw = entity.rotationYaw = (float)Math.atan(f5 / 80F) * 40F + rotation;
-            entity.rotationPitch = -(float)Math.atan(f6 / 80F) * 20F;
+            entity.prevRotationYaw = entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
+            entity.rotationPitch = -(float) Math.atan(f6 / 80F) * 20F;
             entity.prevRotationYawHead = entity.rotationYawHead = entity.rotationYaw;
             GL11.glTranslatef(0.0F, entity.yOffset, 1F);
             RenderManager.instance.playerViewY = 180F;
             GL11.glPushMatrix();
             try {
                 RenderManager.instance.renderEntityWithPosYaw(entity, 0.0, 0.0, 0.0, 0.0F, 1.0F);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
             GL11.glPopMatrix();
             entity.prevRenderYawOffset = entity.renderYawOffset = f2;
             entity.prevRotationYaw = entity.rotationYaw = f3;
@@ -171,17 +172,18 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
             GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
             GL11.glPopMatrix();
-        }
-        else if(tab == 1) {
+        } else if (tab == 1) {
             // Render the linked item image in the top-left area
-            if(linkedItem != null) {
+            if (linkedItem != null) {
                 int x = guiLeft + 155;
                 int y = guiTop + 30;
                 int iconRenderSize = 64;
                 TextureManager textureManager = mc.getTextureManager();
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 ImageData imageData = ClientCacheHandler.getImageData(linkedItem.display.texture);
-                if(imageData.imageLoaded()){
+                if (imageData.imageLoaded()) {
+                    float[] colors = ColorUtil.hexToRGB(this.linkedItem.display.itemColor);
+                    GL11.glColor3f(colors[0], colors[1], colors[2]);
                     imageData.bindTexture();
                     int iconX = 0, iconY = 0;
                     int iconWidth = imageData.getTotalWidth();
@@ -193,27 +195,28 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                     textureManager.bindTexture(new ResourceLocation("customnpcs", "textures/marks/question.png"));
                     func_152125_a(x, y, 0, 0, 1, 1, iconRenderSize, iconRenderSize, 1, 1);
                 }
+                GL11.glColor3f(1.0f, 1.0f, 1.0f);
                 GL11.glDisable(GL11.GL_DEPTH_TEST);
             }
         }
     }
 
-	private List<String> getSearchList(){
-		if(search.isEmpty()){
-			return new ArrayList<String>(this.data.keySet());
-		}
-		List<String> list = new ArrayList<String>();
-		for(String name : this.data.keySet()){
-			if(name.toLowerCase().contains(search))
-				list.add(name);
-		}
-		return list;
-	}
+    private List<String> getSearchList() {
+        if (search.isEmpty()) {
+            return new ArrayList<String>(this.data.keySet());
+        }
+        List<String> list = new ArrayList<String>();
+        for (String name : this.data.keySet()) {
+            if (name.toLowerCase().contains(search))
+                list.add(name);
+        }
+        return list;
+    }
 
     @Override
-	public void buttonEvent(GuiButton button){
-        if(button.id == 1){
-            if(tab == 0){
+    public void buttonEvent(GuiButton button) {
+        if (button.id == 1) {
+            if (tab == 0) {
                 setSubGui(new SubGuiEditText("New"));
             } else {
                 String name = "New";
@@ -223,8 +226,8 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), ""));
             }
         }
-        if(button.id == 2){
-            if(tab == 0){
+        if (button.id == 2) {
+            if (tab == 0) {
                 if (data.containsKey(scroll.getSelected())) {
                     GuiYesNo guiyesno = new GuiYesNo(this, scroll.getSelected(), StatCollector.translateToLocal("gui.delete"), 0);
                     displayGuiScreen(guiyesno);
@@ -236,25 +239,25 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 }
             }
         }
-        if(button.id == 10){
+        if (button.id == 10) {
             tab = 0;
             resetNPC();
             LinkedGetAllPacket.GetNPCs();
             scroll.setSelected("");
         }
-        if(button.id == 11){
+        if (button.id == 11) {
             tab = 1;
             LinkedGetAllPacket.GetItems();
             scroll.setSelected("");
         }
 
-        if(linkedItem == null)
+        if (linkedItem == null)
             return;
 
-        if(button.id == 3){
+        if (button.id == 3) {
             setSubGui(new SubGuiLinkedItem(this, this.linkedItem));
         }
-        if(button.id == 4){
+        if (button.id == 4) {
             if (data.containsKey(scroll.getSelected()) && linkedItem != null && linkedItem.id >= 0) {
                 String name = linkedItem.name;
                 while (data.containsKey(name))
@@ -265,9 +268,9 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 PacketClient.sendClient(new LinkedItemSavePacket(linkedItemClone.writeToNBT(false), ""));
             }
         }
-        if(button.id == 5){
+        if (button.id == 5) {
             // Build Linked Item
-            if(tab == 1)
+            if (tab == 1)
                 PacketClient.sendClient(new LinkedItemBuildPacket(this.linkedItem.getId()));
 
         }
@@ -284,7 +287,7 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 initGui();
             }
         }
-        if(id == 1){
+        if (id == 1) {
             if (data.containsKey(scroll.getSelected())) {
                 PacketClient.sendClient(new LinkedItemRemovePacket(data.get(scroll.getSelected())));
                 initGui();
@@ -428,12 +431,22 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 StatCollector.translateToLocal("use_action.drink")
             };
             int useActionIndex;
-            switch(linkedItem.itemUseAction) {
-                case 0: useActionIndex = 0; break;
-                case 1: useActionIndex = 1; break;
-                case 3: useActionIndex = 2; break;
-                case 4: useActionIndex = 3; break;
-                default: useActionIndex = 0; break;
+            switch (linkedItem.itemUseAction) {
+                case 0:
+                    useActionIndex = 0;
+                    break;
+                case 1:
+                    useActionIndex = 1;
+                    break;
+                case 3:
+                    useActionIndex = 2;
+                    break;
+                case 4:
+                    useActionIndex = 3;
+                    break;
+                default:
+                    useActionIndex = 0;
+                    break;
             }
             label = StatCollector.translateToLocal("display.useAction") + ": ";
             value = useActions[useActionIndex];
@@ -520,14 +533,14 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         return width;
     }
 
-	@Override
-	public void subGuiClosed(SubGuiInterface subgui) {
-        if(subgui instanceof SubGuiEditText){
-            if(!((SubGuiEditText)subgui).cancelled){
-                PacketClient.sendClient(new LinkedNPCAddPacket(((SubGuiEditText)subgui).text));
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiEditText) {
+            if (!((SubGuiEditText) subgui).cancelled) {
+                PacketClient.sendClient(new LinkedNPCAddPacket(((SubGuiEditText) subgui).text));
             }
         }
-	}
+    }
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
@@ -548,8 +561,9 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
         originalName = scroll.getSelected();
     }
 
-	@Override
-	public void save() {}
+    @Override
+    public void save() {
+    }
 
     public boolean isMouseOverRenderer(int x, int y) {
         return x >= guiLeft + 10 && x <= guiLeft + 10 + 200 && y >= guiTop + 6 && y <= guiTop + 6 + 204;
@@ -561,8 +575,8 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
             loadedNPC = false;
             selected = scroll.getSelected();
             originalName = scroll.getSelected();
-            if (selected != null && !selected.isEmpty()){
-                if(tab == 0)
+            if (selected != null && !selected.isEmpty()) {
+                if (tab == 0)
                     LinkedGetPacket.GetNPC(selected);
                 else
                     LinkedGetPacket.GetItem(data.get(selected));
@@ -571,12 +585,13 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
     }
 
     @Override
-    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {}
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+    }
 
     public void setGuiData(NBTTagCompound compound) {
         loadedNPC = false;
         this.linkedItem = null;
-        if(compound.hasKey("NPCData")){
+        if (compound.hasKey("NPCData")) {
             // Linked NPC
             this.npc.display.readToNBT(compound.getCompoundTag("NPCData"));
             this.npc.stats.readToNBT(compound.getCompoundTag("NPCData"));

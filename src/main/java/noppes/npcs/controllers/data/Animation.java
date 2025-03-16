@@ -34,14 +34,15 @@ public class Animation implements IAnimation {
     //Client-sided
     public boolean paused;
 
-    public Animation(){}
+    public Animation() {
+    }
 
-    public Animation(int id, String name){
+    public Animation(int id, String name) {
         this.name = name;
         this.id = id;
     }
 
-    public Animation(int id, String name, float speed, byte smooth){
+    public Animation(int id, String name, float speed, byte smooth) {
         this.name = name;
         this.speed = speed;
         this.smooth = smooth;
@@ -174,11 +175,10 @@ public class Animation implements IAnimation {
         return time;
     }
 
-    public void readFromNBT(NBTTagCompound compound){
-        if(compound.hasKey("ID")){
+    public void readFromNBT(NBTTagCompound compound) {
+        if (compound.hasKey("ID")) {
             id = compound.getInteger("ID");
-        }
-        else if (AnimationController.Instance != null) {
+        } else if (AnimationController.Instance != null) {
             id = AnimationController.Instance.getUnusedId();
         }
 
@@ -206,16 +206,16 @@ public class Animation implements IAnimation {
         this.currentFrameTime = compound.getInteger("CurrentFrameTime");
     }
 
-    public NBTTagCompound writeToNBT(){
+    public NBTTagCompound writeToNBT() {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("ID", id);
         compound.setString("Name", name);
         compound.setFloat("Speed", speed);
         compound.setByte("Smooth", smooth);
-        compound.setInteger("Loop",loop);
+        compound.setInteger("Loop", loop);
 
         NBTTagList list = new NBTTagList();
-        for(Frame frame : frames){
+        for (Frame frame : frames) {
             NBTTagCompound item = frame.writeToNBT();
             list.appendTag(item);
         }
@@ -284,9 +284,9 @@ public class Animation implements IAnimation {
         this.currentFrameTime = time;
 
         Frame frame = (Frame) this.currentFrame();
-        if(frame != null){
+        if (frame != null) {
             for (EnumAnimationPart part : EnumAnimationPart.values()) {
-                if(part != null){
+                if (part != null) {
                     if (frame.frameParts.containsKey(part)) {
                         frame.frameParts.get(part).jumpToCurrentFrame();
                     }

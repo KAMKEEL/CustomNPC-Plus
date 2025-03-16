@@ -22,7 +22,8 @@ public final class DialogsGetPacket extends AbstractPacket {
     private int categoryID;
     private boolean sendGroup;
 
-    public DialogsGetPacket() {}
+    public DialogsGetPacket() {
+    }
 
     public DialogsGetPacket(int categoryID, boolean send) {
         this.categoryID = categoryID;
@@ -56,11 +57,10 @@ public final class DialogsGetPacket extends AbstractPacket {
 
         int catID = in.readInt();
         boolean sendGroup = in.readBoolean();
-        if(sendGroup){
-            NoppesUtilServer.sendDialogGroup((EntityPlayerMP) player,DialogController.Instance.categories.get(catID));
-        }
-        else {
-            NoppesUtilServer.sendDialogData((EntityPlayerMP) player,DialogController.Instance.categories.get(catID));
+        if (sendGroup) {
+            NoppesUtilServer.sendDialogGroup((EntityPlayerMP) player, DialogController.Instance.categories.get(catID));
+        } else {
+            NoppesUtilServer.sendDialogData((EntityPlayerMP) player, DialogController.Instance.categories.get(catID));
         }
     }
 }

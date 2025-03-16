@@ -7,21 +7,18 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.data.Magic;
-import noppes.npcs.controllers.data.MagicCycle;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.NoppesUtilServer;
+
 import java.io.IOException;
 
 public class MagicGetAllPacket extends AbstractPacket {
 
     public static String packetName = "Request|MagicGetAll";
 
-    public MagicGetAllPacket(){}
+    public MagicGetAllPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -35,7 +32,8 @@ public class MagicGetAllPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

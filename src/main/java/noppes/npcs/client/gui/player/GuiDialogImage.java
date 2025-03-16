@@ -64,10 +64,10 @@ public class GuiDialogImage extends Gui {
         this.imageType = dialogImage.imageType;
         this.alignment = dialogImage.alignment;
 
-        if(texture.startsWith("https://")){
+        if (texture.startsWith("https://")) {
             this.isUrl = true;
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
-            this.imageDownloadAlt = new ImageDownloadAlt(null, texture, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true,false));
+            this.imageDownloadAlt = new ImageDownloadAlt(null, texture, new ResourceLocation("customnpcs:textures/gui/invisible.png"), new ImageBufferDownloadAlt(true, false));
             texturemanager.loadTexture(this.location, this.imageDownloadAlt);
         } else {
             try {
@@ -89,34 +89,36 @@ public class GuiDialogImage extends Gui {
     public void onRender(Minecraft mc) {
         try {
             mc.getTextureManager().bindTexture(this.location);
-        } catch (Exception ignored) { return; }
+        } catch (Exception ignored) {
+            return;
+        }
 
-        float u1 = (float)textureX/(float)totalWidth;
-        float u2 = u1 + (float)width/(float)totalWidth;
-        float v1 = (float)textureY/(float)totalHeight;
-        float v2 = v1 + (float)height/(float)totalHeight;
+        float u1 = (float) textureX / (float) totalWidth;
+        float u2 = u1 + (float) width / (float) totalWidth;
+        float v1 = (float) textureY / (float) totalHeight;
+        float v2 = v1 + (float) height / (float) totalHeight;
 
-        if(imageDownloadAlt != null && isUrl && !gotWidthHeight){
+        if (imageDownloadAlt != null && isUrl && !gotWidthHeight) {
             getURLWidthHeight();
         }
 
         GL11.glPushMatrix();
         float red = (color >> 16 & 255) / 255f;
-        float green = (color >> 8  & 255) / 255f;
+        float green = (color >> 8 & 255) / 255f;
         float blue = (color & 255) / 255f;
-        GL11.glColor4f(red,green,blue,this.alpha);
+        GL11.glColor4f(red, green, blue, this.alpha);
 
-        GL11.glRotatef(this.rotation,0.0F,0.0F,1.0F);
+        GL11.glRotatef(this.rotation, 0.0F, 0.0F, 1.0F);
         GL11.glScalef(this.scale, this.scale, this.scale);
 
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.setColorOpaque_F(1, 1, 1);
         tessellator.setColorRGBA_F(red, green, blue, alpha);
-        tessellator.addVertexWithUV( u2 * totalWidth,  v2 * totalHeight, 0, u2, v2);
-        tessellator.addVertexWithUV( u2 * totalWidth, v1 * totalHeight, 0, u2, v1);
-        tessellator.addVertexWithUV( u1 * totalWidth,  v1 * totalHeight, 0, u1, v1);
-        tessellator.addVertexWithUV( u1 * totalWidth,  v2 * totalHeight, 0, u1, v2);
+        tessellator.addVertexWithUV(u2 * totalWidth, v2 * totalHeight, 0, u2, v2);
+        tessellator.addVertexWithUV(u2 * totalWidth, v1 * totalHeight, 0, u2, v1);
+        tessellator.addVertexWithUV(u1 * totalWidth, v1 * totalHeight, 0, u1, v1);
+        tessellator.addVertexWithUV(u1 * totalWidth, v2 * totalHeight, 0, u1, v2);
         tessellator.draw();
         GL11.glPopMatrix();
     }
@@ -141,8 +143,8 @@ public class GuiDialogImage extends Gui {
         }
     }
 
-    public void getURLWidthHeight(){
-        if(imageDownloadAlt.getBufferedImage() != null) {
+    public void getURLWidthHeight() {
+        if (imageDownloadAlt.getBufferedImage() != null) {
             gotWidthHeight = true;
             this.totalWidth = imageDownloadAlt.getBufferedImage().getWidth();
             this.totalHeight = imageDownloadAlt.getBufferedImage().getHeight();
@@ -150,7 +152,7 @@ public class GuiDialogImage extends Gui {
         }
     }
 
-    public void correctWidthHeight(){
+    public void correctWidthHeight() {
         totalWidth = Math.max(totalWidth, 1);
         totalHeight = Math.max(totalHeight, 1);
         this.width = width < 0 ? totalWidth : width;

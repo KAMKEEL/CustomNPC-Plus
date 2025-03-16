@@ -30,7 +30,8 @@ public final class RecipeSavePacket extends AbstractPacket {
         this.recipeNBT = recipeNBT;
     }
 
-    public RecipeSavePacket() {}
+    public RecipeSavePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -61,7 +62,7 @@ public final class RecipeSavePacket extends AbstractPacket {
             return;
 
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
-        if(compound.hasKey("IsAnvil")){
+        if (compound.hasKey("IsAnvil")) {
             RecipeAnvil recipe = RecipeController.Instance.saveAnvilRecipe(compound);
             NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, 1);
             NoppesUtilServer.setRecipeAnvilGui((EntityPlayerMP) player, recipe);

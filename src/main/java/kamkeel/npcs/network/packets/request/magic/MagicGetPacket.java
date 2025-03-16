@@ -7,14 +7,10 @@ import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.LinkedItemController;
-import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.MagicController;
-import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
 
@@ -26,7 +22,8 @@ public final class MagicGetPacket extends AbstractPacket {
     private Action action;
     private int id;
 
-    public MagicGetPacket() {}
+    public MagicGetPacket() {
+    }
 
     public MagicGetPacket(Action action, int id) {
         this.action = action;
@@ -55,12 +52,12 @@ public final class MagicGetPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND))
             return;
 
         Action action = Action.values()[in.readInt()];
         int id = in.readInt();
-        if(action == Action.MAGIC){
+        if (action == Action.MAGIC) {
             Magic magic = MagicController.getInstance().getMagic(id);
             NBTTagCompound compound = new NBTTagCompound();
             NBTTagCompound magicCompound = new NBTTagCompound();

@@ -10,83 +10,84 @@ import org.lwjgl.opengl.GL11;
 
 public class Model2DRenderer extends ModelRenderer {
 
-	private boolean compiledModel;
+    private boolean compiledModel;
 
-	private int displayListModel;
+    private int displayListModel;
 
-	private float x1, x2, y1, y2;
-	private int width, height;
-	private float rotationOffsetX, rotationOffsetY;
+    private float x1, x2, y1, y2;
+    private int width, height;
+    private float rotationOffsetX, rotationOffsetY;
 
-	private float scaleX = 1, scaleY = 1, thickness = 1;
+    private float scaleX = 1, scaleY = 1, thickness = 1;
 
-	public Model2DRenderer(ModelBase par1ModelBase, float x, float y, int width, int height, float textureWidth, float textureHeight) {
-		super(par1ModelBase);
-		this.width = width;
-		this.height = height;
-		this.textureWidth = textureWidth;
-		this.textureHeight = textureHeight;
+    public Model2DRenderer(ModelBase par1ModelBase, float x, float y, int width, int height, float textureWidth, float textureHeight) {
+        super(par1ModelBase);
+        this.width = width;
+        this.height = height;
+        this.textureWidth = textureWidth;
+        this.textureHeight = textureHeight;
 
-		x1 = x / textureWidth;
-		y1 = y / textureHeight;
+        x1 = x / textureWidth;
+        y1 = y / textureHeight;
 
-		x2 = (x + width) / textureWidth;
-		y2 = (y + height) / textureHeight;
-	}
+        x2 = (x + width) / textureWidth;
+        y2 = (y + height) / textureHeight;
+    }
 
-	public Model2DRenderer(ModelBase base, int x, int y, int width, int height) {
-		this(base, x, y, width, height, width, height);
-	}
+    public Model2DRenderer(ModelBase base, int x, int y, int width, int height) {
+        this(base, x, y, width, height, width, height);
+    }
 
-	public void render(float par1) {
-		if(!showModel || isHidden)
-			return;
-		if(!compiledModel)
-			compileDisplayListModel(par1);
+    public void render(float par1) {
+        if (!showModel || isHidden)
+            return;
+        if (!compiledModel)
+            compileDisplayListModel(par1);
 
-		GL11.glPushMatrix();
-		this.postRender(par1);
+        GL11.glPushMatrix();
+        this.postRender(par1);
 
-		GL11.glCallList(this.displayListModel);
-		GL11.glPopMatrix();
-	}
+        GL11.glCallList(this.displayListModel);
+        GL11.glPopMatrix();
+    }
 
-	public void setRotationOffset(float x, float y){
-		rotationOffsetX = x;
-		rotationOffsetY = y;
-	}
+    public void setRotationOffset(float x, float y) {
+        rotationOffsetX = x;
+        rotationOffsetY = y;
+    }
 
-	public void setScale(float scale){
-		this.scaleX = scale;
-		this.scaleY = scale;
-	}
-	public void setScale(float x, float y){
-		this.scaleX = x;
-		this.scaleY = y;
-	}
+    public void setScale(float scale) {
+        this.scaleX = scale;
+        this.scaleY = scale;
+    }
 
-	public void setThickness(float thickness) {
-		this.thickness = thickness;
-	}
-	@SideOnly(Side.CLIENT)
-	private void compileDisplayListModel(float par1)
-	{
-		this.displayListModel = GLAllocation.generateDisplayLists(1);
-		GL11.glNewList(this.displayListModel, GL11.GL_COMPILE);
+    public void setScale(float x, float y) {
+        this.scaleX = x;
+        this.scaleY = y;
+    }
 
-		GL11.glScalef(scaleX * width / height, scaleY, thickness);
-		GL11.glRotatef(180, 1F, 0F, 0F);
-		if(mirror){
-			GL11.glTranslatef(0, 0, -1f * par1);
-			GL11.glRotatef(180, 0, 1F, 0F);
-		}
+    public void setThickness(float thickness) {
+        this.thickness = thickness;
+    }
 
-		GL11.glTranslated( rotationOffsetX * par1, rotationOffsetY * par1, 0);
-		renderItemIn2D(x1, y1, x2, y2, width, height, par1);
+    @SideOnly(Side.CLIENT)
+    private void compileDisplayListModel(float par1) {
+        this.displayListModel = GLAllocation.generateDisplayLists(1);
+        GL11.glNewList(this.displayListModel, GL11.GL_COMPILE);
 
-		GL11.glEndList();
-		this.compiledModel = true;
-	}
+        GL11.glScalef(scaleX * width / height, scaleY, thickness);
+        GL11.glRotatef(180, 1F, 0F, 0F);
+        if (mirror) {
+            GL11.glTranslatef(0, 0, -1f * par1);
+            GL11.glRotatef(180, 0, 1F, 0F);
+        }
+
+        GL11.glTranslated(rotationOffsetX * par1, rotationOffsetY * par1, 0);
+        renderItemIn2D(x1, y1, x2, y2, width, height, par1);
+
+        GL11.glEndList();
+        this.compiledModel = true;
+    }
 
     public static void renderItemIn2D(float p_78439_1_, float p_78439_2_, float p_78439_3_, float p_78439_4_, int p_78439_5_, int p_78439_6_, float p_78439_7_) {
         Tessellator tessellator = Tessellator.instance;

@@ -1,6 +1,5 @@
 package noppes.npcs.scripted;
 
-
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 
@@ -14,7 +13,7 @@ public class ScriptedActionManager implements IActionManager {
     private Queue<IAction> actionQueue = new LinkedList<>();
 
     @Override
-    public IAction createAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
+    public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
         return new CustomAction(name, maxDuration, startAfterTicks, action);
     }
 
@@ -29,29 +28,22 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public void addScheduledAction(IAction action) {
+    public void scheduleAction(IAction action) {
         actionQueue.add(action);
     }
 
     @Override
-    public void addScheduledAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
-        addScheduledAction(createAction(name, maxDuration, startAfterTicks, action));
+    public void scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
+        scheduleAction(create(name, maxDuration, startAfterTicks, action));
     }
 
     @Override
-    public void addScheduledActionAt(int index, IAction action) {
+    public void scheduleActionAt(int index, IAction action) {
         ((LinkedList) actionQueue).add(index, action);
     }
 
     @Override
-    public void scheduleActionAfter(IAction after, IAction toSchedule) {
-        int index = getActionIndex(after);
-        if (index != -1)
-            addScheduledActionAt(index + 1, toSchedule);
-    }
-
-    @Override
-    public int getActionIndex(IAction action) {
+    public int getIndex(IAction action) {
         if (action == null)
             return -1;
         return ((LinkedList) actionQueue).indexOf(action);
@@ -67,9 +59,10 @@ public class ScriptedActionManager implements IActionManager {
         return actionQueue;
     }
 
-    public void clear(){
+    public void clear() {
         actionQueue.clear();
     }
+
     public void tick(int ticksExisted) {
         if (isWorking) {
             CustomAction current = (CustomAction) getCurrentAction();
@@ -86,12 +79,13 @@ public class ScriptedActionManager implements IActionManager {
     //Nested not static to access outer class instance
     public class CustomAction implements IAction {
         Consumer<IAction> action;
-        private HashMap<String, Object> data = new HashMap<>();
+        private final HashMap<String, Object> data = new HashMap<>();
 
-        private String name;
+        private final String name;
         private int startAfterTicks; //number of ticks to start action after
         private int count; //number of times action ran
-        private int duration, maxDuration;  //duration since action began
+        private int duration;
+        private final int maxDuration;  //duration since action began
         private int updateEveryXTick = 5;
 
         private boolean isDone;
@@ -139,8 +133,8 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public void setDone(boolean done) {
-            isDone = done;
+        public void markDone() {
+            isDone = true;
         }
 
         @Override
@@ -175,15 +169,44 @@ public class ScriptedActionManager implements IActionManager {
 
         @Override
         public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
-            return createAction(name, maxDuration, startAfterTicks, action);
+            return ScriptedActionManager.this.create(name, maxDuration, startAfterTicks, action);
         }
 
         @Override
-        public void scheduleAfter(IAction action) {
-            scheduleActionAfter(this, action);
+        public IAction getNext() {
+            int index = getIndex(this);
+            if (index != -1 && index + 1 < actionQueue.size())
+                return ((LinkedList<IAction>) actionQueue).get(index + 1);
+
+            return null;
+        }
+
+        @Override
+        public IAction getPrevious() {
+            int index = getIndex(this);
+
+            if (index == 0)
+                return null;
+            else if (index != -1)
+                return ((LinkedList<IAction>) actionQueue).get(index - 1);
+
+            return null;
+        }
+
+        @Override
+        public void scheduleAfter(IAction after) {
+            int index = getIndex(this);
+            if (index != -1)
+                scheduleActionAt(index + 1, after);
+        }
+
+        @Override
+        public void scheduleBefore(IAction before) {
+            int index = getIndex(this);
+            if (index != -1)
+                scheduleActionAt(index == 0 ? 0 : index - 1, before);
         }
     }
 }
-
 
 

@@ -10,7 +10,7 @@ public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
     public final IFaction faction;
     public final IPlayer player;
 
-    public FactionEvent(IPlayer player, IFaction faction){
+    public FactionEvent(IPlayer player, IFaction faction) {
         this.faction = faction;
         this.player = player;
     }

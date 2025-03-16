@@ -457,11 +457,12 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
         }
     }
 
-    public void save() {}
+    public void save() {
+    }
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-        if(type == EnumScrollData.QUEST_GROUP){
+        if (type == EnumScrollData.QUEST_GROUP) {
             String name = questScroll.getSelected();
             this.questData = data;
             questScroll.setList(getQuestSearch());
@@ -488,7 +489,8 @@ public class GuiNPCManageQuest extends GuiNPCInterface2 implements IScrollData, 
     }
 
     @Override
-    public void setSelected(String selected) {}
+    public void setSelected(String selected) {
+    }
 
     @Override
     public void confirmClicked(boolean result, int id) {

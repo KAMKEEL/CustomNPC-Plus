@@ -133,9 +133,10 @@ public enum EnumRequestPacket {
 
     PlayerDataInfo,
     PlayerDataGetNames,
-    PlayerDataDelete,
+    PlayerDataDeleteInfo,
     PlayerDataRemove,
     PlayerDataMapRegen,
+    PlayerDataSave,
 
     JobSave,
     JobGet,
@@ -184,17 +185,12 @@ public enum EnumRequestPacket {
     ColorSet,
     ColorBrush,
 
-    ProfileGet,
-    ProfileGetAll,
-    ProfileGetInfo,
-    ProfileCreate,
-    ProfileRemove,
-    ProfileRename,
-    ProfileChange,
-
     MagicCycleRemove,
     MagicCycleSave,
     MagicGetAll,
     MagicRemove,
-    MagicGet, MagicSave
+    MagicGet,
+    MagicSave,
+    NpcMagicGet,
+    NpcMagicSave, Hammer,
 }

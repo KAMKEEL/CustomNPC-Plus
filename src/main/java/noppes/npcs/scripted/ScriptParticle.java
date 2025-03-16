@@ -19,12 +19,12 @@ public class ScriptParticle implements IParticle {
 
     public int amount = 1;
     public int maxAge = 20;
-    public double x = 0,y = 0,z = 0;
-    public double motionX = 0,motionY = 0,motionZ = 0;
+    public double x = 0, y = 0, z = 0;
+    public double motionX = 0, motionY = 0, motionZ = 0;
     public float gravity = 0;
-    public float scaleX1 = 20.0f,scaleX2 = 20.0f,scaleXRate = 0.0f;
-    public float scaleY1 = 20.0f,scaleY2 = 20.0f,scaleYRate = 0.0f;
-    public float alpha1 = 1.0f,alpha2 = 1.0f,alphaRate = 0.0f;
+    public float scaleX1 = 20.0f, scaleX2 = 20.0f, scaleXRate = 0.0f;
+    public float scaleY1 = 20.0f, scaleY2 = 20.0f, scaleYRate = 0.0f;
+    public float alpha1 = 1.0f, alpha2 = 1.0f, alphaRate = 0.0f;
     public int scaleXRateStart = 0, scaleYRateStart, alphaRateStart = 0;
 
     public float rotationX1 = 0;
@@ -53,7 +53,7 @@ public class ScriptParticle implements IParticle {
     public boolean glows = true;
     public boolean noClip = true;
 
-    public ScriptParticle(String directory){
+    public ScriptParticle(String directory) {
         this.directory = directory;
     }
 
@@ -67,7 +67,8 @@ public class ScriptParticle implements IParticle {
                 if (!field.get(this).equals(field.get(newParticle))) {
                     compound = writeNBTTag(compound, field.getType(), field.getName(), field.get(this));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return compound;
@@ -120,18 +121,19 @@ public class ScriptParticle implements IParticle {
         for (Field field : ScriptParticle.class.getDeclaredFields()) {
             try {
                 if (compound.hasKey(field.getName())) {
-                    Object val = ScriptParticle.readNBTTag(compound,field.getName());
+                    Object val = ScriptParticle.readNBTTag(compound, field.getName());
                     if (val != null) {
                         field.set(particle, val);
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
 
         return particle;
     }
 
-    public void spawn(IEntity entity){
+    public void spawn(IEntity entity) {
         int entityID = entity.getMCEntity().getEntityId();
 
         NBTTagCompound compound = this.writeToNBT();
@@ -140,12 +142,12 @@ public class ScriptParticle implements IParticle {
         NoppesUtilServer.spawnScriptedParticle(compound, entity.getWorld().getDimensionID());
     }
 
-    public void spawn(IWorld world){
+    public void spawn(IWorld world) {
         NBTTagCompound compound = this.writeToNBT();
         NoppesUtilServer.spawnScriptedParticle(compound, world.getDimensionID());
     }
 
-    public void spawn(IWorld world, double x, double y, double z){
+    public void spawn(IWorld world, double x, double y, double z) {
         double prevX = this.x;
         double prevY = this.y;
         double prevZ = this.z;
@@ -170,22 +172,38 @@ public class ScriptParticle implements IParticle {
         spawn(world);
     }
 
-    public void spawnInWorld(IWorld world, double x, double y, double z){
+    public void spawnInWorld(IWorld world, double x, double y, double z) {
         spawn(world, x, y, z);
     }
 
-    public void setGlows(boolean glows) { this.glows = glows; }
-    public boolean getGlows() { return this.glows; }
+    public void setGlows(boolean glows) {
+        this.glows = glows;
+    }
 
-    public void setNoClip(boolean noClip) { this.noClip = noClip; }
-    public boolean getNoClip() { return this.noClip; }
+    public boolean getGlows() {
+        return this.glows;
+    }
 
-    public void setFacePlayer(boolean facePlayer) { this.facePlayer = facePlayer; }
-    public boolean getFacePlayer() { return facePlayer; }
+    public void setNoClip(boolean noClip) {
+        this.noClip = noClip;
+    }
+
+    public boolean getNoClip() {
+        return this.noClip;
+    }
+
+    public void setFacePlayer(boolean facePlayer) {
+        this.facePlayer = facePlayer;
+    }
+
+    public boolean getFacePlayer() {
+        return facePlayer;
+    }
 
     public String getDirectory() {
         return directory;
     }
+
     public void setDirectory(String directory) {
         this.directory = directory;
     }
@@ -193,6 +211,7 @@ public class ScriptParticle implements IParticle {
     public void setAmount(int amount) {
         this.amount = amount;
     }
+
     public int getAmount() {
         return amount;
     }
@@ -200,72 +219,105 @@ public class ScriptParticle implements IParticle {
     public void setMaxAge(int maxAge) {
         this.maxAge = maxAge;
     }
+
     public int getMaxAge() {
         return maxAge;
     }
 
-    public void setSize(int width, int height){
+    public void setSize(int width, int height) {
         this.width = width;
         this.height = height;
     }
-    public int getWidth() { return width; }
-    public int getHeight() { return height; }
 
-    public void setOffset(int offsetX, int offsetY){
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setOffset(int offsetX, int offsetY) {
         this.offsetX = offsetX;
         this.offsetY = offsetY;
     }
-    public int getOffsetX() { return offsetX; }
-    public int getOffsetY() { return offsetY; }
 
-    public void setAnim(int animRate, boolean animLoop, int animStart, int animEnd){
+    public int getOffsetX() {
+        return offsetX;
+    }
+
+    public int getOffsetY() {
+        return offsetY;
+    }
+
+    public void setAnim(int animRate, boolean animLoop, int animStart, int animEnd) {
         this.animRate = animRate;
         this.animLoop = animLoop;
         this.animStart = animStart;
         this.animEnd = animEnd;
     }
-    public int getAnimRate() { return animRate; }
-    public boolean getAnimLoop() { return animLoop; }
-    public int getAnimStart() { return animStart; }
-    public int getAnimEnd() { return animEnd; }
 
-    public void setPosition(double x, double y, double z){
+    public int getAnimRate() {
+        return animRate;
+    }
+
+    public boolean getAnimLoop() {
+        return animLoop;
+    }
+
+    public int getAnimStart() {
+        return animStart;
+    }
+
+    public int getAnimEnd() {
+        return animEnd;
+    }
+
+    public void setPosition(double x, double y, double z) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
+
     public double getX() {
         return x;
     }
+
     public double getY() {
         return y;
     }
+
     public double getZ() {
         return z;
     }
 
     public void setPosition(IPos pos) {
-        this.setPosition(pos.getXD(),pos.getYD(),pos.getZD());
-    }
-    public void getPos() {
-        NpcAPI.Instance().getIPos(x,y,z);
+        this.setPosition(pos.getXD(), pos.getYD(), pos.getZD());
     }
 
-    public void setMotion(double motionX, double motionY, double motionZ, float gravity){
+    public void getPos() {
+        NpcAPI.Instance().getIPos(x, y, z);
+    }
+
+    public void setMotion(double motionX, double motionY, double motionZ, float gravity) {
         this.motionX = motionX;
         this.motionY = motionY;
         this.motionZ = motionZ;
         this.gravity = gravity;
     }
+
     public double getMotionX() {
         return motionX;
     }
+
     public double getMotionY() {
         return motionY;
     }
+
     public double getMotionZ() {
         return motionZ;
     }
+
     public float getGravity() {
         return gravity;
     }
@@ -276,34 +328,42 @@ public class ScriptParticle implements IParticle {
         this.HEXColorRate = HEXColorRate;
         this.HEXColorStart = HEXColorStart;
     }
+
     public int getHEXColor1() {
         return HEXColor;
     }
+
     public int getHEXColor2() {
         return HEXColor2;
     }
+
     public float getHEXColorRate() {
         return HEXColorRate;
     }
+
     public int getHEXColorStart() {
         return HEXColorStart;
     }
 
-    public void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart){
+    public void setAlpha(float alpha1, float alpha2, float alphaRate, int alphaRateStart) {
         this.alpha1 = alpha1;
         this.alpha2 = alpha2;
         this.alphaRate = alphaRate;
         this.alphaRateStart = alphaRateStart;
     }
+
     public float getAlpha1() {
         return alpha1;
     }
+
     public float getAlpha2() {
         return alpha2;
     }
+
     public float getAlphaRate() {
         return alphaRate;
     }
+
     public int getAlphaRateStart() {
         return alphaRateStart;
     }
@@ -315,81 +375,126 @@ public class ScriptParticle implements IParticle {
         this.scaleXRateStart = this.scaleYRateStart = scaleRateStart;
     }
 
-    public void setScaleX(float scale1, float scale2, float scaleRate, int scaleRateStart){
+    public void setScaleX(float scale1, float scale2, float scaleRate, int scaleRateStart) {
         this.scaleX1 = scale1;
         this.scaleX2 = scale2;
         this.scaleXRate = scaleRate;
         this.scaleXRateStart = scaleRateStart;
     }
+
     public float getScaleX1() {
         return scaleX1;
     }
+
     public float getScaleX2() {
         return scaleX2;
     }
+
     public float getScaleXRate() {
         return scaleXRate;
     }
+
     public int getScaleXRateStart() {
         return scaleXRateStart;
     }
 
-    public void setScaleY(float scale1, float scale2, float scaleRate, int scaleRateStart){
+    public void setScaleY(float scale1, float scale2, float scaleRate, int scaleRateStart) {
         this.scaleY1 = scale1;
         this.scaleY2 = scale2;
         this.scaleYRate = scaleRate;
         this.scaleYRateStart = scaleRateStart;
     }
+
     public float getScaleY1() {
         return scaleY1;
     }
+
     public float getScaleY2() {
         return scaleY2;
     }
+
     public float getScaleYRate() {
         return scaleYRate;
     }
+
     public int getScaleYRateStart() {
         return scaleYRateStart;
     }
 
-    public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart){
+    public void setRotationX(float rotationX1, float rotationX2, float rotationXRate, int rotationXRateStart) {
         this.rotationX1 = rotationX1;
         this.rotationX2 = rotationX2;
         this.rotationXRate = rotationXRate;
         this.rotationXRateStart = rotationXRateStart;
     }
-    public float getRotationX1() {return rotationX1;}
-    public float getRotationX2() {return rotationX2;}
-    public float getRotationXRate() {return rotationXRate;}
-    public int getRotationXRateStart() {return rotationXRateStart;}
 
-    public void setRotationY(float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart){
+    public float getRotationX1() {
+        return rotationX1;
+    }
+
+    public float getRotationX2() {
+        return rotationX2;
+    }
+
+    public float getRotationXRate() {
+        return rotationXRate;
+    }
+
+    public int getRotationXRateStart() {
+        return rotationXRateStart;
+    }
+
+    public void setRotationY(float rotationY1, float rotationY2, float rotationYRate, int rotationYRateStart) {
         this.rotationY1 = rotationY1;
         this.rotationY2 = rotationY2;
         this.rotationYRate = rotationYRate;
         this.rotationYRateStart = rotationYRateStart;
     }
-    public float getRotationY1() {return rotationY1;}
-    public float getRotationY2() {return rotationY2;}
-    public float getRotationYRate() {return rotationYRate;}
-    public int getRotationYRateStart() {return rotationYRateStart;}
 
-    public void setRotationZ(float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart){
+    public float getRotationY1() {
+        return rotationY1;
+    }
+
+    public float getRotationY2() {
+        return rotationY2;
+    }
+
+    public float getRotationYRate() {
+        return rotationYRate;
+    }
+
+    public int getRotationYRateStart() {
+        return rotationYRateStart;
+    }
+
+    public void setRotationZ(float rotationZ1, float rotationZ2, float rotationZRate, int rotationZRateStart) {
         this.rotationZ1 = rotationZ1;
         this.rotationZ2 = rotationZ2;
         this.rotationZRate = rotationZRate;
         this.rotationZRateStart = rotationZRateStart;
     }
-    public float getRotationZ1() {return rotationZ1;}
-    public float getRotationZ2() {return rotationZ2;}
-    public float getRotationZRate() {return rotationZRate;}
-    public int getRotationZRateStart() {return rotationZRateStart;}
+
+    public float getRotationZ1() {
+        return rotationZ1;
+    }
+
+    public float getRotationZ2() {
+        return rotationZ2;
+    }
+
+    public float getRotationZRate() {
+        return rotationZRate;
+    }
+
+    public int getRotationZRateStart() {
+        return rotationZRateStart;
+    }
 
     @Deprecated
     public void setHEXColor(int HEXColor) {
         this.HEXColor = HEXColor;
     }
+
     @Deprecated
     public int getHEXColor() {
         return HEXColor;

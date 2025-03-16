@@ -9,20 +9,17 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.handler.IMagicHandler;
+import noppes.npcs.constants.EnumDiagramLayout;
 import noppes.npcs.controllers.data.Magic;
-import noppes.npcs.controllers.data.MagicCycle;
 import noppes.npcs.controllers.data.MagicAssociation;
+import noppes.npcs.controllers.data.MagicCycle;
 
-import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
 
-public class MagicController {
+public class MagicController implements IMagicHandler {
     public HashMap<Integer, Magic> magics = new HashMap<>();
     public HashMap<Integer, Magic> magicSync = new HashMap<>();
 
@@ -42,10 +39,12 @@ public class MagicController {
         return instance;
     }
 
+    @Override
     public Magic getMagic(int magicId) {
         return magics.get(magicId);
     }
 
+    @Override
     public MagicCycle getCycle(int cycleID) {
         return cycles.get(cycleID);
     }
@@ -70,56 +69,86 @@ public class MagicController {
                 if (file.exists()) {
                     loadMagicFile(file);
                 }
-            } catch (Exception ee) { }
+            } catch (Exception ee) {
+            }
         }
 
-        if (magics.isEmpty()) {
+        if (magics.isEmpty() && cycles.isEmpty()) {
             // Create default magics
-            Magic earth  = new Magic(0, "Earth", 0x00DD00);
+            Magic earth = new Magic(getUnusedId(), "Earth", 0x00DD00);
             earth.setItem(new ItemStack(CustomItems.earthElement));
 
-            Magic water  = new Magic(1, "Water", 0xF2DD00);
+            Magic water = new Magic(getUnusedId(), "Water", 0xF2DD00);
             water.setItem(new ItemStack(CustomItems.waterElement));
 
-            Magic fire   = new Magic(2, "Fire", 0xDD0000);
+            Magic fire = new Magic(getUnusedId(), "Fire", 0xDD0000);
             fire.setItem(new ItemStack(CustomItems.spellFire));
 
-            Magic air    = new Magic(3, "Air", 0xDD0000);
+            Magic air = new Magic(getUnusedId(), "Air", 0xDD0000);
             air.setItem(new ItemStack(CustomItems.airElement));
 
-            Magic dark   = new Magic(4, "Dark", 0xDD0000);
+            Magic dark = new Magic(getUnusedId(), "Dark", 0xDD0000);
             dark.setItem(new ItemStack(CustomItems.spellDark));
 
-            Magic holy   = new Magic(5, "Holy", 0xDD0000);
+            Magic holy = new Magic(getUnusedId(), "Holy", 0xDD0000);
             holy.setItem(new ItemStack(CustomItems.spellHoly));
 
-            Magic nature = new Magic(6, "Nature", 0xDD0000);
+            Magic nature = new Magic(getUnusedId(), "Nature", 0xDD0000);
             nature.setItem(new ItemStack(CustomItems.spellNature));
 
-            Magic arcane = new Magic(7, "Arcane", 0xDD0000);
+            Magic arcane = new Magic(getUnusedId(), "Arcane", 0xDD0000);
             arcane.setItem(new ItemStack(CustomItems.spellArcane));
 
             // Insiders
-            earth.interactions.put(air.id, 0.60f);
-            water.interactions.put(earth.id, 0.60f);
-            fire.interactions.put(water.id, 0.60f);
-            air.interactions.put(fire.id, 0.60f);
+            earth.interactions.put(air.id, -0.50f);
+            air.interactions.put(earth.id,  0.50f);
+
+            water.interactions.put(earth.id, -0.50f);
+            earth.interactions.put(water.id,  0.50f);
+
+            fire.interactions.put(water.id, -0.50f);
+            water.interactions.put(fire.id,  0.50f);
+
+            air.interactions.put(fire.id, -0.50f);
+            fire.interactions.put(air.id,  0.50f);
 
             // Outsiders
-            dark.interactions.put(nature.id, 0.60f);
-            nature.interactions.put(holy.id, 0.60f);
-            holy.interactions.put(arcane.id, 0.60f);
-            arcane.interactions.put(dark.id, 0.60f);
+            dark.interactions.put(nature.id, -0.50f);
+            nature.interactions.put(dark.id,  0.50f);
+
+            nature.interactions.put(holy.id, -0.50f);
+            holy.interactions.put(nature.id,  0.50f);
+
+            holy.interactions.put(arcane.id, -0.50f);
+            arcane.interactions.put(holy.id,  0.50f);
+
+            arcane.interactions.put(dark.id, -0.50f);
+            dark.interactions.put(arcane.id,  0.50f);
 
             // Cross Interactions
-            earth.interactions.put(nature.id, 0.30f);
-            water.interactions.put(holy.id, 0.30f);
-            fire.interactions.put(arcane.id, 0.30f);
-            air.interactions.put(dark.id, 0.30f);
-            dark.interactions.put(fire.id, 0.30f);
-            nature.interactions.put(air.id, 0.30f);
-            holy.interactions.put(earth.id, 0.30f);
-            arcane.interactions.put(water.id, 0.30f);
+            earth.interactions.put(nature.id, -0.25f);
+            nature.interactions.put(earth.id,  0.25f);
+
+            water.interactions.put(holy.id, -0.25f);
+            holy.interactions.put(water.id,  0.25f);
+
+            fire.interactions.put(arcane.id, -0.25f);
+            arcane.interactions.put(fire.id,  0.25f);
+
+            air.interactions.put(dark.id, -0.25f);
+            dark.interactions.put(air.id,  0.25f);
+
+            dark.interactions.put(fire.id, -0.25f);
+            fire.interactions.put(dark.id,  0.25f);
+
+            nature.interactions.put(air.id, -0.25f);
+            air.interactions.put(nature.id,  0.25f);
+
+            holy.interactions.put(earth.id, -0.25f);
+            earth.interactions.put(holy.id,  0.25f);
+
+            arcane.interactions.put(water.id, -0.25f);
+            water.interactions.put(arcane.id,  0.25f);
 
             // Add them to the registry
             magics.put(earth.id, earth);
@@ -130,6 +159,25 @@ public class MagicController {
             magics.put(holy.id, holy);
             magics.put(nature.id, nature);
             magics.put(arcane.id, arcane);
+
+            MagicCycle defaultCycle = new MagicCycle();
+            defaultCycle.id = getUnusedCycleId();
+            defaultCycle.name = "Universal";
+            defaultCycle.layout = EnumDiagramLayout.CIRCULAR_MANUAL;
+            defaultCycle.displayName = "&6Elementa Cycle";
+            cycles.put(defaultCycle.id, defaultCycle);
+
+            // Add magic associations using your old index and priority values:
+            addMagicToCycle(earth.id, defaultCycle.id, 1, 1); // Earth: index 1, priority 1
+            addMagicToCycle(water.id, defaultCycle.id, 1, 2); // Water: index 1, priority 2
+            addMagicToCycle(fire.id, defaultCycle.id, 1, 3); // Fire: index 1, priority 3
+            addMagicToCycle(air.id, defaultCycle.id, 1, 0); // Air: index 1, priority 0
+            addMagicToCycle(dark.id, defaultCycle.id, 0, 3); // Dark: index 0, priority 3
+            addMagicToCycle(holy.id, defaultCycle.id, 0, 1); // Holy: index 0, priority 1
+            addMagicToCycle(nature.id, defaultCycle.id, 0, 0); // Nature: index 0, priority 0
+            addMagicToCycle(arcane.id, defaultCycle.id, 0, 2); // Arcane: index 0, priority 2
+
+            saveMagicData();
         }
     }
 
@@ -308,13 +356,14 @@ public class MagicController {
     /**
      * Associates a magic with a category along with its per-category ordering data.
      */
+    @Override
     public void addMagicToCycle(int magicId, int cycleId, int index, int priority) {
         MagicCycle cat = cycles.get(cycleId);
         if (cat == null)
             return;
 
         Magic magic = magics.get(magicId);
-        if(magic == null)
+        if (magic == null)
             return;
 
         MagicAssociation assoc = new MagicAssociation();
@@ -326,6 +375,7 @@ public class MagicController {
         saveCycle(cat);
     }
 
+    @Override
     public void removeMagicFromCycle(int magicId, int cycleId) {
         MagicCycle cat = cycles.get(cycleId);
         if (cat == null) return;

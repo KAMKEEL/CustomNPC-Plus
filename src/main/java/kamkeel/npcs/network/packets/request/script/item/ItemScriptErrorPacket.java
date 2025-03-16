@@ -29,7 +29,8 @@ public final class ItemScriptErrorPacket extends AbstractPacket {
 
     private Action action;
 
-    public ItemScriptErrorPacket() {}
+    public ItemScriptErrorPacket() {
+    }
 
     public ItemScriptErrorPacket(Action action) {
         this.action = action;
@@ -46,7 +47,7 @@ public final class ItemScriptErrorPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_ITEM;
     }
 
@@ -67,8 +68,8 @@ public final class ItemScriptErrorPacket extends AbstractPacket {
 
         Action requestedAction = Action.values()[in.readInt()];
         IItemStack iw = NpcAPI.Instance().getIItemStack(player.getHeldItem());
-        if(iw instanceof ScriptCustomItem){
-            if(requestedAction == Action.GET){
+        if (iw instanceof ScriptCustomItem) {
+            if (requestedAction == Action.GET) {
                 TreeMap<Long, String> map = new TreeMap<>();
                 int tab = 0;
                 for (ScriptContainer script : ((ScriptCustomItem) iw).scripts) {

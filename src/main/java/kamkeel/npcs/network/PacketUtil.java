@@ -93,6 +93,20 @@ public class PacketUtil {
                     return false;
                 }
                 break;
+            case HAMMER:
+                if (item.getItem() != CustomItems.tool || item.getItemDamage() != 0) {
+                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Hammer, they could be a hacker",
+                        player.getCommandSenderName(), type));
+                    return false;
+                }
+                break;
+            case MAGIC_BOOK:
+                if (item.getItem() != CustomItems.tool || item.getItemDamage() != 2) {
+                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Magic Book, they could be a hacker",
+                        player.getCommandSenderName(), type));
+                    return false;
+                }
+                break;
         }
         return true;
     }
@@ -126,7 +140,7 @@ public class PacketUtil {
     }
 
     private static boolean isValidItemForType(ItemStack item, EnumItemPacketType type) {
-        if(item == null || item.getItem() == null)
+        if (item == null || item.getItem() == null)
             return false;
 
         switch (type) {
@@ -149,6 +163,10 @@ public class PacketUtil {
                     || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock));
             case BRUSH:
                 return item.getItem() == CustomItems.tool && item.getItemDamage() == 1;
+            case HAMMER:
+                return item.getItem() == CustomItems.tool && item.getItemDamage() == 0;
+            case MAGIC_BOOK:
+                return item.getItem() == CustomItems.tool && item.getItemDamage() == 2;
             default:
                 return false;
         }
@@ -186,6 +204,10 @@ public class PacketUtil {
                 return "valid Block";
             case BRUSH:
                 return "Paintbrush";
+            case HAMMER:
+                return "Hammer";
+            case MAGIC_BOOK:
+                return "Magic Book";
             default:
                 return type.toString();
         }
@@ -202,9 +224,9 @@ public class PacketUtil {
         for (int i = 0; i < containers.size(); i++) {
             ScriptContainer container = containers.get(i);
             NBTTagCompound tabCompound = new NBTTagCompound();
-            tabCompound.setInteger("Tab",i);
-            tabCompound.setTag("Script",container.writeToNBT(new NBTTagCompound()));
-            tabCompound.setInteger("TotalScripts",containers.size());
+            tabCompound.setInteger("Tab", i);
+            tabCompound.setTag("Script", container.writeToNBT(new NBTTagCompound()));
+            tabCompound.setInteger("TotalScripts", containers.size());
             GuiDataPacket.sendGuiData(player, tabCompound);
         }
     }
@@ -218,14 +240,14 @@ public class PacketUtil {
 
         if (tab >= 0) {
             if (data.getScripts().size() > totalScripts) {
-                data.setScripts(data.getScripts().subList(0,totalScripts));
+                data.setScripts(data.getScripts().subList(0, totalScripts));
             } else while (data.getScripts().size() < totalScripts) {
                 data.getScripts().add(new ScriptContainer(data));
             }
             NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
             ScriptContainer script = new ScriptContainer(data);
             script.readFromNBT(tabCompound);
-            data.getScripts().set(tab,script);
+            data.getScripts().set(tab, script);
         } else {
             NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             data.setLanguage(compound.getString("ScriptLanguage"));

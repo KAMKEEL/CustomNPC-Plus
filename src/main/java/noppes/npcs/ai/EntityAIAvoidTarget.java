@@ -13,26 +13,32 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
-public class EntityAIAvoidTarget extends EntityAIBase
-{
-    /** The entity we are attached to */
+public class EntityAIAvoidTarget extends EntityAIBase {
+    /**
+     * The entity we are attached to
+     */
     private EntityNPCInterface theEntity;
     private Entity closestLivingEntity;
     private float distanceFromEntity;
 
     private float health;
 
-    /** The PathEntity of our entity */
+    /**
+     * The PathEntity of our entity
+     */
     private PathEntity entityPathEntity;
 
-    /** The PathNavigate of our entity */
+    /**
+     * The PathNavigate of our entity
+     */
     private PathNavigate entityPathNavigate;
 
-    /** The class of the entity we should avoid */
+    /**
+     * The class of the entity we should avoid
+     */
     private Class targetEntityClass;
 
-    public EntityAIAvoidTarget(EntityNPCInterface par1EntityNPC)
-    {
+    public EntityAIAvoidTarget(EntityNPCInterface par1EntityNPC) {
         this.theEntity = par1EntityNPC;
         this.distanceFromEntity = this.theEntity.stats.aggroRange;
         this.health = this.theEntity.getHealth();
@@ -43,64 +49,47 @@ public class EntityAIAvoidTarget extends EntityAIBase
     /**
      * Returns whether the EntityAIBase should begin execution.
      */
-    public boolean shouldExecute()
-    {
-    	EntityLivingBase target = this.theEntity.getAttackTarget();
+    public boolean shouldExecute() {
+        EntityLivingBase target = this.theEntity.getAttackTarget();
 
-    	if (target == null)
-        {
+        if (target == null) {
             return false;
         }
 
-    	targetEntityClass = target.getClass();
+        targetEntityClass = target.getClass();
 
-        if (this.targetEntityClass == EntityPlayer.class)
-        {
-            this.closestLivingEntity = this.theEntity.worldObj.getClosestPlayerToEntity(this.theEntity, (double)this.distanceFromEntity);
+        if (this.targetEntityClass == EntityPlayer.class) {
+            this.closestLivingEntity = this.theEntity.worldObj.getClosestPlayerToEntity(this.theEntity, (double) this.distanceFromEntity);
 
-            if (this.closestLivingEntity == null)
-            {
+            if (this.closestLivingEntity == null) {
                 return false;
             }
-        }
-        else
-        {
-            List var1 = this.theEntity.worldObj.getEntitiesWithinAABB(this.targetEntityClass, this.theEntity.boundingBox.expand((double)this.distanceFromEntity, 3.0D, (double)this.distanceFromEntity));
+        } else {
+            List var1 = this.theEntity.worldObj.getEntitiesWithinAABB(this.targetEntityClass, this.theEntity.boundingBox.expand((double) this.distanceFromEntity, 3.0D, (double) this.distanceFromEntity));
 
-            if (var1.isEmpty())
-            {
+            if (var1.isEmpty()) {
                 return false;
             }
 
-            this.closestLivingEntity = (Entity)var1.get(0);
+            this.closestLivingEntity = (Entity) var1.get(0);
         }
 
-        if (!this.theEntity.getEntitySenses().canSee(this.closestLivingEntity) && this.theEntity.ais.directLOS)
-        {
+        if (!this.theEntity.getEntitySenses().canSee(this.closestLivingEntity) && this.theEntity.ais.directLOS) {
             return false;
-        }
-        else
-        {
+        } else {
             Vec3 var2 = RandomPositionGeneratorAlt.findRandomTargetBlockAwayFrom(this.theEntity, 16, 7, Vec3.createVectorHelper(this.closestLivingEntity.posX, this.closestLivingEntity.posY, this.closestLivingEntity.posZ));
 
             boolean var3 = this.theEntity.inventory.getProjectile() == null || this.theEntity.ais.useRangeMelee == 2;
 
             boolean var4 = var3 ? this.health == this.theEntity.getHealth() : this.theEntity.getRangedTask() != null && !this.theEntity.getRangedTask().hasFired();
 
-            if (var2 == null)
-            {
+            if (var2 == null) {
                 return false;
-            }
-            else if (this.closestLivingEntity.getDistanceSq(var2.xCoord, var2.yCoord, var2.zCoord) < this.closestLivingEntity.getDistanceSqToEntity(this.theEntity))
-            {
+            } else if (this.closestLivingEntity.getDistanceSq(var2.xCoord, var2.yCoord, var2.zCoord) < this.closestLivingEntity.getDistanceSqToEntity(this.theEntity)) {
                 return false;
-            }
-            else if (this.theEntity.ais.tacticalVariant == EnumNavType.HitNRun && var4)
-            {
-            	return false;
-            }
-            else
-            {
+            } else if (this.theEntity.ais.tacticalVariant == EnumNavType.HitNRun && var4) {
+                return false;
+            } else {
                 this.entityPathEntity = this.entityPathNavigate.getPathToXYZ(var2.xCoord, var2.yCoord, var2.zCoord);
                 return this.entityPathEntity == null ? false : this.entityPathEntity.isDestinationSame(var2);
             }
@@ -110,24 +99,21 @@ public class EntityAIAvoidTarget extends EntityAIBase
     /**
      * Returns whether an in-progress EntityAIBase should continue executing
      */
-    public boolean continueExecuting()
-    {
+    public boolean continueExecuting() {
         return !this.entityPathNavigate.noPath();
     }
 
     /**
      * Execute a one shot task or start executing a continuous task
      */
-    public void startExecuting()
-    {
+    public void startExecuting() {
         this.entityPathNavigate.setPath(this.entityPathEntity, 1.0D);
     }
 
     /**
      * Resets the task
      */
-    public void resetTask()
-    {
+    public void resetTask() {
         this.closestLivingEntity = null;
         this.theEntity.setAttackTarget(null);
     }
@@ -135,23 +121,17 @@ public class EntityAIAvoidTarget extends EntityAIBase
     /**
      * Updates the task
      */
-    public void updateTask()
-    {
-        if (this.theEntity.getDistanceSqToEntity(this.closestLivingEntity) < 49.0D)
-        {
+    public void updateTask() {
+        if (this.theEntity.getDistanceSqToEntity(this.closestLivingEntity) < 49.0D) {
             this.theEntity.getNavigator().setSpeed(1.2D);
-        }
-        else
-        {
+        } else {
             this.theEntity.getNavigator().setSpeed(1.0D);
         }
-        if (this.theEntity.ais.tacticalVariant == EnumNavType.HitNRun)
-        {
-        	float dist = this.theEntity.getDistanceToEntity(this.closestLivingEntity);
-        	if (dist > this.distanceFromEntity || dist < this.theEntity.ais.tacticalRadius)
-        	{
-        		this.health = this.theEntity.getHealth();
-        	}
+        if (this.theEntity.ais.tacticalVariant == EnumNavType.HitNRun) {
+            float dist = this.theEntity.getDistanceToEntity(this.closestLivingEntity);
+            if (dist > this.distanceFromEntity || dist < this.theEntity.ais.tacticalRadius) {
+                this.health = this.theEntity.getHealth();
+            }
         }
     }
 }

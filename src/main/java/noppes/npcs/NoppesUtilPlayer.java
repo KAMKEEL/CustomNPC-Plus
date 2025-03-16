@@ -43,278 +43,277 @@ import java.util.*;
 
 public class NoppesUtilPlayer {
 
-	public static void changeFollowerState(EntityPlayerMP player, EntityNPCInterface npc) {
-		if(npc.advanced.role != EnumRoleType.Follower)
-			return;
+    public static void changeFollowerState(EntityPlayerMP player, EntityNPCInterface npc) {
+        if (npc.advanced.role != EnumRoleType.Follower)
+            return;
 
-		RoleFollower role = (RoleFollower) npc.roleInterface;
-		EntityPlayer owner = role.owner;
-		if(owner == null || !owner.getCommandSenderName().equals(player.getCommandSenderName()))
-			return;
+        RoleFollower role = (RoleFollower) npc.roleInterface;
+        EntityPlayer owner = role.owner;
+        if (owner == null || !owner.getCommandSenderName().equals(player.getCommandSenderName()))
+            return;
 
-		role.isFollowing = !role.isFollowing;
-	}
-	public static void hireFollower(EntityPlayerMP player, EntityNPCInterface npc) {
-		if(npc.advanced.role != EnumRoleType.Follower)
-			return;
-		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCFollowerHire))
-			return;
+        role.isFollowing = !role.isFollowing;
+    }
 
-		ContainerNPCFollowerHire container = (ContainerNPCFollowerHire) con;
-		RoleFollower role = (RoleFollower) npc.roleInterface;
-		followerBuy(role, container.currencyMatrix, player, npc);
-	}
-	public static void extendFollower(EntityPlayerMP player, EntityNPCInterface npc) {
-		if(npc.advanced.role != EnumRoleType.Follower)
-			return;
-		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCFollower))
-			return;
+    public static void hireFollower(EntityPlayerMP player, EntityNPCInterface npc) {
+        if (npc.advanced.role != EnumRoleType.Follower)
+            return;
+        Container con = player.openContainer;
+        if (con == null || !(con instanceof ContainerNPCFollowerHire))
+            return;
 
-		ContainerNPCFollower container = (ContainerNPCFollower) con;
-		RoleFollower role = (RoleFollower) npc.roleInterface;
-		followerBuy(role, container.currencyMatrix, player, npc);
-	}
-	public static void transport(EntityPlayerMP player, EntityNPCInterface npc, String location){
-		TransportLocation loc = TransportController.getInstance().getTransport(location);
+        ContainerNPCFollowerHire container = (ContainerNPCFollowerHire) con;
+        RoleFollower role = (RoleFollower) npc.roleInterface;
+        followerBuy(role, container.currencyMatrix, player, npc);
+    }
+
+    public static void extendFollower(EntityPlayerMP player, EntityNPCInterface npc) {
+        if (npc.advanced.role != EnumRoleType.Follower)
+            return;
+        Container con = player.openContainer;
+        if (con == null || !(con instanceof ContainerNPCFollower))
+            return;
+
+        ContainerNPCFollower container = (ContainerNPCFollower) con;
+        RoleFollower role = (RoleFollower) npc.roleInterface;
+        followerBuy(role, container.currencyMatrix, player, npc);
+    }
+
+    public static void transport(EntityPlayerMP player, EntityNPCInterface npc, String location) {
+        TransportLocation loc = TransportController.getInstance().getTransport(location);
         PlayerTransportData playerdata = PlayerDataController.Instance.getPlayerData(player).transportData;
 
-		if(loc == null || !loc.isDefault() && !playerdata.transports.contains(loc.id))
-			return;
+        if (loc == null || !loc.isDefault() && !playerdata.transports.contains(loc.id))
+            return;
 
-		teleportPlayer(player, loc.posX, loc.posY, loc.posZ, loc.dimension);
-	}
+        teleportPlayer(player, loc.posX, loc.posY, loc.posZ, loc.dimension);
+    }
 
-	public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, int dimension){
-		if(player.dimension != dimension){
-			int dim = player.dimension;
-			MinecraftServer server = MinecraftServer.getServer();
+    public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, int dimension) {
+        if (player.dimension != dimension) {
+            int dim = player.dimension;
+            MinecraftServer server = MinecraftServer.getServer();
             WorldServer wor = server.worldServerForDimension(dimension);
-            if(wor == null){
-            	player.addChatMessage(new ChatComponentText("Broken transporter. Dimension does not exist"));
-            	return;
+            if (wor == null) {
+                player.addChatMessage(new ChatComponentText("Broken transporter. Dimension does not exist"));
+                return;
             }
             player.setLocationAndAngles(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
             server.getConfigurationManager().transferPlayerToDimension(player, dimension, new CustomTeleporter(wor));
-    		player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
+            player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
 
-    		if(!wor.playerEntities.contains(player))
+            if (!wor.playerEntities.contains(player))
                 wor.spawnEntityInWorld(player);
-		}
-		else{
-			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
-		}
+        } else {
+            player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, player.rotationYaw, player.rotationPitch);
+        }
         player.worldObj.updateEntityWithOptionalForce(player, false);
-	}
+    }
 
-	public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, float yaw, float pitch, int dimension){
-		if(player.dimension != dimension){
-			int dim = player.dimension;
-			MinecraftServer server = MinecraftServer.getServer();
-			WorldServer wor = server.worldServerForDimension(dimension);
-			if(wor == null){
-				player.addChatMessage(new ChatComponentText("Broken transporter. Dimenion does not exist"));
-				return;
-			}
-			player.setLocationAndAngles(posX, posY, posZ, yaw, pitch);
-			server.getConfigurationManager().transferPlayerToDimension(player, dimension, new CustomTeleporter(wor));
-			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
+    public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, float yaw, float pitch, int dimension) {
+        if (player.dimension != dimension) {
+            int dim = player.dimension;
+            MinecraftServer server = MinecraftServer.getServer();
+            WorldServer wor = server.worldServerForDimension(dimension);
+            if (wor == null) {
+                player.addChatMessage(new ChatComponentText("Broken transporter. Dimenion does not exist"));
+                return;
+            }
+            player.setLocationAndAngles(posX, posY, posZ, yaw, pitch);
+            server.getConfigurationManager().transferPlayerToDimension(player, dimension, new CustomTeleporter(wor));
+            player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
 
-			if(!wor.playerEntities.contains(player))
-				wor.spawnEntityInWorld(player);
-		}
-		else{
-			player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
-		}
-		player.worldObj.updateEntityWithOptionalForce(player, false);
-	}
+            if (!wor.playerEntities.contains(player))
+                wor.spawnEntityInWorld(player);
+        } else {
+            player.playerNetServerHandler.setPlayerLocation(posX, posY, posZ, yaw, pitch);
+        }
+        player.worldObj.updateEntityWithOptionalForce(player, false);
+    }
 
-	public static void disableMouseInput(EntityPlayerMP player, long time, int... buttonIds) {
-		StringBuilder stringedIds = new StringBuilder();
-		for (int i = 0; i < buttonIds.length; i++) {
-			stringedIds.append(i);
-			if (i < buttonIds.length - 1) {
-				stringedIds.append(";");
-			}
-		}
+    public static void disableMouseInput(EntityPlayerMP player, long time, int... buttonIds) {
+        StringBuilder stringedIds = new StringBuilder();
+        for (int i = 0; i < buttonIds.length; i++) {
+            stringedIds.append(i);
+            if (i < buttonIds.length - 1) {
+                stringedIds.append(";");
+            }
+        }
 
         PacketHandler.Instance.sendToPlayer(new DisableMouseInputPacket(time, stringedIds.toString()), player);
-	}
+    }
 
-	public static void swingPlayerArm(EntityPlayerMP player){
+    public static void swingPlayerArm(EntityPlayerMP player) {
         PacketHandler.Instance.sendToPlayer(new SwingPlayerArmPacket(), player);
-	}
+    }
 
-	private static void followerBuy(RoleFollower role,IInventory currencyInv,EntityPlayerMP player, EntityNPCInterface npc){
-    	ItemStack currency = currencyInv.getStackInSlot(0);
-		if(currency == null)
-    		return;
-    	HashMap<ItemStack,Integer> cd = new HashMap<ItemStack,Integer>();
-    	for(int i : role.inventory.items.keySet()){
-    		ItemStack is = role.inventory.items.get(i);
-    		if(is == null || is.getItem() != currency.getItem() || is.getHasSubtypes() && is.getItemDamage() != currency.getItemDamage())
-    			continue;
-    		int days = 1;
-    		if(role.rates.containsKey(i))
-    			days = role.rates.get(i);
+    private static void followerBuy(RoleFollower role, IInventory currencyInv, EntityPlayerMP player, EntityNPCInterface npc) {
+        ItemStack currency = currencyInv.getStackInSlot(0);
+        if (currency == null)
+            return;
+        HashMap<ItemStack, Integer> cd = new HashMap<ItemStack, Integer>();
+        for (int i : role.inventory.items.keySet()) {
+            ItemStack is = role.inventory.items.get(i);
+            if (is == null || is.getItem() != currency.getItem() || is.getHasSubtypes() && is.getItemDamage() != currency.getItemDamage())
+                continue;
+            int days = 1;
+            if (role.rates.containsKey(i))
+                days = role.rates.get(i);
 
-    		cd.put(is,days);
-    	}
-    	if(cd.size() == 0)
-    		return;
-    	int stackSize = currency.stackSize;
-    	int days = 0;
+            cd.put(is, days);
+        }
+        if (cd.size() == 0)
+            return;
+        int stackSize = currency.stackSize;
+        int days = 0;
 
-    	int possibleDays = 0;
-    	int possibleSize = stackSize;
-    	while(true){
-        	for(ItemStack item : cd.keySet()){
-        		int rDays = cd.get(item);
-        		int rValue = item.stackSize;
-        		if(rValue > stackSize)
-        			continue;
-        		int newStackSize = stackSize % rValue;
-        		int size = stackSize - newStackSize;
-        		int posDays = (size / rValue) * rDays;
-        		if(possibleDays <= posDays){
-        			possibleDays = posDays;
-        			possibleSize = newStackSize;
-        		}
-        	}
-        	if(stackSize == possibleSize)
-        		break;
-        	stackSize = possibleSize;
-        	days += possibleDays;
-        	possibleDays = 0;
-    	}
-    	if(days == 0)
-    		return;
-    	if(stackSize <= 0)
-    		currencyInv.setInventorySlotContents(0, null);
-    	else
-    		currency = currency.splitStack(stackSize);
+        int possibleDays = 0;
+        int possibleSize = stackSize;
+        while (true) {
+            for (ItemStack item : cd.keySet()) {
+                int rDays = cd.get(item);
+                int rValue = item.stackSize;
+                if (rValue > stackSize)
+                    continue;
+                int newStackSize = stackSize % rValue;
+                int size = stackSize - newStackSize;
+                int posDays = (size / rValue) * rDays;
+                if (possibleDays <= posDays) {
+                    possibleDays = posDays;
+                    possibleSize = newStackSize;
+                }
+            }
+            if (stackSize == possibleSize)
+                break;
+            stackSize = possibleSize;
+            days += possibleDays;
+            possibleDays = 0;
+        }
+        if (days == 0)
+            return;
+        if (stackSize <= 0)
+            currencyInv.setInventorySlotContents(0, null);
+        else
+            currency = currency.splitStack(stackSize);
 
-    	npc.say(player, new Line(NoppesStringUtils.formatText(role.dialogHire.replace("{days}", days+""), player, npc)));
-    	role.setOwner(player);
-    	role.addDays(days);
-	}
+        npc.say(player, new Line(NoppesStringUtils.formatText(role.dialogHire.replace("{days}", days + ""), player, npc)));
+        role.setOwner(player);
+        role.addDays(days);
+    }
 
-	public static void bankUpgrade(EntityPlayerMP player, EntityNPCInterface npc) {
-		if(npc.advanced.role != EnumRoleType.Bank)
-			return;
-		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCBankInterface))
-			return;
+    public static void bankUpgrade(EntityPlayerMP player, EntityNPCInterface npc) {
+        if (npc.advanced.role != EnumRoleType.Bank)
+            return;
+        Container con = player.openContainer;
+        if (con == null || !(con instanceof ContainerNPCBankInterface))
+            return;
 
-		ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
-		Bank bank = BankController.getInstance().getBank(container.bankid);
-		ItemStack item = bank.upgradeInventory.getStackInSlot(container.slot);
-		if(item == null)
-			return;
+        ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
+        Bank bank = BankController.getInstance().getBank(container.bankid);
+        ItemStack item = bank.upgradeInventory.getStackInSlot(container.slot);
+        if (item == null)
+            return;
 
-		int price = item.stackSize;
-		ItemStack currency = container.currencyMatrix.getStackInSlot(0);
-		if(currency == null || price > currency.stackSize)
-			return;
-		if(currency.stackSize - price == 0)
-			container.currencyMatrix.setInventorySlotContents(0, null);
-		else
-			currency = currency.splitStack(price);
-		player.closeContainer();
-		PlayerBankData data = PlayerDataController.Instance.getBankData(player,bank.id);
+        int price = item.stackSize;
+        ItemStack currency = container.currencyMatrix.getStackInSlot(0);
+        if (currency == null || price > currency.stackSize)
+            return;
+        if (currency.stackSize - price == 0)
+            container.currencyMatrix.setInventorySlotContents(0, null);
+        else
+            currency = currency.splitStack(price);
+        player.closeContainer();
+        PlayerBankData data = PlayerDataController.Instance.getBankData(player, bank.id);
         BankData bankData = data.getBank(bank.id);
-		bankData.upgradedSlots.put(container.slot, true);
+        bankData.upgradedSlots.put(container.slot, true);
 
-		bankData.openBankGui(player, npc, bank.id, container.slot);
-	}
-	public static void bankUnlock(EntityPlayerMP player, EntityNPCInterface npc) {
-		if(npc.advanced.role != EnumRoleType.Bank)
-			return;
-		Container con = player.openContainer;
-		if(con == null || !(con instanceof ContainerNPCBankInterface))
-			return;
-		ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
-		Bank bank = BankController.getInstance().getBank(container.bankid);
+        bankData.openBankGui(player, npc, bank.id, container.slot);
+    }
 
-		ItemStack item = bank.currencyInventory.getStackInSlot(container.slot);
-		if(item == null)
-			return;
+    public static void bankUnlock(EntityPlayerMP player, EntityNPCInterface npc) {
+        if (npc.advanced.role != EnumRoleType.Bank)
+            return;
+        Container con = player.openContainer;
+        if (con == null || !(con instanceof ContainerNPCBankInterface))
+            return;
+        ContainerNPCBankInterface container = (ContainerNPCBankInterface) con;
+        Bank bank = BankController.getInstance().getBank(container.bankid);
 
-		int price = item.stackSize;
-		ItemStack currency = container.currencyMatrix.getStackInSlot(0);
-		if(currency == null || price > currency.stackSize)
-			return;
-		if(currency.stackSize - price == 0)
-			container.currencyMatrix.setInventorySlotContents(0, null);
-		else
-			currency = currency.splitStack(price);
-		player.closeContainer();
-		PlayerBankData data = PlayerDataController.Instance.getBankData(player,bank.id);
+        ItemStack item = bank.currencyInventory.getStackInSlot(container.slot);
+        if (item == null)
+            return;
+
+        int price = item.stackSize;
+        ItemStack currency = container.currencyMatrix.getStackInSlot(0);
+        if (currency == null || price > currency.stackSize)
+            return;
+        if (currency.stackSize - price == 0)
+            container.currencyMatrix.setInventorySlotContents(0, null);
+        else
+            currency = currency.splitStack(price);
+        player.closeContainer();
+        PlayerBankData data = PlayerDataController.Instance.getBankData(player, bank.id);
         BankData bankData = data.getBank(bank.id);
-		if(bankData.unlockedSlots + 1 <= bank.maxSlots)
-			bankData.unlockedSlots++;
+        if (bankData.unlockedSlots + 1 <= bank.maxSlots)
+            bankData.unlockedSlots++;
 
-		bankData.openBankGui(player, npc, bank.id, container.slot);
-	}
+        bankData.openBankGui(player, npc, bank.id, container.slot);
+    }
 
-	public static void dialogSelected(int dialogId, int optionId, EntityPlayerMP player, EntityNPCInterface npc) {
-		Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
-		if(dialog == null)
-			return;
-		DialogOption option = dialog.options.get(optionId);
-		if (EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
-			return;
+    public static void dialogSelected(int dialogId, int optionId, EntityPlayerMP player, EntityNPCInterface npc) {
+        Dialog dialog = DialogController.Instance.dialogs.get(dialogId);
+        if (dialog == null)
+            return;
+        DialogOption option = dialog.options.get(optionId);
+        if (EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+            return;
 
-		if (!npc.isRemote()) {
-			EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
+        if (!npc.isRemote()) {
+            EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
 
-			if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-				EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
-				return;
-			}
-			if (option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-				EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
-				return;
-			}
-		}
-    	if(option.optionType == EnumOptionType.RoleOption){
-    		if(npc.roleInterface != null)
-    			npc.roleInterface.interact(player);
-    		else
-                GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
-    	}
-    	else if(option.optionType == EnumOptionType.DialogOption){
-    		NoppesUtilServer.openDialog(player, npc, option.getDialog(), optionId+1);
-    	}
-    	else if(option.optionType == EnumOptionType.CommandBlock){
-            GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
-    		NoppesUtilServer.runCommand(player, npc.getCommandSenderName(), option.command);
-    	}
-    	else
-            GuiClosePacket.closeGUI(player, -1 , new NBTTagCompound());
-	}
+            if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
+                EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                return;
+            }
+            if (option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
+                EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                return;
+            }
+        }
+        if (option.optionType == EnumOptionType.RoleOption) {
+            if (npc.roleInterface != null)
+                npc.roleInterface.interact(player);
+            else
+                GuiClosePacket.closeGUI(player, -1, new NBTTagCompound());
+        } else if (option.optionType == EnumOptionType.DialogOption) {
+            NoppesUtilServer.openDialog(player, npc, option.getDialog(), optionId + 1);
+        } else if (option.optionType == EnumOptionType.CommandBlock) {
+            GuiClosePacket.closeGUI(player, -1, new NBTTagCompound());
+            NoppesUtilServer.runCommand(player, npc.getCommandSenderName(), option.command);
+        } else
+            GuiClosePacket.closeGUI(player, -1, new NBTTagCompound());
+    }
 
-	public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+    public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
 
-		NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
-		HashMap<String,String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
-		for (Map.Entry<String,String> entry : questAlerts.entrySet()) {
-			Quest quest = getQuestFromStringKey(entry.getKey());
-			if (quest != null) {
-				playerData.questData.activeQuests.get(quest.id).sendAlerts = Boolean.parseBoolean(entry.getValue());
-			}
-		}
+        NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
+        HashMap<String, String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
+        for (Map.Entry<String, String> entry : questAlerts.entrySet()) {
+            Quest quest = getQuestFromStringKey(entry.getKey());
+            if (quest != null) {
+                playerData.questData.activeQuests.get(quest.id).sendAlerts = Boolean.parseBoolean(entry.getValue());
+            }
+        }
 
-		String trackedQuestString = ByteBufUtils.readString(buffer);
-		Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
-		if (trackedQuest != null) {
-			playerData.questData.trackQuest(trackedQuest);
-		} else {
-			playerData.questData.untrackQuest();
-		}
-	}
+        String trackedQuestString = ByteBufUtils.readString(buffer);
+        Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
+        if (trackedQuest != null) {
+            playerData.questData.trackQuest(trackedQuest);
+        } else {
+            playerData.questData.untrackQuest();
+        }
+    }
 
     public static void clearTrackQuest(EntityPlayerMP player) throws IOException {
         PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
@@ -333,9 +332,9 @@ public class NoppesUtilPlayer {
         }
     }
 
-	private static Quest getQuestFromStringKey(String string) {
-		if (string != null && string.contains(":")) {
-			String[] splitString = string.split(":");
+    private static Quest getQuestFromStringKey(String string) {
+        if (string != null && string.contains(":")) {
+            String[] splitString = string.split(":");
 
             String categoryName;
             String questName;
@@ -349,72 +348,70 @@ public class NoppesUtilPlayer {
                 questName = splitString[1];
             }
 
-			for (QuestCategory category : QuestController.Instance.categories.values()) {
-				if (category.title.equals(categoryName)) {
-					for (Quest quest : category.quests.values()) {
-						if (quest.title.equals(questName)) {
-							return quest;
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
+            for (QuestCategory category : QuestController.Instance.categories.values()) {
+                if (category.title.equals(categoryName)) {
+                    for (Quest quest : category.quests.values()) {
+                        if (quest.title.equals(questName)) {
+                            return quest;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
 
-	public static void sendTrackedQuestData(EntityPlayerMP player) {
-		Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
-		if(trackedQuest != null){
-			NBTTagCompound compound = new NBTTagCompound();
-			compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
-			compound.setString("CategoryName", trackedQuest.getCategory().getName());
-			if(trackedQuest.completion == EnumQuestCompletion.Instant){
-				compound.setBoolean("Instant", true);
-			}
-			else {
-				compound.setString("TurnInNPC", trackedQuest.getNpcName());
-			}
-			NBTTagList nbtTagList = new NBTTagList();
-			for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
-				nbtTagList.appendTag(new NBTTagString(objective.getText()));
-			}
-			compound.setTag("ObjectiveList",nbtTagList);
+    public static void sendTrackedQuestData(EntityPlayerMP player) {
+        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        if (trackedQuest != null) {
+            NBTTagCompound compound = new NBTTagCompound();
+            compound.setTag("Quest", trackedQuest.writeToNBT(new NBTTagCompound()));
+            compound.setString("CategoryName", trackedQuest.getCategory().getName());
+            if (trackedQuest.completion == EnumQuestCompletion.Instant) {
+                compound.setBoolean("Instant", true);
+            } else {
+                compound.setString("TurnInNPC", trackedQuest.getNpcName());
+            }
+            NBTTagList nbtTagList = new NBTTagList();
+            for (IQuestObjective objective : trackedQuest.questInterface.getObjectives(player)) {
+                nbtTagList.appendTag(new NBTTagString(objective.getText()));
+            }
+            compound.setTag("ObjectiveList", nbtTagList);
 
             PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(compound), player);
-		}
-	}
+        }
+    }
 
     public static void sendPartyTrackedQuestData(EntityPlayerMP player, Party party) {
         Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
-        if(trackedQuest != null){
+        if (trackedQuest != null) {
             NBTTagCompound compound = new NBTTagCompound();
-            compound.setTag("Quest",trackedQuest.writeToNBT(new NBTTagCompound()));
+            compound.setTag("Quest", trackedQuest.writeToNBT(new NBTTagCompound()));
             compound.setString("CategoryName", trackedQuest.getCategory().getName());
-            if(trackedQuest.completion == EnumQuestCompletion.Instant){
+            if (trackedQuest.completion == EnumQuestCompletion.Instant) {
                 compound.setBoolean("Instant", true);
-            }
-            else {
+            } else {
                 compound.setString("TurnInNPC", trackedQuest.getNpcName());
             }
             NBTTagList nbtTagList = new NBTTagList();
             for (IQuestObjective objective : trackedQuest.questInterface.getPartyObjectives(party)) {
                 nbtTagList.appendTag(new NBTTagString(objective.getText()));
-                if(objective.getAdditionalText() != null)
+                if (objective.getAdditionalText() != null)
                     nbtTagList.appendTag(new NBTTagString(objective.getAdditionalText()));
             }
-            compound.setTag("ObjectiveList",nbtTagList);
+            compound.setTag("ObjectiveList", nbtTagList);
             PacketHandler.Instance.sendToPlayer(new OverlayQuestTrackingPacket(compound), player);
         }
     }
 
-	public static void sendQuestLogData(EntityPlayerMP player) {
-        if(!PlayerQuestController.hasActiveQuests(player)){
-        	return;
+    public static void sendQuestLogData(EntityPlayerMP player) {
+        if (!PlayerQuestController.hasActiveQuests(player)) {
+            return;
         }
         QuestLogData data = new QuestLogData();
         data.setData(player);
         GuiDataPacket.sendGuiData(player, data.writeNBT());
-	}
+    }
 
     public static void sendTrackedQuest(EntityPlayerMP player) {
         QuestLogData data = new QuestLogData();
@@ -423,89 +420,89 @@ public class NoppesUtilPlayer {
         PartyDataPacket.sendPartyData(player, data.writeTrackedQuest());
     }
 
-	public static boolean questCompletion(EntityPlayerMP player, int questId) {
-		if(player == null)
-			return false;
+    public static boolean questCompletion(EntityPlayerMP player, int questId) {
+        if (player == null)
+            return false;
 
-		PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-		PlayerQuestData questData = playerData.questData;
-		QuestData data = questData.activeQuests.get(questId);
+        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerQuestData questData = playerData.questData;
+        QuestData data = questData.activeQuests.get(questId);
 
-		if (data == null)
-			return false;
+        if (data == null)
+            return false;
 
-		if (!data.quest.questInterface.isCompleted(playerData))
-			return false;
+        if (!data.quest.questInterface.isCompleted(playerData))
+            return false;
 
-		if (data.quest.completion == EnumQuestCompletion.Instant) {
-			EventHooks.onQuestFinished(player, data.quest);
-		}
+        if (data.quest.completion == EnumQuestCompletion.Instant) {
+            EventHooks.onQuestFinished(player, data.quest);
+        }
 
-		QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
+        QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
 
-		event.expReward = data.quest.rewardExp;
-		List<IItemStack> list = new ArrayList();
-		Iterator var8 = data.quest.rewardItems.items.values().iterator();
+        event.expReward = data.quest.rewardExp;
+        List<IItemStack> list = new ArrayList();
+        Iterator var8 = data.quest.rewardItems.items.values().iterator();
 
-		while(var8.hasNext()) {
-			ItemStack item = (ItemStack)var8.next();
-			if (item != null && item.stackSize > 0) {
-				IItemStack iStack = NpcAPI.Instance().getIItemStack(item);
-				if (iStack != null){
-					list.add(iStack);
-				}
-			}
-		}
+        while (var8.hasNext()) {
+            ItemStack item = (ItemStack) var8.next();
+            if (item != null && item.stackSize > 0) {
+                IItemStack iStack = NpcAPI.Instance().getIItemStack(item);
+                if (iStack != null) {
+                    list.add(iStack);
+                }
+            }
+        }
 
-		if (!data.quest.randomReward) {
-			event.itemRewards = (IItemStack[])list.toArray(new IItemStack[list.size()]);
-		} else if (!list.isEmpty()) {
-			event.itemRewards = new IItemStack[]{(IItemStack)list.get(player.getRNG().nextInt(list.size()))};
-		}
+        if (!data.quest.randomReward) {
+            event.itemRewards = (IItemStack[]) list.toArray(new IItemStack[list.size()]);
+        } else if (!list.isEmpty()) {
+            event.itemRewards = new IItemStack[]{(IItemStack) list.get(player.getRNG().nextInt(list.size()))};
+        }
 
-		EventHooks.onQuestTurnedIn(event);
-		if (event.isCancelled())
-			return false;
+        EventHooks.onQuestTurnedIn(event);
+        if (event.isCancelled())
+            return false;
 
-		IItemStack[] var12 = event.itemRewards;
-		int var14 = var12.length;
-		for(int var10 = 0; var10 < var14; ++var10) {
-			IItemStack item = var12[var10];
-			if (item != null) {
-				NoppesUtilServer.GivePlayerItem(player, player, item.getMCItemStack());
-			}
-		}
+        IItemStack[] var12 = event.itemRewards;
+        int var14 = var12.length;
+        for (int var10 = 0; var10 < var14; ++var10) {
+            IItemStack item = var12[var10];
+            if (item != null) {
+                NoppesUtilServer.GivePlayerItem(player, player, item.getMCItemStack());
+            }
+        }
 
-		data.quest.questInterface.handleComplete(player);
-		if(data.quest.rewardExp > 0){
-			player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
-			player.addExperience(data.quest.rewardExp);
-		}
-		data.quest.factionOptions.addPoints(player);
-		if(data.quest.mail.isValid()){
-			PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
-		}
+        data.quest.questInterface.handleComplete(player);
+        if (data.quest.rewardExp > 0) {
+            player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
+            player.addExperience(data.quest.rewardExp);
+        }
+        data.quest.factionOptions.addPoints(player);
+        if (data.quest.mail.isValid()) {
+            PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
+        }
 
-		if(!data.quest.command.isEmpty()){
-			NoppesUtilServer.runCommand(player, "QuestCompletion", data.quest.command);
-		}
+        if (!data.quest.command.isEmpty()) {
+            NoppesUtilServer.runCommand(player, "QuestCompletion", data.quest.command);
+        }
 
-		PlayerQuestController.setQuestFinished(data.quest, player);
-		if (data.quest.hasNewQuest()) {
-			QuestData nextQuest = new QuestData(data.quest.getNextQuest());
-			nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
-			PlayerQuestController.addActiveQuest(nextQuest, player);
-			questData.trackQuest(nextQuest.quest);
-		}
+        PlayerQuestController.setQuestFinished(data.quest, player);
+        if (data.quest.hasNewQuest()) {
+            QuestData nextQuest = new QuestData(data.quest.getNextQuest());
+            nextQuest.sendAlerts = data.quest.id != data.quest.getNextQuest().id || data.sendAlerts;
+            PlayerQuestController.addActiveQuest(nextQuest, player);
+            questData.trackQuest(nextQuest.quest);
+        }
 
-		playerData.save();
+        playerData.save();
 
-		return true;
-	}
+        return true;
+    }
 
 
     public static boolean questPartyCompletion(Party party) {
-        if(party == null)
+        if (party == null)
             return false;
 
         QuestData data = party.getQuestData();
@@ -517,7 +514,7 @@ public class NoppesUtilPlayer {
 
 
         Quest quest = data.quest;
-        if(quest == null)
+        if (quest == null)
             return false;
 
         if (data.quest.completion == EnumQuestCompletion.Instant)
@@ -533,13 +530,13 @@ public class NoppesUtilPlayer {
         EnumPartyExchange complete = partyOptions.completeFor;
         EnumPartyExchange reward = partyOptions.rewardControl;
         EnumPartyExchange command = partyOptions.executeCommand;
-        for(String name : party.getPlayerNames()){
+        for (String name : party.getPlayerNames()) {
             EntityPlayer player = NoppesUtilServer.getPlayerByName(name);
-            if(player == null)
+            if (player == null)
                 continue;
 
             PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
-            if(playerData == null)
+            if (playerData == null)
                 continue;
 
             boolean isLeader = party.getLeaderUUID().equals(player.getUniqueID());
@@ -550,33 +547,33 @@ public class NoppesUtilPlayer {
             boolean meetsReward = meetsPartyExchange(reward, hasActiveQuest, hasFinishedQuest, isLeader);
             boolean meetsCommand = meetsPartyExchange(command, hasActiveQuest, hasFinishedQuest, isLeader);
 
-            if(meetsComplete){
+            if (meetsComplete) {
                 if (data.quest.completion == EnumQuestCompletion.Instant) {
                     EventHooks.onQuestFinished(player, data.quest);
                 }
             }
 
-            if(meetsReward){
+            if (meetsReward) {
                 QuestEvent.QuestTurnedInEvent event = new QuestEvent.QuestTurnedInEvent((IPlayer) NpcAPI.Instance().getIEntity(player), data.quest);
 
                 event.expReward = data.quest.rewardExp;
                 List<IItemStack> list = new ArrayList();
                 Iterator var8 = data.quest.rewardItems.items.values().iterator();
 
-                while(var8.hasNext()) {
-                    ItemStack item = (ItemStack)var8.next();
+                while (var8.hasNext()) {
+                    ItemStack item = (ItemStack) var8.next();
                     if (item != null && item.stackSize > 0) {
                         IItemStack iStack = NpcAPI.Instance().getIItemStack(item);
-                        if (iStack != null){
+                        if (iStack != null) {
                             list.add(iStack);
                         }
                     }
                 }
 
                 if (!data.quest.randomReward) {
-                    event.itemRewards = (IItemStack[])list.toArray(new IItemStack[list.size()]);
+                    event.itemRewards = (IItemStack[]) list.toArray(new IItemStack[list.size()]);
                 } else if (!list.isEmpty()) {
-                    event.itemRewards = new IItemStack[]{(IItemStack)list.get(player.getRNG().nextInt(list.size()))};
+                    event.itemRewards = new IItemStack[]{(IItemStack) list.get(player.getRNG().nextInt(list.size()))};
                 }
 
                 EventHooks.onQuestTurnedIn(event);
@@ -585,7 +582,7 @@ public class NoppesUtilPlayer {
 
                 IItemStack[] var12 = event.itemRewards;
                 int var14 = var12.length;
-                for(int var10 = 0; var10 < var14; ++var10) {
+                for (int var10 = 0; var10 < var14; ++var10) {
                     IItemStack item = var12[var10];
                     if (item != null) {
                         NoppesUtilServer.GivePlayerItem(player, player, item.getMCItemStack());
@@ -593,25 +590,25 @@ public class NoppesUtilPlayer {
                 }
             }
             data.quest.questInterface.handlePartyComplete(player, party, isLeader, partyOptions.objectiveRequirement);
-            if(meetsReward){
-                if(data.quest.rewardExp > 0){
+            if (meetsReward) {
+                if (data.quest.rewardExp > 0) {
                     player.worldObj.playSoundAtEntity(player, "random.orb", 0.1F, 0.5F * ((player.worldObj.rand.nextFloat() - player.worldObj.rand.nextFloat()) * 0.7F + 1.8F));
                     player.addExperience(data.quest.rewardExp);
                 }
 
                 data.quest.factionOptions.addPoints(player);
-                if(data.quest.mail.isValid()){
+                if (data.quest.mail.isValid()) {
                     PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), data.quest.mail);
                 }
             }
 
-            if(meetsCommand){
-                if(!data.quest.command.isEmpty()){
+            if (meetsCommand) {
+                if (!data.quest.command.isEmpty()) {
                     NoppesUtilServer.runCommand(player, "QuestCompletion", data.quest.command);
                 }
             }
 
-            if(meetsComplete){
+            if (meetsComplete) {
                 PlayerQuestController.setQuestPartyFinished(data.quest, player, data);
             }
 
@@ -622,17 +619,17 @@ public class NoppesUtilPlayer {
             }
 
             playerData.save();
-            QuestCompletionPacket.sendQuestComplete((EntityPlayerMP)player, data.quest.writeToNBT(new NBTTagCompound()));
+            QuestCompletionPacket.sendQuestComplete((EntityPlayerMP) player, data.quest.writeToNBT(new NBTTagCompound()));
         }
 
-        if(quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared){
+        if (quest.type == EnumQuestType.Item && partyOptions.objectiveRequirement == EnumPartyObjectives.Shared) {
             quest.questInterface.removePartyItems(party);
         }
 
         if (hasNextQuest) {
-            if(party.validateQuest(data.quest.getNextQuest().getId(), true)){
+            if (party.validateQuest(data.quest.getNextQuest().getId(), true)) {
                 party.setQuest(data.quest.getNextQuest());
-                for(String name : party.getPlayerNames()) {
+                for (String name : party.getPlayerNames()) {
                     EntityPlayer player = NoppesUtilServer.getPlayerByName(name);
                     if (player == null)
                         continue;
@@ -643,15 +640,14 @@ public class NoppesUtilPlayer {
 
                     playerData.questData.trackParty(party);
                 }
-            }
-            else {
+            } else {
                 party.setQuest(null);
             }
         } else {
             party.setQuest(null);
         }
 
-        if(data.quest.completion == EnumQuestCompletion.Npc){
+        if (data.quest.completion == EnumQuestCompletion.Npc) {
             PartyController.Instance().sendQuestChat(party, "party.completeChat");
             PartyController.Instance().pingPartyUpdate(party);
         }
@@ -659,140 +655,143 @@ public class NoppesUtilPlayer {
         return true;
     }
 
-    public static boolean meetsPartyExchange(EnumPartyExchange exchange, boolean hasActive, boolean hasFinished, boolean isLeader){
-        if(exchange == EnumPartyExchange.All){
+    public static boolean meetsPartyExchange(EnumPartyExchange exchange, boolean hasActive, boolean hasFinished, boolean isLeader) {
+        if (exchange == EnumPartyExchange.All) {
             return true;
-        } else if (isLeader){
+        } else if (isLeader) {
             return true;
-        } else if(exchange == EnumPartyExchange.Enrolled && hasActive){
+        } else if (exchange == EnumPartyExchange.Enrolled && hasActive) {
             return true;
         } else return exchange == EnumPartyExchange.Valid && (hasActive || hasFinished);
     }
 
 
-	public static boolean compareItems(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT){
-        if (item2 == null || item == null){
+    public static boolean compareItems(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT) {
+        if (item2 == null || item == null) {
             return false;
         }
         boolean oreMatched = false;
         OreDictionary.itemMatches(item, item2, false);
         int[] ids = OreDictionary.getOreIDs(item);
-        if(ids.length > 0){
-        	for(int id : ids){
-            	boolean match1 = false, match2 = false;
-        		for(ItemStack is : OreDictionary.getOres(id)){
-        			if(compareItemDetails(item, is, ignoreDamage, ignoreNBT)){
-        				match1 = true;
-        			}
-        			if(compareItemDetails(item2, is, ignoreDamage, ignoreNBT)){
-        				match2 = true;
-        			}
-        		}
-            	if(match1 && match2)
-            		return true;
-        	}
+        if (ids.length > 0) {
+            for (int id : ids) {
+                boolean match1 = false, match2 = false;
+                for (ItemStack is : OreDictionary.getOres(id)) {
+                    if (compareItemDetails(item, is, ignoreDamage, ignoreNBT)) {
+                        match1 = true;
+                    }
+                    if (compareItemDetails(item2, is, ignoreDamage, ignoreNBT)) {
+                        match2 = true;
+                    }
+                }
+                if (match1 && match2)
+                    return true;
+            }
         }
-		return compareItemDetails(item, item2, ignoreDamage, ignoreNBT);
-	}
-	private static boolean compareItemDetails(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT){
-        if (item.getItem() != item2.getItem() ){
+        return compareItemDetails(item, item2, ignoreDamage, ignoreNBT);
+    }
+
+    private static boolean compareItemDetails(ItemStack item, ItemStack item2, boolean ignoreDamage, boolean ignoreNBT) {
+        if (item.getItem() != item2.getItem()) {
             return false;
         }
-		if (!ignoreDamage && item.getItemDamage() != -1 && item.getItemDamage() != item2.getItemDamage()){
+        if (!ignoreDamage && item.getItemDamage() != -1 && item.getItemDamage() != item2.getItemDamage()) {
             return false;
         }
-        if(!ignoreNBT && item.stackTagCompound != null && (item2.stackTagCompound == null || !item.stackTagCompound.equals(item2.stackTagCompound))){
+        if (!ignoreNBT && item.stackTagCompound != null && (item2.stackTagCompound == null || !item.stackTagCompound.equals(item2.stackTagCompound))) {
             return false;
         }
-        if(!ignoreNBT && item2.stackTagCompound != null && item.stackTagCompound == null){
+        if (!ignoreNBT && item2.stackTagCompound != null && item.stackTagCompound == null) {
             return false;
         }
-		return true;
-	}
-	public static boolean compareItems(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT){
-		int size = 0;
-		for(ItemStack is : player.inventory.mainInventory){
-			if(is != null && compareItems(item, is, ignoreDamage, ignoreNBT))
-				size += is.stackSize;
-		}
-		return size >= item.stackSize;
-	}
-	public static void consumeItem(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
-		if(item == null)
-			return;
-		int size = item.stackSize;
-		for(int i = 0; i < player.inventory.mainInventory.length; i++){
-			ItemStack is = player.inventory.mainInventory[i];
-			if(is == null || !compareItems(item, is, ignoreDamage, ignoreNBT))
-				continue;
-			if(size >= is.stackSize){
-				size -= is.stackSize;
-				player.inventory.mainInventory[i] = null;
-			}
-			else{
-				player.inventory.mainInventory[i].splitStack(size);
-				break;
-			}
-		}
-	}
-	public static void isGUIOpen(EntityPlayerMP player){
+        return true;
+    }
+
+    public static boolean compareItems(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
+        int size = 0;
+        for (ItemStack is : player.inventory.mainInventory) {
+            if (is != null && compareItems(item, is, ignoreDamage, ignoreNBT))
+                size += is.stackSize;
+        }
+        return size >= item.stackSize;
+    }
+
+    public static void consumeItem(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
+        if (item == null)
+            return;
+        int size = item.stackSize;
+        for (int i = 0; i < player.inventory.mainInventory.length; i++) {
+            ItemStack is = player.inventory.mainInventory[i];
+            if (is == null || !compareItems(item, is, ignoreDamage, ignoreNBT))
+                continue;
+            if (size >= is.stackSize) {
+                size -= is.stackSize;
+                player.inventory.mainInventory[i] = null;
+            } else {
+                player.inventory.mainInventory[i].splitStack(size);
+                break;
+            }
+        }
+    }
+
+    public static void isGUIOpen(EntityPlayerMP player) {
         PacketHandler.Instance.sendToPlayer(new IsGuiOpenPacket(), player);
-	}
+    }
 
-	public static List<ItemStack> countStacks(IInventory inv, boolean ignoreDamage, boolean ignoreNBT) {
-		List<ItemStack> list = new ArrayList();
+    public static List<ItemStack> countStacks(IInventory inv, boolean ignoreDamage, boolean ignoreNBT) {
+        List<ItemStack> list = new ArrayList();
 
-		for(int i = 0; i < inv.getSizeInventory(); ++i) {
-			ItemStack item = inv.getStackInSlot(i);
-			if (!NoppesUtilServer.IsItemStackNull(item)) {
-				boolean found = false;
-				Iterator var7 = list.iterator();
+        for (int i = 0; i < inv.getSizeInventory(); ++i) {
+            ItemStack item = inv.getStackInSlot(i);
+            if (!NoppesUtilServer.IsItemStackNull(item)) {
+                boolean found = false;
+                Iterator var7 = list.iterator();
 
-				while(var7.hasNext()) {
-					ItemStack is = (ItemStack)var7.next();
-					if (compareItems(item, is, ignoreDamage, ignoreNBT)) {
-						is.stackSize = is.stackSize + item.stackSize;
-						found = true;
-						break;
-					}
-				}
+                while (var7.hasNext()) {
+                    ItemStack is = (ItemStack) var7.next();
+                    if (compareItems(item, is, ignoreDamage, ignoreNBT)) {
+                        is.stackSize = is.stackSize + item.stackSize;
+                        found = true;
+                        break;
+                    }
+                }
 
-				if (!found) {
-					list.add(item.copy());
-				}
-			}
-		}
+                if (!found) {
+                    list.add(item.copy());
+                }
+            }
+        }
 
-		return list;
-	}
+        return list;
+    }
 
-	public static void playSoundTo(EntityPlayerMP player, int id, ScriptSound sound) {
-		NBTTagCompound compound = sound.writeToNBT();
-		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
+    public static void playSoundTo(EntityPlayerMP player, int id, ScriptSound sound) {
+        NBTTagCompound compound = sound.writeToNBT();
+        if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
             PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_SOUND_TO, id, compound), player);
-		}
-	}
+        }
+    }
 
-	public static void playSoundTo(EntityPlayerMP player, ScriptSound sound) {
-		NBTTagCompound compound = sound.writeToNBT();
-		if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
+    public static void playSoundTo(EntityPlayerMP player, ScriptSound sound) {
+        NBTTagCompound compound = sound.writeToNBT();
+        if (sound.sourceEntity == null || player.worldObj.provider.dimensionId == sound.sourceEntity.getDimension()) {
             PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PLAY_SOUND_TO_NO_ID, compound), player);
-		}
-	}
+        }
+    }
 
-	public static void stopSoundFor(EntityPlayerMP player, int id) {
+    public static void stopSoundFor(EntityPlayerMP player, int id) {
         PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.STOP_SOUND_FOR, id), player);
-	}
+    }
 
-	public static void pauseSoundsFor(EntityPlayerMP player) {
+    public static void pauseSoundsFor(EntityPlayerMP player) {
         PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.PAUSE_SOUNDS), player);
-	}
+    }
 
-	public static void continueSoundsFor(EntityPlayerMP player) {
+    public static void continueSoundsFor(EntityPlayerMP player) {
         PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.CONTINUE_SOUNDS), player);
-	}
+    }
 
-	public static void stopSoundsFor(EntityPlayerMP player) {
+    public static void stopSoundsFor(EntityPlayerMP player) {
         PacketHandler.Instance.sendToPlayer(new SoundManagementPacket(EnumSoundOperation.STOP_SOUNDS), player);
-	}
+    }
 }

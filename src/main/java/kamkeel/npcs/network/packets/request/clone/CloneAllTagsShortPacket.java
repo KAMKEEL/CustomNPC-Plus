@@ -23,7 +23,8 @@ import java.util.HashSet;
 public final class CloneAllTagsShortPacket extends AbstractPacket {
     public static String packetName = "Request|CloneAllTagsShort";
 
-    public CloneAllTagsShortPacket() {}
+    public CloneAllTagsShortPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -37,7 +38,8 @@ public final class CloneAllTagsShortPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
@@ -49,7 +51,7 @@ public final class CloneAllTagsShortPacket extends AbstractPacket {
         NBTTagCompound compound = new NBTTagCompound();
         HashSet<Tag> validTags = TagController.getInstance().getAllTags();
         NBTTagList validTagList = new NBTTagList();
-        for(Tag tag : validTags){
+        for (Tag tag : validTags) {
             NBTTagCompound tagCompound = new NBTTagCompound();
             tag.writeShortNBT(tagCompound);
             validTagList.appendTag(tagCompound);

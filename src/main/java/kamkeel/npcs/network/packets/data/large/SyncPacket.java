@@ -86,8 +86,7 @@ public final class SyncPacket extends LargeAbstractPacket {
             NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
             // Now do your client-side logic (similar to your old clientSync() or clientSyncUpdate() approach)
             handleSyncPacketClient(type, action, categoryID, tag);
-        }
-        catch (RuntimeException e){
+        } catch (RuntimeException e) {
             LogWriter.error(String.format("Attempted to Sync %s but it was too big", type.toString()));
         }
     }

@@ -23,7 +23,8 @@ public final class JobSpawnerRemovePacket extends AbstractPacket {
 
     private int slot;
 
-    public JobSpawnerRemovePacket(){}
+    public JobSpawnerRemovePacket() {
+    }
 
     public JobSpawnerRemovePacket(int slot) {
         this.slot = slot;
@@ -41,7 +42,7 @@ public final class JobSpawnerRemovePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_JOB;
     }
 
     @Override
@@ -63,7 +64,7 @@ public final class JobSpawnerRemovePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc.advanced.job != EnumJobType.Spawner)
+        if (npc.advanced.job != EnumJobType.Spawner)
             return;
 
         JobSpawner job = (JobSpawner) npc.jobInterface;

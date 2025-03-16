@@ -23,7 +23,8 @@ public final class RoleCompanionUpdatePacket extends AbstractPacket {
 
     private EnumCompanionStage companionStage;
 
-    public RoleCompanionUpdatePacket() { }
+    public RoleCompanionUpdatePacket() {
+    }
 
     public RoleCompanionUpdatePacket(EnumCompanionStage companionStage) {
         this.companionStage = companionStage;
@@ -41,7 +42,7 @@ public final class RoleCompanionUpdatePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_ROLE;
     }
 
     @Override
@@ -63,10 +64,10 @@ public final class RoleCompanionUpdatePacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc.advanced.role != EnumRoleType.Companion)
+        if (npc.advanced.role != EnumRoleType.Companion)
             return;
 
-        ((RoleCompanion)npc.roleInterface).matureTo(EnumCompanionStage.values()[in.readInt()]);
+        ((RoleCompanion) npc.roleInterface).matureTo(EnumCompanionStage.values()[in.readInt()]);
         npc.updateClient = true;
     }
 }

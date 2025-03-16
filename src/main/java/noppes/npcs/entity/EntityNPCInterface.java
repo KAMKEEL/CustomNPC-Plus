@@ -14,6 +14,7 @@ import kamkeel.npcs.network.packets.data.QuestCompletionPacket;
 import kamkeel.npcs.network.packets.data.SoundManagementPacket;
 import kamkeel.npcs.network.packets.data.npc.UpdateNpcPacket;
 import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
+import kamkeel.npcs.util.AttributeAttackUtil;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -246,6 +247,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     public boolean attackEntityAsMob(Entity receiver) {
         float f = stats.getAttackStrength();
+
+        if (receiver instanceof EntityPlayer && !isRemote())
+            f = AttributeAttackUtil.calculateDamageNPCtoPlayer(this, (EntityPlayer) receiver, f);
 
         if (stats.attackSpeed < 10) {
             receiver.hurtResistantTime = 0;
@@ -540,7 +544,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()) {
             reset();
         }
-        i = stats.resistances.applyResistance(damagesource, i);
+
         if ((float) this.hurtResistantTime > (float) this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
             return false;
 
@@ -560,6 +564,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 this.recentlyHit = 100;
         } else if (attackingEntity instanceof EntityPlayer && faction.isFriendlyToPlayer((EntityPlayer) attackingEntity))
             return false;
+
+        // Attribute
+        if (!DBCAddon.IsAvailable() && attackingEntity instanceof EntityPlayer)
+            i = AttributeAttackUtil.calculateDamagePlayerToNPC((EntityPlayer) attackingEntity, this, i);
+
+        //  Resistances
+        i = stats.resistances.applyResistance(damagesource, i);
+
         NpcEvent.DamagedEvent event = new NpcEvent.DamagedEvent(this.wrappedNPC, attackingEntity, i, damagesource);
         if (EventHooks.onNPCDamaged(this, event) || isKilled())
             return false;
@@ -715,12 +727,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (isKilled())
             return;
 
-        IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
-        this.targetTasks.addTask(0, new EntityAIClearTarget(this));
-        this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
-        this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ais.directLOS, false, attackEntitySelector));
-        this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
-        this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
+        if (!faction.isPassive()) {
+            IEntitySelector attackEntitySelector = new NPCAttackSelector(this);
+            this.targetTasks.addTask(0, new EntityAIClearTarget(this));
+            this.targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
+            this.targetTasks.addTask(2, new EntityAIClosestTarget(this, EntityLivingBase.class, 4, this.ais.directLOS, false, attackEntitySelector));
+            this.targetTasks.addTask(3, new EntityAIOwnerHurtByTarget(this));
+            this.targetTasks.addTask(4, new EntityAIOwnerHurtTarget(this));
+        }
 
         if (canFly()) {
             this.getNavigator().setCanSwim(true);
@@ -759,7 +773,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIPanic(this, 1.2F));
         else if (this.ais.onAttack == 2) {
             this.tasks.addTask(this.taskCount++, aiResponse = new EntityAIAvoidTarget(this));
-        } else if (this.ais.onAttack == 0) {
+        } else if (this.ais.onAttack == 0 && !faction.isPassive()) {
             this.setLeapTask();
             if (this.inventory.getProjectile() == null || this.ais.useRangeMelee == 2) {
                 switch (this.ais.tacticalVariant) {

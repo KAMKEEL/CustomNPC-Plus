@@ -22,7 +22,8 @@ public final class DialogGetPacket extends AbstractPacket {
 
     private int dialogID;
 
-    public DialogGetPacket() {}
+    public DialogGetPacket() {
+    }
 
     public DialogGetPacket(int dialogID) {
         this.dialogID = dialogID;
@@ -53,16 +54,16 @@ public final class DialogGetPacket extends AbstractPacket {
             return;
 
         Dialog dialog = DialogController.Instance.dialogs.get(in.readInt());
-        if(dialog != null){
+        if (dialog != null) {
             NBTTagCompound compound = dialog.writeToNBT(new NBTTagCompound());
             Quest quest = QuestController.Instance.quests.get(dialog.quest);
-            if(quest != null)
+            if (quest != null)
                 compound.setString("DialogQuestName", quest.title);
             GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
         }
     }
 
-    public static void getDialog(int id){
+    public static void getDialog(int id) {
         PacketClient.sendClient(new DialogGetPacket(id));
     }
 }

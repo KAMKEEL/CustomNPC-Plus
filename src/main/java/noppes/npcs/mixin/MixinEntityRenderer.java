@@ -14,12 +14,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinEntityRenderer {
 
     @Inject(method = "renderWorld", at = @At(value = "RETURN"))
-    private void renderFirstPersonOverlays(float p_78476_1_, long p_78476_2_, CallbackInfo callbackInfo)
-    {
+    private void renderFirstPersonOverlays(float p_78476_1_, long p_78476_2_, CallbackInfo callbackInfo) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (ClientEventHandler.hasOverlays(player)) {
             GL11.glPushMatrix();
-            ClientEventHandler.renderCNPCSelf.renderHand(p_78476_1_,0);
+            ClientEventHandler.renderCNPCSelf.renderHand(p_78476_1_, 0);
             GL11.glPopMatrix();
         }
     }

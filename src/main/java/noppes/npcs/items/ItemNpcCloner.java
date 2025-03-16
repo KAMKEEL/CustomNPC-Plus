@@ -14,16 +14,16 @@ import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 
-public class ItemNpcCloner extends Item{
+public class ItemNpcCloner extends Item {
 
-    public ItemNpcCloner(){
+    public ItemNpcCloner() {
         maxStackSize = 1;
         setCreativeTab(CustomItems.tab);
     }
 
-	@Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10){
-        if(par3World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(par2EntityPlayer, CustomNpcsPermissions.TOOL_CLONER))
+    @Override
+    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10) {
+        if (par3World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(par2EntityPlayer, CustomNpcsPermissions.TOOL_CLONER))
             return false;
 
         NoppesUtilServer.setClonerGui((EntityPlayerMP) par2EntityPlayer, par4, par5, par6);
@@ -31,24 +31,24 @@ public class ItemNpcCloner extends Item{
     }
 
     @Override
-    public int getColorFromItemStack(ItemStack par1ItemStack, int par2){
-		return 0x8B4513;
+    public int getColorFromItemStack(ItemStack par1ItemStack, int par2) {
+        return 0x8B4513;
     }
 
     @Override
-    public boolean requiresMultipleRenderPasses(){
+    public boolean requiresMultipleRenderPasses() {
         return true;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void registerIcons(IIconRegister par1IconRegister){
+    public void registerIcons(IIconRegister par1IconRegister) {
         this.itemIcon = Items.iron_axe.getIconFromDamage(0);
     }
 
     @Override
-    public Item setUnlocalizedName(String name){
-		GameRegistry.registerItem(this, name);
-    	return super.setUnlocalizedName(name);
+    public Item setUnlocalizedName(String name) {
+        GameRegistry.registerItem(this, name);
+        return super.setUnlocalizedName(name);
     }
 }

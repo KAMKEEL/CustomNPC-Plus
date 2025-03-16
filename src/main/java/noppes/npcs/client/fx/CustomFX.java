@@ -66,7 +66,7 @@ public class CustomFX extends EntityFX {
     protected int timeSinceStart;
     public int animRate;
     public boolean animLoop;
-    public int animStart,animEnd;
+    public int animStart, animEnd;
     protected int animPosX;
     protected int animPosY;
 
@@ -96,21 +96,21 @@ public class CustomFX extends EntityFX {
         customFX.HEXColorRate = particle.HEXColorRate;
         customFX.HEXColorStart = particle.HEXColorStart;
         customFX.particleRed = (customFX.HEXColor >> 16 & 255) / 255f;
-        customFX.particleGreen = (customFX.HEXColor >> 8  & 255) / 255f;
+        customFX.particleGreen = (customFX.HEXColor >> 8 & 255) / 255f;
         customFX.particleBlue = (customFX.HEXColor & 255) / 255f;
 
         customFX.scaleX1 = particle.scaleX1;
         customFX.scaleX2 = particle.scaleX2;
         customFX.scaleXRate = Math.abs(particle.scaleXRate);
         customFX.scaleXRateStart = particle.scaleXRateStart;
-        if(customFX.scaleX1 > customFX.scaleX2)
+        if (customFX.scaleX1 > customFX.scaleX2)
             customFX.scaleXRate *= -1;
 
         customFX.scaleY1 = particle.scaleY1;
         customFX.scaleY2 = particle.scaleY2;
         customFX.scaleYRate = Math.abs(particle.scaleYRate);
         customFX.scaleYRateStart = particle.scaleYRateStart;
-        if(customFX.scaleY1 > customFX.scaleY2)
+        if (customFX.scaleY1 > customFX.scaleY2)
             customFX.scaleYRate *= -1;
 
         customFX.alpha1 = particle.alpha1;
@@ -118,7 +118,7 @@ public class CustomFX extends EntityFX {
         customFX.alphaRate = Math.abs(particle.alphaRate);
         customFX.alphaRateStart = particle.alphaRateStart;
         customFX.particleAlpha = customFX.alpha1;
-        if(customFX.alpha1 > customFX.alpha2)
+        if (customFX.alpha1 > customFX.alpha2)
             customFX.alphaRate *= -1;
 
         customFX.rotationX1 = particle.rotationX1;
@@ -126,7 +126,7 @@ public class CustomFX extends EntityFX {
         customFX.rotationXRate = Math.abs(particle.rotationXRate);
         customFX.rotationXRateStart = particle.rotationXRateStart;
         customFX.rotationX = customFX.rotationX1;
-        if(customFX.rotationX1 > customFX.rotationX2)
+        if (customFX.rotationX1 > customFX.rotationX2)
             customFX.rotationXRate *= -1;
 
         customFX.rotationY1 = particle.rotationY1;
@@ -134,7 +134,7 @@ public class CustomFX extends EntityFX {
         customFX.rotationYRate = Math.abs(particle.rotationYRate);
         customFX.rotationYRateStart = particle.rotationYRateStart;
         customFX.rotationY = customFX.rotationY1;
-        if(customFX.rotationY1 > customFX.rotationY2)
+        if (customFX.rotationY1 > customFX.rotationY2)
             customFX.rotationYRate *= -1;
 
         customFX.rotationZ1 = particle.rotationZ1;
@@ -142,10 +142,10 @@ public class CustomFX extends EntityFX {
         customFX.rotationZRate = Math.abs(particle.rotationZRate);
         customFX.rotationZRateStart = particle.rotationZRateStart;
         customFX.rotationZ = customFX.rotationZ1;
-        if(customFX.rotationZ1 > customFX.rotationZ2)
+        if (customFX.rotationZ1 > customFX.rotationZ2)
             customFX.rotationZRate *= -1;
 
-        customFX.particleGravity = particle.gravity/0.04F;
+        customFX.particleGravity = particle.gravity / 0.04F;
         customFX.particleMaxAge = particle.maxAge;
 
         customFX.motionX = particle.motionX;
@@ -163,7 +163,7 @@ public class CustomFX extends EntityFX {
         customFX.animLoop = particle.animLoop;
         customFX.animStart = particle.animStart;
         customFX.animEnd = particle.animEnd;
-        if(customFX.animEnd < customFX.animStart)
+        if (customFX.animEnd < customFX.animStart)
             customFX.animEnd = customFX.animStart + customFX.particleMaxAge;
 
         customFX.facePlayer = particle.facePlayer;
@@ -180,8 +180,7 @@ public class CustomFX extends EntityFX {
 
         ++this.timeSinceStart;
 
-        if (this.timeSinceStart == this.particleMaxAge)
-        {
+        if (this.timeSinceStart == this.particleMaxAge) {
             this.setDead();
         }
 
@@ -189,7 +188,7 @@ public class CustomFX extends EntityFX {
         this.prevPosY = this.posY;
         this.prevPosZ = this.posZ;
 
-        this.motionY -= 0.04D * (double)this.particleGravity;
+        this.motionY -= 0.04D * (double) this.particleGravity;
         this.moveEntity(this.motionX, this.motionY, this.motionZ);
 
         if (animRate > 0 && timeSinceStart % animRate == 0 && timeSinceStart > 0 && timeSinceStart >= animStart && timeSinceStart <= animEnd && (animLoop || animPosY <= imageData.getTotalHeight())) {
@@ -204,16 +203,15 @@ public class CustomFX extends EntityFX {
         }
 
         particleRed = (HEXColor >> 16 & 255) / 255f;
-        particleGreen = (HEXColor >> 8  & 255) / 255f;
+        particleGreen = (HEXColor >> 8 & 255) / 255f;
         particleBlue = (HEXColor & 255) / 255f;
 
-        if(timeSinceStart >= HEXColorStart)
+        if (timeSinceStart >= HEXColorStart)
             HEXColor = lerpColor(HEXColor, HEXColor2, HEXColorRate);
     }
 
     @Override
-    public void renderParticle(Tessellator tessellator, float partialTick, float cosYaw, float cosPitch, float sinYaw, float sinSinPitch, float cosSinPitch)
-    {
+    public void renderParticle(Tessellator tessellator, float partialTick, float cosYaw, float cosPitch, float sinYaw, float sinSinPitch, float cosSinPitch) {
         if (!this.imageLoaded()) {
             return;
         }
@@ -224,46 +222,46 @@ public class CustomFX extends EntityFX {
             setDead();
         }
 
-        if(entity != null){
-            startX = (float)(entity.prevPosX + (entity.posX - entity.prevPosX) * (double)partialTick);
-            startY = (float)(entity.prevPosY + (entity.posY - entity.prevPosY) * (double)partialTick);
-            startZ = (float)(entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double)partialTick);
+        if (entity != null) {
+            startX = (float) (entity.prevPosX + (entity.posX - entity.prevPosX) * (double) partialTick);
+            startY = (float) (entity.prevPosY + (entity.posY - entity.prevPosY) * (double) partialTick);
+            startZ = (float) (entity.prevPosZ + (entity.posZ - entity.prevPosZ) * (double) partialTick);
         }
 
-        float scaleXChange = this.scaleXRate / (float)particleMaxAge;
-        if((this.scaleXRate < 0 && this.scaleX1+scaleXChange < this.scaleX2) || (this.scaleXRate > 0 && this.scaleX1+scaleXChange > this.scaleX2))
+        float scaleXChange = this.scaleXRate / (float) particleMaxAge;
+        if ((this.scaleXRate < 0 && this.scaleX1 + scaleXChange < this.scaleX2) || (this.scaleXRate > 0 && this.scaleX1 + scaleXChange > this.scaleX2))
             this.scaleX1 = this.scaleX2;
-        else if(timeSinceStart >= this.scaleXRateStart)
+        else if (timeSinceStart >= this.scaleXRateStart)
             this.scaleX1 += scaleXChange;
 
-        float scaleYChange = this.scaleYRate / (float)particleMaxAge;
-        if((this.scaleYRate < 0 && this.scaleY1+scaleYChange < this.scaleY2) || (this.scaleYRate > 0 && this.scaleY1+scaleYChange > this.scaleY2))
+        float scaleYChange = this.scaleYRate / (float) particleMaxAge;
+        if ((this.scaleYRate < 0 && this.scaleY1 + scaleYChange < this.scaleY2) || (this.scaleYRate > 0 && this.scaleY1 + scaleYChange > this.scaleY2))
             this.scaleY1 = this.scaleY2;
-        else if(timeSinceStart >= this.scaleYRateStart)
+        else if (timeSinceStart >= this.scaleYRateStart)
             this.scaleY1 += scaleYChange;
 
-        float alphaChange = this.alphaRate / (float)particleMaxAge;
-        if((this.alphaRate < 0 && particleAlpha+alphaChange < this.alpha2) || (this.alphaRate > 0 && particleAlpha+alphaChange > this.alpha2))
+        float alphaChange = this.alphaRate / (float) particleMaxAge;
+        if ((this.alphaRate < 0 && particleAlpha + alphaChange < this.alpha2) || (this.alphaRate > 0 && particleAlpha + alphaChange > this.alpha2))
             particleAlpha = this.alpha2;
-        else if(timeSinceStart >= this.alphaRateStart)
+        else if (timeSinceStart >= this.alphaRateStart)
             particleAlpha += alphaChange;
 
-        float rotationXChange = this.rotationXRate / (float)particleMaxAge;
-        if((this.rotationXRate < 0 && rotationX+rotationXChange < this.rotationX2) || (this.rotationXRate > 0 && rotationX+rotationXChange > this.rotationX2))
+        float rotationXChange = this.rotationXRate / (float) particleMaxAge;
+        if ((this.rotationXRate < 0 && rotationX + rotationXChange < this.rotationX2) || (this.rotationXRate > 0 && rotationX + rotationXChange > this.rotationX2))
             rotationX = this.rotationX2;
-        else if(timeSinceStart >= this.rotationXRateStart)
+        else if (timeSinceStart >= this.rotationXRateStart)
             rotationX += rotationXChange;
 
-        float rotationYChange = this.rotationYRate / (float)particleMaxAge;
-        if((this.rotationYRate < 0 && rotationY+rotationYChange < this.rotationY2) || (this.rotationYRate > 0 && rotationY+rotationYChange > this.rotationY2))
+        float rotationYChange = this.rotationYRate / (float) particleMaxAge;
+        if ((this.rotationYRate < 0 && rotationY + rotationYChange < this.rotationY2) || (this.rotationYRate > 0 && rotationY + rotationYChange > this.rotationY2))
             rotationY = this.rotationY2;
-        else if(timeSinceStart >= this.rotationYRateStart)
+        else if (timeSinceStart >= this.rotationYRateStart)
             rotationY += rotationYChange;
 
-        float rotationZChange = this.rotationZRate / (float)particleMaxAge;
-        if((this.rotationZRate < 0 && rotationZ+rotationZChange < this.rotationZ2) || (this.rotationZRate > 0 && rotationZ+rotationZChange > this.rotationZ2))
+        float rotationZChange = this.rotationZRate / (float) particleMaxAge;
+        if ((this.rotationZRate < 0 && rotationZ + rotationZChange < this.rotationZ2) || (this.rotationZRate > 0 && rotationZ + rotationZChange > this.rotationZ2))
             rotationZ = this.rotationZ2;
-        else if(timeSinceStart >= this.rotationZRateStart)
+        else if (timeSinceStart >= this.rotationZRateStart)
             rotationZ += rotationZChange;
 
         renderParticleSide(true, tessellator, partialTick);
@@ -274,81 +272,77 @@ public class CustomFX extends EntityFX {
         tessellator.startDrawingQuads();
     }
 
-    public void renderParticleSide(boolean front, Tessellator tessellator, float partialTick){
+    public void renderParticleSide(boolean front, Tessellator tessellator, float partialTick) {
         int totalWidth = imageData.getTotalWidth();
         int totalHeight = imageData.getTotalHeight();
 
-        float u1 = (float)offsetX/(float)totalWidth + (float)animPosX/(float)totalWidth;
-        float u2 = u1 + (float)width/(float)totalWidth;
-        float v1 = (float)offsetY/(float)totalHeight + (float)animPosY/(float)totalHeight;
-        float v2 = v1 + (float)height/(float)totalHeight;
+        float u1 = (float) offsetX / (float) totalWidth + (float) animPosX / (float) totalWidth;
+        float u2 = u1 + (float) width / (float) totalWidth;
+        float v1 = (float) offsetY / (float) totalHeight + (float) animPosY / (float) totalHeight;
+        float v2 = v1 + (float) height / (float) totalHeight;
 
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
-        float posX = (float)((prevPosX + (this.posX - prevPosX) * (double)partialTick) - interpPosX) + startX;
-        float posY = (float)((prevPosY + (this.posY - prevPosY) * (double)partialTick) - interpPosY) + startY;
-        float posZ = (float)((prevPosZ + (this.posZ - prevPosZ) * (double)partialTick) - interpPosZ) + startZ;
+        float posX = (float) ((prevPosX + (this.posX - prevPosX) * (double) partialTick) - interpPosX) + startX;
+        float posY = (float) ((prevPosY + (this.posY - prevPosY) * (double) partialTick) - interpPosY) + startY;
+        float posZ = (float) ((prevPosZ + (this.posZ - prevPosZ) * (double) partialTick) - interpPosZ) + startZ;
 
         GL11.glPushMatrix();
-            renderPosX = startX + posX + this.posX;
-            renderPosY = startY + posY + this.posY;
-            renderPosZ = startZ + posZ + this.posZ;
+        renderPosX = startX + posX + this.posX;
+        renderPosY = startY + posY + this.posY;
+        renderPosZ = startZ + posZ + this.posZ;
 
-            GL11.glTranslated(posX,posY,posZ);
-            if(facePlayer) {
-                GL11.glRotated(180 - player.rotationYaw, 0.0, 1.0, 0.0);
-                GL11.glRotated(-player.rotationPitch + 90, 1.0, 0.0, 0.0);
+        GL11.glTranslated(posX, posY, posZ);
+        if (facePlayer) {
+            GL11.glRotated(180 - player.rotationYaw, 0.0, 1.0, 0.0);
+            GL11.glRotated(-player.rotationPitch + 90, 1.0, 0.0, 0.0);
 
-                GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
-                GL11.glRotated(rotationZ, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationY + (!front ? 180 : 0), 0.0, 0.0, 1.0);
-            } else {
-                GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
-                GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
-                GL11.glRotated(rotationZ + (!front ? 180 : 0), 0.0, 0.0, 1.0);
-            }
+            GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
+            GL11.glRotated(rotationZ, 0.0, 1.0, 0.0);
+            GL11.glRotated(rotationY + (!front ? 180 : 0), 0.0, 0.0, 1.0);
+        } else {
+            GL11.glRotated(rotationX, 1.0, 0.0, 0.0);
+            GL11.glRotated(rotationY, 0.0, 1.0, 0.0);
+            GL11.glRotated(rotationZ + (!front ? 180 : 0), 0.0, 0.0, 1.0);
+        }
 
-            tessellator.startDrawingQuads();
-            if (!this.glows) {
-                tessellator.setBrightness(this.getBrightnessForRender(partialTick));
-            } else {
-                tessellator.setBrightness(240);
-            }
+        tessellator.startDrawingQuads();
+        if (!this.glows) {
+            tessellator.setBrightness(this.getBrightnessForRender(partialTick));
+        } else {
+            tessellator.setBrightness(240);
+        }
 
-            float textureXScale = 1.0F, textureYScale = 1.0F;
-            if (totalWidth > totalHeight) {
-                textureYScale = (float) totalHeight/totalWidth;
-                GL11.glScalef(1/textureYScale/2,1/textureYScale/2,1/textureYScale/2);
-            } else if(totalHeight > totalWidth) {
-                textureXScale = (float) totalWidth/totalHeight;
-                GL11.glScalef(1/textureXScale/2,1/textureXScale/2,1/textureXScale/2);
-            }
-            textureXScale *= scaleX1/10.0F;
-            textureYScale *= scaleY1/10.0F;
+        float textureXScale = 1.0F, textureYScale = 1.0F;
+        if (totalWidth > totalHeight) {
+            textureYScale = (float) totalHeight / totalWidth;
+            GL11.glScalef(1 / textureYScale / 2, 1 / textureYScale / 2, 1 / textureYScale / 2);
+        } else if (totalHeight > totalWidth) {
+            textureXScale = (float) totalWidth / totalHeight;
+            GL11.glScalef(1 / textureXScale / 2, 1 / textureXScale / 2, 1 / textureXScale / 2);
+        }
+        textureXScale *= scaleX1 / 10.0F;
+        textureYScale *= scaleY1 / 10.0F;
 
-            tessellator.setColorOpaque_F(1, 1, 1);
-            tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
-            tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0,  textureYScale * (v2-v1)/2, u2, v2);
-            tessellator.addVertexWithUV( textureXScale * (u2-u1)/2,  0, textureYScale * -(v2-v1)/2, u2, v1);
-            tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0,  textureYScale * -(v2-v1)/2, u1, v1);
-            tessellator.addVertexWithUV( textureXScale * -(u2-u1)/2,  0, textureYScale * (v2-v1)/2, u1, v2);
-            tessellator.draw();
+        tessellator.setColorOpaque_F(1, 1, 1);
+        tessellator.setColorRGBA_F(particleRed, particleGreen, particleBlue, particleAlpha);
+        tessellator.addVertexWithUV(textureXScale * (u2 - u1) / 2, 0, textureYScale * (v2 - v1) / 2, u2, v2);
+        tessellator.addVertexWithUV(textureXScale * (u2 - u1) / 2, 0, textureYScale * -(v2 - v1) / 2, u2, v1);
+        tessellator.addVertexWithUV(textureXScale * -(u2 - u1) / 2, 0, textureYScale * -(v2 - v1) / 2, u1, v1);
+        tessellator.addVertexWithUV(textureXScale * -(u2 - u1) / 2, 0, textureYScale * (v2 - v1) / 2, u1, v2);
+        tessellator.draw();
         GL11.glPopMatrix();
     }
 
     @SideOnly(Side.CLIENT)
-    public int getBrightnessForRender(float p_70070_1_)
-    {
+    public int getBrightnessForRender(float p_70070_1_) {
         int i = MathHelper.floor_double(renderPosX);
         int j = MathHelper.floor_double(renderPosZ);
 
-        if (this.worldObj.blockExists(i, 0, j))
-        {
+        if (this.worldObj.blockExists(i, 0, j)) {
             double d0 = (this.boundingBox.maxY - this.boundingBox.minY) * 0.66D;
-            int k = MathHelper.floor_double(renderPosY - (double)this.yOffset + d0);
+            int k = MathHelper.floor_double(renderPosY - (double) this.yOffset + d0);
             return this.worldObj.getLightBrightnessForSkyBlocks(i, k, j, 0);
-        }
-        else
-        {
+        } else {
             return 0;
         }
     }
@@ -366,11 +360,11 @@ public class CustomFX extends EntityFX {
         float rg = ag + ratio * (bg - ag);
         float rb = ab + ratio * (bb - ab);
 
-        return (int)(((int)rr << 16) + ((int)rg << 8) + (rb));
+        return (int) (((int) rr << 16) + ((int) rg << 8) + (rb));
     }
 
-    public int getFXLayer(){
-    	return 0;
+    public int getFXLayer() {
+        return 0;
     }
 
     public boolean imageLoaded() {

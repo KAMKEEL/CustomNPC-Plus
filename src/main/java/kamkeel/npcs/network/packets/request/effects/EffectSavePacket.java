@@ -24,12 +24,13 @@ public class EffectSavePacket extends AbstractPacket {
     private String prevName;
     private NBTTagCompound effectCompound;
 
-    public EffectSavePacket(NBTTagCompound compound, String prev){
+    public EffectSavePacket(NBTTagCompound compound, String prev) {
         this.effectCompound = compound;
         this.prevName = prev;
     }
 
-    public EffectSavePacket() {}
+    public EffectSavePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -66,7 +67,7 @@ public class EffectSavePacket extends AbstractPacket {
 
         CustomEffectController.getInstance().saveEffect(effect);
 
-        if(!prevName.isEmpty() && !prevName.equals(effect.name)){
+        if (!prevName.isEmpty() && !prevName.equals(effect.name)) {
             CustomEffectController.getInstance().deleteEffectFile(prevName);
         }
 

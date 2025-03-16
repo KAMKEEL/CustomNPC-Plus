@@ -20,9 +20,9 @@ public class QuestActiveRequirement implements IRequirementChecker {
 
     @Override
     public String getTooltipValue(NBTTagCompound nbt) {
-        if(nbt.hasKey(getKey())) {
+        if (nbt.hasKey(getKey())) {
             int questID = nbt.getInteger(getKey());
-            if(QuestController.Instance.get(questID) != null) {
+            if (QuestController.Instance.get(questID) != null) {
                 return QuestController.Instance.get(questID).getName();
             }
         }
@@ -30,15 +30,23 @@ public class QuestActiveRequirement implements IRequirementChecker {
     }
 
     @Override
+    public Object getValue(NBTTagCompound nbt) {
+        if (nbt.hasKey(getKey())) {
+            return nbt.getInteger(getKey());
+        }
+        return null;
+    }
+
+    @Override
     public void apply(NBTTagCompound nbt, Object value) {
-        if(value instanceof Integer) {
+        if (value instanceof Integer) {
             nbt.setInteger(getKey(), (Integer) value);
         }
     }
 
     @Override
     public boolean check(EntityPlayer player, NBTTagCompound nbt) {
-        if(nbt.hasKey(getKey())) {
+        if (nbt.hasKey(getKey())) {
             int questID = nbt.getInteger(getKey());
             return PlayerData.get(player).questData.hasActiveQuest(questID);
         }

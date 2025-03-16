@@ -8,7 +8,8 @@ public class ProfileInfoEntry {
     private int labelColor;
     private int resultColor;
 
-    public ProfileInfoEntry() {}
+    public ProfileInfoEntry() {
+    }
 
     public ProfileInfoEntry(String label, int labelColor, String result, int resultColor) {
         this.label = label;
@@ -43,8 +44,19 @@ public class ProfileInfoEntry {
         );
     }
 
-    public String getLabel() { return label; }
-    public String getResult() { return result; }
-    public int getLabelColor() { return labelColor; }
-    public int getResultColor() { return resultColor; }
+    public String getLabel() {
+        return label;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public int getLabelColor() {
+        return labelColor;
+    }
+
+    public int getResultColor() {
+        return resultColor;
+    }
 }

@@ -18,7 +18,8 @@ import java.io.IOException;
 public final class DialogNpcGetPacket extends AbstractPacket {
     public static String packetName = "Request|DialogNpcGet";
 
-    public DialogNpcGetPacket() {}
+    public DialogNpcGetPacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -32,7 +33,8 @@ public final class DialogNpcGetPacket extends AbstractPacket {
 
     @SideOnly(Side.CLIENT)
     @Override
-    public void sendData(ByteBuf out) throws IOException {}
+    public void sendData(ByteBuf out) throws IOException {
+    }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {

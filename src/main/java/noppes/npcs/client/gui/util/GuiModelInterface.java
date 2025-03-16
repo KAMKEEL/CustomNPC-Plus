@@ -73,7 +73,7 @@ public class GuiModelInterface extends GuiNPCInterface {
     private long start = -1;
 
     public boolean isMouseOverRenderer(int x, int y) {
-        if(!allowRotate){
+        if (!allowRotate) {
             return false;
         }
         // Center of the entity rendering

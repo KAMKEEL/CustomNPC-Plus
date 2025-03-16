@@ -4,10 +4,10 @@ import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.data.HitboxData;
 
-public class SubGuiCustomHitbox extends SubGuiInterface implements ITextfieldListener
-{
+public class SubGuiCustomHitbox extends SubGuiInterface implements ITextfieldListener {
     private final HitboxData hitboxData;
-    public SubGuiCustomHitbox(HitboxData hitboxData){
+
+    public SubGuiCustomHitbox(HitboxData hitboxData) {
         this.hitboxData = hitboxData;
         setBackground("menubg.png");
         xSize = 256;
@@ -16,43 +16,43 @@ public class SubGuiCustomHitbox extends SubGuiInterface implements ITextfieldLis
     }
 
     @Override
-    public void initGui(){
+    public void initGui() {
         super.initGui();
-        addLabel(new GuiNpcLabel(0,"hitbox.hitbox", guiLeft + 5, guiTop + 35));
-        addButton(new GuiNpcButtonYesNo(0,guiLeft + 122, guiTop + 30, 56, 20 ,hitboxData.isHitboxEnabled()));
-        if(hitboxData.isHitboxEnabled()){
-            addLabel(new GuiNpcLabel(3,"hitbox.width", guiLeft + 5, guiTop + 57));
-            addTextField(new GuiNpcTextField(2,this, fontRendererObj, guiLeft + 122, guiTop + 53, 50, 18, hitboxData.getWidthScale() + ""));
+        addLabel(new GuiNpcLabel(0, "hitbox.hitbox", guiLeft + 5, guiTop + 35));
+        addButton(new GuiNpcButtonYesNo(0, guiLeft + 122, guiTop + 30, 56, 20, hitboxData.isHitboxEnabled()));
+        if (hitboxData.isHitboxEnabled()) {
+            addLabel(new GuiNpcLabel(3, "hitbox.width", guiLeft + 5, guiTop + 57));
+            addTextField(new GuiNpcTextField(2, this, fontRendererObj, guiLeft + 122, guiTop + 53, 50, 18, hitboxData.getWidthScale() + ""));
             getTextField(2).floatsOnly = true;
             getTextField(2).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1);
 
-            addLabel(new GuiNpcLabel(4,"hitbox.height", guiLeft + 5, guiTop + 79));
-            addTextField(new GuiNpcTextField(3,this, fontRendererObj, guiLeft + 122, guiTop + 75, 50, 18, hitboxData.getHeightScale() + ""));
+            addLabel(new GuiNpcLabel(4, "hitbox.height", guiLeft + 5, guiTop + 79));
+            addTextField(new GuiNpcTextField(3, this, fontRendererObj, guiLeft + 122, guiTop + 75, 50, 18, hitboxData.getHeightScale() + ""));
             getTextField(3).floatsOnly = true;
             getTextField(3).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 1);
         }
-        addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 190,98, 20, "gui.done"));
+        addButton(new GuiNpcButton(66, guiLeft + 82, guiTop + 190, 98, 20, "gui.done"));
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         int id = guibutton.id;
         GuiNpcButton button = (GuiNpcButton) guibutton;
-        if(button.id == 0){
-            hitboxData.setHitboxEnabled(((GuiNpcButtonYesNo)button).getBoolean());
+        if (button.id == 0) {
+            hitboxData.setHitboxEnabled(((GuiNpcButtonYesNo) button).getBoolean());
             initGui();
         }
-        if(id == 66){
+        if (id == 66) {
             close();
         }
     }
 
     @Override
     public void unFocused(GuiNpcTextField textfield) {
-        if(textfield.id == 2){
+        if (textfield.id == 2) {
             hitboxData.setWidthScale(textfield.getFloat());
         }
-        if(textfield.id == 3){
+        if (textfield.id == 3) {
             hitboxData.setHeightScale(textfield.getFloat());
         }
     }

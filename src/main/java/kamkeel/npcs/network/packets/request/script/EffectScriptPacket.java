@@ -30,7 +30,8 @@ public final class EffectScriptPacket extends AbstractPacket {
     private int maxSize;
     private NBTTagCompound compound;
 
-    public EffectScriptPacket() {}
+    public EffectScriptPacket() {
+    }
 
     public EffectScriptPacket(Action type, int id, int page, int maxSize, NBTTagCompound compound) {
         this.type = type;
@@ -51,7 +52,7 @@ public final class EffectScriptPacket extends AbstractPacket {
     }
 
     @Override
-    public CustomNpcsPermissions.Permission getPermission(){
+    public CustomNpcsPermissions.Permission getPermission() {
         return CustomNpcsPermissions.SCRIPT_PLAYER;
     }
 
@@ -61,7 +62,7 @@ public final class EffectScriptPacket extends AbstractPacket {
         out.writeInt(type.ordinal());
         out.writeInt(id);
 
-        if(type == Action.SAVE){
+        if (type == Action.SAVE) {
             out.writeInt(this.page);
             out.writeInt(this.maxSize);
             ByteBufUtils.writeNBT(out, this.compound);
@@ -78,15 +79,15 @@ public final class EffectScriptPacket extends AbstractPacket {
 
         Action requestedAction = Action.values()[in.readInt()];
         CustomEffect effect = CustomEffectController.getInstance().get(in.readInt());
-        if(effect == null)
+        if (effect == null)
             return;
 
         EffectScript data = effect.getOrCreateScriptHandler();
-        if(requestedAction == Action.GET){
+        if (requestedAction == Action.GET) {
             PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             data.saveScript(in);
-            if(ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER){
+            if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
                 LogWriter.script(String.format("[%s] (Player) %s SAVED EFFECT %s [%s]", "EFFECT SCRIPTS", player.getCommandSenderName(), effect.getName()));
             }
         }
@@ -95,6 +96,7 @@ public final class EffectScriptPacket extends AbstractPacket {
     public static void Save(int effectID, int id, int maxSize, NBTTagCompound compound) {
         PacketClient.sendClient(new EffectScriptPacket(Action.SAVE, effectID, id, maxSize, compound));
     }
+
     public static void Get(int effectID) {
         PacketClient.sendClient(new EffectScriptPacket(Action.GET, effectID, -1, -1, new NBTTagCompound()));
     }

@@ -21,7 +21,7 @@ import org.lwjgl.opengl.GL12;
 public class BlockCampfireRenderer extends BlockRendererInterface {
 
     // Legacy
-	private final ModelCampfire legacy_model = new ModelCampfire();
+    private final ModelCampfire legacy_model = new ModelCampfire();
 
     // Modern
     private final ModelCampfireFlame flameModel = new ModelCampfireFlame();
@@ -29,40 +29,39 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
     private final ModelCampfireStone stonesModel = new ModelCampfireStone();
     private final ModelCampfireCoals coalsModel = new ModelCampfireCoals();
 
-    protected static final ResourceLocation coalsTexture = new ResourceLocation("customnpcs","textures/models/CampfireCoals.png");
+    protected static final ResourceLocation coalsTexture = new ResourceLocation("customnpcs", "textures/models/CampfireCoals.png");
 
-    public BlockCampfireRenderer(){
-		((BlockRotated)CustomItems.campfire).renderId = RenderingRegistry.getNextAvailableRenderId();
-		((BlockRotated)CustomItems.campfire_unlit).renderId = ((BlockRotated)CustomItems.campfire).renderId;
-		RenderingRegistry.registerBlockHandler(this);
+    public BlockCampfireRenderer() {
+        ((BlockRotated) CustomItems.campfire).renderId = RenderingRegistry.getNextAvailableRenderId();
+        ((BlockRotated) CustomItems.campfire_unlit).renderId = ((BlockRotated) CustomItems.campfire).renderId;
+        RenderingRegistry.registerBlockHandler(this);
     }
 
-	@Override
-	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
-			double var6, float var8) {
-		TileVariant tile = (TileVariant) var1;
+    @Override
+    public void renderTileEntityAt(TileEntity var1, double var2, double var4,
+                                   double var6, float var8) {
+        TileVariant tile = (TileVariant) var1;
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 1.5f, (float) var6 + 0.5f);
 
         GL11.glRotatef(180, 0, 0, 1);
         GL11.glRotatef(45 * tile.rotation, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
 
-        if(ConfigClient.LegacyCampfire){
+        if (ConfigClient.LegacyCampfire) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(PlanksOak);
             legacy_model.renderLog(0.0625F);
             Minecraft.getMinecraft().getTextureManager().bindTexture(Stone);
             legacy_model.renderRock(0.0625F);
-        }
-        else {
+        } else {
             Block block = tile.getBlockType();
 
             Minecraft.getMinecraft().getTextureManager().bindTexture(Logs);
             logsModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             Minecraft.getMinecraft().getTextureManager().bindTexture(Cobble);
             stonesModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-            if(block == CustomItems.campfire){
+            if (block == CustomItems.campfire) {
                 GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
                 GL11.glDisable(GL11.GL_LIGHTING);
                 GL11.glEnable(GL11.GL_ALPHA_TEST);
@@ -76,12 +75,12 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
             coalsModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
 
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelId,
+                                     RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 1.2f, 0);
         GL11.glScalef(1f, 1f, 1f);
@@ -89,24 +88,28 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
         GL11.glRotatef(180, 0, 1, 0);
         GL11.glColor3f(1, 1, 1);
 
-        if(ConfigClient.LegacyCampfire){
+        if (ConfigClient.LegacyCampfire) {
             Minecraft.getMinecraft().getTextureManager().bindTexture(PlanksOak);
             legacy_model.renderLog(0.0625F);
             Minecraft.getMinecraft().getTextureManager().bindTexture(Stone);
             legacy_model.renderRock(0.0625F);
-        }
-        else {
+        } else {
             Minecraft.getMinecraft().getTextureManager().bindTexture(Logs);
             logsModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             Minecraft.getMinecraft().getTextureManager().bindTexture(Cobble);
             stonesModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         }
 
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-	@Override
-	public int getRenderId() {
-		return CustomItems.campfire.getRenderType();
-	}
+    @Override
+    public boolean shouldRender3DInInventory(int modelId) {
+        return ConfigClient.LegacyCampfire;
+    }
+
+    @Override
+    public int getRenderId() {
+        return CustomItems.campfire.getRenderType();
+    }
 }

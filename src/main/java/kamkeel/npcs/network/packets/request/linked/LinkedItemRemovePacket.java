@@ -26,7 +26,8 @@ public final class LinkedItemRemovePacket extends AbstractPacket {
         this.id = id;
     }
 
-    public LinkedItemRemovePacket() {}
+    public LinkedItemRemovePacket() {
+    }
 
     @Override
     public Enum getType() {

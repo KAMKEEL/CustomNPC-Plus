@@ -16,15 +16,14 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class ConfigScript
-{
+public class ConfigScript {
     public static Configuration config;
 
     public final static String GENERAL = "Scripting General";
     public final static String CUSTOMIZATION = "Scripting Customization";
 
     /**
-     *  General Properties
+     * General Properties
      **/
     public static Property ScriptingEnabledProperty;
     public static boolean ScriptingEnabled = true;
@@ -42,7 +41,7 @@ public class ConfigScript
     public static boolean GlobalNPCScripts = false;
 
     /**
-     *  Customization Properties
+     * Customization Properties
      **/
     public static Property ScriptingECMA6Property;
     public static boolean ScriptingECMA6 = false;
@@ -59,12 +58,10 @@ public class ConfigScript
     public static Property BannedClassesProperty;
     public final static HashSet<String> BannedClasses = new HashSet<>();
 
-    public static void init(File configFile)
-    {
+    public static void init(File configFile) {
         config = new Configuration(configFile);
 
-        try
-        {
+        try {
             config.load();
 
             // General
@@ -85,23 +82,23 @@ public class ConfigScript
 
             // Customization
             ScriptingECMA6Property = config.get(CUSTOMIZATION, "ECMA6 Scripting Language", false,
-                    "Enables/Disables the use of the the ECMA6 Javascript standard instead of ECMA5.1." +
-                            "\nEnabling this adds many more features to JS in scripts. Only use if on Java 8 or higher." +
-                            "\nNot all ECMA 6 language is supported through this functionality.");
+                "Enables/Disables the use of the the ECMA6 Javascript standard instead of ECMA5.1." +
+                    "\nEnabling this adds many more features to JS in scripts. Only use if on Java 8 or higher." +
+                    "\nNot all ECMA 6 language is supported through this functionality.");
             ScriptingECMA6 = ScriptingECMA6Property.getBoolean(false);
 
             ExpandedScriptLimitProperty = config.get(CUSTOMIZATION, "Script Tag Limit", 2,
-                    "If scripts are too long (>65535 characters), they normally won't be saved in NBT data.\n" +
-                            "This config adds additional compound tags to scripts that need it, so you can store much larger scripts!\n" +
-                            "Every additional compound tag adds 65535 more characters to your script length limit. Use incrementally, with caution.");
+                "If scripts are too long (>65535 characters), they normally won't be saved in NBT data.\n" +
+                    "This config adds additional compound tags to scripts that need it, so you can store much larger scripts!\n" +
+                    "Every additional compound tag adds 65535 more characters to your script length limit. Use incrementally, with caution.");
             ExpandedScriptLimit = ExpandedScriptLimitProperty.getInt(2);
 
             ScriptDevIDsProperty = config.get(CUSTOMIZATION, "Script Dev UUIDs", "",
-                    "Comma separated list of player UUIDs that can see and edit scripts. If ScriptsOpsOnly is true,\n" +
-                            "ops and players with these IDs can see and edit scripts. Example:\n" +
-                            "b876ec32-e396-476b-a115-8438d83c67d4,069a79f4-44e9-4726-a5be-fca90e38aaf5,be951074-c7ea-4f02-a725-bf017bc88650\n" +
-                            "Get a player's UUID from a site like NameMC or the API IPlayer.getUniqueID() function!\n" +
-                            "If left empty and ScriptsOpsOnly is false, anyone can see and edit scripts with a scripter.");
+                "Comma separated list of player UUIDs that can see and edit scripts. If ScriptsOpsOnly is true,\n" +
+                    "ops and players with these IDs can see and edit scripts. Example:\n" +
+                    "b876ec32-e396-476b-a115-8438d83c67d4,069a79f4-44e9-4726-a5be-fca90e38aaf5,be951074-c7ea-4f02-a725-bf017bc88650\n" +
+                    "Get a player's UUID from a site like NameMC or the API IPlayer.getUniqueID() function!\n" +
+                    "If left empty and ScriptsOpsOnly is false, anyone can see and edit scripts with a scripter.");
             ScriptDevIDs = ScriptDevIDsProperty.getString();
 
             EnableBannedClassesProperty = config.get(CUSTOMIZATION, "Enable Banned Classes", false, "Enables the Banned Classes Functionality");
@@ -113,7 +110,7 @@ public class ConfigScript
                     "This is a feature ONLY AVAILABLE ON NASHORN.");
 
             // Convert to Legacy
-            if(CustomNpcs.legacyExist){
+            if (CustomNpcs.legacyExist) {
                 ScriptingEnabled = LegacyConfig.ScriptingEnabled;
                 ScriptingEnabledProperty.set(ScriptingEnabled);
 
@@ -148,20 +145,18 @@ public class ConfigScript
                 for (String s : uuidStrings) {
                     Developer.ScriptUser.add(UUID.fromString(s));
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             String bannedClassesString = BannedClassesProperty.getString();
             try {
                 BannedClasses.clear();
                 BannedClasses.addAll(Arrays.asList(bannedClassesString.split(",")));
-            } catch (Exception ignored) {}
-        }
-        catch (Exception e)
-        {
+            } catch (Exception ignored) {
+            }
+        } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its scripting configuration");
-        }
-        finally
-        {
+        } finally {
             if (config.hasChanged()) {
                 config.save();
             }
@@ -175,7 +170,7 @@ public class ConfigScript
     public static boolean canScript(EntityPlayer player, CustomNpcsPermissions.Permission perm) {
         boolean isOp = MinecraftServer.getServer().getConfigurationManager().func_152596_g(player.getGameProfile());
         boolean scriptDev = isScriptDev(player);
-        if(ScriptOpsOnly){
+        if (ScriptOpsOnly) {
             return isOp || scriptDev;
         }
 

@@ -114,14 +114,14 @@ public class EffectScript implements INpcScriptHandler {
         int tab = 0;
         Iterator var3 = this.getScripts().iterator();
 
-        while(var3.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var3.next();
+        while (var3.hasNext()) {
+            ScriptContainer script = (ScriptContainer) var3.next();
             ++tab;
             Iterator var5 = script.console.entrySet().iterator();
 
-            while(var5.hasNext()) {
-                Map.Entry<Long, String> longStringEntry = (Map.Entry)var5.next();
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String)longStringEntry.getValue());
+            while (var5.hasNext()) {
+                Map.Entry<Long, String> longStringEntry = (Map.Entry) var5.next();
+                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String) longStringEntry.getValue());
             }
         }
 
@@ -132,8 +132,8 @@ public class EffectScript implements INpcScriptHandler {
     public void clearConsole() {
         Iterator var1 = this.getScripts().iterator();
 
-        while(var1.hasNext()) {
-            ScriptContainer script = (ScriptContainer)var1.next();
+        while (var1.hasNext()) {
+            ScriptContainer script = (ScriptContainer) var1.next();
             script.console.clear();
         }
     }
@@ -165,11 +165,12 @@ public class EffectScript implements INpcScriptHandler {
     }
 
     public enum ScriptType {
-        OnAdd("onAdded"),
-        OnTick("onTick"),
-        OnRemove("onRemove");
+        OnEffectAdd("onEffectAdd"),
+        OnEffectTick("onEffectTick"),
+        OnEffectRemove("onEffectRemove");
 
         public final String function;
+
         ScriptType(String functionName) {
             this.function = functionName;
         }

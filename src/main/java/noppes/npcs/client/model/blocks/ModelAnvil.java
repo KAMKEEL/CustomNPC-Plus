@@ -119,18 +119,18 @@ public class ModelAnvil extends ModelBase {
         cube_r8.cubeList.add(new ModelBox(cube_r8, 15, 60, -1.5F, -0.5F, -0.5F, 3, 1, 1, 0.0F));
     }
 
-	@Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
-		Anvil.render(f5);
-		Desk.render(f5);
-		Bucket.render(f5);
-		Hammer.render(f5);
-		Mold.render(f5);
-	}
+    @Override
+    public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+        Anvil.render(f5);
+        Desk.render(f5);
+        Bucket.render(f5);
+        Hammer.render(f5);
+        Mold.render(f5);
+    }
 
-	public void setRotationAngle(ModelRenderer modelRenderer, float x, float y, float z) {
-		modelRenderer.rotateAngleX = x;
-		modelRenderer.rotateAngleY = y;
-		modelRenderer.rotateAngleZ = z;
-	}
+    public void setRotationAngle(ModelRenderer modelRenderer, float x, float y, float z) {
+        modelRenderer.rotateAngleX = x;
+        modelRenderer.rotateAngleY = y;
+        modelRenderer.rotateAngleZ = z;
+    }
 }

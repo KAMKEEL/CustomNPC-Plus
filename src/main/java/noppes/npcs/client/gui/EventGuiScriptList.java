@@ -10,26 +10,27 @@ import noppes.npcs.controllers.ScriptContainer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class EventGuiScriptList extends SubGuiInterface{
+public class EventGuiScriptList extends SubGuiInterface {
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
     private ScriptContainer container;
     private List<String> scripts;
 
-    public EventGuiScriptList(List<String> scripts, ScriptContainer container){
+    public EventGuiScriptList(List<String> scripts, ScriptContainer container) {
         this.container = container;
         setBackground("menubg.png");
         xSize = 346;
         ySize = 216;
-        if(scripts == null)
+        if (scripts == null)
             scripts = new ArrayList<String>();
         this.scripts = scripts;
     }
+
     @Override
-    public void initGui(){
+    public void initGui() {
         super.initGui();
-        if(scroll1 == null){
-            scroll1 = new GuiCustomScroll(this,0);
+        if (scroll1 == null) {
+            scroll1 = new GuiCustomScroll(this, 0);
             scroll1.setSize(140, 180);
         }
         scroll1.guiLeft = guiLeft + 4;
@@ -37,8 +38,8 @@ public class EventGuiScriptList extends SubGuiInterface{
         this.addScroll(scroll1);
         addLabel(new GuiNpcLabel(1, "script.availableScripts", guiLeft + 4, guiTop + 4));
 
-        if(scroll2 == null){
-            scroll2 = new GuiCustomScroll(this,1);
+        if (scroll2 == null) {
+            scroll2 = new GuiCustomScroll(this, 1);
             scroll2.setSize(140, 180);
         }
         scroll2.guiLeft = guiLeft + 200;
@@ -59,42 +60,43 @@ public class EventGuiScriptList extends SubGuiInterface{
         addButton(new GuiNpcButton(66, guiLeft + 260, guiTop + 194, 60, 20, "gui.done"));
     }
 
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
-        if(button.id == 1){
-            if(scroll1.hasSelected()){
+        if (button.id == 1) {
+            if (scroll1.hasSelected()) {
                 container.scripts.add(scroll1.getSelected());
                 scroll1.selected = -1;
-                scroll1.selected = -1;
+                scroll2.selected = -1;
                 initGui();
             }
         }
-        if(button.id == 2){
-            if(scroll2.hasSelected()){
+        if (button.id == 2) {
+            if (scroll2.hasSelected()) {
                 container.scripts.remove(scroll2.getSelected());
                 scroll2.selected = -1;
                 initGui();
             }
         }
-        if(button.id == 3){
+        if (button.id == 3) {
             container.scripts.clear();
-            for(String script : scripts){
+            for (String script : scripts) {
                 container.scripts.add(script);
             }
             scroll1.selected = -1;
-            scroll1.selected = -1;
+            scroll2.selected = -1;
             initGui();
         }
-        if(button.id == 4){
+        if (button.id == 4) {
             container.scripts.clear();
             scroll1.selected = -1;
-            scroll1.selected = -1;
+            scroll2.selected = -1;
             initGui();
         }
-        if(button.id == 66){
+        if (button.id == 66) {
             close();
         }
     }
+
     @Override
     public void save() {
 

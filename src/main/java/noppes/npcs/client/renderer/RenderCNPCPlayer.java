@@ -41,12 +41,12 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
     public RenderCNPCPlayer() {
         super();
-        this.modelBipedMain = (ModelBiped)this.mainModel;
+        this.modelBipedMain = (ModelBiped) this.mainModel;
         this.modelArmorChestplate = new ModelBiped(1.0F);
         this.modelArmor = new ModelBiped(0.5F);
         this.setRenderManager(RenderManager.instance);
 
-        if(Loader.isModLoaded("moreplayermodels"))
+        if (Loader.isModLoaded("moreplayermodels"))
             hasMPM = true;
     }
 
@@ -54,7 +54,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         if (overlayData.texture.isEmpty())
             return false;
 
-        ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+        ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay) overlayData).texture);
         if (!imageData.imageLoaded())
             return false;
 
@@ -75,7 +75,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (overlayData.glow) {
             GL11.glDisable(GL11.GL_LIGHTING);
-            Minecraft.getMinecraft().entityRenderer.disableLightmap((double)0);
+            Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
             RenderHelper.disableStandardItemLighting();
         }
 
@@ -96,6 +96,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         return true;
     }
+
     public void postRenderOverlay() {
         GL11.glPopMatrix();
 
@@ -114,21 +115,20 @@ public class RenderCNPCPlayer extends RenderPlayer {
     @Override
     protected void renderModel(EntityLivingBase entity, float par2, float par3, float par4, float par5, float par6, float par7) {
         EntityPlayer player = (EntityPlayer) entity;
-        if (!entity.isInvisible())
-        {
+        if (!entity.isInvisible()) {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (((SkinOverlay)overlayData).texture.isEmpty())
+                    if (((SkinOverlay) overlayData).texture.isEmpty())
                         continue;
 
-                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay) overlayData).texture);
                     if (!imageData.imageLoaded())
                         continue;
 
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
 
-                    if(hasMPM){
+                    if (hasMPM) {
                         renderMorePlayerModel(entity, par2, par3, par4, par5, par6, par7);
                     } else {
                         this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
@@ -139,8 +139,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
     }
 
-    protected int shouldRenderPass(AbstractClientPlayer p_77032_1_, int p_77032_2_, float p_77032_3_)
-    {
+    protected int shouldRenderPass(AbstractClientPlayer p_77032_1_, int p_77032_2_, float p_77032_3_) {
         return -1;
     }
 
@@ -161,27 +160,25 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
     }
 
-    protected void func_96449_a(AbstractClientPlayer p_96449_1_, double p_96449_2_, double p_96449_4_, double p_96449_6_, String p_96449_8_, float p_96449_9_, double p_96449_10_) {}
+    protected void func_96449_a(AbstractClientPlayer p_96449_1_, double p_96449_2_, double p_96449_4_, double p_96449_6_, String p_96449_8_, float p_96449_9_, double p_96449_10_) {
+    }
 
     public void renderHand(float partialTicks, int renderPass) {
         Minecraft mc = Minecraft.getMinecraft();
         EntityRenderer entityRenderer = mc.entityRenderer;
 
-        if (entityRenderer.debugViewDirection <= 0)
-        {
+        if (entityRenderer.debugViewDirection <= 0) {
             GL11.glMatrixMode(GL11.GL_PROJECTION);
             GL11.glLoadIdentity();
             float f1 = 0.07F;
 
-            if (mc.gameSettings.anaglyph)
-            {
-                GL11.glTranslatef((float)(-(renderPass * 2 - 1)) * f1, 0.0F, 0.0F);
+            if (mc.gameSettings.anaglyph) {
+                GL11.glTranslatef((float) (-(renderPass * 2 - 1)) * f1, 0.0F, 0.0F);
             }
 
-            Project.gluPerspective(this.getFOVModifier(partialTicks, false), (float)mc.displayWidth / (float)mc.displayHeight, 0.05F, mc.gameSettings.renderDistanceChunks * 16 * 2.0F);
+            Project.gluPerspective(this.getFOVModifier(partialTicks, false), (float) mc.displayWidth / (float) mc.displayHeight, 0.05F, mc.gameSettings.renderDistanceChunks * 16 * 2.0F);
 
-            if (mc.playerController.enableEverythingIsScrewedUpMode())
-            {
+            if (mc.playerController.enableEverythingIsScrewedUpMode()) {
                 float f2 = 0.6666667F;
                 GL11.glScalef(1.0F, f2, 1.0F);
             }
@@ -189,80 +186,69 @@ public class RenderCNPCPlayer extends RenderPlayer {
             GL11.glMatrixMode(GL11.GL_MODELVIEW);
             GL11.glLoadIdentity();
 
-            if (mc.gameSettings.anaglyph)
-            {
-                GL11.glTranslatef((float)(renderPass * 2 - 1) * 0.1F, 0.0F, 0.0F);
+            if (mc.gameSettings.anaglyph) {
+                GL11.glTranslatef((float) (renderPass * 2 - 1) * 0.1F, 0.0F, 0.0F);
             }
 
             GL11.glPushMatrix();
             hurtCameraEffect(partialTicks);
 
-            if (mc.gameSettings.viewBobbing)
-            {
+            if (mc.gameSettings.viewBobbing) {
                 setupViewBobbing(partialTicks);
             }
 
-            if (mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping() && !mc.gameSettings.hideGUI && !mc.playerController.enableEverythingIsScrewedUpMode())
-            {
-                entityRenderer.enableLightmap((double)partialTicks);
+            if (mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping() && !mc.gameSettings.hideGUI && !mc.playerController.enableEverythingIsScrewedUpMode()) {
+                entityRenderer.enableLightmap((double) partialTicks);
                 itemRenderer.renderOverlayInFirstPerson(partialTicks);
-                entityRenderer.disableLightmap((double)partialTicks);
+                entityRenderer.disableLightmap((double) partialTicks);
             }
 
             GL11.glPopMatrix();
 
-            if (mc.gameSettings.viewBobbing)
-            {
+            if (mc.gameSettings.viewBobbing) {
                 setupViewBobbing(partialTicks);
             }
         }
     }
 
-    private float getFOVModifier(float p_78481_1_, boolean p_78481_2_)
-    {
+    private float getFOVModifier(float p_78481_1_, boolean p_78481_2_) {
         Minecraft mc = Minecraft.getMinecraft();
-        EntityLivingBase entityplayer = (EntityLivingBase)mc.renderViewEntity;
+        EntityLivingBase entityplayer = (EntityLivingBase) mc.renderViewEntity;
         float f1 = 70.0F;
 
-        if (p_78481_2_)
-        {
+        if (p_78481_2_) {
             f1 = mc.gameSettings.fovSetting;
             f1 *= this.fovModifierHandPrev + (this.fovModifierHand - this.fovModifierHandPrev) * p_78481_1_;
         }
 
-        if (entityplayer.getHealth() <= 0.0F)
-        {
-            float f2 = (float)entityplayer.deathTime + p_78481_1_;
+        if (entityplayer.getHealth() <= 0.0F) {
+            float f2 = (float) entityplayer.deathTime + p_78481_1_;
             f1 /= (1.0F - 500.0F / (f2 + 500.0F)) * 2.0F + 1.0F;
         }
 
         Block block = ActiveRenderInfo.getBlockAtEntityViewpoint(mc.theWorld, entityplayer, p_78481_1_);
 
-        if (block.getMaterial() == Material.water)
-        {
+        if (block.getMaterial() == Material.water) {
             f1 = f1 * 60.0F / 70.0F;
         }
 
         return f1 + this.prevDebugCamFOV + (this.debugCamFOV - this.prevDebugCamFOV) * p_78481_1_;
     }
 
-    private void hurtCameraEffect(float p_78482_1_)
-    {
+    private void hurtCameraEffect(float p_78482_1_) {
         Minecraft mc = Minecraft.getMinecraft();
         EntityLivingBase entitylivingbase = mc.renderViewEntity;
-        float f1 = (float)entitylivingbase.hurtTime - p_78482_1_;
+        float f1 = (float) entitylivingbase.hurtTime - p_78482_1_;
         float f2;
 
-        if (entitylivingbase.getHealth() <= 0.0F)
-        {
-            f2 = (float)entitylivingbase.deathTime + p_78482_1_;
+        if (entitylivingbase.getHealth() <= 0.0F) {
+            f2 = (float) entitylivingbase.deathTime + p_78482_1_;
             GL11.glRotatef(40.0F - 8000.0F / (f2 + 200.0F), 0.0F, 0.0F, 1.0F);
         }
 
-        if (f1 >= 0.0F)
-        {
-            f1 /= (float)entitylivingbase.maxHurtTime;
-            f1 = MathHelper.sin(f1 * f1 * f1 * f1 * (float)Math.PI);
+        if (f1 >= 0.0F) {
+            f1 /= (float) entitylivingbase.maxHurtTime;
+            f1 = MathHelper.sin(f1 * f1 * f1 * f1 * (float) Math.PI);
             f2 = entitylivingbase.attackedAtYaw;
             GL11.glRotatef(-f2, 0.0F, 1.0F, 0.0F);
             GL11.glRotatef(-f1 * 14.0F, 0.0F, 0.0F, 1.0F);
@@ -270,19 +256,17 @@ public class RenderCNPCPlayer extends RenderPlayer {
         }
     }
 
-    private void setupViewBobbing(float p_78475_1_)
-    {
+    private void setupViewBobbing(float p_78475_1_) {
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.renderViewEntity instanceof EntityPlayer)
-        {
-            EntityPlayer entityplayer = (EntityPlayer)mc.renderViewEntity;
+        if (mc.renderViewEntity instanceof EntityPlayer) {
+            EntityPlayer entityplayer = (EntityPlayer) mc.renderViewEntity;
             float f1 = entityplayer.distanceWalkedModified - entityplayer.prevDistanceWalkedModified;
             float f2 = -(entityplayer.distanceWalkedModified + f1 * p_78475_1_);
             float f3 = entityplayer.prevCameraYaw + (entityplayer.cameraYaw - entityplayer.prevCameraYaw) * p_78475_1_;
             float f4 = entityplayer.prevCameraPitch + (entityplayer.cameraPitch - entityplayer.prevCameraPitch) * p_78475_1_;
-            GL11.glTranslatef(MathHelper.sin(f2 * (float)Math.PI) * f3 * 0.5F, -Math.abs(MathHelper.cos(f2 * (float)Math.PI) * f3), 0.0F);
-            GL11.glRotatef(MathHelper.sin(f2 * (float)Math.PI) * f3 * 3.0F, 0.0F, 0.0F, 1.0F);
-            GL11.glRotatef(Math.abs(MathHelper.cos(f2 * (float)Math.PI - 0.2F) * f3) * 5.0F, 1.0F, 0.0F, 0.0F);
+            GL11.glTranslatef(MathHelper.sin(f2 * (float) Math.PI) * f3 * 0.5F, -Math.abs(MathHelper.cos(f2 * (float) Math.PI) * f3), 0.0F);
+            GL11.glRotatef(MathHelper.sin(f2 * (float) Math.PI) * f3 * 3.0F, 0.0F, 0.0F, 1.0F);
+            GL11.glRotatef(Math.abs(MathHelper.cos(f2 * (float) Math.PI - 0.2F) * f3) * 5.0F, 1.0F, 0.0F, 0.0F);
             GL11.glRotatef(f4, 1.0F, 0.0F, 0.0F);
         }
     }
@@ -297,7 +281,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
         try {
             Class<?> RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
             gender = (float) RenderPlayerJBRA.getMethod("genGet").invoke(null);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         // Check if the skinOverlays map exists for this player's UUID
         UUID uuid = player.getUniqueID();
@@ -334,20 +319,23 @@ public class RenderCNPCPlayer extends RenderPlayer {
             // Render the arm
             this.modelBipedMain.onGround = 0.0F;
             this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
-            this.modelBipedMain.bipedRightArm.render(0.0625F);
+
+            if(this.modelBipedMain.bipedRightArm != null)
+                this.modelBipedMain.bipedRightArm.render(0.0625F);
 
             postRenderOverlay();
         }
     }
 
-    public void renderMorePlayerModel(EntityLivingBase entity, float par2, float par3, float par4, float par5, float par6, float par7){
+    public void renderMorePlayerModel(EntityLivingBase entity, float par2, float par3, float par4, float par5, float par6, float par7) {
         Class<?> ModelMPMClass = null;
         Field isArmor = null;
 
         try {
             ModelMPMClass = Class.forName("noppes.mpm.client.model.ModelMPM");
             isArmor = ModelMPMClass.getDeclaredField("isArmor");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         // Assuming this.modelBipedMain is an instance of ModelMPM
         if (ModelMPMClass != null && ModelMPMClass.isInstance(this.modelBipedMain)) {
@@ -358,7 +346,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     this.modelBipedMain.render(entity, par2, par3, par4, par5, par6, par7);
                     isArmor.setBoolean(this.modelBipedMain, false);
                 }
-            } catch (IllegalAccessException ignored) {}
+            } catch (IllegalAccessException ignored) {
+            }
         }
     }
 
@@ -369,11 +358,11 @@ public class RenderCNPCPlayer extends RenderPlayer {
         Class<?> ModelBipedDBC = null;
         Class<?> ModelBipedBody = null;
         Method renderDBC = null;
-        Field rot1 = null,rot2 = null,rot3 = null,rot4 = null,rot5 = null,rot6 = null;
+        Field rot1 = null, rot2 = null, rot3 = null, rot4 = null, rot5 = null, rot6 = null;
         Object m = null;
-        ModelRenderer bipedHead = null,bipedBody = null,bipedRA = null,bipedLA = null,bipedRL = null,bipedLL = null;
-        ModelRenderer Brightarm = null,Bleftarm = null,rightleg = null,leftleg = null,body = null,hip = null;
-        ModelRenderer waist = null,bottom = null,Bbreast = null,Bbreast2 = null,breast = null,breast2 = null;
+        ModelRenderer bipedHead = null, bipedBody = null, bipedRA = null, bipedLA = null, bipedRL = null, bipedLL = null;
+        ModelRenderer Brightarm = null, Bleftarm = null, rightleg = null, leftleg = null, body = null, hip = null;
+        ModelRenderer waist = null, bottom = null, Bbreast = null, Bbreast2 = null, breast = null, breast2 = null;
         float childScl = 0.0F;
 
         try {
@@ -381,7 +370,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
             ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
             ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
 
-            renderDBC = ModelBipedBody.getMethod("render",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
+            renderDBC = ModelBipedBody.getMethod("render", Entity.class, float.class, float.class, float.class, float.class, float.class, float.class);
             rot1 = ModelBipedDBC.getField("rot1");
             rot2 = ModelBipedDBC.getField("rot2");
             rot3 = ModelBipedDBC.getField("rot3");
@@ -415,14 +404,15 @@ public class RenderCNPCPlayer extends RenderPlayer {
             breast = (ModelRenderer) ModelBipedBody.getField("breast").get(m);
             breast2 = (ModelRenderer) ModelBipedBody.getField("breast2").get(m);
             childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         try {
             RenderPlayerJBRA = Class.forName("JinRyuu.JBRA.RenderPlayerJBRA");
             ModelBipedDBC = Class.forName("JinRyuu.JBRA.ModelBipedDBC");
             ModelBipedBody = Class.forName("JinRyuu.JRMCore.entity.ModelBipedBody");
 
-            renderDBC = ModelBipedBody.getMethod("func_78088_a",Entity.class,float.class,float.class,float.class,float.class,float.class,float.class);
+            renderDBC = ModelBipedBody.getMethod("func_78088_a", Entity.class, float.class, float.class, float.class, float.class, float.class, float.class);
             rot1 = ModelBipedDBC.getField("rot1");
             rot2 = ModelBipedDBC.getField("rot2");
             rot3 = ModelBipedDBC.getField("rot3");
@@ -456,29 +446,32 @@ public class RenderCNPCPlayer extends RenderPlayer {
             breast = (ModelRenderer) ModelBipedBody.getField("breast").get(m);
             breast2 = (ModelRenderer) ModelBipedBody.getField("breast2").get(m);
             childScl = (float) RenderPlayerJBRA.getMethod("childSclGet").invoke(null);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         try {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (((SkinOverlay)overlayData).texture.isEmpty())
+                    if (((SkinOverlay) overlayData).texture.isEmpty())
                         continue;
 
-                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay)overlayData).texture);
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay) overlayData).texture);
                     if (!imageData.imageLoaded())
                         continue;
 
                     try {
                         imageData.bindTexture();
-                    } catch (Exception e) { continue; }
+                    } catch (Exception e) {
+                        continue;
+                    }
 
                     if (!this.preRenderOverlay(overlayData, player))
                         continue;
 
                     bipedHead.isHidden = true;
                     renderDBC.invoke(m, player,
-                            (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
-                            (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
+                        (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
+                        (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
                     );
                     bipedHead.isHidden = false;
 
@@ -516,8 +509,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
                     renderDBC.invoke(m, player,
-                            (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
-                            (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
+                        (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
+                        (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
                     );
                     bipedBody.isHidden = false;
                     bipedRA.isHidden = false;
@@ -541,6 +534,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
                     postRenderOverlay();
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
     }
 }

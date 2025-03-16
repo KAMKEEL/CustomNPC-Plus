@@ -14,11 +14,11 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
     public boolean skinTexture = true;
 
     // If Version == true, use 64 Loader
-    public ImageBufferDownloadAlt(boolean ver){
+    public ImageBufferDownloadAlt(boolean ver) {
         this.version = ver;
     }
 
-    public ImageBufferDownloadAlt(boolean ver, boolean skinTexture){
+    public ImageBufferDownloadAlt(boolean ver, boolean skinTexture) {
         this.version = ver;
         this.skinTexture = skinTexture;
     }
@@ -26,7 +26,7 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
     @Override
     public BufferedImage parseUserSkin(BufferedImage bufferedimage) {
 
-        if(this.version){
+        if (this.version) {
             imageWidth = bufferedimage.getWidth(null);
             imageHeight = bufferedimage.getHeight(null);
 
@@ -36,12 +36,10 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
             g.dispose();
 
             imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
-            if(skinTexture)
+            if (skinTexture)
                 setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 4);
             return bufferedimage1;
-        }
-
-        else{
+        } else {
             imageWidth = bufferedimage.getWidth(null);
             imageHeight = imageWidth / 2;
 
@@ -49,7 +47,7 @@ public class ImageBufferDownloadAlt extends ImageBufferDownload {
             Graphics g = bufferedimage1.getGraphics();
             g.drawImage(bufferedimage, 0, 0, null);
             g.dispose();
-            imageData = ((DataBufferInt)bufferedimage1.getRaster().getDataBuffer()).getData();
+            imageData = ((DataBufferInt) bufferedimage1.getRaster().getDataBuffer()).getData();
 
             setAreaTransparent(imageWidth / 2, 0, imageWidth, imageHeight / 2);
             return bufferedimage1;

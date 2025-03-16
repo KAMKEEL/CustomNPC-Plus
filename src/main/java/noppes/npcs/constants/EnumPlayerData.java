@@ -1,5 +1,5 @@
 package noppes.npcs.constants;
 
 public enum EnumPlayerData {
-	Players,Quest,Dialog,Transport,Bank,Factions
+    Players, Quest, Dialog, Transport, Bank, Factions, Magic
 }

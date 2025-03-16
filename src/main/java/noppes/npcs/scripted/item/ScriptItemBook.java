@@ -19,11 +19,11 @@ public class ScriptItemBook extends ScriptItemStack implements IItemBook {
         List<String> list = new ArrayList<String>();
         NBTTagList pages = this.getTag().getTagList("pages", 8);
 
-        for(int i = 0; i < pages.tagCount(); ++i) {
+        for (int i = 0; i < pages.tagCount(); ++i) {
             list.add(pages.getStringTagAt(i));
         }
 
-        return (String[])list.toArray(new String[list.size()]);
+        return (String[]) list.toArray(new String[list.size()]);
     }
 
     public void setText(String[] pages) {
@@ -32,7 +32,7 @@ public class ScriptItemBook extends ScriptItemStack implements IItemBook {
             String[] var3 = pages;
             int var4 = pages.length;
 
-            for(int var5 = 0; var5 < var4; ++var5) {
+            for (int var5 = 0; var5 < var4; ++var5) {
                 String page = var3[var5];
                 list.appendTag(new NBTTagString(page));
             }
@@ -46,7 +46,7 @@ public class ScriptItemBook extends ScriptItemStack implements IItemBook {
     }
 
     public void setAuthor(String author) {
-        this.getTag().setString("author",author);
+        this.getTag().setString("author", author);
     }
 
     public String getTitle() {
@@ -54,7 +54,7 @@ public class ScriptItemBook extends ScriptItemStack implements IItemBook {
     }
 
     public void setTitle(String title) {
-        this.getTag().setString("title",title);
+        this.getTag().setString("title", title);
     }
 
     private NBTTagCompound getTag() {

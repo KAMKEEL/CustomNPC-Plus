@@ -84,7 +84,7 @@ public final class PartyInfoPacket extends AbstractPacket {
                     list.appendTag(new NBTTagString(s));
                 }
                 compound.setTag("QuestProgress", list);
-                if(quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
+                if (quest.completion == EnumQuestCompletion.Npc && quest.questInterface.isPartyCompleted(party)) {
                     compound.setString("QuestCompleteWith", quest.completerNpc);
                 }
             }

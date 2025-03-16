@@ -22,9 +22,10 @@ public final class LinkedItemBuildPacket extends AbstractPacket {
 
     private int id;
 
-    public LinkedItemBuildPacket(){}
+    public LinkedItemBuildPacket() {
+    }
 
-    public LinkedItemBuildPacket(int id){
+    public LinkedItemBuildPacket(int id) {
         this.id = id;
     }
 
@@ -58,7 +59,7 @@ public final class LinkedItemBuildPacket extends AbstractPacket {
 
         int id = in.readInt();
         LinkedItem linkedItem = LinkedItemController.getInstance().get(id);
-        if(linkedItem == null)
+        if (linkedItem == null)
             return;
 
         EntityPlayerMP playerMP = (EntityPlayerMP) player;

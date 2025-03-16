@@ -1,15 +1,16 @@
-package kamkeel.npcs.network.packets.request.profile;
+package kamkeel.npcs.network.packets.player.profile;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.controllers.ProfileController;
-import kamkeel.npcs.controllers.data.profile.ProfileOperation;
+import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
+import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
@@ -17,36 +18,40 @@ import noppes.npcs.config.ConfigMain;
 
 import java.io.IOException;
 
-public final class ProfileChangePacket extends AbstractPacket {
-    public static String packetName = "Request|ProfileChange";
+public final class ProfileRenamePacket extends AbstractPacket {
+    public static String packetName = "Request|ProfileRename";
 
     private int slotID;
+    private String name;
 
-    public ProfileChangePacket() {}
+    public ProfileRenamePacket() {
+    }
 
-    public ProfileChangePacket(int slotID) {
+    public ProfileRenamePacket(int slotID, String name) {
         this.slotID = slotID;
+        this.name = name;
     }
 
     @Override
     public Enum getType() {
-        return EnumRequestPacket.ProfileChange;
+        return EnumPlayerPacket.ProfileRename;
     }
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.PROFILE_CHANGE;
+        return CustomNpcsPermissions.PROFILE_RENAME;
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(this.slotID);
+        ByteBufUtils.writeString(out, this.name);
     }
 
     @Override
@@ -54,13 +59,22 @@ public final class ProfileChangePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if(!ConfigMain.ProfilesEnabled)
+        if (!ConfigMain.ProfilesEnabled)
             return;
 
         int slot = in.readInt();
-        ProfileOperation operation = ProfileController.Instance.changeSlot(player, slot);
+        String newName = ByteBufUtils.readString(in);
+
+        Profile profile = ProfileController.Instance.getProfile(player);
+        if (!profile.getSlots().containsKey(slot)) {
+            ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "No slot found");
+            return;
+        }
+
+        ProfileController.Instance.getProfile(player).getSlots().get(slot).setName(newName);
+        ProfileController.Instance.save(player, ProfileController.Instance.getProfile(player));
+
         ProfileGetPacket.sendProfileNBT(player);
         ProfileGetInfoPacket.sendProfileInfo(player);
-        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, operation.getMessage());
     }
 }

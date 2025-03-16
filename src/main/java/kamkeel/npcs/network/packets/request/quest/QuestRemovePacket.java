@@ -29,7 +29,8 @@ public final class QuestRemovePacket extends AbstractPacket {
         this.sendGroup = sendGroup;
     }
 
-    public QuestRemovePacket() {}
+    public QuestRemovePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -62,13 +63,12 @@ public final class QuestRemovePacket extends AbstractPacket {
 
         Quest quest = QuestController.Instance.quests.get(in.readInt());
         boolean sendGroup = in.readBoolean();
-        if(quest != null){
+        if (quest != null) {
             QuestController.Instance.removeQuest(quest);
-            if(sendGroup){
-                NoppesUtilServer.sendQuestGroup((EntityPlayerMP) player,quest.category);
-            }
-            else {
-                NoppesUtilServer.sendQuestData((EntityPlayerMP) player,quest.category);
+            if (sendGroup) {
+                NoppesUtilServer.sendQuestGroup((EntityPlayerMP) player, quest.category);
+            } else {
+                NoppesUtilServer.sendQuestData((EntityPlayerMP) player, quest.category);
             }
         }
     }

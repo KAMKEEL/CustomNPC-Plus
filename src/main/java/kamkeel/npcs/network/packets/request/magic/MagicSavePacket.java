@@ -8,13 +8,14 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.nbt.NBTTagCompound;
+
 import java.io.IOException;
 
 public class MagicSavePacket extends AbstractPacket {
@@ -23,7 +24,8 @@ public class MagicSavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public MagicSavePacket() { }
+    public MagicSavePacket() {
+    }
 
     public MagicSavePacket(NBTTagCompound compound) {
         this.compound = compound;

@@ -44,7 +44,7 @@ public class SaveSignPacket extends LargeAbstractPacket {
         int x = data.readInt(), y = data.readInt(), z = data.readInt();
         if (player.worldObj.blockExists(x, y, z)) {
             TileEntity tile = player.worldObj.getTileEntity(x, y, z);
-            if(!(tile instanceof TileBigSign))
+            if (!(tile instanceof TileBigSign))
                 return;
             TileBigSign sign = (TileBigSign) tile;
             if (sign.canEdit) {

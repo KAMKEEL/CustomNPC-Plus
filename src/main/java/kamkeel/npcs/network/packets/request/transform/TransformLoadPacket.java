@@ -20,7 +20,8 @@ public final class TransformLoadPacket extends AbstractPacket {
 
     private boolean transform;
 
-    public TransformLoadPacket() { }
+    public TransformLoadPacket() {
+    }
 
     public TransformLoadPacket(boolean transform) {
         this.transform = transform;
@@ -38,7 +39,7 @@ public final class TransformLoadPacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_TRANSFORM;
     }
 
     @Override
@@ -60,7 +61,7 @@ public final class TransformLoadPacket extends AbstractPacket {
         if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
             return;
 
-        if(npc.transform.isValid())
+        if (npc.transform.isValid())
             npc.transform.transform(in.readBoolean());
     }
 }

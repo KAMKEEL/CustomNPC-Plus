@@ -35,8 +35,8 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
         return this.itemDisplay.texture == null ? "" : this.itemDisplay.texture;
     }
 
-    public void setTexture(String texture){
-        if(texture == null)
+    public void setTexture(String texture) {
+        if (texture == null)
             texture = "";
         this.itemDisplay.texture = texture;
         saveItemData();
@@ -70,28 +70,28 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
     }
 
 
-    public void setRotation(Float rotationX, Float rotationY, Float rotationZ){
+    public void setRotation(Float rotationX, Float rotationY, Float rotationZ) {
         this.itemDisplay.rotationX = rotationX;
         this.itemDisplay.rotationY = rotationY;
         this.itemDisplay.rotationZ = rotationZ;
         saveItemData();
     }
 
-    public void setRotationRate(Float rotationXRate, Float rotationYRate, Float rotationZRate){
+    public void setRotationRate(Float rotationXRate, Float rotationYRate, Float rotationZRate) {
         this.itemDisplay.rotationXRate = rotationXRate;
         this.itemDisplay.rotationYRate = rotationYRate;
         this.itemDisplay.rotationZRate = rotationZRate;
         saveItemData();
     }
 
-    public void setScale(Float scaleX, Float scaleY, Float scaleZ){
+    public void setScale(Float scaleX, Float scaleY, Float scaleZ) {
         this.itemDisplay.scaleX = scaleX;
         this.itemDisplay.scaleY = scaleY;
         this.itemDisplay.scaleZ = scaleZ;
         saveItemData();
     }
 
-    public void setTranslate(Float translateX, Float translateY, Float translateZ){
+    public void setTranslate(Float translateX, Float translateY, Float translateZ) {
         this.itemDisplay.translateX = translateX;
         this.itemDisplay.translateY = translateY;
         this.itemDisplay.translateZ = translateZ;
@@ -167,7 +167,7 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
 
     public void loadItemData() {
         NBTTagCompound c = this.item.getTagCompound();
-        if (c != null && !c.getCompoundTag("ItemData").hasNoTags()){
+        if (c != null && !c.getCompoundTag("ItemData").hasNoTags()) {
             this.setItemNBT(c.getCompoundTag("ItemData"));
         }
     }

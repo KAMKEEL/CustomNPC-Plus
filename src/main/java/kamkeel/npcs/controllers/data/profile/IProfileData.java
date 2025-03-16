@@ -9,6 +9,7 @@ public interface IProfileData {
 
     /**
      * Do not use the tags: Name, lastLoaded, ID.
+     *
      * @return The save tag utilized in the Profile.
      */
     public String getTagName();
@@ -36,6 +37,7 @@ public interface IProfileData {
 
     /**
      * Called before a profile switch occurs.
+     *
      * @param player The player switching profiles.
      * @return true if allowed, false if not.
      */
@@ -44,7 +46,8 @@ public interface IProfileData {
     /**
      * NEW: Builds and returns a list of informational strings about this profile data,
      * based on the provided NBTTagCompound from the slot.
-     * @param player The player in question.
+     *
+     * @param player   The player in question.
      * @param compound The NBT data from the slot under this profile data's tag.
      * @return A list of InfoEntry with information
      */

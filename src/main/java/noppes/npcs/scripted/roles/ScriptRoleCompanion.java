@@ -6,12 +6,12 @@ import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleCompanion extends ScriptRoleInterface implements IRoleMailman {
 
-	public ScriptRoleCompanion(EntityNPCInterface npc) {
-		super(npc);
-	}
+    public ScriptRoleCompanion(EntityNPCInterface npc) {
+        super(npc);
+    }
 
-	@Override
-	public int getType(){
-		return RoleType.COMPANION;
-	}
+    @Override
+    public int getType() {
+        return RoleType.COMPANION;
+    }
 }

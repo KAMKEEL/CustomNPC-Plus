@@ -22,7 +22,8 @@ public final class RoleSavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public RoleSavePacket() { }
+    public RoleSavePacket() {
+    }
 
     public RoleSavePacket(NBTTagCompound compound) {
         this.compound = compound;
@@ -40,7 +41,7 @@ public final class RoleSavePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_ROLE;
     }
 
     @Override

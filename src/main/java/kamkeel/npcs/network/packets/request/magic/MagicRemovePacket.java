@@ -7,11 +7,12 @@ import kamkeel.npcs.network.AbstractPacket;
 import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.MagicController;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
+
 import java.io.IOException;
 
 public class MagicRemovePacket extends AbstractPacket {
@@ -20,7 +21,8 @@ public class MagicRemovePacket extends AbstractPacket {
 
     private int magicId;
 
-    public MagicRemovePacket() { }
+    public MagicRemovePacket() {
+    }
 
     public MagicRemovePacket(int magicId) {
         this.magicId = magicId;

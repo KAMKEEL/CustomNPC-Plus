@@ -9,7 +9,6 @@ import foxz.commandhelper.AbstractCommandHelper;
 import net.minecraft.entity.player.EntityPlayer;
 
 /**
- *
  * @author foxz
  */
 public class PlayerOnly extends AbstractPermission {

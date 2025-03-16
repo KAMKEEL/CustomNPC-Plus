@@ -10,7 +10,6 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.controllers.PlayerDataController;
-import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
@@ -25,22 +24,22 @@ import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class QuestCategoryCommand extends CommandKamkeelBase {
 
-	@Override
-	public String getCommandName() {
-		return "questcat";
-	}
+    @Override
+    public String getCommandName() {
+        return "questcat";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Quest Category operations";
-	}
+    @Override
+    public String getDescription() {
+        return "Quest Category operations";
+    }
 
     @SubCommand(
-            desc = "Find quest category id number by its name",
-            usage = "<quest cat name>"
+        desc = "Find quest category id number by its name",
+        usage = "<quest cat name>"
     )
     public void id(ICommandSender sender, String args[]) throws CommandException {
-        if(args.length == 0){
+        if (args.length == 0) {
             sendError(sender, "Please provide a name for the quest category");
             return;
         }
@@ -48,52 +47,51 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         String catName = String.join(" ", args).toLowerCase();
         final Collection<QuestCategory> questCats = QuestController.Instance.categories.values();
         int count = 0;
-        for(QuestCategory cat : questCats){
-            if(cat.getName().toLowerCase().contains(catName)){
+        for (QuestCategory cat : questCats) {
+            if (cat.getName().toLowerCase().contains(catName)) {
                 sendResult(sender, String.format("Quest Cat \u00A7e%d\u00A77 - \u00A7c'%s'", cat.id, cat.getName()));
                 count++;
             }
         }
-        if(count == 0){
+        if (count == 0) {
             sendResult(sender, String.format("No Quest Cat found with name: \u00A7c'%s'", catName));
         }
     }
 
 
     @SubCommand(
-            desc = "Finish a quest category for a player",
-            usage = "<player> <questcatid>"
+        desc = "Finish a quest category for a player",
+        usage = "<player> <questcatid>"
     )
-    public void finish(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void finish(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int questcatid;
         try {
-        	questcatid = Integer.parseInt(args[1]);
-        }
-        catch (NumberFormatException ex) {
-        	sendError(sender, "QuestCatID must be an integer: " + args[1]);
+            questcatid = Integer.parseInt(args[1]);
+        } catch (NumberFormatException ex) {
+            sendError(sender, "QuestCatID must be an integer: " + args[1]);
             return;
         }
 
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
-        	sendError(sender, String.format("Unknown player '%s'", playername));
+            sendError(sender, String.format("Unknown player '%s'", playername));
             return;
         }
 
         QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
-        if (questCategory == null){
-        	sendError(sender, "Unknown QuestCatID: " + questcatid);
+        if (questCategory == null) {
+            sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
         }
 
         int count = 0;
-        for(PlayerData playerdata : data){
+        for (PlayerData playerdata : data) {
             count = 0;
-            for(Quest quest : questCategory.quests.values()){
+            for (Quest quest : questCategory.quests.values()) {
                 playerdata.questData.activeQuests.remove(quest.id);
                 long completeTime;
-                if(quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY || quest.repeat == EnumQuestRepeat.RLCUSTOM){
+                if (quest.repeat == EnumQuestRepeat.RLDAILY || quest.repeat == EnumQuestRepeat.RLWEEKLY || quest.repeat == EnumQuestRepeat.RLCUSTOM) {
                     completeTime = System.currentTimeMillis();
                     playerdata.questData.finishedQuests.put(quest.id, completeTime);
                 } else {
@@ -101,10 +99,11 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
                     playerdata.questData.finishedQuests.put(quest.id, completeTime);
                 }
 
-                if(ConfigMain.ProfilesEnabled && playerdata.player != null && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
-                    ProfileController.Instance.shareQuestCompletion(playerdata.player, quest.id, completeTime);;
+                if (ConfigMain.ProfilesEnabled && playerdata.player != null && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
+                    ProfileController.Instance.shareQuestCompletion(playerdata.player, quest.id, completeTime);
+                ;
 
-                if(playerdata.player != null){
+                if (playerdata.player != null) {
                     AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
                     ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.completed", ": ", quest.title);
                 }
@@ -119,16 +118,15 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "Stop a quest category for a players active quests",
-            usage = "<player> <questcatid>"
+        desc = "Stop a quest category for a players active quests",
+        usage = "<player> <questcatid>"
     )
-    public void stop(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void stop(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int questcatid;
         try {
             questcatid = Integer.parseInt(args[1]);
-        }
-        catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             sendError(sender, "QuestCatID must be an integer: " + args[1]);
             return;
         }
@@ -140,15 +138,15 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
 
         QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
-        if (questCategory == null){
+        if (questCategory == null) {
             sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
         }
 
         int count = 0;
-        for(PlayerData playerdata : data){
-            for(Quest quest : questCategory.quests.values()){
-                if(playerdata.questData.activeQuests.containsKey(quest.id)){
+        for (PlayerData playerdata : data) {
+            for (Quest quest : questCategory.quests.values()) {
+                if (playerdata.questData.activeQuests.containsKey(quest.id)) {
                     playerdata.questData.activeQuests.remove(quest.id);
                     count++;
                 }
@@ -162,16 +160,15 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
     }
 
     @SubCommand(
-            desc = "Start a quest category for a player",
-            usage = "<player> <questcatid>"
+        desc = "Start a quest category for a player",
+        usage = "<player> <questcatid>"
     )
-    public void start(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void start(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int questcatid;
         try {
             questcatid = Integer.parseInt(args[1]);
-        }
-        catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             sendError(sender, "QuestCatID must be an integer: " + args[1]);
             return;
         }
@@ -183,20 +180,20 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
 
         QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
-        if (questCategory == null){
+        if (questCategory == null) {
             sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
         }
 
         int count = 0;
-        for(PlayerData playerdata : data){
-            for(Quest quest : questCategory.quests.values()){
-                if(!playerdata.questData.activeQuests.containsKey(quest.id)){
+        for (PlayerData playerdata : data) {
+            for (Quest quest : questCategory.quests.values()) {
+                if (!playerdata.questData.activeQuests.containsKey(quest.id)) {
                     QuestData questData = new QuestData(quest);
                     playerdata.questData.activeQuests.put(quest.id, questData);
                     count++;
 
-                    if(playerdata.player != null && questData.sendAlerts){
+                    if (playerdata.player != null && questData.sendAlerts) {
                         AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.newquest", quest.title);
                         ChatAlertPacket.sendChatAlert((EntityPlayerMP) playerdata.player, "quest.newquest", ": ", quest.title);
                     }
@@ -212,16 +209,15 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
 
 
     @SubCommand(
-            desc = "Remove a quest cat from active/finished",
-            usage = "<player> <questcatid>"
+        desc = "Remove a quest cat from active/finished",
+        usage = "<player> <questcatid>"
     )
-    public void remove(ICommandSender sender, String args[]) throws CommandException{
-        String playername=args[0];
+    public void remove(ICommandSender sender, String args[]) throws CommandException {
+        String playername = args[0];
         int questcatid;
         try {
             questcatid = Integer.parseInt(args[1]);
-        }
-        catch (NumberFormatException ex) {
+        } catch (NumberFormatException ex) {
             sendError(sender, "QuestCatID must be an integer: " + args[1]);
             return;
         }
@@ -233,14 +229,14 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         }
 
         QuestCategory questCategory = QuestController.Instance.categories.get(questcatid);
-        if (questCategory == null){
+        if (questCategory == null) {
             sendError(sender, "Unknown QuestCatID: " + questcatid);
             return;
         }
 
         int count = 0;
-        for(PlayerData playerdata : data){
-            for(Quest quest : questCategory.quests.values()){
+        for (PlayerData playerdata : data) {
+            for (Quest quest : questCategory.quests.values()) {
                 playerdata.questData.activeQuests.remove(quest.id);
                 playerdata.questData.finishedQuests.remove(quest.id);
                 count++;

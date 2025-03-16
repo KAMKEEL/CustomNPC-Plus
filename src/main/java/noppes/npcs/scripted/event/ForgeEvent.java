@@ -61,7 +61,7 @@ public class ForgeEvent extends CustomNPCsEvent implements IForgeEvent {
 
     public static class InitEvent extends ForgeEvent implements IForgeEvent.InitEvent {
         public InitEvent() {
-            super((Event)null);
+            super((Event) null);
         }
 
         public String getHookName() {

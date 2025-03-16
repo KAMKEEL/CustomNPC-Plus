@@ -53,7 +53,7 @@ public class ScriptContainer implements IContainer {
     public int count(IItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
         int count = 0;
 
-        for(int i = 0; i < this.getSize(); ++i) {
+        for (int i = 0; i < this.getSize(); ++i) {
             IItemStack toCompare = this.getSlot(i);
             if (NoppesUtilPlayer.compareItems(item.getMCItemStack(), toCompare.getMCItemStack(), ignoreDamage, ignoreNBT)) {
                 count += toCompare.getStackSize();
@@ -74,7 +74,7 @@ public class ScriptContainer implements IContainer {
     public IItemStack[] getItems() {
         IItemStack[] items = new IItemStack[this.getSize()];
 
-        for(int i = 0; i < this.getSize(); ++i) {
+        for (int i = 0; i < this.getSize(); ++i) {
             items[i] = this.getSlot(i);
         }
 
@@ -89,7 +89,7 @@ public class ScriptContainer implements IContainer {
         container.detectAndSendChanges();
     }
 
-    public boolean isPlayerNotUsingContainer(IPlayer player){
+    public boolean isPlayerNotUsingContainer(IPlayer player) {
         return container.isPlayerNotUsingContainer((EntityPlayerMP) player.getMCEntity());
     }
 }

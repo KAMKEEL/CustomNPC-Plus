@@ -41,7 +41,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     private int lastUsedID = 0;
     public ConcurrentHashMap<UUID, ConcurrentHashMap<EffectKey, PlayerEffect>> playerEffects = new ConcurrentHashMap<>();
 
-    public CustomEffectController(){
+    public CustomEffectController() {
         HashMap<Integer, CustomEffect> customEffects = new HashMap<>();
         registerEffectMap(0, customEffects);
     }
@@ -54,7 +54,7 @@ public class CustomEffectController implements ICustomEffectHandler {
         indexMapper.put(index, (HashMap<Integer, CustomEffect>) effectHashMap);
     }
 
-    public HashMap<Integer, CustomEffect> getCustomEffects(){
+    public HashMap<Integer, CustomEffect> getCustomEffects() {
         return indexMapper.get(0);
     }
 
@@ -95,52 +95,6 @@ public class CustomEffectController implements ICustomEffectHandler {
                 }
             } else {
                 iterator.remove();
-            }
-        }
-    }
-
-    @Override
-    public ICustomEffect createEffect(String name) {
-        if (has(name))
-            return get(name);
-
-        CustomEffect effect = new CustomEffect();
-        effect.name = name;
-
-        if (effect.id == -1) {
-            int id = getUnusedId();
-            while (getCustomEffects().containsKey(id)) {
-                id = getUnusedId();
-            }
-            effect.id = id;
-        }
-        getCustomEffects().put(effect.id, effect);
-        return effect;
-    }
-
-    @Override
-    public ICustomEffect getEffect(String name) {
-        return get(name);
-    }
-
-    @Override
-    public void deleteEffect(String name) {
-        ICustomEffect effect = getEffect(name);
-        if (effect != null) {
-            CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
-            customEffectScriptHandlers.remove(effect.getID());
-            if (foundEffect != null && foundEffect.name != null) {
-                File dir = this.getDir();
-                for (File file : dir.listFiles()) {
-                    if (!file.isFile() || !file.getName().endsWith(".json"))
-                        continue;
-                    if (file.getName().equalsIgnoreCase(foundEffect.name + ".json")) {
-                        file.delete();
-                        SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
-                        break;
-                    }
-                }
-                saveEffectLoadMap();
             }
         }
     }
@@ -243,98 +197,6 @@ public class CustomEffectController implements ICustomEffectHandler {
         }
     }
 
-    @Override
-    public boolean hasEffect(IPlayer player, int id) {
-        if (player == null || player.getMCEntity() == null)
-            return false;
-        return hasEffect((EntityPlayer) player.getMCEntity(), id);
-    }
-
-    @Override
-    public boolean hasEffect(IPlayer player, ICustomEffect effect) {
-        return hasEffect((EntityPlayer) player, effect.getID(), effect.getIndex());
-    }
-
-    @Override
-    public int getEffectDuration(IPlayer player, int id) {
-        if (player == null || player.getMCEntity() == null)
-            return -1;
-        return getEffectDuration((EntityPlayer) player.getMCEntity(), id);
-    }
-
-    @Override
-    public int getEffectDuration(IPlayer player, ICustomEffect effect) {
-        return getEffectDuration(player, effect.getID());
-    }
-
-    @Override
-    public void applyEffect(IPlayer player, int id, int duration, byte level) {
-        if (player == null || player.getMCEntity() == null)
-            return;
-        applyEffect((EntityPlayer) player.getMCEntity(), id, duration, level);
-    }
-
-    @Override
-    public void applyEffect(IPlayer player, ICustomEffect effect, int duration, byte level) {
-        applyEffect(player, effect.getID(), duration, level);
-    }
-
-    @Override
-    public void removeEffect(IPlayer player, int id) {
-        if (player == null || player.getMCEntity() == null)
-            return;
-        removeEffect((EntityPlayer) player.getMCEntity(), id, ExpirationType.REMOVED);
-    }
-
-    @Override
-    public void removeEffect(IPlayer player, ICustomEffect effect) {
-        removeEffect((EntityPlayer) player.getMCEntity(), (PlayerEffect) effect, ExpirationType.REMOVED);
-    }
-
-    @Override
-    public void clearEffects(IPlayer player) {
-        if (player == null || player.getMCEntity() == null)
-            return;
-        clearEffects((EntityPlayer) player);
-    }
-
-    @Override
-    public ICustomEffect saveEffect(ICustomEffect customEffect) {
-        if (customEffect.getID() < 0) {
-            customEffect.setID(getUnusedId());
-            while (has(customEffect.getName()))
-                customEffect.setName(customEffect.getName() + "_");
-        }
-
-        while (hasOther(customEffect.getName(), customEffect.getID()))
-            customEffect.setName(customEffect.getName() + "_");
-
-        getCustomEffects().remove(customEffect.getID());
-        getCustomEffects().put(customEffect.getID(), (CustomEffect) customEffect);
-
-        saveEffectLoadMap();
-
-        File dir = this.getDir();
-        if (!dir.exists())
-            dir.mkdirs();
-
-        File file = new File(dir, customEffect.getName() + ".json_new");
-        File file2 = new File(dir, customEffect.getName() + ".json");
-
-        try {
-            NBTTagCompound nbtTagCompound = ((CustomEffect) customEffect).writeToNBT(true);
-            NBTJsonUtil.SaveFile(file, nbtTagCompound);
-            if (file2.exists())
-                file2.delete();
-            file.renameTo(file2);
-            nbtTagCompound.removeTag("ScriptData");
-            SyncController.syncUpdate(EnumSyncType.CUSTOM_EFFECTS, -1, nbtTagCompound);
-        } catch (Exception e) {
-            LogWriter.except(e);
-        }
-        return getCustomEffects().get(customEffect.getID());
-    }
-
     private boolean hasOther(String name, int id) {
         for (CustomEffect effect : getCustomEffects().values()) {
             if (effect.getID() != id && effect.getName().equalsIgnoreCase(name))
@@ -389,7 +251,6 @@ public class CustomEffectController implements ICustomEffectHandler {
         CustomEffect parent = get(id, index);
         if (parent != null) {
             PlayerEffect playerEffect = new PlayerEffect(id, duration, level, index);
-            playerEffect.index = index;
             currentEffects.put(new EffectKey(id, index), playerEffect);
             parent.onAdded(player, playerEffect);
         }
@@ -487,8 +348,8 @@ public class CustomEffectController implements ICustomEffectHandler {
         saveEffectLoadMap();
     }
 
-    public HashMap<Integer, CustomEffect> getEffectMap(int index){
-        if(indexMapper.containsKey(index)){
+    public HashMap<Integer, CustomEffect> getEffectMap(int index) {
+        if (indexMapper.containsKey(index)) {
             return getEffectMap(index);
         }
         return null;
@@ -551,7 +412,8 @@ public class CustomEffectController implements ICustomEffectHandler {
                 if (file.exists()) {
                     loadCustomEffectMap(file);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -587,4 +449,211 @@ public class CustomEffectController implements ICustomEffectHandler {
         if (file2.exists())
             file2.delete();
     }
+
+    // API Versions
+    @Override
+    public ICustomEffect createEffect(String name) {
+        if (has(name))
+            return get(name);
+
+        CustomEffect effect = new CustomEffect();
+        effect.name = name;
+
+        if (effect.id == -1) {
+            int id = getUnusedId();
+            while (getCustomEffects().containsKey(id)) {
+                id = getUnusedId();
+            }
+            effect.id = id;
+        }
+        getCustomEffects().put(effect.id, effect);
+        return effect;
+    }
+
+    @Override
+    public ICustomEffect getEffect(String name) {
+        return get(name);
+    }
+
+    @Override
+    public void deleteEffect(String name) {
+        ICustomEffect effect = getEffect(name);
+        if (effect != null) {
+            CustomEffect foundEffect = getCustomEffects().remove(effect.getID());
+            customEffectScriptHandlers.remove(effect.getID());
+            if (foundEffect != null && foundEffect.name != null) {
+                File dir = this.getDir();
+                for (File file : dir.listFiles()) {
+                    if (!file.isFile() || !file.getName().endsWith(".json"))
+                        continue;
+                    if (file.getName().equalsIgnoreCase(foundEffect.name + ".json")) {
+                        file.delete();
+                        SyncController.syncRemove(EnumSyncType.CUSTOM_EFFECTS, foundEffect.getID());
+                        break;
+                    }
+                }
+                saveEffectLoadMap();
+            }
+        }
+    }
+
+    @Override
+    public boolean hasEffect(IPlayer player, int id) {
+        if (player == null || player.getMCEntity() == null)
+            return false;
+        return hasEffect((EntityPlayer) player.getMCEntity(), id);
+    }
+
+    @Override
+    public boolean hasEffect(IPlayer player, ICustomEffect effect) {
+        return hasEffect((EntityPlayer) player, effect.getID(), effect.getIndex());
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, int id) {
+        if (player == null || player.getMCEntity() == null)
+            return -1;
+        return getEffectDuration((EntityPlayer) player.getMCEntity(), id);
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, ICustomEffect effect) {
+        if(effect == null)
+            return -1;
+        return getEffectDuration(player, effect.getID(), effect.getIndex());
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, int id, int duration, byte level) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        applyEffect((EntityPlayer) player.getMCEntity(), id, duration, level);
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, ICustomEffect effect, int duration, byte level) {
+        applyEffect(player, effect.getID(), duration, level);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, int id) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        removeEffect((EntityPlayer) player.getMCEntity(), id, ExpirationType.REMOVED);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, ICustomEffect effect) {
+        removeEffect((EntityPlayer) player.getMCEntity(), (PlayerEffect) effect, ExpirationType.REMOVED);
+    }
+
+    @Override
+    public void clearEffects(IPlayer player) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        clearEffects((EntityPlayer) player);
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, int id, int duration, byte level, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        applyEffect((EntityPlayer) player.getMCEntity(), id, duration, level, index);
+    }
+
+    @Override
+    public void applyEffect(IPlayer player, ICustomEffect effect, int duration, byte level, int index) {
+        applyEffect(player, effect.getID(), duration, level, index);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, int id, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        removeEffect((EntityPlayer) player.getMCEntity(), id, index, ExpirationType.REMOVED);
+    }
+
+    @Override
+    public void removeEffect(IPlayer player, ICustomEffect effect, int index) {
+        removeEffect(player, effect.getID(), index);
+    }
+
+    @Override
+    public void clearEffects(IPlayer player, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return;
+        EntityPlayer entity = (EntityPlayer) player.getMCEntity();
+        ConcurrentHashMap<EffectKey, PlayerEffect> effects = getPlayerEffects(entity);
+        Iterator<Map.Entry<EffectKey, PlayerEffect>> iterator = effects.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<EffectKey, PlayerEffect> entry = iterator.next();
+            if (entry.getKey().getIndex() == index) {
+                CustomEffect parent = get(entry.getKey().getId(), index);
+                if (parent != null) {
+                    parent.onRemoved(entity, entry.getValue(), ExpirationType.REMOVED);
+                }
+                iterator.remove();
+            }
+        }
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, int id, int index) {
+        if (player == null || player.getMCEntity() == null)
+            return -1;
+        return getEffectDuration((EntityPlayer) player.getMCEntity(), id, index);
+    }
+
+    @Override
+    public int getEffectDuration(IPlayer player, ICustomEffect effect, int index) {
+        return getEffectDuration(player, effect.getID(), index);
+    }
+
+    @Override
+    public ICustomEffect getEffect(String name, int index) {
+        return get(name, index);
+    }
+
+    @Override
+    public ICustomEffect getEffect(int id, int index) {
+        return get(id, index);
+    }
+
+    @Override
+    public ICustomEffect saveEffect(ICustomEffect customEffect) {
+        if (customEffect.getID() < 0) {
+            customEffect.setID(getUnusedId());
+            while (has(customEffect.getName()))
+                customEffect.setName(customEffect.getName() + "_");
+        }
+
+        while (hasOther(customEffect.getName(), customEffect.getID()))
+            customEffect.setName(customEffect.getName() + "_");
+
+        getCustomEffects().remove(customEffect.getID());
+        getCustomEffects().put(customEffect.getID(), (CustomEffect) customEffect);
+
+        saveEffectLoadMap();
+
+        File dir = this.getDir();
+        if (!dir.exists())
+            dir.mkdirs();
+
+        File file = new File(dir, customEffect.getName() + ".json_new");
+        File file2 = new File(dir, customEffect.getName() + ".json");
+
+        try {
+            NBTTagCompound nbtTagCompound = ((CustomEffect) customEffect).writeToNBT(true);
+            NBTJsonUtil.SaveFile(file, nbtTagCompound);
+            if (file2.exists())
+                file2.delete();
+            file.renameTo(file2);
+            nbtTagCompound.removeTag("ScriptData");
+            SyncController.syncUpdate(EnumSyncType.CUSTOM_EFFECTS, -1, nbtTagCompound);
+        } catch (Exception e) {
+            LogWriter.except(e);
+        }
+        return getCustomEffects().get(customEffect.getID());
+    }
+
 }

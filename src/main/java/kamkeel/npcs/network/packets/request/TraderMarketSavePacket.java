@@ -24,7 +24,8 @@ public final class TraderMarketSavePacket extends AbstractPacket {
     private String marketName;
     private boolean setMarket;
 
-    public TraderMarketSavePacket() { }
+    public TraderMarketSavePacket() {
+    }
 
     public TraderMarketSavePacket(String marketName, boolean setMarket) {
         this.marketName = marketName;
@@ -43,7 +44,7 @@ public final class TraderMarketSavePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_TRADER;
     }
 
     @Override
@@ -71,11 +72,11 @@ public final class TraderMarketSavePacket extends AbstractPacket {
             return;
 
         boolean bo = in.readBoolean();
-        if(npc.roleInterface instanceof RoleTrader){
-            if(bo)
+        if (npc.roleInterface instanceof RoleTrader) {
+            if (bo)
                 Market.setMarket(npc, market);
             else
-                Market.save((RoleTrader)npc.roleInterface, market);
+                Market.save((RoleTrader) npc.roleInterface, market);
         }
     }
 }

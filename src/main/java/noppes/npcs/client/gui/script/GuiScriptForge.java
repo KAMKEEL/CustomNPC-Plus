@@ -39,17 +39,17 @@ public class GuiScriptForge extends GuiScriptInterface {
             e.printStackTrace();
         }
 
-        for(ClassPath.ClassInfo e1 : list){
+        for (ClassPath.ClassInfo e1 : list) {
             ClassPath.ClassInfo classLoader = e1;
             Class infoClass = classLoader.load();
             ArrayList c = new ArrayList(Arrays.asList(infoClass.getDeclaredClasses()));
-            if(c.isEmpty()) {
+            if (c.isEmpty()) {
                 c.add(infoClass);
             }
             Iterator var10 = c.iterator();
-            while(var10.hasNext()) {
+            while (var10.hasNext()) {
                 Class c1 = (Class) var10.next();
-                if(!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
+                if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
                     String eventName = c1.getName();
                     int i = eventName.lastIndexOf(".");
                     eventName = StringUtils.uncapitalize(eventName.substring(i + 1).replace("$", ""));
@@ -78,7 +78,7 @@ public class GuiScriptForge extends GuiScriptInterface {
                     script.getScripts().add(new ScriptContainer(script));
                 }
             }
-            script.getScripts().set(tab,container);
+            script.getScripts().set(tab, container);
             initGui();
         }
     }

@@ -24,7 +24,8 @@ public final class DialogNpcRemovePacket extends AbstractPacket {
         this.index = index;
     }
 
-    public DialogNpcRemovePacket() {}
+    public DialogNpcRemovePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -38,7 +39,7 @@ public final class DialogNpcRemovePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_DIALOG;
     }
 
     @Override

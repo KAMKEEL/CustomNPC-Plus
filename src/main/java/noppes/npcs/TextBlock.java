@@ -6,5 +6,5 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TextBlock {
-	public List<IChatComponent> lines = new ArrayList<IChatComponent>();
+    public List<IChatComponent> lines = new ArrayList<IChatComponent>();
 }

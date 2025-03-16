@@ -22,7 +22,8 @@ public final class TransformSavePacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public TransformSavePacket() { }
+    public TransformSavePacket() {
+    }
 
     public TransformSavePacket(NBTTagCompound compound) {
         this.compound = compound;
@@ -40,7 +41,7 @@ public final class TransformSavePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_TRANSFORM;
     }
 
     @Override

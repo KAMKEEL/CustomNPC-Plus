@@ -11,6 +11,8 @@ public interface IRequirementChecker {
 
     String getTooltipValue(NBTTagCompound nbt);
 
+    Object getValue(NBTTagCompound nbt);
+
     void apply(NBTTagCompound nbt, Object value);
 
     /**

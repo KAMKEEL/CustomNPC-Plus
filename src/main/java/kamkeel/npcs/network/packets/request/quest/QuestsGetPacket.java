@@ -23,7 +23,8 @@ public final class QuestsGetPacket extends AbstractPacket {
     private int categoryID;
     private boolean sendGroup;
 
-    public QuestsGetPacket() {}
+    public QuestsGetPacket() {
+    }
 
     public QuestsGetPacket(int categoryID, boolean send) {
         this.categoryID = categoryID;
@@ -57,11 +58,10 @@ public final class QuestsGetPacket extends AbstractPacket {
 
         QuestCategory category = QuestController.Instance.categories.get(in.readInt());
         boolean sendGroup = in.readBoolean();
-        if(sendGroup){
-            NoppesUtilServer.sendQuestGroup((EntityPlayerMP) player,category);
-        }
-        else {
-            NoppesUtilServer.sendQuestData((EntityPlayerMP) player,category);
+        if (sendGroup) {
+            NoppesUtilServer.sendQuestGroup((EntityPlayerMP) player, category);
+        } else {
+            NoppesUtilServer.sendQuestData((EntityPlayerMP) player, category);
         }
     }
 }

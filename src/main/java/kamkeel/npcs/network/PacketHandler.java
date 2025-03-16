@@ -16,6 +16,14 @@ import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import kamkeel.npcs.network.packets.player.*;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
+import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
+import kamkeel.npcs.network.packets.player.item.GuiMagicBookPacket;
+import kamkeel.npcs.network.packets.player.item.GuiPaintbrushPacket;
+import kamkeel.npcs.network.packets.player.item.MagicCyclesPacket;
+import kamkeel.npcs.network.packets.player.profile.*;
 import kamkeel.npcs.network.packets.request.*;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
@@ -26,10 +34,6 @@ import kamkeel.npcs.network.packets.request.bank.BankRemovePacket;
 import kamkeel.npcs.network.packets.request.bank.BankSavePacket;
 import kamkeel.npcs.network.packets.request.bank.BanksGetPacket;
 import kamkeel.npcs.network.packets.request.clone.*;
-import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
-import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
-import kamkeel.npcs.network.packets.player.customgui.CustomGuiUnfocusedPacket;
-import kamkeel.npcs.network.packets.player.customgui.CustomScrollClickPacket;
 import kamkeel.npcs.network.packets.request.dialog.*;
 import kamkeel.npcs.network.packets.request.effects.EffectGetPacket;
 import kamkeel.npcs.network.packets.request.effects.EffectRemovePacket;
@@ -39,6 +43,7 @@ import kamkeel.npcs.network.packets.request.faction.*;
 import kamkeel.npcs.network.packets.request.feather.DimensionTeleportPacket;
 import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import kamkeel.npcs.network.packets.request.item.ColorSetPacket;
+import kamkeel.npcs.network.packets.request.item.HammerPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobGetPacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSavePacket;
 import kamkeel.npcs.network.packets.request.jobs.JobSpawnerAddPacket;
@@ -55,7 +60,6 @@ import kamkeel.npcs.network.packets.request.party.*;
 import kamkeel.npcs.network.packets.request.pather.MovingPathGetPacket;
 import kamkeel.npcs.network.packets.request.pather.MovingPathSavePacket;
 import kamkeel.npcs.network.packets.request.playerdata.*;
-import kamkeel.npcs.network.packets.request.profile.*;
 import kamkeel.npcs.network.packets.request.quest.*;
 import kamkeel.npcs.network.packets.request.recipe.RecipeGetPacket;
 import kamkeel.npcs.network.packets.request.recipe.RecipeRemovePacket;
@@ -96,10 +100,10 @@ public class PacketHandler {
     public Map<EnumChannelType, FMLEventChannel> channels = new Hashtable<>();
 
     // Client to Server
-    public static final PacketChannel REQUEST_PACKET = new PacketChannel("CNPC+|Req",   EnumChannelType.REQUEST);
+    public static final PacketChannel REQUEST_PACKET = new PacketChannel("CNPC+|Req", EnumChannelType.REQUEST);
 
     // Client to Server - Typically information
-    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player",   EnumChannelType.PLAYER);
+    public static final PacketChannel PLAYER_PACKET = new PacketChannel("CNPC+|Player", EnumChannelType.PLAYER);
 
     // Server to Client
     public static final PacketChannel DATA_PACKET = new PacketChannel("CNPC+|Data", EnumChannelType.DATA);
@@ -117,7 +121,7 @@ public class PacketHandler {
         this.registerPlayerPackets();
     }
 
-    public void registerRequestPackets(){
+    public void registerRequestPackets() {
         // NPC Packets
         REQUEST_PACKET.registerPacket(new NpcClosePacket());
         REQUEST_PACKET.registerPacket(new NpcDeletePacket());
@@ -227,7 +231,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new PlayerDataGetNamesPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataRemovePacket());
         REQUEST_PACKET.registerPacket(new PlayerDataGetInfoPacket());
-        REQUEST_PACKET.registerPacket(new PlayerDataRemoveInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataDeleteInfoPacket());
+        REQUEST_PACKET.registerPacket(new PlayerDataSaveInfoPacket());
         REQUEST_PACKET.registerPacket(new PlayerDataMapRegenPacket());
 
         // Main Menu Packets
@@ -312,6 +317,7 @@ public class PacketHandler {
         // Tool Packets
         REQUEST_PACKET.registerPacket(new ColorBrushPacket());
         REQUEST_PACKET.registerPacket(new ColorSetPacket());
+        REQUEST_PACKET.registerPacket(new HammerPacket());
 
         // Custom Effect Packets
         REQUEST_PACKET.registerPacket(new EffectGetPacket());
@@ -319,21 +325,15 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new EffectSavePacket());
         REQUEST_PACKET.registerPacket(new EffectRemovePacket());
 
-        // Profile Packets
-        REQUEST_PACKET.registerPacket(new ProfileGetPacket());
-        REQUEST_PACKET.registerPacket(new ProfileGetInfoPacket());
-        REQUEST_PACKET.registerPacket(new ProfileCreatePacket());
-        REQUEST_PACKET.registerPacket(new ProfileRemovePacket());
-        REQUEST_PACKET.registerPacket(new ProfileRenamePacket());
-        REQUEST_PACKET.registerPacket(new ProfileChangePacket());
-
-        // Job Packets
+        // Magic Packets
         REQUEST_PACKET.registerPacket(new MagicCycleRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicCycleSavePacket());
         REQUEST_PACKET.registerPacket(new MagicGetAllPacket());
         REQUEST_PACKET.registerPacket(new MagicSavePacket());
         REQUEST_PACKET.registerPacket(new MagicRemovePacket());
         REQUEST_PACKET.registerPacket(new MagicGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicNpcGetPacket());
+        REQUEST_PACKET.registerPacket(new MagicNpcSavePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
@@ -348,7 +348,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new DimensionTeleportPacket());
     }
 
-    public void registerDataPackets(){
+    public void registerDataPackets() {
         // Data Packets
         DATA_PACKET.registerPacket(new LoginPacket());
         DATA_PACKET.registerPacket(new AchievementPacket());
@@ -431,6 +431,19 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new CustomGuiClosePacket());
         PLAYER_PACKET.registerPacket(new CustomGuiUnfocusedPacket());
         PLAYER_PACKET.registerPacket(new CustomScrollClickPacket());
+
+        // Item Gui Packets
+        PLAYER_PACKET.registerPacket(new GuiPaintbrushPacket());
+        PLAYER_PACKET.registerPacket(new GuiMagicBookPacket());
+        PLAYER_PACKET.registerPacket(new MagicCyclesPacket());
+
+        // Profile Packets
+        PLAYER_PACKET.registerPacket(new ProfileCreatePacket());
+        PLAYER_PACKET.registerPacket(new ProfileRemovePacket());
+        PLAYER_PACKET.registerPacket(new ProfileRenamePacket());
+        PLAYER_PACKET.registerPacket(new ProfileChangePacket());
+        PLAYER_PACKET.registerPacket(new ProfileGetPacket());
+        PLAYER_PACKET.registerPacket(new ProfileGetInfoPacket());
     }
 
     public void registerChannels() {
@@ -449,7 +462,7 @@ public class PacketHandler {
             .orElse(null);
     }
 
-    public FMLEventChannel getEventChannel(AbstractPacket abstractPacket){
+    public FMLEventChannel getEventChannel(AbstractPacket abstractPacket) {
         PacketChannel packetChannel = getPacketChannel(abstractPacket.getChannel().getChannelType());
         if (packetChannel == null) {
             return null;
@@ -486,20 +499,20 @@ public class PacketHandler {
                 return;
             }
 
-            if(side == Side.SERVER){
-                if(abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)){
+            if (side == Side.SERVER) {
+                if (abstractPacket.getChannel() == REQUEST_PACKET && ConfigMain.OpsOnly && !NoppesUtilServer.isOp(player)) {
                     LogWriter.error(String.format("%s tried to use CNPC+ without being an op", player.getCommandSenderName()));
                     return;
                 }
 
                 // Check if permission is allowed
-                if(abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())){
+                if (abstractPacket.getPermission() != null && !CustomNpcsPermissions.hasPermission(player, abstractPacket.getPermission())) {
                     return;
                 }
 
                 // Check for required NPC
                 EntityNPCInterface npc = NoppesUtilServer.getEditingNpc(player);
-                if(abstractPacket.needsNPC() && npc == null){
+                if (abstractPacket.needsNPC() && npc == null) {
                     return;
                 }
 

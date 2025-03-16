@@ -25,7 +25,8 @@ public final class TagSetPacket extends AbstractPacket {
 
     private NBTTagCompound compound;
 
-    public TagSetPacket() {}
+    public TagSetPacket() {
+    }
 
     public TagSetPacket(NBTTagCompound compound) {
         this.compound = compound;
@@ -43,7 +44,7 @@ public final class TagSetPacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_TAGS;
     }
 
     @Override

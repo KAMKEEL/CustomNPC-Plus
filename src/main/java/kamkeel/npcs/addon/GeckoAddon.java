@@ -11,10 +11,11 @@ public class GeckoAddon {
      * The Addon Mod will replace all blank functions within
      * this class to change the ongoing code.
      */
-    public GeckoAddon(){
+    public GeckoAddon() {
         instance = this;
     }
 
-    public void geckoCopyData(EntityLivingBase copied, EntityLivingBase entity){}
+    public void geckoCopyData(EntityLivingBase copied, EntityLivingBase entity) {
+    }
 
 }

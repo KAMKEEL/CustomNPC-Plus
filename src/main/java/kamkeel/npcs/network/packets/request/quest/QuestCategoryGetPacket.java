@@ -23,7 +23,8 @@ public final class QuestCategoryGetPacket extends AbstractPacket {
 
     private int categoryID;
 
-    public QuestCategoryGetPacket() {}
+    public QuestCategoryGetPacket() {
+    }
 
     public QuestCategoryGetPacket(int categoryID) {
         this.categoryID = categoryID;

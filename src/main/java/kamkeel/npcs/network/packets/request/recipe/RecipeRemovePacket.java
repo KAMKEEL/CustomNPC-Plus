@@ -30,7 +30,8 @@ public final class RecipeRemovePacket extends AbstractPacket {
         this.isAnvil = isAnvil;
     }
 
-    public RecipeRemovePacket() {}
+    public RecipeRemovePacket() {
+    }
 
     @Override
     public Enum getType() {
@@ -62,7 +63,7 @@ public final class RecipeRemovePacket extends AbstractPacket {
             return;
         int id = in.readInt();
         boolean anvil = in.readBoolean();
-        if(anvil){
+        if (anvil) {
             RecipeAnvil recipe = RecipeController.Instance.deleteAnvil(id);
             NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, 1);
             NoppesUtilServer.setRecipeAnvilGui((EntityPlayerMP) player, new RecipeAnvil());

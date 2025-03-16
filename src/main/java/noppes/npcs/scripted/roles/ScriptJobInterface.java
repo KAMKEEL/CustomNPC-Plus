@@ -8,32 +8,33 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobInterface implements IJob {
-	public final EntityNPCInterface npc;
-	public final JobInterface jobInterface;
+    public final EntityNPCInterface npc;
+    public final JobInterface jobInterface;
 
-	public ScriptJobInterface(JobInterface jobInterface) {
-		this.npc = null;
-		this.jobInterface = jobInterface;
-	}
+    public ScriptJobInterface(JobInterface jobInterface) {
+        this.npc = null;
+        this.jobInterface = jobInterface;
+    }
 
-	public ScriptJobInterface(EntityNPCInterface npc){
-		this.npc = npc;
-		this.jobInterface = npc.jobInterface;
-	}
-	/**
-	 * @see noppes.npcs.scripted.constants.JobType
-	 * @return Returns the JobType
-	 */
-	public int getType(){
-		return JobType.UNKNOWN;
-	}
+    public ScriptJobInterface(EntityNPCInterface npc) {
+        this.npc = npc;
+        this.jobInterface = npc.jobInterface;
+    }
 
-	public JobInterface getJobInterface() {
-		return jobInterface;
-	}
+    /**
+     * @return Returns the JobType
+     * @see noppes.npcs.scripted.constants.JobType
+     */
+    public int getType() {
+        return JobType.UNKNOWN;
+    }
 
-	public ICustomNpc getNpc() {
-		return (ICustomNpc) NpcAPI.Instance().getIEntity(npc);
-	}
+    public JobInterface getJobInterface() {
+        return jobInterface;
+    }
+
+    public ICustomNpc getNpc() {
+        return (ICustomNpc) NpcAPI.Instance().getIEntity(npc);
+    }
 
 }

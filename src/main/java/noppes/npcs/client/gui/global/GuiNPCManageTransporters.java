@@ -20,121 +20,113 @@ import java.util.HashMap;
 import java.util.Vector;
 
 
-public class GuiNPCManageTransporters extends GuiNPCInterface implements IScrollData
-{
-	private GuiNPCStringSlot slot;
-	private HashMap<String,Integer> data;
-	private boolean selectCategory = true;
-    public GuiNPCManageTransporters(EntityNPCInterface npc)
-    {
-    	super(npc);
+public class GuiNPCManageTransporters extends GuiNPCInterface implements IScrollData {
+    private GuiNPCStringSlot slot;
+    private HashMap<String, Integer> data;
+    private boolean selectCategory = true;
+
+    public GuiNPCManageTransporters(EntityNPCInterface npc) {
+        super(npc);
         PacketClient.sendClient(new TransportCategoriesGetPacket());
-    	drawDefaultBackground = false;
-		title = "Transport Categories";
-		data = new HashMap<String, Integer>();
+        drawDefaultBackground = false;
+        title = "Transport Categories";
+        data = new HashMap<String, Integer>();
     }
 
-    public void initGui()
-    {
+    public void initGui() {
         super.initGui();
         Vector<String> list = new Vector<String>();
-        slot = new GuiNPCStringSlot(list,this,false,18);
+        slot = new GuiNPCStringSlot(list, this, false, 18);
         slot.registerScrollButtons(4, 5);
 
 
-    	this.addButton(new GuiNpcButton(0,width / 2 - 100, height - 52, 65, 20, "gui.add"));
-    	this.addButton(new GuiNpcButton(1,width / 2 - 33 , height - 52, 65, 20, "selectServer.edit"));
-    	getButton(0).setEnabled(selectCategory);
-    	getButton(1).setEnabled(selectCategory);
-    	this.addButton(new GuiNpcButton(3, width / 2 + 33, height - 52,65, 20, "gui.remove"));
-    	this.addButton(new GuiNpcButton(2, width / 2 -100, height - 31,98, 20, "gui.open"));
-    	getButton(2).setEnabled(selectCategory);
-    	this.addButton(new GuiNpcButton(4, width / 2  + 2, height - 31,98, 20, "gui.back"));
+        this.addButton(new GuiNpcButton(0, width / 2 - 100, height - 52, 65, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(1, width / 2 - 33, height - 52, 65, 20, "selectServer.edit"));
+        getButton(0).setEnabled(selectCategory);
+        getButton(1).setEnabled(selectCategory);
+        this.addButton(new GuiNpcButton(3, width / 2 + 33, height - 52, 65, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(2, width / 2 - 100, height - 31, 98, 20, "gui.open"));
+        getButton(2).setEnabled(selectCategory);
+        this.addButton(new GuiNpcButton(4, width / 2 + 2, height - 31, 98, 20, "gui.back"));
     }
 
 
-    public void drawScreen(int i, int j, float f)
-    {
-    	slot.drawScreen(i, j, f);
+    public void drawScreen(int i, int j, float f) {
+        slot.drawScreen(i, j, f);
         super.drawScreen(i, j, f);
     }
 
-	protected void actionPerformed(GuiButton guibutton)
-    {
-		int id = guibutton.id;
-        if(id == 0)
-        {
-    		if(selectCategory){
-    			NoppesUtil.openGUI(player, new GuiNPCTransportCategoryEdit(npc, this, "", -1));
-    		}else{
+    protected void actionPerformed(GuiButton guibutton) {
+        int id = guibutton.id;
+        if (id == 0) {
+            if (selectCategory) {
+                NoppesUtil.openGUI(player, new GuiNPCTransportCategoryEdit(npc, this, "", -1));
+            } else {
 
-    		}
+            }
         }
-        if(id == 1)
-        {
-        	if(slot.selected == null || slot.selected.isEmpty())
-        		return;
-    		if(selectCategory){
-    			NoppesUtil.openGUI(player, new GuiNPCTransportCategoryEdit(npc, this,slot.selected, data.get(slot.selected)));
-    		}else{
+        if (id == 1) {
+            if (slot.selected == null || slot.selected.isEmpty())
+                return;
+            if (selectCategory) {
+                NoppesUtil.openGUI(player, new GuiNPCTransportCategoryEdit(npc, this, slot.selected, data.get(slot.selected)));
+            } else {
 
-    		}
+            }
         }
-        if(id == 4)
-        {
-        	if(selectCategory){
-            	close();
-    			NoppesUtil.openGUI(player, new GuiNPCGlobalMainMenu(npc));
-        	}else{
-    			title = "Transport Categories";
-        		selectCategory = true;
+        if (id == 4) {
+            if (selectCategory) {
+                close();
+                NoppesUtil.openGUI(player, new GuiNPCGlobalMainMenu(npc));
+            } else {
+                title = "Transport Categories";
+                selectCategory = true;
                 PacketClient.sendClient(new TransportCategoriesGetPacket());
-        		initGui();
-        	}
+                initGui();
+            }
         }
-        if(id == 3)
-        {
-        	if(slot.selected == null || slot.selected.isEmpty())
-        		return;
-        	save();
-        	if(selectCategory){
+        if (id == 3) {
+            if (slot.selected == null || slot.selected.isEmpty())
+                return;
+            save();
+            if (selectCategory) {
                 PacketClient.sendClient(new TransportCategoryRemovePacket(data.get(slot.selected)));
-        	}
-        	else{
+            } else {
                 PacketClient.sendClient(new TransportRemovePacket(data.get(slot.selected)));
-        	}
-        	initGui();
+            }
+            initGui();
         }
-        if(id == 2)
-        {
-        	doubleClicked();
+        if (id == 2) {
+            doubleClicked();
         }
     }
-	public void doubleClicked() {
-    	if(slot.selected == null || slot.selected.isEmpty())
-    		return;
-		if(selectCategory){
-			selectCategory = false;
-			title = "TransportLocations";
+
+    public void doubleClicked() {
+        if (slot.selected == null || slot.selected.isEmpty())
+            return;
+        if (selectCategory) {
+            selectCategory = false;
+            title = "TransportLocations";
             PacketClient.sendClient(new TransportsGetPacket(data.get(slot.selected)));
-    		initGui();
-		}
+            initGui();
+        }
 
-	}
-	public void save() {
-	}
+    }
 
-	@Override
-	public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-		this.data = data;
-		slot.setList(list);
-	}
+    public void save() {
+    }
 
-	@Override
-	public void setSelected(String selected) {
+    @Override
+    public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
+        this.data = data;
+        slot.setList(list);
+    }
+
+    @Override
+    public void setSelected(String selected) {
 
 
-	}
+    }
 
 
 }

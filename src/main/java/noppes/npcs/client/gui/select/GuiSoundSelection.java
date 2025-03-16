@@ -72,7 +72,7 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
     }
 
     @Override
-    public void initGui(){
+    public void initGui() {
         super.initGui();
         this.addButton(new GuiNpcButton(2, guiLeft + xSize - 45, guiTop + ySize - 35, 40, 20, "gui.done"));
         this.addButton(new GuiNpcButton(1, guiLeft + 4, guiTop + ySize - 35, 70, 20, "gui.play"));
@@ -109,11 +109,11 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
     }
 
     @Override
-    protected void actionPerformed(GuiButton guibutton){
+    protected void actionPerformed(GuiButton guibutton) {
         super.actionPerformed(guibutton);
         if (guibutton.id == 1) {
             MusicController.Instance.stopMusic();
-            MusicController.Instance.playSound(selectedResource.toString(), (float)player.posX, (float)player.posY, (float)player.posZ);
+            MusicController.Instance.playSound(selectedResource.toString(), (float) player.posX, (float) player.posY, (float) player.posZ);
         }
         if (guibutton.id == 2) {
             close();
@@ -152,18 +152,18 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
     @Override
     public void keyTyped(char c, int i) {
         super.keyTyped(c, i);
-        if(getTextField(55) != null){
-            if(getTextField(55).isFocused()){
-                if(catSearch.equals(getTextField(55).getText()))
+        if (getTextField(55) != null) {
+            if (getTextField(55).isFocused()) {
+                if (catSearch.equals(getTextField(55).getText()))
                     return;
                 catSearch = getTextField(55).getText().toLowerCase();
                 scrollCategories.resetScroll();
                 scrollCategories.setList(getCatSearch());
             }
         }
-        if(getTextField(66) != null){
-            if(getTextField(66).isFocused()){
-                if(soundSearch.equals(getTextField(66).getText()))
+        if (getTextField(66) != null) {
+            if (getTextField(66).isFocused()) {
+                if (soundSearch.equals(getTextField(66).getText()))
                     return;
                 soundSearch = getTextField(66).getText().toLowerCase();
                 scrollSounds.resetScroll();
@@ -172,28 +172,28 @@ public class GuiSoundSelection extends SubGuiInterface implements ICustomScrollL
         }
     }
 
-    private List<String> getCatSearch(){
-        if(catSearch.isEmpty()){
+    private List<String> getCatSearch() {
+        if (catSearch.isEmpty()) {
             return new ArrayList<String>(this.domains.keySet());
         }
         List<String> list = new ArrayList<String>();
-        for(String name : this.domains.keySet()){
-            if(name.toLowerCase().contains(catSearch))
+        for (String name : this.domains.keySet()) {
+            if (name.toLowerCase().contains(catSearch))
                 list.add(name);
         }
         return list;
     }
 
-    private List<String> getSoundSearch(){
-        if(selectedDomain == null){
+    private List<String> getSoundSearch() {
+        if (selectedDomain == null) {
             return new ArrayList<String>();
         }
-        if(soundSearch.isEmpty()){
+        if (soundSearch.isEmpty()) {
             return new ArrayList<String>(this.domains.get(selectedDomain));
         }
         List<String> list = new ArrayList<String>();
-        for(String name : this.domains.get(selectedDomain)){
-            if(name.toLowerCase().contains(soundSearch))
+        for (String name : this.domains.get(selectedDomain)) {
+            if (name.toLowerCase().contains(soundSearch))
                 list.add(name);
         }
         return list;

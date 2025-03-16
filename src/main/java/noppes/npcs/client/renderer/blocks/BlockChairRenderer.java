@@ -9,6 +9,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockChair;
+import noppes.npcs.blocks.tiles.TileChair;
 import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.chair.ModelChair;
 import noppes.npcs.client.model.blocks.chair.ModelChairSpoof;
@@ -17,43 +18,68 @@ import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-public class BlockChairRenderer extends BlockRendererInterface{
+public class BlockChairRenderer extends BlockRendererInterface {
 
     private final ModelLegacyChair legacyModel = new ModelLegacyChair();
 
     private final ModelChairSpoof chairSpoof = new ModelChairSpoof();
     private final ModelChair chair = new ModelChair();
 
-    private static final ResourceLocation oak = new ResourceLocation("customnpcs","textures/models/chair/oak.png");
-    private static final ResourceLocation spruce = new ResourceLocation("customnpcs","textures/models/chair/spruce.png");
-    private static final ResourceLocation birch = new ResourceLocation("customnpcs","textures/models/chair/birch.png");
-    private static final ResourceLocation jungle = new ResourceLocation("customnpcs","textures/models/chair/jungle.png");
-    private static final ResourceLocation dark_oak = new ResourceLocation("customnpcs","textures/models/chair/dark_oak.png");
-    private static final ResourceLocation acacia = new ResourceLocation("customnpcs","textures/models/chair/acacia.png");
+    private static final ResourceLocation oak = new ResourceLocation("customnpcs", "textures/models/chair/oak.png");
+    private static final ResourceLocation spruce = new ResourceLocation("customnpcs", "textures/models/chair/spruce.png");
+    private static final ResourceLocation birch = new ResourceLocation("customnpcs", "textures/models/chair/birch.png");
+    private static final ResourceLocation jungle = new ResourceLocation("customnpcs", "textures/models/chair/jungle.png");
+    private static final ResourceLocation dark_oak = new ResourceLocation("customnpcs", "textures/models/chair/dark_oak.png");
+    private static final ResourceLocation acacia = new ResourceLocation("customnpcs", "textures/models/chair/acacia.png");
 
-	public BlockChairRenderer(){
-		((BlockChair)CustomItems.chair).renderId = RenderingRegistry.getNextAvailableRenderId();
-		RenderingRegistry.registerBlockHandler(this);
-	}
-	@Override
-	public void renderTileEntityAt(TileEntity var1, double var2, double var4,
-			double var6, float var8) {
-		TileVariant tile = (TileVariant) var1;
+    public BlockChairRenderer() {
+        ((BlockChair) CustomItems.chair).renderId = RenderingRegistry.getNextAvailableRenderId();
+        RenderingRegistry.registerBlockHandler(this);
+    }
+
+    @Override
+    public void renderTileEntityAt(TileEntity var1, double var2, double var4,
+                                   double var6, float var8) {
+        TileVariant tile = (TileVariant) var1;
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef((float)var2 + 0.5f, (float)var4 + 1.5f, (float)var6 + 0.5f);
+        GL11.glTranslatef((float) var2 + 0.5f, (float) var4 + 1.5f, (float) var6 + 0.5f);
         // GL11.glScalef(1.2f, 1.1f, 1.2f);
         GL11.glRotatef(180, 0, 0, 1);
+
+        // Apply push translation if this is a pushed chair.
+        if (tile instanceof TileChair) {
+            TileChair chairTile = (TileChair) tile;
+            if (chairTile.isPushed()) {
+                float pushDistance = 0.6f; // adjust as needed for visual effect
+                switch (tile.rotation) {
+                    case 0: // Facing north – push the model backwards.
+                        GL11.glTranslatef(0, 0, -pushDistance);
+                        break;
+                    case 1: // Facing east – push right.
+                        GL11.glTranslatef(-pushDistance, 0, 0);
+                        break;
+                    case 2: // Facing south – push forwards.
+                        GL11.glTranslatef(0, 0, pushDistance);
+                        break;
+                    case 3: // Facing west – push left.
+                        GL11.glTranslatef(pushDistance, 0, 0);
+                        break;
+                }
+            }
+        }
+
         GL11.glRotatef(90 * tile.rotation, 0, 1, 0);
+
         GL11.glColor3f(1, 1, 1);
 
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         setWoodTexture(var1.getBlockMetadata());
-        if(ConfigClient.LegacyChair)
+        if (ConfigClient.LegacyChair)
             legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
         else {
-            if(ConfigClient.WoodTextures)
+            if (ConfigClient.WoodTextures)
                 chairSpoof.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else {
                 setChairTexture(var1.getBlockMetadata());
@@ -62,56 +88,55 @@ public class BlockChairRenderer extends BlockRendererInterface{
         }
         GL11.glDisable(GL11.GL_ALPHA_TEST);
         GL11.glPopAttrib();
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId,
-			RenderBlocks renderer) {
+    @Override
+    public void renderInventoryBlock(Block block, int metadata, int modelId,
+                                     RenderBlocks renderer) {
         GL11.glPushMatrix();
         GL11.glTranslatef(0, 1f, 0);
         GL11.glColor3f(1, 1, 1);
-        if(ConfigClient.LegacyChair){
+        if (ConfigClient.LegacyChair) {
             setWoodTexture(metadata);
             GL11.glScalef(1.2f, 1.1f, 1.2f);
             GL11.glRotatef(180, 0, 0, 1);
             GL11.glRotatef(180, 0, 1, 0);
             legacyModel.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
-        }
-        else {
+        } else {
             GL11.glTranslatef(0, -0.15f, 0);
             GL11.glScalef(1f, 0.9f, 1f);
             GL11.glRotatef(180, 0, 0, 1);
             GL11.glRotatef(180, 0, 1, 0);
-            if(ConfigClient.WoodTextures)
+            if (ConfigClient.WoodTextures)
                 chairSpoof.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             else {
                 setChairTexture(metadata);
                 chair.render(null, 0, 0, 0, 0, 0.0F, 0.0625F);
             }
         }
-		GL11.glPopMatrix();
-	}
+        GL11.glPopMatrix();
+    }
 
-    public void setChairTexture(int meta){
+    public void setChairTexture(int meta) {
         TextureManager manager = Minecraft.getMinecraft().getTextureManager();
-        if(meta == 1)
+        if (meta == 1)
             manager.bindTexture(spruce);
-        else if(meta == 2)
+        else if (meta == 2)
             manager.bindTexture(birch);
-        else if(meta == 3)
+        else if (meta == 3)
             manager.bindTexture(jungle);
-        else if(meta == 4)
+        else if (meta == 4)
             manager.bindTexture(acacia);
-        else if(meta == 5)
+        else if (meta == 5)
             manager.bindTexture(dark_oak);
         else
             manager.bindTexture(oak);
     }
 
 
-	@Override
-	public int getRenderId() {
-		return CustomItems.chair.getRenderType();
-	}
+    @Override
+    public int getRenderId() {
+        return CustomItems.chair.getRenderType();
+    }
 }

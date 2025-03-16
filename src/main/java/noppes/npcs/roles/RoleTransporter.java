@@ -14,90 +14,95 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.List;
 
-public class RoleTransporter extends RoleInterface{
-	
-	public int transportId = -1;
-	public String name;
-	
-	public RoleTransporter(EntityNPCInterface npc) {
-		super(npc);
-	}
-	
+public class RoleTransporter extends RoleInterface {
 
-	@Override
-	public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
-		nbttagcompound.setInteger("TransporterId", transportId);
-		return nbttagcompound;
-	}
+    public int transportId = -1;
+    public String name;
 
-	@Override
-	public void readFromNBT(NBTTagCompound nbttagcompound) {
-		transportId = nbttagcompound.getInteger("TransporterId");
-		TransportLocation loc = getLocation();
-		if(loc != null){
-			name = loc.name;
-		}
-	}
-	private int ticks = 10;
-	@Override
-	public boolean aiShouldExecute() {
-		ticks--;
-		if(ticks > 0)
-			return false;
-		ticks = 10;
-		
-		if(!hasTransport())
-			return false;
-		
-		TransportLocation loc = getLocation();
-		if(loc.type != 0)
-			return false;
+    public RoleTransporter(EntityNPCInterface npc) {
+        super(npc);
+    }
 
-		List<EntityPlayer> inRange = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class,npc.boundingBox.expand(6D, 6D, 6D));
-		for(EntityPlayer player :inRange){
-			if(!npc.canSee(player))
-				continue;
-			unlock(player, loc);			
-		}
-		return false;
-		
-	}
-	@Override
-	public void aiStartExecuting() {
-		
-	}
 
-	@Override
-	public void interact(EntityPlayer player) {
-		if(hasTransport()){
-			TransportLocation loc = getLocation();
-			if(loc.type == 2){
-				unlock(player, loc);	
-			}
-			NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerTransporter, npc);
-		}
-	}
-	
-	public void unlock(EntityPlayer player, ITransportLocation loc){
-		PlayerTransportData data = PlayerDataController.Instance.getPlayerData(player).transportData;
-		if(data.transports.contains(transportId))
-			return;
-		data.transports.add(transportId);
-		player.addChatMessage(new ChatComponentTranslation("transporter.unlock", loc.getName()));
-	}
-	public TransportLocation getLocation(){
-		if(npc.isRemote())
-			return null;
-		return TransportController.getInstance().getTransport(transportId);
-	}
-	public boolean hasTransport(){
-		TransportLocation loc = getLocation();
-		return loc != null && loc.id == transportId;
-	}
+    @Override
+    public NBTTagCompound writeToNBT(NBTTagCompound nbttagcompound) {
+        nbttagcompound.setInteger("TransporterId", transportId);
+        return nbttagcompound;
+    }
 
-	public void setTransport(ITransportLocation location) {
-		transportId = location.getId();
-		name = location.getName();
-	}
+    @Override
+    public void readFromNBT(NBTTagCompound nbttagcompound) {
+        transportId = nbttagcompound.getInteger("TransporterId");
+        TransportLocation loc = getLocation();
+        if (loc != null) {
+            name = loc.name;
+        }
+    }
+
+    private int ticks = 10;
+
+    @Override
+    public boolean aiShouldExecute() {
+        ticks--;
+        if (ticks > 0)
+            return false;
+        ticks = 10;
+
+        if (!hasTransport())
+            return false;
+
+        TransportLocation loc = getLocation();
+        if (loc.type != 0)
+            return false;
+
+        List<EntityPlayer> inRange = npc.worldObj.getEntitiesWithinAABB(EntityPlayer.class, npc.boundingBox.expand(6D, 6D, 6D));
+        for (EntityPlayer player : inRange) {
+            if (!npc.canSee(player))
+                continue;
+            unlock(player, loc);
+        }
+        return false;
+
+    }
+
+    @Override
+    public void aiStartExecuting() {
+
+    }
+
+    @Override
+    public void interact(EntityPlayer player) {
+        if (hasTransport()) {
+            TransportLocation loc = getLocation();
+            if (loc.type == 2) {
+                unlock(player, loc);
+            }
+            NoppesUtilServer.sendOpenGui(player, EnumGuiType.PlayerTransporter, npc);
+        }
+    }
+
+    public void unlock(EntityPlayer player, ITransportLocation loc) {
+        PlayerTransportData data = PlayerDataController.Instance.getPlayerData(player).transportData;
+        if (data.transports.contains(transportId))
+            return;
+        data.transports.add(transportId);
+        player.addChatMessage(new ChatComponentTranslation("transporter.unlock", loc.getName()));
+    }
+
+    public TransportLocation getLocation() {
+        if (npc.isRemote())
+            return null;
+        return TransportController.getInstance().getTransport(transportId);
+    }
+
+    public boolean hasTransport() {
+        TransportLocation loc = getLocation();
+        return loc != null && loc.id == transportId;
+    }
+
+    public void setTransport(ITransportLocation location) {
+        transportId = location.getId();
+        name = location.getName();
+    }
 
 }
