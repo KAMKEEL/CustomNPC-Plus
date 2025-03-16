@@ -20,11 +20,6 @@ import java.util.*;
  * This revised version ensures that non‑Chart layouts use the full diagram bounds for positioning
  * and that curved arrow drawing selects the best control point (using both curveAngle and its negative)
  * to avoid icons.
- *
- * Changes for separate two‑way connections (when allowTwoWay is false):
- * - When a reverse connection is found, the line is drawn with a slight perpendicular offset.
- * - The hit detection uses the same offset endpoints.
- * - Arrow head placement is adjusted to match the offset.
  */
 public abstract class GuiDiagram extends Gui {
 
@@ -658,10 +653,8 @@ public abstract class GuiDiagram extends Gui {
      */
     protected void drawConnectionLine(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
-        if (allowTwoWay && reverse != null) {
-            DiagramIcon iconFrom = getIconById(conn.idFrom);
-            DiagramIcon iconTo = getIconById(conn.idTo);
-            if (iconFrom != null && iconTo != null && iconFrom.index > iconTo.index) {
+        if (!allowTwoWay && reverse != null) {
+            if (x1 > x2 || (x1 == x2 && y1 > y2)) {
                 return;
             }
         }
@@ -853,12 +846,8 @@ public abstract class GuiDiagram extends Gui {
     // Fixed drawArrowHead:
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idFrom, conn.idTo);
-        // For merging two-way connections (when allowTwoWay is true),
-        // decide which arrow head to draw using the associated icon's index.
-        if (allowTwoWay && reverse != null) {
-            DiagramIcon iconFrom = getIconById(conn.idFrom);
-            DiagramIcon iconTo = getIconById(conn.idTo);
-            if (iconFrom != null && iconTo != null && iconFrom.index > iconTo.index) {
+        if (!allowTwoWay && reverse != null) {
+            if (x1 > x2 || (x1 == x2 && y1 > y2)) {
                 return;
             }
         }
