@@ -267,9 +267,6 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.MovingPath)
             return new GuiNpcPather(npc);
-        
-		else if (gui == EnumGuiType.MovingPath)
-			return new GuiNpcPather(npc);
 
 		else if (gui == EnumGuiType.ManageFactions)
             return new GuiCustomGuiEditor();
