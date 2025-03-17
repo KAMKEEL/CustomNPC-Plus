@@ -9,6 +9,10 @@ public class Color {
     public int color;
     public float alpha;
 
+    public Color(int color) {
+        setColor(color, 1);
+    }
+
     public Color(int color, float alpha) {
         setColor(color, alpha);
     }
