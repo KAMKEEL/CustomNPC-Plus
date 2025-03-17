@@ -19,7 +19,7 @@ public class GuiNpcTextField extends GuiTextField {
     protected static GuiNpcTextField activeTextfield = null;
     public boolean canEdit = true;
 
-    private final int[] allowedSpecialChars = {14, 211, 203, 205};
+    private final int[] allowedSpecialChars = {0, 1, 3, 14, 8, 22, 24, 199, 211, 203, 205, 207, 211};
 
     public GuiNpcTextField(int id, GuiScreen parent, FontRenderer fontRenderer, int i, int j, int k, int l, String s) {
         super(fontRenderer, i, j, k, l);
@@ -40,15 +40,17 @@ public class GuiNpcTextField extends GuiTextField {
     }
 
     protected boolean charAllowed(char c, int i) {
-        if (!integersOnly || Character.isDigit(c))
-            return true;
-
-        if (integersOnly && getText().isEmpty() && c == '-')
-            return true;
-
         for (int j : allowedSpecialChars)
-            if (j == i)
+            if (j == c)
                 return true;
+
+        String s = getText();
+        boolean isNumbersOnly = integersOnly || floatsOnly || doublesOnly;
+        boolean isDecimal = !integersOnly && c == '.' && !s.contains(".");
+        boolean isNegative = isNumbersOnly && c == '-' && !s.contains("-") && getCursorPosition() == 0;
+
+        if (!isNumbersOnly || isNegative || isDecimal || Character.isDigit(c))
+            return true;
 
         return false;
     }
