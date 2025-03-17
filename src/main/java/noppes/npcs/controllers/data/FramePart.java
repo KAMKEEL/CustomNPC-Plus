@@ -41,7 +41,7 @@ public class FramePart implements IFramePart {
     }
 
     public int getPartId() {
-        return part.id;
+        return part.ordinal();
     }
 
     public void setPart(EnumAnimationPart part) {
@@ -58,7 +58,7 @@ public class FramePart implements IFramePart {
 
     public IFramePart setPart(int partId) {
         for (EnumAnimationPart enumPart : EnumAnimationPart.values()) {
-            if (enumPart.id == partId) {
+            if (enumPart.ordinal() == partId) {
                 this.setPart(enumPart);
                 break;
             }

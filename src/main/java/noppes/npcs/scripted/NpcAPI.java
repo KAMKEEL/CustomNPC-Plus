@@ -772,7 +772,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IFramePart createPart(int partId) {
         for (EnumAnimationPart part : EnumAnimationPart.values()) {
-            if (part.id == partId) {
+            if (part.ordinal() == partId) {
                 return new FramePart(part);
             }
         }
