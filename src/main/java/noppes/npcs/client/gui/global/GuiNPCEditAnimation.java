@@ -85,7 +85,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         addButton(toggleGraph = new GuiNpcButton(777, guiLeft - 80, guiTop - 2 + 84, 70, 20, "Toggle Graph"));
         if (toggleGraphEditor) {
             yOffset = -80;
-            graphEditor.initGui(guiLeft - 10, guiTop + 135, guiLeft - 10 + xSize, guiTop + 135 + 120);
+            graphEditor.initGui(guiLeft - 10, guiTop + 120, guiLeft - 10 + xSize, guiTop + 135 + 105);
             addGraphEditor(0, graphEditor);
 
         }

@@ -11,7 +11,7 @@ import static org.lwjgl.opengl.GL11.*;
 
 public class Grid {
     ViewportGraphEditor parent;
-    public int startX, startY; // Positioning
+    public int startX, startY, width, height; // Positioning
     public int endX, endY; // Positioning
     public int yAxisHeight = 12;
 
@@ -42,11 +42,11 @@ public class Grid {
                         targetZoomX = 20;
                         smoothenPanX = true;
                     } else if (yDown()) {
-                        targetPanY = -((parent.height) * subDivisionY / 2);
+                        targetPanY = -((height) * subDivisionY / 2);
                         targetZoomY = 1.0f;
                         smoothenPanY = true;
                     } else {
-                        targetPanY = -((parent.height) * subDivisionY / 2);
+                        targetPanY = -((height) * subDivisionY / 2);
                         targetPanX = 0;
                         targetZoomX = 20;
                         targetZoomY = 1.0f;
@@ -74,7 +74,10 @@ public class Grid {
         this.endX = endX;
         this.endY = endY;
 
-        panY = -(parent.height * subDivisionY / 2);
+        this.width = endX - this.startX;
+        this.height = endY - this.startY;
+
+        panY = -(height * subDivisionY / 2);
     }
 
     public void draw(int mouseX, int mouseY, float partialTicks, int wheel) {
@@ -143,10 +146,11 @@ public class Grid {
 
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
-        Gui.drawRect(startX, startY - yAxisHeight, endX, startY, 0xFF161616); //background
+        Gui.drawRect(startX, startY - yAxisHeight, endX, startY, 0xFF161616); //header
+        GuiUtil.drawGradientRect(startX, startY, endX, endY, 0xFF303030, 0xFF303030);
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GuiUtil.setScissorClip(startX, startY, parent.width, parent.height);
+        GuiUtil.setScissorClip(startX, startY, width, height);
         GL11.glDepthMask(false);
         drawLines(mouseX, mouseY);
         GL11.glDepthMask(true);
@@ -200,17 +204,19 @@ public class Grid {
 
             glPushMatrix();
             glTranslatef(startX, 0, 0);
+
             GuiUtil.drawVerticalLine(screenX, startY, endY, isMajor ? darkGray : lightGray);
+
             glPopMatrix();
         }
 
         //Expand boundaries of scissor clip
-        GuiUtil.setScissorClip(startX, startY - yAxisHeight, parent.width, parent.height + yAxisHeight);
+        GuiUtil.setScissorClip(startX, startY - yAxisHeight, width, height + yAxisHeight);
         for (double x = firstGridX; x <= worldX(endX); x += stepX)
             drawXValue((int) screenX(x), (int) x);
 
         //Reset clip
-        GuiUtil.setScissorClip(startX, startY, parent.width, parent.height);
+        GuiUtil.setScissorClip(startX, startY, width, height);
         ////////////////////////////////////////////////////////////
         ////////////////////////////////////////////////////////////
         // Horizontal

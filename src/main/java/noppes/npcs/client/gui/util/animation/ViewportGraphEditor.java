@@ -39,7 +39,6 @@ public class ViewportGraphEditor {
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks, int wheel) {
-        GuiUtil.drawGradientRect(startX, startY, endX, endY, 0xFF303030, 0xFF303030);
         grid.draw(mouseX, mouseY, partialTicks, wheel);
         presetOverlay.draw(mouseX, mouseY, wheel);
     }
