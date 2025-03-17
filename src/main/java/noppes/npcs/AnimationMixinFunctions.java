@@ -214,7 +214,7 @@ public class AnimationMixinFunctions {
                     part.interpolateOffset();
                     part.interpolateAngles();
                     float pi = 180 / (float) Math.PI;
-                    GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
+                    GL11.glTranslatef(part.prevPivots[0], -part.prevPivots[1], part.prevPivots[2]);
                     GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
                     GL11.glRotatef(part.prevRotations[1] * pi, 0, 1, 0);
                     GL11.glRotatef(part.prevRotations[2] * pi, 0, 0, 1);
