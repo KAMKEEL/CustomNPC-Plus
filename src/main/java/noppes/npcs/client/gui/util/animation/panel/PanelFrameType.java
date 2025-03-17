@@ -1,11 +1,9 @@
 package noppes.npcs.client.gui.util.animation.panel;
 
-import net.minecraft.client.Minecraft;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.AnimationGraphEditor;
 import noppes.npcs.client.gui.util.animation.GridPointManager;
-import noppes.npcs.client.gui.util.animation.OverlayKeyPresetViewer;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.constants.animation.EnumFrameType;
 import noppes.npcs.util.ValueUtil;
@@ -40,14 +38,21 @@ public class PanelFrameType {
     public void updateTypeValues(double playheadX) {
         list.forEach(e -> {
             String value = "0";
-            GridPointManager.Point p = graph.pointManager.getPoint(e.type, playheadX);
-            if (p != null)
-                value = ValueUtil.format(p.worldY);
+            GridPointManager.Point onHead = graph.pointManager.getPoint(e.type, playheadX);
+            if (onHead != null)
+                value = ValueUtil.format(onHead.worldY != 0 ? -onHead.worldY : 0);
+            else {
+                GridPointManager.Point beforeHead = graph.pointManager.getPrevious(e.type, playheadX);
+                GridPointManager.Point afterHead = graph.pointManager.getNext(e.type, playheadX);
+                if (beforeHead != null && afterHead != null) {
+                    double easedValue = graph.pointManager.getValueBetweenPointsAt(beforeHead, afterHead, playheadX);
+                    value = ValueUtil.format(easedValue);
+                }
+            }
 
-            e.text.setText(value);
+            e.box.text.setText(value);
         });
     }
-
     public void initGui(int startX, int startY, int endX, int endY) {
         this.startX = startX;
         this.startY = startY;
@@ -58,16 +63,14 @@ public class PanelFrameType {
     }
 
     public void draw() {
+        GuiUtil.drawRectD(startX - 1, startY, endX, endY, 0xff1d1d1d);
+
         GL11.glPushMatrix();
-        GL11.glTranslatef(startX, startY, 0);
-        GuiUtil.drawRectD(0, 0, width, 6 * (elementHeight + elementSpacing)-2, 0x77000000);
+        GL11.glTranslatef(startX, startY + 1, 0);
 
         for (int i = 0; i < list.size(); i++) {
             Element element = list.get(i);
             element.draw(i);
-
-            // if (element.isMouseAboveBox(graph.grid.mouseX, graph.grid.mouseY))
-            //   element.setCursorPositionToMouse();
         }
 
         GL11.glPopMatrix();
@@ -86,7 +89,7 @@ public class PanelFrameType {
             if (element.isMouseAbove(mouseX, mouseY) && button == 0)
                 selectedElement = element;
 
-            if (!element.isMouseAboveBox(mouseX, mouseY)) {
+            if (!element.box.isMouseAbove(mouseX - startX, mouseY - startY)) {
                 if (element.isEditing)
                     element.cancelEdit();
             } else
@@ -98,36 +101,29 @@ public class PanelFrameType {
         return mouseX >= startX && mouseX < endX && mouseY >= startY && mouseY < endY;
     }
 
-    public int getWidth() {
-        return (int) (width / scale);
-    }
-
     public class Element {
         public EnumFrameType type;
 
-        public float elementStartY, boxScreenX, boxScreenY, textScreenX;
-        public boolean isEditing, isMouseDragging;
-        public GuiNpcTextField text;
+        public float elementStartY;
+        public boolean isEditing;
+        public PanelTextBox box = new PanelTextBox();
 
         public Element(EnumFrameType key) {
             this.type = key;
-            text = new GuiNpcTextField(0, graph.parent, 0, 0, 45, 10, "0");
-            text.setEnableBackgroundDrawing(false);
-            text.setDoublesOnly();
-            text.setMinMaxDefaultDouble(0, 1000000000, 0);
+            box.text = new GuiNpcTextField(0, graph.parent, 0, 0, 45, 10, "0");
+            box.text.setEnableBackgroundDrawing(false);
+            box.text.setDoublesOnly();
+            box.text.setMinMaxDefaultDouble(0, 100000, 0);
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
             mouseX -= startX;
             mouseY -= startY;
 
-            return mouseX >= 0 && mouseX < boxScreenX - 3 && mouseY >= elementStartY && mouseY < elementStartY + elementHeight + elementSpacing;
+            return mouseX >= 0 && mouseX < box.screenX - 3 && mouseY >= elementStartY && mouseY < elementStartY + elementHeight + elementSpacing;
         }
 
         public void draw(int index) {
-            if (Mouse.isButtonDown(0))
-                setCursorPositionToMouse();
-
             ////////////////////////////////////////////
             ////////////////////////////////////////////
             //Type names
@@ -151,64 +147,28 @@ public class PanelFrameType {
 
             ////////////////////////////////////////////
             ////////////////////////////////////////////
-            //Box texture
-            Minecraft.getMinecraft().getTextureManager().bindTexture(OverlayKeyPresetViewer.TEXTURE);
-            GL11.glPushMatrix();
-            float boxScaleX = 0.85f;
-            float boxWidth = 32 * boxScaleX;
-            boxScreenX = width / 1.25F * scale + 8; //remove scaling from maxStringWidth
-            boxScreenY = elementStartY - 7.5f;
-            GL11.glScalef(boxScaleX, boxScaleX, 0);
+            //Box
+            if (Mouse.isButtonDown(0) && isEditing && box.text.isFocused())
+                box.setCursorPositionToMouse(graph.parent.mouseX - startX);
 
-            //Box grey background
-            new Color(0x3d3d3d, 1).glColor();
-            GuiUtil.drawTexturedModalRect(boxScreenX / boxScaleX, boxScreenY / boxScaleX, 32, 20, 0, 492);
+            box.screenX = width / 1.25F * scale + 8; //remove scaling from maxStringWidth
+            box.screenY = elementStartY - 7.5f;
+            box.textScale = scale;
 
-            //Box color
             if (graph.pointManager.getPoint(type, graph.pointManager.playhead.worldX) != null)
-                new Color(0x83752a, 1).glColor();
+                box.boxColor = isEditing ? new Color(0x83752a, 1).multiply(0.65f) : new Color(0x83752a, 1);
             else
-                new Color(0x467d2a, 1).glColor();
-            GL11.glPushMatrix();
-            float s = 0.945f, s2 = 0.875f;
-            GL11.glScalef(s, s2, 0);
-            GuiUtil.drawTexturedModalRect(boxScreenX / boxScaleX / s + 1, boxScreenY / boxScaleX / s2 + 2.25f, 32, 20, 0, 492);
-            GL11.glPopMatrix();
-            GL11.glPopMatrix();
+                box.boxColor = isEditing ? new Color(0x467d2a, 1).multiply(0.65f) : new Color(0x467d2a, 1);
 
-            ////////////////////////////////////////////
-            ////////////////////////////////////////////
-            // Box text
-            float textScale = scale;
-            float textWidth = graph.getFontRenderer().getStringWidth(text.getText());
-            float textX = boxScreenX + 1;
-            float centeredTextX = (boxScreenX) + boxWidth / 2 - textWidth / 2 * textScale;
-            textScreenX = text.isFocused() || textWidth * textScale >= boxWidth ? textX : centeredTextX;
-
-            GL11.glPushMatrix();
-            GL11.glScalef(textScale, textScale, 1);
-            GL11.glTranslatef(textScreenX / textScale, (boxScreenY + 10.5f) / textScale, 0);
-            text.drawTextBox();
-            GL11.glPopMatrix();
-        }
-
-        public void setCursorPositionToMouse() {
-            if (!text.isFocused() || !isEditing)
-                return;
-
-            int mouseX = graph.parent.mouseX - startX;
-            int relativeMX = (int) (mouseX - textScreenX);
-
-            int pos = relativeMX > 0 ? 1 : -1;
-            text.setCursorPosition(graph.getFontRenderer().trimStringToWidth(text.getText(), (int) (relativeMX / scale)).length() + text.lineScrollOffset + pos);
+            box.draw(graph.mc.fontRenderer);
         }
 
         public void boxClicked(int button) {
             if (isEditing) {
             } else if (button == 0) {
                 isEditing = true;
-                text.setFocused(true);
-                text.setCursorPositionEnd();
+                box.text.setFocused(true);
+                box.text.setCursorPositionEnd();
             }
         }
 
@@ -216,35 +176,31 @@ public class PanelFrameType {
             if (typedKey == 28)
                 cancelEdit();
             else {
-                String prev = text.getText();
-                text.textboxKeyTyped(c, typedKey);
-                String newText = text.getText();
-                if (typedKey != 14 && !newText.equals(prev)) { //backspace
-                    try {
-                        Double.parseDouble(text.getText());
-                    } catch (NumberFormatException var6) {
-                        text.setText(prev);
-                    }
-                }
+              //  String newText = box.text.getText() + c;
+
+              //  if (ValueUtil.isValidNumber(newText)) {
+                    box.text.textboxKeyTyped(c, typedKey);
+             //   }
+                //                String prev = box.text.getText();
+                //                box.text.textboxKeyTyped(c, typedKey);
+                //                String newText = box.text.getText();
+                //                if (typedKey != 14 && !newText.equals(prev)) { //backspace
+                //                    try {
+                //                        Double.parseDouble(box.text.getText());
+                //                    } catch (NumberFormatException var6) {
+                //                        box.text.setText(prev);
+                //                    }
+                //                }
             }
         }
 
         public void cancelEdit() {
-            String s = text.getText();
-            text.setText(s.isEmpty() ? "0" : ValueUtil.format(text.getDouble()));
-            graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, text.getDouble());
-            text.setFocused(false);
+            String s = box.text.getText();
+            box.text.setText(s.isEmpty() ? "0" : ValueUtil.format(box.text.getDouble()));
+            graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, box.text.getDouble());
+            box.text.setFocused(false);
             isEditing = false;
         }
 
-        public boolean isMouseAboveBox(int mouseX, int mouseY) {
-            mouseX -= startX;
-            mouseY -= startY;
-
-            float boxScaleX = 0.85f;
-            float screenY = boxScreenY + 8f;
-
-            return mouseX >= boxScreenX && mouseX < boxScreenX + 32 * boxScaleX && mouseY >= screenY && mouseY < screenY + 11 * boxScaleX;
-        }
     }
 }

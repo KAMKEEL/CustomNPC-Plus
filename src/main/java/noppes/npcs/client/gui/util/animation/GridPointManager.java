@@ -107,8 +107,8 @@ public class GridPointManager {
     }
 
     public void updateTypeValues(double x) {
-        if (x != playhead.worldX)
-            return;
+//        if (x != playhead.worldX)
+//            return;
         graph.frameTypePanel.updateTypeValues(playhead.worldX);
     }
 
@@ -188,16 +188,41 @@ public class GridPointManager {
             point.highlighted = true;
     }
 
-    public Point getNext(Point point) {
-        TreeMap<Double, Point> points = pointsOf(point.type);
+    public Point getPrevious(Point point) {
+        return getPrevious(point.type, point.worldX);
+    }
+
+    public Point getPrevious(EnumFrameType type, double x) {
+        TreeMap<Double, Point> points = pointsOf(type);
         if (points == null)
             return null;
 
-        Map.Entry<Double, Point> entry = points.higherEntry(point.worldX);
+        Map.Entry<Double, Point> entry = points.lowerEntry(x);
         if (entry != null)
             return entry.getValue();
 
         return null;
+    }
+
+    public Point getNext(Point point) {
+        return getNext(point.type, point.worldX);
+    }
+
+    public Point getNext(EnumFrameType type, double x) {
+        TreeMap<Double, Point> points = pointsOf(type);
+        if (points == null)
+            return null;
+
+        Map.Entry<Double, Point> entry = points.higherEntry(x);
+        if (entry != null)
+            return entry.getValue();
+
+        return null;
+    }
+
+    public double getValueBetweenPointsAt(Point from, Point to, double at) {
+        float lerpFactor = (float) ((at - from.worldX) / (to.worldX - from.worldX));
+        return - ValueUtil.lerp(from.worldY, to.worldY, Ease.INOUTQUINT.apply(lerpFactor));
     }
 
     public void drawEasedCurve(Point from, Point to) {
@@ -243,12 +268,16 @@ public class GridPointManager {
         ////////////////////////////////////////////////////////////////////////
         // Free transform logic
         if (isFreeTransforming && selectedPoint != null) {
+            boolean shift = KeyPreset.isShiftKeyDown();
             if (grid.xDown())
                 selectedPoint.setX(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)));
-            else if (grid.yDown())
-                selectedPoint.setY(grid.worldY(GuiUtil.preciseMouseY() - grid.startY));
-            else
-                selectedPoint.set(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)), grid.worldY(GuiUtil.preciseMouseY() - grid.startY));
+            else if (grid.yDown()) {
+                double value = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
+                selectedPoint.setY(shift ? (int) value : value);
+            } else {
+                double y = grid.worldY(GuiUtil.preciseMouseY() - grid.startY);
+                selectedPoint.set(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)), shift ? (int) y : y);
+            }
         }
 
         ////////////////////////////////////////////////////////////////////////
@@ -404,7 +433,7 @@ public class GridPointManager {
                 setX(Math.round(grid.worldX(GuiUtil.preciseMouseX() - grid.startX)));
 
             //Expand clip boundary
-            GuiUtil.setScissorClip(grid.startX, grid.startY - grid.yAxisHeight, grid.parent.width, grid.parent.height + grid.yAxisHeight);
+            GuiUtil.setScissorClip(grid.startX, grid.startY - grid.yAxisHeight, grid.width, grid.height + grid.yAxisHeight);
 
             ////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////
@@ -465,7 +494,7 @@ public class GridPointManager {
             ////////////////////////////////////////////////////////////
             ////////////////////////////////////////////////////////////
             //Reset clip
-            GuiUtil.setScissorClip(grid.startX, grid.startY, grid.parent.width, grid.parent.height);
+            GuiUtil.setScissorClip(grid.startX, grid.startY, grid.width, grid.height);
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
