@@ -1,13 +1,11 @@
 package noppes.npcs.client.gui.util.animation.panel;
 
-import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.AnimationGraphEditor;
 import noppes.npcs.client.gui.util.animation.GridPointManager;
 import noppes.npcs.client.utils.Color;
 import noppes.npcs.constants.animation.EnumFrameType;
 import noppes.npcs.util.ValueUtil;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -79,8 +77,7 @@ public class PanelFrameType {
 
     public void keyTyped(char c, int i) {
         list.forEach((element) -> {
-            if (element.isEditing)
-                element.keyTyped(c, i);
+            element.box.type(c, i);
         });
     }
 
@@ -89,11 +86,7 @@ public class PanelFrameType {
             if (element.isMouseAbove(mouseX, mouseY) && button == 0)
                 selectedElement = element;
 
-            if (!element.box.isMouseAbove(mouseX - startX, mouseY - startY)) {
-                if (element.isEditing)
-                    element.cancelEdit();
-            } else
-                element.boxClicked(button);
+            element.box.click(mouseX - startX, mouseY - startY, button);
         });
     }
 
@@ -103,17 +96,17 @@ public class PanelFrameType {
 
     public class Element {
         public EnumFrameType type;
-
         public float elementStartY;
-        public boolean isEditing;
-        public PanelTextBox box = new PanelTextBox();
+
+        public PanelTextBox box = new PanelTextBox() {
+            public void cancelEdit(byte operation) {
+                super.cancelEdit(operation);
+                graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, -text.getDouble());
+            }
+        }.setDoublesOnly(0, -9999, 9999);
 
         public Element(EnumFrameType key) {
             this.type = key;
-            box.text = new GuiNpcTextField(0, graph.parent, 0, 0, 45, 10, "0");
-            box.text.setEnableBackgroundDrawing(false);
-            box.text.setDoublesOnly();
-            box.text.setMinMaxDefaultDouble(0, 100000, 0);
         }
 
         public boolean isMouseAbove(int mouseX, int mouseY) {
@@ -148,9 +141,7 @@ public class PanelFrameType {
             ////////////////////////////////////////////
             ////////////////////////////////////////////
             //Box
-            if (Mouse.isButtonDown(0) && isEditing && box.text.isFocused())
-                box.setCursorPositionToMouse(graph.parent.mouseX - startX);
-
+            boolean isEditing = box.isEditing();
             box.screenX = width / 1.25F * scale + 8; //remove scaling from maxStringWidth
             box.screenY = elementStartY - 7.5f;
             box.textScale = scale;
@@ -160,47 +151,7 @@ public class PanelFrameType {
             else
                 box.boxColor = isEditing ? new Color(0x467d2a, 1).multiply(0.65f) : new Color(0x467d2a, 1);
 
-            box.draw(graph.mc.fontRenderer);
+            box.draw(graph.grid.mouseX - startX, graph.mc.fontRenderer);
         }
-
-        public void boxClicked(int button) {
-            if (isEditing) {
-            } else if (button == 0) {
-                isEditing = true;
-                box.text.setFocused(true);
-                box.text.setCursorPositionEnd();
-            }
-        }
-
-        public void keyTyped(char c, int typedKey) {
-            if (typedKey == 28)
-                cancelEdit();
-            else {
-              //  String newText = box.text.getText() + c;
-
-              //  if (ValueUtil.isValidNumber(newText)) {
-                    box.text.textboxKeyTyped(c, typedKey);
-             //   }
-                //                String prev = box.text.getText();
-                //                box.text.textboxKeyTyped(c, typedKey);
-                //                String newText = box.text.getText();
-                //                if (typedKey != 14 && !newText.equals(prev)) { //backspace
-                //                    try {
-                //                        Double.parseDouble(box.text.getText());
-                //                    } catch (NumberFormatException var6) {
-                //                        box.text.setText(prev);
-                //                    }
-                //                }
-            }
-        }
-
-        public void cancelEdit() {
-            String s = box.text.getText();
-            box.text.setText(s.isEmpty() ? "0" : ValueUtil.format(box.text.getDouble()));
-            graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, box.text.getDouble());
-            box.text.setFocused(false);
-            isEditing = false;
-        }
-
     }
 }

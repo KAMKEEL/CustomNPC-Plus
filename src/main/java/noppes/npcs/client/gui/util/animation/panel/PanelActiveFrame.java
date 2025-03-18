@@ -3,8 +3,10 @@ package noppes.npcs.client.gui.util.animation.panel;
 import net.minecraft.client.Minecraft;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.AnimationGraphEditor;
+import noppes.npcs.client.gui.util.animation.GridPointManager;
 import noppes.npcs.client.gui.util.animation.OverlayKeyPresetViewer;
 import noppes.npcs.client.utils.Color;
+import noppes.npcs.util.ValueUtil;
 import org.lwjgl.opengl.GL11;
 
 public class PanelActiveFrame {
@@ -12,12 +14,30 @@ public class PanelActiveFrame {
 
     public int startX, startY, endX, endY, width, height;
     public float scale = 0.6f;
-    public int elementHeight = 11, elementSpacing = 2;
 
-    public PanelTextBox frame = new PanelTextBox(), value = new PanelTextBox();
+    public PanelTextBox frame = new PanelTextBox() {
+        public void cancelEdit(byte operation) {
+            super.cancelEdit(operation);
+            GridPointManager.Point p = graph.pointManager.selectedPoint;
+            if (p != null) {
+                p.setX(text.getDouble());
+                p.updateKey();
+            }
+        }
+    }.setDoublesOnly(0, 0, 9999);
+
+    public PanelTextBox value = new PanelTextBox() {
+        public void cancelEdit(byte operation) {
+            super.cancelEdit(operation);
+            GridPointManager.Point p = graph.pointManager.selectedPoint;
+            if (p != null)
+                p.setY(-text.getDouble());
+        }
+    }.setDoublesOnly(0, -9999, 9999);
 
     public PanelActiveFrame(AnimationGraphEditor graph) {
         this.graph = graph;
+        frame.text.width = value.text.width = 70;
     }
 
     public void initGui(int startX, int startY, int endX, int endY) {
@@ -27,6 +47,16 @@ public class PanelActiveFrame {
         this.endY = endY;
         this.width = endX - startX;
         this.height = endY - startY;
+    }
+
+    public void keyTyped(char c, int i) {
+        frame.type(c, i);
+        value.type(c, i);
+    }
+
+    public void mouseClicked(int mouseX, int mouseY, int button) {
+        frame.click(mouseX - startX, mouseY - startY, button);
+        value.click(mouseX - startX, mouseY - startY, button);
     }
 
     public void draw() {
@@ -65,32 +95,32 @@ public class PanelActiveFrame {
         graph.getFontRenderer().drawString("Value", 9, 0, 0xb1b1b1);
         GL11.glPopMatrix();
 
+        GridPointManager.Point p = graph.pointManager.selectedPoint;
+        if (p != null) {
+            if (!frame.isEditing())
+                frame.text.setText(ValueUtil.format(p.worldX));
+            if (!value.isEditing())
+                value.text.setText(ValueUtil.format(-p.worldY));
+        }
+
         frame.screenX = 29; //remove scaling from maxStringWidth
         frame.screenY = 11;
         frame.boxScaleX = 1.2f;
         frame.textScale = scale;
 
         boolean isAboveFrame = frame.isMouseAbove(mouseX - startX, mouseY - startY);
-        frame.boxColor = new Color(isAboveFrame ? 0x797979 : 0x545454);
-        frame.draw(graph.mc.fontRenderer);
+        frame.boxColor = new Color(frame.isEditing() ? 0x111111 : isAboveFrame ? 0x797979 : 0x545454);
+        frame.draw(mouseX - startX, graph.mc.fontRenderer);
 
         value.screenX = 29; //remove scaling from maxStringWidth
         value.screenY = 20;
         value.boxScaleX = 1.2f;
         value.textScale = scale;
         boolean isAboveValue = value.isMouseAbove(mouseX - startX, mouseY - startY);
-        value.boxColor = new Color(isAboveValue ? 0x797979 : 0x545454);
-        value.draw(graph.mc.fontRenderer);
+        value.boxColor = new Color(value.isEditing() ? 0x111111 : isAboveValue ? 0x797979 : 0x545454);
+        value.draw(mouseX - startX, graph.mc.fontRenderer);
 
         GL11.glPopMatrix();
-    }
-
-    public void keyTyped(char c, int i) {
-
-    }
-
-    public void mouseClicked(int mouseX, int mouseY, int button) {
-
     }
 
     public boolean isMouseAbove(int mouseX, int mouseY) {
