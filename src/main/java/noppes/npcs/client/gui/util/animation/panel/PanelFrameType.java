@@ -60,7 +60,7 @@ public class PanelFrameType {
         this.height = endY - startY;
     }
 
-    public void draw() {
+    public void draw(int wheel) {
         GuiUtil.drawRectD(startX - 1, startY, endX, endY, 0xff1d1d1d);
 
         GL11.glPushMatrix();
@@ -68,7 +68,7 @@ public class PanelFrameType {
 
         for (int i = 0; i < list.size(); i++) {
             Element element = list.get(i);
-            element.draw(i);
+            element.draw(i, wheel);
         }
 
         GL11.glPopMatrix();
@@ -99,9 +99,9 @@ public class PanelFrameType {
         public float elementStartY;
 
         public PanelTextBox box = new PanelTextBox() {
-            public void cancelEdit(byte operation) {
-                super.cancelEdit(operation);
-                graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, -text.getDouble());
+            public void finishEdit(byte operation) {
+                super.finishEdit(operation);
+                graph.pointManager.setSelectedPoint(graph.pointManager.addPoint(type, graph.pointManager.playhead.worldX, -text.getDouble()));
             }
         }.setDoublesOnly(0, -9999, 9999);
 
@@ -116,7 +116,7 @@ public class PanelFrameType {
             return mouseX >= 0 && mouseX < box.screenX - 3 && mouseY >= elementStartY && mouseY < elementStartY + elementHeight + elementSpacing;
         }
 
-        public void draw(int index) {
+        public void draw(int index, int wheel) {
             ////////////////////////////////////////////
             ////////////////////////////////////////////
             //Type names
@@ -145,13 +145,14 @@ public class PanelFrameType {
             box.screenX = width / 1.25F * scale + 8; //remove scaling from maxStringWidth
             box.screenY = elementStartY - 7.5f;
             box.textScale = scale;
+            boolean isAboveFrame = box.isMouseAbove(graph.grid.mouseX - startX, graph.grid.mouseY - startY);
 
             if (graph.pointManager.getPoint(type, graph.pointManager.playhead.worldX) != null)
-                box.boxColor = isEditing ? new Color(0x83752a, 1).multiply(0.65f) : new Color(0x83752a, 1);
+                box.boxColor = isEditing ? new Color(0x83752a).multiply(0.65f) : new Color(isAboveFrame ? 0xd1b727 : 0x83752a);
             else
-                box.boxColor = isEditing ? new Color(0x467d2a, 1).multiply(0.65f) : new Color(0x467d2a, 1);
+                box.boxColor = isEditing ? new Color(0x467d2a).multiply(0.65f) : new Color(isAboveFrame ? 0x5fc729 : 0x467d2a);
 
-            box.draw(graph.grid.mouseX - startX, graph.mc.fontRenderer);
+            box.draw(graph.grid.mouseX - startX, graph.grid.mouseY - startY, graph.mc.fontRenderer, wheel);
         }
     }
 }

@@ -16,8 +16,8 @@ public class PanelActiveFrame {
     public float scale = 0.6f;
 
     public PanelTextBox frame = new PanelTextBox() {
-        public void cancelEdit(byte operation) {
-            super.cancelEdit(operation);
+        public void finishEdit(byte operation) {
+            super.finishEdit(operation);
             GridPointManager.Point p = graph.pointManager.selectedPoint;
             if (p != null) {
                 p.setX(text.getDouble());
@@ -27,8 +27,8 @@ public class PanelActiveFrame {
     }.setDoublesOnly(0, 0, 9999);
 
     public PanelTextBox value = new PanelTextBox() {
-        public void cancelEdit(byte operation) {
-            super.cancelEdit(operation);
+        public void finishEdit(byte operation) {
+            super.finishEdit(operation);
             GridPointManager.Point p = graph.pointManager.selectedPoint;
             if (p != null)
                 p.setY(-text.getDouble());
@@ -59,7 +59,7 @@ public class PanelActiveFrame {
         value.click(mouseX - startX, mouseY - startY, button);
     }
 
-    public void draw() {
+    public void draw(int wheel) {
         int mouseX = graph.parent.mouseX, mouseY = graph.parent.mouseY;
 
         GL11.glPushMatrix();
@@ -110,7 +110,7 @@ public class PanelActiveFrame {
 
         boolean isAboveFrame = frame.isMouseAbove(mouseX - startX, mouseY - startY);
         frame.boxColor = new Color(frame.isEditing() ? 0x111111 : isAboveFrame ? 0x797979 : 0x545454);
-        frame.draw(mouseX - startX, graph.mc.fontRenderer);
+        frame.draw(mouseX - startX,mouseY - startY, graph.mc.fontRenderer, wheel);
 
         value.screenX = 29; //remove scaling from maxStringWidth
         value.screenY = 20;
@@ -118,7 +118,7 @@ public class PanelActiveFrame {
         value.textScale = scale;
         boolean isAboveValue = value.isMouseAbove(mouseX - startX, mouseY - startY);
         value.boxColor = new Color(value.isEditing() ? 0x111111 : isAboveValue ? 0x797979 : 0x545454);
-        value.draw(mouseX - startX, graph.mc.fontRenderer);
+        value.draw(mouseX - startX, mouseY - startY, graph.mc.fontRenderer, wheel);
 
         GL11.glPopMatrix();
     }

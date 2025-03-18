@@ -5,12 +5,14 @@ import net.minecraft.client.gui.FontRenderer;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.OverlayKeyPresetViewer;
+import noppes.npcs.client.gui.util.animation.keys.KeyPreset;
 import noppes.npcs.client.utils.Color;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 public class PanelTextBox {
 
+    public int mouseX, mouseY;
     public float screenX, screenY, textScreenX, textScale;
     public float boxScaleX = 0.85f, boxScaleY = 0.85f;
     public GuiNpcTextField text;
@@ -32,12 +34,25 @@ public class PanelTextBox {
         return this;
     }
 
-    public void draw(int mouseX, FontRenderer font) {
+    public void draw(int mouseX, int mouseY, FontRenderer font, int wheel) {
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
+
         if (this.font == null)
             this.font = font;
 
         if (Mouse.isButtonDown(0) && isEditing && text.isFocused())
             setCursorPositionToMouse(mouseX);
+
+        boolean mouseAbove = isMouseAbove(mouseX, mouseY);
+        if (mouseAbove && wheel != 0) {
+            if (text.isDouble()) {
+                double presets = KeyPreset.isAltKeyDown() ? 45 : KeyPreset.isCtrlKeyDown() ? 10 : KeyPreset.isShiftKeyDown() ? 0.1 : 1;
+                double value = text.getDouble() + Math.copySign(presets, wheel);
+                text.setDouble(value);
+                finishEdit(M_WHEEL);
+            }
+        }
 
         ////////////////////////////////////////////
         ////////////////////////////////////////////
@@ -93,9 +108,12 @@ public class PanelTextBox {
         return isEditing;
     }
 
-    public static byte ENTER_KEY = 0, CLICK_OUT = 1;
+    public static byte ENTER_KEY = 0, CLICK_OUT = 1, M_WHEEL = 2;
 
-    public void cancelEdit(byte operation) {
+    public void finishEdit(byte operation) {
+        if (operation == M_WHEEL)
+            return;
+
         text.toDefaults();
         text.setFocused(false);
         isEditing = false;
@@ -106,7 +124,7 @@ public class PanelTextBox {
             return;
 
         if (i == 28) {
-            cancelEdit(ENTER_KEY);
+            finishEdit(ENTER_KEY);
         } else
             text.textboxKeyTyped(c, i);
     }
@@ -114,11 +132,15 @@ public class PanelTextBox {
     public void click(int mouseX, int mouseY, int button) {
         if (!isMouseAbove(mouseX, mouseY)) {
             if (isEditing())
-                cancelEdit(CLICK_OUT);
+                finishEdit(CLICK_OUT);
         } else {
-            text.setFocused(true);
-            text.setCursorPositionEnd();
-            isEditing = true;
+            if (button == 0) {
+                text.setFocused(true);
+                text.setCursorPositionEnd();
+                isEditing = true;
+            } else if (button == 1) {
+                text.setText(text.isNumbersOnly() ? "0" : "");
+            }
         }
     }
 

@@ -222,5 +222,22 @@ public class GuiNpcTextField extends GuiTextField {
         floatingPrecision = "%." + decimalPlaces + "f";
     }
 
+    public void setInt(int value) {
+        setText(ValueUtil.clamp(value, min, max) + "");
+    }
+
+    public void setFloat(float value) {
+        value = ValueUtil.clamp(value, minFloat, maxFloat);
+        setText(ValueUtil.format(floatingPrecision, value));
+    }
+
+    public void setDouble(double value) {
+        value = ValueUtil.clamp(value, minDouble, maxDouble);
+        setText(ValueUtil.format(floatingPrecision, value));
+    }
+
+    public boolean isNumbersOnly() {
+        return integersOnly || floatsOnly || doublesOnly;
+    }
 
 }
