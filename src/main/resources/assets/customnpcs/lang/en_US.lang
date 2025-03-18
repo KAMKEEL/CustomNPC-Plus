@@ -1342,6 +1342,7 @@ profile.enableOptions=Enable Options
 profile.completion=Completion
 profile.cooldown=Cooldown
 profile.individual=Individual
+profile.slot=Slot
 
 magic.interaction=Interaction
 magic.diagram=Diagram Type
@@ -1369,3 +1370,4 @@ rpgcore:attribute.defense=Defense
 rpgcore:attribute.resistance=Resistance
 rpgcore:attribute.neutral=Neutral Damage
 
+requirement.soulbind=Soulbind

@@ -4,8 +4,10 @@ import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
+import kamkeel.npcs.controllers.data.attribute.requirement.types.ProfileSlotRequirement;
 import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestActiveRequirement;
 import kamkeel.npcs.controllers.data.attribute.requirement.types.QuestCompletedRequirement;
+import kamkeel.npcs.controllers.data.attribute.requirement.types.SoulbindRequirement;
 
 /**
  * ModAttributes registers the core attributes (both non–magic and magic–based).
@@ -74,9 +76,7 @@ public class CustomAttributes {
         // Requirement
         RequirementCheckerRegistry.registerChecker(new QuestCompletedRequirement());
         RequirementCheckerRegistry.registerChecker(new QuestActiveRequirement());
-
-        // TODO: Requirements
-        // Player Requirement : Soulbound UUID
-        // Profile Requirement : Slot Number
+        RequirementCheckerRegistry.registerChecker(new ProfileSlotRequirement());
+        RequirementCheckerRegistry.registerChecker(new SoulbindRequirement());
     }
 }
