@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
+import noppes.npcs.util.ValueUtil;
 
 public class GuiNpcTextField extends GuiTextField {
     public boolean enabled = true;
@@ -18,6 +19,8 @@ public class GuiNpcTextField extends GuiTextField {
     public float minFloat = 0, maxFloat = Float.MAX_VALUE, defFloat = 0;
     protected static GuiNpcTextField activeTextfield = null;
     public boolean canEdit = true;
+
+    private String floatingPrecision = "%.4f"; //4 decimal places
 
     private final int[] allowedSpecialChars = {0, 1, 3, 14, 8, 22, 24, 199, 211, 203, 205, 207, 211};
 
@@ -47,7 +50,7 @@ public class GuiNpcTextField extends GuiTextField {
         String s = getText();
         boolean isNumbersOnly = integersOnly || floatsOnly || doublesOnly;
         boolean isDecimal = !integersOnly && c == '.' && !s.contains(".");
-        boolean isNegative = isNumbersOnly && c == '-' && !s.contains("-") && getCursorPosition() == 0;
+        boolean isNegative = isNumbersOnly && c == '-' && (getSelectionEnd() == 0 || !s.contains("-") && getCursorPosition() == 0);
 
         if (!isNumbersOnly || isNegative || isDecimal || Character.isDigit(c))
             return true;
@@ -120,7 +123,7 @@ public class GuiNpcTextField extends GuiTextField {
             activeTextfield = this;
     }
 
-    public void unFocused() {
+    public void toDefaults() {
         if (integersOnly && !doublesOnly && !floatsOnly) {
             if (isEmpty() || !isInteger())
                 setText(def + "");
@@ -129,6 +132,9 @@ public class GuiNpcTextField extends GuiTextField {
             else if (getInteger() > max)
                 setText(max + "");
         } else if (doublesOnly && !floatsOnly) {
+            if (floatingPrecision != null)
+                setText(ValueUtil.format(floatingPrecision, getDouble()));
+
             if (isEmpty() || !isDouble())
                 setText(defDouble + "");
             else if (getDouble() < minDouble)
@@ -136,6 +142,9 @@ public class GuiNpcTextField extends GuiTextField {
             else if (getDouble() > maxDouble)
                 setText(maxDouble + "");
         } else if (floatsOnly) {
+            if (floatingPrecision != null)
+                setText(ValueUtil.format(floatingPrecision, getFloat()));
+
             if (isEmpty() || !isFloat())
                 setText(defFloat + "");
             else if (getFloat() < minFloat)
@@ -143,6 +152,10 @@ public class GuiNpcTextField extends GuiTextField {
             else if (getFloat() > maxFloat)
                 setText(maxFloat + "");
         }
+    }
+
+    public void unFocused() {
+        toDefaults();
         setCursorPositionZero();
         if (listener != null)
             listener.unFocused(this);
@@ -157,22 +170,25 @@ public class GuiNpcTextField extends GuiTextField {
             super.drawTextBox();
     }
 
-    public void setMinMaxDefault(int min, int max, int def) {
+    public GuiNpcTextField setMinMaxDefault(int min, int max, int def) {
         this.min = min;
         this.max = max;
         this.def = def;
+        return this;
     }
 
-    public void setMinMaxDefaultDouble(double min, double max, double def) {
+    public GuiNpcTextField setMinMaxDefaultDouble(double min, double max, double def) {
         minDouble = min;
         maxDouble = max;
         defDouble = def;
+        return this;
     }
 
-    public void setMinMaxDefaultFloat(float min, float max, float def) {
+    public GuiNpcTextField setMinMaxDefaultFloat(float min, float max, float def) {
         minFloat = min;
         maxFloat = max;
         defFloat = def;
+        return this;
     }
 
     public static void unfocus() {
@@ -200,6 +216,10 @@ public class GuiNpcTextField extends GuiTextField {
     public GuiNpcTextField setFloatsOnly() {
         floatsOnly = true;
         return this;
+    }
+
+    public void setFloatingPrecision(int decimalPlaces) {
+        floatingPrecision = "%." + decimalPlaces + "f";
     }
 
 

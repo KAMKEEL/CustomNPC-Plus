@@ -6,6 +6,7 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.animation.OverlayKeyPresetViewer;
 import noppes.npcs.client.utils.Color;
+import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 public class PanelTextBox {
@@ -15,6 +16,8 @@ public class PanelTextBox {
     public GuiNpcTextField text;
     public Color boxColor;
 
+    private boolean isEditing;
+
     private FontRenderer font;
 
     public PanelTextBox() {
@@ -22,9 +25,20 @@ public class PanelTextBox {
         text.setEnableBackgroundDrawing(false);
     }
 
-    public void draw(FontRenderer font) {
+    public PanelTextBox setDoublesOnly(double def, double min, double max) {
+        text.setDoublesOnly();
+        text.setMinMaxDefaultDouble(min, max, def);
+        text.setFloatingPrecision(2);
+        return this;
+    }
+
+    public void draw(int mouseX, FontRenderer font) {
         if (this.font == null)
             this.font = font;
+
+        if (Mouse.isButtonDown(0) && isEditing && text.isFocused())
+            setCursorPositionToMouse(mouseX);
+
         ////////////////////////////////////////////
         ////////////////////////////////////////////
         //Box texture
@@ -35,7 +49,7 @@ public class PanelTextBox {
 
         //Box grey background
         new Color(0x3d3d3d, 1).glColor();
-        GuiUtil.drawTexturedModalRect(screenX / boxScaleX, screenY / boxScaleY, 32, 20, 0, 492);
+//        GuiUtil.drawTexturedModalRect(screenX / boxScaleX, screenY / boxScaleY, 32, 20, 0, 492);
 
         //Box color
         if (boxColor != null)
@@ -51,7 +65,7 @@ public class PanelTextBox {
         ////////////////////////////////////////////
         // Box text
         float textWidth = font.getStringWidth(text.getText());
-        float textX = screenX + 1;
+        float textX = screenX + 2;
         float centeredTextX = (screenX) + boxWidth / 2 - textWidth / 2 * textScale;
         textScreenX = text.isFocused() || textWidth * textScale >= boxWidth ? textX : centeredTextX;
 
@@ -74,4 +88,38 @@ public class PanelTextBox {
 
         text.setCursorPosition(font.trimStringToWidth(text.getText(), (int) (relativeMX / textScale)).length() + text.lineScrollOffset + pos);
     }
+
+    public boolean isEditing() {
+        return isEditing;
+    }
+
+    public static byte ENTER_KEY = 0, CLICK_OUT = 1;
+
+    public void cancelEdit(byte operation) {
+        text.toDefaults();
+        text.setFocused(false);
+        isEditing = false;
+    }
+
+    public void type(char c, int i) {
+        if (!isEditing())
+            return;
+
+        if (i == 28) {
+            cancelEdit(ENTER_KEY);
+        } else
+            text.textboxKeyTyped(c, i);
+    }
+
+    public void click(int mouseX, int mouseY, int button) {
+        if (!isMouseAbove(mouseX, mouseY)) {
+            if (isEditing())
+                cancelEdit(CLICK_OUT);
+        } else {
+            text.setFocused(true);
+            text.setCursorPositionEnd();
+            isEditing = true;
+        }
+    }
+
 }

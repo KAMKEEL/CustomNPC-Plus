@@ -60,4 +60,12 @@ public class ValueUtil {
     public static String format(double value) {
         return (value % 1 == 0) ? String.format("%.0f", value) : String.format("%.2f", value);
     }
+
+    public static String format(String precision, float value) {
+        return (value % 1 == 0) ? String.format("%.0f", value) : String.format(precision, value);
+    }
+
+    public static String format(String precision, double value) {
+        return (value % 1 == 0) ? String.format("%.0f", value) : String.format(precision, value);
+    }
 }
