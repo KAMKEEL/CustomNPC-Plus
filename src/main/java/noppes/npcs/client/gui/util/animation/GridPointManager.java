@@ -75,11 +75,10 @@ public class GridPointManager {
                 if (isFreeTransforming) {
                     selectedPoint.set(ftGrabX, ftGrabY);
                     ftGrabX = ftGrabY = 0;
-                    Cursors.reset();
                 } else {
                     ftGrabX = selectedPoint.worldX;
                     ftGrabY = selectedPoint.worldY;
-                    Cursors.setCursor(Cursors.MOVE);
+                    Cursors.setCursor(Cursors.MOVE, () -> selectedPoint != null && isFreeTransforming);
                 }
 
                 isFreeTransforming = !isFreeTransforming;
@@ -96,7 +95,7 @@ public class GridPointManager {
 
         if (button == 0 && isFreeTransforming) {
             selectedPoint.updateKey();
-            Cursors.reset();
+            //  Cursors.reset();
             isFreeTransforming = false;
         }
 
@@ -291,8 +290,6 @@ public class GridPointManager {
         if (selectedPoint != null)
             selectedPoint.draw(mouseX, mouseY, partialTicks);
 
-        if (Cursors.currentCursor != null)
-            Cursors.currentCursor.draw(mouseX, mouseY);
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
 

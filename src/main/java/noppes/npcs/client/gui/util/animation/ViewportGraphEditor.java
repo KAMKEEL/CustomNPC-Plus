@@ -69,7 +69,7 @@ public class ViewportGraphEditor {
     }
 
     public void close() {
-        if (Cursors.currentCursor != null)
+        if (Cursors.currentCursor() != null)
             Cursors.reset();
     }
 }

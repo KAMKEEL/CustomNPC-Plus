@@ -22,6 +22,7 @@ import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.HudComponent;
 import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
+import noppes.npcs.client.gui.util.animation.Cursors;
 import noppes.npcs.client.renderer.RenderNPCInterface;
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.controllers.data.MarkData;
@@ -85,6 +86,8 @@ public class ClientTickHandler {
             prevHeight = mc.displayHeight;
             PacketClient.sendClient(new ScreenSizePacket(mc.displayWidth, mc.displayHeight));
         }
+
+        Cursors.tick();
 
         if (mc.theWorld == null)
             return;
