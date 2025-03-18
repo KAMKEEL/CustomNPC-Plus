@@ -104,7 +104,7 @@ public class Grid {
         //////////////////////////////////////////////////////////////
         //////////////////////////////////////////////////////////////
         // Zoom logic
-        if (wheel != 0 && !parent.presetOverlay.showOverlay) {
+        if (wheel != 0 && !parent.presetOverlay.showOverlay&& isMouseOver(mouseX,mouseY)) {
             float xRate = zoomX < 15 ? 1.1f : 1.25f;
             float yRate = zoomY < 15 ? 1.1f : 1.25f;
 
@@ -155,6 +155,10 @@ public class Grid {
         drawLines(mouseX, mouseY);
         GL11.glDepthMask(true);
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
+    }
+
+    public boolean isMouseOver(int mouseX, int mouseY) {
+        return mouseX >= startX && mouseX <= startX + width && mouseY >= startY && mouseY <= startY + height;
     }
 
     public void zoom(int mouseX, int mouseY, int wheel) {
