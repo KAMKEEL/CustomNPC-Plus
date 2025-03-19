@@ -54,7 +54,6 @@ public class GuiMagicCycleMap extends GuiDiagram {
 
         // Use the cycle's layout if set; otherwise default to CIRCULAR_MANUAL.
         setLayout(cycle.layout != null ? cycle.layout : EnumDiagramLayout.CIRCULAR_MANUAL);
-        setLayout(EnumDiagramLayout.CIRCULAR_MANUAL);
         setCurvedArrows(true);
         setCurveAngle(-20);
         invalidateCache();
