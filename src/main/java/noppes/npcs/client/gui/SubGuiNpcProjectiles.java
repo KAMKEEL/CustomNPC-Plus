@@ -74,13 +74,17 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
         if (stats.pEffect != EnumPotionType.None) {
             int internalY = y + 30;
             addLabel(new GuiNpcLabel(50, "gui.time", guiLeft + 210, internalY + 5));
-            addTextField(new GuiNpcTextField(5, this, fontRendererObj, guiLeft + 280, internalY, 40, 20, stats.potionDuration + ""));
+            addTextField(new GuiNpcTextField(5, this, fontRendererObj, guiLeft + 330, internalY, 52, 20, stats.potionDuration + ""));
             getTextField(5).integersOnly = true;
             getTextField(5).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
-            if (stats.potionType != EnumPotionType.Fire) {
+            if (stats.pEffect != EnumPotionType.Fire) {
                 internalY += 30;
                 addLabel(new GuiNpcLabel(70, "stats.amplify", guiLeft + 210, internalY + 5));
                 addButton(new GuiButtonBiDirectional(10, guiLeft + 280, internalY, 52, 20, new String[]{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}, stats.pEffAmp));
+            } else {
+                internalY += 30;
+                addLabel(new GuiNpcLabel(100, "stats.burnItem", guiLeft + 210, internalY + 5));
+                addButton(new GuiNpcButtonYesNo(100, guiLeft + 330, internalY, 52, 20, stats.pBurnItem));
             }
         }
 
@@ -160,6 +164,10 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
         }
         if (button.id == 10) {
             stats.pEffAmp = button.getValue();
+        }
+        if (button.id == 100) {
+            stats.pBurnItem = (button.getValue() == 1);
+            initGui();
         }
         if (button.id == 66) {
             close();

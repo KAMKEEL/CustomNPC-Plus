@@ -90,6 +90,7 @@ public class EntityProjectile extends EntityThrowable {
     public boolean destroyTerrain = true;
     public int explosiveRadius = 0;
     public EnumPotionType effect = EnumPotionType.None;
+    public boolean burnItem = true;
     public int duration = 5;
     public int amplify = 0;
     public int accuracy = 60;
@@ -235,9 +236,8 @@ public class EntityProjectile extends EntityThrowable {
                 this.rotationPitch -= 20;
             }
         }
-        if (this.effect == EnumPotionType.Fire && !this.inGround)
+        if (this.effect == EnumPotionType.Fire && !this.inGround && this.burnItem)
             this.setFire(1);
-
 
         Block block = this.worldObj.getBlock(this.xTile, this.yTile, this.zTile);
 
@@ -801,6 +801,7 @@ public class EntityProjectile extends EntityThrowable {
         this.explosive = stats.pExplode;
         this.explosiveRadius = stats.pArea;
         this.effect = stats.pEffect;
+        this.burnItem = stats.pBurnItem;
         this.duration = stats.pDur;
         this.amplify = stats.pEffAmp;
         this.setParticleEffect(stats.pTrail);
