@@ -1330,6 +1330,10 @@ effect.editor.xPos=X Pos
 effect.editor.yPos=Y Pos
 effect.editor.lossOnDeath=Loss on Death
 
+particle.maxAge=Max Age
+particle.facePlayer=Face Player
+particle.noClip=No Clip
+
 profile.lastLoaded=Last Loaded
 profile.info.quest.active=Quests Active
 profile.info.quest.finished=Quests Finished
@@ -1371,3 +1375,22 @@ rpgcore:attribute.resistance=Resistance
 rpgcore:attribute.neutral=Neutral Damage
 
 requirement.soulbind=Soulbind
+
+trail.smoke=Smoke
+trail.portal=Portal
+trail.redstone=Redstone
+trail.lightning=Lightning
+trail.largesmoke=Large Smoke
+trail.magic=Magic
+trail.enchant=Enchant
+trail.crit=Critical
+trail.explode=Explode
+trail.music=Music
+trail.flame=Flame
+trail.lava=Lava
+trail.splash=Splash
+trail.slime=Slime
+trail.heart=Heart
+trail.angryvillager=AngryVillager
+trail.happyvillager=HappyVillager
+trail.custom=Custom

@@ -3,7 +3,11 @@ package noppes.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -31,10 +35,12 @@ import noppes.npcs.api.IPos;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IProjectile;
+import noppes.npcs.client.fx.CustomFX;
 import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.scripted.event.ProjectileEvent;
 import noppes.npcs.util.IProjectileCallback;
 
@@ -381,17 +387,25 @@ public class EntityProjectile extends EntityThrowable {
                 this.motionZ += this.accelerationZ;
             }
 
-            if (worldObj.isRemote && !this.dataWatcher.getWatchableObjectString(22).equals("")) {
+            if (worldObj.isRemote && !this.dataWatcher.getWatchableObjectString(22).isEmpty()) {
                 String particle = this.dataWatcher.getWatchableObjectString(22);
-                if(particle.equals("custom")){
-
-                } else {
+                if(!particle.equals("custom")){
                     this.worldObj.spawnParticle(particle, this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D);
+
+                }
+            } else if (!worldObj.isRemote){
+                if(this.npc != null && this.npc.stats.pTrail == EnumParticleType.Custom){
+                    this.npc.stats.pCustom.setPosition(this.posX, this.posY, this.posZ);
+                    spawnScriptedParticle(this.npc.stats.pCustom.writeToNBT(), this.npc);
                 }
             }
             this.setPosition(this.posX, this.posY, this.posZ);
             this.func_145775_I();//doBlockCollisions
         }
+    }
+
+    public static void spawnScriptedParticle(NBTTagCompound compound, EntityNPCInterface entity) {
+        PacketHandler.Instance.sendTracking(new ScriptedParticlePacket(compound), entity);
     }
 
     public boolean isBlock() {
@@ -668,6 +682,7 @@ public class EntityProjectile extends EntityThrowable {
         par1NBTTagCompound.setByte("Render3D", this.dataWatcher.getWatchableObjectByte(28));
         par1NBTTagCompound.setByte("Spins", this.dataWatcher.getWatchableObjectByte(29));
         par1NBTTagCompound.setByte("Sticks", this.dataWatcher.getWatchableObjectByte(30));
+        par1NBTTagCompound.setByte("trailCustom", this.dataWatcher.getWatchableObjectByte(31));
     }
 
     /**
@@ -701,6 +716,7 @@ public class EntityProjectile extends EntityThrowable {
         this.dataWatcher.updateObject(28, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Render3D") ? 1 : 0)));
         this.dataWatcher.updateObject(29, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Spins") ? 1 : 0)));
         this.dataWatcher.updateObject(30, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Sticks") ? 1 : 0)));
+        this.dataWatcher.updateObject(31, par1NBTTagCompound.getString("trailCustom"));
 
         if (this.throwerName != null && this.throwerName.length() == 0) {
             this.throwerName = null;
@@ -799,6 +815,10 @@ public class EntityProjectile extends EntityThrowable {
 
     public void setParticleEffect(EnumParticleType type) {
         this.dataWatcher.updateObject(22, type.particleName);
+    }
+
+    public void setCustomParticle(ScriptParticle particle) {
+
     }
 
     public void setHasGravity(boolean bo) {

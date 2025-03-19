@@ -7,6 +7,7 @@ import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.util.ValueUtil;
 
 public class DataStats {
@@ -45,6 +46,7 @@ public class DataStats {
     public boolean pRender3D = false, pSpin = false, pStick = false;
     public EnumPotionType pEffect = EnumPotionType.None;
     public EnumParticleType pTrail = EnumParticleType.None;
+    public ScriptParticle pCustom = new ScriptParticle("");
     public int pEffAmp = 0;
     public String fireSound = "random.bow";
     public boolean aimWhileShooting = false;
@@ -110,6 +112,8 @@ public class DataStats {
         compound.setString("FiringSound", fireSound);
         compound.setBoolean("AimWhileShooting", aimWhileShooting);
         compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
+        if(pTrail == EnumParticleType.Custom)
+            compound.setTag("pCustom", pCustom.writeToNBT());
 
         compound.setBoolean("ImmuneToFire", immuneToFire);
         compound.setBoolean("PotionImmune", potionImmune);
@@ -174,7 +178,9 @@ public class DataStats {
         fireSound = compound.getString("FiringSound");
         aimWhileShooting = compound.getBoolean("AimWhileShooting");
         projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
-
+        if(pTrail == EnumParticleType.Custom){
+            pCustom = ScriptParticle.fromNBT(compound.getCompoundTag("pCustom"));
+        }
         immuneToFire = compound.getBoolean("ImmuneToFire");
         potionImmune = compound.getBoolean("PotionImmune");
         drowningType = compound.getInteger("DrowningType");
