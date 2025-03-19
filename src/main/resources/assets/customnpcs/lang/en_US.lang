@@ -470,6 +470,7 @@ stats.stick=Sticks
 stats.regular=No Amp
 stats.amplified=Amp
 stats.explosion=Explosion
+stats.onShot=On Shot
 
 ai.standing=Standing
 ai.wandering=Wandering

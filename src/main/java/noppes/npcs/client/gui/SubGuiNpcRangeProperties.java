@@ -61,7 +61,7 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
         addLabel(new GuiNpcLabel(7, "stats.firesound:", guiLeft + 5, y + 5));
         addButton(new GuiNpcButton(7, guiLeft + 187, y, 60, 20, "gui.select"));
 
-        addButton(new GuiNpcButtonYesNo(9, guiLeft + 100, y += 22, stats.aimWhileShooting));
+        addButton(new GuiNpcButton(9, guiLeft + 100, y += 22, 70, 20, new String[]{"gui.no", "gui.yes", "stats.onShot"}, stats.aimType));
         addLabel(new GuiNpcLabel(9, "stats.aimWhileShooting", guiLeft + 5, y + 5));
 
         addButton(new GuiNpcButton(66, guiLeft + 190, guiTop + 190, 60, 20, "gui.done"));
@@ -107,7 +107,7 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
         if (id == 66) {
             close();
         } else if (id == 9) {
-            stats.aimWhileShooting = ((GuiNpcButtonYesNo) guibutton).getBoolean();
+            stats.aimType = (byte) ((GuiNpcButton) guibutton).getValue();
         }
     }
 

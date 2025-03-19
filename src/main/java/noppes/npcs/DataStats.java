@@ -49,7 +49,7 @@ public class DataStats {
     public ScriptParticle pCustom = new ScriptParticle("");
     public int pEffAmp = 0;
     public String fireSound = "random.bow";
-    public boolean aimWhileShooting = false;
+    public byte aimType = 0;
     public boolean projectilesKeepTerrain = false;
 
     public EnumCreatureAttribute creatureType = EnumCreatureAttribute.UNDEFINED;
@@ -110,7 +110,7 @@ public class DataStats {
         compound.setInteger("pTrail", pTrail.ordinal());
         compound.setInteger("pEffAmp", pEffAmp);
         compound.setString("FiringSound", fireSound);
-        compound.setBoolean("AimWhileShooting", aimWhileShooting);
+        compound.setByte("AimType", aimType);
         compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
         if(pTrail == EnumParticleType.Custom)
             compound.setTag("pCustom", pCustom.writeToNBT());
@@ -176,7 +176,7 @@ public class DataStats {
         pTrail = EnumParticleType.values()[compound.getInteger("pTrail") % EnumParticleType.values().length];
         pEffAmp = compound.getInteger("pEffAmp");
         fireSound = compound.getString("FiringSound");
-        aimWhileShooting = compound.getBoolean("AimWhileShooting");
+        aimType = compound.getByte("AimType");
         projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
         if(pTrail == EnumParticleType.Custom){
             pCustom = ScriptParticle.fromNBT(compound.getCompoundTag("pCustom"));

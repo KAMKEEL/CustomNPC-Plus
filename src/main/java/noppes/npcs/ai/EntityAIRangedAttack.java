@@ -31,6 +31,7 @@ public class EntityAIRangedAttack extends EntityAIBase {
     private int attackTick = 0;
     private boolean hasFired = false;
     private boolean navOverride = false;
+    private boolean isShooting = false;
 
     public EntityAIRangedAttack(IRangedAttackMob par1IRangedAttackMob) {
         if (!(par1IRangedAttackMob instanceof EntityLivingBase)) {
@@ -113,10 +114,12 @@ public class EntityAIRangedAttack extends EntityAIBase {
             if (var1 <= (double) field_82642_h && (this.entityHost.getEntitySenses().canSee(this.attackTarget) || this.entityHost.ais.canFireIndirect == 2)) {
                 if (this.field_70846_g++ <= this.entityHost.stats.burstCount) {
                     this.rangedAttackTime = this.entityHost.stats.fireRate;
+                    this.isShooting = true;
                 } else {
                     this.field_70846_g = 0;
                     this.hasFired = true;
                     this.rangedAttackTime = (this.entityHost.stats.maxDelay - MathHelper.floor_float(this.entityHost.getRNG().nextFloat() * (this.entityHost.stats.maxDelay - this.entityHost.stats.minDelay)));
+                    this.isShooting = false;
                 }
 
                 if (this.field_70846_g > 1) {
@@ -141,6 +144,10 @@ public class EntityAIRangedAttack extends EntityAIBase {
 
     public boolean hasFired() {
         return this.hasFired;
+    }
+
+    public boolean isShooting() {
+        return this.isShooting;
     }
 
     public void navOverride(boolean nav) {

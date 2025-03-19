@@ -13,11 +13,17 @@ import java.util.Collection;
 import java.util.List;
 
 public class VersionCompatibility {
-    public static int ModRev = 22;
+    public static int ModRev = 23;
 
     public static void CheckNpcCompatibility(EntityNPCInterface npc, NBTTagCompound compound) {
         if (npc.npcVersion == ModRev)
             return;
+        if (npc.npcVersion < 23) {
+            if (compound.hasKey("AimWhileShooting")) {
+                boolean aimShot = compound.getBoolean("AimWhileShooting");
+                compound.setInteger("AimType", !aimShot ? 0 : 1);
+            }
+        }
         if (npc.npcVersion < 22) {
             if (compound.hasKey("CanLeap")) {
                 boolean canLeap = compound.getBoolean("CanLeap");

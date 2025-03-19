@@ -519,11 +519,21 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     }
 
     public boolean canAimWhileShooting() {
-        return !npc.stats.aimWhileShooting;
+        return npc.stats.aimType == 1;
     }
 
-    public void aimWhileShooting(boolean aimWhileShooting) {
-        npc.stats.aimWhileShooting = aimWhileShooting;
+    public void aimWhileShooting(boolean aimWhileShooting){
+        npc.stats.aimType = (byte) (aimWhileShooting ? 1 : 0);
+    }
+
+    public void setAimType(byte aimWhileShooting) {
+        if(aimWhileShooting < 0 || aimWhileShooting > 2)
+            return;
+        npc.stats.aimType = aimWhileShooting;
+    }
+
+    public byte getAimType() {
+        return npc.stats.aimType;
     }
 
     public void setMinProjectileDelay(int minDelay) {
