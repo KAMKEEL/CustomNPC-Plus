@@ -112,6 +112,9 @@ public class EntityAIRangedAttack extends EntityAIBase {
 
         if (this.rangedAttackTime <= 0) {
             if (var1 <= (double) field_82642_h && (this.entityHost.getEntitySenses().canSee(this.attackTarget) || this.entityHost.ais.canFireIndirect == 2)) {
+                if (this.field_70846_g == 0) {
+                    this.entityHost.stats.playBurstSound = true;
+                }
                 if (this.field_70846_g++ <= this.entityHost.stats.burstCount) {
                     this.rangedAttackTime = this.entityHost.stats.fireRate;
                     this.isShooting = true;

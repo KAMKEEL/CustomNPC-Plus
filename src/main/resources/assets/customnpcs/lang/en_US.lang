@@ -471,6 +471,7 @@ stats.regular=No Amp
 stats.amplified=Amp
 stats.explosion=Explosion
 stats.onShot=On Shot
+stats.onStart=On Start
 stats.burnItem=Burn Item
 
 ai.standing=Standing

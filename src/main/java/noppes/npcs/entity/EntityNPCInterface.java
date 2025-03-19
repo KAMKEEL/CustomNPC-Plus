@@ -682,7 +682,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 EntityProjectile projectile = shoot(entity, stats.accuracy, proj, f == 1);
                 projectile.damage = event.getDamage();
             }
-            this.playSound(this.stats.fireSound, 2.0F, 1.0f);
+
+            if (this.stats.playBurstSound || !this.stats.onSoundBegin) {
+                this.playSound(this.stats.fireSound, 1.5F, 1.0f);
+                this.stats.playBurstSound = false;
+            }
         }
     }
 
