@@ -382,7 +382,12 @@ public class EntityProjectile extends EntityThrowable {
             }
 
             if (worldObj.isRemote && !this.dataWatcher.getWatchableObjectString(22).equals("")) {
-                this.worldObj.spawnParticle(this.dataWatcher.getWatchableObjectString(22), this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D);
+                String particle = this.dataWatcher.getWatchableObjectString(22);
+                if(particle.equals("custom")){
+
+                } else {
+                    this.worldObj.spawnParticle(particle, this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D);
+                }
             }
             this.setPosition(this.posX, this.posY, this.posZ);
             this.func_145775_I();//doBlockCollisions

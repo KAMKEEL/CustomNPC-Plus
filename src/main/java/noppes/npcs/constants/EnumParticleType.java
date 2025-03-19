@@ -9,7 +9,17 @@ public enum EnumParticleType {
     LargeSmoke("largesmoke"),
     Magic("witchMagic"),
     Enchant("enchantmenttable"),
-    Crit("crit");
+    Crit("crit"),
+    Explode("explode"),
+    Music("note"),
+    Flame("flame"),
+    Lava("lava"),
+    Splash("splash"),
+    Slime("slime"),
+    Heart("heart"),
+    AngryVillager("angryVillager"),
+    HappyVillager("happyVillager"),
+    Custom("custom");
 
     public String particleName;
 

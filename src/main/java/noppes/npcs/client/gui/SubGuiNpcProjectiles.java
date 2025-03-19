@@ -9,12 +9,16 @@ import noppes.npcs.constants.EnumPotionType;
 public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldListener {
     private DataStats stats;
     private String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
-    private String[] trailNames = new String[]{"gui.none", "Smoke", "Portal", "Redstone", "Lightning", "LargeSmoke", "Magic", "Enchant"};
+    private String[] trailNames = new String[]{ "gui.none", "trail.smoke", "trail.portal", "trail.redstone",
+        "trail.lightning", "trail.largesmoke", "trail.magic", "trail.enchant", "trail.crit",
+        "trail.explode", "trail.music", "trail.flame", "trail.lava", "trail.splash",
+        "trail.slime", "trail.heart", "trail.angryvillager", "trail.happyvillager", "trail.custom"
+    };
 
     public SubGuiNpcProjectiles(DataStats stats) {
         this.stats = stats;
         setBackground("menubg.png");
-        xSize = 256;
+        xSize = 300;
         ySize = 216;
         closeOnEsc = true;
     }
