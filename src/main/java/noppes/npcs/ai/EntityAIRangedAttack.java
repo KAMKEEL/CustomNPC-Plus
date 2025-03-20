@@ -50,16 +50,28 @@ public class EntityAIRangedAttack extends EntityAIBase {
     public boolean shouldExecute() {
         EntityLivingBase var1 = this.entityHost.getAttackTarget();
 
-        if (var1 == null || !var1.isEntityAlive()) return false;
+        if (var1 == null || !var1.isEntityAlive()){
+            isShooting = false;
+            return false;
+        }
 
-        if (entityHost.getDistanceToEntity(var1) > entityHost.stats.aggroRange) return false;
+        if (entityHost.getDistanceToEntity(var1) > entityHost.stats.aggroRange){
+            isShooting = false;
+            return false;
+        }
 
-        if (this.entityHost.inventory.getProjectile() == null) return false;
+        if (this.entityHost.inventory.getProjectile() == null){
+            isShooting = false;
+            return false;
+        }
 
         double var2 = this.entityHost.getDistanceSq(var1.posX, var1.boundingBox.minY, var1.posZ);
         double var3 = this.entityHost.ais.distanceToMelee * this.entityHost.ais.distanceToMelee;
 
-        if (this.entityHost.ais.useRangeMelee >= 1 && var2 <= var3) return false;
+        if (this.entityHost.ais.useRangeMelee >= 1 && var2 <= var3){
+            isShooting = false;
+            return false;
+        }
 
         else {
             this.attackTarget = var1;
