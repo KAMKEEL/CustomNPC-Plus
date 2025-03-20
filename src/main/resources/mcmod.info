@@ -12,7 +12,7 @@
 			"KAMKEEL (CNPC+)",
 			"Louis XII (CNPC+ Scripting)"
 		],
-		"credits": "Noppes (CNPC), DarkSignal (AI), Foxz (Retro-Commands), PopsicleNate (Textures), Goodbird (CustomModel)",
+		"credits": "Noppes (CNPC), DarkSignal (AI), Foxz (Retro-Commands), PopsicleNate (Textures), Goodbird (CustomModel), Hussar [Scroll Window/Packets]",
 		"logoFile": "assets/customnpcs/textures/gui/logo.png",
 		"screenshots": [],
 		"parent": "",
