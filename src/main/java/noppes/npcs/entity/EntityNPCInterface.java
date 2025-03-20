@@ -1517,6 +1517,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         return ais.movingType != EnumMovingType.Standing || isAttacking() || isFollower() || getBoolFlag(1);
     }
 
+    public boolean isFlying() {
+        return isWalking() && !onGround;
+    }
+
     public void setBoolFlag(boolean bo, int id) {
         int i = dataWatcher.getWatchableObjectInt(15);
         if (bo && (i & id) == 0)

@@ -230,7 +230,7 @@ public class ModelLegs extends ModelScaleRenderer {
         model.rotateAngleZ = z;
     }
 
-    public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity entity) {
+    public void setRotationAngles(float limbSwing, float limbSwingAmount, float par3, float par4, float par5, float par6, Entity entity) {
         if (this.entity == null) return;
 
         ModelPartData part = this.entity.modelData.legParts;
@@ -264,14 +264,14 @@ public class ModelLegs extends ModelScaleRenderer {
             this.spiderLeg6.rotateAngleY = var10 * 1.0F - var9;
             this.spiderLeg7.rotateAngleY = -var10 * 2.0F + var9;
             this.spiderLeg8.rotateAngleY = var10 * 2.0F - var9;
-            float var11 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + 0.0F) * 0.4F) * par2;
-            float var12 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + (float) Math.PI) * 0.4F) * par2;
-            float var13 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * par2;
-            float var14 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + ((float) Math.PI * 3F / 2F)) * 0.4F) * par2;
-            float var15 = Math.abs(MathHelper.sin(par1 * 0.6662F + 0.0F) * 0.4F) * par2;
-            float var16 = Math.abs(MathHelper.sin(par1 * 0.6662F + (float) Math.PI) * 0.4F) * par2;
-            float var17 = Math.abs(MathHelper.sin(par1 * 0.6662F + ((float) Math.PI / 2F)) * 0.4F) * par2;
-            float var18 = Math.abs(MathHelper.sin(par1 * 0.6662F + ((float) Math.PI * 3F / 2F)) * 0.4F) * par2;
+            float var11 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + 0.0F) * 0.4F) * limbSwingAmount;
+            float var12 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + (float) Math.PI) * 0.4F) * limbSwingAmount;
+            float var13 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
+            float var14 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
+            float var15 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + 0.0F) * 0.4F) * limbSwingAmount;
+            float var16 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + (float) Math.PI) * 0.4F) * limbSwingAmount;
+            float var17 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
+            float var18 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
             this.spiderLeg1.rotateAngleY += var11;
             this.spiderLeg2.rotateAngleY += -var11;
             this.spiderLeg3.rotateAngleY += var12;
@@ -304,16 +304,16 @@ public class ModelLegs extends ModelScaleRenderer {
                 this.rotateAngleX = (float) (Math.PI / -2);
             }
         } else if (part.type == 3) {
-            this.frontLeftLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F) * .4F * par2;
-            this.frontRightLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F + (float) Math.PI) * .4F * par2;
-            this.backLeftLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F + (float) Math.PI) * .4F * par2;
-            this.backRightLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F) * .4F * par2;
+            this.frontLeftLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * .4F * limbSwingAmount;
+            this.frontRightLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * .4F * limbSwingAmount;
+            this.backLeftLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * .4F * limbSwingAmount;
+            this.backRightLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * .4F * limbSwingAmount;
         } else if (part.type == 1) {
             naga.isRiding = base.isRiding;
             naga.isSleeping = base.isSleeping(entity);
             naga.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
             naga.isSneaking = base.isSneak;
-            naga.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            naga.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
         } else if (part.type == 4 || part.type == 6) {
             mermaid.isRiding = base.isRiding;
             mermaid.isSleeping = base.isSleeping(entity);
@@ -323,10 +323,10 @@ public class ModelLegs extends ModelScaleRenderer {
             mermaid2.isSleeping = base.isSleeping(entity);
             mermaid2.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
             mermaid2.isSneaking = base.isSneak;
-            mermaid.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            mermaid2.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            mermaid.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
+            mermaid2.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
         } else if (part.type == 5) {
-            digitigrade.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            digitigrade.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
         }
     }
 

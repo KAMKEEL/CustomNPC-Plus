@@ -505,7 +505,10 @@ public class ModelMPM extends ModelNPCMale {
     }
 
     @Override
-    public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity entity) {
+    public void setRotationAngles(float limbSwing, float limbSwingAmount,
+                                  float ageInTicks, float netHeadYaw, float headPitch,
+                                  float scaleFactor, Entity entity) {
+
         EntityCustomNpc npc = (EntityCustomNpc) entity;
         isRiding = npc.isRiding();
         if (isSneak && (npc.currentAnimation == EnumAnimation.CRAWLING || npc.currentAnimation == EnumAnimation.LYING))
@@ -599,16 +602,16 @@ public class ModelMPM extends ModelNPCMale {
         this.bipedRightArmWear.rotateAngleY = 0;
         this.bipedRightArmWear.rotateAngleZ = 0;
 
-        super.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+        super.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
 
         if (!isArmor) {
-            hair.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            beard.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            wings.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            tail.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            skirt.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            hair.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            beard.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            wings.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            tail.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            skirt.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
         }
-        legs.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+        legs.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
 
         if (isSleeping(entity)) {
             if (bipedHead.rotateAngleX < 0) {
@@ -619,9 +622,9 @@ public class ModelMPM extends ModelNPCMale {
             bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = 0.7f;
 
         else if (npc.currentAnimation == EnumAnimation.HUG) {
-            AniHug.setRotationAngles(par1, par2, par3, par4, par5, par6, entity, this);
+            AniHug.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity, this);
         } else if (npc.currentAnimation == EnumAnimation.CRAWLING)
-            AniCrawling.setRotationAngles(par1, par2, par3, par4, par5, par6, entity, this);
+            AniCrawling.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity, this);
 
         else if (npc.currentAnimation == EnumAnimation.WAVING) {
             bipedRightArm.rotateAngleX = -0.1f;
