@@ -155,6 +155,24 @@ gui.create=Create
 gui.rename=Rename
 gui.playerMap=Regen PlayerMap
 
+gui.lineColor1=Upper line color
+gui.lineColor2=Middle line color
+gui.lineColor3=Lower line color
+gui.slotColour=Slots color
+gui.buttonAcceptColour=Accept button color
+gui.buttonRejectColour=Reject button color
+questgui.doyouaccept=Do you accept the quest?
+questgui.bringitems=Bring items
+questgui.readdialog=Read dialog
+questgui.killmobs=Kill mobs
+questgui.findlocation=Find location
+questgui.defeat=Defeat
+questgui.objectives=Objectives:
+questgui.rewards=Rewards:
+questgui.experience=Experience: 
+questgui.reject=Reject
+questgui.accept=Accept
+
 party.accept=Accept
 party.allowParty=Allow Partying
 party.createParty=Create Party
@@ -656,6 +674,7 @@ dialog.npcScale=NPC Scale
 dialog.npcOffset=NPC Offset
 dialog.titleColor=Title Color
 dialog.titlePos=Title Position
+dialog.enableColorSettings=Enable Color Settings
 
 quest.quest=Quest
 quest.active=Active Quest

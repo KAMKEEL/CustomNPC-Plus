@@ -8,6 +8,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogColorData;
 import noppes.npcs.controllers.data.DialogImage;
 
 import java.util.ArrayList;
@@ -40,7 +41,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         GuiMenuTopButton general = new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
         GuiMenuTopButton spacing = new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
         GuiMenuTopButton images = new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
-        topButtons = new GuiMenuTopButton[]{general, images, spacing, close};
+        GuiMenuTopButton colours =  new GuiMenuTopButton(5, images.xPosition + images.getWidth(), guiTop - 17, "Colors");
+
+        topButtons = new GuiMenuTopButton[]{general,images,spacing,close,colours};
         for (GuiMenuTopButton button : topButtons) {
             button.active = button.id == activeMenu;
             addButton(button);
@@ -241,6 +244,53 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getLabel(21).enabled = dialogImage.imageType == 0;
             }
         }
+        else if (activeMenu == 5) {
+            addButton(new GuiNpcButtonYesNo(10, guiLeft + 180, y += 22, 60, 20, dialog.colorData.getEnableColorSettings()));
+            addLabel(new GuiNpcLabel(10, "dialog.enableColorSettings", guiLeft + 4, y + 5));
+            if (dialog.colorData.getEnableColorSettings()) {
+                String color = Integer.toHexString(dialog.colorData.getLineColor1());
+                while (color.length() < 6)
+                    color = 0 + color;
+                addButton(new GuiNpcButton(11, guiLeft + 180, y += 25, 60, 20, color));
+                addLabel(new GuiNpcLabel(11, "gui.lineColor1", guiLeft + 4, y + 5));
+                getButton(11).setTextColor(dialog.colorData.getLineColor1());
+
+                color = Integer.toHexString(dialog.colorData.getLineColor2());
+                while (color.length() < 6)
+                    color = 0 + color;
+                addButton(new GuiNpcButton(12, guiLeft + 180, y += 25, 60, 20, color));
+                addLabel(new GuiNpcLabel(12, "gui.lineColor2", guiLeft + 4, y + 5));
+                getButton(12).setTextColor(dialog.colorData.getLineColor2());
+
+                color = Integer.toHexString(dialog.colorData.getLineColor3());
+                while (color.length() < 6)
+                    color = 0 + color;
+                addButton(new GuiNpcButton(13, guiLeft + 180, y += 25, 60, 20, color));
+                addLabel(new GuiNpcLabel(13, "gui.lineColor3", guiLeft + 4, y + 5));
+                getButton(13).setTextColor(dialog.colorData.getLineColor3());
+
+                color = Integer.toHexString(dialog.colorData.getSlotColor());
+                while (color.length() < 6)
+                    color = 0 + color;
+                addButton(new GuiNpcButton(14, guiLeft + 180, y += 25, 60, 20, color));
+                addLabel(new GuiNpcLabel(14, "gui.slotColor", guiLeft + 4, y + 5));
+                getButton(14).setTextColor(dialog.colorData.getSlotColor());
+
+                color = Integer.toHexString(dialog.colorData.getButtonAcceptColor());
+                while (color.length() < 6)
+                    color = 0 + color;
+                addButton(new GuiNpcButton(15, guiLeft + 180, y += 25, 60, 20, color));
+                addLabel(new GuiNpcLabel(15, "gui.buttonAcceptColor", guiLeft + 4, y + 5));
+                getButton(15).setTextColor(dialog.colorData.getButtonAcceptColor());
+
+                color = Integer.toHexString(dialog.colorData.getButtonRejectColor());
+                while (color.length() < 6)
+                    color = 0 + color;
+                addButton(new GuiNpcButton(16, guiLeft + 180, y += 25, 60, 20, color));
+                addLabel(new GuiNpcLabel(16, "gui.buttonRejectColor", guiLeft + 4, y + 5));
+                getButton(16).setTextColor(dialog.colorData.getButtonRejectColor());
+            }
+        }
     }
 
     public void updateScrollData() {
@@ -379,7 +429,36 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 }
             }
         }
-
+        if (activeMenu == 5) {
+            DialogColorData colData = dialog.colorData;
+            if (button.id == 10) {
+                colData.setEnableColorSettings(button.getValue()==1);
+            }
+            if (button.id == 11) {
+                setSubGui(new SubGuiColorSelector(colData.getLineColor1()));
+                lastColorClicked = 2;
+            }
+            if (button.id == 12) {
+                setSubGui(new SubGuiColorSelector(colData.getLineColor2()));
+                lastColorClicked = 3;
+            }
+            if (button.id == 13) {
+                setSubGui(new SubGuiColorSelector(colData.getLineColor3()));
+                lastColorClicked = 4;
+            }
+            if (button.id == 14) {
+                setSubGui(new SubGuiColorSelector(colData.getSlotColor()));
+                lastColorClicked = 5;
+            }
+            if (button.id == 15) {
+                setSubGui(new SubGuiColorSelector(colData.getButtonAcceptColor()));
+                lastColorClicked = 6;
+            }
+            if (button.id == 16) {
+                setSubGui(new SubGuiColorSelector(colData.getButtonRejectColor()));
+                lastColorClicked = 7;
+            }
+        }
         initGui();
     }
 
@@ -411,6 +490,23 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 }
                 initGui();
             }
+        }
+        if (activeMenu == 5) {
+            DialogColorData colData = dialog.colorData;
+            if (lastColorClicked == 2) {
+                colData.setLineColor1(((SubGuiColorSelector) subgui).color);
+            } else if (lastColorClicked == 3) {
+                colData.setLineColor2(((SubGuiColorSelector) subgui).color);
+            }else if (lastColorClicked == 4) {
+                colData.setLineColor3(((SubGuiColorSelector) subgui).color);
+            }else if (lastColorClicked == 5) {
+                colData.setSlotColor(((SubGuiColorSelector) subgui).color);
+            }else if (lastColorClicked == 6) {
+                colData.setButtonAcceptColor(((SubGuiColorSelector) subgui).color);
+            }else if (lastColorClicked == 7) {
+                colData.setButtonRejectColor(((SubGuiColorSelector) subgui).color);
+            }
+            initGui();
         }
         save();
     }

@@ -8,6 +8,8 @@ import net.minecraft.client.renderer.texture.ITextureObject;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.client.resources.IResource;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
+import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.ImageDownloadAlt;
 import noppes.npcs.client.renderer.ImageBufferDownloadAlt;
 import org.lwjgl.opengl.GL11;
@@ -49,7 +51,7 @@ public class GuiTexturedButton extends GuiNpcButton {
         super(buttonId, x, y, width, height, buttonText);
         this.textureX = textureX;
         this.textureY = textureY;
-        this.label = buttonText;
+        this.label = StatCollector.translateToLocal(buttonText);
         this.scale = 1.0F;
         this.color = 0xFFFFFF;
         this.alpha = 1.0F;
@@ -91,7 +93,8 @@ public class GuiTexturedButton extends GuiNpcButton {
             mc.getTextureManager().bindTexture(this.location);
             this.drawTexturedModalRect(0, 0, this.textureX, this.textureY, this.width, this.height);
             GL11.glTranslated(0.0D, 0.0D, 0.1D);
-            this.drawCenteredString(mc.fontRenderer, this.label, this.width / 2, (this.height - 8) / 2, this.color);
+            this.drawCenteredString(mc.fontRenderer, this.label, (int) (this.xPosition + ((float)this.width)*scale / 2f),
+                (int) (this.yPosition+(((float)this.height)*scale- ClientProxy.Font.height()+4) / 2f), this.color);
         } else {
             FontRenderer fontrenderer = mc.fontRenderer;
             mc.getTextureManager().bindTexture(buttonTextures);
@@ -156,8 +159,14 @@ public class GuiTexturedButton extends GuiNpcButton {
     }
 
     @Override
-    public boolean mousePressed(Minecraft minecraft, int i, int j) {
-        return super.mousePressed(minecraft, i, j) || this.field_146123_n;
+    public boolean mousePressed(Minecraft minecraft, int i, int j)
+    {
+        boolean bo = this.enabled && this.visible && i >= this.xPosition && j >= this.yPosition
+            && i < this.xPosition + this.width*scale && j < this.yPosition + this.height*scale;
+        if(bo && display != null && display.length != 0){
+            setDisplay((getValue()+1) % display.length);
+        }
+        return bo;
     }
 
     public void getWidthHeight() throws IOException {

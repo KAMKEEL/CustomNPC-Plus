@@ -23,6 +23,7 @@ public class Dialog implements ICompatibilty, IDialog {
     public String text = "";
     public int quest = -1;
     public DialogCategory category;
+    public DialogColorData colorData = new DialogColorData();
     public HashMap<Integer, DialogOption> options = new HashMap<Integer, DialogOption>();
     public Availability availability = new Availability();
     public FactionOptions factionOptions = new FactionOptions();
@@ -167,6 +168,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         availability.readFromNBT(compound);
         factionOptions.readFromNBT(compound);
+        colorData.readFromNBT(compound);
     }
 
 
@@ -202,6 +204,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         availability.writeToNBT(compound);
         factionOptions.writeToNBT(compound);
+        colorData.writeToNBT(compound);
         compound.setInteger("ModRev", version);
 
         compound.setInteger("Color", color);
@@ -284,6 +287,7 @@ public class Dialog implements ICompatibilty, IDialog {
         dialog.npcOffsetX = npcOffsetX;
         dialog.npcOffsetY = npcOffsetY;
         dialog.dialogImages = dialogImages;
+        dialog.colorData = colorData;
 
         for (int slot : options.keySet()) {
             DialogOption option = options.get(slot);

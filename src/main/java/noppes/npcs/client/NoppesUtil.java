@@ -17,10 +17,13 @@ import net.minecraft.util.Util;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
+import noppes.npcs.client.gui.player.modern.GuiModernDialogInteract;
+import noppes.npcs.client.gui.player.modern.GuiModernQuestDialog;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IPlayerDataInfo;
 import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.config.ConfigClient;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
@@ -191,8 +194,17 @@ public class NoppesUtil {
         Dialog dialog = new Dialog();
         dialog.readNBT(compound);
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-        if (gui == null || !(gui instanceof GuiDialogInteract))
-            CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+        if(!(gui instanceof GuiDialogInteract)) {
+            if (ConfigClient.ModernGuiSystem) {
+                if (dialog.hasQuest()) {
+                    CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, dialog.getQuest(), dialog, -2));
+                } else {
+                    CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, dialog));
+                }
+            } else {
+                CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+            }
+        }
         else {
             GuiDialogInteract dia = (GuiDialogInteract) gui;
             dia.appendDialog(dialog);

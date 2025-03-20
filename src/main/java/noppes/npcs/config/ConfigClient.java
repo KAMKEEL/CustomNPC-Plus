@@ -49,6 +49,9 @@ public class ConfigClient {
     public static Property HideEffectsBarProperty;
     public static boolean HideEffectsBar = false;
 
+    public static Property ModernGuiSystemProperty;
+    public static boolean ModernGuiSystem = true;
+
     /**
      * Questing Properties
      **/
@@ -221,6 +224,9 @@ public class ConfigClient {
 
             BannerAlertsProperty = config.get(VISUAL, "All Banner Alerts", true, "Universal enable/disable for Banner Alerts");
             BannerAlerts = BannerAlertsProperty.getBoolean(true);
+
+            ModernGuiSystemProperty = config.get(VISUAL, "Modern GUI", true, "Enables the new CNPC+ Modern GUI for Dialog and Quest information");
+            ModernGuiSystem = ModernGuiSystemProperty.getBoolean(true);
 
             WoodTextures = config.get(TEXTURE, "Wood Textures", false, "Models like Chairs and Stools will use default MC Wood Textures").getBoolean(false);
 
