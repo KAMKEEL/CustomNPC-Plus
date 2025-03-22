@@ -979,22 +979,208 @@ public abstract class GuiDiagram extends Gui {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    // --- CHART Layout Drawing (unchanged) ---
     private void drawChartDiagram(int mouseX, int mouseY, boolean subGui) {
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int factor = sr.getScaleFactor();
+
+        // 1. Draw the static background for the entire diagram.
         drawRect(x, y, x + width, y + height, 0xFF333333);
+
+        // 2. Setup scissor to clip drawing to the diagram area.
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GL11.glScissor(x * factor, (sr.getScaledHeight() - (y + height)) * factor, width * factor, height * factor);
+
+        // 3. Push a matrix and apply pan/zoom for grid, icons, and overlays.
         GL11.glPushMatrix();
-        int centerX = x + width / 2, centerY = y + height / 2;
+        int centerX = x + width / 2;
+        int centerY = y + height / 2;
         GL11.glTranslatef(centerX + panX, centerY + panY, 0);
         GL11.glScalef(zoom, zoom, 1.0f);
         GL11.glTranslatef(-centerX, -centerY, 0);
-        // ... rest of chart drawing code
+
+        // 4. Compute grid parameters.
+        List<DiagramIcon> icons = getIcons();
+        int n = icons.size();
+        int cols = n + 1, rows = n + 1;
+        int cellSize = Math.min(width / cols, height / rows);
+        int gridWidth = cellSize * cols;
+        int gridHeight = cellSize * rows;
+        int startX = x + (width - gridWidth) / 2;
+        int startY = y + (height - gridHeight) / 2;
+
+        // 5. Draw grid cells.
+        for (int row = 0; row < rows; row++) {
+            for (int col = 0; col < cols; col++) {
+                int cellX = startX + col * cellSize;
+                int cellY = startY + row * cellSize;
+                int fillColor = 0xFFCCCCCC; // Default for header cells.
+                if (row > 0 && col > 0) { // inner cell: use connection color (or darker gray)
+                    DiagramIcon leftIcon = icons.get(row - 1);
+                    DiagramIcon topIcon = icons.get(col - 1);
+                    DiagramConnection conn = getConnectionByIds(leftIcon.id, topIcon.id);
+                    fillColor = (conn != null) ? getConnectionColor(conn) : 0xFF777777;
+                }
+                drawRect(cellX, cellY, cellX + cellSize, cellY + cellSize, fillColor);
+            }
+        }
+
+        // 6. Draw grid lines.
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glColor4f(0, 0, 0, 1);
+        GL11.glLineWidth(1.0f);
+        GL11.glBegin(GL11.GL_LINES);
+        for (int col = 0; col <= cols; col++) {
+            int xLine = startX + col * cellSize;
+            GL11.glVertex2i(xLine, startY);
+            GL11.glVertex2i(xLine, startY + gridHeight);
+        }
+        for (int row = 0; row <= rows; row++) {
+            int yLine = startY + row * cellSize;
+            GL11.glVertex2i(startX, yLine);
+            GL11.glVertex2i(startX + gridWidth, yLine);
+        }
+        GL11.glEnd();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glPopAttrib();
+
+        // 7. Draw header icons (top and left) scaled to fit within each cell.
+        float iconMargin = 1f;  // margin in pixels inside the cell.
+        float iconScale = (cellSize - iconMargin) / (float) iconSize;
+        for (int i = 0; i < n; i++) {
+            // Top header icon:
+            int topHeaderCenterX = startX + (i + 1) * cellSize + cellSize / 2;
+            int topHeaderCenterY = startY + cellSize / 2;
+            GL11.glPushMatrix();
+            GL11.glTranslatef(topHeaderCenterX, topHeaderCenterY, 0);
+            GL11.glScalef(iconScale, iconScale, 1);
+            // renderIcon should draw centered at (0,0)
+            renderIcon(icons.get(i), 0, 0, IconRenderState.DEFAULT);
+            GL11.glPopMatrix();
+
+            // Left header icon:
+            int leftHeaderCenterX = startX + cellSize / 2;
+            int leftHeaderCenterY = startY + (i + 1) * cellSize + cellSize / 2;
+            GL11.glPushMatrix();
+            GL11.glTranslatef(leftHeaderCenterX, leftHeaderCenterY, 0);
+            GL11.glScalef(iconScale, iconScale, 1);
+            renderIcon(icons.get(i), 0, 0, IconRenderState.DEFAULT);
+            GL11.glPopMatrix();
+        }
+
+        // 8. Compute effective mouse coordinates (reverse pan/zoom).
+        int effectiveMouseX = (int) (((float) mouseX - (centerX + panX)) / zoom + centerX);
+        int effectiveMouseY = (int) (((float) mouseY - (centerY + panY)) / zoom + centerY);
+
+        // 9. Determine hover state on the grid.
+        boolean hoverInGrid = (effectiveMouseX >= startX && effectiveMouseX < startX + gridWidth &&
+            effectiveMouseY >= startY && effectiveMouseY < startY + gridHeight);
+        int hoveredRow = -1, hoveredCol = -1;
+        Set<Integer> highlightTop = new HashSet<>();
+        Set<Integer> highlightLeft = new HashSet<>();
+        List<String> tooltipToShow = null;
+        if (hoverInGrid) {
+            int colIndex = (effectiveMouseX - startX) / cellSize;
+            int rowIndex = (effectiveMouseY - startY) / cellSize;
+            // If hovering over a top header cell.
+            if (rowIndex == 0 && colIndex >= 1) {
+                highlightTop.add(colIndex - 1);
+                tooltipToShow = getIconTooltip(icons.get(colIndex - 1));
+                onIconHover(icons.get(colIndex - 1));
+            }
+            // If hovering over a left header cell.
+            else if (colIndex == 0 && rowIndex >= 1) {
+                highlightLeft.add(rowIndex - 1);
+                tooltipToShow = getIconTooltip(icons.get(rowIndex - 1));
+                onIconHover(icons.get(rowIndex - 1));
+            }
+            // Else, hovering over an inner cell.
+            else if (rowIndex >= 1 && colIndex >= 1) {
+                hoveredRow = rowIndex - 1;
+                hoveredCol = colIndex - 1;
+                highlightTop.add(hoveredCol);
+                highlightLeft.add(hoveredRow);
+                DiagramIcon leftIcon = icons.get(hoveredRow);
+                DiagramIcon topIcon = icons.get(hoveredCol);
+                DiagramConnection conn = getConnectionByIds(leftIcon.id, topIcon.id);
+                if (conn != null) {
+                    tooltipToShow = getConnectionTooltip(conn);
+                    onConnectionHover(conn);
+                }
+            }
+        }
+
+        // 10. Draw hover overlay:
+        // Dim all inner cells (row>=1 & col>=1) not in highlighted row/column.
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glColor4f(0, 0, 0, 0.5f);
+        GL11.glBegin(GL11.GL_QUADS);
+        for (int r = 1; r < rows; r++) {
+            for (int c = 1; c < cols; c++) {
+                boolean keepBright = false;
+                if (!highlightTop.isEmpty() && highlightTop.contains(c - 1))
+                    keepBright = true;
+                if (!highlightLeft.isEmpty() && highlightLeft.contains(r - 1))
+                    keepBright = true;
+                // Also, if a specific cell is hovered, its entire row/column is bright.
+                if (hoveredRow != -1 && hoveredCol != -1) {
+                    if (r - 1 == hoveredRow || c - 1 == hoveredCol)
+                        keepBright = true;
+                }
+                if (!keepBright) {
+                    int cellX = startX + c * cellSize;
+                    int cellY = startY + r * cellSize;
+                    GL11.glVertex2i(cellX, cellY);
+                    GL11.glVertex2i(cellX + cellSize, cellY);
+                    GL11.glVertex2i(cellX + cellSize, cellY + cellSize);
+                    GL11.glVertex2i(cellX, cellY + cellSize);
+                }
+            }
+        }
+        GL11.glEnd();
+        // Then draw a white overlay on the highlighted headers/inner cell.
+        GL11.glColor4f(1, 1, 1, 0.3f);
+        GL11.glBegin(GL11.GL_QUADS);
+        for (int i = 0; i < n; i++) {
+            if (highlightTop.contains(i)) {
+                int hx = startX + (i + 1) * cellSize;
+                int hy = startY;
+                GL11.glVertex2i(hx, hy);
+                GL11.glVertex2i(hx + cellSize, hy);
+                GL11.glVertex2i(hx + cellSize, hy + cellSize);
+                GL11.glVertex2i(hx, hy + cellSize);
+            }
+            if (highlightLeft.contains(i)) {
+                int hx = startX;
+                int hy = startY + (i + 1) * cellSize;
+                GL11.glVertex2i(hx, hy);
+                GL11.glVertex2i(hx + cellSize, hy);
+                GL11.glVertex2i(hx + cellSize, hy + cellSize);
+                GL11.glVertex2i(hx, hy + cellSize);
+            }
+        }
+        if (hoveredRow != -1 && hoveredCol != -1) {
+            int cellX = startX + (hoveredCol + 1) * cellSize;
+            int cellY = startY + (hoveredRow + 1) * cellSize;
+            GL11.glVertex2i(cellX, cellY);
+            GL11.glVertex2i(cellX + cellSize, cellY);
+            GL11.glVertex2i(cellX + cellSize, cellY + cellSize);
+            GL11.glVertex2i(cellX, cellY + cellSize);
+        }
+        GL11.glEnd();
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glPopAttrib();
+
+        // End pan/zoom block.
         GL11.glPopMatrix();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+        // 11. Draw tooltip (using raw screen coordinates).
+        if (tooltipToShow != null && !tooltipToShow.isEmpty()) {
+            drawHoveringText(tooltipToShow, mouseX, mouseY, mc.fontRenderer);
+        }
     }
 
     /**
@@ -1035,7 +1221,6 @@ public abstract class GuiDiagram extends Gui {
         }
         if (hoveredIconId == null) {
             final double threshold = 5.0;
-            outer:
             for (DiagramConnection conn : getConnections()) {
                 DiagramIcon iconFrom = getIconById(conn.idFrom);
                 DiagramIcon iconTo = getIconById(conn.idTo);
