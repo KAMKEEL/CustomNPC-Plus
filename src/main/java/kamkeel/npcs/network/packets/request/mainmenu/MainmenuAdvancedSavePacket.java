@@ -60,7 +60,7 @@ public final class MainmenuAdvancedSavePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         npc.advanced.readToNBT(ByteBufUtils.readNBT(in));

@@ -58,7 +58,7 @@ public final class RemoteDeletePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof net.minecraft.entity.player.EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
         int id = in.readInt();
         Entity entity = player.worldObj.getEntityByID(id);

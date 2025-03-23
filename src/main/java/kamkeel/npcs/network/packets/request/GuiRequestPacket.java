@@ -28,8 +28,7 @@ public final class GuiRequestPacket extends AbstractPacket {
         this.posZ = posZ;
     }
 
-    public GuiRequestPacket() {
-    }
+    public GuiRequestPacket() {}
 
     @Override
     public Enum getType() {
@@ -54,7 +53,7 @@ public final class GuiRequestPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.CLONER, EnumItemPacketType.BRUSH, EnumItemPacketType.MAGIC_BOOK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND, EnumItemPacketType.CLONER, EnumItemPacketType.BRUSH, EnumItemPacketType.MAGIC_BOOK))
             return;
         int index = in.readInt();
         int x = in.readInt();

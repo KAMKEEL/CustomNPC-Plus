@@ -64,7 +64,7 @@ public final class TraderMarketSavePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         String market = ByteBufUtils.readString(in);

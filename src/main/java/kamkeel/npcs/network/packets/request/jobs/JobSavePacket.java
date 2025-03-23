@@ -59,7 +59,7 @@ public final class JobSavePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         NBTTagCompound original = npc.jobInterface.writeToNBT(new NBTTagCompound());

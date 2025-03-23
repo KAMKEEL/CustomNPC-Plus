@@ -47,7 +47,7 @@ public final class MainmenuDisplayGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.display.writeToNBT(new NBTTagCompound()));

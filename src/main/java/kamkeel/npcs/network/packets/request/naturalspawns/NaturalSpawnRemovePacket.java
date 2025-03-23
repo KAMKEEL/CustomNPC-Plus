@@ -55,7 +55,7 @@ public final class NaturalSpawnRemovePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
         int id = in.readInt();
         SpawnController.Instance.removeSpawnData(id);

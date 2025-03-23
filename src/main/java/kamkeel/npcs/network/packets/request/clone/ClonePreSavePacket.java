@@ -59,7 +59,7 @@ public final class ClonePreSavePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.CLONER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.CLONER))
             return;
 
         boolean bo = ServerCloneController.Instance.getCloneData(null, ByteBufUtils.readString(in), in.readInt()) != null;

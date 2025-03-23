@@ -61,7 +61,7 @@ public final class JobSpawnerRemovePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         if (npc.advanced.job != EnumJobType.Spawner)

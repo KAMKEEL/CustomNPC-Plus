@@ -9,7 +9,6 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
-import kamkeel.npcs.network.enums.EnumRequestPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilServer;
@@ -54,7 +53,7 @@ public class GuiPaintbrushPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.BRUSH))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.BRUSH))
             return;
 
         int index = in.readInt();

@@ -77,7 +77,7 @@ public final class EventScriptPacket extends AbstractPacket {
         if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.SCRIPTER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.SCRIPTER))
             return;
 
         Action requestedAction = Action.values()[in.readInt()];

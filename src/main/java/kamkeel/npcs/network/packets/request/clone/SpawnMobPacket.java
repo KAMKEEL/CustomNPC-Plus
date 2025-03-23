@@ -100,7 +100,7 @@ public class SpawnMobPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.CLONER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.CLONER))
             return;
 
         Action requestedAction = Action.values()[in.readInt()];

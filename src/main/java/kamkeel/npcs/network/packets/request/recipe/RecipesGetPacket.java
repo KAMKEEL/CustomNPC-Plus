@@ -46,7 +46,7 @@ public final class RecipesGetPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP)) return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player)) return;
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player)) return;
         int id = in.readInt();
         NoppesUtilServer.sendRecipeData((EntityPlayerMP) player, id);
     }

@@ -53,7 +53,7 @@ public class GuiMagicBookPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.MAGIC_BOOK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.MAGIC_BOOK))
             return;
 
         int index = in.readInt();

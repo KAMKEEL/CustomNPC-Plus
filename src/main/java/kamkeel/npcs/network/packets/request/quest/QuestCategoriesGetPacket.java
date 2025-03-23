@@ -41,7 +41,7 @@ public final class QuestCategoriesGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
         NoppesUtilServer.sendQuestCategoryData((EntityPlayerMP) player);

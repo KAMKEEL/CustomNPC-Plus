@@ -52,7 +52,7 @@ public final class MagicGetPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND))
             return;
 
         Action action = Action.values()[in.readInt()];

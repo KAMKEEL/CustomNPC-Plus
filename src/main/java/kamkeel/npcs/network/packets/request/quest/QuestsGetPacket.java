@@ -53,7 +53,7 @@ public final class QuestsGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
         QuestCategory category = QuestController.Instance.categories.get(in.readInt());

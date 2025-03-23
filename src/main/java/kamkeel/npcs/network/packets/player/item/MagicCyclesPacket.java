@@ -7,12 +7,9 @@ import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumItemPacketType;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
-import kamkeel.npcs.network.packets.request.magic.MagicGetPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.MagicCycle;
@@ -53,7 +50,7 @@ public class MagicCyclesPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.MAGIC_BOOK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.MAGIC_BOOK))
             return;
 
         int id = in.readInt();

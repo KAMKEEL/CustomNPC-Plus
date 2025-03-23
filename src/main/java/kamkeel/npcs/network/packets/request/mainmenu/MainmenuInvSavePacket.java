@@ -60,7 +60,7 @@ public final class MainmenuInvSavePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         npc.inventory.readEntityFromNBT(ByteBufUtils.readNBT(in));

@@ -45,7 +45,7 @@ public final class CloneAllTagsShortPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.CLONER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.CLONER))
             return;
 
         NBTTagCompound compound = new NBTTagCompound();

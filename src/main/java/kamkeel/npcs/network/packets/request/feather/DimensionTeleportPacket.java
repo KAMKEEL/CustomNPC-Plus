@@ -51,7 +51,7 @@ public final class DimensionTeleportPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.TELEPORTER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.TELEPORTER))
             return;
 
         int dimension = in.readInt();

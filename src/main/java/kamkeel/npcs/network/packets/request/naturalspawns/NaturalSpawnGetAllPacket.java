@@ -42,7 +42,7 @@ public final class NaturalSpawnGetAllPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
         ScrollDataPacket.sendScrollData((EntityPlayerMP) player, SpawnController.Instance.getScroll(), EnumScrollData.OPTIONAL);
     }
