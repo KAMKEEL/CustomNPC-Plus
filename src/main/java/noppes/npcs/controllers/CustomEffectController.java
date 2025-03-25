@@ -508,7 +508,7 @@ public class CustomEffectController implements ICustomEffectHandler {
     public boolean hasEffect(IPlayer player, ICustomEffect effect) {
         if (player == null || player.getMCEntity() == null)
             return false;
-        return hasEffect((EntityPlayer) player.getMCEntity(), effect.getID(), effect.getIndex()));
+        return hasEffect((EntityPlayer) player.getMCEntity(), effect.getID(), effect.getIndex());
     }
 
     @Override
