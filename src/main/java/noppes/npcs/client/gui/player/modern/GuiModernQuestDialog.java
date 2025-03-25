@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui.player.modern;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.data.npc.DialogPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.DialogSelectPacket;
 import net.minecraft.client.Minecraft;
@@ -17,7 +16,6 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.CustomNpcs;
-import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.api.handler.data.IDialogImage;
 import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.api.item.IItemStack;
@@ -29,8 +27,7 @@ import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiTexturedButton;
 import noppes.npcs.client.gui.util.IGuiClose;
-import noppes.npcs.config.ConfigClient;
-import noppes.npcs.constants.EnumPlayerPacket;
+import noppes.npcs.config.ConfigExperimental;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.*;
@@ -345,7 +342,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             if(optionId!=-2){
                 PacketClient.sendClient(new DialogSelectPacket(prevDialog.id, optionId));
             }else{
-                if(ConfigClient.ModernGuiSystem) {
+                if(ConfigExperimental.ModernGuiSystem) {
                     CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, prevDialog));
                 }
                 else {
