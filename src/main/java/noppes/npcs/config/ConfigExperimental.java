@@ -24,7 +24,7 @@ public class ConfigExperimental {
         try {
             config.load();
 
-            ConfigExperimental.ModernGuiSystemProperty = config.get(CLIENT, "Experimental Modern GUI", false, "Enables the new CNPC+ Modern GUI for Dialog and Quest information");
+            ConfigExperimental.ModernGuiSystemProperty = config.get(CLIENT, "Experimental Dialog GUI", false, "Enables the new CNPC+ Modern GUI for Dialog and Quest information");
             ConfigExperimental.ModernGuiSystem = ConfigExperimental.ModernGuiSystemProperty.getBoolean(false);
         } catch (Exception e) {
             FMLLog.log(Level.ERROR, e, "CNPC+ has had a problem loading its experimental configuration");
