@@ -15,6 +15,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.items.ItemNpcTool;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -162,11 +163,11 @@ public class PacketUtil {
                     || item.getItem() == Item.getItemFromBlock(CustomItems.border)
                     || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock));
             case BRUSH:
-                return item.getItem() == CustomItems.tool && item.getItemDamage() == 1;
+                return item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 1;
             case HAMMER:
-                return item.getItem() == CustomItems.tool && item.getItemDamage() == 0;
+                return item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 0;
             case MAGIC_BOOK:
-                return item.getItem() == CustomItems.tool && item.getItemDamage() == 2;
+                return item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 2;
             default:
                 return false;
         }
