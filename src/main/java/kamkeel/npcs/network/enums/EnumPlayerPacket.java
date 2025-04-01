@@ -1,6 +1,5 @@
 package kamkeel.npcs.network.enums;
 
-import noppes.npcs.client.gui.custom.components.CustomGuiButton;
 
 public enum EnumPlayerPacket {
     FollowerAction,
