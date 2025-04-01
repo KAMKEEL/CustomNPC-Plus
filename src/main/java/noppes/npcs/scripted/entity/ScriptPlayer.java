@@ -604,6 +604,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
     }
 
+    @Override
+    public float getRotation(){
+        return entity.rotationYaw;
+    }
+
     public void swingHand() {
         NoppesUtilPlayer.swingPlayerArm(player);
     }
