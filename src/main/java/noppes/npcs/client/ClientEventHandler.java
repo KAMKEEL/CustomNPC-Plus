@@ -106,6 +106,7 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onRenderEntity(RenderLivingEvent.Pre event) {
         if (event.entity instanceof EntityNPCInterface) {
+            ClientEventHandler.renderingPlayer = null;
             ClientEventHandler.renderingNpc = (EntityNPCInterface) event.entity;
         }
         ClientEventHandler.renderer = event.renderer;
@@ -170,6 +171,7 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        ClientEventHandler.renderingNpc = null;
         ClientEventHandler.renderingPlayer = event.entityPlayer;
     }
 
