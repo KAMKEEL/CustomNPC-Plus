@@ -93,6 +93,7 @@ public class LinkedItemController {
     ////////////////////////////////////////////////////////
 
     public void load() {
+        lastUsedID = 0;
         bootOrder = new HashMap<>();
         linkedItems = new HashMap<>();
         LogWriter.info("Loading linked items...");
@@ -285,10 +286,12 @@ public class LinkedItemController {
             }
         }
         nbt.setTag("LinkedItems", linkedList);
+        nbt.setInteger("lastID", lastUsedID);
         return nbt;
     }
 
     public void readMapNBT(NBTTagCompound compound) {
+        lastUsedID = compound.getInteger("lastID");
         NBTTagList list = compound.getTagList("LinkedItems", 10);
         if (list != null) {
             for (int i = 0; i < list.tagCount(); i++) {
