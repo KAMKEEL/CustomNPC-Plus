@@ -62,9 +62,8 @@ public class ItemLinked extends ItemCustomizable {
                             playerMP.playerNetServerHandler.sendPacket(
                                 new S04PacketEntityEquipment(player.getEntityId(), equipmentSlot, null)
                             );
-                        } else {
-                            playerMP.sendContainerToPlayer(player.inventoryContainer);
                         }
+                        playerMP.sendContainerToPlayer(player.inventoryContainer);
                     }
                 }
             }
