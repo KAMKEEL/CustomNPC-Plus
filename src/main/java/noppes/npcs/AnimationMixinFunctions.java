@@ -54,7 +54,7 @@ public class AnimationMixinFunctions {
         }
 
         if(DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null){
-            DBCClient.Instance.applyRenderModel(modelRenderer);
+            return DBCClient.Instance.applyRenderModel(modelRenderer);
         } else if (!DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null) {
             ClientEventHandler.playerModel = (modelRenderer).baseModel;
             if (ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
