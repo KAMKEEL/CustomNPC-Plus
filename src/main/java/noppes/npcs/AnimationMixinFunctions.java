@@ -53,9 +53,15 @@ public class AnimationMixinFunctions {
             return false;
         }
 
-        if(DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null){
-            return DBCClient.Instance.applyRenderModel(modelRenderer);
-        } else if (!DBCAddon.IsAvailable() && ClientEventHandler.renderingPlayer != null) {
+        if (DBCAddon.IsAvailable()) {
+            if (ClientEventHandler.renderingPlayer != null) {
+                return DBCClient.Instance.applyRenderModel(modelRenderer);
+            } else if (DBCClient.Instance.applyRenderModel(modelRenderer)) {
+                return false;
+            }
+        }
+
+        if (ClientEventHandler.renderingPlayer != null) {
             ClientEventHandler.playerModel = (modelRenderer).baseModel;
             if (ClientCacheHandler.playerAnimations.containsKey(ClientEventHandler.renderingPlayer.getUniqueID())) {
                 AnimationData animData = ClientCacheHandler.playerAnimations.get(ClientEventHandler.renderingPlayer.getUniqueID());

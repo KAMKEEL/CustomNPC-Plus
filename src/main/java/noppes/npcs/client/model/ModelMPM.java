@@ -185,8 +185,7 @@ public class ModelMPM extends ModelNPCMale {
             this.bipedHead.addChild(horns = new ModelHorns(this));
 
             // Completed
-            tail = new ModelTail(this);
-
+            this.bipedBody.addChild(tail = new ModelTail(this));
             this.bipedBody.addChild(wings = new ModelWings(this));
             this.bipedBody.addChild(fin = new ModelFin(this));
 
@@ -303,8 +302,7 @@ public class ModelMPM extends ModelNPCMale {
             this.bipedHead.addChild(horns = new ModelHorns(this));
 
             // Completed
-            tail = new ModelTail(this);
-
+            this.bipedBody.addChild(tail = new ModelTail(this));
             this.bipedBody.addChild(wings = new ModelWings(this));
             this.bipedBody.addChild(fin = new ModelFin(this));
 
@@ -920,7 +918,6 @@ public class ModelMPM extends ModelNPCMale {
         this.legs.render(f);
         if (!isArmor) {
             this.tail.setConfig(legs, 0, y, z);
-            this.tail.render(f);
         }
         GL11.glPopMatrix();
     }
