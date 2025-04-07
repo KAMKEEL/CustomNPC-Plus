@@ -58,7 +58,7 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
         entity.maxHurtResistantTime = time;
     }
 
-    public int setMaxHurtTime() {
+    public int getMaxHurtTime() {
         return entity.maxHurtResistantTime;
     }
 

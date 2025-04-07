@@ -823,8 +823,6 @@ public class ScriptEntity<T extends Entity> implements IEntity {
         entity.hurtResistantTime = ticks;
     }
 
-    ;
-
     public void setInvisible(boolean invisible) {
         entity.setInvisible(invisible);
     }

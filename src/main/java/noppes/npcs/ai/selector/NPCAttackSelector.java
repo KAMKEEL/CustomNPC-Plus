@@ -34,7 +34,7 @@ public class NPCAttackSelector implements IEntitySelector {
         if (this.npc.ais.directLOS && !this.npc.getEntitySenses().canSee(entity))
             return false;
 
-        if (!npc.stats.attackInvisible && ((EntityLivingBase) entity).isPotionActive(Potion.invisibility) && npc.getDistanceSqToEntity(entity) < 9)
+        if (!npc.stats.attackInvisible && ((EntityLivingBase) entity).isPotionActive(Potion.invisibility) && !npc.isInRange(entity, 3.0))
             return false;
 
         //prevent the npc from going on an endless killing spree
