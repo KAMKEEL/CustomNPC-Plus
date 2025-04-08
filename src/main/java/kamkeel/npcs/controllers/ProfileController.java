@@ -434,7 +434,7 @@ public class ProfileController implements IProfileHandler {
         }
         if (profile.player != null) {
             if (ConfigMain.RegionProfileSwitching) {
-                boolean allowed = hasPermission(profile.player, PROFILE_REGION_BYPASS);
+                boolean allowed = hasCustomPermission(profile.player, PROFILE_REGION_BYPASS.name);
                 if (!allowed) {
                     int playerDim = profile.player.dimension;
                     int playerX = (int) profile.player.posX;
@@ -676,8 +676,8 @@ public class ProfileController implements IProfileHandler {
                 highestAllowed = i;
             }
         }
-        if (highestAllowed == 0) {
-            highestAllowed = 1;
+        if (highestAllowed == 0 || highestAllowed < ConfigMain.DefaultProfileSlots) {
+            highestAllowed = ConfigMain.DefaultProfileSlots;
         }
         return currentSlots < highestAllowed;
     }

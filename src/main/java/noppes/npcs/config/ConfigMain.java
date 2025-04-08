@@ -21,7 +21,6 @@ public class ConfigMain {
     public final static String PARTY = "PARTY";
     public final static String PROFILES = "Profile";
     public final static String ATTRIBUTES = "Attributes";
-    public final static String ITEM = "Item";
 
     /**
      * General Main Properties
@@ -93,6 +92,8 @@ public class ConfigMain {
 
     public static Property RestrictedProfileRegionsProperty;
     public static List<List<Integer>> RestrictedProfileRegions = new ArrayList<>();
+
+    public static int DefaultProfileSlots = 5;
 
 
     /**
@@ -233,6 +234,8 @@ public class ConfigMain {
                 "0, 100, 64, 100, 200, 80, 200",
                 "1, 50, 60, 50, 150, 75, 150"
             }, "List of restricted regions where profile switching is enabled. Format: DIM, X1, Y1, Z1, X2, Y2, Z2");
+
+            DefaultProfileSlots = config.get(PROFILES, "Default Profile Slots", 5, "This is the default amount without any permission handling").getInt(5);
 
             RestrictedProfileRegions.clear();
             for (String region : RestrictedProfileRegionsProperty.getStringList()) {

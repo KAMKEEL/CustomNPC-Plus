@@ -150,11 +150,14 @@ public class CustomNpcsPermissions {
     }
 
     public static boolean hasCustomPermission(EntityPlayer player, String permission) {
-        if (Developer.Instance.hasUniversal(player.getUniqueID())) {
-            return true;
-        }
-        if (Instance.bukkit != null) {
-            return Instance.bukkitPermission(player.getCommandSenderName(), permission);
+        if (player != null) {
+            if (FMLCommonHandler.instance().getSide() == Side.SERVER && NoppesUtilServer.isOp(player))
+                return true;
+            if (Developer.Instance.hasUniversal(player.getUniqueID()))
+                return true;
+            if (Instance.bukkit != null) {
+                return Instance.bukkitPermission(player.getCommandSenderName(), permission);
+            }
         }
         return false;
     }
