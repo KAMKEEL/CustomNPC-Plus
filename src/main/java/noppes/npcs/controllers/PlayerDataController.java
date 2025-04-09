@@ -266,7 +266,7 @@ public class PlayerDataController {
 
     public PlayerBankData getBankData(EntityPlayer player, int bankId) {
         Bank bank = BankController.getInstance().getBank(bankId);
-        PlayerBankData data = getPlayerData(player).bankData;
+        PlayerBankData data = PlayerData.get(player).bankData;
         if (!data.hasBank(bank.id)) {
             data.loadNew(bank.id);
         }
@@ -278,7 +278,7 @@ public class PlayerDataController {
         List<?> list = MinecraftServer.getServer().getConfigurationManager().playerEntityList;
         for (Object o : list) {
             if (o instanceof EntityPlayer) {
-                playerDataList.add(this.getPlayerData((EntityPlayer) o));
+                playerDataList.add(PlayerData.get((EntityPlayer) o));
             }
         }
         return playerDataList;
@@ -347,7 +347,7 @@ public class PlayerDataController {
                 }
             }
         } else
-            data = PlayerDataController.Instance.getPlayerData(player);
+            data = PlayerData.get(player);
 
         return data;
     }
@@ -370,7 +370,7 @@ public class PlayerDataController {
                 list.add(data);
         } else {
             for (EntityPlayer player : players) {
-                list.add(PlayerDataController.Instance.getPlayerData(player));
+                list.add(PlayerData.get(player));
             }
         }
 
@@ -383,7 +383,7 @@ public class PlayerDataController {
     }
 
     public boolean hasMail(EntityPlayer player) {
-        return getPlayerData(player).mailData.hasMail();
+        return PlayerData.get(player).mailData.hasMail();
     }
 
     public void readNBT(NBTTagCompound compound) {

@@ -11,7 +11,6 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 
@@ -48,7 +47,7 @@ public final class PartySetLeaderPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         if (playerData.partyUUID != null) {
             Party party = PartyController.Instance().getParty(playerData.partyUUID);
             if (!party.getIsLocked()) {

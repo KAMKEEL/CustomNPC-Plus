@@ -4,8 +4,6 @@ import kamkeel.npcs.CustomAttributes;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.PlayerAttribute;
-import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.handler.data.ICustomAttribute;
 import kamkeel.npcs.controllers.data.attribute.PlayerAttributeMap;
 import kamkeel.npcs.controllers.data.attribute.requirement.RequirementCheckerRegistry;
 import kamkeel.npcs.util.AttributeAttackUtil;
@@ -16,6 +14,8 @@ import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.data.ICustomAttribute;
 import noppes.npcs.api.handler.data.IPlayerAttributes;
 
 import java.util.HashMap;

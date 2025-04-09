@@ -226,7 +226,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
                 list.add(data);
         } else {
             for (EntityPlayer player : players) {
-                list.add(PlayerDataController.Instance.getPlayerData(player));
+                list.add(PlayerData.get(player));
             }
         }
 

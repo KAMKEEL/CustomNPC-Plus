@@ -17,7 +17,6 @@ import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.quests.*;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -173,7 +172,7 @@ public class Quest implements ICompatibilty, IQuest {
             }
             return timeRemaining;
         }
-        IPlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).getQuestData();
+        IPlayerQuestData questData = PlayerData.get(player).getQuestData();
         return getTimeUntilRepeatQuestData(player, questData);
     }
 

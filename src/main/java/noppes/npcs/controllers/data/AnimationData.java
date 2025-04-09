@@ -17,7 +17,6 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IAnimationData;
 import noppes.npcs.constants.EnumAnimationPart;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 
@@ -117,7 +116,7 @@ public class AnimationData implements IAnimationData {
             entities.removeIf(player -> Arrays.stream(excludedPlayers).anyMatch(exp -> player == exp));
 
             for (EntityPlayer player : entities) {
-                AnimationData animationData = PlayerDataController.Instance.getPlayerData(player).animationData;
+                AnimationData animationData = PlayerData.get(player).animationData;
                 NBTTagCompound animationNBT = this.animation != null ? this.animation.writeToNBT() : null;
                 animationData.viewAnimation(this.animation, this, animationNBT);
             }

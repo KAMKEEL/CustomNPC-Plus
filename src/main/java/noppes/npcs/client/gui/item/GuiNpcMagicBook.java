@@ -1,22 +1,16 @@
 package noppes.npcs.client.gui.item;
 
-import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.item.MagicCyclesPacket;
-import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
-import kamkeel.npcs.network.packets.request.magic.MagicGetPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.gui.GuiMagicCycleMap;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScrollData;
-import noppes.npcs.controllers.data.Magic;
 import noppes.npcs.controllers.data.MagicCycle;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Vector;
 
 public class GuiNpcMagicBook extends GuiNPCInterface implements ICustomScrollListener, IScrollData, IGuiData {

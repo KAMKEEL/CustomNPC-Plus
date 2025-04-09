@@ -69,7 +69,7 @@ public class ScriptPlayerEventHandler {
             }
 
             if (PlayerDataController.Instance != null) {
-                PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData playerData = PlayerData.get(player);
 
                 if (playerData.updateClient) {
                     SyncController.syncPlayerData((EntityPlayerMP) player, true);
@@ -92,11 +92,11 @@ public class ScriptPlayerEventHandler {
                 Party party = playerData.getPlayerParty();
                 boolean trackingPartyQuest = playerData.questData.getTrackedQuest() != null && party != null && party.getQuest() != null && party.getQuest().getId() == playerData.questData.getTrackedQuest().getId();
                 if (playerData.questData.getTrackedQuest() != null && !playerData.questData.activeQuests.containsKey(playerData.questData.getTrackedQuest().getId()) && !trackingPartyQuest) {
-                    PlayerDataController.Instance.getPlayerData(player).questData.untrackQuest();
+                    PlayerData.get(player).questData.untrackQuest();
                 }
 
-                if (player.ticksExisted % 20 == 0 && !PlayerDataController.Instance.getPlayerData(player).skinOverlays.overlayList.isEmpty()) {
-                    PlayerDataController.Instance.getPlayerData(player).skinOverlays.updateClient();
+                if (player.ticksExisted % 20 == 0 && !PlayerData.get(player).skinOverlays.overlayList.isEmpty()) {
+                    PlayerData.get(player).skinOverlays.updateClient();
                 }
 
                 if (player.ticksExisted % (TrackedQuestUpdateFrequency * 20) == 0) {
@@ -263,7 +263,7 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (!event.player.worldObj.isRemote && !(event.player instanceof FakePlayer)) {
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+            PlayerData playerData = PlayerData.get(event.player);
             PlayerQuestData questData = playerData.questData;
             QuestItem.pickedUp = event.pickedUp.getEntityItem();
 
@@ -545,7 +545,7 @@ public class ScriptPlayerEventHandler {
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             EventHooks.onPlayerLogin(handler, scriptPlayer);
 
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+            PlayerData playerData = PlayerData.get(event.player);
             Quest quest = (Quest) playerData.questData.getTrackedQuest();
             if (quest != null) {
                 Party party = playerData.getPlayerParty();
@@ -556,7 +556,7 @@ public class ScriptPlayerEventHandler {
                 }
             }
 
-            PlayerDataController.Instance.getPlayerData(event.player).skinOverlays.updateClient();
+            PlayerData.get(event.player).skinOverlays.updateClient();
         }
     }
 

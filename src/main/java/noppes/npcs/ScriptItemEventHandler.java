@@ -136,7 +136,7 @@ public class ScriptItemEventHandler {
 
         if (PlayerDataController.Instance != null) {
             if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
-                PlayerData handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+                PlayerData handler = PlayerData.get(event.entityPlayer);
                 if (handler == null)
                     return;
 
@@ -155,7 +155,7 @@ public class ScriptItemEventHandler {
                 } catch (Exception e) {
                 }
             } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
-                PlayerData handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+                PlayerData handler = PlayerData.get(event.entityPlayer);
                 if (handler == null)
                     return;
 

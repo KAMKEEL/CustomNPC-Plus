@@ -9,7 +9,6 @@ import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.io.IOException;
@@ -46,7 +45,7 @@ public final class PartyIgnoreInvitePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         String uuidString = ByteBufUtils.readString(in);
         if (uuidString != null) {
             UUID uuid = UUID.fromString(uuidString);

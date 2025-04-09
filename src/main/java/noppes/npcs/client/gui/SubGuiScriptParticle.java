@@ -1,7 +1,6 @@
 package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiTextField;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.scripted.ScriptParticle;
 

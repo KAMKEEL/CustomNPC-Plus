@@ -14,7 +14,6 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.NpcAPI;
@@ -57,7 +56,7 @@ public final class PartyLeavePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
         if (leavingPlayer != null) {
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            PlayerData playerData = PlayerData.get(player);
             if (playerData.partyUUID != null) {
                 Party party = PartyController.Instance().getParty(playerData.partyUUID);
                 boolean successful = party.removePlayer(leavingPlayer);

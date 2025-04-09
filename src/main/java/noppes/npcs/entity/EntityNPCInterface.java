@@ -70,7 +70,6 @@ import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.*;
@@ -446,7 +445,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         addInteract(player);
 
         Dialog dialog = getDialog(player);
-        PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData playerdata = PlayerData.get(player).questData;
         QuestData data = playerdata.getQuestCompletion(player, this);
         Party partyCompleted = playerdata.getPartyQuestCompletion(player, this);
         if (partyCompleted != null) {

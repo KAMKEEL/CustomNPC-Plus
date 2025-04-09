@@ -8,9 +8,9 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.controllers.GlobalDataController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Line;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerItemGiverData;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -98,7 +98,7 @@ public class JobItemGiver extends JobInterface {
     }
 
     public boolean giveItems(EntityPlayer player) {
-        PlayerItemGiverData data = PlayerDataController.Instance.getPlayerData(player).itemgiverData;
+        PlayerItemGiverData data = PlayerData.get(player).itemgiverData;
         if (!canPlayerInteract(data)) {
             return false;
         }

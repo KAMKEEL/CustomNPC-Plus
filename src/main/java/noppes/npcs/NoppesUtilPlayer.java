@@ -34,8 +34,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
-import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.PartyEvent;
+import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.player.QuestEvent;
 
 import java.io.IOException;
@@ -81,7 +81,7 @@ public class NoppesUtilPlayer {
 
     public static void transport(EntityPlayerMP player, EntityNPCInterface npc, String location) {
         TransportLocation loc = TransportController.getInstance().getTransport(location);
-        PlayerTransportData playerdata = PlayerDataController.Instance.getPlayerData(player).transportData;
+        PlayerTransportData playerdata = PlayerData.get(player).transportData;
 
         if (loc == null || !loc.isDefault() && !playerdata.transports.contains(loc.id))
             return;
@@ -295,7 +295,7 @@ public class NoppesUtilPlayer {
     }
 
     public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
 
         NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
         HashMap<String, String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
@@ -316,13 +316,13 @@ public class NoppesUtilPlayer {
     }
 
     public static void clearTrackQuest(EntityPlayerMP player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         playerData.questData.untrackQuest();
     }
 
 
     public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         String trackedQuestString = ByteBufUtils.readString(buffer);
         Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
         if (trackedQuest != null) {
@@ -362,7 +362,7 @@ public class NoppesUtilPlayer {
     }
 
     public static void sendTrackedQuestData(EntityPlayerMP player) {
-        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        Quest trackedQuest = (Quest) PlayerData.get(player).questData.getTrackedQuest();
         if (trackedQuest != null) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Quest", trackedQuest.writeToNBT(new NBTTagCompound()));
@@ -383,7 +383,7 @@ public class NoppesUtilPlayer {
     }
 
     public static void sendPartyTrackedQuestData(EntityPlayerMP player, Party party) {
-        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        Quest trackedQuest = (Quest) PlayerData.get(player).questData.getTrackedQuest();
         if (trackedQuest != null) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Quest", trackedQuest.writeToNBT(new NBTTagCompound()));
@@ -424,7 +424,7 @@ public class NoppesUtilPlayer {
         if (player == null)
             return false;
 
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         PlayerQuestData questData = playerData.questData;
         QuestData data = questData.activeQuests.get(questId);
 
@@ -535,7 +535,7 @@ public class NoppesUtilPlayer {
             if (player == null)
                 continue;
 
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            PlayerData playerData = PlayerData.get(player);
             if (playerData == null)
                 continue;
 
@@ -634,7 +634,7 @@ public class NoppesUtilPlayer {
                     if (player == null)
                         continue;
 
-                    PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData playerData = PlayerData.get(player);
                     if (playerData == null)
                         continue;
 

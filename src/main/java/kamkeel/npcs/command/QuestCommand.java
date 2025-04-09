@@ -214,7 +214,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
 
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         if (data == null) {
             sendError(sender, "No PlayerData found for:" + player);
             return;

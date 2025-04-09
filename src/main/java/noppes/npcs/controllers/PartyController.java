@@ -60,7 +60,7 @@ public class PartyController implements IPartyHandler {
             return null;
 
         EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
+        PlayerData playerData = PlayerData.get(entityPlayer);
         if (playerData.partyUUID != null)
             return getParty(playerData.partyUUID);
 
@@ -80,7 +80,7 @@ public class PartyController implements IPartyHandler {
             return;
 
         EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(entityPlayer);
+        PlayerData playerData = PlayerData.get(entityPlayer);
         if (playerData.partyUUID != null)
             disbandParty(playerData.partyUUID);
 
@@ -100,7 +100,7 @@ public class PartyController implements IPartyHandler {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                 PlayerData playerData;
                 if (player != null) {
-                    playerData = PlayerDataController.Instance.getPlayerData(player);
+                    playerData = PlayerData.get(player);
                 } else {
                     playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                 }
@@ -172,7 +172,7 @@ public class PartyController implements IPartyHandler {
         for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if (playerMP != null) {
-                PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
+                PlayerData playerData = PlayerData.get(playerMP);
                 if (playerData != null) {
                     PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
@@ -203,7 +203,7 @@ public class PartyController implements IPartyHandler {
         for (String name : party.getPlayerNames()) {
             EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
             if (playerMP != null) {
-                PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
+                PlayerData playerData = PlayerData.get(playerMP);
                 if (playerData != null) {
                     PartyDataPacket.sendPartyData((EntityPlayerMP) playerMP, compound);
                 }
@@ -251,7 +251,7 @@ public class PartyController implements IPartyHandler {
                 for (String name : party.getPlayerNames()) {
                     EntityPlayer playerMP = NoppesUtilServer.getPlayerByName(name);
                     if (playerMP != null) {
-                        PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
+                        PlayerData playerData = PlayerData.get(playerMP);
                         if (playerData != null) {
                             if (playerData.questData.getTrackedQuest() != null && questData.quest.getId() == playerData.questData.getTrackedQuest().getId()) {
                                 NoppesUtilPlayer.sendPartyTrackedQuestData((EntityPlayerMP) playerMP, party);

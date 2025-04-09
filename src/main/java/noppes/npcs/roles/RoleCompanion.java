@@ -18,7 +18,6 @@ import net.minecraft.util.Vec3;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.constants.*;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -69,7 +68,7 @@ public class RoleCompanion extends RoleInterface {
             npc.isDead = true;
         } else if (prev != owner && owner != null) {
             ownerName = owner.getDisplayName();
-            PlayerData data = PlayerDataController.Instance.getPlayerData(owner);
+            PlayerData data = PlayerData.get(owner);
             if (data.companionID != companionID) {
                 npc.isDead = true;
             }
@@ -515,7 +514,7 @@ public class RoleCompanion extends RoleInterface {
     public void setSelfsuficient(boolean bo) {
         if (owner == null || jobInterface != null && bo == jobInterface.isSelfSufficient())
             return;
-        PlayerData data = PlayerDataController.Instance.getPlayerData(owner);
+        PlayerData data = PlayerData.get(owner);
         if (!bo && data.hasCompanion())
             return;
         data.setCompanion(bo ? null : npc);

@@ -8,7 +8,7 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.io.IOException;
 
@@ -44,6 +44,6 @@ public class ScreenSizePacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         int width = in.readInt(), height = in.readInt();
-        PlayerDataController.Instance.getPlayerData(player).screenSize.setSize(width, height);
+        PlayerData.get(player).screenSize.setSize(width, height);
     }
 }

@@ -200,7 +200,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public boolean hasReadDialog(int id) {
-        PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
+        PlayerDialogData data = PlayerData.get(player).dialogData;
         return data.dialogsRead.contains(id);
     }
 
@@ -253,12 +253,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public boolean hasFinishedQuest(int id) {
-        PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData data = PlayerData.get(player).questData;
         return data.finishedQuests.containsKey(id);
     }
 
     public boolean hasActiveQuest(int id) {
-        PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData data = PlayerData.get(player).questData;
         return data.activeQuests.containsKey(id);
     }
 
@@ -271,7 +271,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
             return;
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         if (data.questData.activeQuests.containsKey(id))
             return;
         QuestData questdata = new QuestData(quest);
@@ -305,7 +305,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
             return;
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.questData.activeQuests.remove(id);
         data.updateClient = true;
     }
@@ -340,7 +340,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @param points  The points to increase. Use negative values to decrease
      */
     public void addFactionPoints(int faction, int points) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.factionData.increasePoints(faction, points, player);
     }
 
@@ -349,7 +349,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @param points  The new point value for this faction
      */
     public void setFactionPoints(int faction, int points) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.factionData.increasePoints(faction, points - getFactionPoints(faction), player);
     }
 
@@ -358,7 +358,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @return points
      */
     public int getFactionPoints(int faction) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.factionData.getFactionPoints(faction);
     }
 
@@ -718,18 +718,18 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public ITimers getTimers() {
-        return PlayerDataController.Instance.getPlayerData(player).timers;
+        return PlayerData.get(player).timers;
     }
 
     @Override
     public IScreenSize getScreenSize() {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.getScreenSize();
     }
 
     public void updatePlayerInventory() {
         ((EntityPlayerMP) this.entity).inventoryContainer.detectAndSendChanges();
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         PlayerQuestData questData = playerData.questData;
         Party playerParty = playerData.getPlayerParty();
         if (playerParty != null)
@@ -741,7 +741,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     @Deprecated
     public boolean checkGUIOpen() {
         NoppesUtilPlayer.isGUIOpen(player);
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.getGUIOpen();
     }
 
@@ -756,7 +756,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
     public PlayerData getData() {
         if (this.data == null) {
-            this.data = PlayerDataController.Instance.getPlayerData(player);
+            this.data = PlayerData.get(player);
         }
 
         return this.data;

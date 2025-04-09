@@ -118,7 +118,7 @@ public class Party implements IParty {
             return false;
         }
 
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         playerData.partyUUID = this.partyUUID;
 
         partyMembers.put(player.getUniqueID(), player.getCommandSenderName());
@@ -140,7 +140,7 @@ public class Party implements IParty {
                 }
             }
 
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            PlayerData playerData = PlayerData.get(player);
             playerData.partyUUID = null;
 
             return true;
@@ -314,7 +314,7 @@ public class Party implements IParty {
     }
 
     private boolean isValidLeaderQuest(EntityPlayer leader, int questID) {
-        IPlayerQuestData questData = PlayerDataController.Instance.getPlayerData(leader).getQuestData();
+        IPlayerQuestData questData = PlayerData.get(leader).getQuestData();
         return questData != null && questData.hasActiveQuest(questID);
     }
 
@@ -323,7 +323,7 @@ public class Party implements IParty {
         for (UUID playerUUID : partyMembers.keySet()) {
             EntityPlayer player = PlayerDataController.getPlayerFromUUID(playerUUID);
             if (player != null) {
-                PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData playerData = PlayerData.get(player);
                 if (playerData != null) {
                     IPlayerQuestData questData = playerData.getQuestData();
                     if (questData != null) {

@@ -17,6 +17,7 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.ContainerMail;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.controllers.data.PlayerMailData;
 import noppes.npcs.controllers.data.QuestData;
@@ -97,7 +98,7 @@ public class MailActionPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
-        PlayerMailData data = PlayerDataController.Instance.getPlayerData(playerMP).mailData;
+        PlayerMailData data = PlayerData.get(playerMP).mailData;
 
         if (type == Action.GET) {
             GuiDataPacket.sendGuiData(playerMP, data.saveNBTData(new NBTTagCompound()));

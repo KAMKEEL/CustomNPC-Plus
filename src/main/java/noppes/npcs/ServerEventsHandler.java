@@ -47,7 +47,6 @@ import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -102,7 +101,7 @@ public class ServerEventsHandler {
             NBTTagCompound compound = new NBTTagCompound();
             if (!event.target.writeToNBTOptional(compound))
                 return;
-            PlayerData data = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+            PlayerData data = PlayerData.get(event.entityPlayer);
             ServerCloneController.Instance.cleanTags(compound);
             PacketHandler.Instance.sendToPlayer(new ClonerPacket(compound), (EntityPlayerMP) event.entityPlayer);
             data.cloned = compound;
@@ -152,8 +151,8 @@ public class ServerEventsHandler {
         // Check for Friendly Fire
         if (ConfigMain.PartyFriendlyFireEnabled) {
             EntityPlayer sourcePlayer = (EntityPlayer) event.source.getEntity();
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(sourcePlayer);
-            PlayerData targetData = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
+            PlayerData playerData = PlayerData.get(sourcePlayer);
+            PlayerData targetData = PlayerData.get((EntityPlayer) event.entityLiving);
             if (playerData.partyUUID != null && playerData.partyUUID.equals(targetData.partyUUID)) {
                 Party party = PartyController.Instance().getParty(playerData.partyUUID);
                 if (party != null && !party.friendlyFire())
@@ -270,7 +269,7 @@ public class ServerEventsHandler {
             }
         }
         if (event.entityLiving instanceof EntityPlayer) {
-            PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entityLiving);
+            PlayerData data = PlayerData.get((EntityPlayer) event.entityLiving);
             data.save();
         }
     }
@@ -447,7 +446,7 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void world(PlayerEvent.SaveToFile event) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entity);
+        PlayerData data = PlayerData.get((EntityPlayer) event.entity);
         data.save();
     }
 
@@ -455,7 +454,7 @@ public class ServerEventsHandler {
     public void world(EntityJoinWorldEvent event) {
         if (event.world.isRemote || !(event.entity instanceof EntityPlayer))
             return;
-        PlayerData data = PlayerDataController.Instance.getPlayerData((EntityPlayer) event.entity);
+        PlayerData data = PlayerData.get((EntityPlayer) event.entity);
         data.updateCompanion(event.world);
     }
 

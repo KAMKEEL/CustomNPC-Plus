@@ -15,7 +15,6 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -83,7 +82,7 @@ public class ItemSoulstoneEmpty extends Item {
                 int p = npc.advanced.minFactionPointsToSoulStone;
                 if (p == -1 && npc.getFaction().isFriendlyToPlayer(player)) return true;
                 else if (p != -1) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData data = PlayerData.get(player);
                     return data.factionData.getFactionPoints(npc.getFaction().getId()) >= p;
                 }
             }

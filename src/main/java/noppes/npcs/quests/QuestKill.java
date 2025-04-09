@@ -9,7 +9,6 @@ import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
@@ -81,7 +80,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
     @Override
     public Vector<String> getQuestLogStatus(EntityPlayer player) {
         Vector<String> vec = new Vector<String>();
-        PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData playerdata = PlayerData.get(player).questData;
         QuestData data = playerdata.activeQuests.get(questId);
         if (data == null)
             return vec;
@@ -265,7 +264,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
         public int getProgress() {
             if (player != null) {
-                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData data = PlayerData.get(player);
                 PlayerQuestData playerdata = data.questData;
                 QuestData questdata = (QuestData) playerdata.activeQuests.get(this.parent.questId);
                 if (questdata != null) {
@@ -299,7 +298,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
         public void setProgress(int progress) {
             if (progress >= 0 && progress <= this.amount) {
                 if (player != null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData data = PlayerData.get(player);
                     PlayerQuestData playerdata = data.questData;
                     QuestData questdata = (QuestData) playerdata.activeQuests.get(this.parent.questId);
                     if (questdata != null) {
@@ -347,7 +346,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
             if (progress >= 0 && progress <= this.amount) {
                 EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
                 if (foundplayer != null && party == null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    PlayerData data = PlayerData.get(foundplayer);
                     PlayerQuestData playerdata = data.questData;
                     QuestData questdata = (QuestData) playerdata.activeQuests.get(this.parent.questId);
                     if (questdata != null) {

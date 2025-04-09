@@ -1,8 +1,5 @@
 package kamkeel.npcs.controllers.data.attribute;
 
-import noppes.npcs.api.handler.data.ICustomAttribute;
-
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 

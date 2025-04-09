@@ -29,7 +29,6 @@ import noppes.npcs.client.gui.util.GuiTexturedButton;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.config.ConfigExperimental;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
@@ -180,7 +179,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         GL11.glScalef(1 / 1.5f, 1 / 1.5f, 1);
         drawTextBlock(takeQuestString, (width - textBlockWidth) / 2, height - textPartHeight + 23 + 3 + gap, textBlockWidth,-1);
 
-        Map<Integer, QuestData> activeQuests = PlayerDataController.Instance.getPlayerData(this.player).questData.activeQuests;
+        Map<Integer, QuestData> activeQuests = PlayerData.get(this.player).questData.activeQuests;
         boolean hadQuest = activeQuests.containsKey(quest.id);
         activeQuests.put(quest.id,new QuestData(quest));
         StringBuilder objectiveString = new StringBuilder();

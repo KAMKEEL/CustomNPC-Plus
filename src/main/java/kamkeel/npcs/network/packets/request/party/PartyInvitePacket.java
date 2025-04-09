@@ -17,7 +17,6 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.NpcAPI;
@@ -60,8 +59,8 @@ public final class PartyInvitePacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
         if (invitedPlayer != null) {
-            PlayerData senderData = PlayerDataController.Instance.getPlayerData(player);
-            PlayerData invitedData = PlayerDataController.Instance.getPlayerData(invitedPlayer);
+            PlayerData senderData = PlayerData.get(player);
+            PlayerData invitedData = PlayerData.get(invitedPlayer);
             if (senderData.partyUUID != null && invitedData.partyUUID == null) {
                 Party party = PartyController.Instance().getParty(senderData.partyUUID);
                 if (!party.getIsLocked()) {
@@ -77,7 +76,7 @@ public final class PartyInvitePacket extends AbstractPacket {
     }
 
     public static void sendInviteData(EntityPlayerMP player) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         if (playerData.partyUUID == null) {
             NBTTagCompound compound = new NBTTagCompound();
             NBTTagList list = new NBTTagList();

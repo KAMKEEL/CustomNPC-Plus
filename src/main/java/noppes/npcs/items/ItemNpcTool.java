@@ -25,7 +25,6 @@ import noppes.npcs.blocks.BlockWallBanner;
 import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.blocks.tiles.TileChair;
 import noppes.npcs.blocks.tiles.TileColorable;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.constants.EnumGuiType;
 
 import java.util.List;

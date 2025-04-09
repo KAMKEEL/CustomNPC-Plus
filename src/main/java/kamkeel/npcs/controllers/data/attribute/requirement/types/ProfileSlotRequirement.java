@@ -3,7 +3,6 @@ package kamkeel.npcs.controllers.data.attribute.requirement.types;
 import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.data.PlayerData;
 
 public class ProfileSlotRequirement implements IRequirementChecker {

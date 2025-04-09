@@ -10,12 +10,10 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 

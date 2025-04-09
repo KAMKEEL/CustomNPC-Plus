@@ -61,7 +61,7 @@ public final class PartyKickPacket extends AbstractPacket {
         PlayerData playerData = null;
         UUID playerUUID = null;
         if (kickPlayer != null) {
-            playerData = PlayerDataController.Instance.getPlayerData(player);
+            playerData = PlayerData.get(player);
         } else {
             String uuid = PlayerDataController.Instance.getPlayerUUIDFromName(kickPlayerName);
             if (!uuid.isEmpty()) {

@@ -16,7 +16,6 @@ import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.Quest;
@@ -71,7 +70,7 @@ public final class PartyInfoPacket extends AbstractPacket {
     }
 
     public static void sendPartyData(EntityPlayerMP player) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         if (playerData.partyUUID != null) {
             Party party = PartyController.Instance().getParty(playerData.partyUUID);
             NBTTagCompound compound = party.writeToNBT();

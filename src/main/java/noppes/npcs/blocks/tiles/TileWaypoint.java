@@ -8,7 +8,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.quests.QuestLocation;
 
@@ -43,7 +42,7 @@ public class TileWaypoint extends TileEntity {
         if (toCheck.isEmpty())
             return;
         for (EntityPlayer player : toCheck) {
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            PlayerData playerData = PlayerData.get(player);
             PlayerQuestData questData = playerData.questData;
             Party party = playerData.getPlayerParty();
             Quest partyQuest = null;
