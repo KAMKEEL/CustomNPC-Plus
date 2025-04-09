@@ -428,7 +428,8 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                 StatCollector.translateToLocal("use_action.none"),
                 StatCollector.translateToLocal("use_action.block"),
                 StatCollector.translateToLocal("use_action.eat"),
-                StatCollector.translateToLocal("use_action.drink")
+                StatCollector.translateToLocal("use_action.drink"),
+                StatCollector.translateToLocal("use_action.bow")
             };
             int useActionIndex;
             switch (linkedItem.itemUseAction) {
@@ -437,6 +438,9 @@ public class GuiNPCManageLinked extends GuiNPCInterface2 implements IScrollData,
                     break;
                 case 1:
                     useActionIndex = 1;
+                    break;
+                case 2:
+                    useActionIndex = 4;
                     break;
                 case 3:
                     useActionIndex = 2;

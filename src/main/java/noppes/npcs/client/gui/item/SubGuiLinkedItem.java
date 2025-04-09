@@ -121,7 +121,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
 
         // Item Use Action: BiDirectional button (None, Block, Eat, Drink)
         addLabel(new GuiNpcLabel(5, "display.useAction", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
-        String[] useActions = {"use_action.none", "use_action.block", "use_action.eat", "use_action.drink"};
+        String[] useActions = {"use_action.none", "use_action.block", "use_action.eat", "use_action.drink", "use_action.bow"};
         int useActionIndex = 0;
         switch (linkedItem.itemUseAction) {
             case 0:
@@ -129,6 +129,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
                 break;
             case 1:
                 useActionIndex = 1;
+                break;
+            case 2:
+                useActionIndex = 4;
                 break;
             case 3:
                 useActionIndex = 2;

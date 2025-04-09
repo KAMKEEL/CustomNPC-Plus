@@ -344,6 +344,7 @@ use_action.none=None
 use_action.block=Block
 use_action.eat=Eat
 use_action.drink=Drink
+use_action.bow=Bow
 
 armor_type.none=None
 armor_type.all=All
