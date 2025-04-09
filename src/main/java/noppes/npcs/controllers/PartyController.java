@@ -95,7 +95,7 @@ public class PartyController implements IPartyHandler {
         Party party = this.parties.get(partyUUID);
         if (party != null) {
             PartyEvent.PartyDisbandEvent partyEvent = new PartyEvent.PartyDisbandEvent(party, party.getQuest());
-            EventHooks.onPartyDisband(partyEvent);
+            EventHooks.onPartyDisband(party, partyEvent);
             for (UUID uuid : party.getPlayerUUIDs()) {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                 PlayerData playerData;

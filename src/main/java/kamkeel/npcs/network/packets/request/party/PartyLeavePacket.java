@@ -62,7 +62,7 @@ public final class PartyLeavePacket extends AbstractPacket {
                 boolean successful = party.removePlayer(leavingPlayer);
                 if (successful) {
                     PartyEvent.PartyLeaveEvent partyEvent = new PartyEvent.PartyLeaveEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(leavingPlayer));
-                    EventHooks.onPartyLeave(partyEvent);
+                    EventHooks.onPartyLeave(party, partyEvent);
                     sendInviteData((EntityPlayerMP) leavingPlayer);
                     PartyController.Instance().pingPartyUpdate(party);
                     PartyController.Instance().sendLeavingMessages(party, leavingPlayer);

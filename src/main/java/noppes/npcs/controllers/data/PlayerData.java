@@ -51,6 +51,8 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
+    public PlayerDataScript scriptData;
+
     public EntityNPCInterface editingNpc;
     public NBTTagCompound cloned;
 

@@ -364,8 +364,8 @@ public class ProfileController implements IProfileHandler {
             return ProfileOperation.error(MSG_SLOT_NOT_EXIST);
         }
 
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             if (EventHooks.onProfileRemove(handler, scriptPlayer, profile, slotId, false))
                 return ProfileOperation.error(MSG_CANCELLED);
@@ -374,6 +374,7 @@ public class ProfileController implements IProfileHandler {
         profile.getSlots().remove(slotId);
 
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             EventHooks.onProfileRemove(handler, scriptPlayer, profile, slotId, true);
         }
@@ -402,8 +403,8 @@ public class ProfileController implements IProfileHandler {
             }
         }
 
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             if (EventHooks.onProfileCreate(handler, scriptPlayer, profile, newSlotId, false))
                 return ProfileOperation.error(MSG_CANCELLED);
@@ -413,6 +414,7 @@ public class ProfileController implements IProfileHandler {
         newSlot.setLastLoaded(System.currentTimeMillis());
         profile.getSlots().put(newSlotId, newSlot);
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             verifySlotQuests(profile.player);
             save(profile.player, profile);
 
@@ -474,7 +476,7 @@ public class ProfileController implements IProfileHandler {
 
             int prevSlot = profile.getCurrentSlotId();
 
-            PlayerDataScript handler = ScriptController.Instance.playerScripts;
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             if (EventHooks.onProfileChange(handler, scriptPlayer, profile, newSlotId, prevSlot, false))
                 return ProfileOperation.error(MSG_CANCELLED);

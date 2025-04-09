@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.gui;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -63,8 +64,8 @@ public class ScriptGui implements ICustomGui {
         return this.slots;
     }
 
-    public PlayerDataScript getScriptHandler() {
-        return ScriptController.Instance.playerScripts;//this.scriptHandler;
+    public PlayerDataScript getScriptHandler(EntityPlayer player) {
+        return ScriptController.Instance.getPlayerScripts(player);
     }
 
     public void setSize(int width, int height) {

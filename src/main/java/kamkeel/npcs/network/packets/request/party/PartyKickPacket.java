@@ -75,7 +75,7 @@ public final class PartyKickPacket extends AbstractPacket {
                 Party party = PartyController.Instance().getParty(playerData.partyUUID);
                 if (!party.getIsLocked()) {
                     PartyEvent.PartyKickEvent partyEvent = new PartyEvent.PartyKickEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(kickPlayer));
-                    EventHooks.onPartyKick(partyEvent);
+                    EventHooks.onPartyKick(party, partyEvent);
                     if (!partyEvent.isCancelled()) {
                         boolean successful = party.removePlayer(kickPlayer);
                         if (!successful)

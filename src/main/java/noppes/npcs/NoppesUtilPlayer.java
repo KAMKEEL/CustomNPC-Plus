@@ -265,18 +265,18 @@ public class NoppesUtilPlayer {
         if (dialog == null)
             return;
         DialogOption option = dialog.options.get(optionId);
-        if (EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+        if (EventHooks.onDialogOption(player, new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
             return;
 
         if (!npc.isRemote()) {
             EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
 
             if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-                EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
                 return;
             }
             if (option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-                EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
                 return;
             }
         }
@@ -460,7 +460,7 @@ public class NoppesUtilPlayer {
             event.itemRewards = new IItemStack[]{(IItemStack) list.get(player.getRNG().nextInt(list.size()))};
         }
 
-        EventHooks.onQuestTurnedIn(event);
+        EventHooks.onQuestTurnedIn(player, event);
         if (event.isCancelled())
             return false;
 
@@ -521,7 +521,7 @@ public class NoppesUtilPlayer {
             EventHooks.onPartyFinished(party, data.quest);
 
         PartyEvent.PartyQuestTurnedInEvent partyEv = new PartyEvent.PartyQuestTurnedInEvent(party, data.quest);
-        EventHooks.onPartyTurnIn(partyEv);
+        EventHooks.onPartyTurnIn(party, partyEv);
         if (partyEv.isCancelled())
             return false;
 
@@ -576,7 +576,7 @@ public class NoppesUtilPlayer {
                     event.itemRewards = new IItemStack[]{(IItemStack) list.get(player.getRNG().nextInt(list.size()))};
                 }
 
-                EventHooks.onQuestTurnedIn(event);
+                EventHooks.onQuestTurnedIn(player, event);
                 if (event.isCancelled())
                     continue;
 

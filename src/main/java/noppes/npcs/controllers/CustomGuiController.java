@@ -14,6 +14,7 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
@@ -76,53 +77,65 @@ public class CustomGuiController {
 
     public static void onButton(CustomGuiEvent.ButtonEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {
-            getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_BUTTON, event);
+        if(player != null){
+            ScriptGui gui = getOpenGui(player);
+            if (checkGui(event) && gui != null) {
+                gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_BUTTON, event);
+            }
         }
-
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onSlotChange(CustomGuiEvent.SlotEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {
-            getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_SLOT, event);
+        if(player != null){
+            ScriptGui gui = getOpenGui(player);
+            if (checkGui(event) && gui != null) {
+                gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_SLOT, event);
+            }
         }
-
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onSlotClick(CustomGuiEvent.SlotClickEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {
-            (getOpenGui(player).getScriptHandler()).callScript(EnumScriptType.CUSTOM_GUI_SLOT_CLICKED, event);
+        if(player != null){
+            ScriptGui gui = getOpenGui(player);
+            if (checkGui(event) && gui != null) {
+                gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_SLOT_CLICKED, event);
+            }
         }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onCustomGuiUnfocused(CustomGuiEvent.UnfocusedEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {
-            getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_TEXTFIELD, event);
+        if(player != null){
+            ScriptGui gui = getOpenGui(player);
+            if (checkGui(event) && gui != null) {
+                gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_TEXTFIELD, event);
+            }
         }
-
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onScrollClick(CustomGuiEvent.ScrollEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if (checkGui(event) && getOpenGui(player).getScriptHandler() != null) {
-            getOpenGui(player).getScriptHandler().callScript(EnumScriptType.CUSTOM_GUI_SCROLL, event);
+        if(player != null){
+            ScriptGui gui = getOpenGui(player);
+            if (checkGui(event) && gui != null) {
+                gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_SCROLL, event);
+            }
         }
-
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onClose(CustomGuiEvent.CloseEvent event) {
-        if (ScriptController.Instance.playerScripts != null) {
-            ScriptController.Instance.playerScripts.callScript(EnumScriptType.CUSTOM_GUI_CLOSED, event);
+        EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.CUSTOM_GUI_CLOSED, event);
         }
-
         NpcAPI.EVENT_BUS.post(event);
     }
 

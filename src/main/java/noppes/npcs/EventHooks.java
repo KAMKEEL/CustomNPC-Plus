@@ -409,21 +409,21 @@ public class EventHooks {
     }
 
     public static boolean onEffectAdded(IPlayer player, IPlayerEffect effect) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(player, effect);
         handler.callScript(EffectScript.ScriptType.OnEffectAdd.function, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onEffectTick(IPlayer player, IPlayerEffect effect) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(player, effect);
         handler.callScript(EffectScript.ScriptType.OnEffectTick.function, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onEffectRemove(IPlayer player, IPlayerEffect effect, EffectEvent.ExpirationType type) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(player, effect, type);
         handler.callScript(EffectScript.ScriptType.OnEffectRemove.function, event);
         return NpcAPI.EVENT_BUS.post(event);
@@ -620,21 +620,21 @@ public class EventHooks {
     }
 
     public static void onPlayerMouseClicked(EntityPlayerMP player, int button, int mouseWheel, boolean buttonDown, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed, int[] heldKeys) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         PlayerEvent.MouseClickedEvent event = new PlayerEvent.MouseClickedEvent((IPlayer) NpcAPI.Instance().getIEntity(player), button, mouseWheel, buttonDown, isCtrlPressed, isAltPressed, isShiftPressed, isMetaPressed, heldKeys);
         handler.callScript(EnumScriptType.MOUSE_CLICKED, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerKeyPressed(EntityPlayerMP player, int button, boolean isCtrlPressed, boolean isShiftPressed, boolean isAltPressed, boolean isMetaPressed, boolean buttonDown, int[] heldKeys) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         KeyPressedEvent event = new KeyPressedEvent((IPlayer) NpcAPI.Instance().getIEntity(player), button, isCtrlPressed, isAltPressed, isShiftPressed, isMetaPressed, buttonDown, heldKeys);
         handler.callScript(EnumScriptType.KEY_PRESSED, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerTimer(PlayerData data, int id) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(data.player);
         PlayerEvent.TimerEvent event = new PlayerEvent.TimerEvent((IPlayer) NpcAPI.Instance().getIEntity(data.player), id);
         handler.callScript(EnumScriptType.TIMER, event);
         NpcAPI.EVENT_BUS.post(event);
@@ -691,8 +691,8 @@ public class EventHooks {
         return false;
     }
 
-    public static boolean onScriptedCommand(CustomNPCsEvent.ScriptedCommandEvent event) {
-        ScriptController.Instance.playerScripts.callScript(EnumScriptType.SCRIPT_COMMAND, event);
+    public static boolean onScriptedCommand(EntityPlayer player, CustomNPCsEvent.ScriptedCommandEvent event) {
+        ScriptController.Instance.getPlayerScripts(player).callScript(EnumScriptType.SCRIPT_COMMAND, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -727,45 +727,45 @@ public class EventHooks {
     }
 
     public static void onQuestFinished(EntityPlayer player, Quest quest) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         QuestEvent.QuestCompletedEvent event = new QuestEvent.QuestCompletedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), quest);
         handler.callScript(EnumScriptType.QUEST_COMPLETED, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onQuestStarted(EntityPlayer player, Quest quest) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         QuestEvent.QuestStartEvent event = new QuestEvent.QuestStartEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), quest);
         handler.callScript(EnumScriptType.QUEST_START, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onQuestTurnedIn(QuestEvent.QuestTurnedInEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+    public static void onQuestTurnedIn(EntityPlayer player, QuestEvent.QuestTurnedInEvent event) {
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         handler.callScript(EnumScriptType.QUEST_TURNIN, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onFactionPoints(FactionEvent.FactionPoints event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+    public static boolean onFactionPoints(EntityPlayer player, FactionEvent.FactionPoints event) {
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         handler.callScript(EnumScriptType.FACTION_POINTS, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onDialogOpen(DialogEvent.DialogOpen event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+    public static boolean onDialogOpen(EntityPlayer player, DialogEvent.DialogOpen event) {
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         handler.callScript(EnumScriptType.DIALOG_OPEN, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onDialogOption(DialogEvent.DialogOption event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+    public static boolean onDialogOption(EntityPlayer player, DialogEvent.DialogOption event) {
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         handler.callScript(EnumScriptType.DIALOG_OPTION, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static void onDialogClosed(DialogEvent.DialogClosed event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
+    public static void onDialogClosed(EntityPlayer player, DialogEvent.DialogClosed event) {
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         handler.callScript(EnumScriptType.DIALOG_CLOSE, event);
         NpcAPI.EVENT_BUS.post(event);
     }
@@ -875,46 +875,67 @@ public class EventHooks {
     }
 
     public static void onPartyFinished(Party party, Quest quest) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        PartyEvent.PartyQuestCompletedEvent event = new PartyEvent.PartyQuestCompletedEvent(party, quest);
-        handler.callScript(EnumScriptType.PARTY_QUEST_COMPLETED, event);
-        NpcAPI.EVENT_BUS.post(event);
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            PartyEvent.PartyQuestCompletedEvent event = new PartyEvent.PartyQuestCompletedEvent(party, quest);
+            handler.callScript(EnumScriptType.PARTY_QUEST_COMPLETED, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
-    public static void onPartyQuestSet(PartyEvent.PartyQuestSetEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        handler.callScript(EnumScriptType.PARTY_QUEST_SET, event);
-        NpcAPI.EVENT_BUS.post(event);
+    public static void onPartyQuestSet(Party party, PartyEvent.PartyQuestSetEvent event) {
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.PARTY_QUEST_SET, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
-    public static void onPartyTurnIn(PartyEvent.PartyQuestTurnedInEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        handler.callScript(EnumScriptType.PARTY_QUEST_TURNED_IN, event);
-        NpcAPI.EVENT_BUS.post(event);
+    public static void onPartyTurnIn(Party party, PartyEvent.PartyQuestTurnedInEvent event) {
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.PARTY_QUEST_TURNED_IN, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
-    public static void onPartyInvite(PartyEvent.PartyInviteEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        handler.callScript(EnumScriptType.PARTY_INVITE, event);
-        NpcAPI.EVENT_BUS.post(event);
+    public static void onPartyInvite(Party party, PartyEvent.PartyInviteEvent event) {
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.PARTY_INVITE, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
-    public static void onPartyKick(PartyEvent.PartyKickEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        handler.callScript(EnumScriptType.PARTY_KICK, event);
-        NpcAPI.EVENT_BUS.post(event);
+    public static void onPartyKick(Party party, PartyEvent.PartyKickEvent event) {
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.PARTY_KICK, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
-    public static void onPartyLeave(PartyEvent.PartyLeaveEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        handler.callScript(EnumScriptType.PARTY_LEAVE, event);
-        NpcAPI.EVENT_BUS.post(event);
+    public static void onPartyLeave(Party party, PartyEvent.PartyLeaveEvent event) {
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.PARTY_LEAVE, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
-    public static void onPartyDisband(PartyEvent.PartyDisbandEvent event) {
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        handler.callScript(EnumScriptType.PARTY_DISBAND, event);
-        NpcAPI.EVENT_BUS.post(event);
+    public static void onPartyDisband(Party party, PartyEvent.PartyDisbandEvent event) {
+        EntityPlayer player = party.getPartyLeader();
+        if(player != null){
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+            handler.callScript(EnumScriptType.PARTY_DISBAND, event);
+            NpcAPI.EVENT_BUS.post(event);
+        }
     }
 
     private static boolean postAnimationEvent(IAnimationEvent event) {
@@ -924,7 +945,7 @@ public class EventHooks {
             EntityNPCInterface npc = (EntityNPCInterface) ((ICustomNpc<?>) animatable).getMCEntity();
             handler = npc.script;
         } else {
-            handler = ScriptController.Instance.playerScripts;
+            handler = ScriptController.Instance.getPlayerScripts((IPlayer) animatable);
         }
 
         if (handler.isClient())

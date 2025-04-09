@@ -11,9 +11,11 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
@@ -146,6 +148,20 @@ public class ScriptController {
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
+    }
+
+    public PlayerDataScript getPlayerScripts(EntityPlayer player){
+        if(ConfigScript.IndividualPlayerScripts)
+            return PlayerData.get(player).scriptData;
+
+        return this.playerScripts;
+    }
+
+    public PlayerDataScript getPlayerScripts(IPlayer player){
+        if(ConfigScript.IndividualPlayerScripts)
+            return PlayerData.get((EntityPlayer) player.getMCEntity()).scriptData;
+
+        return this.playerScripts;
     }
 
     public boolean loadGlobalNPCScripts() {

@@ -12,10 +12,7 @@ import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.controllers.data.Bank;
-import noppes.npcs.controllers.data.PlayerBankData;
-import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerMail;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -295,6 +292,7 @@ public class PlayerDataController {
         if (data == null) {
             player.registerExtendedProperties("CustomNpcsData", data = new PlayerData());
             data.player = player;
+            data.scriptData = new PlayerDataScript(player);
             data.load();
         }
 

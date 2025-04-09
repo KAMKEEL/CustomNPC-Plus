@@ -65,7 +65,7 @@ public final class PartyInvitePacket extends AbstractPacket {
                 Party party = PartyController.Instance().getParty(senderData.partyUUID);
                 if (!party.getIsLocked()) {
                     PartyEvent.PartyInviteEvent partyEvent = new PartyEvent.PartyInviteEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(invitedPlayer));
-                    EventHooks.onPartyInvite(partyEvent);
+                    EventHooks.onPartyInvite(party, partyEvent);
                     if (!partyEvent.isCancelled()) {
                         invitedData.inviteToParty(party);
                         sendInviteData((EntityPlayerMP) invitedPlayer);

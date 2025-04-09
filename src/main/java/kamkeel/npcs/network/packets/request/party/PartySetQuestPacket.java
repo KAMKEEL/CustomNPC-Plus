@@ -63,7 +63,7 @@ public final class PartySetQuestPacket extends AbstractPacket {
                             if (foundQuest.partyOptions.allowParty) {
                                 if (party.validateQuest(questID, true)) {
                                     PartyEvent.PartyQuestSetEvent partyEvent = new PartyEvent.PartyQuestSetEvent(party, foundQuest);
-                                    EventHooks.onPartyQuestSet(partyEvent);
+                                    EventHooks.onPartyQuestSet(party, partyEvent);
                                     if (!partyEvent.isCancelled()) {
                                         if (playerData.questData.hasActiveQuest(questID)) {
                                             QuestData questdata = new QuestData(foundQuest);

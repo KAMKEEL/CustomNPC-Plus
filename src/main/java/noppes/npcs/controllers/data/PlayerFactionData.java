@@ -62,7 +62,7 @@ public class PlayerFactionData implements IPlayerFactionData {
     }
 
     public void increasePoints(int factionId, int points, EntityPlayer player) {
-        if (EventHooks.onFactionPoints(new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points)))
+        if (EventHooks.onFactionPoints(player, new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points)))
             return;
 
         if (!factionData.containsKey(factionId)) {
