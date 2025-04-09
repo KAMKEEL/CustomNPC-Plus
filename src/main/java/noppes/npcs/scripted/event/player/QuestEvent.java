@@ -1,4 +1,4 @@
-package noppes.npcs.scripted.event;
+package noppes.npcs.scripted.event.player;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import noppes.npcs.api.entity.IPlayer;
@@ -7,17 +7,12 @@ import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 
-public class QuestEvent extends CustomNPCsEvent implements IQuestEvent {
+public class QuestEvent extends PlayerEvent implements IQuestEvent {
     public final IQuest quest;
-    public final IPlayer player;
 
     public QuestEvent(IPlayer player, IQuest quest) {
+        super(player);
         this.quest = quest;
-        this.player = player;
-    }
-
-    public IPlayer getPlayer() {
-        return player;
     }
 
     public IQuest getQuest() {

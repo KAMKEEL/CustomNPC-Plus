@@ -1,4 +1,4 @@
-package noppes.npcs.scripted.event;
+package noppes.npcs.scripted.event.player;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import noppes.npcs.api.entity.IPlayer;
@@ -6,17 +6,12 @@ import noppes.npcs.api.event.IFactionEvent;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.constants.EnumScriptType;
 
-public class FactionEvent extends CustomNPCsEvent implements IFactionEvent {
+public class FactionEvent extends PlayerEvent implements IFactionEvent {
     public final IFaction faction;
-    public final IPlayer player;
 
     public FactionEvent(IPlayer player, IFaction faction) {
+        super(player);
         this.faction = faction;
-        this.player = player;
-    }
-
-    public IPlayer getPlayer() {
-        return player;
     }
 
     public IFaction getFaction() {

@@ -123,7 +123,7 @@ public class ScriptPlayerEventHandler {
         if (!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer && event.entityPlayer instanceof EntityPlayerMP) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            noppes.npcs.scripted.event.PlayerEvent.InteractEvent ev = new noppes.npcs.scripted.event.PlayerEvent.InteractEvent(scriptPlayer, 1, NpcAPI.Instance().getIEntity(event.target));
+            noppes.npcs.scripted.event.player.PlayerEvent.InteractEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.InteractEvent(scriptPlayer, 1, NpcAPI.Instance().getIEntity(event.target));
             event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
         }
     }
@@ -136,7 +136,7 @@ public class ScriptPlayerEventHandler {
         if (!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer && event.entityPlayer instanceof EntityPlayerMP) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            noppes.npcs.scripted.event.PlayerEvent.RangedChargeEvent ev = new noppes.npcs.scripted.event.PlayerEvent.RangedChargeEvent(scriptPlayer);
+            noppes.npcs.scripted.event.player.PlayerEvent.RangedChargeEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.RangedChargeEvent(scriptPlayer);
             EventHooks.onPlayerBowCharge(handler, ev);
         }
     }
@@ -149,7 +149,7 @@ public class ScriptPlayerEventHandler {
         if (!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer && event.entityPlayer instanceof EntityPlayerMP) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent ev = new noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent(scriptPlayer, event.bow, event.charge);
+            noppes.npcs.scripted.event.player.PlayerEvent.RangedLaunchedEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.RangedLaunchedEvent(scriptPlayer, event.bow, event.charge);
             EventHooks.onPlayerRanged(handler, ev);
         }
     }
@@ -167,7 +167,7 @@ public class ScriptPlayerEventHandler {
         if (!event.getPlayer().worldObj.isRemote && event.world instanceof WorldServer && event.getPlayer() instanceof EntityPlayerMP) {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.getPlayer());
-            noppes.npcs.scripted.event.PlayerEvent.BreakEvent ev = new noppes.npcs.scripted.event.PlayerEvent.BreakEvent(scriptPlayer, NpcAPI.Instance().getIBlock(NpcAPI.Instance().getIWorld(event.world), NpcAPI.Instance().getIPos(event.x, event.y, event.z)), event.getExpToDrop());
+            noppes.npcs.scripted.event.player.PlayerEvent.BreakEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.BreakEvent(scriptPlayer, NpcAPI.Instance().getIBlock(NpcAPI.Instance().getIWorld(event.world), NpcAPI.Instance().getIPos(event.x, event.y, event.z)), event.getExpToDrop());
             event.setCanceled(EventHooks.onPlayerBreak(handler, ev));
             event.setExpToDrop(ev.exp);
         }
@@ -472,7 +472,7 @@ public class ScriptPlayerEventHandler {
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             if (event.entityLiving instanceof EntityPlayerMP) {
-                noppes.npcs.scripted.event.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.AttackedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
+                noppes.npcs.scripted.event.player.PlayerEvent.AttackedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.AttackedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
                 cancel = EventHooks.onPlayerAttacked(handler, pevent);
             }
 
@@ -481,7 +481,7 @@ public class ScriptPlayerEventHandler {
                 if (ConfigMain.AttributesEnabled)
                     attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), attackAmount);
 
-                noppes.npcs.scripted.event.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
+                noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
                 cancel = cancel || EventHooks.onPlayerAttack(handler, pevent1);
             }
             event.setCanceled(cancel);
@@ -508,13 +508,13 @@ public class ScriptPlayerEventHandler {
             }
 
             if (event.entityLiving instanceof EntityPlayerMP) {
-                noppes.npcs.scripted.event.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.PlayerEvent.DamagedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
+                noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent pevent = new noppes.npcs.scripted.event.player.PlayerEvent.DamagedEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.entityLiving), source, event.ammount, event.source);
                 cancel = EventHooks.onPlayerDamaged(handler, pevent);
                 event.ammount = pevent.damage;
             }
 
             if (source instanceof EntityPlayerMP) {
-                noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent pevent1 = new noppes.npcs.scripted.event.PlayerEvent.DamagedEntityEvent((IPlayer) NpcAPI.Instance().getIEntity(source), event.entityLiving, event.ammount, event.source);
+                noppes.npcs.scripted.event.player.PlayerEvent.DamagedEntityEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.DamagedEntityEvent((IPlayer) NpcAPI.Instance().getIEntity(source), event.entityLiving, event.ammount, event.source);
                 cancel = cancel || EventHooks.onPlayerDamagedEntity(handler, pevent1);
                 event.ammount = pevent1.damage;
             }
@@ -583,7 +583,7 @@ public class ScriptPlayerEventHandler {
             PlayerDataScript handler = ScriptController.Instance.playerScripts;
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             String message = event.message;
-            noppes.npcs.scripted.event.PlayerEvent.ChatEvent ev = new noppes.npcs.scripted.event.PlayerEvent.ChatEvent(scriptPlayer, event.message);
+            noppes.npcs.scripted.event.player.PlayerEvent.ChatEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.ChatEvent(scriptPlayer, event.message);
             EventHooks.onPlayerChat(handler, ev);
             event.setCanceled(ev.isCanceled());
             if (!message.equals(ev.message)) {

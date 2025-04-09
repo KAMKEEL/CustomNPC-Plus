@@ -55,7 +55,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
-import noppes.npcs.scripted.event.DialogEvent;
+import noppes.npcs.scripted.event.player.DialogEvent;
 
 import java.io.File;
 import java.io.IOException;

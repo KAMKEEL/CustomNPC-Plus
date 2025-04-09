@@ -1,4 +1,4 @@
-package noppes.npcs.scripted.event;
+package noppes.npcs.scripted.event.player;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
 import net.minecraft.item.ItemStack;
@@ -10,21 +10,16 @@ import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 
-public class CustomGuiEvent extends CustomNPCsEvent implements ICustomGuiEvent {
-    public final IPlayer player;
+public class CustomGuiEvent extends PlayerEvent implements ICustomGuiEvent {
     public final ICustomGui gui;
 
     public CustomGuiEvent(IPlayer player, ICustomGui gui) {
-        this.player = player;
+        super(player);
         this.gui = gui;
     }
 
     public String getHookName() {
         return EnumScriptType.CUSTOM_GUI_EVENT.function;
-    }
-
-    public IPlayer getPlayer() {
-        return this.player;
     }
 
     public ICustomGui getGui() {

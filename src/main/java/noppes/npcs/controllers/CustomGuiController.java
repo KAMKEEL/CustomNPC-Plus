@@ -15,7 +15,7 @@ import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.containers.ContainerCustomGui;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.CustomGuiEvent;
+import noppes.npcs.scripted.event.player.CustomGuiEvent;
 import noppes.npcs.scripted.gui.ScriptGui;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
 

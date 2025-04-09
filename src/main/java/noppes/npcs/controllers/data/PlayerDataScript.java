@@ -13,6 +13,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.player.PlayerEvent;
 
 import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
@@ -84,8 +85,8 @@ public class PlayerDataScript implements INpcScriptHandler {
                     scriptContainer.errored = false;
                 }
 
-                if (!Objects.equals(hookName, EnumScriptType.INIT.function) && event instanceof noppes.npcs.scripted.event.PlayerEvent) {
-                    noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent) event;
+                if (!Objects.equals(hookName, EnumScriptType.INIT.function) && event instanceof PlayerEvent) {
+                    PlayerEvent playerEvent = (PlayerEvent) event;
                     EventHooks.onPlayerInit(this, playerEvent.player);
                 }
             }

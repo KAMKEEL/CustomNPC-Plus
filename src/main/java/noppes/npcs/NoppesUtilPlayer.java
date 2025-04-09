@@ -34,9 +34,9 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
-import noppes.npcs.scripted.event.DialogEvent;
+import noppes.npcs.scripted.event.player.DialogEvent;
 import noppes.npcs.scripted.event.PartyEvent;
-import noppes.npcs.scripted.event.QuestEvent;
+import noppes.npcs.scripted.event.player.QuestEvent;
 
 import java.io.IOException;
 import java.util.*;

@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 
-import static noppes.npcs.scripted.event.PlayerEvent.EffectEvent.ExpirationType;
+import static noppes.npcs.scripted.event.player.PlayerEvent.EffectEvent.ExpirationType;
 
 public class CustomEffectController implements ICustomEffectHandler {
 

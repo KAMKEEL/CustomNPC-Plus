@@ -9,7 +9,7 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.FactionEvent;
+import noppes.npcs.scripted.event.player.FactionEvent;
 
 import java.util.HashMap;
 

@@ -35,7 +35,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.*;
-import noppes.npcs.scripted.event.PlayerEvent.*;
+import noppes.npcs.scripted.event.player.*;
+import noppes.npcs.scripted.event.player.PlayerEvent.*;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -373,18 +374,18 @@ public class EventHooks {
     }
 
     public static void onPlayerInit(PlayerDataScript handler, IPlayer player) {
-        noppes.npcs.scripted.event.PlayerEvent.InitEvent event = new noppes.npcs.scripted.event.PlayerEvent.InitEvent(player);
+        PlayerEvent.InitEvent event = new PlayerEvent.InitEvent(player);
         handler.callScript(EnumScriptType.INIT, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerTick(PlayerDataScript handler, IPlayer player) {
-        noppes.npcs.scripted.event.PlayerEvent.UpdateEvent event = new noppes.npcs.scripted.event.PlayerEvent.UpdateEvent(player);
+        PlayerEvent.UpdateEvent event = new PlayerEvent.UpdateEvent(player);
         handler.callScript(EnumScriptType.TICK, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onPlayerInteract(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.InteractEvent event) {
+    public static boolean onPlayerInteract(PlayerDataScript handler, PlayerEvent.InteractEvent event) {
         handler.callScript(EnumScriptType.INTERACT, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -488,41 +489,41 @@ public class EventHooks {
     }
 
     public static void onPlayerUseHoe(PlayerDataScript handler, IPlayer player, ItemStack hoe, int x, int y, int z) {
-        noppes.npcs.scripted.event.PlayerEvent.UseHoe event = new noppes.npcs.scripted.event.PlayerEvent.UseHoe(player, hoe, x, y, z);
+        PlayerEvent.UseHoe event = new PlayerEvent.UseHoe(player, hoe, x, y, z);
         handler.callScript(EnumScriptType.USE_HOE, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerSleep(PlayerDataScript handler, IPlayer player, int x, int y, int z) {
-        noppes.npcs.scripted.event.PlayerEvent.Sleep event = new noppes.npcs.scripted.event.PlayerEvent.Sleep(player, x, y, z);
+        PlayerEvent.Sleep event = new PlayerEvent.Sleep(player, x, y, z);
         handler.callScript(EnumScriptType.SLEEP, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerWakeUp(PlayerDataScript handler, IPlayer player, boolean setSpawn) {
-        noppes.npcs.scripted.event.PlayerEvent.WakeUp event = new noppes.npcs.scripted.event.PlayerEvent.WakeUp(player, setSpawn);
+        PlayerEvent.WakeUp event = new PlayerEvent.WakeUp(player, setSpawn);
         handler.callScript(EnumScriptType.WAKE_UP, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerDeath(PlayerDataScript handler, IPlayer player, DamageSource source, Entity entity) {
-        noppes.npcs.scripted.event.PlayerEvent.DiedEvent event = new noppes.npcs.scripted.event.PlayerEvent.DiedEvent(player, source, entity);
+        PlayerEvent.DiedEvent event = new PlayerEvent.DiedEvent(player, source, entity);
         handler.callScript(EnumScriptType.KILLED, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
     public static void onPlayerKills(PlayerDataScript handler, IPlayer player, EntityLivingBase entityLiving) {
-        noppes.npcs.scripted.event.PlayerEvent.KilledEntityEvent event = new noppes.npcs.scripted.event.PlayerEvent.KilledEntityEvent(player, entityLiving);
+        PlayerEvent.KilledEntityEvent event = new PlayerEvent.KilledEntityEvent(player, entityLiving);
         handler.callScript(EnumScriptType.KILLS, event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onPlayerAttacked(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.AttackedEvent event) {
+    public static boolean onPlayerAttacked(PlayerDataScript handler, PlayerEvent.AttackedEvent event) {
         handler.callScript(EnumScriptType.ATTACKED, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onPlayerDamaged(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.DamagedEvent event) {
+    public static boolean onPlayerDamaged(PlayerDataScript handler, PlayerEvent.DamagedEvent event) {
         handler.callScript(EnumScriptType.DAMAGED, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -592,12 +593,12 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onPlayerBowCharge(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.RangedChargeEvent event) {
+    public static boolean onPlayerBowCharge(PlayerDataScript handler, PlayerEvent.RangedChargeEvent event) {
         handler.callScript(EnumScriptType.RANGED_CHARGE, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
-    public static boolean onPlayerRanged(PlayerDataScript handler, noppes.npcs.scripted.event.PlayerEvent.RangedLaunchedEvent event) {
+    public static boolean onPlayerRanged(PlayerDataScript handler, PlayerEvent.RangedLaunchedEvent event) {
         handler.callScript(EnumScriptType.RANGED_LAUNCHED, event);
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -634,7 +635,7 @@ public class EventHooks {
 
     public static void onPlayerTimer(PlayerData data, int id) {
         PlayerDataScript handler = ScriptController.Instance.playerScripts;
-        noppes.npcs.scripted.event.PlayerEvent.TimerEvent event = new noppes.npcs.scripted.event.PlayerEvent.TimerEvent((IPlayer) NpcAPI.Instance().getIEntity(data.player), id);
+        PlayerEvent.TimerEvent event = new PlayerEvent.TimerEvent((IPlayer) NpcAPI.Instance().getIEntity(data.player), id);
         handler.callScript(EnumScriptType.TIMER, event);
         NpcAPI.EVENT_BUS.post(event);
     }
@@ -721,7 +722,7 @@ public class EventHooks {
     }
 
     public static void onCustomGuiClose(IPlayer player, ICustomGui gui) {
-        noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent event = new noppes.npcs.scripted.event.CustomGuiEvent.CloseEvent(player, gui);
+        CustomGuiEvent.CloseEvent event = new CustomGuiEvent.CloseEvent(player, gui);
         CustomGuiController.onClose(event);
     }
 
