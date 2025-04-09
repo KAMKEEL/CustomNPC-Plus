@@ -336,6 +336,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
                 case 3:
                     linkedItem.itemUseAction = 4;
                     break;
+                case 4:
+                    linkedItem.itemUseAction = 2;
+                    break;
             }
         } else if (id == 8) {
             // Armor Type button.
