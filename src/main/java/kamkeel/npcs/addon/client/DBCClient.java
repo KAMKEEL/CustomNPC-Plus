@@ -51,4 +51,5 @@ public class DBCClient {
     // Animation Render Helper
     public boolean applyRenderModel(ModelRenderer renderer) { return false; }
     public boolean firstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model, RenderBlocks renderBlocksIr, ResourceLocation resItemGlint) { return false; }
+
 }
