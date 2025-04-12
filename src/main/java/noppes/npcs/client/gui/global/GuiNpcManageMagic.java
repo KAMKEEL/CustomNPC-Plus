@@ -407,10 +407,18 @@ public class GuiNpcManageMagic extends GuiNPCInterface2 implements ISubGuiListen
                 NBTTagCompound compound = new NBTTagCompound();
                 magic.writeNBT(compound);
                 PacketClient.sendClient(new MagicSavePacket(compound));
+                if (selectedMagic != null) {
+                    selectedMagic = null;
+                    if (rightScroll != null)
+                        rightScroll.selected = -1;
+                }
                 break;
             case 1: // Remove Magic.
                 if (selectedMagic != null) {
                     PacketClient.sendClient(new MagicRemovePacket(selectedMagic.id));
+                    selectedMagic = null;
+                    if (rightScroll != null)
+                        rightScroll.selected = -1;
                 }
                 break;
             case 2: // Edit Magic.

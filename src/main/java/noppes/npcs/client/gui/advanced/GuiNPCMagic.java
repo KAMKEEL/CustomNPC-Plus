@@ -80,7 +80,7 @@ public class GuiNPCMagic extends GuiNPCInterface2 implements IScrollData, ICusto
         addLabel(new GuiNpcLabel(5002, "magic.split", guiLeft + 193, tfY + 5));
         splitField = new GuiNpcTextField(73, this, fontRendererObj, guiLeft + 250, tfY, 45, 20, "");
         splitField.setFloatsOnly();
-        splitField.setMinMaxDefaultFloat(0, 1000000000, 0);
+        splitField.setMinMaxDefaultFloat(-1000000, 1000000000, 0);
         splitField.enabled = false;
         addTextField(splitField);
 
