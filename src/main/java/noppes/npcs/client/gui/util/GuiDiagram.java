@@ -659,8 +659,9 @@ public abstract class GuiDiagram extends Gui {
             }
         }
         boolean twoWay = (reverse != null && allowTwoWay);
-        // When allowTwoWay is false and a reverse exists, draw each connection separately.
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
+        int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
+
         if (!curvedArrows) {
             if (separateTwoWay) {
                 int offsetAmount = 4;
@@ -709,7 +710,7 @@ public abstract class GuiDiagram extends Gui {
                 double normX = -dy / len;
                 double normY = dx / len;
                 double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
-                Point baseControl = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point baseControl = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
                 Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
                     baseControl.y + (int) (normY * offsetAmount * sign));
                 int segments = 800;
@@ -738,8 +739,8 @@ public abstract class GuiDiagram extends Gui {
                 GL11.glDisable(GL11.GL_BLEND);
                 GL11.glPopAttrib();
             } else if (twoWay) {
-                Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
-                Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
+                Point cp1 = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
+                Point cp2 = computeControlPoint(x1, y1, x2, y2, -effectiveCurveAngle);
                 double d1 = getMinDistanceToIcon(cp1, conn);
                 double d2 = getMinDistanceToIcon(cp2, conn);
                 Point control = (d1 >= d2) ? cp1 : cp2;
@@ -784,7 +785,7 @@ public abstract class GuiDiagram extends Gui {
                 if (!useColorScaling) {
                     color = 0xFFFFFFFF;
                 }
-                Point cp = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point cp = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
                 int segments = 800;
                 GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
                 GL11.glEnable(GL11.GL_BLEND);
@@ -1230,7 +1231,6 @@ public abstract class GuiDiagram extends Gui {
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
                 double dist;
-                // If drawing separate two-way connections, use the offset endpoints for hit detection.
                 boolean separateTwoWay = (getConnectionByIds(conn.idTo, conn.idFrom) != null && !allowTwoWay);
                 if (separateTwoWay) {
                     if (curvedArrows) {
@@ -1241,7 +1241,8 @@ public abstract class GuiDiagram extends Gui {
                         double normX = -dy / len;
                         double normY = dx / len;
                         double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
-                        Point baseControl = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, curveAngle);
+                        int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
+                        Point baseControl = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, effectiveCurveAngle);
                         Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
                             baseControl.y + (int) (normY * offsetAmount * sign));
                         dist = distanceToBezier(pFrom, offsetControl, pTo, 200, effectiveMouseX, effectiveMouseY);
@@ -1264,8 +1265,9 @@ public abstract class GuiDiagram extends Gui {
                     }
                 } else {
                     if (curvedArrows) {
-                        Point cp1 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, curveAngle);
-                        Point cp2 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, -curveAngle);
+                        int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
+                        Point cp1 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, effectiveCurveAngle);
+                        Point cp2 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, -effectiveCurveAngle);
                         double d1 = getMinDistanceToIcon(cp1, conn);
                         double d2 = getMinDistanceToIcon(cp2, conn);
                         Point control = (d1 >= d2) ? cp1 : cp2;
@@ -1384,6 +1386,9 @@ public abstract class GuiDiagram extends Gui {
     }
 
     protected int getConnectionColor(DiagramConnection conn) {
+        if (conn.customColor != null) {
+            return conn.customColor;
+        }
         float value = Math.max(-1f, Math.min(1f, conn.percent));
         int r, g, b;
         if (value >= 0f) {
@@ -1535,6 +1540,8 @@ public abstract class GuiDiagram extends Gui {
         public int idFrom, idTo;
         public float percent;
         public String hoverText;
+        public Integer customCurveAngle = null;
+        public Integer customColor = null;
 
         public DiagramConnection(int idFrom, int idTo, float percent, String hoverText) {
             this.idFrom = idFrom;
