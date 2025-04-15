@@ -58,7 +58,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
         setCurveAngle(-25);
         invalidateCache();
 
-        this.allowTwoWay = true;
+        this.allowTwoWay = false;
         this.iconSize = 20;
         this.slotSize = iconSize + slotPadding;
     }

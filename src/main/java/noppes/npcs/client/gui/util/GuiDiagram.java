@@ -653,11 +653,6 @@ public abstract class GuiDiagram extends Gui {
      */
     protected void drawConnectionLine(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
-        if (!allowTwoWay && reverse != null) {
-            if (x1 > x2 || (x1 == x2 && y1 > y2)) {
-                return;
-            }
-        }
         boolean twoWay = (reverse != null && allowTwoWay);
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
         int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
@@ -811,7 +806,6 @@ public abstract class GuiDiagram extends Gui {
         }
     }
 
-
     // Helper method to draw a straight colored line.
     private void drawColoredLine(int x1, int y1, int x2, int y2, int color, boolean dim) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
@@ -847,11 +841,6 @@ public abstract class GuiDiagram extends Gui {
     // Fixed drawArrowHead:
     protected void drawArrowHead(int x1, int y1, int x2, int y2, DiagramConnection conn, boolean dim) {
         DiagramConnection reverse = getConnectionByIds(conn.idFrom, conn.idTo);
-        if (!allowTwoWay && reverse != null) {
-            if (x1 > x2 || (x1 == x2 && y1 > y2)) {
-                return;
-            }
-        }
         int color = (reverse != null) ? getConnectionColor(reverse) : getConnectionColor(conn);
         if (!useColorScaling)
             color = 0xFFFFFFFF;
@@ -878,6 +867,7 @@ public abstract class GuiDiagram extends Gui {
                 angle = Math.atan2(y2 - y1, x2 - x1);
             }
         } else {
+            int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
             if (separateTwoWay) {
                 int offsetAmount = 4;
                 double dx = x2 - x1, dy = y2 - y1;
@@ -886,7 +876,7 @@ public abstract class GuiDiagram extends Gui {
                 double normX = -dy / len;
                 double normY = dx / len;
                 double sign = (conn.idFrom < conn.idTo) ? 1 : -1;
-                Point baseControl = computeControlPoint(x1, y1, x2, y2, curveAngle);
+                Point baseControl = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
                 Point offsetControl = new Point(baseControl.x + (int) (normX * offsetAmount * sign),
                     baseControl.y + (int) (normY * offsetAmount * sign));
                 double t = 0.95;
@@ -896,11 +886,8 @@ public abstract class GuiDiagram extends Gui {
                 double dBy = 2 * (1 - t) * (offsetControl.y - y1) + 2 * t * (y2 - offsetControl.y);
                 angle = Math.atan2(dBy, dBx);
             } else {
-                double dx = x2 - x1, dy = y2 - y1;
-                double len = Math.sqrt(dx * dx + dy * dy);
-                if (len == 0) len = 1;
-                Point cp1 = computeControlPoint(x1, y1, x2, y2, curveAngle);
-                Point cp2 = computeControlPoint(x1, y1, x2, y2, -curveAngle);
+                Point cp1 = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
+                Point cp2 = computeControlPoint(x1, y1, x2, y2, -effectiveCurveAngle);
                 double d1 = getMinDistanceToIcon(cp1, conn);
                 double d2 = getMinDistanceToIcon(cp2, conn);
                 Point control = (d1 >= d2) ? cp1 : cp2;
