@@ -1288,7 +1288,12 @@ public abstract class GuiDiagram extends Gui {
             Point pTo = positions.get(conn.idTo);
             if (pFrom == null || pTo == null) continue;
             int ax = pFrom.x, ay = pFrom.y, bx = pTo.x, by = pTo.y;
-            boolean dim = !selectedIconIds.isEmpty() && !(selectedIconIds.contains(conn.idFrom) && selectedIconIds.contains(conn.idTo));
+            boolean dim;
+            if (hoveredIconId != null) {
+                dim = (conn.idFrom != hoveredIconId);
+            } else {
+                dim = !selectedIconIds.isEmpty() && !(selectedIconIds.contains(conn.idFrom) && selectedIconIds.contains(conn.idTo));
+            }
             drawConnectionLine(ax, ay, bx, by, conn, dim);
         }
         for (DiagramIcon icon : getIcons()) {
@@ -1316,7 +1321,12 @@ public abstract class GuiDiagram extends Gui {
                 Point pTo = positions.get(conn.idTo);
                 if (pFrom == null || pTo == null) continue;
                 int ax = pFrom.x, ay = pFrom.y, bx = pTo.x, by = pTo.y;
-                boolean dim = !selectedIconIds.isEmpty() && !(selectedIconIds.contains(conn.idFrom) && selectedIconIds.contains(conn.idTo));
+                boolean dim;
+                if (hoveredIconId != null) {
+                    dim = (conn.idFrom != hoveredIconId);
+                } else {
+                    dim = !selectedIconIds.isEmpty() && !(selectedIconIds.contains(conn.idFrom) && selectedIconIds.contains(conn.idTo));
+                }
                 drawArrowHead(ax, ay, bx, by, conn, dim);
             }
             GL11.glPopMatrix();
