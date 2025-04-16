@@ -76,19 +76,35 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
 
         y += 27;
 
-        // Labels and text fields for editing the selected association's ordering data.
-        addLabel(new GuiNpcLabel(50, "magic.index", guiLeft + 5, y + 5));
+        String index = "gui.unused";
+        String priority = "gui.unused";
+        if(cycle.layout == EnumDiagramLayout.MANUAL) {
+            index = "X";
+            priority = "Y";
+        } else if(cycle.layout.isManual()) {
+            index = "magic.index";
+            priority = "magic.priority";
+        }
+
+        addLabel(new GuiNpcLabel(50, index, guiLeft + 5, y + 5));
         indexField = new GuiNpcTextField(91, this, fontRendererObj, guiLeft + 100, y, 45, 20, "");
         indexField.setIntegersOnly();
         addTextField(indexField);
 
-        addLabel(new GuiNpcLabel(51, "magic.priority", guiLeft + 150, y + 5));
+        addLabel(new GuiNpcLabel(51, priority, guiLeft + 150, y + 5));
         priorityField = new GuiNpcTextField(92, this, fontRendererObj, guiLeft + 250, y, 45, 20, "");
         priorityField.setIntegersOnly();
         addTextField(priorityField);
 
         indexField.enabled = false;
         priorityField.enabled = false;
+
+        if (selectedAssociation != null && associationMap.containsKey(selectedAssociation)) {
+            indexField.enabled = true;
+            priorityField.enabled = true;
+            indexField.setText(associationMap.get(selectedAssociation).index + "");
+            priorityField.setText(associationMap.get(selectedAssociation).priority + "");
+        }
 
         y += 27;
 
@@ -133,6 +149,7 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
         // Layout button: update cycle layout.
         if (button.id == 13) {
             cycle.layout = EnumDiagramLayout.values()[((GuiNpcButton) button).getValue()];
+            initGui();
         }
         // Add single association
         if (button.id == 60 && allMagic.hasSelected() && !associationMap.containsKey(allMagic.getSelected())

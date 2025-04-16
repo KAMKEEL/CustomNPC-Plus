@@ -154,6 +154,7 @@ gui.change=Change
 gui.create=Create
 gui.rename=Rename
 gui.playerMap=Regen PlayerMap
+gui.unused=Unused
 
 gui.lineColor1=Upper line color
 gui.lineColor2=Middle line color
@@ -1389,6 +1390,7 @@ diagram.circular_manual=Circular [Manual]
 diagram.square_manual=Square [Manual]
 diagram.tree_manual=Tree [Manual]
 diagram.chart=Chart
+diagram.manual=Manual
 diagram.info=Manual: Index is the level, Priority is the order.
 
 rpgcore:tooltip=Hold %key% to view attributes

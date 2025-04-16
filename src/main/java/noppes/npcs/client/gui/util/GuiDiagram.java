@@ -179,11 +179,24 @@ public abstract class GuiDiagram extends Gui {
             case TREE_MANUAL:
                 cachedPositions = calculateTreeManualPositions();
                 break;
+            case MANUAL:
+                cachedPositions = calculateManualPositions();
+                break;
             default:
                 cachedPositions = calculateCircularPositions();
                 break;
         }
         return cachedPositions;
+    }
+
+    protected Map<Integer, Point> calculateManualPositions() {
+        Map<Integer, Point> positions = new HashMap<>();
+        int centerX = x + width / 2;
+        int centerY = y + height / 2;
+        for (DiagramIcon icon : getIcons()) {
+            positions.put(icon.id, new Point(centerX + icon.index, centerY + icon.priority));
+        }
+        return positions;
     }
 
     // --- Standard Layout Methods ---

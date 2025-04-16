@@ -10,7 +10,8 @@ public enum EnumDiagramLayout {
     CIRCULAR_MANUAL("diagram.circular_manual"),
     SQUARE_MANUAL("diagram.square_manual"),
     TREE_MANUAL("diagram.tree_manual"),
-    CHART("diagram.chart");
+    CHART("diagram.chart"),
+    MANUAL("diagram.manual");
 
     private String lang;
 
