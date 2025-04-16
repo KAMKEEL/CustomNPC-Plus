@@ -48,10 +48,6 @@ public final class FactionRemovePacket extends AbstractPacket {
         return CustomNpcsPermissions.GLOBAL_FACTION;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return true;
-    }
 
     @SideOnly(Side.CLIENT)
     @Override

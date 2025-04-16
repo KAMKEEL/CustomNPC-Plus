@@ -48,11 +48,6 @@ public final class TagSavePacket extends AbstractPacket {
         return CustomNpcsPermissions.GLOBAL_TAG;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
