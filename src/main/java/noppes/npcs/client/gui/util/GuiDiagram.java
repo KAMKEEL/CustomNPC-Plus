@@ -46,6 +46,10 @@ public abstract class GuiDiagram extends Gui {
     protected boolean showArrowHeads = true;
     protected boolean useColorScaling = true;
 
+    // --- Arrow Options ---
+    protected float arrowSize = 6;
+    protected float lineThickness = 2f;
+
     // This flag determines how two‑way connections are drawn.
     // When true, a two‑way connection is drawn as one line with dual arrowheads and combined tooltips.
     // When false, each direction is drawn as a separate line with its own hitbox and tooltip.
@@ -733,7 +737,7 @@ public abstract class GuiDiagram extends Gui {
                 GL11.glEnable(GL11.GL_LINE_SMOOTH);
                 GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
                 GL11.glDisable(GL11.GL_TEXTURE_2D);
-                GL11.glLineWidth(2.0F);
+                GL11.glLineWidth(lineThickness);
                 setColor(color, dim);
                 GL11.glBegin(GL11.GL_LINE_STRIP);
                 for (int i = 0; i <= segments; i++) {
@@ -766,7 +770,7 @@ public abstract class GuiDiagram extends Gui {
                 GL11.glEnable(GL11.GL_LINE_SMOOTH);
                 GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
                 GL11.glDisable(GL11.GL_TEXTURE_2D);
-                GL11.glLineWidth(2.0F);
+                GL11.glLineWidth(lineThickness);
                 setColor(color1, dim);
                 GL11.glBegin(GL11.GL_LINE_STRIP);
                 for (int i = 0; i <= halfSegments; i++) {
@@ -807,7 +811,7 @@ public abstract class GuiDiagram extends Gui {
                 GL11.glEnable(GL11.GL_LINE_SMOOTH);
                 GL11.glHint(GL11.GL_LINE_SMOOTH_HINT, GL11.GL_NICEST);
                 GL11.glDisable(GL11.GL_TEXTURE_2D);
-                GL11.glLineWidth(2.0F);
+                GL11.glLineWidth(lineThickness);
                 setColor(color, dim);
                 GL11.glBegin(GL11.GL_LINE_STRIP);
                 for (int i = 0; i <= segments; i++) {
@@ -829,7 +833,7 @@ public abstract class GuiDiagram extends Gui {
     private void drawColoredLine(int x1, int y1, int x2, int y2, int color, boolean dim) {
         GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         GL11.glDisable(GL11.GL_TEXTURE_2D);
-        GL11.glLineWidth(2.0F);
+        GL11.glLineWidth(lineThickness);
         setColor(color, dim);
         GL11.glBegin(GL11.GL_LINES);
         GL11.glVertex2i(x1, y1);
@@ -922,7 +926,6 @@ public abstract class GuiDiagram extends Gui {
         }
         float defenderEdgeX = x2 - (slotSize / 2f) * (float) Math.cos(angle);
         float defenderEdgeY = y2 - (slotSize / 2f) * (float) Math.sin(angle);
-        int arrowSize = 6;
         float leftX = defenderEdgeX - arrowSize * (float) Math.cos(angle - Math.PI / 6);
         float leftY = defenderEdgeY - arrowSize * (float) Math.sin(angle - Math.PI / 6);
         float rightX = defenderEdgeX - arrowSize * (float) Math.cos(angle + Math.PI / 6);
