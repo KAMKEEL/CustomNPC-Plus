@@ -194,7 +194,7 @@ public abstract class GuiDiagram extends Gui {
         int centerX = x + width / 2;
         int centerY = y + height / 2;
         for (DiagramIcon icon : getIcons()) {
-            positions.put(icon.id, new Point(centerX + icon.index, centerY + icon.priority));
+            positions.put(icon.id, new Point(centerX + icon.index, centerY - icon.priority));
         }
         return positions;
     }
@@ -669,8 +669,9 @@ public abstract class GuiDiagram extends Gui {
         boolean twoWay = (reverse != null && allowTwoWay);
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
         int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
+        boolean useCustomCurveAngle = (conn.customAllowCurve  != null ? conn.customAllowCurve : this.curvedArrows);
 
-        if (!curvedArrows) {
+        if (!useCustomCurveAngle) {
             if (separateTwoWay) {
                 int offsetAmount = 4;
                 double dx = x2 - x1, dy = y2 - y1;
@@ -793,7 +794,12 @@ public abstract class GuiDiagram extends Gui {
                 if (!useColorScaling) {
                     color = 0xFFFFFFFF;
                 }
-                Point cp = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
+                // Compute both candidate control points.
+                Point cp1 = computeControlPoint(x1, y1, x2, y2, effectiveCurveAngle);
+                Point cp2 = computeControlPoint(x1, y1, x2, y2, -effectiveCurveAngle);
+                double d1 = getMinDistanceToIcon(cp1, conn);
+                double d2 = getMinDistanceToIcon(cp2, conn);
+                Point cp = (d1 >= d2) ? cp1 : cp2;
                 int segments = 800;
                 GL11.glPushAttrib(GL11.GL_ENABLE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_HINT_BIT);
                 GL11.glEnable(GL11.GL_BLEND);
@@ -859,7 +865,9 @@ public abstract class GuiDiagram extends Gui {
             color = 0xFFFFFFFF;
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
         double angle;
-        if (!curvedArrows) {
+        boolean useCustomCurveAngle = (conn.customAllowCurve  != null ? conn.customAllowCurve : this.curvedArrows);
+
+        if (!useCustomCurveAngle) {
             if (separateTwoWay) {
                 int offsetAmount = 4;
                 double dx = x2 - x1, dy = y2 - y1;
@@ -1232,8 +1240,9 @@ public abstract class GuiDiagram extends Gui {
                 if (pFrom == null || pTo == null) continue;
                 double dist;
                 boolean separateTwoWay = (getConnectionByIds(conn.idTo, conn.idFrom) != null && !allowTwoWay);
+                boolean useCustomCurveAngle = (conn.customAllowCurve  != null ? conn.customAllowCurve : this.curvedArrows);
                 if (separateTwoWay) {
-                    if (curvedArrows) {
+                    if (useCustomCurveAngle) {
                         int offsetAmount = 4;
                         double dx = pTo.x - pFrom.x, dy = pTo.y - pFrom.y;
                         double len = Math.sqrt(dx * dx + dy * dy);
@@ -1264,7 +1273,7 @@ public abstract class GuiDiagram extends Gui {
                         dist = pointLineDistance(effectiveMouseX, effectiveMouseY, newX1, newY1, newX2, newY2);
                     }
                 } else {
-                    if (curvedArrows) {
+                    if (useCustomCurveAngle) {
                         int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
                         Point cp1 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, effectiveCurveAngle);
                         Point cp2 = computeControlPoint(pFrom.x, pFrom.y, pTo.x, pTo.y, -effectiveCurveAngle);
@@ -1326,6 +1335,10 @@ public abstract class GuiDiagram extends Gui {
             GL11.glScalef(zoom, zoom, 1.0f);
             GL11.glTranslatef(-centerX, -centerY, 0);
             for (DiagramConnection conn : getConnections()) {
+                boolean showArrow = (conn.showArrowHead != null ? conn.showArrowHead : this.showArrowHeads);
+                if(!showArrow)
+                    continue;
+
                 DiagramIcon iconFrom = getIconById(conn.idFrom);
                 DiagramIcon iconTo = getIconById(conn.idTo);
                 if (iconFrom == null || iconTo == null || !iconFrom.enabled || !iconTo.enabled)
@@ -1552,6 +1565,8 @@ public abstract class GuiDiagram extends Gui {
         public String hoverText;
         public Integer customCurveAngle = null;
         public Integer customColor = null;
+        public Boolean customAllowCurve = null;
+        public Boolean showArrowHead = null;
 
         public DiagramConnection(int idFrom, int idTo, float percent, String hoverText) {
             this.idFrom = idFrom;
