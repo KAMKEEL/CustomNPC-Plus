@@ -1495,8 +1495,8 @@ public abstract class GuiDiagram extends Gui {
 
     public void handleMouseScroll(int scrollDelta) {
         zoom += scrollDelta * 0.0009f;
-        if (zoom < 0.5f) zoom = 0.5f;
-        if (zoom > 2.0f) zoom = 2.0f;
+        if (zoom < 0.2f) zoom = 0.2f;
+        if (zoom > 3.0f) zoom = 3.0f;
     }
 
     protected void drawHoveringText(List<String> textLines, int mouseX, int mouseY, FontRenderer font) {
