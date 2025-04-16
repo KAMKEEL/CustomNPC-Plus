@@ -74,7 +74,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
         if (stats.pEffect != EnumPotionType.None) {
             int internalY = y + 30;
             addLabel(new GuiNpcLabel(50, "gui.time", guiLeft + 210, internalY + 5));
-            addTextField(new GuiNpcTextField(5, this, fontRendererObj, guiLeft + 330, internalY, 52, 20, stats.potionDuration + ""));
+            addTextField(new GuiNpcTextField(5, this, fontRendererObj, guiLeft + 330, internalY, 52, 20, stats.pDur + ""));
             getTextField(5).integersOnly = true;
             getTextField(5).setMinMaxDefault(1, Integer.MAX_VALUE, 5);
             if (stats.pEffect != EnumPotionType.Fire) {
