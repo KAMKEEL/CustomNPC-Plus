@@ -225,7 +225,7 @@ public class ClientEventHandler {
             return;
         }
 
-        if (renderPlayerJBRA == null && !renderPlayerJBRA.isInstance(event.renderer)) {
+        if (renderPlayerJBRA != null && !renderPlayerJBRA.isInstance(event.renderer)) {
             return;
         }
 
