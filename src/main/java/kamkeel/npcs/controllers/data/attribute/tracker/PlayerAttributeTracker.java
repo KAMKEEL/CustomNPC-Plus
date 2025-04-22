@@ -31,7 +31,7 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
     public static UUID knockbackResUUID = UUID.fromString("b2f261e8-34f0-4140-9828-b56c1f6e0ff2");
 
     private final UUID playerId;
-    private PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
+    public PlayerAttributeMap playerAttributes = new PlayerAttributeMap();
 
     public float extraHealth = 0;
     public float extraHealthBoost = 0;
@@ -61,6 +61,8 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
         magicDefense.clear();
         magicResistance.clear();
         if (player != null) {
+            AttributeRecalcEvent.pre(player, this);
+
             // Update equipment tracker.
             PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
             currentEquip.updateFrom(player);

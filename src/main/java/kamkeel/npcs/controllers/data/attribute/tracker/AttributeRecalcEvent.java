@@ -5,24 +5,32 @@ import net.minecraft.entity.player.EntityPlayer;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AttributeRecalcEvent {
-    private static final List<IAttributeRecalcListener> listeners = new ArrayList<>();
-
-    /**
-     * Allows other mods to register a listener that is called after attribute recalculation.
-     */
-    public static void registerListener(IAttributeRecalcListener listener) {
-        if (listener != null && !listeners.contains(listener)) {
-            listeners.add(listener);
-        }
+public final class AttributeRecalcEvent {
+    @FunctionalInterface
+    public interface PreListener {
+        void onPre(EntityPlayer player, PlayerAttributeTracker tracker);
     }
 
-    /**
-     * Posts an event to all registered listeners.
-     */
+    private static final List<PreListener> preListeners = new ArrayList<>();
+    private static final List<Listener> postListeners = new ArrayList<>();
+
+    public static void pre(EntityPlayer player, PlayerAttributeTracker tracker) {
+        for (PreListener l : preListeners) l.onPre(player, tracker);
+    }
+
+    @FunctionalInterface
+    public interface Listener {
+        void onPost(EntityPlayer player, PlayerAttributeTracker tracker);
+    }
+
+    public static void registerListener(Listener l) {
+        postListeners.add(l);
+    }
     public static void post(EntityPlayer player, PlayerAttributeTracker tracker) {
-        for (IAttributeRecalcListener listener : listeners) {
-            listener.onAttributesRecalculated(player, tracker);
-        }
+        for (Listener l : postListeners) l.onPost(player, tracker);
+    }
+
+    public static void registerPreListener(PreListener l) {
+        preListeners.add(l);
     }
 }
