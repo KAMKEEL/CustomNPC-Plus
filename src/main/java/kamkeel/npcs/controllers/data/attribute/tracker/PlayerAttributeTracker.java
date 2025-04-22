@@ -61,6 +61,7 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
         magicDefense.clear();
         magicResistance.clear();
         if (player != null) {
+            // Pre Event Listener
             AttributeRecalcEvent.pre(player, this);
 
             // Update equipment tracker.
