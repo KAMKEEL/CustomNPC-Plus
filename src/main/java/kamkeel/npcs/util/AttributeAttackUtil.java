@@ -204,11 +204,7 @@ public class AttributeAttackUtil {
         MagicController magicController = MagicController.getInstance();
         Set<Integer> defenderMagicIDs = new HashSet<>(defenderData.magicData.getMagics().keySet());
         applyMagicInteractions(result.allocation, defenderMagicIDs, magicController);
-
-        float adjustedMagic = 0f;
-        for (float val : result.allocation.values())
-            adjustedMagic += val;
-
+        float adjustedMagic = applyDefenderMagicDefense(result.allocation, defender, magicController);
         return leftover + adjustedMagic;
     }
 
