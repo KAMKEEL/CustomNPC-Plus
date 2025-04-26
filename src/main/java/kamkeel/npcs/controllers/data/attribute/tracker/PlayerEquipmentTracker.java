@@ -5,6 +5,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
+import java.util.Objects;
+
+import static kamkeel.npcs.util.AttributeItemUtil.TAG_RPGCORE;
+
 public class PlayerEquipmentTracker {
     public ItemStack heldItem;
     public ItemStack helmet;
@@ -25,19 +29,35 @@ public class PlayerEquipmentTracker {
         helmet = copyIfNotNull(armor[3]);
     }
 
-    /**
-     * Compares the stored equipment with the player's current equipment.
-     * Ignores changes like durability by comparing the item and the CNPCAttributes NBT only.
-     */
-    public boolean equals(EntityPlayer player) {
-        if (player == null) return false;
-        if (!areItemStacksEquivalent(heldItem, player.getHeldItem())) return false;
-        ItemStack[] armor = player.inventory.armorInventory;
-        if (!areItemStacksEquivalent(boots, armor[0])) return false;
-        if (!areItemStacksEquivalent(leggings, armor[1])) return false;
-        if (!areItemStacksEquivalent(chestplate, armor[2])) return false;
-        if (!areItemStacksEquivalent(helmet, armor[3])) return false;
-        return true;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PlayerEquipmentTracker)) return false;
+        PlayerEquipmentTracker other = (PlayerEquipmentTracker)o;
+        return areItemStacksEquivalent(heldItem,   other.heldItem)
+            && areItemStacksEquivalent(boots,       other.boots)
+            && areItemStacksEquivalent(leggings,    other.leggings)
+            && areItemStacksEquivalent(chestplate,  other.chestplate)
+            && areItemStacksEquivalent(helmet,      other.helmet);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+            itemHash(heldItem),
+            itemHash(boots),
+            itemHash(leggings),
+            itemHash(chestplate),
+            itemHash(helmet)
+        );
+    }
+
+    private int itemHash(ItemStack s) {
+        if (s == null) return 0;
+        NBTTagCompound root = s.stackTagCompound;
+        if (root == null || !root.hasKey(TAG_RPGCORE)) return 0;
+        NBTTagCompound tag = root.getCompoundTag(TAG_RPGCORE);
+        return Objects.hash(s.getItem(), tag);
     }
 
     /**
@@ -55,12 +75,16 @@ public class PlayerEquipmentTracker {
         if (a == b) return true;
         if (a == null || b == null) return false;
         if (a.getItem() != b.getItem()) return false;
-        NBTTagCompound tagA = a.stackTagCompound;
-        NBTTagCompound tagB = b.stackTagCompound;
-        String attrA = (tagA != null && tagA.hasKey(AttributeItemUtil.TAG_RPGCORE))
-            ? tagA.getCompoundTag(AttributeItemUtil.TAG_RPGCORE).toString() : "";
-        String attrB = (tagB != null && tagB.hasKey(AttributeItemUtil.TAG_RPGCORE))
-            ? tagB.getCompoundTag(AttributeItemUtil.TAG_RPGCORE).toString() : "";
-        return attrA.equals(attrB);
+
+        NBTTagCompound tagA = a.stackTagCompound != null
+            ? a.stackTagCompound.getCompoundTag(TAG_RPGCORE)
+            : null;
+        NBTTagCompound tagB = b.stackTagCompound != null
+            ? b.stackTagCompound.getCompoundTag(TAG_RPGCORE)
+            : null;
+        if (tagA == null ^ tagB == null) return false;
+        if (tagA != null && !tagA.equals(tagB)) return false;
+
+        return true;
     }
 }

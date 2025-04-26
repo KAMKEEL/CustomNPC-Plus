@@ -249,6 +249,9 @@ public class AttributeItemUtil {
                 // For non–magic we include everything.
                 Float value = attrTag.getFloat(key);
                 AttributeDefinition def = AttributeController.getAttribute(key);
+                if(def == null)
+                    continue;
+
                 AttributeDefinition.AttributeSection section = def != null ? def.getSection() : AttributeDefinition.AttributeSection.EXTRA;
                 String plainName = getTranslatedAttributeName(key, def); // unformatted name
                 String formattedLine = formatAttributeLine(def, section, value, plainName);

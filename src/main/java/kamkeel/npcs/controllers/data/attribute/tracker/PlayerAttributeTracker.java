@@ -208,10 +208,11 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
      * Checks if the player's equipment has changed and recalculates attributes if needed.
      */
     public void updateIfChanged(EntityPlayer player) {
-        PlayerEquipmentTracker currentEquip = new PlayerEquipmentTracker();
-        currentEquip.updateFrom(player);
-        if (!equipmentTracker.equals(player)) {
+        PlayerEquipmentTracker current = new PlayerEquipmentTracker();
+        current.updateFrom(player);
+        if (!equipmentTracker.equals(current)) {
             recalcAttributes(player);
+            equipmentTracker = current;
         }
     }
 
