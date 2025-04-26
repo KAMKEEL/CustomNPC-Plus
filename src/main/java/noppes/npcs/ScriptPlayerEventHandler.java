@@ -501,7 +501,7 @@ public class ScriptPlayerEventHandler {
             // Player to Player Interaction
             if (ConfigMain.AttributesEnabled) {
                 if (event.entityLiving instanceof EntityPlayerMP && source instanceof EntityPlayerMP) {
-                    event.ammount = AttributeAttackUtil.calculateDamagePlayerToPlayer((EntityPlayer) event.entityLiving, (EntityPlayer) source, event.ammount);
+                    event.ammount = AttributeAttackUtil.calculateDamagePlayerToPlayer((EntityPlayer) source, (EntityPlayer) event.entityLiving, event.ammount);
                 } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer) {
                     event.ammount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) source, event.ammount);
                 }
