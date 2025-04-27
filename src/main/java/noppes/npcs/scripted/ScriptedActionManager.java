@@ -284,10 +284,8 @@ public class ScriptedActionManager implements IActionManager {
                     markDone();
                     return;
                 }
-                if (predicate.get()) {
+                if (predicate.get())
                     task.accept(this);
-                    markDone();
-                }
             }
         }
 
