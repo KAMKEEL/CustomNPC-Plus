@@ -104,6 +104,11 @@ public class ScriptedActionManager implements IActionManager {
         scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
     }
 
+    @Override
+    public void scheduleConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, int maxChecks) {
+        scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, terminateWhen, task, maxChecks));
+    }
+
     /**
      * Call once per tick from your main loop.
      *
@@ -261,6 +266,7 @@ public class ScriptedActionManager implements IActionManager {
 
     private class ConditionalAction extends ActionBase {
         private final Supplier<Boolean> predicate;
+        private Supplier<Boolean> terminate;
         private final int maxChecks;
         private int checkCount = 0;
 
@@ -275,12 +281,17 @@ public class ScriptedActionManager implements IActionManager {
             this.maxChecks       = maxChecks;
         }
 
+        public ConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task, int maxChecks) {
+            this(name, checkIntervalTicks, predicate, task, maxChecks);
+            this.terminate = terminate;
+        }
+
         @Override
         public void tick(int ticksExisted) {
             if (isDone()) return;
             if (ticksExisted % updateEveryXTick == 0) {
                 checkCount++;
-                if (maxChecks >= 0 && checkCount > maxChecks) {
+                if ((maxChecks >= 0 && checkCount > maxChecks) || terminate.get()) {
                     markDone();
                     return;
                 }
