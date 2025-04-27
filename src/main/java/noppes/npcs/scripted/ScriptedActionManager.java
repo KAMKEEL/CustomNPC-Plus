@@ -291,7 +291,7 @@ public class ScriptedActionManager implements IActionManager {
             if (isDone()) return;
             if (ticksExisted % updateEveryXTick == 0) {
                 checkCount++;
-                if ((maxChecks >= 0 && checkCount > maxChecks) || terminate.get()) {
+                if ((maxChecks >= 0 && checkCount > maxChecks) || terminate != null && terminate.get()) {
                     markDone();
                     return;
                 }
