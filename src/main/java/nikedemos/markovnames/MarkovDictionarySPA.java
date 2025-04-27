@@ -19,7 +19,7 @@ public class MarkovDictionarySPA extends MarkovDictionary {
 
         String[] parts = str.split("#");
 
-        StringBuilder build = new StringBuilder();
+        StringBuilder build = new StringBuilder("");
 
         for (int p = 0; p < parts.length; p++) {
             // capitalize this part, but only if it's not "de", "del", "la" or "los"

@@ -14,8 +14,8 @@ import java.util.List;
 public class EventGuiScriptList extends SubGuiInterface {
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
-    private final ScriptContainer container;
-    private final List<String> scripts;
+    private ScriptContainer container;
+    private List<String> scripts;
 
     public EventGuiScriptList(List<String> scripts, ScriptContainer container) {
         this.container = container;
@@ -26,7 +26,7 @@ public class EventGuiScriptList extends SubGuiInterface {
             scripts = new ArrayList();
         }
 
-        this.scripts = scripts;
+        this.scripts = (List) scripts;
     }
 
     public void initGui() {

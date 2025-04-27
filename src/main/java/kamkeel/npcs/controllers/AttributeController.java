@@ -5,6 +5,10 @@ import kamkeel.npcs.controllers.data.attribute.AttributeDefinition;
 import kamkeel.npcs.controllers.data.attribute.AttributeValueType;
 import kamkeel.npcs.controllers.data.attribute.tracker.PlayerAttributeTracker;
 import net.minecraft.entity.player.EntityPlayer;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.handler.IAttributeHandler;
+import noppes.npcs.api.handler.data.IAttributeDefinition;
+import noppes.npcs.api.handler.data.IPlayerAttributes;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -15,9 +19,9 @@ import java.util.UUID;
  * AttributeController is the central registry for attribute definitions.
  * It ensures that keys are unique.
  */
-public class AttributeController {
+public class AttributeController implements IAttributeHandler {
 
-    public AttributeController Instance;
+    public static AttributeController Instance;
     public CustomAttributes attributes;
 
     // Tracking Player Attributes
@@ -25,7 +29,7 @@ public class AttributeController {
     private static final Map<String, AttributeDefinition> definitions = new HashMap<>();
 
     public AttributeController() {
-        this.Instance = this;
+        Instance = this;
         definitions.clear();
         trackers.clear();
         attributes = new CustomAttributes();
@@ -74,5 +78,21 @@ public class AttributeController {
             PlayerAttributeTracker tracker = getTracker(player);
             tracker.updateIfChanged(player);
         }
+    }
+
+    public IPlayerAttributes getPlayerAttributes(IPlayer player) {
+        if(player == null || player.getMCEntity() == null)
+            return null;
+
+        EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();
+        return trackers.computeIfAbsent(entityPlayer.getUniqueID(), id -> new PlayerAttributeTracker(id));
+    }
+
+    public IAttributeDefinition getAttributeDefinition(String key) {
+        return definitions.get(key);
+    }
+
+    public IAttributeDefinition[] getAllAttributesArray() {
+        return definitions.values().toArray(new AttributeDefinition[definitions.size()]);
     }
 }

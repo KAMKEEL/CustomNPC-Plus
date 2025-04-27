@@ -183,7 +183,7 @@ public class FactionController implements IFactionHandler {
 
     public IFaction delete(int id) {
         if (id >= 0 && this.factions.size() > 1) {
-            Faction faction = this.factions.remove(id);
+            Faction faction = (Faction) this.factions.remove(id);
             saveFactions();
             if (faction == null) {
                 return null;

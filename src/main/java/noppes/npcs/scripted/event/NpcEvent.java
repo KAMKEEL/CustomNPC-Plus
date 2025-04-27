@@ -226,7 +226,7 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
 
         public SwingEvent(ICustomNpc npc, ItemStack itemStack) {
             super(npc);
-            this.itemStack = itemStack == null ? null : NpcAPI.Instance().getIItemStack(itemStack);
+            this.itemStack = itemStack == null ? null : (IItemStack) NpcAPI.Instance().getIItemStack(itemStack);
         }
 
         public String getHookName() {

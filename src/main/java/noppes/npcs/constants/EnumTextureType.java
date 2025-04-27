@@ -6,7 +6,7 @@ public enum EnumTextureType {
     BASE("texture.base"),
     ITEM("texture.item");
 
-    private final String lang;
+    private String lang;
 
     EnumTextureType(String langName) {
         this.lang = langName;

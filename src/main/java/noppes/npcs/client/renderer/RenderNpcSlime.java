@@ -6,7 +6,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 
 public class RenderNpcSlime extends RenderNPCInterface {
-    private final ModelBase scaleAmount;
+    private ModelBase scaleAmount;
 
     public RenderNpcSlime(ModelBase par1ModelBase, ModelBase par2ModelBase, float par3) {
         super(par1ModelBase, par3);

@@ -57,7 +57,7 @@ public final class TileEntityGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
         TileEntity tile = player.worldObj.getTileEntity(in.readInt(), in.readInt(), in.readInt());

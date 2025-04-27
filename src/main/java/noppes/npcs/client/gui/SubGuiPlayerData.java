@@ -452,7 +452,7 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
 
         splitField.setFloatsOnly();
         damageField.setFloatsOnly();
-        splitField.setMinMaxDefaultFloat(0, 1000000000, 0);
+        splitField.setMinMaxDefaultFloat(-100000, 1000000000, 0);
         damageField.setMinMaxDefaultFloat(0, 1000000000, 0);
         splitField.enabled = false;
         damageField.enabled = false;

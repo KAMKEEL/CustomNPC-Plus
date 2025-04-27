@@ -249,6 +249,9 @@ public class AttributeItemUtil {
                 // For non–magic we include everything.
                 Float value = attrTag.getFloat(key);
                 AttributeDefinition def = AttributeController.getAttribute(key);
+                if(def == null)
+                    continue;
+
                 AttributeDefinition.AttributeSection section = def != null ? def.getSection() : AttributeDefinition.AttributeSection.EXTRA;
                 String plainName = getTranslatedAttributeName(key, def); // unformatted name
                 String formattedLine = formatAttributeLine(def, section, value, plainName);
@@ -281,10 +284,14 @@ public class AttributeItemUtil {
             baseOrder.put("Health", 1);
             baseOrder.put("Main Attack Damage", 2);
             baseOrder.put("Neutral Damage", 3);
+
             // For Modifier: Main Attack Damage then Neutral Damage.
             Map<String, Integer> modOrder = new HashMap<>();
-            modOrder.put("Main Attack Damage", 1);
-            modOrder.put("Neutral Damage", 2);
+            modOrder.put("Health Boost", 1);
+            modOrder.put("Main Attack Damage", 2);
+            modOrder.put("Neutral Damage", 3);
+            modOrder.put("Movement Speed", 4);
+            modOrder.put("Knockback Resistance", 5);
 
             // Build sections using our custom sorting.
             newTooltips.addAll(buildSection(baseList, baseOrder));

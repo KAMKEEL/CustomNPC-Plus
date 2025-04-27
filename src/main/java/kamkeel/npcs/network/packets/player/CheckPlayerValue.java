@@ -12,7 +12,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerFactionData;
@@ -56,7 +55,7 @@ public class CheckPlayerValue extends AbstractPacket {
         Type type = Type.values()[in.readInt()];
         switch (type) {
             case Faction:
-                PlayerFactionData data = PlayerDataController.Instance.getPlayerData(playerMP).factionData;
+                PlayerFactionData data = PlayerData.get(playerMP).factionData;
                 GuiDataPacket.sendGuiData(playerMP, data.getPlayerGuiData());
                 break;
             case QuestLog:
@@ -66,8 +65,8 @@ public class CheckPlayerValue extends AbstractPacket {
                 NoppesUtilPlayer.sendTrackedQuest(playerMP);
                 break;
             case CheckQuestCompletion:
-                PlayerData playerData = PlayerDataController.Instance.getPlayerData(playerMP);
-                PlayerQuestData questData = PlayerDataController.Instance.getPlayerData(playerMP).questData;
+                PlayerData playerData = PlayerData.get(playerMP);
+                PlayerQuestData questData = PlayerData.get(playerMP).questData;
                 Party playerParty = playerData.getPlayerParty();
                 if (playerParty != null)
                     PartyController.Instance().checkQuestCompletion(playerParty, null);

@@ -402,7 +402,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             addText("    ");
         }
         if (i == Keyboard.KEY_RETURN) {
-            addText('\n' + getIndentCurrentLine());
+            addText(Character.toString('\n') + getIndentCurrentLine());
         }
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
             addText(Character.toString(c));
@@ -453,6 +453,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         int i;
         for (i = 0; i < data.text.length() && data.text.charAt(i) == 32; ++i) {
+            ;
         }
 
         return data.text.substring(0, i);
@@ -489,7 +490,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private int cursorUp() {
         for (int i = 0; i < this.container.lines.size(); ++i) {
-            LineData data = this.container.lines.get(i);
+            LineData data = (LineData) this.container.lines.get(i);
             if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {
                 if (i == 0) {
                     return 0;
@@ -505,7 +506,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private int cursorDown() {
         for (int i = 0; i < this.container.lines.size(); ++i) {
-            LineData data = this.container.lines.get(i);
+            LineData data = (LineData) this.container.lines.get(i);
             if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {
                 int var10000 = this.cursorPosition - data.start;
                 return this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, this.cursorPosition - data.start)), this.y + 1 + (i + 1 - this.scrolledLine) * this.container.lineHeight);

@@ -27,14 +27,14 @@ import java.util.*;
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener {
 
     public HashMap<String, Class<? extends EntityLivingBase>> data = new HashMap<String, Class<? extends EntityLivingBase>>();
-    private final List<String> list;
+    private List<String> list;
     private final String[] ignoredTags = {"CanBreakDoors", "Bred", "PlayerCreated", "Tame", "HasReproduced"};
 
     private GuiNpcButton prev, next;
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
 
-    private final HashMap<Integer, String> mapped = new HashMap<Integer, String>();
+    private HashMap<Integer, String> mapped = new HashMap<Integer, String>();
 
     public GuiCreationScreen(GuiScreen parent, EntityCustomNpc npc) {
         super(npc);
@@ -77,7 +77,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
 
     @Override
     public void initGui() {
-        EntityLivingBase entity = playerdata.getEntity(npc);
+        EntityLivingBase entity = (EntityLivingBase) playerdata.getEntity(npc);
         xOffset = entity == null ? 0 : 50;
         super.initGui();
 
@@ -321,7 +321,7 @@ public class GuiCreationScreen extends GuiModelInterface implements ICustomScrol
             try {
                 EntityLivingBase entity = playerdata.getEntity(npc);
                 Method method = entity.getClass().getMethod("setBreedID", int.class);
-                method.invoke(entity, button.getValue());
+                method.invoke(entity, ((GuiNpcButton) button).getValue());
                 NBTTagCompound comp = new NBTTagCompound();
                 entity.writeEntityToNBT(comp);
                 playerdata.extra.setString("EntityData21", comp.getString("EntityData21"));

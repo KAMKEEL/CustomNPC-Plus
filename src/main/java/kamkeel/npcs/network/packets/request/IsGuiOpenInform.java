@@ -8,7 +8,6 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import net.minecraft.entity.player.EntityPlayer;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.io.IOException;
@@ -44,7 +43,7 @@ public final class IsGuiOpenInform extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerdata = PlayerData.get(player);
         boolean isGUIOpen = in.readBoolean();
         playerdata.setGUIOpen(isGUIOpen);
     }

@@ -30,7 +30,7 @@ public class DataInventory implements IInventory {
 
     public int lootMode = 0;
 
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
 
     public DataInventory(EntityNPCInterface npc) {
         this.npc = npc;
@@ -278,6 +278,7 @@ public class DataInventory implements IInventory {
     public ItemStack getStackInSlotOnClosing(int par1) {
         int i = 0;
         HashMap<Integer, ItemStack> var2;
+        ;
 
         if (par1 >= 7) {
             var2 = items;

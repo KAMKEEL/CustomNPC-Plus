@@ -14,8 +14,8 @@ import org.lwjgl.opengl.GL11;
 public class GuiNpcCompanionInv extends GuiContainerNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/companioninv.png");
     private final ResourceLocation slot = new ResourceLocation("customnpcs", "textures/gui/slot.png");
-    private final EntityNPCInterface npc;
-    private final RoleCompanion role;
+    private EntityNPCInterface npc;
+    private RoleCompanion role;
 
     public GuiNpcCompanionInv(EntityNPCInterface npc,
                               ContainerNPCCompanion container) {

@@ -4,7 +4,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumQuestCompletion;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -60,7 +59,7 @@ public class QuestLogData {
     }
 
     public void setData(EntityPlayer player) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
 
         for (Quest quest : PlayerQuestController.getActiveQuests(player)) {
             String category = quest.category.title;
@@ -99,7 +98,7 @@ public class QuestLogData {
     }
 
     public void setTrackedQuestKey(EntityPlayer player) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
 
         Party party = playerData.getPlayerParty();
         if (party != null && party.getQuest() != null) {

@@ -40,7 +40,7 @@ public class TileRedstoneBlock extends TileEntity {
             return;
         ticks = 20;
         Block block = worldObj.getBlock(this.xCoord, this.yCoord, this.zCoord);
-        if (block == null || !(block instanceof BlockNpcRedstone)) {
+        if (block == null || block instanceof BlockNpcRedstone == false) {
             return;
         }
 

@@ -39,7 +39,6 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Map;
 
@@ -97,7 +96,7 @@ public class RenderNPCInterface extends RenderLiving {
         i = npc.getBrightnessForRender(0);
         int j = i % 65536;
         int k = i / 65536;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j / 1.0F, (float) k / 1.0F);
 
         float f1 = (npc.baseHeight / 5f) * npc.display.modelSize;
         float f2 = 0.01666667F * f1;
@@ -184,7 +183,7 @@ public class RenderNPCInterface extends RenderLiving {
             GL11.glRotatef(270F, 0.0F, 1.0F, 0.0F);
         } else if (npc.isEntityAlive() && npc.currentAnimation == EnumAnimation.CRAWLING) {
             GL11.glRotatef(270.0F - f1, 0.0F, 1.0F, 0.0F);
-            float scale = npc.display.modelSize / 5f;
+            float scale = ((EntityCustomNpc) npc).display.modelSize / 5f;
             GL11.glTranslated(-scale + ((EntityCustomNpc) npc).modelData.getLegsY() * scale, 0.14f, 0);
             GL11.glRotatef(270F, 0.0F, 0.0F, 1.0F);
             GL11.glRotatef(270F, 0.0F, 1.0F, 0.0F);
@@ -428,6 +427,7 @@ public class RenderNPCInterface extends RenderLiving {
         float f3;
 
         for (f3 = p_77034_2_ - p_77034_1_; f3 < -180.0F; f3 += 360.0F) {
+            ;
         }
 
         while (f3 >= 180.0F) {
@@ -479,7 +479,7 @@ public class RenderNPCInterface extends RenderLiving {
 
                     if (overlayData.getGlow()) {
                         GL11.glDisable(GL11.GL_LIGHTING);
-                        Minecraft.getMinecraft().entityRenderer.disableLightmap(0);
+                        Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
                     }
 
                     GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
@@ -513,7 +513,7 @@ public class RenderNPCInterface extends RenderLiving {
                     GL11.glDepthFunc(GL11.GL_LEQUAL);
                     GL11.glDisable(GL11.GL_BLEND);
                     GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-                    Minecraft.getMinecraft().entityRenderer.enableLightmap(0);
+                    Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
                 } catch (Exception ignored) {
                 }
             }
@@ -619,15 +619,15 @@ public class RenderNPCInterface extends RenderLiving {
 
             try {
                 MessageDigest digest = MessageDigest.getInstance("MD5");
-                byte[] hash = digest.digest(npc.display.texture.getBytes(StandardCharsets.UTF_8));
+                byte[] hash = digest.digest(npc.display.texture.getBytes("UTF-8"));
                 StringBuilder sb = new StringBuilder(2 * hash.length);
                 for (byte b : hash) {
                     sb.append(String.format("%02x", b & 0xff));
                 }
                 if (npc.display.modelType == 0) {
-                    location = new ResourceLocation("skin/" + sb);
+                    location = new ResourceLocation("skin/" + sb.toString());
                 } else {
-                    location = new ResourceLocation("skin64/" + sb);
+                    location = new ResourceLocation("skin64/" + sb.toString());
                 }
             } catch (Exception ignored) {
             }

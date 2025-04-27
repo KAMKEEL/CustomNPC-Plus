@@ -30,9 +30,9 @@ public class GuiQuestLog extends GuiCNPCInventory implements ICustomScrollListen
 
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");
 
-    private final EntityPlayer player;
+    private EntityPlayer player;
     private GuiCustomScroll scroll;
-    private final HashMap<Integer, GuiMenuSideButton> sideButtons = new HashMap<Integer, GuiMenuSideButton>();
+    private HashMap<Integer, GuiMenuSideButton> sideButtons = new HashMap<Integer, GuiMenuSideButton>();
     private QuestLogData data = new QuestLogData();
     private boolean noQuests = false;
     private byte questPages = 1;

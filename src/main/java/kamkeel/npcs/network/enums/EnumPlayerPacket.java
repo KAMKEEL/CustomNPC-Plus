@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.enums;
 
+
 public enum EnumPlayerPacket {
     FollowerAction,
     Transport,
@@ -14,11 +15,15 @@ public enum EnumPlayerPacket {
     GetRole,
     InputDevice,
     ScreenSize,
+    MagicCycles,
 
     CustomGuiButton,
     CustomGuiScrollClick,
     CustomGuiClose,
     CustomGuiUnfocused,
+
+    GuiPaintbrush,
+    GuiMagicBook,
 
     ProfileCreate,
     ProfileRemove,

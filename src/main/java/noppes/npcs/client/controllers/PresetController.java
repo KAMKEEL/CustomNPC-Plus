@@ -14,7 +14,7 @@ public class PresetController {
 
     public HashMap<String, Preset> presets = new HashMap<String, Preset>();
 
-    private final File dir;
+    private File dir;
     public static PresetController instance;
 
     public PresetController(File dir) {

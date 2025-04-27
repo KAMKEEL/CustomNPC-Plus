@@ -6,21 +6,21 @@ import noppes.npcs.client.model.ModelMPM;
 
 public class ModelDigitigradeLegs extends ModelRenderer {
 
-    private final ModelRenderer rightleg;
-    private final ModelRenderer rightleg2;
-    private final ModelRenderer rightleglow;
-    private final ModelRenderer rightfoot;
-    private final ModelRenderer leftleg;
-    private final ModelRenderer leftleg2;
-    private final ModelRenderer leftleglow;
-    private final ModelRenderer leftfoot;
+    private ModelRenderer rightleg;
+    private ModelRenderer rightleg2;
+    private ModelRenderer rightleglow;
+    private ModelRenderer rightfoot;
+    private ModelRenderer leftleg;
+    private ModelRenderer leftleg2;
+    private ModelRenderer leftleglow;
+    private ModelRenderer leftfoot;
 
     public boolean isRiding = false;
     public boolean isSneaking = false;
     public boolean isSleeping = false;
     public boolean isCrawling = false;
 
-    private final ModelMPM base;
+    private ModelMPM base;
 
     public ModelDigitigradeLegs(ModelMPM base, boolean mirror, int textWidth, int textHeight) {
         super(base);

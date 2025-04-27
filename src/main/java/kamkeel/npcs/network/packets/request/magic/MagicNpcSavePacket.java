@@ -46,7 +46,7 @@ public final class MagicNpcSavePacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_MAGIC;
     }
 
     @SideOnly(Side.CLIENT)
@@ -61,7 +61,7 @@ public final class MagicNpcSavePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND))
             return;
 
         NBTTagCompound compound = ByteBufUtils.readNBT(in);

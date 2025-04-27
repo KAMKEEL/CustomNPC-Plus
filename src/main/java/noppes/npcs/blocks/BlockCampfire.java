@@ -92,9 +92,9 @@ public class BlockCampfire extends BlockLightable {
 
         float xOffset = 0.5f, yOffset = 0.7f, zOffset = 0.5f;
 
-        double d0 = (float) x + xOffset;
-        double d1 = (float) y + yOffset;
-        double d2 = (float) z + zOffset;
+        double d0 = (double) ((float) x + xOffset);
+        double d1 = (double) ((float) y + yOffset);
+        double d2 = (double) ((float) z + zOffset);
 
         GL11.glPushMatrix();
 

@@ -50,7 +50,7 @@ public final class TileEntitySavePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
         NoppesUtilServer.saveTileEntity((EntityPlayerMP) player, ByteBufUtils.readNBT(in));

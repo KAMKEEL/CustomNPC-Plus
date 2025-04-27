@@ -6,8 +6,8 @@ import net.minecraft.util.Vec3;
 import noppes.npcs.constants.AiMutex;
 
 public class EntityAIPanic extends EntityAIBase {
-    private final EntityCreature theEntityCreature;
-    private final float speed;
+    private EntityCreature theEntityCreature;
+    private float speed;
     private double randPosX;
     private double randPosY;
     private double randPosZ;

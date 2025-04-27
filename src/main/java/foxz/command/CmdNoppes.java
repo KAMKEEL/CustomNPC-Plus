@@ -216,7 +216,7 @@ public class CmdNoppes extends ChMcLogger {
             return cmdnpc.addTabCompletion(par1, Arrays.copyOfRange(args, 1, args.length));
         }
         if (args[0].equalsIgnoreCase("faction") && args.length == 4) {
-            return CommandBase.getListOfStringsMatchingLastWord(args, "add", "subtract", "set", "reset", "drop", "create");
+            return CommandBase.getListOfStringsMatchingLastWord(args, new String[]{"add", "subtract", "set", "reset", "drop", "create"});
         }
         return super.addTabCompletion(par1, args);
     }

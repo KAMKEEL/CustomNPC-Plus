@@ -36,12 +36,14 @@ public class AttributeAttackUtil {
     private static AllocationResult allocateMagicDamage(float physicalDamage, Map<Integer, MagicEntry> magicData) {
         Map<Integer, Float> allocation = new HashMap<>();
         float totalSplit = 0f;
-        for (Map.Entry<Integer, MagicEntry> entry : magicData.entrySet()) {
-            int magicId = entry.getKey();
-            float splitVal = entry.getValue().split;
-            float allocated = (physicalDamage * splitVal) + entry.getValue().damage;
-            allocation.put(magicId, allocated);
-            totalSplit += splitVal;
+        if(magicData != null){
+            for (Map.Entry<Integer, MagicEntry> entry : magicData.entrySet()) {
+                int magicId = entry.getKey();
+                float splitVal = entry.getValue().split;
+                float allocated = (physicalDamage * splitVal) + entry.getValue().damage;
+                allocation.put(magicId, allocated);
+                totalSplit += splitVal;
+            }
         }
         // Ensure double arithmetic for subtraction, then cast back to float.
         float leftover = physicalDamage * (float) Math.max(0d, 1d - totalSplit);
@@ -59,7 +61,7 @@ public class AttributeAttackUtil {
             int magicId = entry.getKey();
             float damage = entry.getValue();
             float boost = magicBoost.getOrDefault(magicId, 0f);
-            damage *= (1 + (boost / 100));
+            damage *= (1 + (boost / 100f));
             allocation.put(magicId, allocation.getOrDefault(magicId, 0f) + damage);
         }
     }
@@ -164,8 +166,8 @@ public class AttributeAttackUtil {
         if (ConfigMain.AttributesEnabled) {
             float critChance = tracker.getAttributeValue(CustomAttributes.CRITICAL_CHANCE);
             float critBonus = tracker.getAttributeValue(CustomAttributes.CRITICAL_DAMAGE);
-            if (random.nextFloat() < (critChance / 100))
-                damage = (damage * (1 + (float) ConfigMain.AttributesCriticalBoost / 100)) + critBonus;
+            if (random.nextFloat() < (critChance / 100f))
+                damage = (damage * (1 + (float) ConfigMain.AttributesCriticalBoost / 100f)) + critBonus;
         }
         return damage;
     }
@@ -173,8 +175,8 @@ public class AttributeAttackUtil {
     public static float applyMainAttack(float damage, PlayerAttributeTracker tracker) {
         if (ConfigMain.AttributesEnabled) {
             float mainAttack = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-            float mainBoost = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-            damage = (damage * mainBoost) + mainAttack;
+            float mainBoost = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) / 100f;
+            damage = (damage * (1 + mainBoost)) + mainAttack;
         }
         return damage;
     }
@@ -183,7 +185,7 @@ public class AttributeAttackUtil {
         if (ConfigMain.AttributesEnabled) {
             float neutralDamage = tracker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
             float neutralBoost = tracker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST);
-            leftover += neutralDamage * (1 + (neutralBoost / 100));
+            leftover += neutralDamage * (1 + (neutralBoost / 100f));
         }
         return leftover;
     }
@@ -204,11 +206,7 @@ public class AttributeAttackUtil {
         MagicController magicController = MagicController.getInstance();
         Set<Integer> defenderMagicIDs = new HashSet<>(defenderData.magicData.getMagics().keySet());
         applyMagicInteractions(result.allocation, defenderMagicIDs, magicController);
-
-        float adjustedMagic = 0f;
-        for (float val : result.allocation.values())
-            adjustedMagic += val;
-
+        float adjustedMagic = applyDefenderMagicDefense(result.allocation, defender, magicController);
         return leftover + adjustedMagic;
     }
 
@@ -217,7 +215,7 @@ public class AttributeAttackUtil {
      */
     public static float calculateGearOutput(PlayerAttributeTracker attacker) {
         float neutralDamage = attacker.getAttributeValue(CustomAttributes.NEUTRAL_ATTACK);
-        float neutralBoost = attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) + 1;
+        float neutralBoost = 1 + (attacker.getAttributeValue(CustomAttributes.NEUTRAL_BOOST) / 100f);
         float neutralTotal = neutralDamage * neutralBoost;
 
         float magicTotal = 0f;
@@ -227,22 +225,31 @@ public class AttributeAttackUtil {
             if (magicController.getMagic(magicId) != null) {
                 float attackMagic = entry.getValue();
                 float boostMagic = attacker.magicBoost.getOrDefault(magicId, 0f);
-                magicTotal += Math.max(0, attackMagic * (boostMagic + 1));
+                magicTotal += Math.max(0, attackMagic * ((boostMagic / 100f) + 1f));
             }
         }
         return neutralTotal + magicTotal;
     }
 
     /**
-     * Calculates a player's outgoing damage based on base damage and main attack attributes.
+     * Calculates a player's outgoing damage based on weapon damage + main-attack attributes,
+     * plus all neutral/magic damage from gear.
      */
-    public static float calculateOutgoing(EntityPlayer entityPlayer, float baseDamage) {
-        if (ConfigMain.AttributesEnabled) {
-            PlayerAttributeTracker attacker = getTracker(entityPlayer);
-            float mainAttack = attacker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
-            float mainBoost = attacker.getAttributeValue(CustomAttributes.MAIN_BOOST) + 1;
-            return attacker.gearOutput + (baseDamage * mainBoost) + mainAttack;
+    public static float calculateOutgoing(EntityPlayer player, float baseDamage) {
+        if (!ConfigMain.AttributesEnabled) {
+            return baseDamage;
         }
-        return baseDamage;
+
+        PlayerAttributeTracker tracker = getTracker(player);
+
+        // 1) Main-attack component
+        float mainAttackFlat   = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+        float mainBoostPercent = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) / 100f;
+        float mainDamage       = (baseDamage * (1 + mainBoostPercent)) + mainAttackFlat;
+
+        // 2) Gear component (neutral + magic) – gearOutput must itself divide its boosts by 100 internally
+        float gearDamage = tracker.gearOutput;
+
+        return mainDamage + gearDamage;
     }
 }

@@ -6,7 +6,7 @@ import noppes.npcs.roles.JobConversation;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobConversation extends ScriptJobInterface implements IJobConversation {
-    private final JobConversation job;
+    private JobConversation job;
 
     public ScriptJobConversation(EntityNPCInterface npc) {
         super(npc);

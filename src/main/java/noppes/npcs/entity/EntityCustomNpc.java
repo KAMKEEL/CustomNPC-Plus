@@ -82,8 +82,8 @@ public class EntityCustomNpc extends EntityNPCFlying {
             if (isKilled() && stats.hideKilledBody) {
                 width = 0.00001f;
             }
-            if (width / 2 > World.MAX_ENTITY_RADIUS) {
-                World.MAX_ENTITY_RADIUS = width / 2;
+            if (width / 2 > worldObj.MAX_ENTITY_RADIUS) {
+                worldObj.MAX_ENTITY_RADIUS = width / 2;
             }
 
             this.setPosition(posX, posY, posZ);

@@ -97,6 +97,7 @@ public class CmdClone extends ChMcLogger {
             sendmessage(String.format("Npc '%s' wasn't found", nametodel));
             return false;
         }
+        ;
         return true;
     }
 

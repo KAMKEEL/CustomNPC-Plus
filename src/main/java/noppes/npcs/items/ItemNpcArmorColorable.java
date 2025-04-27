@@ -14,7 +14,7 @@ import noppes.npcs.CustomItems;
 
 public class ItemNpcArmorColorable extends ItemArmor {
 
-    private final String texture;
+    private String texture;
 
     public ItemNpcArmorColorable(int par1, ArmorMaterial par2EnumArmorMaterial, int par4, String texture) {
         super(par2EnumArmorMaterial, 0, par4);
@@ -101,7 +101,7 @@ public class ItemNpcArmorColorable extends ItemArmor {
 
     @Override
     public boolean hasColor(ItemStack par1ItemStack) {
-        return par1ItemStack.hasTagCompound() && (par1ItemStack.getTagCompound().hasKey("display", 10) && par1ItemStack.getTagCompound().getCompoundTag("display").hasKey("color", 3));
+        return !par1ItemStack.hasTagCompound() ? false : (!par1ItemStack.getTagCompound().hasKey("display", 10) ? false : par1ItemStack.getTagCompound().getCompoundTag("display").hasKey("color", 3));
     }
 
     @Override

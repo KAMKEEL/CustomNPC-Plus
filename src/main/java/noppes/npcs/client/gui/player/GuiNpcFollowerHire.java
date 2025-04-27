@@ -17,9 +17,9 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiNpcFollowerHire extends GuiContainerNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/followerhire.png");
-    private final EntityNPCInterface npc;
-    private final ContainerNPCFollowerHire container;
-    private final RoleFollower role;
+    private EntityNPCInterface npc;
+    private ContainerNPCFollowerHire container;
+    private RoleFollower role;
 
     public GuiNpcFollowerHire(EntityNPCInterface npc, ContainerNPCFollowerHire container) {
         super(npc, container);
@@ -91,5 +91,6 @@ public class GuiNpcFollowerHire extends GuiContainerNPCInterface {
 
     @Override
     public void save() {
+        return;
     }
 }

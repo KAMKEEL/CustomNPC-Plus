@@ -9,11 +9,11 @@ import org.lwjgl.opengl.GL11;
 
 public class ModelNagaLegs extends ModelRenderer {
 
-    private final ModelRenderer nagaPart1;
-    private final ModelRenderer nagaPart2;
-    private final ModelRenderer nagaPart3;
-    private final ModelRenderer nagaPart4;
-    private final ModelRenderer nagaPart5;
+    private ModelRenderer nagaPart1;
+    private ModelRenderer nagaPart2;
+    private ModelRenderer nagaPart3;
+    private ModelRenderer nagaPart4;
+    private ModelRenderer nagaPart5;
 
     public boolean isRiding = false;
     public boolean isSneaking = false;
@@ -81,6 +81,7 @@ public class ModelNagaLegs extends ModelRenderer {
         plane.mirror = true;
         plane.addTopPlane(0, -2, 0, 4, 6);
         nagaPart3.addChild(plane);
+        ;
 
         plane = new ModelPlaneRenderer(base, 0, 26);
         plane.rotateAngleX = (float) (Math.PI / 2);

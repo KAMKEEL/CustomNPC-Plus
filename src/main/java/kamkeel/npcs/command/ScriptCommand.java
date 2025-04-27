@@ -10,7 +10,7 @@ import static kamkeel.npcs.util.ColorUtil.sendResult;
 public class ScriptCommand extends CommandKamkeelBase {
 
     @SubCommand(desc = "Reload scripts data and folders.")
-    public Boolean reload(ICommandSender sender, String[] args) {
+    public Boolean reload(ICommandSender sender, String args[]) {
         ScriptController.Instance.loadCategories();
 
         if (ScriptController.Instance.loadPlayerScripts())

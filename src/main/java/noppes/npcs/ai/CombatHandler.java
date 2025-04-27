@@ -14,9 +14,9 @@ import java.util.Map;
 
 public class CombatHandler {
 
-    private final Map<EntityLivingBase, Float> aggressors = new HashMap<EntityLivingBase, Float>();
-    private final Map<EntityLivingBase, LinkedList<Float>> recentDamages = new HashMap<>();
-    private final EntityNPCInterface npc;
+    private Map<EntityLivingBase, Float> aggressors = new HashMap<EntityLivingBase, Float>();
+    private Map<EntityLivingBase, LinkedList<Float>> recentDamages = new HashMap<>();
+    private EntityNPCInterface npc;
     private long startTime = 0;
     private int combatResetTimer = 0;
 

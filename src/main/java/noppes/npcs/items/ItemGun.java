@@ -18,7 +18,7 @@ import org.lwjgl.opengl.GL11;
 
 public class ItemGun extends ItemNpcInterface implements IProjectileCallback {
 
-    private final EnumNpcToolMaterial material;
+    private EnumNpcToolMaterial material;
 
     public ItemGun(int par1, EnumNpcToolMaterial material) {
         super(par1);

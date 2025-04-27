@@ -10,9 +10,9 @@ import noppes.npcs.quests.QuestManual;
 import java.util.TreeMap;
 
 public class GuiNpcQuestTypeManual extends SubGuiInterface implements ITextfieldListener {
-    private final GuiScreen parent;
+    private GuiScreen parent;
 
-    private final QuestManual quest;
+    private QuestManual quest;
 
     private GuiNpcTextField lastSelected;
 

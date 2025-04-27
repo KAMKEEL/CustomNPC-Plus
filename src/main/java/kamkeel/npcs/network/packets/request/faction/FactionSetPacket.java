@@ -39,7 +39,7 @@ public final class FactionSetPacket extends AbstractPacket {
 
     @Override
     public CustomNpcsPermissions.Permission getPermission() {
-        return CustomNpcsPermissions.NPC_ADVANCED;
+        return CustomNpcsPermissions.NPC_ADVANCED_FACTION;
     }
 
     @Override
@@ -58,7 +58,7 @@ public final class FactionSetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         int factionId = in.readInt();

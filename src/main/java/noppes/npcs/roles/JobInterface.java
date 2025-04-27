@@ -24,8 +24,12 @@ public abstract class JobInterface {
     public void killed() {
     }
 
+    ;
+
     public void delete() {
     }
+
+    ;
 
     public boolean aiShouldExecute() {
         return false;

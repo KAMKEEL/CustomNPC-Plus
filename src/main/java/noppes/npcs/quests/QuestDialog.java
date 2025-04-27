@@ -53,7 +53,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
             if (dialog == null)
                 continue;
             String title = dialog.title;
-            if (PlayerDataController.Instance.getPlayerData(player).dialogData.dialogsRead.contains(dialogId))
+            if (PlayerData.get(player).dialogData.dialogsRead.contains(dialogId))
                 title += " (read)";
             else
                 title += " (unread)";
@@ -69,14 +69,14 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
         for (int i = 0; i < 3; ++i) {
             if (this.dialogs.containsKey(i)) {
-                Dialog dialog = DialogController.Instance.dialogs.get(this.dialogs.get(i));
+                Dialog dialog = (Dialog) DialogController.Instance.dialogs.get(this.dialogs.get(i));
                 if (dialog != null) {
                     list.add(new noppes.npcs.quests.QuestDialog.QuestDialogObjective(this, player, dialog));
                 }
             }
         }
 
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     @Override
@@ -85,14 +85,14 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
         for (int i = 0; i < 3; ++i) {
             if (this.dialogs.containsKey(i)) {
-                Dialog dialog = DialogController.Instance.dialogs.get(this.dialogs.get(i));
+                Dialog dialog = (Dialog) DialogController.Instance.dialogs.get(this.dialogs.get(i));
                 if (dialog != null) {
                     list.add(new noppes.npcs.quests.QuestDialog.QuestDialogObjective(this, party, dialog));
                 }
             }
         }
 
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     @Override
@@ -119,7 +119,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                     EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                     PlayerData playerData;
                     if (player != null) {
-                        playerData = PlayerDataController.Instance.getPlayerData(player);
+                        playerData = PlayerData.get(player);
                     } else {
                         playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                     }
@@ -153,7 +153,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
             EntityPlayer leader = NoppesUtilServer.getPlayer(party.getLeaderUUID());
             PlayerData playerData;
             if (leader != null) {
-                playerData = PlayerDataController.Instance.getPlayerData(leader);
+                playerData = PlayerData.get(leader);
             } else {
                 playerData = PlayerDataController.Instance.getPlayerDataCache(party.getLeaderUUID().toString());
             }
@@ -181,7 +181,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                     EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                     PlayerData sharedData;
                     if (player != null) {
-                        sharedData = PlayerDataController.Instance.getPlayerData(player);
+                        sharedData = PlayerData.get(player);
                     } else {
                         sharedData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                     }
@@ -224,7 +224,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                 EntityPlayer individual = NoppesUtilServer.getPlayer(uuid);
                 PlayerData individualData;
                 if (individual != null) {
-                    individualData = PlayerDataController.Instance.getPlayerData(individual);
+                    individualData = PlayerData.get(individual);
                 } else {
                     individualData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                 }
@@ -242,7 +242,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
             EntityPlayer leaderPlayer = NoppesUtilServer.getPlayer(party.getLeaderUUID());
             PlayerData leaderData;
             if (leaderPlayer != null) {
-                leaderData = PlayerDataController.Instance.getPlayerData(leaderPlayer);
+                leaderData = PlayerData.get(leaderPlayer);
             } else {
                 leaderData = PlayerDataController.Instance.getPlayerDataCache(party.getLeaderUUID().toString());
             }
@@ -262,7 +262,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                 EntityPlayer player = NoppesUtilServer.getPlayer(uuid);
                 PlayerData playerData;
                 if (player != null) {
-                    playerData = PlayerDataController.Instance.getPlayerData(player);
+                    playerData = PlayerData.get(player);
                 } else {
                     playerData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                 }
@@ -309,7 +309,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
         public void setProgress(int progress) {
             if (progress >= 0 && progress <= 1) {
                 if (player != null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData data = PlayerData.get(player);
                     boolean completed = data.dialogData.dialogsRead.contains(this.dialog.id);
                     if (progress == 0 && completed) {
                         data.dialogData.dialogsRead.remove(this.dialog.id);
@@ -331,7 +331,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                             EntityPlayer leaderPlayer = NoppesUtilServer.getPlayer(party.getLeaderUUID());
                             PlayerData leaderData;
                             if (leaderPlayer != null) {
-                                leaderData = PlayerDataController.Instance.getPlayerData(leaderPlayer);
+                                leaderData = PlayerData.get(leaderPlayer);
                             } else {
                                 leaderData = PlayerDataController.Instance.getPlayerDataCache(party.getLeaderUUID().toString());
                             }
@@ -356,7 +356,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                                 EntityPlayer individual = NoppesUtilServer.getPlayer(uuid);
                                 PlayerData individualData;
                                 if (individual != null) {
-                                    individualData = PlayerDataController.Instance.getPlayerData(individual);
+                                    individualData = PlayerData.get(individual);
                                 } else {
                                     individualData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                                 }
@@ -379,7 +379,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be 0 or 1");
+                throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
             }
         }
 
@@ -388,7 +388,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
             if (progress >= 0 && progress <= 1) {
                 EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
                 if (foundplayer != null && party == null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    PlayerData data = PlayerData.get(foundplayer);
                     boolean completed = data.dialogData.dialogsRead.contains(this.dialog.id);
                     if (progress == 0 && completed) {
                         data.dialogData.dialogsRead.remove(this.dialog.id);
@@ -410,7 +410,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                             EntityPlayer leaderPlayer = NoppesUtilServer.getPlayer(party.getLeaderUUID());
                             PlayerData leaderData;
                             if (leaderPlayer != null) {
-                                leaderData = PlayerDataController.Instance.getPlayerData(leaderPlayer);
+                                leaderData = PlayerData.get(leaderPlayer);
                             } else {
                                 leaderData = PlayerDataController.Instance.getPlayerDataCache(party.getLeaderUUID().toString());
                             }
@@ -431,7 +431,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                                 leaderData.save();
                             }
                         } else {
-                            PlayerData individualData = PlayerDataController.Instance.getPlayerData(foundplayer);
+                            PlayerData individualData = PlayerData.get(foundplayer);
                             if (individualData != null) {
                                 boolean completed = individualData.dialogData.dialogsRead.contains(this.dialog.id);
                                 if (progress == 0 && completed) {
@@ -450,7 +450,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be 0 or 1");
+                throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
             }
         }
 
@@ -460,7 +460,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
 
         public boolean isCompleted() {
             if (player != null) {
-                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData data = PlayerData.get(player);
                 return data.dialogData.dialogsRead.contains(this.dialog.id);
             } else if (party != null) {
                 if (party.getObjectiveRequirement() != null) {
@@ -469,7 +469,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                         EntityPlayer leaderPlayer = NoppesUtilServer.getPlayer(party.getLeaderUUID());
                         PlayerData leaderData;
                         if (leaderPlayer != null) {
-                            leaderData = PlayerDataController.Instance.getPlayerData(leaderPlayer);
+                            leaderData = PlayerData.get(leaderPlayer);
                         } else {
                             leaderData = PlayerDataController.Instance.getPlayerDataCache(party.getLeaderUUID().toString());
                         }
@@ -482,7 +482,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                             EntityPlayer individual = NoppesUtilServer.getPlayer(uuid);
                             PlayerData individualData;
                             if (individual != null) {
-                                individualData = PlayerDataController.Instance.getPlayerData(individual);
+                                individualData = PlayerData.get(individual);
                             } else {
                                 individualData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                             }
@@ -514,7 +514,7 @@ public class QuestDialog extends QuestInterface implements IQuestDialog {
                     EntityPlayer individual = NoppesUtilServer.getPlayer(uuid);
                     PlayerData individualData;
                     if (individual != null) {
-                        individualData = PlayerDataController.Instance.getPlayerData(individual);
+                        individualData = PlayerData.get(individual);
                     } else {
                         individualData = PlayerDataController.Instance.getPlayerDataCache(uuid.toString());
                     }

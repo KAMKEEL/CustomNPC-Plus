@@ -92,6 +92,7 @@ public class TransportCategory implements ITransportCategory {
         for (Map.Entry<Integer, TransportLocation> entry : locations.entrySet()) {
             if (entry.getValue().getName().equals(name)) {
                 id = entry.getKey();
+                ;
                 locations.remove(entry.getKey());
                 break;
             }

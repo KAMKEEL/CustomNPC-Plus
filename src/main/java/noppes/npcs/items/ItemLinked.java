@@ -4,6 +4,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.play.server.S04PacketEntityEquipment;
 import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.EventHooks;
@@ -44,12 +45,25 @@ public class ItemLinked extends ItemCustomizable {
             } else if (linkedItem == null) {
                 if (entity instanceof EntityPlayer) {
                     EntityPlayer player = (EntityPlayer) entity;
-                    player.inventory.setInventorySlotContents(itemSlot, null); // Remove the item
-                    player.inventory.markDirty(); // Ensure inventory updates
+                    player.inventory.setInventorySlotContents(itemSlot, null);
+                    player.inventory.markDirty();
 
                     // Sync inventory with client
                     if (player instanceof EntityPlayerMP) {
-                        ((EntityPlayerMP) player).sendContainerToPlayer(player.inventoryContainer);
+                        EntityPlayerMP playerMP = (EntityPlayerMP) player;
+                        int equipmentSlot = -1;
+                        // In vanilla 1.7.10, container slots 36-39 are the armor slots:
+                        // slot 36: boots, 37: leggings, 38: chestplate, 39: helmet.
+                        if (itemSlot >= 36 && itemSlot < 40) {
+                            // Map container slot to equipment slot: boots=1, leggings=2, chestplate=3, helmet=4.
+                            equipmentSlot = itemSlot - 35;
+                        }
+                        if (equipmentSlot != -1) {
+                            playerMP.playerNetServerHandler.sendPacket(
+                                new S04PacketEntityEquipment(player.getEntityId(), equipmentSlot, null)
+                            );
+                        }
+                        playerMP.sendContainerToPlayer(player.inventoryContainer);
                     }
                 }
             }

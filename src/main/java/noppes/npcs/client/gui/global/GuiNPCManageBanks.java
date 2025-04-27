@@ -22,7 +22,7 @@ import java.util.Vector;
 public class GuiNPCManageBanks extends GuiContainerNPCInterface2 implements IScrollData, ICustomScrollListener, ITextfieldListener, IGuiData {
     private GuiCustomScroll scroll;
     private HashMap<String, Integer> data = new HashMap<String, Integer>();
-    private final ContainerManageBanks container;
+    private ContainerManageBanks container;
     private Bank bank = new Bank();
     private String selected = null;
     private String search = "";

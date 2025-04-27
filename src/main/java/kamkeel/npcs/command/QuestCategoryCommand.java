@@ -38,7 +38,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         desc = "Find quest category id number by its name",
         usage = "<quest cat name>"
     )
-    public void id(ICommandSender sender, String[] args) throws CommandException {
+    public void id(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide a name for the quest category");
             return;
@@ -63,7 +63,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         desc = "Finish a quest category for a player",
         usage = "<player> <questcatid>"
     )
-    public void finish(ICommandSender sender, String[] args) throws CommandException {
+    public void finish(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int questcatid;
         try {
@@ -101,6 +101,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
 
                 if (ConfigMain.ProfilesEnabled && playerdata.player != null && quest.profileOptions.enableOptions && quest.profileOptions.completeControl == EnumProfileSync.Shared)
                     ProfileController.Instance.shareQuestCompletion(playerdata.player, quest.id, completeTime);
+                ;
 
                 if (playerdata.player != null) {
                     AchievementPacket.sendAchievement((EntityPlayerMP) playerdata.player, false, "quest.completed", quest.title);
@@ -120,7 +121,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         desc = "Stop a quest category for a players active quests",
         usage = "<player> <questcatid>"
     )
-    public void stop(ICommandSender sender, String[] args) throws CommandException {
+    public void stop(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int questcatid;
         try {
@@ -162,7 +163,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         desc = "Start a quest category for a player",
         usage = "<player> <questcatid>"
     )
-    public void start(ICommandSender sender, String[] args) throws CommandException {
+    public void start(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int questcatid;
         try {
@@ -211,7 +212,7 @@ public class QuestCategoryCommand extends CommandKamkeelBase {
         desc = "Remove a quest cat from active/finished",
         usage = "<player> <questcatid>"
     )
-    public void remove(ICommandSender sender, String[] args) throws CommandException {
+    public void remove(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int questcatid;
         try {

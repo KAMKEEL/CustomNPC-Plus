@@ -37,7 +37,7 @@ public enum EnumNpcToolMaterial {
      */
     private final int enchantability;
 
-    EnumNpcToolMaterial(int par3, int par4, float par5, int par6, int par7) {
+    private EnumNpcToolMaterial(int par3, int par4, float par5, int par6, int par7) {
         this.harvestLevel = par3;
         this.maxUses = par4;
         this.efficiencyOnProperMaterial = par5;

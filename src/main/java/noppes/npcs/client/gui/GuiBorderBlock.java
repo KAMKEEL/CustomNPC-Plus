@@ -10,7 +10,7 @@ import noppes.npcs.client.gui.util.*;
 
 public class GuiBorderBlock extends GuiNPCInterface implements IGuiData {
 
-    private final TileBorder tile;
+    private TileBorder tile;
 
     public GuiBorderBlock(int x, int y, int z) {
         super();

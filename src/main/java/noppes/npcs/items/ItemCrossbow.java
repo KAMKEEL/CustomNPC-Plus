@@ -57,6 +57,7 @@ public class ItemCrossbow extends ItemNpcInterface {
                     player.worldObj.playSoundAtEntity(player, "random.click", 1.0F, 1);
                     stack.stackTagCompound.setInteger("IsLoaded", 1);
                 }
+                return;
             }
         }
     }

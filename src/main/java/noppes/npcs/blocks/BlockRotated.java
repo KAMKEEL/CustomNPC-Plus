@@ -16,7 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 import noppes.npcs.blocks.tiles.TileVariant;
 
 public abstract class BlockRotated extends BlockContainer {
-    private final Block block;
+    private Block block;
 
     protected BlockRotated(Block block) {
         super(block.getMaterial());

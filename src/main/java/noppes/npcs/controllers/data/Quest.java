@@ -17,7 +17,6 @@ import noppes.npcs.constants.EnumProfileSync;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestRepeat;
 import noppes.npcs.constants.EnumQuestType;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.quests.*;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -173,7 +172,7 @@ public class Quest implements ICompatibilty, IQuest {
             }
             return timeRemaining;
         }
-        IPlayerQuestData questData = PlayerDataController.Instance.getPlayerData(player).getQuestData();
+        IPlayerQuestData questData = PlayerData.get(player).getQuestData();
         return getTimeUntilRepeatQuestData(player, questData);
     }
 
@@ -314,7 +313,7 @@ public class Quest implements ICompatibilty, IQuest {
             this.nextQuestTitle = "";
         } else {
             if (quest.getId() < 0) {
-                throw new CustomNPCsException("Quest id is lower than 0");
+                throw new CustomNPCsException("Quest id is lower than 0", new Object[0]);
             }
 
             this.nextQuestid = quest.getId();
@@ -333,7 +332,7 @@ public class Quest implements ICompatibilty, IQuest {
 
     public IQuestObjective[] getObjectives(IPlayer player) {
         if (!player.hasActiveQuest(this.id)) {
-            throw new CustomNPCsException("Player doesnt have this quest active.");
+            throw new CustomNPCsException("Player doesnt have this quest active.", new Object[0]);
         } else {
             return this.questInterface.getObjectives((EntityPlayer) player.getMCEntity());
         }

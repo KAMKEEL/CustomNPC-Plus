@@ -148,7 +148,7 @@ public class RoleFollower extends RoleInterface {
 
     public void setOwner(EntityPlayer player) {
         UUID id = player.getUniqueID();
-        if (ownerUUID == null || !ownerUUID.equals(id))
+        if (ownerUUID == null || id == null || !ownerUUID.equals(id))
             killed();
         ownerUUID = id.toString();
         npc.stats.canDespawn = false;

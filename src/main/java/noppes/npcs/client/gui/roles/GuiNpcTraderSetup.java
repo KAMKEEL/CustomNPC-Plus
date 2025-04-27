@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL11;
 public class GuiNpcTraderSetup extends GuiContainerNPCInterface2 implements ITextfieldListener {
 
     private final ResourceLocation slot = new ResourceLocation("customnpcs", "textures/gui/slot.png");
-    private final RoleTrader role;
+    private RoleTrader role;
 
     public GuiNpcTraderSetup(EntityNPCInterface npc, ContainerNPCTraderSetup container) {
         super(npc, container);

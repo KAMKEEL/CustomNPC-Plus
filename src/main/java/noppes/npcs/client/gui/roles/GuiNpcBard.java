@@ -9,7 +9,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobBard;
 
 public class GuiNpcBard extends GuiNPCInterface2 implements ISubGuiListener {
-    private final JobBard job;
+    private JobBard job;
 
     public GuiNpcBard(EntityNPCInterface npc) {
         super(npc);

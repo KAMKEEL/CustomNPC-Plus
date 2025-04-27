@@ -12,10 +12,10 @@ import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelHorns extends ModelPartInterface {
-    private final ModelRenderer bull;
-    private final ModelRenderer antlers;
-    private final ModelRenderer antennasBack;
-    private final ModelRenderer antennasFront;
+    private ModelRenderer bull;
+    private ModelRenderer antlers;
+    private ModelRenderer antennasBack;
+    private ModelRenderer antennasFront;
 
     public ModelHorns(ModelMPM base) {
         super(base);

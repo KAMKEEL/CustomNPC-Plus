@@ -41,7 +41,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
     private GuiScreen parent;
     private Dialog dialog;
     private int selected = 0;
-    private final List<TextBlockClient> lineBlocks = new ArrayList<TextBlockClient>();
+    private List<TextBlockClient> lineBlocks = new ArrayList<TextBlockClient>();
     private List<Integer> options = new ArrayList<Integer>();
     private int totalRows = 0;
 
@@ -58,15 +58,15 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
     private int prevPausePos = -1;
 
     private int scrollY;
-    private final ResourceLocation wheel;
-    private final ResourceLocation[] wheelparts;
-    private final ResourceLocation indicator;
+    private ResourceLocation wheel;
+    private ResourceLocation[] wheelparts;
+    private ResourceLocation indicator;
 
     private boolean isGrabbed = false;
     private int textSoundTime = 0;
     private int textPauseTime = 0;
 
-    private final HashMap<Integer, GuiDialogImage> dialogImages = new HashMap<>();
+    private HashMap<Integer, GuiDialogImage> dialogImages = new HashMap<>();
 
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog) {
         super(npc);
@@ -131,8 +131,8 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
             float f3 = npc.rotationYaw;
             float f4 = npc.rotationPitch;
             float f7 = npc.rotationYawHead;
-            float f5 = l - i;
-            float f6 = i1 - 50 - j;
+            float f5 = (float) (l) - i;
+            float f6 = (float) (i1 - 50) - j;
             int rotation = npc.ais.orientation;
             npc.ais.orientation = 0;
             GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);

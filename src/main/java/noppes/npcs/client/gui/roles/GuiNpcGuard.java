@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcGuard extends GuiNPCInterface2 {
-    private final JobGuard role;
+    private JobGuard role;
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
 

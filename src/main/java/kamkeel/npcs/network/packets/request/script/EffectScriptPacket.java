@@ -17,6 +17,7 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.controllers.data.IScriptHandler;
 
 import java.io.IOException;
 
@@ -83,7 +84,7 @@ public final class EffectScriptPacket extends AbstractPacket {
 
         EffectScript data = effect.getOrCreateScriptHandler();
         if (requestedAction == Action.GET) {
-            PacketUtil.getScripts(data, (EntityPlayerMP) player);
+            PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             data.saveScript(in);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {

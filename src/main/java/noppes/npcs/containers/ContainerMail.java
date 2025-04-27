@@ -3,7 +3,7 @@ package noppes.npcs.containers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
-import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.controllers.data.PlayerMailData;
 
@@ -12,8 +12,7 @@ import java.util.Iterator;
 public class ContainerMail extends ContainerNpcInterface {
     public static PlayerMail staticmail = new PlayerMail();
     public PlayerMail mail = new PlayerMail();
-    private final boolean canEdit;
-    private final boolean canSend;
+    private boolean canEdit, canSend;
 
 
     public ContainerMail(EntityPlayer player, boolean canEdit, boolean canSend) {
@@ -61,7 +60,7 @@ public class ContainerMail extends ContainerNpcInterface {
             }
 
             if (itemstack1.stackSize == 0) {
-                slot.putStack(null);
+                slot.putStack((ItemStack) null);
             } else {
                 slot.onSlotChanged();
             }
@@ -77,7 +76,7 @@ public class ContainerMail extends ContainerNpcInterface {
     public void onContainerClosed(EntityPlayer player) {
         super.onContainerClosed(player);
         if (!canEdit && !player.worldObj.isRemote) {
-            PlayerMailData data = PlayerDataController.Instance.getPlayerData(player).mailData;
+            PlayerMailData data = PlayerData.get(player).mailData;
             Iterator<PlayerMail> it = data.playermail.iterator();
             while (it.hasNext()) {
                 PlayerMail mail = it.next();

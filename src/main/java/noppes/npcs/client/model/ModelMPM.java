@@ -35,7 +35,7 @@ public class ModelMPM extends ModelNPCMale {
     private ModelPartInterface mohawk;
     private ModelPartInterface hair;
     private ModelPartInterface beard;
-    private final ModelPartInterface breasts;
+    private ModelPartInterface breasts;
     private ModelPartInterface snout;
     private ModelPartInterface ears;
     private ModelPartInterface fin;
@@ -52,8 +52,8 @@ public class ModelMPM extends ModelNPCMale {
     public ModelRenderer bipedRightLegWear;
     public ModelRenderer bipedLeftLegWear;
 
-    private final ModelScaleRenderer headwear;
-    private final ModelScaleRenderer bodywear;
+    private ModelScaleRenderer headwear;
+    private ModelScaleRenderer bodywear;
     private final ModelScaleRenderer solidLeftArmWear;
     private final ModelScaleRenderer solidRightArmWear;
     private final ModelScaleRenderer solidLeftLegWear;
@@ -185,8 +185,7 @@ public class ModelMPM extends ModelNPCMale {
             this.bipedHead.addChild(horns = new ModelHorns(this));
 
             // Completed
-            tail = new ModelTail(this);
-
+            this.bipedBody.addChild(tail = new ModelTail(this));
             this.bipedBody.addChild(wings = new ModelWings(this));
             this.bipedBody.addChild(fin = new ModelFin(this));
 
@@ -303,8 +302,7 @@ public class ModelMPM extends ModelNPCMale {
             this.bipedHead.addChild(horns = new ModelHorns(this));
 
             // Completed
-            tail = new ModelTail(this);
-
+            this.bipedBody.addChild(tail = new ModelTail(this));
             this.bipedBody.addChild(wings = new ModelWings(this));
             this.bipedBody.addChild(fin = new ModelFin(this));
 
@@ -355,7 +353,7 @@ public class ModelMPM extends ModelNPCMale {
                         part.interpolateAngles();
                     }
                     float pi = 180 / (float) Math.PI;
-                    GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
+                    GL11.glTranslatef(part.prevPivots[0], -part.prevPivots[1], part.prevPivots[2]);
                     GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
                     GL11.glRotatef(part.prevRotations[1] * pi, 0, 1, 0);
                     GL11.glRotatef(part.prevRotations[2] * pi, 0, 0, 1);
@@ -401,7 +399,7 @@ public class ModelMPM extends ModelNPCMale {
 
                             if (overlayData.getGlow()) {
                                 GL11.glDisable(GL11.GL_LIGHTING);
-                                Minecraft.getMinecraft().entityRenderer.disableLightmap(0);
+                                Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
                             }
 
                             GL11.glColor4f(1.0F, 1.0F, 1.0F, overlayData.getAlpha());
@@ -430,7 +428,7 @@ public class ModelMPM extends ModelNPCMale {
                             GL11.glDepthFunc(GL11.GL_LEQUAL);
                             GL11.glDisable(GL11.GL_BLEND);
                             GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-                            Minecraft.getMinecraft().entityRenderer.enableLightmap(0);
+                            Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
                         } catch (Exception ignored) {
                         }
                     }
@@ -505,7 +503,10 @@ public class ModelMPM extends ModelNPCMale {
     }
 
     @Override
-    public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity entity) {
+    public void setRotationAngles(float limbSwing, float limbSwingAmount,
+                                  float ageInTicks, float netHeadYaw, float headPitch,
+                                  float scaleFactor, Entity entity) {
+
         EntityCustomNpc npc = (EntityCustomNpc) entity;
         isRiding = npc.isRiding();
         if (isSneak && (npc.currentAnimation == EnumAnimation.CRAWLING || npc.currentAnimation == EnumAnimation.LYING))
@@ -599,16 +600,16 @@ public class ModelMPM extends ModelNPCMale {
         this.bipedRightArmWear.rotateAngleY = 0;
         this.bipedRightArmWear.rotateAngleZ = 0;
 
-        super.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+        super.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
 
         if (!isArmor) {
-            hair.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            beard.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            wings.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            tail.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            skirt.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            hair.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            beard.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            wings.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            tail.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
+            skirt.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
         }
-        legs.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+        legs.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity);
 
         if (isSleeping(entity)) {
             if (bipedHead.rotateAngleX < 0) {
@@ -619,9 +620,9 @@ public class ModelMPM extends ModelNPCMale {
             bipedHeadwear.rotateAngleX = bipedHead.rotateAngleX = 0.7f;
 
         else if (npc.currentAnimation == EnumAnimation.HUG) {
-            AniHug.setRotationAngles(par1, par2, par3, par4, par5, par6, entity, this);
+            AniHug.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity, this);
         } else if (npc.currentAnimation == EnumAnimation.CRAWLING)
-            AniCrawling.setRotationAngles(par1, par2, par3, par4, par5, par6, entity, this);
+            AniCrawling.setRotationAngles(limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch, scaleFactor, entity, this);
 
         else if (npc.currentAnimation == EnumAnimation.WAVING) {
             bipedRightArm.rotateAngleX = -0.1f;
@@ -685,7 +686,7 @@ public class ModelMPM extends ModelNPCMale {
                     part.interpolateAngles();
                 }
                 float pi = 180 / (float) Math.PI;
-                GL11.glTranslatef(part.prevPivots[0], part.prevPivots[1], part.prevPivots[2]);
+                GL11.glTranslatef(part.prevPivots[0], -part.prevPivots[1], part.prevPivots[2]);
                 GL11.glRotatef(part.prevRotations[0] * pi, 1, 0, 0);
                 GL11.glRotatef(part.prevRotations[1] * pi, 0, 1, 0);
                 GL11.glRotatef(part.prevRotations[2] * pi, 0, 0, 1);
@@ -742,19 +743,19 @@ public class ModelMPM extends ModelNPCMale {
         this.copyAnglesPivots(bipedHeadwear, bipedHead);
 
         // Hide Head
-        this.bipedHead.isHidden = entity.modelData.hideHead == 1;
+        ((ModelScaleRenderer) this.bipedHead).isHidden = entity.modelData.hideHead == 1;
 
         if (bipedHeadwear.showModel && !bipedHeadwear.isHidden) {
             if (entity.modelData.headwear == 1 || isArmor) {
                 ((ModelScaleRenderer) this.bipedHeadwear).setConfig(head, x, y, z);
-                this.bipedHeadwear.render(f);
+                ((ModelScaleRenderer) this.bipedHeadwear).render(f);
             } else if (entity.modelData.headwear == 2) {
                 this.headwear.setConfig(head, x, y, z);
                 this.headwear.render(f);
             }
         }
         ((ModelScaleRenderer) this.bipedHead).setConfig(head, x, y, z);
-        this.bipedHead.render(f);
+        ((ModelScaleRenderer) this.bipedHead).render(f);
 
         GL11.glPopMatrix();
     }
@@ -774,14 +775,14 @@ public class ModelMPM extends ModelNPCMale {
         ModelScalePart body = entity.modelData.modelScale.body;
 
         // Hide Body
-        this.bipedBody.isHidden = entity.modelData.hideBody == 1;
+        ((ModelScaleRenderer) this.bipedBody).isHidden = entity.modelData.hideBody == 1;
 
         // Hide Bodywear
         this.bipedBodywear.isHidden = entity.modelData.bodywear != 1;
         this.bodywear.isHidden = entity.modelData.bodywear != 2;
 
         ((ModelScaleRenderer) this.bipedBody).setConfig(body, x, y, z);
-        this.bipedBody.render(f);
+        ((ModelScaleRenderer) this.bipedBody).render(f);
 
         GL11.glPopMatrix();
     }
@@ -806,41 +807,41 @@ public class ModelMPM extends ModelNPCMale {
 
         // Hide Arms
         if (entity.modelData.hideArms == 1) {
-            this.bipedRightArm.isHidden = true;
-            this.bipedLeftArm.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightArm).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftArm).isHidden = true;
         } else if (entity.modelData.hideArms == 2) {
-            this.bipedRightArm.isHidden = true;
-            this.bipedLeftArm.isHidden = false;
+            ((ModelScaleRenderer) this.bipedRightArm).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftArm).isHidden = false;
         } else if (entity.modelData.hideArms == 3) {
-            this.bipedRightArm.isHidden = false;
-            this.bipedLeftArm.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightArm).isHidden = false;
+            ((ModelScaleRenderer) this.bipedLeftArm).isHidden = true;
         } else {
-            this.bipedRightArm.isHidden = false;
-            this.bipedLeftArm.isHidden = false;
+            ((ModelScaleRenderer) this.bipedRightArm).isHidden = false;
+            ((ModelScaleRenderer) this.bipedLeftArm).isHidden = false;
         }
 
         // Hide Armwear
         if (entity.modelData.armwear == 1) {
-            this.bipedRightArmWear.isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
-            this.bipedLeftArmWear.isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+            ((ModelScaleRenderer) this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
+            ((ModelScaleRenderer) this.bipedLeftArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
 
             this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
             this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
         } else if (entity.modelData.armwear == 2) {
-            this.bipedRightArmWear.isHidden = true;
-            this.bipedLeftArmWear.isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
+            ((ModelScaleRenderer) this.bipedRightArmWear).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 2;
 
             this.solidRightArmWear.isHidden = true;
             this.solidLeftArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 3;
         } else if (entity.modelData.armwear == 3) {
-            this.bipedRightArmWear.isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
-            this.bipedLeftArmWear.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightArmWear).isHidden = entity.modelData.solidArmwear == 1 || entity.modelData.solidArmwear == 3;
+            ((ModelScaleRenderer) this.bipedLeftArmWear).isHidden = true;
 
             this.solidRightArmWear.isHidden = entity.modelData.solidArmwear == 0 || entity.modelData.solidArmwear == 2;
             this.solidLeftArmWear.isHidden = true;
         } else {
-            this.bipedRightArmWear.isHidden = true;
-            this.bipedLeftArmWear.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightArmWear).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftArmWear).isHidden = true;
             this.solidRightArmWear.isHidden = true;
             this.solidLeftArmWear.isHidden = true;
         }
@@ -848,14 +849,14 @@ public class ModelMPM extends ModelNPCMale {
         loadPlayerTexture(entity);
         if (!bo) {
             ((ModelScaleRenderer) this.bipedLeftArm).setConfig(arms, -x, y, z);
-            this.bipedLeftArm.render(f);
+            ((ModelScaleRenderer) this.bipedLeftArm).render(f);
 
             loadPlayerTexture(entity);
             ((ModelScaleRenderer) this.bipedRightArm).setConfig(arms, x, y, z);
-            this.bipedRightArm.render(f);
+            ((ModelScaleRenderer) this.bipedRightArm).render(f);
         } else {
             ((ModelScaleRenderer) this.bipedRightArm).setConfig(arms, 0, 0, 0);
-            this.bipedRightArm.render(f);
+            ((ModelScaleRenderer) this.bipedRightArm).render(f);
         }
 
         GL11.glPopMatrix();
@@ -874,41 +875,41 @@ public class ModelMPM extends ModelNPCMale {
 
         // Hide Legs
         if (entity.modelData.hideLegs == 1) {
-            this.bipedRightLeg.isHidden = true;
-            this.bipedLeftLeg.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightLeg).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftLeg).isHidden = true;
         } else if (entity.modelData.hideLegs == 2) {
-            this.bipedRightLeg.isHidden = true;
-            this.bipedLeftLeg.isHidden = false;
+            ((ModelScaleRenderer) this.bipedRightLeg).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftLeg).isHidden = false;
         } else if (entity.modelData.hideLegs == 3) {
-            this.bipedRightLeg.isHidden = false;
-            this.bipedLeftLeg.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightLeg).isHidden = false;
+            ((ModelScaleRenderer) this.bipedLeftLeg).isHidden = true;
         } else {
-            this.bipedRightLeg.isHidden = false;
-            this.bipedLeftLeg.isHidden = false;
+            ((ModelScaleRenderer) this.bipedRightLeg).isHidden = false;
+            ((ModelScaleRenderer) this.bipedLeftLeg).isHidden = false;
         }
 
         // Hide Legwear
         if (entity.modelData.legwear == 1) {
-            this.bipedRightLegWear.isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 3;
-            this.bipedLeftLegWear.isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 2;
+            ((ModelScaleRenderer) this.bipedRightLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 3;
+            ((ModelScaleRenderer) this.bipedLeftLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 2;
 
             this.solidRightLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 2;
             this.solidLeftLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 3;
         } else if (entity.modelData.legwear == 2) {
-            this.bipedRightLegWear.isHidden = true;
-            this.bipedLeftLegWear.isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 2;
+            ((ModelScaleRenderer) this.bipedRightLegWear).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 2;
 
             this.solidRightLegWear.isHidden = true;
             this.solidLeftLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 3;
         } else if (entity.modelData.legwear == 3) {
-            this.bipedRightLegWear.isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 3;
-            this.bipedLeftLegWear.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightLegWear).isHidden = entity.modelData.solidLegwear == 1 || entity.modelData.solidLegwear == 3;
+            ((ModelScaleRenderer) this.bipedLeftLegWear).isHidden = true;
 
             this.solidRightLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 2;
             this.solidLeftLegWear.isHidden = true;
         } else {
-            this.bipedRightLegWear.isHidden = true;
-            this.bipedLeftLegWear.isHidden = true;
+            ((ModelScaleRenderer) this.bipedRightLegWear).isHidden = true;
+            ((ModelScaleRenderer) this.bipedLeftLegWear).isHidden = true;
             this.solidRightLegWear.isHidden = true;
             this.solidLeftLegWear.isHidden = true;
         }
@@ -917,7 +918,6 @@ public class ModelMPM extends ModelNPCMale {
         this.legs.render(f);
         if (!isArmor) {
             this.tail.setConfig(legs, 0, y, z);
-            this.tail.render(f);
         }
         GL11.glPopMatrix();
     }
@@ -985,6 +985,8 @@ public class ModelMPM extends ModelNPCMale {
         if (!npc.isEntityAlive())
             return false;
 
-        return npc.modelData.rotation.whileAttacking && npc.isAttacking() || npc.modelData.rotation.whileMoving && npc.isWalking() || npc.modelData.rotation.whileStanding && !npc.isWalking();
+        if (npc.modelData.rotation.whileAttacking && npc.isAttacking() || npc.modelData.rotation.whileMoving && npc.isWalking() || npc.modelData.rotation.whileStanding && !npc.isWalking())
+            return true;
+        return false;
     }
 }

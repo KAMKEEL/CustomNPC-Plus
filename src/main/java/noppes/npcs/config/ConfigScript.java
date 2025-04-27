@@ -58,6 +58,8 @@ public class ConfigScript {
     public static Property BannedClassesProperty;
     public final static HashSet<String> BannedClasses = new HashSet<>();
 
+    public static boolean IndividualPlayerScripts = false;
+
     public static void init(File configFile) {
         config = new Configuration(configFile);
 
@@ -108,6 +110,9 @@ public class ConfigScript {
                 "Comma separated list of classes that cannot be used in scripts through Java.for().\n" +
                     "Classes must be fully written out with library names preceding them.\n" +
                     "This is a feature ONLY AVAILABLE ON NASHORN.");
+
+
+            IndividualPlayerScripts = config.get(CUSTOMIZATION, "Individual Player Scripts", false, "Acts similar to CNPC 1.12 where Player Scripts like Init are run PER Player").getBoolean(false);
 
             // Convert to Legacy
             if (CustomNpcs.legacyExist) {

@@ -17,7 +17,7 @@ public abstract class EnchantInterface extends Enchantment {
     public static EnchantInterface Confusion;
     public static EnchantInterface Infinite;
 
-    private final Class[] classes;
+    private Class[] classes;
 
     protected EnchantInterface(int par2, Class... obs) {
         super(ConfigMain.EnchantStartId++, par2, CustomNpcsType);

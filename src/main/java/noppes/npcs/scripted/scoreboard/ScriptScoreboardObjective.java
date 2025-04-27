@@ -4,7 +4,7 @@ import net.minecraft.scoreboard.ScoreObjective;
 import noppes.npcs.api.scoreboard.IScoreboardObjective;
 
 public class ScriptScoreboardObjective implements IScoreboardObjective {
-    private final ScoreObjective objective;
+    private ScoreObjective objective;
 
     public ScriptScoreboardObjective(ScoreObjective objective) {
         this.objective = objective;

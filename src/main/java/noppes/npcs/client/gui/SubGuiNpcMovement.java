@@ -8,7 +8,7 @@ import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.constants.EnumStandingType;
 
 public class SubGuiNpcMovement extends SubGuiInterface implements ITextfieldListener {
-    private final DataAI ai;
+    private DataAI ai;
 
     public SubGuiNpcMovement(DataAI ai) {
         this.ai = ai;

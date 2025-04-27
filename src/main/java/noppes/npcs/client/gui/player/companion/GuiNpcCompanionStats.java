@@ -19,7 +19,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
 
 public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
-    private final RoleCompanion role;
+    private RoleCompanion role;
     private boolean isEating = false;
 
     public GuiNpcCompanionStats(EntityNPCInterface npc) {

@@ -101,7 +101,7 @@ public class ScriptContainer {
 
             while (var1.hasNext()) {
                 String loc = (String) var1.next();
-                String code = ScriptController.Instance.scripts.get(loc);
+                String code = (String) ScriptController.Instance.scripts.get(loc);
                 if (code != null && !code.isEmpty()) {
                     this.fullscript = this.fullscript + code + "\n";
                 }
@@ -141,7 +141,7 @@ public class ScriptContainer {
         if (!ConfigScript.ScriptingEnabled)
             return;
 
-        this.run(type.function, event);
+        this.run((String) type.function, (Object) event);
     }
 
     public void run(String type, Object event) {
@@ -209,7 +209,7 @@ public class ScriptContainer {
         if (message != null && !message.isEmpty()) {
             long time = System.currentTimeMillis();
             if (this.console.containsKey(time)) {
-                message = this.console.get(time) + "\n" + message;
+                message = (String) this.console.get(time) + "\n" + message;
             }
 
             this.console.put(time, message);

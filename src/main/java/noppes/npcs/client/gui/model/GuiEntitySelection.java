@@ -21,10 +21,10 @@ import java.util.Vector;
 
 public class GuiEntitySelection extends GuiNPCInterface {
     private GuiNPCStringSlot slot;
-    private final GuiCreationScreen parent;
-    private final Class<? extends EntityLivingBase> prevModel;
-    private final ModelData playerdata;
-    private final EntityCustomNpc npc;
+    private GuiCreationScreen parent;
+    private Class<? extends EntityLivingBase> prevModel;
+    private ModelData playerdata;
+    private EntityCustomNpc npc;
 
     public GuiEntitySelection(GuiCreationScreen parent, ModelData playerdata, EntityCustomNpc npc) {
         this.parent = parent;

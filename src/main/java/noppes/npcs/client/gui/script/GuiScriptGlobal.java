@@ -14,7 +14,7 @@ import java.util.HashMap;
 
 public class GuiScriptGlobal extends GuiNPCInterface implements IGuiData {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
-    private final HashMap<Integer, Class<?>> scriptGuiClasses = new HashMap<>();
+    private HashMap<Integer, Class<?>> scriptGuiClasses = new HashMap<>();
 
     public GuiScriptGlobal() {
         this.xSize = 176;

@@ -18,8 +18,7 @@ import org.lwjgl.opengl.GL11;
 
 public class ModelLegs extends ModelScaleRenderer {
     private EntityCustomNpc entity;
-    private final ModelScaleRenderer leg1;
-    private final ModelScaleRenderer leg2;
+    private ModelScaleRenderer leg1, leg2;
     private ModelRenderer spider;
     private ModelRenderer horse;
     private ModelNagaLegs naga;
@@ -54,7 +53,7 @@ public class ModelLegs extends ModelScaleRenderer {
     private ModelRenderer frontRightShin;
     private ModelRenderer frontRightHoof;
 
-    private final ModelMPM base;
+    private ModelMPM base;
 
     public ModelLegs(ModelMPM base, ModelScaleRenderer leg1, ModelScaleRenderer leg2, int textWidth, int textHeight) {
         super(base);
@@ -73,61 +72,61 @@ public class ModelLegs extends ModelScaleRenderer {
         spiderNeck = new ModelRenderer(base, 0, 0);
         spiderNeck.setTextureSize(64, 32);
         spiderNeck.addBox(-3.0F, -3.0F, -3.0F, 6, 6, 6, var1);
-        spiderNeck.setRotationPoint(0.0F, var2, 2.0F);
+        spiderNeck.setRotationPoint(0.0F, (float) var2, 2.0F);
         spider.addChild(spiderNeck);
 
         spiderBody = new ModelRenderer(base, 0, 12);
         spiderBody.setTextureSize(64, 32);
         spiderBody.addBox(-5.0F, -4.0F, -6.0F, 10, 8, 12, var1);
-        spiderBody.setRotationPoint(0.0F, var2, 11.0F);
+        spiderBody.setRotationPoint(0.0F, (float) var2, 11.0F);
         spider.addChild(spiderBody);
 
         this.spiderLeg1 = new ModelRenderer(base, 18, 0);
         this.spiderLeg1.setTextureSize(64, 32);
         this.spiderLeg1.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg1.setRotationPoint(-4.0F, var2, 4.0F);
+        this.spiderLeg1.setRotationPoint(-4.0F, (float) var2, 4.0F);
         spider.addChild(spiderLeg1);
 
         this.spiderLeg2 = new ModelRenderer(base, 18, 0);
         this.spiderLeg2.setTextureSize(64, 32);
         this.spiderLeg2.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg2.setRotationPoint(4.0F, var2, 4.0F);
+        this.spiderLeg2.setRotationPoint(4.0F, (float) var2, 4.0F);
         spider.addChild(spiderLeg2);
 
         this.spiderLeg3 = new ModelRenderer(base, 18, 0);
         this.spiderLeg3.setTextureSize(64, 32);
         this.spiderLeg3.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg3.setRotationPoint(-4.0F, var2, 3.0F);
+        this.spiderLeg3.setRotationPoint(-4.0F, (float) var2, 3.0F);
         spider.addChild(spiderLeg3);
 
         this.spiderLeg4 = new ModelRenderer(base, 18, 0);
         this.spiderLeg4.setTextureSize(64, 32);
         this.spiderLeg4.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg4.setRotationPoint(4.0F, var2, 3.0F);
+        this.spiderLeg4.setRotationPoint(4.0F, (float) var2, 3.0F);
         spider.addChild(spiderLeg4);
 
         this.spiderLeg5 = new ModelRenderer(base, 18, 0);
         this.spiderLeg5.setTextureSize(64, 32);
         this.spiderLeg5.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg5.setRotationPoint(-4.0F, var2, 2.0F);
+        this.spiderLeg5.setRotationPoint(-4.0F, (float) var2, 2.0F);
         spider.addChild(spiderLeg5);
 
         this.spiderLeg6 = new ModelRenderer(base, 18, 0);
         this.spiderLeg6.setTextureSize(64, 32);
         this.spiderLeg6.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg6.setRotationPoint(4.0F, var2, 2.0F);
+        this.spiderLeg6.setRotationPoint(4.0F, (float) var2, 2.0F);
         spider.addChild(spiderLeg6);
 
         this.spiderLeg7 = new ModelRenderer(base, 18, 0);
         this.spiderLeg7.setTextureSize(64, 32);
         this.spiderLeg7.addBox(-15.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg7.setRotationPoint(-4.0F, var2, 1.0F);
+        this.spiderLeg7.setRotationPoint(-4.0F, (float) var2, 1.0F);
         spider.addChild(spiderLeg7);
 
         this.spiderLeg8 = new ModelRenderer(base, 18, 0);
         this.spiderLeg8.setTextureSize(64, 32);
         this.spiderLeg8.addBox(-1.0F, -1.0F, -1.0F, 16, 2, 2, var1);
-        this.spiderLeg8.setRotationPoint(4.0F, var2, 1.0F);
+        this.spiderLeg8.setRotationPoint(4.0F, (float) var2, 1.0F);
         spider.addChild(spiderLeg8);
 
 
@@ -215,7 +214,10 @@ public class ModelLegs extends ModelScaleRenderer {
         this.addChild(mermaid);
         this.addChild(mermaid2);
 
-        boolean mirror = textHeight != textWidth;
+        boolean mirror = false;
+        if (textHeight != textWidth) {
+            mirror = true;
+        }
 
         digitigrade = new ModelDigitigradeLegs(base, mirror, textWidth, textHeight);
 
@@ -228,7 +230,7 @@ public class ModelLegs extends ModelScaleRenderer {
         model.rotateAngleZ = z;
     }
 
-    public void setRotationAngles(float par1, float par2, float par3, float par4, float par5, float par6, Entity entity) {
+    public void setRotationAngles(float limbSwing, float limbSwingAmount, float par3, float par4, float par5, float par6, Entity entity) {
         if (this.entity == null) return;
 
         ModelPartData part = this.entity.modelData.legParts;
@@ -256,20 +258,20 @@ public class ModelLegs extends ModelScaleRenderer {
             float var10 = 0.3926991F;
             this.spiderLeg1.rotateAngleY = var10 * 2.0F + var9;
             this.spiderLeg2.rotateAngleY = -var10 * 2.0F - var9;
-            this.spiderLeg3.rotateAngleY = var10 + var9;
-            this.spiderLeg4.rotateAngleY = -var10 - var9;
-            this.spiderLeg5.rotateAngleY = -var10 + var9;
-            this.spiderLeg6.rotateAngleY = var10 - var9;
+            this.spiderLeg3.rotateAngleY = var10 * 1.0F + var9;
+            this.spiderLeg4.rotateAngleY = -var10 * 1.0F - var9;
+            this.spiderLeg5.rotateAngleY = -var10 * 1.0F + var9;
+            this.spiderLeg6.rotateAngleY = var10 * 1.0F - var9;
             this.spiderLeg7.rotateAngleY = -var10 * 2.0F + var9;
             this.spiderLeg8.rotateAngleY = var10 * 2.0F - var9;
-            float var11 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + 0.0F) * 0.4F) * par2;
-            float var12 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + (float) Math.PI) * 0.4F) * par2;
-            float var13 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * par2;
-            float var14 = -(MathHelper.cos(par1 * 0.6662F * 2.0F + ((float) Math.PI * 3F / 2F)) * 0.4F) * par2;
-            float var15 = Math.abs(MathHelper.sin(par1 * 0.6662F + 0.0F) * 0.4F) * par2;
-            float var16 = Math.abs(MathHelper.sin(par1 * 0.6662F + (float) Math.PI) * 0.4F) * par2;
-            float var17 = Math.abs(MathHelper.sin(par1 * 0.6662F + ((float) Math.PI / 2F)) * 0.4F) * par2;
-            float var18 = Math.abs(MathHelper.sin(par1 * 0.6662F + ((float) Math.PI * 3F / 2F)) * 0.4F) * par2;
+            float var11 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + 0.0F) * 0.4F) * limbSwingAmount;
+            float var12 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + (float) Math.PI) * 0.4F) * limbSwingAmount;
+            float var13 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
+            float var14 = -(MathHelper.cos(limbSwing * 0.6662F * 2.0F + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
+            float var15 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + 0.0F) * 0.4F) * limbSwingAmount;
+            float var16 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + (float) Math.PI) * 0.4F) * limbSwingAmount;
+            float var17 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + ((float) Math.PI / 2F)) * 0.4F) * limbSwingAmount;
+            float var18 = Math.abs(MathHelper.sin(limbSwing * 0.6662F + ((float) Math.PI * 3F / 2F)) * 0.4F) * limbSwingAmount;
             this.spiderLeg1.rotateAngleY += var11;
             this.spiderLeg2.rotateAngleY += -var11;
             this.spiderLeg3.rotateAngleY += var12;
@@ -302,16 +304,16 @@ public class ModelLegs extends ModelScaleRenderer {
                 this.rotateAngleX = (float) (Math.PI / -2);
             }
         } else if (part.type == 3) {
-            this.frontLeftLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F) * .4F * par2;
-            this.frontRightLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F + (float) Math.PI) * .4F * par2;
-            this.backLeftLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F + (float) Math.PI) * .4F * par2;
-            this.backRightLeg.rotateAngleX = MathHelper.cos(par1 * 0.6662F) * .4F * par2;
+            this.frontLeftLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * .4F * limbSwingAmount;
+            this.frontRightLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * .4F * limbSwingAmount;
+            this.backLeftLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F + (float) Math.PI) * .4F * limbSwingAmount;
+            this.backRightLeg.rotateAngleX = MathHelper.cos(limbSwing * 0.6662F) * .4F * limbSwingAmount;
         } else if (part.type == 1) {
             naga.isRiding = base.isRiding;
             naga.isSleeping = base.isSleeping(entity);
             naga.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
             naga.isSneaking = base.isSneak;
-            naga.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            naga.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
         } else if (part.type == 4 || part.type == 6) {
             mermaid.isRiding = base.isRiding;
             mermaid.isSleeping = base.isSleeping(entity);
@@ -321,10 +323,10 @@ public class ModelLegs extends ModelScaleRenderer {
             mermaid2.isSleeping = base.isSleeping(entity);
             mermaid2.isCrawling = this.entity.currentAnimation == EnumAnimation.CRAWLING;
             mermaid2.isSneaking = base.isSneak;
-            mermaid.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
-            mermaid2.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            mermaid.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
+            mermaid2.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
         } else if (part.type == 5) {
-            digitigrade.setRotationAngles(par1, par2, par3, par4, par5, par6, entity);
+            digitigrade.setRotationAngles(limbSwing, limbSwingAmount, par3, par4, par5, par6, entity);
         }
     }
 

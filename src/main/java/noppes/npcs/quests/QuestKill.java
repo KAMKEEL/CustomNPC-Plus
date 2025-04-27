@@ -9,7 +9,6 @@ import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
@@ -81,7 +80,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
     @Override
     public Vector<String> getQuestLogStatus(EntityPlayer player) {
         Vector<String> vec = new Vector<String>();
-        PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData playerdata = PlayerData.get(player).questData;
         QuestData data = playerdata.activeQuests.get(questId);
         if (data == null)
             return vec;
@@ -113,10 +112,10 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
         while (var3.hasNext()) {
             Map.Entry<String, Integer> entry = (Map.Entry) var3.next();
-            list.add(new noppes.npcs.quests.QuestKill.QuestKillObjective(this, player, entry.getKey(), entry.getValue()));
+            list.add(new noppes.npcs.quests.QuestKill.QuestKillObjective(this, player, (String) entry.getKey(), (Integer) entry.getValue()));
         }
 
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     public HashMap<String, Integer> getPlayerKilled(QuestData data, String playerName) {
@@ -133,10 +132,10 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
         while (var3.hasNext()) {
             Map.Entry<String, Integer> entry = (Map.Entry) var3.next();
-            list.add(new noppes.npcs.quests.QuestKill.QuestKillObjective(this, party, entry.getKey(), entry.getValue()));
+            list.add(new noppes.npcs.quests.QuestKill.QuestKillObjective(this, party, (String) entry.getKey(), (Integer) entry.getValue()));
         }
 
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     @Override
@@ -265,12 +264,12 @@ public class QuestKill extends QuestInterface implements IQuestKill {
 
         public int getProgress() {
             if (player != null) {
-                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData data = PlayerData.get(player);
                 PlayerQuestData playerdata = data.questData;
-                QuestData questdata = playerdata.activeQuests.get(this.parent.questId);
+                QuestData questdata = (QuestData) playerdata.activeQuests.get(this.parent.questId);
                 if (questdata != null) {
                     HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                    return !killed.containsKey(this.entity) ? 0 : killed.get(this.entity);
+                    return !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
                 }
             } else if (party != null) {
                 QuestData questdata = party.getQuestData();
@@ -279,7 +278,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                         int howManyDone = 0;
                         for (String player : party.getPlayerNames()) {
                             HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
-                            int currentProgress = !killed.containsKey(this.entity) ? 0 : killed.get(this.entity);
+                            int currentProgress = !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
                             if (currentProgress >= this.amount)
                                 howManyDone += 1;
                         }
@@ -289,7 +288,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                         return 0;
                     } else {
                         HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                        return !killed.containsKey(this.entity) ? 0 : killed.get(this.entity);
+                        return !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
                     }
                 }
             }
@@ -299,12 +298,12 @@ public class QuestKill extends QuestInterface implements IQuestKill {
         public void setProgress(int progress) {
             if (progress >= 0 && progress <= this.amount) {
                 if (player != null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData data = PlayerData.get(player);
                     PlayerQuestData playerdata = data.questData;
-                    QuestData questdata = playerdata.activeQuests.get(this.parent.questId);
+                    QuestData questdata = (QuestData) playerdata.activeQuests.get(this.parent.questId);
                     if (questdata != null) {
                         HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                        if (!killed.containsKey(this.entity) || killed.get(this.entity) != progress) {
+                        if (!killed.containsKey(this.entity) || (Integer) killed.get(this.entity) != progress) {
                             killed.put(this.entity, progress);
                             this.parent.setKilled(questdata, killed);
                             data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
@@ -319,7 +318,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                         if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
                             for (String player : party.getPlayerNames()) {
                                 HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
-                                if (!killed.containsKey(this.entity) || killed.get(this.entity) != progress) {
+                                if (!killed.containsKey(this.entity) || (Integer) killed.get(this.entity) != progress) {
                                     killed.put(this.entity, progress);
                                     this.parent.setPlayerKilled(questdata, killed, player);
                                 }
@@ -328,7 +327,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                             PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
                         } else {
                             HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                            if (!killed.containsKey(this.entity) || killed.get(this.entity) != progress) {
+                            if (!killed.containsKey(this.entity) || (Integer) killed.get(this.entity) != progress) {
                                 killed.put(this.entity, progress);
                                 this.parent.setKilled(questdata, killed);
                                 PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
@@ -338,7 +337,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount);
+                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
             }
         }
 
@@ -347,12 +346,12 @@ public class QuestKill extends QuestInterface implements IQuestKill {
             if (progress >= 0 && progress <= this.amount) {
                 EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
                 if (foundplayer != null && party == null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    PlayerData data = PlayerData.get(foundplayer);
                     PlayerQuestData playerdata = data.questData;
-                    QuestData questdata = playerdata.activeQuests.get(this.parent.questId);
+                    QuestData questdata = (QuestData) playerdata.activeQuests.get(this.parent.questId);
                     if (questdata != null) {
                         HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                        if (!killed.containsKey(this.entity) || killed.get(this.entity) != progress) {
+                        if (!killed.containsKey(this.entity) || (Integer) killed.get(this.entity) != progress) {
                             killed.put(this.entity, progress);
                             this.parent.setKilled(questdata, killed);
                             data.questData.checkQuestCompletion(data, EnumQuestType.values()[2]);
@@ -366,7 +365,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                     if (questdata != null) {
                         if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
                             HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, playerName);
-                            if (!killed.containsKey(this.entity) || killed.get(this.entity) != progress) {
+                            if (!killed.containsKey(this.entity) || (Integer) killed.get(this.entity) != progress) {
                                 killed.put(this.entity, progress);
                                 this.parent.setPlayerKilled(questdata, killed, playerName);
                             }
@@ -374,7 +373,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                             PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[4]);
                         } else {
                             HashMap<String, Integer> killed = this.parent.getKilled(questdata);
-                            if (!killed.containsKey(this.entity) || killed.get(this.entity) != progress) {
+                            if (!killed.containsKey(this.entity) || (Integer) killed.get(this.entity) != progress) {
                                 killed.put(this.entity, progress);
                                 this.parent.setKilled(questdata, killed);
                                 PartyController.Instance().checkQuestCompletion(party, EnumQuestType.values()[2]);
@@ -384,7 +383,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount);
+                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
             }
         }
 
@@ -414,7 +413,7 @@ public class QuestKill extends QuestInterface implements IQuestKill {
                     if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
                         for (String player : party.getPlayerNames()) {
                             HashMap<String, Integer> killed = this.parent.getPlayerKilled(questdata, player);
-                            int currentProgress = !killed.containsKey(this.entity) ? 0 : killed.get(this.entity);
+                            int currentProgress = !killed.containsKey(this.entity) ? 0 : (Integer) killed.get(this.entity);
                             if (currentProgress < this.amount) {
                                 String state = player + ": " + currentProgress;
                                 incompletePlayers.add(state);

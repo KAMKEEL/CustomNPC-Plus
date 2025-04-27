@@ -14,7 +14,7 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiQuestCompletion extends GuiNPCInterface implements ITopButtonListener {
 
-    private final Quest quest;
+    private Quest quest;
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/smallbg.png");
 
     public GuiQuestCompletion(Quest quest) {

@@ -70,7 +70,6 @@ import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.*;
@@ -446,7 +445,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         addInteract(player);
 
         Dialog dialog = getDialog(player);
-        PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData playerdata = PlayerData.get(player).questData;
         QuestData data = playerdata.getQuestCompletion(player, this);
         Party partyCompleted = playerdata.getPartyQuestCompletion(player, this);
         if (partyCompleted != null) {
@@ -682,7 +681,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 EntityProjectile projectile = shoot(entity, stats.accuracy, proj, f == 1);
                 projectile.damage = event.getDamage();
             }
-            this.playSound(this.stats.fireSound, 2.0F, 1.0f);
+
+            if (this.stats.playBurstSound || !this.stats.onSoundBegin) {
+                this.playSound(this.stats.fireSound, 1.5F, 1.0f);
+                this.stats.playBurstSound = false;
+            }
         }
     }
 
@@ -1509,6 +1512,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public boolean isWalking() {
         return ais.movingType != EnumMovingType.Standing || isAttacking() || isFollower() || getBoolFlag(1);
+    }
+
+    public boolean isFlying() {
+        return isWalking() && !onGround;
     }
 
     public void setBoolFlag(boolean bo, int id) {

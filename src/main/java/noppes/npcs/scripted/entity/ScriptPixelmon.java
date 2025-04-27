@@ -8,7 +8,7 @@ import noppes.npcs.scripted.constants.EntityType;
 import noppes.npcs.util.ValueUtil;
 
 public class ScriptPixelmon<T extends EntityTameable> extends ScriptAnimal<T> implements IPixelmon {
-    private final T pixelmon;
+    private T pixelmon;
     private NBTTagCompound compound = null;
 
     public ScriptPixelmon(T pixelmon) {

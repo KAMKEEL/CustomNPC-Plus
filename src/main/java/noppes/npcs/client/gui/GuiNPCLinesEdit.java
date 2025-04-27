@@ -14,7 +14,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.HashMap;
 
 public class GuiNPCLinesEdit extends GuiNPCInterface2 implements IGuiData, ISubGuiListener, ITextfieldListener {
-    private final Lines lines;
+    private Lines lines;
     private int selectedId = -1;
     private GuiSoundSelection gui;
 

@@ -13,7 +13,7 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 
 public class GuiNpcWaypoint extends GuiNPCInterface {
 
-    private final TileWaypoint tile;
+    private TileWaypoint tile;
 
     public GuiNpcWaypoint(int x, int y, int z) {
         super();

@@ -10,7 +10,7 @@ import noppes.npcs.controllers.data.Dialog;
 import noppes.npcs.controllers.data.DialogOption;
 
 public class SubGuiNpcDialogOption extends SubGuiInterface implements IGuiData, ITextfieldListener, GuiSelectionListener, ISubGuiListener {
-    private final DialogOption option;
+    private DialogOption option;
     public static int LastColor = 0xe0e0e0;
 
     public SubGuiNpcDialogOption(DialogOption option) {

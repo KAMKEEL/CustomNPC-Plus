@@ -9,7 +9,7 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelBeard extends ModelPartInterface {
 
-    private final Model2DRenderer model;
+    private Model2DRenderer model;
 
     public ModelBeard(ModelMPM base) {
         super(base);

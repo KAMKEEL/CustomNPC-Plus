@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
@@ -8,7 +9,7 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.FactionEvent;
+import noppes.npcs.scripted.event.player.FactionEvent;
 
 import java.util.HashMap;
 
@@ -61,7 +62,7 @@ public class PlayerFactionData implements IPlayerFactionData {
     }
 
     public void increasePoints(int factionId, int points, EntityPlayer player) {
-        if (EventHooks.onFactionPoints(new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity(player), FactionController.getInstance().get(factionId), points < 0, points)))
+        if (EventHooks.onFactionPoints(player, new FactionEvent.FactionPoints((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayerMP) player), FactionController.getInstance().get(factionId), points < 0, points)))
             return;
 
         if (!factionData.containsKey(factionId)) {

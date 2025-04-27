@@ -55,7 +55,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTransporter;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
-import noppes.npcs.scripted.event.DialogEvent;
+import noppes.npcs.scripted.event.player.DialogEvent;
 
 import java.io.File;
 import java.io.IOException;
@@ -65,7 +65,7 @@ import java.util.*;
 import static kamkeel.npcs.network.packets.data.large.ScrollDataPacket.sendScrollData;
 
 public class NoppesUtilServer {
-    private static final HashMap<String, Quest> editingQuests = new HashMap<String, Quest>();
+    private static HashMap<String, Quest> editingQuests = new HashMap<String, Quest>();
 
     public static IPlayer getIPlayer(EntityPlayer p) {
         return (IPlayer) NpcAPI.Instance().getIEntity(p);
@@ -80,14 +80,14 @@ public class NoppesUtilServer {
     }
 
     public static void setEditingNpc(EntityPlayer player, EntityNPCInterface npc) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.editingNpc = npc;
         if (npc != null)
             PacketHandler.Instance.sendToPlayer(new EditNpcPacket(npc.getEntityId()), (EntityPlayerMP) player);
     }
 
     public static EntityNPCInterface getEditingNpc(EntityPlayer player) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.editingNpc;
     }
 
@@ -143,7 +143,7 @@ public class NoppesUtilServer {
 
     public static NBTTagCompound writeItem(ItemStack item, NBTTagCompound nbt) {
         String resourcelocation = Item.itemRegistry.getNameForObject(item.getItem());
-        nbt.setString("id", resourcelocation == null ? "minecraft:air" : resourcelocation);
+        nbt.setString("id", resourcelocation == null ? "minecraft:air" : resourcelocation.toString());
         nbt.setByte("Count", (byte) item.stackSize);
         nbt.setShort("Damage", (short) item.getItemDamage());
 
@@ -185,6 +185,7 @@ public class NoppesUtilServer {
             try {
                 return Item.getItemById(Integer.parseInt(id));
             } catch (NumberFormatException numberformatexception) {
+                ;
             }
         }
 
@@ -199,7 +200,7 @@ public class NoppesUtilServer {
             if (EventHooks.onNPCDialog(npc, player, dialog.id, optionId, dialog)) {
                 return;
             }
-            if (EventHooks.onDialogOpen(new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog))) {
+            if (EventHooks.onDialogOpen(player, new DialogEvent.DialogOpen((IPlayer) NpcAPI.Instance().getIEntity(player), dialog))) {
                 return;
             }
         }
@@ -218,7 +219,7 @@ public class NoppesUtilServer {
         }
         if (dialog.mail.isValid())
             PlayerDataController.Instance.addPlayerMessage(player.getCommandSenderName(), dialog.mail);
-        PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
+        PlayerDialogData data = PlayerData.get(player).dialogData;
         if (!data.dialogsRead.contains(dialog.id) && dialog.id >= 0) {
             data.dialogsRead.add(dialog.id);
             playerdata.updateClient = true;
@@ -355,7 +356,7 @@ public class NoppesUtilServer {
                     list.add(loc.name);
                 }
             }
-            PlayerTransportData playerdata = PlayerDataController.Instance.getPlayerData(player).transportData;
+            PlayerTransportData playerdata = PlayerData.get(player).transportData;
             for (int i : playerdata.transports) {
                 TransportLocation loc = TransportController.getInstance().getTransport(i);
                 if (loc != null && location.category.locations.containsKey(loc.id)) {
@@ -527,7 +528,7 @@ public class NoppesUtilServer {
         if (pl == null)
             playerdata = PlayerDataController.Instance.getDataFromUsername(name);
         else
-            playerdata = PlayerDataController.Instance.getPlayerData(pl);
+            playerdata = PlayerData.get(pl);
 
         if (type == EnumPlayerData.Players) {
             String fileType = ".json";
@@ -705,15 +706,15 @@ public class NoppesUtilServer {
     public static void sendMagicInfo(EntityPlayerMP player, boolean cycles) {
         HashMap<String, Integer> map = new HashMap<String, Integer>();
         if (cycles) {
-            for (Magic magic : MagicController.getInstance().magics.values()) {
-                map.put(magic.name, magic.id);
-            }
-            sendScrollData(player, map, EnumScrollData.MAGIC);
-        } else {
             for (MagicCycle magicCycle : MagicController.getInstance().cycles.values()) {
                 map.put(magicCycle.name, magicCycle.id);
             }
             sendScrollData(player, map, EnumScrollData.MAGIC_CYCLES);
+        } else {
+            for (Magic magic : MagicController.getInstance().magics.values()) {
+                map.put(magic.name, magic.id);
+            }
+            sendScrollData(player, map, EnumScrollData.MAGIC);
         }
     }
 
@@ -766,7 +767,7 @@ public class NoppesUtilServer {
 
         ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
         container.setRecipe(recipe);
-        GuiDataPacket.sendGuiData(player, recipe.writeNBT());
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, recipe.writeNBT());
     }
 
     public static void setRecipeAnvilGui(EntityPlayerMP player, RecipeAnvil recipe) {
@@ -777,13 +778,13 @@ public class NoppesUtilServer {
 
         ContainerManageRecipes container = (ContainerManageRecipes) player.openContainer;
         container.setRecipe(recipe);
-        GuiDataPacket.sendGuiData(player, recipe.writeNBT());
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, recipe.writeNBT());
     }
 
     public static void sendBank(EntityPlayerMP player, Bank bank) {
         NBTTagCompound compound = new NBTTagCompound();
         bank.writeEntityToNBT(compound);
-        GuiDataPacket.sendGuiData(player, compound);
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
 
         if (player.openContainer instanceof ContainerManageBanks) {
             ((ContainerManageBanks) player.openContainer).setBank(bank);
@@ -827,7 +828,7 @@ public class NoppesUtilServer {
         if (entity == null) {
             return null;
         }
-        entity.setPosition((double) x + 0.5, y, (double) z + 0.5);
+        entity.setPosition((double) x + 0.5, (double) y, (double) z + 0.5);
         if (entity instanceof EntityNPCInterface) {
             EntityNPCInterface npc = (EntityNPCInterface) entity;
             npc.ais.startPos = new int[]{MathHelper.floor_double(npc.posX), MathHelper.floor_double(npc.posY), MathHelper.floor_double(npc.posZ)};
@@ -950,7 +951,7 @@ public class NoppesUtilServer {
     }
 
     public static void isGUIOpen(ByteBuf buffer, EntityPlayer player) throws IOException {
-        PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerdata = PlayerData.get(player);
         boolean isGUIOpen = buffer.readBoolean();
         playerdata.setGUIOpen(isGUIOpen);
     }
@@ -992,7 +993,7 @@ public class NoppesUtilServer {
         if (pl == null)
             playerdata = PlayerDataController.Instance.getDataFromUsername(playerName);
         else
-            playerdata = PlayerDataController.Instance.getPlayerData(pl);
+            playerdata = PlayerData.get(pl);
 
         // Assemble quest maps:
         Map<String, Integer> questActiveMap = new HashMap<>();
@@ -1096,7 +1097,7 @@ public class NoppesUtilServer {
         if (pl == null)
             playerdata = PlayerDataController.Instance.getDataFromUsername(playerName);
         else
-            playerdata = PlayerDataController.Instance.getPlayerData(pl);
+            playerdata = PlayerData.get(pl);
 
         if (enumPlayerData == EnumPlayerData.Quest) { // Quest removal
             playerdata.questData.activeQuests.remove(value);
@@ -1144,7 +1145,7 @@ public class NoppesUtilServer {
         if (pl == null)
             playerdata = PlayerDataController.Instance.getDataFromUsername(playerName);
         else
-            playerdata = PlayerDataController.Instance.getPlayerData(pl);
+            playerdata = PlayerData.get(pl);
 
         if (enumPlayerData == EnumPlayerData.Magic) { // Quest removal
             playerdata.magicData.readToNBT(compound);

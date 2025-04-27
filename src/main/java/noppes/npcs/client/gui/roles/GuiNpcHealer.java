@@ -8,7 +8,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobHealer;
 
 public class GuiNpcHealer extends GuiNPCInterface2 {
-    private final JobHealer job;
+    private JobHealer job;
 
     public GuiNpcHealer(EntityNPCInterface npc) {
         super(npc);

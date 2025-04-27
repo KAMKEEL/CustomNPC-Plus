@@ -10,6 +10,7 @@ import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
 import net.minecraftforge.event.entity.player.*;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
@@ -135,7 +136,7 @@ public class ScriptItemEventHandler {
 
         if (PlayerDataController.Instance != null) {
             if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
-                PlayerData handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+                PlayerData handler = PlayerData.get(event.entityPlayer);
                 if (handler == null)
                     return;
 
@@ -154,7 +155,7 @@ public class ScriptItemEventHandler {
                 } catch (Exception e) {
                 }
             } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
-                PlayerData handler = PlayerDataController.Instance.getPlayerData(event.entityPlayer);
+                PlayerData handler = PlayerData.get(event.entityPlayer);
                 if (handler == null)
                     return;
 
@@ -163,7 +164,7 @@ public class ScriptItemEventHandler {
                     if (NoppesUtilServer.isScriptableItem(event.entityPlayer.getHeldItem().getItem()) && !event.isCanceled()) {
                         IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
                         if (isw instanceof IItemCustomizable) {
-                            ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent((IItemCustomizable) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock(NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
+                            ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent((IItemCustomizable) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock((IWorld) NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
                             event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustomizable) isw, eve));
                         }
                     }

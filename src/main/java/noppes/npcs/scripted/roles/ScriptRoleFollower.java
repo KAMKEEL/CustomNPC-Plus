@@ -9,7 +9,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleFollower extends ScriptRoleInterface implements IRoleFollower {
-    private final RoleFollower role;
+    private RoleFollower role;
 
     public ScriptRoleFollower(EntityNPCInterface npc) {
         super(npc);

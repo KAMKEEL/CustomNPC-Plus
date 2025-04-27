@@ -154,6 +154,25 @@ gui.change=Change
 gui.create=Create
 gui.rename=Rename
 gui.playerMap=Regen PlayerMap
+gui.unused=Unused
+
+gui.lineColor1=Upper line color
+gui.lineColor2=Middle line color
+gui.lineColor3=Lower line color
+gui.slotColour=Slots color
+gui.buttonAcceptColour=Accept button color
+gui.buttonRejectColour=Reject button color
+questgui.doyouaccept=Do you accept the quest?
+questgui.bringitems=Bring items
+questgui.readdialog=Read dialog
+questgui.killmobs=Kill mobs
+questgui.findlocation=Find location
+questgui.defeat=Defeat
+questgui.objectives=Objectives:
+questgui.rewards=Rewards:
+questgui.experience=Experience: 
+questgui.reject=Reject
+questgui.accept=Accept
 
 party.accept=Accept
 party.allowParty=Allow Partying
@@ -326,6 +345,7 @@ use_action.none=None
 use_action.block=Block
 use_action.eat=Eat
 use_action.drink=Drink
+use_action.bow=Bow
 
 armor_type.none=None
 armor_type.all=All
@@ -470,6 +490,9 @@ stats.stick=Sticks
 stats.regular=No Amp
 stats.amplified=Amp
 stats.explosion=Explosion
+stats.onShot=On Shot
+stats.onStart=On Start
+stats.burnItem=Burn Item
 
 ai.standing=Standing
 ai.wandering=Wandering
@@ -556,6 +579,7 @@ menu.tags=Tags
 menu.general=General
 menu.magics=Magics
 menu.cycles=Cycles
+menu.attributes=Attributes
 
 cloner.tagFilters=Tag Filters
 cloner.tagVisibility=Tag Visibility
@@ -653,6 +677,7 @@ dialog.npcScale=NPC Scale
 dialog.npcOffset=NPC Offset
 dialog.titleColor=Title Color
 dialog.titlePos=Title Position
+dialog.enableColorSettings=Enable Color Settings
 
 quest.quest=Quest
 quest.active=Active Quest
@@ -775,6 +800,7 @@ item.scripted_item.name=Scripted Item
 item.linked_item.name=Linked Item
 item.npcTool.hammer.name=Npc Hammer
 item.npcTool.paintbrush.name=Npc Brush
+item.npcTool.magic_book.name=Magic Book
 
 
 item.npcBanjo.name=Banjo
@@ -1329,6 +1355,10 @@ effect.editor.xPos=X Pos
 effect.editor.yPos=Y Pos
 effect.editor.lossOnDeath=Loss on Death
 
+particle.maxAge=Max Age
+particle.facePlayer=Face Player
+particle.noClip=No Clip
+
 profile.lastLoaded=Last Loaded
 profile.info.quest.active=Quests Active
 profile.info.quest.finished=Quests Finished
@@ -1341,6 +1371,7 @@ profile.enableOptions=Enable Options
 profile.completion=Completion
 profile.cooldown=Cooldown
 profile.individual=Individual
+profile.slot=Slot
 
 magic.interaction=Interaction
 magic.diagram=Diagram Type
@@ -1360,6 +1391,7 @@ diagram.circular_manual=Circular [Manual]
 diagram.square_manual=Square [Manual]
 diagram.tree_manual=Tree [Manual]
 diagram.chart=Chart
+diagram.manual=Manual
 diagram.info=Manual: Index is the level, Priority is the order.
 
 rpgcore:tooltip=Hold %key% to view attributes
@@ -1368,3 +1400,23 @@ rpgcore:attribute.defense=Defense
 rpgcore:attribute.resistance=Resistance
 rpgcore:attribute.neutral=Neutral Damage
 
+requirement.soulbind=Soulbind
+
+trail.smoke=Smoke
+trail.portal=Portal
+trail.redstone=Redstone
+trail.lightning=Lightning
+trail.largesmoke=Large Smoke
+trail.magic=Magic
+trail.enchant=Enchant
+trail.crit=Critical
+trail.explode=Explode
+trail.music=Music
+trail.flame=Flame
+trail.lava=Lava
+trail.splash=Splash
+trail.slime=Slime
+trail.heart=Heart
+trail.angryvillager=AngryVillager
+trail.happyvillager=HappyVillager
+trail.custom=Custom

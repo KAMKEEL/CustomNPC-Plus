@@ -6,8 +6,8 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumPotionType;
 
 public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfieldListener {
-    private final DataStats stats;
-    private final String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
+    private DataStats stats;
+    private String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
 
     public SubGuiNpcMeleeProperties(DataStats stats) {
         this.stats = stats;
@@ -20,7 +20,7 @@ public class SubGuiNpcMeleeProperties extends SubGuiInterface implements ITextfi
     public void initGui() {
         super.initGui();
         addLabel(new GuiNpcLabel(1, "stats.meleestrength", guiLeft + 5, guiTop + 15));
-        addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 85, guiTop + 10, 160, 18, String.format("%.0f", stats.getAttackStrength())));
+        addTextField(new GuiNpcTextField(1, this, fontRendererObj, guiLeft + 85, guiTop + 10, 160, 18, String.format("%.0f", stats.getAttackStrength()) + ""));
         getTextField(1).floatsOnly = true;
         getTextField(1).setMinMaxDefaultFloat(0, Float.MAX_VALUE, 5);
         addLabel(new GuiNpcLabel(2, "stats.meleerange", guiLeft + 5, guiTop + 45));

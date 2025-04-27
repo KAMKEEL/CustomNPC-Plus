@@ -56,7 +56,7 @@ public final class SyncEffectPacket extends LargeAbstractPacket {
             NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
             SyncController.clientSyncEffects(tag);
         } catch (RuntimeException e) {
-            LogWriter.error("Attempted to Sync Effects but it was too big");
+            LogWriter.error(String.format("Attempted to Sync Effects but it was too big"));
         }
     }
 }

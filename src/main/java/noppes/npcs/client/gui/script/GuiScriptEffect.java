@@ -164,7 +164,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
 
         while (var3.hasNext()) {
             Map.Entry<Long, String> entry = (Map.Entry) var3.next();
-            builder.insert(0, new Date(entry.getKey()) + entry.getValue() + "\n");
+            builder.insert(0, new Date((Long) entry.getKey()) + (String) entry.getValue() + "\n");
         }
 
         return builder.toString();
@@ -282,7 +282,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
         }
 
         if (guibutton.id == 105) {
-            container1 = new GuiYesNo(this, "", guibutton.displayString, 10);
+            container1 = new GuiYesNo(this, "", ((GuiNpcButton) guibutton).displayString, 10);
             this.displayGuiScreen(container1);
         }
 

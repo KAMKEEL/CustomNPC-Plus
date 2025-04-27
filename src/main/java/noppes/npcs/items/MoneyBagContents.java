@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 public class MoneyBagContents {
-    private final EntityPlayer player;
+    private EntityPlayer player;
     private int[] coinData = new int[]{0, 0, 0, 0, 0, 0, 0};
 
     public MoneyBagContents(EntityPlayer player) {
@@ -24,7 +24,7 @@ public class MoneyBagContents {
 
 
     public enum CoinType {
-        WOOD, STONE, IRON, GOLD, DIAMOND, BRONZE, EMERALD
+        WOOD, STONE, IRON, GOLD, DIAMOND, BRONZE, EMERALD;
     }
 
 

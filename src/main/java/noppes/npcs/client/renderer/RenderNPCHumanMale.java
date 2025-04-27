@@ -163,7 +163,7 @@ public class RenderNPCHumanMale extends RenderNPCInterface {
         int i = npc.getBrightnessForRender(f);
         int j = i % 65536;
         int k = i / 65536;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j / 1.0F, (float) k / 1.0F);
         GL11.glColor3f(1, 1, 1);
         ItemStack itemstack = npc.inventory.armorItemInSlot(0);
         if (itemstack != null) {

@@ -8,7 +8,7 @@ import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelMohawk extends ModelPartInterface {
-    private final Model2DRenderer model;
+    private Model2DRenderer model;
 
     public ModelMohawk(ModelMPM base) {
         super(base);

@@ -17,18 +17,15 @@ import java.util.List;
 public class GuiNpcTextArea extends GuiNpcTextField {
     public boolean inMenu = true;
     public boolean numbersOnly = false;
-    private final int posX;
-    private final int posY;
-    private final int width;
-    private final int height;
+    private int posX, posY, width, height;
     private int cursorCounter;
-    private final FontContainer font;
+    private FontContainer font;
     private int cursorPosition = 0;
     private int listHeight;
     private float scrolledY = 0;
     private int startClick = -1;
     private boolean clickVerticalBar = false;
-    private final boolean wrapLine = true;
+    private boolean wrapLine = true;
     private List<String> lines = new ArrayList<>();
 
     public GuiNpcTextArea(int id, GuiScreen guiscreen, int i, int j, int k, int l, String s) {
@@ -263,7 +260,10 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         if (listHeight <= height - 4)
             return false;
 
-        return posY < y && posY + height > y && x < posX + width && x > posX + (width - 8);
+        if (posY < y && posY + height > y && x < posX + width && x > posX + (width - 8))
+            return true;
+
+        return false;
     }
 
     private void drawCursorVertical(int p_146188_1_, int p_146188_2_, int p_146188_3_, int p_146188_4_) {
@@ -295,10 +295,10 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         GL11.glEnable(GL11.GL_COLOR_LOGIC_OP);
         GL11.glLogicOp(GL11.GL_OR_REVERSE);
         tessellator.startDrawingQuads();
-        tessellator.addVertex(p_146188_1_, p_146188_4_, 0.0D);
-        tessellator.addVertex(p_146188_3_, p_146188_4_, 0.0D);
-        tessellator.addVertex(p_146188_3_, p_146188_2_, 0.0D);
-        tessellator.addVertex(p_146188_1_, p_146188_2_, 0.0D);
+        tessellator.addVertex((double) p_146188_1_, (double) p_146188_4_, 0.0D);
+        tessellator.addVertex((double) p_146188_3_, (double) p_146188_4_, 0.0D);
+        tessellator.addVertex((double) p_146188_3_, (double) p_146188_2_, 0.0D);
+        tessellator.addVertex((double) p_146188_1_, (double) p_146188_2_, 0.0D);
         tessellator.draw();
         GL11.glDisable(GL11.GL_COLOR_LOGIC_OP);
         GL11.glEnable(GL11.GL_TEXTURE_2D);

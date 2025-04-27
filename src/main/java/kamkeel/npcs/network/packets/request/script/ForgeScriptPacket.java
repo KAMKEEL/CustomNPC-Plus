@@ -14,6 +14,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.IScriptHandler;
 
 import java.io.IOException;
 
@@ -70,13 +71,13 @@ public final class ForgeScriptPacket extends AbstractPacket {
         if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.SCRIPTER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.SCRIPTER))
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
         ForgeDataScript data = ScriptController.Instance.forgeScripts;
         if (requestedAction == Action.GET) {
-            PacketUtil.getScripts(data, (EntityPlayerMP) player);
+            PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             int tab = in.getInt(in.readerIndex());
             PacketUtil.saveScripts(data, in);

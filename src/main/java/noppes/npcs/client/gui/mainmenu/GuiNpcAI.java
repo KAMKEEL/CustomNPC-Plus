@@ -13,7 +13,7 @@ import noppes.npcs.constants.EnumNavType;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IGuiData {
-    private final DataAI ai;
+    private DataAI ai;
 
     public GuiNpcAI(EntityNPCInterface npc) {
         super(npc, 6);

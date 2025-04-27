@@ -5,7 +5,7 @@ import net.minecraft.entity.ai.EntityAITarget;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIClearTarget extends EntityAITarget {
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
     private EntityLivingBase target;
 
     public EntityAIClearTarget(EntityNPCInterface npc) {

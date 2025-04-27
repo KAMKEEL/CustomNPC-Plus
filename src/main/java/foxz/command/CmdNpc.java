@@ -152,7 +152,7 @@ public class CmdNpc extends ChMcLogger {
     @Override
     public List addTabCompletion(ICommandSender par1, String[] args) {
         if (args.length == 2) {
-            return CommandBase.getListOfStringsMatchingLastWord(args, "create", "home", "visible", "delete", "owner", "name");
+            return CommandBase.getListOfStringsMatchingLastWord(args, new String[]{"create", "home", "visible", "delete", "owner", "name"});
         }
         if (args.length == 3 && args[1].equalsIgnoreCase("owner")) {
             return CommandBase.getListOfStringsMatchingLastWord(args, MinecraftServer.getServer().getAllUsernames());

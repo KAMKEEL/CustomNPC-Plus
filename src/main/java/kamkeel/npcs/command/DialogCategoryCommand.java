@@ -30,7 +30,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         desc = "Find dialog category id number by its name",
         usage = "<dialog cat name>"
     )
-    public void id(ICommandSender sender, String[] args) throws CommandException {
+    public void id(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide a name for the dialog category");
             return;
@@ -55,7 +55,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         desc = "Read a dialog category for a player",
         usage = "<player> <dialogcatid>"
     )
-    public void read(ICommandSender sender, String[] args) throws CommandException {
+    public void read(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int dialogCatId;
         try {
@@ -96,7 +96,7 @@ public class DialogCategoryCommand extends CommandKamkeelBase {
         desc = "Unread a dialog category for a player",
         usage = "<player> <dialogcatid>"
     )
-    public void unread(ICommandSender sender, String[] args) throws CommandException {
+    public void unread(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int dialogCatId;
         try {

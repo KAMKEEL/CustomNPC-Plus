@@ -6,7 +6,7 @@ import noppes.npcs.client.gui.mainmenu.GuiNpcDisplay;
 import noppes.npcs.client.gui.util.*;
 
 public class SubGuiNpcName extends SubGuiInterface implements ITextfieldListener {
-    private final DataDisplay display;
+    private DataDisplay display;
 
     public SubGuiNpcName(DataDisplay display) {
         this.display = display;

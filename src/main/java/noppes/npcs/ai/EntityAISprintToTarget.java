@@ -6,7 +6,7 @@ import noppes.npcs.constants.AiMutex;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAISprintToTarget extends EntityAIBase {
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
 
     public EntityAISprintToTarget(EntityNPCInterface par1EntityLiving) {
         this.npc = par1EntityLiving;
@@ -23,9 +23,9 @@ public class EntityAISprintToTarget extends EntityAIBase {
 
         switch (this.npc.ais.onAttack) {
             case 0:
-                return !this.npc.isInRange(runTarget, 8) && (this.npc.onGround);
+                return !this.npc.isInRange(runTarget, 8) ? (!this.npc.onGround ? false : true) : false;
             case 2:
-                return this.npc.isInRange(runTarget, 7) && (this.npc.onGround);
+                return this.npc.isInRange(runTarget, 7) ? (!this.npc.onGround ? false : true) : false;
             default:
                 return false;
         }

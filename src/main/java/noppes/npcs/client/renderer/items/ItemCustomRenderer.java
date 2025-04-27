@@ -197,7 +197,7 @@ public class ItemCustomRenderer implements IItemRenderer {
             entityItem.boundingBox.maxY = entityItem.boundingBox.minY + (double) entityItem.height;
 
             if (entityItem.width > f2 && !entityItem.firstUpdate && !entityItem.worldObj.isRemote) {
-                entityItem.moveEntity(f2 - entityItem.width, 0.0D, f2 - entityItem.width);
+                entityItem.moveEntity((double) (f2 - entityItem.width), 0.0D, (double) (f2 - entityItem.width));
             }
         }
 
@@ -337,10 +337,10 @@ public class ItemCustomRenderer implements IItemRenderer {
 
                 tessellator.startDrawingQuads();
                 tessellator.setNormal(0.0F, 1.0F, 0.0F);
-                tessellator.addVertexWithUV(0.0F - f7, 0.0F - f8, 0.0D, f14, f5);
-                tessellator.addVertexWithUV(f6 - f7, 0.0F - f8, 0.0D, f15, f5);
-                tessellator.addVertexWithUV(f6 - f7, 1.0F - f8, 0.0D, f15, f4);
-                tessellator.addVertexWithUV(0.0F - f7, 1.0F - f8, 0.0D, f14, f4);
+                tessellator.addVertexWithUV((double) (0.0F - f7), (double) (0.0F - f8), 0.0D, (double) f14, (double) f5);
+                tessellator.addVertexWithUV((double) (f6 - f7), (double) (0.0F - f8), 0.0D, (double) f15, (double) f5);
+                tessellator.addVertexWithUV((double) (f6 - f7), (double) (1.0F - f8), 0.0D, (double) f15, (double) f4);
+                tessellator.addVertexWithUV((double) (0.0F - f7), (double) (1.0F - f8), 0.0D, (double) f14, (double) f4);
                 tessellator.draw();
                 GL11.glPopMatrix();
             }
@@ -403,10 +403,10 @@ public class ItemCustomRenderer implements IItemRenderer {
             }
 
             tessellator.startDrawingQuads();
-            tessellator.addVertexWithUV(p_77018_2_, p_77018_3_ + p_77018_5_, 0, (f2 + (float) p_77018_5_ * f4) * f, (f3 + (float) p_77018_5_) * f1);
-            tessellator.addVertexWithUV(p_77018_2_ + p_77018_4_, p_77018_3_ + p_77018_5_, 0, (f2 + (float) p_77018_4_ + (float) p_77018_5_ * f4) * f, (f3 + (float) p_77018_5_) * f1);
-            tessellator.addVertexWithUV(p_77018_2_ + p_77018_4_, p_77018_3_, 0, (f2 + (float) p_77018_4_) * f, (f3 + 0.0F) * f1);
-            tessellator.addVertexWithUV(p_77018_2_, p_77018_3_, 0, (f2 + 0.0F) * f, (f3 + 0.0F) * f1);
+            tessellator.addVertexWithUV((double) (p_77018_2_ + 0), (double) (p_77018_3_ + p_77018_5_), 0, (double) ((f2 + (float) p_77018_5_ * f4) * f), (double) ((f3 + (float) p_77018_5_) * f1));
+            tessellator.addVertexWithUV((double) (p_77018_2_ + p_77018_4_), (double) (p_77018_3_ + p_77018_5_), 0, (double) ((f2 + (float) p_77018_4_ + (float) p_77018_5_ * f4) * f), (double) ((f3 + (float) p_77018_5_) * f1));
+            tessellator.addVertexWithUV((double) (p_77018_2_ + p_77018_4_), (double) (p_77018_3_ + 0), 0, (double) ((f2 + (float) p_77018_4_) * f), (double) ((f3 + 0.0F) * f1));
+            tessellator.addVertexWithUV((double) (p_77018_2_ + 0), (double) (p_77018_3_ + 0), 0, (double) ((f2 + 0.0F) * f), (double) ((f3 + 0.0F) * f1));
             tessellator.draw();
         }
     }
@@ -415,10 +415,10 @@ public class ItemCustomRenderer implements IItemRenderer {
         Tessellator tessellator = Tessellator.instance;
         tessellator.startDrawingQuads();
         tessellator.setColorRGBA_F(itemRed, itemGreen, itemBlue, 1.0F);
-        tessellator.addVertexWithUV(posX, posY + imageHeight, 0, 0, 1);
-        tessellator.addVertexWithUV(posX + imageWidth, posY + imageHeight, 0, 1, 1);
-        tessellator.addVertexWithUV(posX + imageWidth, posY, 0, 1, 0);
-        tessellator.addVertexWithUV(posX, posY, 0, 0, 0);
+        tessellator.addVertexWithUV((double) (posX), (double) (posY + imageHeight), 0, 0, 1);
+        tessellator.addVertexWithUV((double) (posX + imageWidth), (double) (posY + imageHeight), 0, 1, 1);
+        tessellator.addVertexWithUV((double) (posX + imageWidth), (double) (posY), 0, 1, 0);
+        tessellator.addVertexWithUV((double) (posX), (double) (posY), 0, 0, 0);
         tessellator.draw();
     }
 
@@ -489,17 +489,17 @@ public class ItemCustomRenderer implements IItemRenderer {
 
         p_78439_0_.startDrawingQuads();
         p_78439_0_.setNormal(0.0F, 0.0F, 1.0F);
-        p_78439_0_.addVertexWithUV(0.0D, 0.0D, 0.0D, p_78439_1_, p_78439_4_);
-        p_78439_0_.addVertexWithUV(1.0D, 0.0D, 0.0D, p_78439_3_, p_78439_4_);
-        p_78439_0_.addVertexWithUV(1.0D, 1.0D, 0.0D, p_78439_3_, p_78439_2_);
-        p_78439_0_.addVertexWithUV(0.0D, 1.0D, 0.0D, p_78439_1_, p_78439_2_);
+        p_78439_0_.addVertexWithUV(0.0D, 0.0D, 0.0D, (double) p_78439_1_, (double) p_78439_4_);
+        p_78439_0_.addVertexWithUV(1.0D, 0.0D, 0.0D, (double) p_78439_3_, (double) p_78439_4_);
+        p_78439_0_.addVertexWithUV(1.0D, 1.0D, 0.0D, (double) p_78439_3_, (double) p_78439_2_);
+        p_78439_0_.addVertexWithUV(0.0D, 1.0D, 0.0D, (double) p_78439_1_, (double) p_78439_2_);
         p_78439_0_.draw();
         p_78439_0_.startDrawingQuads();
         p_78439_0_.setNormal(0.0F, 0.0F, -1.0F);
-        p_78439_0_.addVertexWithUV(0.0D, 1.0D, 0.0F - p_78439_7_, p_78439_1_, p_78439_2_);
-        p_78439_0_.addVertexWithUV(1.0D, 1.0D, 0.0F - p_78439_7_, p_78439_3_, p_78439_2_);
-        p_78439_0_.addVertexWithUV(1.0D, 0.0D, 0.0F - p_78439_7_, p_78439_3_, p_78439_4_);
-        p_78439_0_.addVertexWithUV(0.0D, 0.0D, 0.0F - p_78439_7_, p_78439_1_, p_78439_4_);
+        p_78439_0_.addVertexWithUV(0.0D, 1.0D, (double) (0.0F - p_78439_7_), (double) p_78439_1_, (double) p_78439_2_);
+        p_78439_0_.addVertexWithUV(1.0D, 1.0D, (double) (0.0F - p_78439_7_), (double) p_78439_3_, (double) p_78439_2_);
+        p_78439_0_.addVertexWithUV(1.0D, 0.0D, (double) (0.0F - p_78439_7_), (double) p_78439_3_, (double) p_78439_4_);
+        p_78439_0_.addVertexWithUV(0.0D, 0.0D, (double) (0.0F - p_78439_7_), (double) p_78439_1_, (double) p_78439_4_);
         p_78439_0_.draw();
         float f5 = 0.5F * (p_78439_1_ - p_78439_3_) / (float) width;
         float f6 = 0.5F * (p_78439_4_ - p_78439_2_) / (float) height;
@@ -512,10 +512,10 @@ public class ItemCustomRenderer implements IItemRenderer {
         for (k = 0; k < width; ++k) {
             f7 = (float) k / (float) width;
             f8 = p_78439_1_ + (p_78439_3_ - p_78439_1_) * f7 - f5;
-            p_78439_0_.addVertexWithUV(f7, 0.0D, 0.0F - p_78439_7_, f8, p_78439_4_);
-            p_78439_0_.addVertexWithUV(f7, 0.0D, 0.0D, f8, p_78439_4_);
-            p_78439_0_.addVertexWithUV(f7, 1.0D, 0.0D, f8, p_78439_2_);
-            p_78439_0_.addVertexWithUV(f7, 1.0D, 0.0F - p_78439_7_, f8, p_78439_2_);
+            p_78439_0_.addVertexWithUV((double) f7, 0.0D, (double) (0.0F - p_78439_7_), (double) f8, (double) p_78439_4_);
+            p_78439_0_.addVertexWithUV((double) f7, 0.0D, 0.0D, (double) f8, (double) p_78439_4_);
+            p_78439_0_.addVertexWithUV((double) f7, 1.0D, 0.0D, (double) f8, (double) p_78439_2_);
+            p_78439_0_.addVertexWithUV((double) f7, 1.0D, (double) (0.0F - p_78439_7_), (double) f8, (double) p_78439_2_);
         }
 
         p_78439_0_.draw();
@@ -527,10 +527,10 @@ public class ItemCustomRenderer implements IItemRenderer {
             f7 = (float) k / (float) width;
             f8 = p_78439_1_ + (p_78439_3_ - p_78439_1_) * f7 - f5;
             f9 = f7 + 1.0F / (float) width;
-            p_78439_0_.addVertexWithUV(f9, 1.0D, 0.0F - p_78439_7_, f8, p_78439_2_);
-            p_78439_0_.addVertexWithUV(f9, 1.0D, 0.0D, f8, p_78439_2_);
-            p_78439_0_.addVertexWithUV(f9, 0.0D, 0.0D, f8, p_78439_4_);
-            p_78439_0_.addVertexWithUV(f9, 0.0D, 0.0F - p_78439_7_, f8, p_78439_4_);
+            p_78439_0_.addVertexWithUV((double) f9, 1.0D, (double) (0.0F - p_78439_7_), (double) f8, (double) p_78439_2_);
+            p_78439_0_.addVertexWithUV((double) f9, 1.0D, 0.0D, (double) f8, (double) p_78439_2_);
+            p_78439_0_.addVertexWithUV((double) f9, 0.0D, 0.0D, (double) f8, (double) p_78439_4_);
+            p_78439_0_.addVertexWithUV((double) f9, 0.0D, (double) (0.0F - p_78439_7_), (double) f8, (double) p_78439_4_);
         }
 
         p_78439_0_.draw();
@@ -541,10 +541,10 @@ public class ItemCustomRenderer implements IItemRenderer {
             f7 = (float) k / (float) height;
             f8 = p_78439_4_ + (p_78439_2_ - p_78439_4_) * f7 - f6;
             f9 = f7 + 1.0F / (float) height;
-            p_78439_0_.addVertexWithUV(0.0D, f9, 0.0D, p_78439_1_, f8);
-            p_78439_0_.addVertexWithUV(1.0D, f9, 0.0D, p_78439_3_, f8);
-            p_78439_0_.addVertexWithUV(1.0D, f9, 0.0F - p_78439_7_, p_78439_3_, f8);
-            p_78439_0_.addVertexWithUV(0.0D, f9, 0.0F - p_78439_7_, p_78439_1_, f8);
+            p_78439_0_.addVertexWithUV(0.0D, (double) f9, 0.0D, (double) p_78439_1_, (double) f8);
+            p_78439_0_.addVertexWithUV(1.0D, (double) f9, 0.0D, (double) p_78439_3_, (double) f8);
+            p_78439_0_.addVertexWithUV(1.0D, (double) f9, (double) (0.0F - p_78439_7_), (double) p_78439_3_, (double) f8);
+            p_78439_0_.addVertexWithUV(0.0D, (double) f9, (double) (0.0F - p_78439_7_), (double) p_78439_1_, (double) f8);
         }
 
         p_78439_0_.draw();
@@ -554,10 +554,10 @@ public class ItemCustomRenderer implements IItemRenderer {
         for (k = 0; k < height; ++k) {
             f7 = (float) k / (float) height;
             f8 = p_78439_4_ + (p_78439_2_ - p_78439_4_) * f7 - f6;
-            p_78439_0_.addVertexWithUV(1.0D, f7, 0.0D, p_78439_3_, f8);
-            p_78439_0_.addVertexWithUV(0.0D, f7, 0.0D, p_78439_1_, f8);
-            p_78439_0_.addVertexWithUV(0.0D, f7, 0.0F - p_78439_7_, p_78439_1_, f8);
-            p_78439_0_.addVertexWithUV(1.0D, f7, 0.0F - p_78439_7_, p_78439_3_, f8);
+            p_78439_0_.addVertexWithUV(1.0D, (double) f7, 0.0D, (double) p_78439_3_, (double) f8);
+            p_78439_0_.addVertexWithUV(0.0D, (double) f7, 0.0D, (double) p_78439_1_, (double) f8);
+            p_78439_0_.addVertexWithUV(0.0D, (double) f7, (double) (0.0F - p_78439_7_), (double) p_78439_1_, (double) f8);
+            p_78439_0_.addVertexWithUV(1.0D, (double) f7, (double) (0.0F - p_78439_7_), (double) p_78439_3_, (double) f8);
         }
 
         p_78439_0_.draw();

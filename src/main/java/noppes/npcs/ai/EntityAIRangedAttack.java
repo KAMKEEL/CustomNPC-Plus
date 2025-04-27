@@ -28,9 +28,10 @@ public class EntityAIRangedAttack extends EntityAIBase {
     private int rangedAttackTime = 0;
     private int field_75318_f = 0;
     private int field_70846_g = 0;
-    private final int attackTick = 0;
+    private int attackTick = 0;
     private boolean hasFired = false;
     private boolean navOverride = false;
+    private boolean isShooting = false;
 
     public EntityAIRangedAttack(IRangedAttackMob par1IRangedAttackMob) {
         if (!(par1IRangedAttackMob instanceof EntityLivingBase)) {
@@ -49,16 +50,28 @@ public class EntityAIRangedAttack extends EntityAIBase {
     public boolean shouldExecute() {
         EntityLivingBase var1 = this.entityHost.getAttackTarget();
 
-        if (var1 == null || !var1.isEntityAlive()) return false;
+        if (var1 == null || !var1.isEntityAlive()){
+            isShooting = false;
+            return false;
+        }
 
-        if (entityHost.getDistanceToEntity(var1) > entityHost.stats.aggroRange) return false;
+        if (entityHost.getDistanceToEntity(var1) > entityHost.stats.aggroRange){
+            isShooting = false;
+            return false;
+        }
 
-        if (this.entityHost.inventory.getProjectile() == null) return false;
+        if (this.entityHost.inventory.getProjectile() == null){
+            isShooting = false;
+            return false;
+        }
 
         double var2 = this.entityHost.getDistanceSq(var1.posX, var1.boundingBox.minY, var1.posZ);
         double var3 = this.entityHost.ais.distanceToMelee * this.entityHost.ais.distanceToMelee;
 
-        if (this.entityHost.ais.useRangeMelee >= 1 && var2 <= var3) return false;
+        if (this.entityHost.ais.useRangeMelee >= 1 && var2 <= var3){
+            isShooting = false;
+            return false;
+        }
 
         else {
             this.attackTarget = var1;
@@ -111,12 +124,17 @@ public class EntityAIRangedAttack extends EntityAIBase {
 
         if (this.rangedAttackTime <= 0) {
             if (var1 <= (double) field_82642_h && (this.entityHost.getEntitySenses().canSee(this.attackTarget) || this.entityHost.ais.canFireIndirect == 2)) {
+                if (this.field_70846_g == 0) {
+                    this.entityHost.stats.playBurstSound = true;
+                }
                 if (this.field_70846_g++ <= this.entityHost.stats.burstCount) {
                     this.rangedAttackTime = this.entityHost.stats.fireRate;
+                    this.isShooting = true;
                 } else {
                     this.field_70846_g = 0;
                     this.hasFired = true;
                     this.rangedAttackTime = (this.entityHost.stats.maxDelay - MathHelper.floor_float(this.entityHost.getRNG().nextFloat() * (this.entityHost.stats.maxDelay - this.entityHost.stats.minDelay)));
+                    this.isShooting = false;
                 }
 
                 if (this.field_70846_g > 1) {
@@ -141,6 +159,10 @@ public class EntityAIRangedAttack extends EntityAIBase {
 
     public boolean hasFired() {
         return this.hasFired;
+    }
+
+    public boolean isShooting() {
+        return this.isShooting;
     }
 
     public void navOverride(boolean nav) {

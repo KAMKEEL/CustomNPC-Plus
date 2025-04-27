@@ -5,7 +5,7 @@ import noppes.npcs.Resistances;
 import noppes.npcs.client.gui.util.*;
 
 public class SubGuiNpcResistanceProperties extends SubGuiInterface implements ISliderListener {
-    private final Resistances resistances;
+    private Resistances resistances;
 
     public SubGuiNpcResistanceProperties(Resistances resistances) {
         this.resistances = resistances;

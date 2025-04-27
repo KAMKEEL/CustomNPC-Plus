@@ -30,7 +30,7 @@ public class EntityAIClosestTarget extends EntityAITarget {
     }
 
     public EntityAIClosestTarget(EntityCreature par1EntityCreature, Class par2Class, int par3, boolean par4, boolean par5) {
-        this(par1EntityCreature, par2Class, par3, par4, par5, null);
+        this(par1EntityCreature, par2Class, par3, par4, par5, (IEntitySelector) null);
     }
 
     public EntityAIClosestTarget(EntityCreature par1EntityCreature, Class par2Class, int par3, boolean par4, boolean par5, IEntitySelector par6IEntitySelector) {

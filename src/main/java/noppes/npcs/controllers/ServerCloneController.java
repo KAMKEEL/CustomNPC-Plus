@@ -279,9 +279,9 @@ public class ServerCloneController implements ICloneHandler {
     }
 
     public IEntity spawn(double x, double y, double z, int tab, String name, IWorld world, boolean ignoreProtection) {
-        NBTTagCompound compound = this.getCloneData(null, name, tab);
+        NBTTagCompound compound = this.getCloneData((ICommandSender) null, name, tab);
         if (compound == null) {
-            throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name);
+            throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
         } else {
             Entity entity;
             if (!ignoreProtection) {
@@ -329,9 +329,9 @@ public class ServerCloneController implements ICloneHandler {
     }
 
     public IEntity get(int tab, String name, IWorld world) {
-        NBTTagCompound compound = this.getCloneData(null, name, tab);
+        NBTTagCompound compound = this.getCloneData((ICommandSender) null, name, tab);
         if (compound == null) {
-            throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name);
+            throw new CustomNPCsException("Unknown clone tab:" + tab + " name:" + name, new Object[0]);
         } else {
             Instance.cleanTags(compound);
             Entity entity = EntityList.createEntityFromNBT(compound, world.getMCWorld());
@@ -340,7 +340,7 @@ public class ServerCloneController implements ICloneHandler {
     }
 
     public boolean has(int tab, String name) {
-        NBTTagCompound compound = this.getCloneData(null, name, tab);
+        NBTTagCompound compound = this.getCloneData((ICommandSender) null, name, tab);
         return compound != null;
     }
 
@@ -348,7 +348,7 @@ public class ServerCloneController implements ICloneHandler {
     public void set(int tab, String name, IEntity entity) {
         NBTTagCompound compound = new NBTTagCompound();
         if (!entity.getMCEntity().writeMountToNBT(compound))
-            throw new CustomNPCsException("Cannot save dead entities");
+            throw new CustomNPCsException("Cannot save dead entities", new Object[0]);
 
         this.cleanTags(compound);
         this.saveClone(tab, name, compound);

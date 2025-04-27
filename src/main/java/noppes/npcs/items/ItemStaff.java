@@ -10,6 +10,7 @@ import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.constants.EnumNpcToolMaterial;
@@ -21,7 +22,7 @@ import org.lwjgl.opengl.GL11;
 
 public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
 
-    private final EnumNpcToolMaterial material;
+    private EnumNpcToolMaterial material;
 
     public ItemStaff(int par1, EnumNpcToolMaterial material) {
         super(par1);
@@ -41,7 +42,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
         }
         if (stack.stackTagCompound == null)
             return;
-        Entity entity = player.worldObj.getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
+        Entity entity = ((WorldServer) player.worldObj).getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
         if (entity == null || !(entity instanceof EntityProjectile))
             return;
         EntityProjectile item = (EntityProjectile) entity;
@@ -88,7 +89,7 @@ public class ItemStaff extends ItemNpcInterface implements IProjectileCallback {
             stack.stackTagCompound.setInteger("MagicProjectile", projectile.getEntityId());//entityid
         }
         if (tick > chargeTime && stack.stackTagCompound != null) {
-            Entity entity = player.worldObj.getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
+            Entity entity = ((WorldServer) player.worldObj).getEntityByID(stack.stackTagCompound.getInteger("MagicProjectile"));
             if (entity == null || !(entity instanceof EntityProjectile))
                 return;
             EntityProjectile item = (EntityProjectile) entity;

@@ -10,8 +10,8 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelWings extends ModelPartInterface {
 
-    private final Model2DRenderer lWing;
-    private final Model2DRenderer rWing;
+    private Model2DRenderer lWing;
+    private Model2DRenderer rWing;
 
     public ModelWings(ModelMPM base) {
         super(base);
@@ -41,7 +41,7 @@ public class ModelWings extends ModelPartInterface {
 
         float motion = Math.abs(MathHelper.sin(par1 * 0.033F + (float) Math.PI) * 0.4F) * par2;
         if ((!entity.worldObj.isRemote && !entity.onGround) || motion > 0.1D) {
-            float speed = 0.55f + 0.5f * motion;
+            float speed = (float) (0.55f + 0.5f * motion);
             float y = MathHelper.sin(par3 * 0.67F);
 
             rWing.rotateAngleZ += y * 0.5f * speed;

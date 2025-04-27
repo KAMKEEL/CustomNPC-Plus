@@ -35,7 +35,7 @@ public class CmdDialog extends ChMcLogger {
         usage = "<player> <dialog>",
         permissions = {OpOnly.class, ParamCheck.class}
     )
-    public boolean read(String[] args) {
+    public boolean read(String args[]) {
         String playername = args[0];
         int diagid;
         try {
@@ -62,7 +62,7 @@ public class CmdDialog extends ChMcLogger {
         usage = "<player> <dialog>",
         permissions = {OpOnly.class, ParamCheck.class}
     )
-    public boolean unread(String[] args) {
+    public boolean unread(String args[]) {
         String playername = args[0];
         int diagid;
         try {
@@ -88,7 +88,7 @@ public class CmdDialog extends ChMcLogger {
         desc = "reload dialogs from disk",
         permissions = {OpOnly.class}
     )
-    public boolean reload(String[] args) {
+    public boolean reload(String args[]) {
         new DialogController().load();
         SyncController.syncAllDialogs();
         return true;
@@ -100,7 +100,7 @@ public class CmdDialog extends ChMcLogger {
         usage = "<player> <dialog> <name>",
         permissions = {OpOnly.class}
     )
-    public void show(String[] args) {
+    public void show(String args[]) {
         EntityPlayer player = CommandBase.getPlayer(pcParam, args[0]);
         if (player == null) {
             sendmessage(String.format("Unknow player '%s'", args[0]));

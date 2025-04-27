@@ -65,7 +65,7 @@ public final class ColorSetPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
             return;
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.BRUSH, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.BRUSH, player))
             return;
 
         int x = in.readInt();

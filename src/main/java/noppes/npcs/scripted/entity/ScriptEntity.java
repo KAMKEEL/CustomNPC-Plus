@@ -289,6 +289,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
      */
     public void setX(double x) {
         entity.setPosition(x, entity.posY, entity.posZ);
+        ;
     }
 
     /**
@@ -317,6 +318,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
      */
     public void setZ(double z) {
         entity.setPosition(entity.posX, entity.posY, z);
+        ;
     }
 
     /**
@@ -437,10 +439,10 @@ public class ScriptEntity<T extends Entity> implements IEntity {
         if (world != null) {
             WorldServer mcWorld = world.getMCWorld();
             if (this.entity.riddenByEntity != null) {
-                this.entity.riddenByEntity.mountEntity(null);
+                this.entity.riddenByEntity.mountEntity((Entity) null);
             }
             if (this.entity.ridingEntity != null) {
-                this.entity.mountEntity(null);
+                this.entity.mountEntity((Entity) null);
             }
             WorldServer prevWorld = ((WorldServer) this.entity.worldObj);
             prevWorld.unloadEntities(new ArrayList<Entity>(Collections.singleton(this.entity)));
@@ -730,6 +732,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
     public void setRider(IEntity entity) {
         if (entity != null) {
             entity.getMCEntity().mountEntity(this.entity);
+            ;
         } else if (this.entity.riddenByEntity != null)
             this.entity.riddenByEntity.mountEntity(null);
     }
@@ -916,7 +919,7 @@ public class ScriptEntity<T extends Entity> implements IEntity {
     public void storeAsClone(int tab, String name) {
         NBTTagCompound compound = new NBTTagCompound();
         if (!this.entity.writeToNBTOptional(compound)) {
-            throw new CustomNPCsException("Cannot store dead entities");
+            throw new CustomNPCsException("Cannot store dead entities", new Object[0]);
         } else {
             ServerCloneController.Instance.addClone(compound, name, tab);
         }

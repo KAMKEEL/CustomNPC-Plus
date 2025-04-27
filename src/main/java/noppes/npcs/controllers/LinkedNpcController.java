@@ -48,6 +48,7 @@ public class LinkedNpcController {
                 if (file.getName().endsWith(".json")) {
                     try {
                         NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+                        ;
                         LinkedData linked = new LinkedData();
                         linked.setNBT(compound);
                         list.add(linked);

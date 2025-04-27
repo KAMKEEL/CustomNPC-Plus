@@ -17,10 +17,10 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 public class MarkovDictionary {
-    private final Random rng;
+    private Random rng;
     private int sequenceLen = 3;
 
-    private final HashMap2D<String, String, Integer> occurrences = new HashMap2D<String, String, Integer>();
+    private HashMap2D<String, String, Integer> occurrences = new HashMap2D<String, String, Integer>();
 
     public MarkovDictionary(String dictionary, int seqlen, Random rng) {
         this.rng = rng;
@@ -108,7 +108,7 @@ public class MarkovDictionary {
         Iterator<Entry<String, Map<String, Integer>>> i = occurrences.mMap.entrySet().iterator();
 
         while (i.hasNext()) {
-            Entry<String, Map<String, Integer>> pair = i.next();
+            Entry<String, Map<String, Integer>> pair = (Entry<String, Map<String, Integer>>) i.next();
 
             String k = pair.getKey();
             if (k.startsWith("_[") && k.endsWith("_")) // dealing with meta entry here
@@ -131,10 +131,10 @@ public class MarkovDictionary {
 
         Iterator<Entry<String, Map<String, Integer>>> it = occurrences.mMap.entrySet().iterator();
 
-        StringBuilder sequence = new StringBuilder();
+        StringBuilder sequence = new StringBuilder("");
 
         while (it.hasNext()) {
-            Entry<String, Map<String, Integer>> pair = it.next();
+            Entry<String, Map<String, Integer>> pair = (Entry<String, Map<String, Integer>>) it.next();
 
             String k = pair.getKey();
 
@@ -143,7 +143,7 @@ public class MarkovDictionary {
                 topLevelEntries = occurrences.get(k, "_TOTAL_");
 
                 if (randomNumber < topLevelEntries) {
-                    sequence.append(k, 1, sequenceLen + 1); // removing the underscores
+                    sequence.append(k.substring(1, sequenceLen + 1)); // removing the underscores
                     break;
                 } else {
                     // keep going
@@ -154,7 +154,7 @@ public class MarkovDictionary {
         // great! now that we have the first element, time for some generic iterations.
         // in a very similar manner. Basically - perform this loop till you encounter
         // "]" at the end
-        StringBuilder word = new StringBuilder();
+        StringBuilder word = new StringBuilder("");
 
         word.append(sequence); // now we're gonna use firstElement to keep the sequence
         while (sequence.charAt(sequence.length() - 1) != ']') {
@@ -215,7 +215,7 @@ public class MarkovDictionary {
 
         ResourceLocation resource = new ResourceLocation("customnpcs:markovnames/" + dictionaryFile);
 
-        BufferedReader readIn = new BufferedReader(new InputStreamReader(getResource(resource), StandardCharsets.UTF_8));
+        BufferedReader readIn = new BufferedReader(new InputStreamReader(getResource(resource), "UTF-8"));
         // Thread.currentThread().getContextClassLoader().getResourceAsStream("path/to/resource/file.ext");
 
         for (String line = readIn.readLine(); line != null; line = readIn.readLine()) {
@@ -244,10 +244,10 @@ public class MarkovDictionary {
             incrementSafe(seqCurr, seqNext);
             // aux counters
 
+            StringBuilder meta = new StringBuilder("_").append(seqCurr).append("_");
+
             // String aux1="_"+seqCurr+"_";
-            incrementSafe("_" + seqCurr + "_"
-                // String aux1="_"+seqCurr+"_";
-                , "_TOTAL_");
+            incrementSafe(meta.toString(), "_TOTAL_");
             // String aux2="_"+seqNext+"_";
             // incrementSafe(aux1, aux2);
 

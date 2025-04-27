@@ -28,7 +28,7 @@ public class RenderProjectile extends Render {
     public boolean renderWithColor = true;
     private static final ResourceLocation field_110780_a = new ResourceLocation("textures/entity/arrow.png");
     private static final ResourceLocation field_110798_h = new ResourceLocation("textures/misc/enchanted_item_glint.png");
-    private final RenderBlocks itemRenderBlocks = new RenderBlocks();
+    private RenderBlocks itemRenderBlocks = new RenderBlocks();
 
     public void doRenderProjectile(EntityProjectile par1EntityProjectile, double par2, double par4, double par6, float par8, float par9) {
         GL11.glPushMatrix();
@@ -47,7 +47,7 @@ public class RenderProjectile extends Render {
             byte b0 = 0;
             float f2 = 0.0F;
             float f3 = 0.5F;
-            float f4 = (float) (b0 * 10) / 32.0F;
+            float f4 = (float) (0 + b0 * 10) / 32.0F;
             float f5 = (float) (5 + b0 * 10) / 32.0F;
             float f6 = 0.0F;
             float f7 = 0.15625F;
@@ -67,27 +67,27 @@ public class RenderProjectile extends Render {
             GL11.glTranslatef(-4.0F, 0.0F, 0.0F);
             GL11.glNormal3f(f10, 0.0F, 0.0F);
             tessellator.startDrawingQuads();
-            tessellator.addVertexWithUV(-7.0D, -2.0D, -2.0D, f6, f8);
-            tessellator.addVertexWithUV(-7.0D, -2.0D, 2.0D, f7, f8);
-            tessellator.addVertexWithUV(-7.0D, 2.0D, 2.0D, f7, f9);
-            tessellator.addVertexWithUV(-7.0D, 2.0D, -2.0D, f6, f9);
+            tessellator.addVertexWithUV(-7.0D, -2.0D, -2.0D, (double) f6, (double) f8);
+            tessellator.addVertexWithUV(-7.0D, -2.0D, 2.0D, (double) f7, (double) f8);
+            tessellator.addVertexWithUV(-7.0D, 2.0D, 2.0D, (double) f7, (double) f9);
+            tessellator.addVertexWithUV(-7.0D, 2.0D, -2.0D, (double) f6, (double) f9);
             tessellator.draw();
             GL11.glNormal3f(-f10, 0.0F, 0.0F);
             tessellator.startDrawingQuads();
-            tessellator.addVertexWithUV(-7.0D, 2.0D, -2.0D, f6, f8);
-            tessellator.addVertexWithUV(-7.0D, 2.0D, 2.0D, f7, f8);
-            tessellator.addVertexWithUV(-7.0D, -2.0D, 2.0D, f7, f9);
-            tessellator.addVertexWithUV(-7.0D, -2.0D, -2.0D, f6, f9);
+            tessellator.addVertexWithUV(-7.0D, 2.0D, -2.0D, (double) f6, (double) f8);
+            tessellator.addVertexWithUV(-7.0D, 2.0D, 2.0D, (double) f7, (double) f8);
+            tessellator.addVertexWithUV(-7.0D, -2.0D, 2.0D, (double) f7, (double) f9);
+            tessellator.addVertexWithUV(-7.0D, -2.0D, -2.0D, (double) f6, (double) f9);
             tessellator.draw();
 
             for (int i = 0; i < 4; ++i) {
                 GL11.glRotatef(90.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glNormal3f(0.0F, 0.0F, f10);
                 tessellator.startDrawingQuads();
-                tessellator.addVertexWithUV(-8.0D, -2.0D, 0.0D, f2, f4);
-                tessellator.addVertexWithUV(8.0D, -2.0D, 0.0D, f3, f4);
-                tessellator.addVertexWithUV(8.0D, 2.0D, 0.0D, f3, f5);
-                tessellator.addVertexWithUV(-8.0D, 2.0D, 0.0D, f2, f5);
+                tessellator.addVertexWithUV(-8.0D, -2.0D, 0.0D, (double) f2, (double) f4);
+                tessellator.addVertexWithUV(8.0D, -2.0D, 0.0D, (double) f3, (double) f4);
+                tessellator.addVertexWithUV(8.0D, 2.0D, 0.0D, (double) f3, (double) f5);
+                tessellator.addVertexWithUV(-8.0D, 2.0D, 0.0D, (double) f2, (double) f5);
                 tessellator.draw();
             }
         } else if (par1EntityProjectile.is3D()) {
@@ -201,10 +201,10 @@ public class RenderProjectile extends Render {
         GL11.glRotatef(-this.renderManager.playerViewX, 1.0F, 0.0F, 0.0F);
         par1Tessellator.startDrawingQuads();
         par1Tessellator.setNormal(0.0F, 1.0F, 0.0F);
-        par1Tessellator.addVertexWithUV(0.0F - f5, 0.0F - f6, 0.0D, f, f3);
-        par1Tessellator.addVertexWithUV(f4 - f5, 0.0F - f6, 0.0D, f1, f3);
-        par1Tessellator.addVertexWithUV(f4 - f5, f4 - f6, 0.0D, f1, f2);
-        par1Tessellator.addVertexWithUV(0.0F - f5, f4 - f6, 0.0D, f, f2);
+        par1Tessellator.addVertexWithUV((double) (0.0F - f5), (double) (0.0F - f6), 0.0D, (double) f, (double) f3);
+        par1Tessellator.addVertexWithUV((double) (f4 - f5), (double) (0.0F - f6), 0.0D, (double) f1, (double) f3);
+        par1Tessellator.addVertexWithUV((double) (f4 - f5), (double) (f4 - f6), 0.0D, (double) f1, (double) f2);
+        par1Tessellator.addVertexWithUV((double) (0.0F - f5), (double) (f4 - f6), 0.0D, (double) f, (double) f2);
         par1Tessellator.draw();
     }
 
@@ -234,7 +234,7 @@ public class RenderProjectile extends Render {
         }
 
         GL11.glColor4f(par5, par6, par7, 1.0F);
-        ItemRenderer.renderItemIn2D(tessellator, f5, f6, f4, f7, par2Icon.getIconWidth(), par2Icon.getIconHeight(), f12);
+        ItemRenderer.renderItemIn2D(tessellator, f5, f6, f4, f7, ((IIcon) par2Icon).getIconWidth(), ((IIcon) par2Icon).getIconHeight(), f12);
 
         if (item != null && item.hasEffect(0)) {
             GL11.glDepthFunc(GL11.GL_EQUAL);

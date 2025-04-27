@@ -15,6 +15,7 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.LinkedItemController;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 
@@ -83,7 +84,7 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
 
         LinkedItemScript data = linkedItem.getOrCreateScriptHandler();
         if (requestedAction == Action.GET) {
-            PacketUtil.getScripts(data, (EntityPlayerMP) player);
+            PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             data.saveScript(in);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {

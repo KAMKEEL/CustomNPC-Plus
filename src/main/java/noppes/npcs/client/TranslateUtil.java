@@ -12,7 +12,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 
 public class TranslateUtil {
     private static final String TranslateUrl = "http://translate.google.com/translate_a/t?client=t&text=%s&hl=en&sl=%s&tl=%s&ie=UTF-8&oe=UTF-8&multires=1&otf=1&pc=1&trs=1&ssel=3&tsel=6&sc=1";
@@ -21,7 +20,7 @@ public class TranslateUtil {
     public static String Translate(String text) {
 
         try {
-            String urlStr = String.format(TranslateUrl, URLEncoder.encode(text, StandardCharsets.UTF_8.name()), "auto", "nl");
+            String urlStr = String.format(TranslateUrl, URLEncoder.encode(text, "utf8"), "auto", "nl");
             URL url = new URL(urlStr);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 

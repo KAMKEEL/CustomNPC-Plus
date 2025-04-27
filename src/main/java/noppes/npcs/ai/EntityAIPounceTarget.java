@@ -6,9 +6,9 @@ import net.minecraft.util.MathHelper;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIPounceTarget extends EntityAIBase {
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
     private EntityLivingBase leapTarget;
-    private final float leapSpeed = 1.2F;
+    private float leapSpeed = 1.2F;
 
     public EntityAIPounceTarget(EntityNPCInterface leapingEntity) {
         this.npc = leapingEntity;
@@ -41,9 +41,9 @@ public class EntityAIPounceTarget extends EntityAIBase {
         float varF = MathHelper.sqrt_double(varX * varX + varZ * varZ);
         float angle = this.getAngleForXYZ(varX, varY, varZ, varF);
         float yaw = (float) (Math.atan2(varX, varZ) * 180.0D / Math.PI);
-        this.npc.motionX = MathHelper.sin(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(angle / 180.0F * (float) Math.PI);
-        this.npc.motionZ = MathHelper.cos(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(angle / 180.0F * (float) Math.PI);
-        this.npc.motionY = MathHelper.sin((angle + 1.0F) / 180.0F * (float) Math.PI);
+        this.npc.motionX = (double) (MathHelper.sin(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(angle / 180.0F * (float) Math.PI));
+        this.npc.motionZ = (double) (MathHelper.cos(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(angle / 180.0F * (float) Math.PI));
+        this.npc.motionY = (double) (MathHelper.sin((angle + 1.0F) / 180.0F * (float) Math.PI));
         this.npc.motionX *= this.leapSpeed;
         this.npc.motionZ *= this.leapSpeed;
         this.npc.motionY *= this.leapSpeed;

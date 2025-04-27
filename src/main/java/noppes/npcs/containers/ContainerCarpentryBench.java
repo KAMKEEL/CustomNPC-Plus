@@ -14,11 +14,11 @@ import noppes.npcs.controllers.data.RecipeCarpentry;
 public class ContainerCarpentryBench extends Container {
     public InventoryCrafting craftMatrix = new InventoryCrafting(this, 4, 4);
     public IInventory craftResult = new InventoryCraftResult();
-    private final EntityPlayer player;
-    private final World worldObj;
-    private final int posX;
-    private final int posY;
-    private final int posZ;
+    private EntityPlayer player;
+    private World worldObj;
+    private int posX;
+    private int posY;
+    private int posZ;
 
     public ContainerCarpentryBench(InventoryPlayer par1InventoryPlayer, World par2World, int par3, int par4, int par5) {
         this.worldObj = par2World;
@@ -92,7 +92,7 @@ public class ContainerCarpentryBench extends Container {
 
     @Override
     public boolean canInteractWith(EntityPlayer par1EntityPlayer) {
-        return this.worldObj.getBlock(this.posX, this.posY, this.posZ) == CustomItems.carpentyBench && par1EntityPlayer.getDistanceSq((double) this.posX + 0.5D, (double) this.posY + 0.5D, (double) this.posZ + 0.5D) <= 64.0D;
+        return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != CustomItems.carpentyBench ? false : par1EntityPlayer.getDistanceSq((double) this.posX + 0.5D, (double) this.posY + 0.5D, (double) this.posZ + 0.5D) <= 64.0D;
     }
 
     /**
@@ -126,7 +126,7 @@ public class ContainerCarpentryBench extends Container {
             }
 
             if (var4.stackSize == 0) {
-                var3.putStack(null);
+                var3.putStack((ItemStack) null);
             } else {
                 var3.onSlotChanged();
             }

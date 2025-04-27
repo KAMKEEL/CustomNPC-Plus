@@ -23,11 +23,11 @@ public class FlyPathFinder extends PathFinder {
     /**
      * Used to find obstacles
      */
-    private final IBlockAccess worldMap;
+    private IBlockAccess worldMap;
     /**
      * The path being generated
      */
-    private final PathHeap path = new PathHeap();
+    private PathHeap path = new PathHeap();
     /**
      * The points in the path
      */
@@ -35,15 +35,15 @@ public class FlyPathFinder extends PathFinder {
     /**
      * Selection of path points to add to the path
      */
-    private final NPCPathPoint[] pathOptions = new NPCPathPoint[32];
-    private final Entity theEntity;
+    private NPCPathPoint[] pathOptions = new NPCPathPoint[32];
+    private Entity theEntity;
     private final Map<PathNodeType, Float> mapPathPriority = Maps.newEnumMap(PathNodeType.class);
 
 
-    private final boolean isPathingInWater;
-    private final boolean isMovementBlockAllowed;
-    private final boolean isWoodenDoorAllowed;
-    private final boolean canEntityDrown;
+    private boolean isPathingInWater;
+    private boolean isMovementBlockAllowed;
+    private boolean isWoodenDoorAllowed;
+    private boolean canEntityDrown;
 
     private int drowningType;
     private boolean immuneToFire;
@@ -70,7 +70,7 @@ public class FlyPathFinder extends PathFinder {
      * Creates a path from an entity to a specified location within a minimum distance
      */
     public NPCPath createEntityPathTo(Entity entityFrom, int xTo, int yTo, int zTo, float distance) {
-        return this.createEntityPathTo(entityFrom, (float) xTo + 0.5F, (float) yTo + 0.5F, (float) zTo + 0.5F, distance);
+        return this.createEntityPathTo(entityFrom, (double) ((float) xTo + 0.5F), (double) ((float) yTo + 0.5F), (double) ((float) zTo + 0.5F), distance);
     }
 
     /**
@@ -110,11 +110,11 @@ public class FlyPathFinder extends PathFinder {
         PathNodeType pathnodetype1 = this.getPathNodeType((EntityLiving) this.theEntity, blockpos1.getX(), i, blockpos1.getZ());
 
         if (this.getPathPriority(pathnodetype1) < 0.0F) {
-            Set<BlockPos> set = Sets.newHashSet();
-            set.add(new BlockPos(this.theEntity.boundingBox.minX, i, this.theEntity.boundingBox.minZ));
-            set.add(new BlockPos(this.theEntity.boundingBox.minX, i, this.theEntity.boundingBox.maxZ));
-            set.add(new BlockPos(this.theEntity.boundingBox.maxX, i, this.theEntity.boundingBox.minZ));
-            set.add(new BlockPos(this.theEntity.boundingBox.maxX, i, this.theEntity.boundingBox.maxZ));
+            Set<BlockPos> set = Sets.<BlockPos>newHashSet();
+            set.add(new BlockPos(this.theEntity.boundingBox.minX, (double) i, this.theEntity.boundingBox.minZ));
+            set.add(new BlockPos(this.theEntity.boundingBox.minX, (double) i, this.theEntity.boundingBox.maxZ));
+            set.add(new BlockPos(this.theEntity.boundingBox.maxX, (double) i, this.theEntity.boundingBox.minZ));
+            set.add(new BlockPos(this.theEntity.boundingBox.maxX, (double) i, this.theEntity.boundingBox.maxZ));
 
             for (BlockPos blockpos : set) {
                 PathNodeType pathnodetype = this.getPathNodeType((EntityLiving) this.theEntity, blockpos);
@@ -473,7 +473,7 @@ public class FlyPathFinder extends PathFinder {
 
 
     public PathNodeType getPathNodeType(IBlockAccess blockaccessIn, int x, int y, int z, EntityLiving entitylivingIn, int xSize, int ySize, int zSize, boolean canBreakDoorsIn, boolean canEnterDoorsIn) {
-        EnumSet<PathNodeType> enumset = EnumSet.noneOf(PathNodeType.class);
+        EnumSet<PathNodeType> enumset = EnumSet.<PathNodeType>noneOf(PathNodeType.class);
         PathNodeType pathnodetype = PathNodeType.BLOCKED;
         BlockPos blockpos = new BlockPos(entitylivingIn);
         pathnodetype = this.getPathNodeType(blockaccessIn, x, y, z, xSize, ySize, zSize, canBreakDoorsIn, canEnterDoorsIn, enumset, pathnodetype, blockpos);
@@ -602,11 +602,11 @@ public class FlyPathFinder extends PathFinder {
                 return immuneToFire ? PathNodeType.OPEN : PathNodeType.DAMAGE_FIRE;
             } else if (block == Blocks.cactus) {
                 return PathNodeType.DAMAGE_CACTUS;
-            } else if (block instanceof BlockDoor && material == Material.wood && !block.getBlocksMovement(this.worldMap, p_189553_2_, p_189553_3_, p_189553_4_)) {
+            } else if (block instanceof BlockDoor && material == Material.wood && !((BlockDoor) block).getBlocksMovement(this.worldMap, p_189553_2_, p_189553_3_, p_189553_4_)) {
                 return PathNodeType.DOOR_WOOD_CLOSED;
-            } else if (block instanceof BlockDoor && material == Material.wood && !block.getBlocksMovement(this.worldMap, p_189553_2_, p_189553_3_, p_189553_4_)) {
+            } else if (block instanceof BlockDoor && material == Material.wood && !((BlockDoor) block).getBlocksMovement(this.worldMap, p_189553_2_, p_189553_3_, p_189553_4_)) {
                 return PathNodeType.DOOR_IRON_CLOSED;
-            } else if (block instanceof BlockDoor && block.getBlocksMovement(this.worldMap, p_189553_2_, p_189553_3_, p_189553_4_)) {
+            } else if (block instanceof BlockDoor && ((BlockDoor) block).getBlocksMovement(this.worldMap, p_189553_2_, p_189553_3_, p_189553_4_)) {
                 return PathNodeType.DOOR_OPEN;
             } else if (block instanceof BlockRailBase) {
                 return PathNodeType.RAIL;

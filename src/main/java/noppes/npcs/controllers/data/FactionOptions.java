@@ -4,7 +4,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerDataController;
 
 public class FactionOptions {
 
@@ -48,7 +47,7 @@ public class FactionOptions {
         if (factionId < 0 && faction2Id < 0)
             return;
 
-        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        PlayerFactionData data = PlayerData.get(player).factionData;
         if (factionId >= 0 && factionPoints > 0)
             addPoints(player, data, factionId, decreaseFactionPoints, factionPoints);
         if (faction2Id >= 0 && faction2Points > 0)

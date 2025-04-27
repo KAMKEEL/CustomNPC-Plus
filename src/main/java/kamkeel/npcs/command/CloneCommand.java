@@ -104,7 +104,7 @@ public class CloneCommand extends CommandKamkeelBase {
         try {
             tab = Integer.parseInt(args[1]);
             if (tab < 0 || tab > 15) {
-                sendError(sender, "Tab must be within 1-15");
+                sendError(sender, String.format("Tab must be within 1-15"));
                 return;
             }
         } catch (NumberFormatException ex) {
@@ -138,7 +138,7 @@ public class CloneCommand extends CommandKamkeelBase {
         try {
             tab = Integer.parseInt(args[1]);
             if (tab < 0 || tab > 15) {
-                sendError(sender, "Tab must be within 1-15");
+                sendError(sender, String.format("Tab must be within 1-15"));
                 return;
             }
         } catch (NumberFormatException ex) {
@@ -219,7 +219,7 @@ public class CloneCommand extends CommandKamkeelBase {
         try {
             tab = Integer.parseInt(args[1]);
             if (tab < 0 || tab > 15) {
-                sendError(sender, "Tab must be within 1-15");
+                sendError(sender, String.format("Tab must be within 1-15"));
                 return;
             }
         } catch (NumberFormatException ex) {
@@ -312,6 +312,7 @@ public class CloneCommand extends CommandKamkeelBase {
                 world.spawnEntityInWorld(entity);
             }
         }
+        return;
     }
 
     public World getWorld(String t) {

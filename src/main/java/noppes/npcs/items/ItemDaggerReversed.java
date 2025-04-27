@@ -5,7 +5,7 @@ import org.lwjgl.opengl.GL11;
 
 public class ItemDaggerReversed extends ItemDagger {
 
-    private final ItemDagger dagger;
+    private ItemDagger dagger;
 
     public ItemDaggerReversed(int par1, ItemDagger dagger, ToolMaterial tool) {
         super(par1, tool);

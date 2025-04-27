@@ -28,7 +28,7 @@ public class AnimationCommand extends CommandKamkeelBase {
         desc = "set an animation to a player",
         usage = "<player> <num>"
     )
-    public void set(ICommandSender sender, String[] args) throws CommandException {
+    public void set(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int animationId;
         try {
@@ -63,7 +63,7 @@ public class AnimationCommand extends CommandKamkeelBase {
         desc = "clear an animation from a player",
         usage = "<player>"
     )
-    public void clear(ICommandSender sender, String[] args) throws CommandException {
+    public void clear(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
@@ -85,7 +85,7 @@ public class AnimationCommand extends CommandKamkeelBase {
         desc = "enable an animation on a player",
         usage = "<player>"
     )
-    public void enable(ICommandSender sender, String[] args) throws CommandException {
+    public void enable(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
@@ -111,7 +111,7 @@ public class AnimationCommand extends CommandKamkeelBase {
         desc = "disable an animation on a player",
         usage = "<player>"
     )
-    public void disable(ICommandSender sender, String[] args) throws CommandException {
+    public void disable(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
@@ -136,7 +136,7 @@ public class AnimationCommand extends CommandKamkeelBase {
     @SubCommand(
         desc = "reload animations"
     )
-    public void reload(ICommandSender sender, String[] args) {
+    public void reload(ICommandSender sender, String args[]) {
         AnimationController.Instance.load();
         sendResult(sender, "Animations Reloaded");
     }

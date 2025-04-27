@@ -37,6 +37,14 @@ public class QuestCompletedRequirement implements IRequirementChecker {
     }
 
     @Override
+    public Object getValue(NBTTagCompound nbt) {
+        if (nbt.hasKey(getKey())) {
+            return nbt.getInteger(getKey());
+        }
+        return null;
+    }
+
+    @Override
     public boolean check(EntityPlayer player, NBTTagCompound nbt) {
         if (nbt.hasKey(getKey())) {
             int questID = nbt.getInteger(getKey());

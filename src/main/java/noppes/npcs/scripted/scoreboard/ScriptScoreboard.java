@@ -14,7 +14,7 @@ import java.util.List;
  * @author Karel
  */
 public class ScriptScoreboard implements IScoreboard {
-    private final Scoreboard board;
+    private Scoreboard board;
 
     public ScriptScoreboard() {
         board = MinecraftServer.getServer().worldServerForDimension(0).getScoreboard();

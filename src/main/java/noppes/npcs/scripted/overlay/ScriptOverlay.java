@@ -92,7 +92,7 @@ public class ScriptOverlay implements ICustomOverlay {
 
     public void removeComponent(int componentID) {
         for (int i = 0; i < this.components.size(); ++i) {
-            if (this.components.get(i).getID() == componentID) {
+            if (((ICustomOverlayComponent) this.components.get(i)).getID() == componentID) {
                 this.components.remove(i);
                 return;
             }
@@ -102,7 +102,7 @@ public class ScriptOverlay implements ICustomOverlay {
 
     public void updateComponent(ICustomOverlayComponent component) {
         for (int i = 0; i < this.components.size(); ++i) {
-            ICustomOverlayComponent c = this.components.get(i);
+            ICustomOverlayComponent c = (ICustomOverlayComponent) this.components.get(i);
             if (c.getID() == component.getID()) {
                 this.components.set(i, component);
                 return;
@@ -141,7 +141,7 @@ public class ScriptOverlay implements ICustomOverlay {
         ICustomOverlayComponent c;
         while (var3.hasNext()) {
             c = (ICustomOverlayComponent) var3.next();
-            list.appendTag(c.toNBT(new NBTTagCompound()));
+            list.appendTag(((ScriptOverlayComponent) c).toNBT(new NBTTagCompound()));
         }
 
         tag.setTag("components", list);

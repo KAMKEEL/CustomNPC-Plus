@@ -31,16 +31,16 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
      * Update ticks since the gui was opened
      */
     private int updateCount;
-    private final int bookImageWidth = 192;
-    private final int bookImageHeight = 192;
+    private int bookImageWidth = 192;
+    private int bookImageHeight = 192;
     private int bookTotalPages = 1;
     private int currPage;
     private NBTTagList bookPages;
     private GuiButtonNextPage buttonNextPage;
     private GuiButtonNextPage buttonPreviousPage;
 
-    private final boolean canEdit;
-    private final boolean canSend;
+    private boolean canEdit;
+    private boolean canSend;
 
     /**
      * The GuiButton to sign this book.
@@ -49,7 +49,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
     public static GuiScreen parent;
     public static PlayerMail mail = new PlayerMail();
 
-    private final Minecraft mc = Minecraft.getMinecraft();
+    private Minecraft mc = Minecraft.getMinecraft();
 
     private String username = "";
     private GuiNpcLabel error;
@@ -256,7 +256,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
     private void func_74160_b(String par1Str) {
         String s1 = this.func_74158_i();
         String s2 = s1 + par1Str;
-        int i = mc.fontRenderer.splitStringWidth(s2 + EnumChatFormatting.BLACK + "_", 118);
+        int i = mc.fontRenderer.splitStringWidth(s2 + "" + EnumChatFormatting.BLACK + "_", 118);
 
         if (i <= 118 && s2.length() < 256) {
             this.func_74159_a(s2);
@@ -282,7 +282,7 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
         String s1;
         int l;
 
-        s = I18n.format("book.pageIndicator", Integer.valueOf(this.currPage + 1), Integer.valueOf(this.bookTotalPages));
+        s = I18n.format("book.pageIndicator", new Object[]{Integer.valueOf(this.currPage + 1), Integer.valueOf(this.bookTotalPages)});
         s1 = "";
 
         if (this.bookPages != null && this.currPage >= 0 && this.currPage < this.bookPages.tagCount()) {
@@ -293,9 +293,9 @@ public class GuiMailmanWrite extends GuiContainerNPCInterface implements ITextfi
             if (mc.fontRenderer.getBidiFlag()) {
                 s1 = s1 + "_";
             } else if (this.updateCount / 6 % 2 == 0) {
-                s1 = s1 + EnumChatFormatting.BLACK + "_";
+                s1 = s1 + "" + EnumChatFormatting.BLACK + "_";
             } else {
-                s1 = s1 + EnumChatFormatting.GRAY + "_";
+                s1 = s1 + "" + EnumChatFormatting.GRAY + "_";
             }
         }
 

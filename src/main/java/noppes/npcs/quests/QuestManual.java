@@ -8,7 +8,6 @@ import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
@@ -58,7 +57,7 @@ public class QuestManual extends QuestInterface {
     @Override
     public Vector<String> getQuestLogStatus(EntityPlayer player) {
         Vector<String> vec = new Vector<String>();
-        PlayerData playerdata = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerdata = PlayerData.get(player);
         if (playerdata == null)
             return vec;
 
@@ -104,7 +103,7 @@ public class QuestManual extends QuestInterface {
         for (Entry<String, Integer> entry : manuals.entrySet()) {
             list.add(new QuestManualObjective(party, entry.getKey(), entry.getValue()));
         }
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     @Override
@@ -216,12 +215,12 @@ public class QuestManual extends QuestInterface {
         @Override
         public int getProgress() {
             if (player != null) {
-                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData data = PlayerData.get(player);
                 PlayerQuestData playerdata = data.questData;
-                QuestData questdata = playerdata.activeQuests.get(questId);
+                QuestData questdata = (QuestData) playerdata.activeQuests.get(questId);
                 if (questdata != null) {
                     HashMap<String, Integer> playerManual = getManual(questdata);
-                    return !playerManual.containsKey(this.entity) ? 0 : playerManual.get(this.entity);
+                    return !playerManual.containsKey(this.entity) ? 0 : (Integer) playerManual.get(this.entity);
                 }
             } else if (party != null) {
                 QuestData questdata = party.getQuestData();
@@ -230,7 +229,7 @@ public class QuestManual extends QuestInterface {
                         int howManyDone = 0;
                         for (String player : party.getPlayerNames()) {
                             HashMap<String, Integer> playerManual = getPlayerManual(questdata, player);
-                            int currentProgress = !playerManual.containsKey(this.entity) ? 0 : playerManual.get(this.entity);
+                            int currentProgress = !playerManual.containsKey(this.entity) ? 0 : (Integer) playerManual.get(this.entity);
                             if (currentProgress >= this.amount)
                                 howManyDone += 1;
                         }
@@ -240,7 +239,7 @@ public class QuestManual extends QuestInterface {
                         return 0;
                     } else {
                         HashMap<String, Integer> playerManual = getManual(questdata);
-                        return !playerManual.containsKey(this.entity) ? 0 : playerManual.get(this.entity);
+                        return !playerManual.containsKey(this.entity) ? 0 : (Integer) playerManual.get(this.entity);
                     }
                 }
             }
@@ -251,12 +250,12 @@ public class QuestManual extends QuestInterface {
         public void setProgress(int progress) {
             if (progress >= 0 && progress <= this.amount) {
                 if (player != null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData data = PlayerData.get(player);
                     PlayerQuestData playerdata = data.questData;
-                    QuestData questdata = playerdata.activeQuests.get(questId);
+                    QuestData questdata = (QuestData) playerdata.activeQuests.get(questId);
                     if (questdata != null) {
                         HashMap<String, Integer> playerManual = getManual(questdata);
-                        if (!playerManual.containsKey(this.entity) || playerManual.get(this.entity) != progress) {
+                        if (!playerManual.containsKey(this.entity) || (Integer) playerManual.get(this.entity) != progress) {
                             playerManual.put(this.entity, progress);
                             setManual(questdata, playerManual);
                             data.questData.checkQuestCompletion(data, EnumQuestType.Manual);
@@ -270,7 +269,7 @@ public class QuestManual extends QuestInterface {
                         if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
                             for (String player : party.getPlayerNames()) {
                                 HashMap<String, Integer> playerManual = getPlayerManual(questdata, player);
-                                if (!playerManual.containsKey(this.entity) || playerManual.get(this.entity) != progress) {
+                                if (!playerManual.containsKey(this.entity) || (Integer) playerManual.get(this.entity) != progress) {
                                     playerManual.put(this.entity, progress);
                                     setPlayerManual(questdata, playerManual, player);
                                 }
@@ -278,7 +277,7 @@ public class QuestManual extends QuestInterface {
                             PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Manual);
                         } else {
                             HashMap<String, Integer> playerManual = getManual(questdata);
-                            if (!playerManual.containsKey(this.entity) || playerManual.get(this.entity) != progress) {
+                            if (!playerManual.containsKey(this.entity) || (Integer) playerManual.get(this.entity) != progress) {
                                 playerManual.put(this.entity, progress);
                                 setManual(questdata, playerManual);
                                 PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Manual);
@@ -287,7 +286,7 @@ public class QuestManual extends QuestInterface {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount);
+                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
             }
         }
 
@@ -296,12 +295,12 @@ public class QuestManual extends QuestInterface {
             if (progress >= 0 && progress <= this.amount) {
                 EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
                 if (foundplayer != null && party == null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
+                    PlayerData data = PlayerData.get(foundplayer);
                     PlayerQuestData playerdata = data.questData;
-                    QuestData questdata = playerdata.activeQuests.get(questId);
+                    QuestData questdata = (QuestData) playerdata.activeQuests.get(questId);
                     if (questdata != null) {
                         HashMap<String, Integer> playerManual = getManual(questdata);
-                        if (!playerManual.containsKey(this.entity) || playerManual.get(this.entity) != progress) {
+                        if (!playerManual.containsKey(this.entity) || (Integer) playerManual.get(this.entity) != progress) {
                             playerManual.put(this.entity, progress);
                             setManual(questdata, playerManual);
                             data.questData.checkQuestCompletion(data, EnumQuestType.Manual);
@@ -314,14 +313,14 @@ public class QuestManual extends QuestInterface {
                     if (questdata != null) {
                         if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
                             HashMap<String, Integer> playerManual = getPlayerManual(questdata, foundplayer.getCommandSenderName());
-                            if (!playerManual.containsKey(this.entity) || playerManual.get(this.entity) != progress) {
+                            if (!playerManual.containsKey(this.entity) || (Integer) playerManual.get(this.entity) != progress) {
                                 playerManual.put(this.entity, progress);
                                 setPlayerManual(questdata, playerManual, foundplayer.getCommandSenderName());
                             }
                             PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Manual);
                         } else {
                             HashMap<String, Integer> playerManual = getManual(questdata);
-                            if (!playerManual.containsKey(this.entity) || playerManual.get(this.entity) != progress) {
+                            if (!playerManual.containsKey(this.entity) || (Integer) playerManual.get(this.entity) != progress) {
                                 playerManual.put(this.entity, progress);
                                 setManual(questdata, playerManual);
                                 PartyController.Instance().checkQuestCompletion(party, EnumQuestType.Manual);
@@ -330,7 +329,7 @@ public class QuestManual extends QuestInterface {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount);
+                throw new CustomNPCsException("Progress has to be between 0 and " + this.amount, new Object[0]);
             }
         }
 
@@ -363,7 +362,7 @@ public class QuestManual extends QuestInterface {
                     if (questdata.quest.partyOptions.objectiveRequirement == EnumPartyObjectives.All) {
                         for (String player : party.getPlayerNames()) {
                             HashMap<String, Integer> playerManual = getPlayerManual(questdata, player);
-                            int currentProgress = !playerManual.containsKey(this.entity) ? 0 : playerManual.get(this.entity);
+                            int currentProgress = !playerManual.containsKey(this.entity) ? 0 : (Integer) playerManual.get(this.entity);
                             if (currentProgress < this.amount) {
                                 String state = player + ": " + currentProgress;
                                 incompletePlayers.add(state);

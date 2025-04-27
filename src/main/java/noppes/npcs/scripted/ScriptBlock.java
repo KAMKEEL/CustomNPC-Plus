@@ -116,14 +116,14 @@ public class ScriptBlock implements IBlock {
 
     public IContainer getContainer() {
         if (!this.isContainer()) {
-            throw new CustomNPCsException("This block is not a container");
+            throw new CustomNPCsException("This block is not a container", new Object[0]);
         } else {
             return NpcAPI.Instance().getIContainer((IInventory) this.tile.getMCTileEntity());
         }
     }
 
     public String getName() {
-        return Block.blockRegistry.getNameForObject(this.block);
+        return Block.blockRegistry.getNameForObject(this.block) + "";
     }
 
     public String getDisplayName() {

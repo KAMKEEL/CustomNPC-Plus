@@ -30,6 +30,14 @@ public class QuestActiveRequirement implements IRequirementChecker {
     }
 
     @Override
+    public Object getValue(NBTTagCompound nbt) {
+        if (nbt.hasKey(getKey())) {
+            return nbt.getInteger(getKey());
+        }
+        return null;
+    }
+
+    @Override
     public void apply(NBTTagCompound nbt, Object value) {
         if (value instanceof Integer) {
             nbt.setInteger(getKey(), (Integer) value);

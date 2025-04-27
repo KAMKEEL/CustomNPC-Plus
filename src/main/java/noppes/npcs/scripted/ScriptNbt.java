@@ -7,7 +7,7 @@ import noppes.npcs.util.NBTJsonUtil;
 import java.util.Iterator;
 
 public class ScriptNbt implements INbt {
-    private final NBTTagCompound compound;
+    private NBTTagCompound compound;
 
     public ScriptNbt(NBTTagCompound compound) {
         this.compound = compound;
@@ -129,7 +129,7 @@ public class ScriptNbt implements INbt {
         if (b == null) {
             return 0;
         } else if (b.getId() != 9) {
-            throw new CustomNPCsException("NBT tag " + key + " isn't a list");
+            throw new CustomNPCsException("NBT tag " + key + " isn\'t a list", new Object[0]);
         } else {
             return ((NBTTagList) b).func_150303_d();
         }
@@ -153,7 +153,7 @@ public class ScriptNbt implements INbt {
             } else if (nbt instanceof Integer) {
                 list.appendTag(new NBTTagInt(((Integer) nbt).intValue()));
             } else if (nbt instanceof int[]) {
-                list.appendTag(new NBTTagIntArray((int[]) nbt));
+                list.appendTag(new NBTTagIntArray((int[]) ((int[]) nbt)));
             }
         }
 
@@ -166,7 +166,7 @@ public class ScriptNbt implements INbt {
 
     public void setCompound(String key, INbt value) {
         if (value == null) {
-            throw new CustomNPCsException("Value cant be null");
+            throw new CustomNPCsException("Value cant be null", new Object[0]);
         } else {
             this.compound.setTag(key, value.getMCNBT());
         }

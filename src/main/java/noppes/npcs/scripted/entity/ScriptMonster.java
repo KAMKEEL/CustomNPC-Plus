@@ -17,7 +17,7 @@ public class ScriptMonster<T extends EntityMob> extends ScriptLiving<T> implemen
 
     @Override
     public boolean typeOf(int type) {
-        return type == EntityType.MONSTER || super.typeOf(type);
+        return type == EntityType.MONSTER ? true : super.typeOf(type);
     }
 
 }

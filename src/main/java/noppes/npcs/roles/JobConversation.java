@@ -18,8 +18,8 @@ import java.util.List;
 public class JobConversation extends JobInterface {
     public Availability availability = new Availability();
 
-    private final ArrayList<String> names = new ArrayList<String>();
-    private final HashMap<String, EntityNPCInterface> npcs = new HashMap<String, EntityNPCInterface>();
+    private ArrayList<String> names = new ArrayList<String>();
+    private HashMap<String, EntityNPCInterface> npcs = new HashMap<String, EntityNPCInterface>();
 
     public HashMap<Integer, ConversationLine> lines = new HashMap<Integer, ConversationLine>();
 

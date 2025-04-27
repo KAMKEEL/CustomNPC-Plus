@@ -65,8 +65,8 @@ public class ScriptForgeEventHandler {
 
     public ScriptForgeEventHandler registerForgeEvents() {
         try {
-            Method e = this.getClass().getMethod("forgeEntity", Event.class);
-            Method register = FMLCommonHandler.instance().bus().getClass().getDeclaredMethod("register", Class.class, Object.class, Method.class, ModContainer.class);
+            Method e = this.getClass().getMethod("forgeEntity", new Class[]{Event.class});
+            Method register = FMLCommonHandler.instance().bus().getClass().getDeclaredMethod("register", new Class[]{Class.class, Object.class, Method.class, ModContainer.class});
             register.setAccessible(true);
             ArrayList list = new ArrayList();
             list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
@@ -114,7 +114,7 @@ public class ScriptForgeEventHandler {
                 while (var10.hasNext()) {
                     Class c1 = (Class) var10.next();
                     if (!EntityEvent.EntityConstructing.class.isAssignableFrom(c1) && !WorldEvent.PotentialSpawns.class.isAssignableFrom(c1) && !TickEvent.RenderTickEvent.class.isAssignableFrom(c1) && !TickEvent.ClientTickEvent.class.isAssignableFrom(c1) && !FMLNetworkEvent.ClientCustomPacketEvent.class.isAssignableFrom(c1) && !ItemTooltipEvent.class.isAssignableFrom(c1) && Event.class.isAssignableFrom(c1) && !Modifier.isAbstract(c1.getModifiers()) && Modifier.isPublic(c1.getModifiers()) && !ChunkEvent.class.isAssignableFrom(c1) && !ChunkWatchEvent.class.isAssignableFrom(c1) && !ChunkDataEvent.class.isAssignableFrom(c1)) {
-                        register.invoke(FMLCommonHandler.instance().bus(), c1, this, e, Loader.instance().activeModContainer());
+                        register.invoke(FMLCommonHandler.instance().bus(), new Object[]{c1, this, e, Loader.instance().activeModContainer()});
                     }
                 }
             }

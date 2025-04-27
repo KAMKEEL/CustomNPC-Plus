@@ -29,7 +29,7 @@ import noppes.npcs.scripted.event.CustomNPCsEvent;
 import java.util.*;
 
 public class NPCSpawning {
-    private static final Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
+    private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();
 
     private static boolean animalSpawn;
     private static boolean monsterSpawn;
@@ -49,7 +49,9 @@ public class NPCSpawning {
             for (int x = -size; x <= size; ++x) {
                 for (int z = -size; z <= size; ++z) {
                     ChunkCoordIntPair chunkcoordintpair = new ChunkCoordIntPair(x + j, z + k);
-                    eligibleChunksForSpawning.add(chunkcoordintpair);
+                    if (!eligibleChunksForSpawning.contains(chunkcoordintpair)) {
+                        eligibleChunksForSpawning.add(chunkcoordintpair);
+                    }
                 }
             }
         }

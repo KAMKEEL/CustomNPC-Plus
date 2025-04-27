@@ -6,7 +6,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAITransform extends EntityAIBase {
 
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
 
     public EntityAITransform(EntityNPCInterface npc) {
         this.npc = npc;
@@ -18,7 +18,7 @@ public class EntityAITransform extends EntityAIBase {
         if (npc.isKilled() || npc.isAttacking() || npc.transform.editingModus)
             return false;
 
-        return (npc.worldObj.getWorldTime() % 24000 < 12000) == npc.transform.isActive;
+        return npc.worldObj.getWorldTime() % 24000 < 12000 ? npc.transform.isActive : !npc.transform.isActive;
     }
 
     public void startExecuting() {

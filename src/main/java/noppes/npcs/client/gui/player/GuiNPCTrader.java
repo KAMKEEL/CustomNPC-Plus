@@ -16,8 +16,8 @@ import org.lwjgl.opengl.GL12;
 public class GuiNPCTrader extends GuiContainerNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/trader.png");
     private final ResourceLocation slot = new ResourceLocation("customnpcs", "textures/gui/slot.png");
-    private final RoleTrader role;
-    private final ContainerNPCTrader container;
+    private RoleTrader role;
+    private ContainerNPCTrader container;
 
     public GuiNPCTrader(EntityNPCInterface npc, ContainerNPCTrader container) {
         super(npc, container);

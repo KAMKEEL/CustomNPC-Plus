@@ -89,7 +89,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             hookLabel.color = 0xaaaaaa;
             addLabel(hookLabel);
 
-            ScriptContainer container = this.handler.getScripts().get(this.activeTab - 1);
+            ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
             GuiScriptTextArea ta = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
             ta.enableCodeHighlighting();
             ta.setListener(this);
@@ -120,7 +120,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));
             this.addLabel(new GuiNpcLabel(1, "script.language", var9, this.guiTop + 15));
-            this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20, this.languages.keySet().toArray(new String[this.languages.keySet().size()]), this.getScriptIndex()));
+            this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20, (String[]) this.languages.keySet().toArray(new String[this.languages.keySet().size()]), this.getScriptIndex()));
             this.getButton(103).enabled = this.languages.size() > 0;
             this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
             this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20, new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
@@ -168,7 +168,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         while (var3.hasNext()) {
             Entry<Long, String> entry = (Entry) var3.next();
-            builder.insert(0, new Date(entry.getKey()) + entry.getValue() + "\n");
+            builder.insert(0, new Date((Long) entry.getKey()) + (String) entry.getValue() + "\n");
         }
 
         return builder.toString();
@@ -215,7 +215,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             if (i == 102) {
                 ScriptContainer container;
                 if (this.activeTab > 0) {
-                    container = this.handler.getScripts().get(this.activeTab - 1);
+                    container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
                     container.script = "";
                 } else {
                     this.handler.clearConsole();
@@ -276,7 +276,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 103) {
-            this.handler.setLanguage(guibutton.displayString);
+            this.handler.setLanguage(((GuiNpcButton) guibutton).displayString);
         }
 
         if (guibutton.id == 104) {
@@ -284,7 +284,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 105) {
-            GuiYesNo container1 = new GuiYesNo(this, "", guibutton.displayString, 10);
+            GuiYesNo container1 = new GuiYesNo(this, "", ((GuiNpcButton) guibutton).displayString, 10);
             this.displayGuiScreen(container1);
         }
 
@@ -293,18 +293,18 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 107) {
-            container = this.handler.getScripts().get(this.activeTab - 1);
+            container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
             if (container == null) {
                 this.handler.getScripts().add(container = new ScriptContainer(this.handler));
             }
 
-            this.setSubGui(new EventGuiScriptList(this.languages.get(this.handler.getLanguage()), container));
+            this.setSubGui(new EventGuiScriptList((List) this.languages.get(this.handler.getLanguage()), container));
         }
     }
 
     private void setScript() {
         if (this.activeTab > 0) {
-            ScriptContainer container = this.handler.getScripts().get(this.activeTab - 1);
+            ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
             if (container == null) {
                 this.handler.getScripts().add(container = new ScriptContainer(this.handler));
             }
@@ -342,7 +342,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void textUpdate(String text) {
-        ScriptContainer container = this.handler.getScripts().get(this.activeTab - 1);
+        ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
         if (container != null) {
             container.script = text;
         }

@@ -8,8 +8,8 @@ import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelEars extends ModelPartInterface {
-    private final ModelRenderer ears;
-    private final ModelRenderer bunny;
+    private ModelRenderer ears;
+    private ModelRenderer bunny;
 
     public ModelEars(ModelMPM par1ModelBase) {
         super(par1ModelBase);

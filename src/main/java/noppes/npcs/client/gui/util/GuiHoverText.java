@@ -8,12 +8,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiHoverText extends GuiScreen {
-    private final int x;
-    private final int y;
+    private int x, y;
     public int id;
 
     protected static final ResourceLocation buttonTextures = new ResourceLocation("customnpcs:textures/gui/info.png");
-    private final String text;
+    private String text;
 
     public GuiHoverText(int id, String text, int x, int y) {
         this.text = text;
@@ -37,6 +36,8 @@ public class GuiHoverText extends GuiScreen {
     }
 
     public boolean inArea(int x, int y, int width, int height, int mouseX, int mouseY) {
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+        if (mouseX < x || mouseX > x + width || mouseY < y || mouseY > y + height)
+            return false;
+        return true;
     }
 }

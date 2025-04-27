@@ -9,7 +9,7 @@ import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIFollow extends EntityAIBase {
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
     private EntityLivingBase owner;
     private double distance;
     public int updateTick = 0;
@@ -70,7 +70,7 @@ public class EntityAIFollow extends EntityAIBase {
         for (int l = 0; l <= 4; ++l) {
             for (int i1 = 0; i1 <= 4; ++i1) {
                 if ((l < 1 || i1 < 1 || l > 3 || i1 > 3) && World.doesBlockHaveSolidTopSurface(npc.worldObj, i + l, k - 1, j + i1) && !npc.worldObj.getBlock(i + l, k, j + i1).isNormalCube() && !npc.worldObj.getBlock(i + l, k + 1, j + i1).isNormalCube()) {
-                    this.npc.setLocationAndAngles((float) (i + l) + 0.5F, k, (float) (j + i1) + 0.5F, this.npc.rotationYaw, this.npc.rotationPitch);
+                    this.npc.setLocationAndAngles((double) ((float) (i + l) + 0.5F), (double) k, (double) ((float) (j + i1) + 0.5F), this.npc.rotationYaw, this.npc.rotationPitch);
                     this.npc.getNavigator().clearPathEntity();
                     return;
                 }

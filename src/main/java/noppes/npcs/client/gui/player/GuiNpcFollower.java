@@ -21,8 +21,8 @@ import org.lwjgl.opengl.GL12;
 
 public class GuiNpcFollower extends GuiContainerNPCInterface implements IGuiData {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/follower.png");
-    private final EntityNPCInterface npc;
-    private final RoleFollower role;
+    private EntityNPCInterface npc;
+    private RoleFollower role;
 
     public GuiNpcFollower(EntityNPCInterface npc, ContainerNPCFollower container) {
         super(npc, container);

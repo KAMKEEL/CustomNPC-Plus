@@ -10,7 +10,7 @@ import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Dialog;
 
 public class SubGuiNpcAvailabilityDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData {
-    private final Availability availabitily;
+    private Availability availabitily;
     private int slot = 0;
 
     public SubGuiNpcAvailabilityDialog(Availability availabitily) {

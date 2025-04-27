@@ -10,7 +10,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.RoleType;
 
 public class ScriptRoleTrader extends ScriptRoleInterface implements IRoleTrader {
-    private final RoleTrader role;
+    private RoleTrader role;
 
     public ScriptRoleTrader(EntityNPCInterface npc) {
         super(npc);

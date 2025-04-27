@@ -86,7 +86,10 @@ public class RecipeAnvil implements IAnvilRecipe {
         if (!NoppesUtilPlayer.compareItems(this.itemToRepair, inputItem, true, this.ignoreRepairItemNBT)) {
             return false;
         }
-        return NoppesUtilPlayer.compareItems(this.repairMaterial, inputRepairMaterial, this.ignoreRepairMaterialDamage, this.ignoreRepairMaterialNBT);
+        if (!NoppesUtilPlayer.compareItems(this.repairMaterial, inputRepairMaterial, this.ignoreRepairMaterialDamage, this.ignoreRepairMaterialNBT)) {
+            return false;
+        }
+        return true;
     }
 
     @Override
@@ -143,6 +146,7 @@ public class RecipeAnvil implements IAnvilRecipe {
         this.ignoreRepairItemNBT = recipe.ignoreRepairItemNBT;
         this.ignoreRepairMaterialNBT = recipe.ignoreRepairMaterialNBT;
         this.repairPercentage = recipe.repairPercentage;
+        ;
         this.xpCost = recipe.xpCost;
     }
 }

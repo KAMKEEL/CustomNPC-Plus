@@ -8,9 +8,9 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.quests.QuestLocation;
 
 public class GuiNpcQuestTypeLocation extends SubGuiInterface implements ITextfieldListener {
-    private final GuiScreen parent;
+    private GuiScreen parent;
 
-    private final QuestLocation quest;
+    private QuestLocation quest;
 
     public GuiNpcQuestTypeLocation(EntityNPCInterface npc, Quest q,
                                    GuiScreen parent) {

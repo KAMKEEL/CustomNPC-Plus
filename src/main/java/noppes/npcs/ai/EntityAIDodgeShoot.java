@@ -7,7 +7,7 @@ import noppes.npcs.constants.AiMutex;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIDodgeShoot extends EntityAIBase {
-    private final EntityNPCInterface entity;
+    private EntityNPCInterface entity;
     private double xPosition;
     private double yPosition;
     private double zPosition;

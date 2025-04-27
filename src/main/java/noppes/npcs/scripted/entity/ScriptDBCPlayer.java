@@ -71,7 +71,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         }
 
         throw new CustomNPCsException("Invalid stat name: " + stat + "\nValid stat names are:" +
-            "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit");
+            "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit", new Object[0]);
     }
 
     private double applyOperator(String method, double n1, double n2) {
@@ -124,11 +124,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         for (String s : actions) {
             if (s.equals(action.toLowerCase())) {
                 valid = true;
-                break;
             }
         }
         if (!valid) {
-            throw new CustomNPCsException("Action can be:  get/remove/clear");
+            throw new CustomNPCsException("Action can be:  get/remove/clear", new Object[0]);
         }
 
         return bonusAttribute(action, stat, bonusID, "*", 1.0, false);
@@ -142,11 +141,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         for (String s : actions) {
             if (s.equals(action.toLowerCase())) {
                 valid = true;
-                break;
             }
         }
         if (!valid) {
-            throw new CustomNPCsException("Action can be:  add/addTo/set/get/remove/clear");
+            throw new CustomNPCsException("Action can be:  add/addTo/set/get/remove/clear", new Object[0]);
         }
 
         if (!action.equals("remove") && !action.equals("get") && !action.equals("clear")) {
@@ -154,11 +152,10 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
             for (String s : operations) {
                 if (s.equals(operation)) {
                     valid = true;
-                    break;
                 }
             }
             if (!valid) {
-                throw new CustomNPCsException("Operation can be:  +  -  *  /  %");
+                throw new CustomNPCsException("Operation can be:  +  -  *  /  %", new Object[0]);
             }
         }
 
@@ -185,11 +182,11 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
         }
         if (!(stat.equals("str") || stat.equals("dex") || stat.equals("con") || stat.equals("wil") || stat.equals("mnd") || stat.equals("spi")))
             throw new CustomNPCsException("Invalid stat name: " + stat + "\nValid stat names are:" +
-                "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit");
+                "\nstr, dex, con, wil, mnd, spi\nstrength, dexterity, constitution, willpower, mind, spirit", new Object[0]);
 
         String bonusValueString = operation + attributeValue;
         String bonus = player.getEntityData().getCompoundTag("PlayerPersisted").getString("jrmcAttrBonus" + stat);
-        String[] bonuses = bonus.split("\\|");
+        String bonuses[] = bonus.split("\\|");
         String[][] bonusValues = new String[bonuses.length][2];
         if (bonuses.length > 0 && bonuses[0].length() > 0) {
             for (int i = 0; i < bonuses.length; ++i) {
@@ -496,17 +493,24 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
     }
 
     public IItemStack[] getInventory() {
+        // Get the base inventory from the super class
+        IItemStack[] baseInventory = super.getInventory();
+
+        // Load extra items from the NBT data
         NBTTagCompound compound = new NBTTagCompound();
         this.player.writeToNBT(compound);
-
-        NBTTagList list = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
-        IItemStack[] itemList = new IItemStack[list.tagCount()];
-        for (int i = 0; i < list.tagCount(); i++) {
-            ItemStack itemStack = ItemStack.loadItemStackFromNBT(list.getCompoundTagAt(i));
-            itemList[i] = NpcAPI.Instance().getIItemStack(itemStack);
+        NBTTagList extraList = compound.getCompoundTag("JRMCEP").getTagList("dbcExtraInvTag", 10);
+        IItemStack[] extraInventory = new IItemStack[extraList.tagCount()];
+        for (int i = 0; i < extraList.tagCount(); i++) {
+            ItemStack itemStack = ItemStack.loadItemStackFromNBT(extraList.getCompoundTagAt(i));
+            extraInventory[i] = NpcAPI.Instance().getIItemStack(itemStack);
         }
 
-        return itemList;
+        // Combine base and extra inventories
+        IItemStack[] fullInventory = new IItemStack[baseInventory.length + extraInventory.length];
+        System.arraycopy(baseInventory, 0, fullInventory, 0, baseInventory.length);
+        System.arraycopy(extraInventory, 0, fullInventory, baseInventory.length, extraInventory.length);
+        return fullInventory;
     }
 
     public void setForm(byte form) {
@@ -820,7 +824,7 @@ public class ScriptDBCPlayer<T extends EntityPlayerMP> extends ScriptPlayer<T> i
                 return evilKills + goodKills + neutKills;
         }
 
-        throw new CustomNPCsException("Invalid kill type: " + type + "\nValid kill types are: evil, good, neutral, all");
+        throw new CustomNPCsException("Invalid kill type: " + type + "\nValid kill types are: evil, good, neutral, all", new Object[0]);
     }
 
     public String getFusionString() {

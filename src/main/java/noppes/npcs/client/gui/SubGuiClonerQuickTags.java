@@ -56,7 +56,7 @@ public class SubGuiClonerQuickTags extends SubGuiInterface implements IScrollDat
 
     protected void actionPerformed(GuiButton guibutton) {
         if (guibutton.id == 10) {
-            GuiNpcMobSpawnerAdd.addTags = new HashSet<>(GuiNpcMobSpawnerAdd.allTags);
+            GuiNpcMobSpawnerAdd.addTags = new HashSet<>(parent.allTags);
             quickScroll.setSelectedList(GuiNpcMobSpawnerAdd.addTags);
             refreshSelected();
         }
@@ -98,10 +98,10 @@ public class SubGuiClonerQuickTags extends SubGuiInterface implements IScrollDat
 
     private List<String> getQuickTags() {
         if (quickSearch.isEmpty()) {
-            return new ArrayList<String>(GuiNpcMobSpawnerAdd.allTags);
+            return new ArrayList<String>(parent.allTags);
         }
         List<String> list = new ArrayList<String>();
-        for (String name : GuiNpcMobSpawnerAdd.allTags) {
+        for (String name : this.parent.allTags) {
             if (name.toLowerCase().contains(quickSearch))
                 list.add(name);
         }

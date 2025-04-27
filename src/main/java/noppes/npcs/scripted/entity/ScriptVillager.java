@@ -24,7 +24,7 @@ public class ScriptVillager<T extends EntityVillager> extends ScriptLiving<T> im
 
     @Override
     public IEntityLivingBase getCustomer() {
-        return NpcAPI.Instance().getPlayer(entity.getCustomer().getCommandSenderName());
+        return (IEntityLivingBase) NpcAPI.Instance().getPlayer(entity.getCustomer().getCommandSenderName());
     }
 
     @Override

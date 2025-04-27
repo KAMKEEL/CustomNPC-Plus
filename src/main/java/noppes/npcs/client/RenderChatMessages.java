@@ -18,8 +18,8 @@ import java.util.TreeMap;
 public class RenderChatMessages implements IChatMessages {
     private Map<Long, TextBlockClient> messages = new TreeMap<Long, TextBlockClient>();
 
-    private final int boxLength = 46;
-    private final float scale = 0.5f;
+    private int boxLength = 46;
+    private float scale = 0.5f;
 
     private String lastMessage = "";
     private long lastMessageTime = 0;
@@ -33,7 +33,7 @@ public class RenderChatMessages implements IChatMessages {
             return;
         }
         Map<Long, TextBlockClient> messages = new TreeMap<Long, TextBlockClient>(this.messages);
-        messages.put(time, new TextBlockClient(message, boxLength * 4, true, Minecraft.getMinecraft().thePlayer, npc));
+        messages.put(time, new TextBlockClient(message, (int) (boxLength * 4), true, Minecraft.getMinecraft().thePlayer, npc));
 
         if (messages.size() > 3) {
             messages.remove(messages.keySet().iterator().next());
@@ -166,10 +166,10 @@ public class RenderChatMessages implements IChatMessages {
         Tessellator tessellator = Tessellator.instance;
         GL11.glColor4f(f1, f2, f3, f);
         tessellator.startDrawingQuads();
-        tessellator.addVertex(par0, par3, par5);
-        tessellator.addVertex(par2, par3, par5);
-        tessellator.addVertex(par2, par1, par5);
-        tessellator.addVertex(par0, par1, par5);
+        tessellator.addVertex((double) par0, (double) par3, par5);
+        tessellator.addVertex((double) par2, (double) par3, par5);
+        tessellator.addVertex((double) par2, (double) par1, par5);
+        tessellator.addVertex((double) par0, (double) par1, par5);
         tessellator.draw();
     }
 

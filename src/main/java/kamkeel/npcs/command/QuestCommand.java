@@ -83,7 +83,7 @@ public class QuestCommand extends CommandKamkeelBase {
         desc = "Finish a quest",
         usage = "<player> <quest>"
     )
-    public void finish(ICommandSender sender, String[] args) throws CommandException {
+    public void finish(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int questid;
         try {
@@ -214,7 +214,7 @@ public class QuestCommand extends CommandKamkeelBase {
             return;
         }
 
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         if (data == null) {
             sendError(sender, "No PlayerData found for:" + player);
             return;
@@ -286,7 +286,7 @@ public class QuestCommand extends CommandKamkeelBase {
         desc = "Find quest id number by its name",
         usage = "<questName>"
     )
-    public void id(ICommandSender sender, String[] args) throws CommandException {
+    public void id(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide a name for the quest");
             return;
@@ -310,7 +310,7 @@ public class QuestCommand extends CommandKamkeelBase {
         desc = "Find prerequisite quests for an id",
         usage = "<questId>"
     )
-    public void prereq(ICommandSender sender, String[] args) throws CommandException {
+    public void prereq(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide an id for the quest");
             return;
@@ -350,7 +350,7 @@ public class QuestCommand extends CommandKamkeelBase {
         desc = "Quick info on a quest",
         usage = "<questId>"
     )
-    public void info(ICommandSender sender, String[] args) throws CommandException {
+    public void info(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide an id for the quest");
             return;
@@ -389,7 +389,7 @@ public class QuestCommand extends CommandKamkeelBase {
         desc = "reload quests from disk",
         permission = 4
     )
-    public void reload(ICommandSender sender, String[] args) {
+    public void reload(ICommandSender sender, String args[]) {
         new QuestController().load();
         SyncController.syncAllQuests();
         sendResult(sender, "Quests Reloaded");

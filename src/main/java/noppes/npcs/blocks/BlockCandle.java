@@ -146,9 +146,9 @@ public class BlockCandle extends BlockLightable {
                 if (tile.rotation == 2)
                     xOffset -= 0.12f;
             }
-            double d0 = (float) x + xOffset;
-            double d1 = (float) y + yOffset;
-            double d2 = (float) z + zOffset;
+            double d0 = (double) ((float) x + xOffset);
+            double d1 = (double) ((float) y + yOffset);
+            double d2 = (double) ((float) z + zOffset);
 
             world.spawnParticle("smoke", d0, d1, d2, 0.0D, 0.0D, 0.0D);
             world.spawnParticle("flame", d0, d1, d2, 0.0D, 0.0D, 0.0D);

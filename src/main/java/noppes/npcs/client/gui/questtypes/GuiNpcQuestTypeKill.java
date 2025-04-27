@@ -16,10 +16,10 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldListener, ICustomScrollListener {
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private GuiCustomScroll scroll;
 
-    private final QuestKill quest;
+    private QuestKill quest;
 
     private GuiNpcTextField lastSelected;
 
@@ -65,7 +65,7 @@ public class GuiNpcQuestTypeKill extends SubGuiInterface implements ITextfieldLi
         for (Object name : data.keySet()) {
             Class<?> c = (Class<?>) data.get(name);
             try {
-                if (EntityLivingBase.class.isAssignableFrom(c) && !EntityNPCInterface.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers()))
+                if (EntityLivingBase.class.isAssignableFrom(c) && !EntityNPCInterface.class.isAssignableFrom(c) && c.getConstructor(new Class[]{World.class}) != null && !Modifier.isAbstract(c.getModifiers()))
                     list.add(name.toString());
             } catch (SecurityException e) {
                 e.printStackTrace();

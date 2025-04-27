@@ -43,7 +43,7 @@ public final class DialogCategoriesGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND, EnumItemPacketType.BLOCK))
             return;
 
         ScrollDataPacket.sendScrollData((EntityPlayerMP) player, DialogController.Instance.getScroll(), EnumScrollData.OPTIONAL);

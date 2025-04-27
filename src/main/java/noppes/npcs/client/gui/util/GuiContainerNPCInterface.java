@@ -27,12 +27,12 @@ public abstract class GuiContainerNPCInterface extends GuiContainer {
     public int guiLeft, guiTop;
     public EntityClientPlayerMP player;
     public EntityNPCInterface npc;
-    private final HashMap<Integer, GuiNpcButton> buttons = new HashMap<Integer, GuiNpcButton>();
-    private final HashMap<Integer, GuiMenuTopButton> topbuttons = new HashMap<Integer, GuiMenuTopButton>();
-    private final HashMap<Integer, GuiNpcTextField> textfields = new HashMap<Integer, GuiNpcTextField>();
-    private final HashMap<Integer, GuiNpcLabel> labels = new HashMap<Integer, GuiNpcLabel>();
-    private final HashMap<Integer, GuiCustomScroll> scrolls = new HashMap<Integer, GuiCustomScroll>();
-    private final HashMap<Integer, GuiNpcSlider> sliders = new HashMap<Integer, GuiNpcSlider>();
+    private HashMap<Integer, GuiNpcButton> buttons = new HashMap<Integer, GuiNpcButton>();
+    private HashMap<Integer, GuiMenuTopButton> topbuttons = new HashMap<Integer, GuiMenuTopButton>();
+    private HashMap<Integer, GuiNpcTextField> textfields = new HashMap<Integer, GuiNpcTextField>();
+    private HashMap<Integer, GuiNpcLabel> labels = new HashMap<Integer, GuiNpcLabel>();
+    private HashMap<Integer, GuiCustomScroll> scrolls = new HashMap<Integer, GuiCustomScroll>();
+    private HashMap<Integer, GuiNpcSlider> sliders = new HashMap<Integer, GuiNpcSlider>();
     public String title;
     public boolean closeOnEsc = false;
     private SubGuiInterface subgui;
@@ -100,6 +100,8 @@ public abstract class GuiContainerNPCInterface extends GuiContainer {
     public void mouseEvent(int i, int j, int k) {
     }
 
+    ;
+
     @Override
     protected void keyTyped(char c, int i) {
         if (subgui != null)
@@ -124,6 +126,8 @@ public abstract class GuiContainerNPCInterface extends GuiContainer {
 
     public void buttonEvent(GuiButton guibutton) {
     }
+
+    ;
 
     public void close() {
         Keyboard.enableRepeatEvents(false);

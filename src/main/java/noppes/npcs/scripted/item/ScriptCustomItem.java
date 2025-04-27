@@ -189,7 +189,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
             this.stackSize = size;
             saveItemData();
         } else {
-            throw new CustomNPCsException("Stacksize has to be between 1 and 127");
+            throw new CustomNPCsException("Stacksize has to be between 1 and 127", new Object[0]);
         }
     }
 
@@ -198,7 +198,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     public void setDurabilityValue(float value) {
-        this.durabilityValue = value;
+        this.durabilityValue = (double) value;
         saveItemData();
     }
 

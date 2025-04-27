@@ -28,7 +28,7 @@ public class OverlayCommand extends CommandKamkeelBase {
         desc = "set an overlay to a player",
         usage = "<player> <num> <texture>"
     )
-    public void set(ICommandSender sender, String[] args) throws CommandException {
+    public void set(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int overlayID;
         try {
@@ -55,7 +55,7 @@ public class OverlayCommand extends CommandKamkeelBase {
         desc = "remove an overlay from a player",
         usage = "<player> <num>"
     )
-    public void remove(ICommandSender sender, String[] args) throws CommandException {
+    public void remove(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int overlayID;
         try {
@@ -85,7 +85,7 @@ public class OverlayCommand extends CommandKamkeelBase {
         desc = "modify an overlay for a player",
         usage = "<player> <num> <blend/glow> <true/false>"
     )
-    public void modify(ICommandSender sender, String[] args) throws CommandException {
+    public void modify(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int overlayID;
         try {
@@ -141,7 +141,7 @@ public class OverlayCommand extends CommandKamkeelBase {
         desc = "clears all overlays from a player",
         usage = "<player>"
     )
-    public void clear(ICommandSender sender, String[] args) throws CommandException {
+    public void clear(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);
         if (data.isEmpty()) {
@@ -160,7 +160,7 @@ public class OverlayCommand extends CommandKamkeelBase {
         desc = "List all overlays on a player",
         usage = "<player>"
     )
-    public void info(ICommandSender sender, String[] args) throws CommandException {
+    public void info(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
 
         List<PlayerData> data = PlayerDataController.Instance.getPlayersData(sender, playername);

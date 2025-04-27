@@ -5,7 +5,7 @@ import noppes.npcs.DataStats;
 import noppes.npcs.client.gui.util.*;
 
 public class SubGuiNpcRespawn extends SubGuiInterface implements ITextfieldListener {
-    private final DataStats stats;
+    private DataStats stats;
 
     public SubGuiNpcRespawn(DataStats stats) {
         this.stats = stats;

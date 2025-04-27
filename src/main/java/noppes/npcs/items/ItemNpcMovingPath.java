@@ -30,7 +30,7 @@ public class ItemNpcMovingPath extends Item {
 
     @Override
     public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer) {
-        if (par2World.isRemote || !CustomNpcsPermissions.hasPermission(par3EntityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
+        if (par2World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(par3EntityPlayer, CustomNpcsPermissions.TOOL_MOUNTER))
             return par1ItemStack;
         EntityNPCInterface npc = getNpc(par1ItemStack, par2World);
         if (npc != null)
@@ -40,7 +40,7 @@ public class ItemNpcMovingPath extends Item {
 
     @Override
     public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer player, World par3World, int x, int y, int z, int par7, float par8, float par9, float par10) {
-        if (par3World.isRemote || !CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.TOOL_MOUNTER))
+        if (par3World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(player, CustomNpcsPermissions.TOOL_MOUNTER))
             return false;
         EntityNPCInterface npc = getNpc(par1ItemStack, par3World);
         if (npc == null)
@@ -52,7 +52,7 @@ public class ItemNpcMovingPath extends Item {
         double d3 = x - pos[0];
         double d4 = y - pos[1];
         double d5 = z - pos[2];
-        double distance = MathHelper.sqrt_double(d3 * d3 + d4 * d4 + d5 * d5);
+        double distance = (double) MathHelper.sqrt_double(d3 * d3 + d4 * d4 + d5 * d5);
 
         player.addChatMessage(new ChatComponentText("Added point x:" + x + " y:" + y + " z:" + z + " to npc " + npc.getCommandSenderName()));
         if (distance > ConfigMain.NpcNavRange)

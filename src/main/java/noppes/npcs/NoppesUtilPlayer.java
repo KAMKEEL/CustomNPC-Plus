@@ -34,9 +34,9 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptSound;
-import noppes.npcs.scripted.event.DialogEvent;
 import noppes.npcs.scripted.event.PartyEvent;
-import noppes.npcs.scripted.event.QuestEvent;
+import noppes.npcs.scripted.event.player.DialogEvent;
+import noppes.npcs.scripted.event.player.QuestEvent;
 
 import java.io.IOException;
 import java.util.*;
@@ -81,7 +81,7 @@ public class NoppesUtilPlayer {
 
     public static void transport(EntityPlayerMP player, EntityNPCInterface npc, String location) {
         TransportLocation loc = TransportController.getInstance().getTransport(location);
-        PlayerTransportData playerdata = PlayerDataController.Instance.getPlayerData(player).transportData;
+        PlayerTransportData playerdata = PlayerData.get(player).transportData;
 
         if (loc == null || !loc.isDefault() && !playerdata.transports.contains(loc.id))
             return;
@@ -265,18 +265,18 @@ public class NoppesUtilPlayer {
         if (dialog == null)
             return;
         DialogOption option = dialog.options.get(optionId);
-        if (EventHooks.onDialogOption(new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
+        if (EventHooks.onDialogOption(player, new DialogEvent.DialogOption((IPlayer) NpcAPI.Instance().getIEntity(player), dialog)))
             return;
 
         if (!npc.isRemote()) {
             EventHooks.onNPCDialogClosed(npc, player, dialogId, optionId + 1, dialog);
 
             if (!dialog.hasDialogs(player) && !dialog.hasOtherOptions()) {
-                EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
                 return;
             }
             if (option == null || option.optionType == EnumOptionType.DialogOption && (!option.isAvailable(player) || !option.hasDialog()) || option.optionType == EnumOptionType.Disabled || option.optionType == EnumOptionType.QuitOption) {
-                EventHooks.onDialogClosed(new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
+                EventHooks.onDialogClosed(player, new DialogEvent.DialogClosed((IPlayer) NpcAPI.Instance().getIEntity(player), dialog));
                 return;
             }
         }
@@ -295,7 +295,7 @@ public class NoppesUtilPlayer {
     }
 
     public static void updateQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
 
         NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
         HashMap<String, String> questAlerts = NBTTags.getStringStringMap(compound.getTagList("Alerts", 10));
@@ -316,13 +316,13 @@ public class NoppesUtilPlayer {
     }
 
     public static void clearTrackQuest(EntityPlayerMP player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         playerData.questData.untrackQuest();
     }
 
 
     public static void updatePartyQuestLogData(ByteBuf buffer, EntityPlayerMP player) throws IOException {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         String trackedQuestString = ByteBufUtils.readString(buffer);
         Quest trackedQuest = getQuestFromStringKey(trackedQuestString);
         if (trackedQuest != null) {
@@ -362,7 +362,7 @@ public class NoppesUtilPlayer {
     }
 
     public static void sendTrackedQuestData(EntityPlayerMP player) {
-        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        Quest trackedQuest = (Quest) PlayerData.get(player).questData.getTrackedQuest();
         if (trackedQuest != null) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Quest", trackedQuest.writeToNBT(new NBTTagCompound()));
@@ -383,7 +383,7 @@ public class NoppesUtilPlayer {
     }
 
     public static void sendPartyTrackedQuestData(EntityPlayerMP player, Party party) {
-        Quest trackedQuest = (Quest) PlayerDataController.Instance.getPlayerData(player).questData.getTrackedQuest();
+        Quest trackedQuest = (Quest) PlayerData.get(player).questData.getTrackedQuest();
         if (trackedQuest != null) {
             NBTTagCompound compound = new NBTTagCompound();
             compound.setTag("Quest", trackedQuest.writeToNBT(new NBTTagCompound()));
@@ -424,7 +424,7 @@ public class NoppesUtilPlayer {
         if (player == null)
             return false;
 
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         PlayerQuestData questData = playerData.questData;
         QuestData data = questData.activeQuests.get(questId);
 
@@ -455,12 +455,12 @@ public class NoppesUtilPlayer {
         }
 
         if (!data.quest.randomReward) {
-            event.itemRewards = list.toArray(new IItemStack[list.size()]);
+            event.itemRewards = (IItemStack[]) list.toArray(new IItemStack[list.size()]);
         } else if (!list.isEmpty()) {
-            event.itemRewards = new IItemStack[]{list.get(player.getRNG().nextInt(list.size()))};
+            event.itemRewards = new IItemStack[]{(IItemStack) list.get(player.getRNG().nextInt(list.size()))};
         }
 
-        EventHooks.onQuestTurnedIn(event);
+        EventHooks.onQuestTurnedIn(player, event);
         if (event.isCancelled())
             return false;
 
@@ -521,7 +521,7 @@ public class NoppesUtilPlayer {
             EventHooks.onPartyFinished(party, data.quest);
 
         PartyEvent.PartyQuestTurnedInEvent partyEv = new PartyEvent.PartyQuestTurnedInEvent(party, data.quest);
-        EventHooks.onPartyTurnIn(partyEv);
+        EventHooks.onPartyTurnIn(party, partyEv);
         if (partyEv.isCancelled())
             return false;
 
@@ -535,7 +535,7 @@ public class NoppesUtilPlayer {
             if (player == null)
                 continue;
 
-            PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+            PlayerData playerData = PlayerData.get(player);
             if (playerData == null)
                 continue;
 
@@ -571,12 +571,12 @@ public class NoppesUtilPlayer {
                 }
 
                 if (!data.quest.randomReward) {
-                    event.itemRewards = list.toArray(new IItemStack[list.size()]);
+                    event.itemRewards = (IItemStack[]) list.toArray(new IItemStack[list.size()]);
                 } else if (!list.isEmpty()) {
-                    event.itemRewards = new IItemStack[]{list.get(player.getRNG().nextInt(list.size()))};
+                    event.itemRewards = new IItemStack[]{(IItemStack) list.get(player.getRNG().nextInt(list.size()))};
                 }
 
-                EventHooks.onQuestTurnedIn(event);
+                EventHooks.onQuestTurnedIn(player, event);
                 if (event.isCancelled())
                     continue;
 
@@ -634,7 +634,7 @@ public class NoppesUtilPlayer {
                     if (player == null)
                         continue;
 
-                    PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+                    PlayerData playerData = PlayerData.get(player);
                     if (playerData == null)
                         continue;
 
@@ -673,18 +673,20 @@ public class NoppesUtilPlayer {
         boolean oreMatched = false;
         OreDictionary.itemMatches(item, item2, false);
         int[] ids = OreDictionary.getOreIDs(item);
-        for (int id : ids) {
-            boolean match1 = false, match2 = false;
-            for (ItemStack is : OreDictionary.getOres(id)) {
-                if (compareItemDetails(item, is, ignoreDamage, ignoreNBT)) {
-                    match1 = true;
+        if (ids.length > 0) {
+            for (int id : ids) {
+                boolean match1 = false, match2 = false;
+                for (ItemStack is : OreDictionary.getOres(id)) {
+                    if (compareItemDetails(item, is, ignoreDamage, ignoreNBT)) {
+                        match1 = true;
+                    }
+                    if (compareItemDetails(item2, is, ignoreDamage, ignoreNBT)) {
+                        match2 = true;
+                    }
                 }
-                if (compareItemDetails(item2, is, ignoreDamage, ignoreNBT)) {
-                    match2 = true;
-                }
+                if (match1 && match2)
+                    return true;
             }
-            if (match1 && match2)
-                return true;
         }
         return compareItemDetails(item, item2, ignoreDamage, ignoreNBT);
     }
@@ -699,13 +701,16 @@ public class NoppesUtilPlayer {
         if (!ignoreNBT && item.stackTagCompound != null && (item2.stackTagCompound == null || !item.stackTagCompound.equals(item2.stackTagCompound))) {
             return false;
         }
-        return ignoreNBT || item2.stackTagCompound == null || item.stackTagCompound != null;
+        if (!ignoreNBT && item2.stackTagCompound != null && item.stackTagCompound == null) {
+            return false;
+        }
+        return true;
     }
 
     public static boolean compareItems(EntityPlayer player, ItemStack item, boolean ignoreDamage, boolean ignoreNBT) {
         int size = 0;
         for (ItemStack is : player.inventory.mainInventory) {
-            if (compareItems(item, is, ignoreDamage, ignoreNBT))
+            if (is != null && compareItems(item, is, ignoreDamage, ignoreNBT))
                 size += is.stackSize;
         }
         return size >= item.stackSize;
@@ -717,7 +722,7 @@ public class NoppesUtilPlayer {
         int size = item.stackSize;
         for (int i = 0; i < player.inventory.mainInventory.length; i++) {
             ItemStack is = player.inventory.mainInventory[i];
-            if (!compareItems(item, is, ignoreDamage, ignoreNBT))
+            if (is == null || !compareItems(item, is, ignoreDamage, ignoreNBT))
                 continue;
             if (size >= is.stackSize) {
                 size -= is.stackSize;

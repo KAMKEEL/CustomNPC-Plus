@@ -17,7 +17,7 @@ import org.lwjgl.opengl.GL11;
 
 public class ModelTail extends ModelScaleRenderer {
     private EntityCustomNpc entity;
-    private final ModelMPM base;
+    private ModelMPM base;
 
     public ModelRenderer tail;
     public ModelRenderer dragon;

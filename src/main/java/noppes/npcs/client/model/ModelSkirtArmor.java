@@ -8,7 +8,7 @@ import noppes.npcs.client.model.util.ModelPlaneRenderer;
 import org.lwjgl.opengl.GL11;
 
 public class ModelSkirtArmor extends ModelBiped {
-    private final ModelPlaneRenderer Shape1;
+    private ModelPlaneRenderer Shape1;
 
     public ModelSkirtArmor() {
         float pi = (float) (Math.PI / 5);

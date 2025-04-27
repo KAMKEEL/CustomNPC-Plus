@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ScriptScoreboardTeam implements IScoreboardTeam {
-    private final ScorePlayerTeam team;
-    private final Scoreboard board;
+    private ScorePlayerTeam team;
+    private Scoreboard board;
 
     public ScriptScoreboardTeam(ScorePlayerTeam team, Scoreboard board) {
         this.team = team;

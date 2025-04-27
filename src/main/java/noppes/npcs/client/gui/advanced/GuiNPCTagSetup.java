@@ -22,7 +22,7 @@ public class GuiNPCTagSetup extends GuiNPCInterface2 implements IScrollData, ICu
     private GuiCustomScroll scrollTags;
     private GuiCustomScroll npcTags;
     private final ArrayList<String> allTags = new ArrayList<>();
-    private final ArrayList<String> tagNames = new ArrayList<>();
+    private ArrayList<String> tagNames = new ArrayList<>();
     private String search = "";
 
     public GuiNPCTagSetup(EntityNPCInterface npc) {

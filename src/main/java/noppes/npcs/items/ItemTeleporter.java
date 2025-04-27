@@ -33,7 +33,7 @@ public class ItemTeleporter extends Item {
 
     @Override
     public ItemStack onItemRightClick(ItemStack par1ItemStack, World par2World, EntityPlayer par3EntityPlayer) {
-        if (par2World.isRemote || !CustomNpcsPermissions.hasPermission(par3EntityPlayer, CustomNpcsPermissions.TOOL_TELEPORTER))
+        if (par2World.isRemote || !CustomNpcsPermissions.Instance.hasPermission(par3EntityPlayer, CustomNpcsPermissions.TOOL_TELEPORTER))
             return par1ItemStack;
 
         NoppesUtilServer.setTeleporterGUI((EntityPlayerMP) par3EntityPlayer);
@@ -66,14 +66,14 @@ public class ItemTeleporter extends Item {
         Vec3 vec32 = par3EntityPlayer.getLook(f);
         boolean flag = false;
         float f9 = 1.0F;
-        List list = par3EntityPlayer.worldObj.getEntitiesWithinAABBExcludingEntity(par3EntityPlayer, par3EntityPlayer.boundingBox.addCoord(vec32.xCoord * d3, vec32.yCoord * d3, vec32.zCoord * d3).expand(f9, f9, f9));
+        List list = par3EntityPlayer.worldObj.getEntitiesWithinAABBExcludingEntity(par3EntityPlayer, par3EntityPlayer.boundingBox.addCoord(vec32.xCoord * d3, vec32.yCoord * d3, vec32.zCoord * d3).expand((double) f9, (double) f9, (double) f9));
 
         for (int i = 0; i < list.size(); ++i) {
             Entity entity = (Entity) list.get(i);
 
             if (entity.canBeCollidedWith()) {
                 float f10 = entity.getCollisionBorderSize();
-                AxisAlignedBB axisalignedbb = entity.boundingBox.expand(f10, f10, f10);
+                AxisAlignedBB axisalignedbb = entity.boundingBox.expand((double) f10, (double) f10, (double) f10);
 
                 if (axisalignedbb.isVecInside(vec3)) {
                     flag = true;

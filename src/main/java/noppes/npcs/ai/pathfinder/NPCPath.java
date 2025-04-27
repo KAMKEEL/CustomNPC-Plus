@@ -84,7 +84,7 @@ public class NPCPath extends PathEntity {
 
     public Vec3 getCurrentPos() {
         NPCPathPoint pathpoint = this.points[this.currentPathIndex];
-        return Vec3.createVectorHelper(pathpoint.xCoord, pathpoint.yCoord, pathpoint.zCoord);
+        return Vec3.createVectorHelper((double) pathpoint.xCoord, (double) pathpoint.yCoord, (double) pathpoint.zCoord);
     }
 
     /**
@@ -112,6 +112,6 @@ public class NPCPath extends PathEntity {
      */
     public boolean isDestinationSame(Vec3 vec3) {
         NPCPathPoint pathpoint = this.getFinalPathPoint();
-        return pathpoint != null && pathpoint.xCoord == (int) vec3.xCoord && pathpoint.zCoord == (int) vec3.zCoord;
+        return pathpoint == null ? false : pathpoint.xCoord == (int) vec3.xCoord && pathpoint.zCoord == (int) vec3.zCoord;
     }
 }

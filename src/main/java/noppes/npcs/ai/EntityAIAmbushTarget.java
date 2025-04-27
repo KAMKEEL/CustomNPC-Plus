@@ -12,17 +12,17 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.Random;
 
 public class EntityAIAmbushTarget extends EntityAIBase {
-    private final EntityNPCInterface theEntity;
+    private EntityNPCInterface theEntity;
     private EntityLivingBase targetEntity;
     private double shelterX;
     private double shelterY;
     private double shelterZ;
-    private final double movementSpeed;
-    private final double distance;
+    private double movementSpeed;
+    private double distance;
     private int delay = 0;
-    private final World theWorld;
+    private World theWorld;
     private int tick;
-    private final boolean attackFromBehind;
+    private boolean attackFromBehind;
 
     public EntityAIAmbushTarget(EntityNPCInterface par1EntityCreature, double par2, double par3, boolean par4) {
         this.theEntity = par1EntityCreature;

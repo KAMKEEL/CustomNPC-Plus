@@ -39,7 +39,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "force read",
         usage = "<player> <dialog>"
     )
-    public void read(ICommandSender sender, String[] args) throws CommandException {
+    public void read(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int diagid;
         try {
@@ -65,7 +65,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "force unread dialog",
         usage = "<player> <dialog>"
     )
-    public void unread(ICommandSender sender, String[] args) throws CommandException {
+    public void unread(ICommandSender sender, String args[]) throws CommandException {
         String playername = args[0];
         int diagid;
         try {
@@ -91,7 +91,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "reload dialogs from disk",
         permission = 4
     )
-    public void reload(ICommandSender sender, String[] args) {
+    public void reload(ICommandSender sender, String args[]) {
         new DialogController().load();
         SyncController.syncAllDialogs();
         sendResult(sender, "Dialogs Reloaded");
@@ -101,7 +101,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "show dialog",
         usage = "<player> <dialog> <name>"
     )
-    public void show(ICommandSender sender, String[] args) throws CommandException {
+    public void show(ICommandSender sender, String args[]) throws CommandException {
         EntityPlayer player = CommandBase.getPlayer(sender, args[0]);
         if (player == null) {
             sendError(sender, "Unknown player: " + args[0]);
@@ -136,7 +136,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "Find dialog id number by its name",
         usage = "<dialogName>"
     )
-    public void id(ICommandSender sender, String[] args) throws CommandException {
+    public void id(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide a name for the dialog");
             return;
@@ -160,7 +160,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "List a dialogs availability options",
         usage = "<dialogId>"
     )
-    public void availability(ICommandSender sender, String[] args) throws CommandException {
+    public void availability(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide an id for the dialog");
             return;
@@ -234,7 +234,7 @@ public class DialogCommand extends CommandKamkeelBase {
         desc = "Quick info on a dialog",
         usage = "<dialogId>"
     )
-    public void info(ICommandSender sender, String[] args) throws CommandException {
+    public void info(ICommandSender sender, String args[]) throws CommandException {
         if (args.length == 0) {
             sendError(sender, "Please provide an id for the quest");
             return;

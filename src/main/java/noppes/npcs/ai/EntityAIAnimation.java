@@ -6,13 +6,13 @@ import noppes.npcs.constants.EnumMovingType;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIAnimation extends EntityAIBase {
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
 
     private boolean isAttacking = false;
     private boolean isDead = false;
     private boolean isAtStartpoint = false;
     private boolean hasPath = false;
-    private final int tick = 4;
+    private int tick = 4;
 
     public EntityAIAnimation(EntityNPCInterface npc) {
         this.npc = npc;
@@ -24,8 +24,12 @@ public class EntityAIAnimation extends EntityAIBase {
         if (isDead)
             return npc.currentAnimation != EnumAnimation.LYING;
 
-        if (npc.stats.aimWhileShooting && npc.isAttacking())
+        if (npc.stats.aimType == 1 && npc.isAttacking())
             return npc.currentAnimation != EnumAnimation.AIMING;
+
+        if(npc.stats.aimType == 2 && npc.isAttacking() && npc.getRangedTask() != null && npc.getRangedTask().isShooting())
+            return npc.currentAnimation != EnumAnimation.AIMING;
+
         if (npc.ais.animationType == EnumAnimation.NONE)
             return npc.currentAnimation != EnumAnimation.NONE;
         isAttacking = npc.isAttacking();
@@ -42,10 +46,15 @@ public class EntityAIAnimation extends EntityAIBase {
 
     @Override
     public void updateTask() {
-        if (npc.stats.aimWhileShooting && npc.isAttacking()) {
+        if (npc.stats.aimType == 1 && npc.isAttacking()) {
             setAnimation(EnumAnimation.AIMING);
             return;
         }
+        if (npc.stats.aimType == 2 && npc.isAttacking() && npc.getRangedTask() != null && npc.getRangedTask().isShooting()) {
+            setAnimation(EnumAnimation.AIMING);
+            return;
+        }
+
         EnumAnimation type = npc.ais.animationType;
         if (isDead)
             type = EnumAnimation.LYING;

@@ -104,7 +104,9 @@ public class ContainerNPCTrader extends ContainerNpcInterface {
             return true;
         } else if (NoppesUtilPlayer.compareItems(itemstack3, item, false, false)) {
             int k1 = item.stackSize;
-            return k1 > 0 && k1 + itemstack3.stackSize <= itemstack3.getMaxStackSize();
+            if (k1 > 0 && k1 + itemstack3.stackSize <= itemstack3.getMaxStackSize()) {
+                return true;
+            }
         }
         return false;
     }

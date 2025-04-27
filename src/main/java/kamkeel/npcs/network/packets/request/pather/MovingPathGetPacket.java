@@ -47,7 +47,7 @@ public final class MovingPathGetPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.PATHER, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.PATHER, player))
             return;
 
         GuiDataPacket.sendGuiData((EntityPlayerMP) player, npc.ais.writeToNBT(new NBTTagCompound()));

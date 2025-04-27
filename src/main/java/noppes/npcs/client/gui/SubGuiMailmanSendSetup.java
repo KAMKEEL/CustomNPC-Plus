@@ -13,7 +13,7 @@ import noppes.npcs.controllers.data.PlayerMail;
 
 public class SubGuiMailmanSendSetup extends SubGuiInterface implements ITextfieldListener, GuiSelectionListener {
 
-    private final PlayerMail mail;
+    private PlayerMail mail;
 
     public SubGuiMailmanSendSetup(PlayerMail mail, GuiScreen parent) {
         this.parent = parent;

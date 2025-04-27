@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TabRegistry {
-    private static final ArrayList<AbstractTab> tabList = new ArrayList<AbstractTab>();
+    private static ArrayList<AbstractTab> tabList = new ArrayList<AbstractTab>();
 
     public static void registerTab(AbstractTab tab) {
         tabList.add(tab);
@@ -38,7 +38,7 @@ public class TabRegistry {
         }
     }
 
-    private static final Minecraft mc = FMLClientHandler.instance().getClient();
+    private static Minecraft mc = FMLClientHandler.instance().getClient();
 
     public static void openInventoryGui() {
         mc.thePlayer.sendQueue.addToSendQueue(new C0DPacketCloseWindow(

@@ -3,9 +3,9 @@ package noppes.npcs;
 import net.minecraft.nbt.NBTTagCompound;
 
 public interface ICompatibilty {
-    int getVersion();
+    public int getVersion();
 
-    void setVersion(int version);
+    public void setVersion(int version);
 
-    NBTTagCompound writeToNBT(NBTTagCompound compound);
+    public NBTTagCompound writeToNBT(NBTTagCompound compound);
 }

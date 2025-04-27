@@ -160,15 +160,15 @@ public class TextContainer {
             int found = 0;
             for (MarkUp entry : makeup) {
                 if (entry.start >= start && entry.start < end) {
-                    builder.insert(entry.start - start + found * 2, Character.toString(colorChar) + entry.c);
+                    builder.insert(entry.start - start + found * 2, Character.toString(colorChar) + Character.toString(entry.c));
                     found++;
                 }
                 if (entry.start < start && entry.end > start) {
-                    builder.insert(0, Character.toString(colorChar) + entry.c);
+                    builder.insert(0, Character.toString(colorChar) + Character.toString(entry.c));
                     found++;
                 }
                 if (entry.end >= start && entry.end < end) {
-                    builder.insert(entry.end - start + found * 2, Character.toString(colorChar) + 'r');
+                    builder.insert(entry.end - start + found * 2, Character.toString(colorChar) + Character.toString('r'));
                     found++;
                 }
             }

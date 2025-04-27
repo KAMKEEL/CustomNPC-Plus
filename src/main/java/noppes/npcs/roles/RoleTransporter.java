@@ -6,8 +6,8 @@ import net.minecraft.util.ChatComponentTranslation;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.ITransportLocation;
 import noppes.npcs.constants.EnumGuiType;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.TransportController;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerTransportData;
 import noppes.npcs.controllers.data.TransportLocation;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -82,7 +82,7 @@ public class RoleTransporter extends RoleInterface {
     }
 
     public void unlock(EntityPlayer player, ITransportLocation loc) {
-        PlayerTransportData data = PlayerDataController.Instance.getPlayerData(player).transportData;
+        PlayerTransportData data = PlayerData.get(player).transportData;
         if (data.transports.contains(transportId))
             return;
         data.transports.add(transportId);

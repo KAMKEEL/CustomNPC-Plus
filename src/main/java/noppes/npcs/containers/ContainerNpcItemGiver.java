@@ -8,7 +8,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.JobItemGiver;
 
 public class ContainerNpcItemGiver extends Container {
-    private final JobItemGiver role;
+    private JobItemGiver role;
 
     public ContainerNpcItemGiver(EntityNPCInterface npc, EntityPlayer player) {
         this.role = (JobItemGiver) npc.jobInterface;

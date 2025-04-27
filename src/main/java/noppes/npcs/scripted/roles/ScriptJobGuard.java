@@ -6,7 +6,7 @@ import noppes.npcs.roles.JobGuard;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobGuard extends ScriptJobInterface implements IJobGuard {
-    private final JobGuard job;
+    private JobGuard job;
 
     public ScriptJobGuard(EntityNPCInterface npc) {
         super(npc);

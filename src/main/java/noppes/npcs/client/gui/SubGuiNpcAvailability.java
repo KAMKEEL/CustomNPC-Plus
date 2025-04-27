@@ -11,7 +11,7 @@ import noppes.npcs.controllers.data.Availability;
 import noppes.npcs.controllers.data.Faction;
 
 public class SubGuiNpcAvailability extends SubGuiInterface implements ITextfieldListener, GuiSelectionListener, IGuiData {
-    private final Availability availabitily;
+    private Availability availabitily;
     private int slot = 0;
 
     public SubGuiNpcAvailability(Availability availabitily) {

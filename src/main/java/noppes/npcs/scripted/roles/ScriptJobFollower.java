@@ -7,7 +7,7 @@ import noppes.npcs.roles.JobFollower;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobFollower extends ScriptJobInterface implements IJobFollower {
-    private final JobFollower job;
+    private JobFollower job;
 
     public ScriptJobFollower(EntityNPCInterface npc) {
         super(npc);

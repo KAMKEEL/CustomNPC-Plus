@@ -10,7 +10,7 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.scripted.event.PlayerEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent;
 
 import java.io.IOException;
 import java.util.*;
@@ -121,7 +121,7 @@ public class EffectScript implements INpcScriptHandler {
 
             while (var5.hasNext()) {
                 Map.Entry<Long, String> longStringEntry = (Map.Entry) var5.next();
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String) longStringEntry.getValue());
             }
         }
 
@@ -165,9 +165,9 @@ public class EffectScript implements INpcScriptHandler {
     }
 
     public enum ScriptType {
-        OnAdd("onAdded"),
-        OnTick("onTick"),
-        OnRemove("onRemove");
+        OnEffectAdd("onEffectAdd"),
+        OnEffectTick("onEffectTick"),
+        OnEffectRemove("onEffectRemove");
 
         public final String function;
 

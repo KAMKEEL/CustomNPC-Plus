@@ -221,8 +221,8 @@ public class ProfileController implements IProfileHandler {
         try (FileInputStream fis = new FileInputStream(backupFile)) {
             NBTTagCompound compound = CompressedStreamTools.readCompressed(fis);
             File saveDir = getProfileDir();
-            File mainFile = new File(saveDir, uuid + ".dat");
-            File fileNew = new File(saveDir, uuid + "_new");
+            File mainFile = new File(saveDir, uuid.toString() + ".dat");
+            File fileNew = new File(saveDir, uuid.toString() + "_new");
             CompressedStreamTools.writeCompressed(compound, new FileOutputStream(fileNew));
             if (mainFile.exists()) {
                 mainFile.delete();
@@ -364,8 +364,8 @@ public class ProfileController implements IProfileHandler {
             return ProfileOperation.error(MSG_SLOT_NOT_EXIST);
         }
 
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             if (EventHooks.onProfileRemove(handler, scriptPlayer, profile, slotId, false))
                 return ProfileOperation.error(MSG_CANCELLED);
@@ -374,6 +374,7 @@ public class ProfileController implements IProfileHandler {
         profile.getSlots().remove(slotId);
 
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             EventHooks.onProfileRemove(handler, scriptPlayer, profile, slotId, true);
         }
@@ -402,8 +403,8 @@ public class ProfileController implements IProfileHandler {
             }
         }
 
-        PlayerDataScript handler = ScriptController.Instance.playerScripts;
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             if (EventHooks.onProfileCreate(handler, scriptPlayer, profile, newSlotId, false))
                 return ProfileOperation.error(MSG_CANCELLED);
@@ -413,6 +414,7 @@ public class ProfileController implements IProfileHandler {
         newSlot.setLastLoaded(System.currentTimeMillis());
         profile.getSlots().put(newSlotId, newSlot);
         if (profile.player != null) {
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             verifySlotQuests(profile.player);
             save(profile.player, profile);
 
@@ -434,7 +436,7 @@ public class ProfileController implements IProfileHandler {
         }
         if (profile.player != null) {
             if (ConfigMain.RegionProfileSwitching) {
-                boolean allowed = hasPermission(profile.player, PROFILE_REGION_BYPASS);
+                boolean allowed = hasCustomPermission(profile.player, PROFILE_REGION_BYPASS.name);
                 if (!allowed) {
                     int playerDim = profile.player.dimension;
                     int playerX = (int) profile.player.posX;
@@ -474,7 +476,7 @@ public class ProfileController implements IProfileHandler {
 
             int prevSlot = profile.getCurrentSlotId();
 
-            PlayerDataScript handler = ScriptController.Instance.playerScripts;
+            PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(profile.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(profile.player);
             if (EventHooks.onProfileChange(handler, scriptPlayer, profile, newSlotId, prevSlot, false))
                 return ProfileOperation.error(MSG_CANCELLED);
@@ -676,8 +678,8 @@ public class ProfileController implements IProfileHandler {
                 highestAllowed = i;
             }
         }
-        if (highestAllowed == 0) {
-            highestAllowed = 1;
+        if (highestAllowed == 0 || highestAllowed < ConfigMain.DefaultProfileSlots) {
+            highestAllowed = ConfigMain.DefaultProfileSlots;
         }
         return currentSlots < highestAllowed;
     }

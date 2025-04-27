@@ -16,7 +16,6 @@ import net.minecraft.world.World;
 import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.constants.EnumRoleType;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleCompanion;
@@ -93,7 +92,7 @@ public class ItemSoulstoneFilled extends Item {
             npc.advanced.soulStonePlayerName = sourceName;
             npc.advanced.soulStoneInit = true;
             if (npc.advanced.role == EnumRoleType.Companion && player != null) {
-                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData data = PlayerData.get(player);
                 if (data.hasCompanion())
                     return false;
                 ((RoleCompanion) npc.roleInterface).setOwner(player);

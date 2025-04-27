@@ -10,7 +10,7 @@ import noppes.npcs.roles.JobConversation;
 import noppes.npcs.roles.JobConversation.ConversationLine;
 
 public class GuiNpcConversation extends GuiNPCInterface2 implements ITextfieldListener, GuiSelectionListener {
-    private final JobConversation job;
+    private JobConversation job;
 
     private int slot = -1;
 

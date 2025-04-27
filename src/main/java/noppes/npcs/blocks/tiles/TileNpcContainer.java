@@ -144,7 +144,7 @@ public abstract class TileNpcContainer extends TileVariant implements IInventory
 
     @Override
     public boolean isUseableByPlayer(EntityPlayer player) {
-        return !player.isDead && this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
+        return player.isDead || this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) != this ? false : player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
     }
 
     @Override
@@ -180,11 +180,11 @@ public abstract class TileNpcContainer extends TileVariant implements IInventory
                 }
 
                 itemstack.stackSize -= j1;
-                entityitem = new EntityItem(world, (float) x + f, (float) y + f1, (float) z + f2, new ItemStack(itemstack.getItem(), j1, itemstack.getItemDamage()));
+                entityitem = new EntityItem(world, (double) ((float) x + f), (double) ((float) y + f1), (double) ((float) z + f2), new ItemStack(itemstack.getItem(), j1, itemstack.getItemDamage()));
                 float f3 = 0.05F;
-                entityitem.motionX = (float) world.rand.nextGaussian() * f3;
-                entityitem.motionY = (float) world.rand.nextGaussian() * f3 + 0.2F;
-                entityitem.motionZ = (float) world.rand.nextGaussian() * f3;
+                entityitem.motionX = (double) ((float) world.rand.nextGaussian() * f3);
+                entityitem.motionY = (double) ((float) world.rand.nextGaussian() * f3 + 0.2F);
+                entityitem.motionZ = (double) ((float) world.rand.nextGaussian() * f3);
 
                 if (itemstack.hasTagCompound()) {
                     entityitem.getEntityItem().setTagCompound((NBTTagCompound) itemstack.getTagCompound().copy());

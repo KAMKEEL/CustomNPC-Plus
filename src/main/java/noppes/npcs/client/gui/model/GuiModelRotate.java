@@ -9,7 +9,7 @@ import noppes.npcs.entity.data.ModelRotatePart;
 
 public class GuiModelRotate extends GuiModelInterface implements ISliderListener {
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private int type = 6;
     private ModelRotatePart part;
 

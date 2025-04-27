@@ -25,8 +25,8 @@ import java.util.UUID;
 
 public class GuiNpcMobSpawnerAdd extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ISubGuiListener {
 
-    private final Entity toClone;
-    private final NBTTagCompound compound;
+    private Entity toClone;
+    private NBTTagCompound compound;
     private static boolean serverSide = false;
     private static int tab = 1;
     public boolean isNPC = false;

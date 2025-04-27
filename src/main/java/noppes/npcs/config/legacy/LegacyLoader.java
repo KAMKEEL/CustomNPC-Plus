@@ -9,10 +9,10 @@ import java.util.LinkedList;
 
 public class LegacyLoader {
     private boolean updateFile = false;
-    private final File dir;
-    private final String fileName;
-    private final Class<?> configClass;
-    private final LinkedList<Field> configFields;
+    private File dir;
+    private String fileName;
+    private Class<?> configClass;
+    private LinkedList<Field> configFields;
 
     public LegacyLoader(Class<?> clss, File dir, String fileName) {
         if (!dir.exists())
@@ -21,7 +21,7 @@ public class LegacyLoader {
         configClass = clss;
         configFields = new LinkedList<Field>();
         this.fileName = fileName + ".cfg";
-        Field[] fields = configClass.getDeclaredFields();
+        Field fields[] = configClass.getDeclaredFields();
         for (Field field : fields) {
             if (field.isAnnotationPresent(ConfigProp.class)) {
                 configFields.add(field);
@@ -34,7 +34,7 @@ public class LegacyLoader {
             File configFile = new File(dir, fileName);
             HashMap<String, Field> types = new HashMap<String, Field>();
             for (Field field : configFields) {
-                ConfigProp prop = field.getAnnotation(ConfigProp.class);
+                ConfigProp prop = (ConfigProp) field.getAnnotation(ConfigProp.class);
                 types.put(!prop.name().isEmpty() ? prop.name() : field.getName(), field);
             }
             if (configFile.exists()) {
@@ -47,10 +47,8 @@ public class LegacyLoader {
                     }
                 }
                 for (String type : types.keySet())
-                    if (!properties.containsKey(type)) {
+                    if (!properties.containsKey(type))
                         updateFile = true;
-                        break;
-                    }
             } else {
                 updateFile = true;
             }
@@ -113,7 +111,7 @@ public class LegacyLoader {
                 file.createNewFile();
             BufferedWriter out = new BufferedWriter(new FileWriter(file));
             for (Field field : configFields) {
-                ConfigProp prop = field.getAnnotation(ConfigProp.class);
+                ConfigProp prop = (ConfigProp) field.getAnnotation(ConfigProp.class);
                 if (prop.info().length() != 0)
                     out.write("#" + prop.info() + System.getProperty("line.separator"));
                 String name = !prop.name().isEmpty() ? prop.name() : field.getName();

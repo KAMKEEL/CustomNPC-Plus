@@ -5,7 +5,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIRole extends EntityAIBase {
 
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
 
     public EntityAIRole(EntityNPCInterface npc) {
         this.npc = npc;

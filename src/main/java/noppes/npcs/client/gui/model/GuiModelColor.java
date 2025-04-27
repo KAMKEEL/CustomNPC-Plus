@@ -18,14 +18,14 @@ import java.io.InputStream;
 
 public class GuiModelColor extends GuiModelInterface implements ITextfieldListener {
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private final static ResourceLocation color = new ResourceLocation("customnpcs:textures/gui/color.png");
 
     private int colorX, colorY;
 
     private GuiNpcTextField textfield;
 
-    private final ModelPartData data;
+    private ModelPartData data;
 
     public GuiModelColor(GuiScreen parent, ModelPartData data, EntityCustomNpc npc) {
         super(npc);

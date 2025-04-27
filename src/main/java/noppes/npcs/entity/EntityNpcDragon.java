@@ -22,7 +22,7 @@ public class EntityNpcDragon extends EntityNPCInterface {
         height = 1.4f;
     }
 
-    public double[][] field_40162_d;
+    public double field_40162_d[][];
     public int field_40164_e;
     public float field_40173_aw;
     public float field_40172_ax;
@@ -37,9 +37,9 @@ public class EntityNpcDragon extends EntityNPCInterface {
 
     public double[] func_40160_a(int i, float f) {
         f = 1.0F - f;
-        int j = field_40164_e - i & 0x3f;
-        int k = field_40164_e - i - 1 & 0x3f;
-        double[] ad = new double[3];
+        int j = field_40164_e - i * 1 & 0x3f;
+        int k = field_40164_e - i * 1 - 1 & 0x3f;
+        double ad[] = new double[3];
         double d = field_40162_d[j][0];
         double d1;
         for (d1 = field_40162_d[k][0] - d; d1 < -180D; d1 += 360D) {

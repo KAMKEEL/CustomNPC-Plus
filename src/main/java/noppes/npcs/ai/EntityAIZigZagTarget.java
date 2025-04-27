@@ -10,7 +10,7 @@ import net.minecraft.util.Vec3;
 import noppes.npcs.constants.AiMutex;
 
 public class EntityAIZigZagTarget extends EntityAIBase {
-    private final EntityCreature theEntity;
+    private EntityCreature theEntity;
     private EntityLivingBase targetEntity;
     private double movePosX;
     private double movePosY;
@@ -18,8 +18,8 @@ public class EntityAIZigZagTarget extends EntityAIBase {
     private int entityPosX;
     private int entityPosY;
     private int entityPosZ;
-    private final double speed;
-    private final float tacticalRange;
+    private double speed;
+    private float tacticalRange;
 
     public EntityAIZigZagTarget(EntityCreature par1EntityCreature, double par2, float par4) {
         this.theEntity = par1EntityCreature;

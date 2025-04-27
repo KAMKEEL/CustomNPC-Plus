@@ -2,6 +2,7 @@ package noppes.npcs.client.model.part;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.model.ModelMPM;
 import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelPlaneRenderer;
@@ -10,7 +11,7 @@ import noppes.npcs.entity.data.ModelPartData;
 import org.lwjgl.opengl.GL11;
 
 public class ModelSkirt extends ModelPartInterface {
-    private final ModelPlaneRenderer Shape1;
+    private ModelPlaneRenderer Shape1;
 
     public ModelSkirt(ModelMPM base) {
         super(base);
@@ -67,6 +68,6 @@ public class ModelSkirt extends ModelPartInterface {
         }
         color = config.color;
         isHidden = false;
-        location = config.getResource();
+        location = (ResourceLocation) config.getResource();
     }
 }

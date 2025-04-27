@@ -11,7 +11,7 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class GuiModelLegs extends GuiModelInterface {
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private final String[] arrLeg = new String[]{"gui.no", "Both", "Right", "Left"};
     private final String[] arrLegwear = new String[]{"gui.no", "Both", "Left", "Right"};
     private final String[] arrSolidLegwear = new String[]{"gui.no", "Both", "Left", "Right"};

@@ -12,7 +12,7 @@ public enum EnumCompanionTalent {
 
     public ItemStack item;
 
-    EnumCompanionTalent(Item item) {
+    private EnumCompanionTalent(Item item) {
         this.item = new ItemStack(item);
     }
 }

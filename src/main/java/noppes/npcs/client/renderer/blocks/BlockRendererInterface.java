@@ -86,6 +86,7 @@ public abstract class BlockRendererInterface extends TileEntitySpecialRenderer i
         double d6 = mc.renderViewEntity.posX - tile.xCoord;
         double d7 = mc.renderViewEntity.posY - tile.yCoord;
         double d8 = mc.renderViewEntity.posZ - tile.zCoord;
+        ;
 
         return d6 * d6 + d7 * d7 + d8 * d8 > specialRenderDistance() * specialRenderDistance();
     }

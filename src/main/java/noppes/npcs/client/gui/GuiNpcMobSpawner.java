@@ -39,9 +39,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
     private final GuiCustomScrollCloner scroll = new GuiCustomScrollCloner(this, 0);
     private final GuiCustomScroll filterScroll = new GuiCustomScroll(this, 1);
 
-    private final int posX;
-    private final int posY;
-    private final int posZ;
+    private int posX, posY, posZ;
 
     private List<String> list;
     private List<String> rawList;
@@ -177,7 +175,7 @@ public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
         for (Object name : data.keySet()) {
             Class<?> c = (Class<?>) data.get(name);
             try {
-                if (EntityLiving.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers()))
+                if (EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[]{World.class}) != null && !Modifier.isAbstract(c.getModifiers()))
                     list.add(name.toString());
             } catch (SecurityException e) {
                 e.printStackTrace();

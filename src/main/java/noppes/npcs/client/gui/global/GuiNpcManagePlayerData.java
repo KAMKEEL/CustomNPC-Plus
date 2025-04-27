@@ -23,7 +23,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
 
     private GuiCustomScroll playerScroll;
     private String selectedPlayer = null;
-    private final HashMap<String, Integer> playerData = new HashMap<>();
+    private HashMap<String, Integer> playerData = new HashMap<>();
     private String search = "";
 
     public GuiNpcManagePlayerData(EntityNPCInterface npcInterface) {
@@ -62,6 +62,7 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
 
     @Override
     public void mouseClicked(int i, int j, int k) {
+        ;
         super.mouseClicked(i, j, k);
         if (k == 0 && playerScroll != null)
             playerScroll.mouseClicked(i, j, k);

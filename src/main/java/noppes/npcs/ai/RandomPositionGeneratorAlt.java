@@ -11,7 +11,7 @@ public class RandomPositionGeneratorAlt {
      * used to store a driection when the user passes a point to move towards or away from. WARNING: NEVER THREAD SAFE.
      * MULTIPLE findTowards and findAway calls, will share this var
      */
-    private static final Vec3 staticVector = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);
+    private static Vec3 staticVector = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);
 
     /**
      * finds a random target within par1(x,z) and par2 (y) blocks
@@ -21,7 +21,7 @@ public class RandomPositionGeneratorAlt {
          * searches 10 blocks at random in a within par1(x,z) and par2 (y) distance, ignores those not in the direction
          * of par3Vec3, then points to the tile for which creature.getBlockPathWeight returns the highest number
          */
-        return findRandomTargetBlock(par0EntityCreature, par1, par2, null);
+        return findRandomTargetBlock(par0EntityCreature, par1, par2, (Vec3) null);
     }
 
     /**
@@ -70,8 +70,8 @@ public class RandomPositionGeneratorAlt {
         boolean flag1;
 
         if (par0EntityCreature.hasHome()) {
-            double d0 = par0EntityCreature.getHomePosition().getDistanceSquared(MathHelper.floor_double(par0EntityCreature.posX), MathHelper.floor_double(par0EntityCreature.posY), MathHelper.floor_double(par0EntityCreature.posZ)) + 4.0F;
-            double d1 = par0EntityCreature.func_110174_bM() + (float) par1;
+            double d0 = (double) (par0EntityCreature.getHomePosition().getDistanceSquared(MathHelper.floor_double(par0EntityCreature.posX), MathHelper.floor_double(par0EntityCreature.posY), MathHelper.floor_double(par0EntityCreature.posZ)) + 4.0F);
+            double d1 = (double) (par0EntityCreature.func_110174_bM() + (float) par1);
             flag1 = d0 < d1 * d1;
         } else {
             flag1 = false;
@@ -107,7 +107,7 @@ public class RandomPositionGeneratorAlt {
         }
 
         if (flag) {
-            return Vec3.createVectorHelper(k, l, i1);
+            return Vec3.createVectorHelper((double) k, (double) l, (double) i1);
         } else {
             return null;
         }

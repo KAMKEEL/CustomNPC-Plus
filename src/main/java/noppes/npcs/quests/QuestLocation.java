@@ -10,7 +10,6 @@ import noppes.npcs.api.handler.data.IQuestObjective;
 import noppes.npcs.constants.EnumPartyObjectives;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerQuestData;
@@ -57,7 +56,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
     @Override
     public Vector<String> getQuestLogStatus(EntityPlayer player) {
         Vector<String> vec = new Vector<String>();
-        PlayerQuestData playerdata = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData playerdata = PlayerData.get(player).questData;
         QuestData data = playerdata.activeQuests.get(questId);
         if (data == null)
             return vec;
@@ -89,7 +88,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
             list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, player, this.location3, "Location3Found"));
         }
 
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     public boolean getFound(QuestData data, int i) {
@@ -104,7 +103,9 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
             return false;
         if (!location2.isEmpty() && !data.extraData.getBoolean("Location2Found"))
             return false;
-        return location3.isEmpty() || data.extraData.getBoolean("Location3Found");
+        if (!location3.isEmpty() && !data.extraData.getBoolean("Location3Found"))
+            return false;
+        return true;
     }
 
     public boolean setFound(QuestData data, String location) {
@@ -217,7 +218,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
             list.add(new noppes.npcs.quests.QuestLocation.QuestLocationObjective(this, party, this.location3, "Location3Found", getPartyFound(party, "Location3Found")));
         }
 
-        return list.toArray(new IQuestObjective[list.size()]);
+        return (IQuestObjective[]) list.toArray(new IQuestObjective[list.size()]);
     }
 
     @Override
@@ -339,8 +340,8 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         public void setProgress(int progress) {
             if (progress >= 0 && progress <= 1) {
                 if (player != null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(player);
-                    QuestData questData = data.questData.activeQuests.get(this.parent.questId);
+                    PlayerData data = PlayerData.get(player);
+                    QuestData questData = (QuestData) data.questData.activeQuests.get(this.parent.questId);
                     boolean completed = questData.extraData.getBoolean(this.nbtName);
                     if ((!completed || progress != 1) && (completed || progress != 0)) {
                         questData.extraData.setBoolean(this.nbtName, progress == 1);
@@ -366,7 +367,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be 0 or 1");
+                throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
             }
         }
 
@@ -375,8 +376,8 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
             if (progress >= 0 && progress <= 1) {
                 EntityPlayer foundplayer = NoppesUtilServer.getPlayerByName(playerName);
                 if (foundplayer != null && party == null) {
-                    PlayerData data = PlayerDataController.Instance.getPlayerData(foundplayer);
-                    QuestData questData = data.questData.activeQuests.get(this.parent.questId);
+                    PlayerData data = PlayerData.get(foundplayer);
+                    QuestData questData = (QuestData) data.questData.activeQuests.get(this.parent.questId);
                     boolean completed = questData.extraData.getBoolean(this.nbtName);
                     if ((!completed || progress != 1) && (completed || progress != 0)) {
                         questData.extraData.setBoolean(this.nbtName, progress == 1);
@@ -404,7 +405,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
                     }
                 }
             } else {
-                throw new CustomNPCsException("Progress has to be 0 or 1");
+                throw new CustomNPCsException("Progress has to be 0 or 1", new Object[0]);
             }
         }
 
@@ -415,7 +416,7 @@ public class QuestLocation extends QuestInterface implements IQuestLocation {
         public boolean isCompleted() {
             QuestData questData = null;
             if (player != null) {
-                PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+                PlayerData data = PlayerData.get(player);
                 PlayerQuestData playerQuestData = data.questData;
                 if (playerQuestData != null) {
                     questData = playerQuestData.activeQuests.get(this.parent.questId);

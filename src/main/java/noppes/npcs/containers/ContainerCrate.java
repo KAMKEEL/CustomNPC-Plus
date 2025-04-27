@@ -64,7 +64,7 @@ public class ContainerCrate extends Container {
             }
 
             if (itemstack1.stackSize == 0) {
-                slot.putStack(null);
+                slot.putStack((ItemStack) null);
             } else {
                 slot.onSlotChanged();
             }

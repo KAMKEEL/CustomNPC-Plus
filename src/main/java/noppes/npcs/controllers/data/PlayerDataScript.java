@@ -13,6 +13,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.player.PlayerEvent;
 
 import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
@@ -25,8 +26,13 @@ public class PlayerDataScript implements INpcScriptHandler {
     private EntityPlayer player;
     private IPlayer playerAPI;
     private long lastPlayerUpdate = 0L;
-    public long lastInited = -1L;
-    public boolean enabled = false;
+
+    public long lastInited = -1;
+    public boolean hadInteract = true;
+    private boolean enabled = false;
+
+    private static Map<Long, String> console = new TreeMap<Long, String>();
+    private static List<Integer> errored = new ArrayList<Integer>();
 
     public PlayerDataScript(EntityPlayer player) {
         if (player != null) {
@@ -35,7 +41,9 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public void clear() {
-        this.scripts = new ArrayList();
+        console = new TreeMap<Long, String>();
+        errored = new ArrayList<Integer>();
+        scripts = new ArrayList<ScriptContainer>();
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -53,6 +61,7 @@ public class PlayerDataScript implements INpcScriptHandler {
             }
         }
         this.enabled = compound.getBoolean("ScriptEnabled");
+        console = NBTTags.GetLongStringMap(compound.getTagList("ScriptConsole", 10));
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
@@ -62,6 +71,7 @@ public class PlayerDataScript implements INpcScriptHandler {
         }
         compound.setString("ScriptLanguage", this.scriptLanguage);
         compound.setBoolean("ScriptEnabled", this.enabled);
+        compound.setTag("ScriptConsole", NBTTags.NBTLongStringMap(console));
         return compound;
     }
 
@@ -75,7 +85,42 @@ public class PlayerDataScript implements INpcScriptHandler {
 
     @Override
     public void callScript(String hookName, Event event) {
-        if (this.isEnabled()) {
+        if(!isEnabled())
+            return;
+
+        if(ConfigScript.IndividualPlayerScripts){
+            if(ScriptController.Instance.lastLoaded > lastInited || ScriptController.Instance.lastPlayerUpdate > lastPlayerUpdate){
+                lastInited = ScriptController.Instance.lastLoaded;
+                errored.clear();
+                if(player != null) {
+                    scripts.clear();
+                    for(ScriptContainer script : ScriptController.Instance.playerScripts.scripts){
+                        ScriptContainer s = new ScriptContainer(this);
+                        s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
+                        scripts.add(s);
+                    }
+                }
+                lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
+                if (!Objects.equals(hookName, EnumScriptType.INIT.function) && event instanceof PlayerEvent) {
+                    PlayerEvent playerEvent = (PlayerEvent) event;
+                    EventHooks.onPlayerInit(this, playerEvent.player);
+                }
+            }
+            for(int i = 0; i < scripts.size(); i++){
+                ScriptContainer script = scripts.get(i);
+                if(errored.contains(i))
+                    continue;
+                script.run(hookName, event);
+                if(script.errored){
+                    errored.add(i);
+                }
+                for(Entry<Long, String> entry : script.console.entrySet()){
+                    if(!console.containsKey(entry.getKey()))
+                        console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + entry.getValue());
+                }
+                script.console.clear();
+            }
+        } else {
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 this.lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
@@ -84,8 +129,8 @@ public class PlayerDataScript implements INpcScriptHandler {
                     scriptContainer.errored = false;
                 }
 
-                if (!Objects.equals(hookName, EnumScriptType.INIT.function)) {
-                    noppes.npcs.scripted.event.PlayerEvent playerEvent = (noppes.npcs.scripted.event.PlayerEvent) event;
+                if (!Objects.equals(hookName, EnumScriptType.INIT.function) && event instanceof PlayerEvent) {
+                    PlayerEvent playerEvent = (PlayerEvent) event;
                     EventHooks.onPlayerInit(this, playerEvent.player);
                 }
             }
@@ -145,6 +190,9 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public Map<Long, String> getConsoleText() {
+        if(ConfigScript.IndividualPlayerScripts)
+            return console;
+
         TreeMap<Long, String> map = new TreeMap<>();
         int tab = 0;
         for (ScriptContainer script : this.getScripts()) {
@@ -158,8 +206,12 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public void clearConsole() {
-        for (ScriptContainer script : this.getScripts()) {
-            script.console.clear();
+        if(ConfigScript.IndividualPlayerScripts)
+            console.clear();
+        else {
+            for (ScriptContainer script : this.getScripts()) {
+                script.console.clear();
+            }
         }
     }
 
@@ -168,14 +220,14 @@ public class PlayerDataScript implements INpcScriptHandler {
         private final PlayerDataScript.ToStringHelper.ValueHolder holderHead;
         private PlayerDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
-        private final boolean omitEmptyValues;
+        private boolean omitEmptyValues;
 
         private ToStringHelper(String className) {
             this.holderHead = new PlayerDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
-            this.className = Preconditions.checkNotNull(className);
+            this.className = (String) Preconditions.checkNotNull(className);
         }
 
         public PlayerDataScript.ToStringHelper omitNullValues() {
@@ -310,7 +362,7 @@ public class PlayerDataScript implements INpcScriptHandler {
         private PlayerDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
             PlayerDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
-            valueHolder.name = Preconditions.checkNotNull(name);
+            valueHolder.name = (String) Preconditions.checkNotNull(name);
             return this;
         }
 
@@ -329,7 +381,7 @@ public class PlayerDataScript implements INpcScriptHandler {
         private PlayerDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
             PlayerDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
-            valueHolder.name = Preconditions.checkNotNull(name);
+            valueHolder.name = (String) Preconditions.checkNotNull(name);
             return this;
         }
 

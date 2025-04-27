@@ -16,8 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcCompanion extends GuiNPCInterface2 implements ITextfieldListener, ISliderListener {
-    private final RoleCompanion role;
-    private final List<GuiTalent> talents = new ArrayList<GuiTalent>();
+    private RoleCompanion role;
+    private List<GuiTalent> talents = new ArrayList<GuiTalent>();
 
     public GuiNpcCompanion(EntityNPCInterface npc) {
         super(npc);

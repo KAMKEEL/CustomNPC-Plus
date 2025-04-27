@@ -54,7 +54,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         if (overlayData.texture.isEmpty())
             return false;
 
-        ImageData imageData = ClientCacheHandler.getImageData(overlayData.texture);
+        ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay) overlayData).texture);
         if (!imageData.imageLoaded())
             return false;
 
@@ -75,7 +75,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
         if (overlayData.glow) {
             GL11.glDisable(GL11.GL_LIGHTING);
-            Minecraft.getMinecraft().entityRenderer.disableLightmap(0);
+            Minecraft.getMinecraft().entityRenderer.disableLightmap((double) 0);
             RenderHelper.disableStandardItemLighting();
         }
 
@@ -108,7 +108,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glAlphaFunc(GL11.GL_GREATER, 0.1F);
-        Minecraft.getMinecraft().entityRenderer.enableLightmap(0);
+        Minecraft.getMinecraft().entityRenderer.enableLightmap((double) 0);
         RenderHelper.enableStandardItemLighting();
     }
 
@@ -118,10 +118,10 @@ public class RenderCNPCPlayer extends RenderPlayer {
         if (!entity.isInvisible()) {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
+                    if (((SkinOverlay) overlayData).texture.isEmpty())
                         continue;
 
-                    ImageData imageData = ClientCacheHandler.getImageData(overlayData.texture);
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay) overlayData).texture);
                     if (!imageData.imageLoaded())
                         continue;
 
@@ -198,9 +198,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
             }
 
             if (mc.gameSettings.thirdPersonView == 0 && !mc.renderViewEntity.isPlayerSleeping() && !mc.gameSettings.hideGUI && !mc.playerController.enableEverythingIsScrewedUpMode()) {
-                entityRenderer.enableLightmap(partialTicks);
+                entityRenderer.enableLightmap((double) partialTicks);
                 itemRenderer.renderOverlayInFirstPerson(partialTicks);
-                entityRenderer.disableLightmap(partialTicks);
+                entityRenderer.disableLightmap((double) partialTicks);
             }
 
             GL11.glPopMatrix();
@@ -213,7 +213,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
     private float getFOVModifier(float p_78481_1_, boolean p_78481_2_) {
         Minecraft mc = Minecraft.getMinecraft();
-        EntityLivingBase entityplayer = mc.renderViewEntity;
+        EntityLivingBase entityplayer = (EntityLivingBase) mc.renderViewEntity;
         float f1 = 70.0F;
 
         if (p_78481_2_) {
@@ -319,7 +319,9 @@ public class RenderCNPCPlayer extends RenderPlayer {
             // Render the arm
             this.modelBipedMain.onGround = 0.0F;
             this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
-            this.modelBipedMain.bipedRightArm.render(0.0625F);
+
+            if(this.modelBipedMain.bipedRightArm != null)
+                this.modelBipedMain.bipedRightArm.render(0.0625F);
 
             postRenderOverlay();
         }
@@ -450,10 +452,10 @@ public class RenderCNPCPlayer extends RenderPlayer {
         try {
             if (ClientCacheHandler.skinOverlays.containsKey(player.getUniqueID())) {
                 for (SkinOverlay overlayData : ClientCacheHandler.skinOverlays.get(player.getUniqueID()).values()) {
-                    if (overlayData.texture.isEmpty())
+                    if (((SkinOverlay) overlayData).texture.isEmpty())
                         continue;
 
-                    ImageData imageData = ClientCacheHandler.getImageData(overlayData.texture);
+                    ImageData imageData = ClientCacheHandler.getImageData(((SkinOverlay) overlayData).texture);
                     if (!imageData.imageLoaded())
                         continue;
 
@@ -468,8 +470,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
 
                     bipedHead.isHidden = true;
                     renderDBC.invoke(m, player,
-                            rot1.get(m), rot2.get(m), rot3.get(m),
-                            rot4.get(m), rot5.get(m), rot6.get(m)
+                        (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
+                        (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
                     );
                     bipedHead.isHidden = false;
 
@@ -507,8 +509,8 @@ public class RenderCNPCPlayer extends RenderPlayer {
                         }
                     }
                     renderDBC.invoke(m, player,
-                            rot1.get(m), rot2.get(m), rot3.get(m),
-                            rot4.get(m), rot5.get(m), rot6.get(m)
+                        (float) rot1.get(m), (float) rot2.get(m), (float) rot3.get(m),
+                        (float) rot4.get(m), (float) rot5.get(m), (float) rot6.get(m)
                     );
                     bipedBody.isHidden = false;
                     bipedRA.isHidden = false;

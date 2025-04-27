@@ -8,7 +8,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.scripted.entity.ScriptPixelmon;
 
 public class ScriptPixelmonPlayerData implements IPixelmonPlayerData {
-    private final EntityPlayerMP player;
+    private EntityPlayerMP player;
 
     public ScriptPixelmonPlayerData(EntityPlayerMP player) {
         this.player = player;

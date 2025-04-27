@@ -10,7 +10,6 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 
 import java.net.InetAddress;
@@ -47,7 +46,7 @@ public class ServerTickHandler {
         }
         AnalyticsTracking.sendData(event.player, "join", serverName);
 
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+        PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogin();
         }
@@ -59,7 +58,7 @@ public class ServerTickHandler {
 
     @SubscribeEvent
     public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(event.player);
+        PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogout();
         }

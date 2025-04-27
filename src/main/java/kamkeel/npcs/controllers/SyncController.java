@@ -167,6 +167,7 @@ public class SyncController {
         NBTTagList categoryList = new NBTTagList();
         for (QuestCategory category : QuestController.Instance.categories.values()) {
             NBTTagCompound questCompound = new NBTTagCompound();
+            ;
             NBTTagList questList = new NBTTagList();
             for (int questID : category.quests.keySet()) {
                 Quest quest = category.quests.get(questID);

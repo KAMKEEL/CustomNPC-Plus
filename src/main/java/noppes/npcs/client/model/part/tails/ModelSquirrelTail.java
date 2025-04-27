@@ -6,7 +6,7 @@ import noppes.npcs.client.model.ModelMPM;
 
 public class ModelSquirrelTail extends ModelRenderer {
 
-    private final ModelMPM base;
+    private ModelMPM base;
 
     public ModelSquirrelTail(ModelMPM base) {
         super(base);

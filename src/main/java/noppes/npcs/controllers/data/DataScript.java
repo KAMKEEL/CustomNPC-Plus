@@ -4,7 +4,6 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.Event;
 import cpw.mods.fml.relauncher.Side;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityCreature;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
@@ -39,7 +38,7 @@ public class DataScript implements INpcScriptHandler {
     private final static RoleType roles = new RoleType();
 
     public String scriptLanguage = "ECMAScript";
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
     public boolean enabled = false;
 
     public ICustomNpc dummyNpc;
@@ -60,7 +59,7 @@ public class DataScript implements INpcScriptHandler {
         dummyNpc = npc.wrappedNPC;
 
         if (npc.worldObj instanceof WorldServer)
-            dummyWorld = NpcAPI.Instance().getIWorld(npc.worldObj);//new ScriptWorld((WorldServer) npc.worldObj);
+            dummyWorld = NpcAPI.Instance().getIWorld((WorldServer) npc.worldObj);//new ScriptWorld((WorldServer) npc.worldObj);
     }
 
     public void readFromNBT(NBTTagCompound compound) {
@@ -167,9 +166,9 @@ public class DataScript implements INpcScriptHandler {
         }
         if (ConfigDebug.ScriptLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
             if (obs.length > 1 && obs[1] == null) {
-                LogWriter.postScriptLog(EntityCreature.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s)", type.function.toUpperCase(), npc.display.name, (int) npc.posX, (int) npc.posY, (int) npc.posZ));
+                LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s)", ((String) type.function).toUpperCase(), npc.display.name, (int) npc.posX, (int) npc.posY, (int) npc.posZ));
             } else {
-                LogWriter.postScriptLog(EntityCreature.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", type.function.toUpperCase(), npc.display.name, (int) npc.posX, (int) npc.posY, (int) npc.posZ, Arrays.toString(obs)));
+                LogWriter.postScriptLog(npc.field_110179_h, type, String.format("[%s] NPC %s (%s, %s, %s) | Objects: %s", ((String) type.function).toUpperCase(), npc.display.name, (int) npc.posX, (int) npc.posY, (int) npc.posZ, Arrays.toString(obs)));
             }
         }
         return callScript(script, event);

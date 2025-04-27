@@ -13,7 +13,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener, IGuiData {
-    private final DataStats stats;
+    private DataStats stats;
 
     public GuiNpcStats(EntityNPCInterface npc) {
         super(npc, 2);
@@ -27,7 +27,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
         super.initGui();
         int y = guiTop + 10;
         addLabel(new GuiNpcLabel(0, "stats.health", guiLeft + 5, y + 5));
-        addTextField(new GuiNpcTextField(0, this, guiLeft + 82, y, 185, 18, String.format("%.0f", stats.maxHealth)));
+        addTextField(new GuiNpcTextField(0, this, guiLeft + 82, y, 185, 18, String.format("%.0f", stats.maxHealth) + ""));
         getTextField(0).doublesOnly = true;
         getTextField(0).setMinMaxDefaultDouble(0, Double.MAX_VALUE, 20);
 
@@ -46,14 +46,14 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
         addLabel(new GuiNpcLabel(6, "stats.rangedproperties", guiLeft + 5, y + 5));
         this.addButton(new GuiNpcButton(9, guiLeft + 217, y, 56, 20, "selectServer.edit"));
         addLabel(new GuiNpcLabel(7, "stats.projectileproperties", guiLeft + 140, y + 5));
-        addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, String.format("%.0f", stats.healthRegen)).setFloatsOnly());
+        addTextField(new GuiNpcTextField(14, this, guiLeft + 355, y, 56, 20, String.format("%.0f", stats.healthRegen) + "").setFloatsOnly());
         addLabel(new GuiNpcLabel(14, "stats.regenhealth", guiLeft + 275, y + 5));
 
         this.addButton(new GuiNpcButton(15, guiLeft + 82, y += 34, 56, 20, "selectServer.edit"));
         addLabel(new GuiNpcLabel(15, "potion.resistance", guiLeft + 5, y + 5));
         this.addButton(new GuiNpcButton(21, guiLeft + 217, y, 56, 20, new String[]{"gui.no", "gui.yes"}, this.stats.resistances.disableDamage ? 1 : 0));
         addLabel(new GuiNpcLabel(21, "stats.disabledamage", guiLeft + 140, y + 5));
-        addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y, 56, 20, String.format("%.0f", stats.combatRegen)).setFloatsOnly());
+        addTextField(new GuiNpcTextField(16, this, guiLeft + 355, y, 56, 20, String.format("%.0f", stats.combatRegen) + "").setFloatsOnly());
         addLabel(new GuiNpcLabel(16, "stats.combatregen", guiLeft + 275, y + 5));
 
         addButton(new GuiNpcButton(4, guiLeft + 82, y += 34, 56, 20, new String[]{"gui.no", "gui.yes"}, npc.isImmuneToFire() ? 1 : 0));
@@ -120,7 +120,7 @@ public class GuiNpcStats extends GuiNPCInterface2 implements ITextfieldListener,
         } else if (button.id == 17) {
             stats.potionImmune = ((GuiNpcButtonYesNo) guibutton).getBoolean();
         } else if (button.id == 18) {
-            stats.potionImmune = ((GuiNpcButtonYesNo) guibutton).getBoolean();
+            stats.attackInvisible = ((GuiNpcButtonYesNo) guibutton).getBoolean();
         } else if (button.id == 21) {
             // Magic Button
             stats.resistances.disableDamage = ((GuiNpcButton) guibutton).getValue() == 1;

@@ -39,8 +39,8 @@ public class ClientTickHandler {
     private int prevWidth = 0;
     private int prevHeight = 0;
     private boolean otherContainer = false;
-    private final int buttonPressed = -1;
-    private final long buttonTime = 0L;
+    private int buttonPressed = -1;
+    private long buttonTime = 0L;
     private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

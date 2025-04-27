@@ -26,6 +26,7 @@ public class ItemThrowingWeapon extends ItemNpcInterface {
         projectile.damage = damage;
         projectile.canBePickedUp = !player.capabilities.isCreativeMode && dropItem;
         projectile.setRotating(rotating);
+        ;
         projectile.setIs3D(true);
         projectile.setStickInWall(true);
         projectile.setHasGravity(true);

@@ -23,8 +23,12 @@ public abstract class RoleInterface {
     public void killed() {
     }
 
+    ;
+
     public void delete() {
     }
+
+    ;
 
     public boolean aiShouldExecute() {
         return false;

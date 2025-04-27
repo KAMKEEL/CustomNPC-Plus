@@ -7,6 +7,7 @@ import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.controllers.data.MagicData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.util.ValueUtil;
 
 public class DataStats {
@@ -42,17 +43,21 @@ public class DataStats {
     public float pDamage = 4;
     public int pImpact = 0, pSize = 5, pSpeed = 10, pArea = 0, pDur = 5;
     public boolean pPhysics = true, pXlr8 = false, pGlows = false, pExplode = false;
-    public boolean pRender3D = false, pSpin = false, pStick = false;
+    public boolean pRender3D = false, pSpin = false, pStick = false, pBurnItem = false;
     public EnumPotionType pEffect = EnumPotionType.None;
     public EnumParticleType pTrail = EnumParticleType.None;
+    public ScriptParticle pCustom = new ScriptParticle("");
     public int pEffAmp = 0;
     public String fireSound = "random.bow";
-    public boolean aimWhileShooting = false;
+    public boolean onSoundBegin = false;
+    public boolean playBurstSound = true; // Internal Only
+    public byte aimType = 0;
     public boolean projectilesKeepTerrain = false;
+
 
     public EnumCreatureAttribute creatureType = EnumCreatureAttribute.UNDEFINED;
 
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
     public boolean attackInvisible = false;
 
     // 0 - Yes, 1 - No, 2 - Only NPCs, 3 - Only Players, 4 - NPCs and Players
@@ -108,8 +113,13 @@ public class DataStats {
         compound.setInteger("pTrail", pTrail.ordinal());
         compound.setInteger("pEffAmp", pEffAmp);
         compound.setString("FiringSound", fireSound);
-        compound.setBoolean("AimWhileShooting", aimWhileShooting);
+        compound.setBoolean("FiringSoundBegin", onSoundBegin);
+        compound.setByte("AimType", aimType);
         compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
+        if(pTrail == EnumParticleType.Custom)
+            compound.setTag("pCustom", pCustom.writeToNBT());
+        if(pEffect == EnumPotionType.Fire)
+            compound.setBoolean("pBurnItem", pBurnItem);
 
         compound.setBoolean("ImmuneToFire", immuneToFire);
         compound.setBoolean("PotionImmune", potionImmune);
@@ -172,8 +182,13 @@ public class DataStats {
         pTrail = EnumParticleType.values()[compound.getInteger("pTrail") % EnumParticleType.values().length];
         pEffAmp = compound.getInteger("pEffAmp");
         fireSound = compound.getString("FiringSound");
-        aimWhileShooting = compound.getBoolean("AimWhileShooting");
+        onSoundBegin = compound.getBoolean("FiringSoundBegin");
+        aimType = compound.getByte("AimType");
         projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
+        if(pTrail == EnumParticleType.Custom)
+            pCustom = ScriptParticle.fromNBT(compound.getCompoundTag("pCustom"));
+        if(pEffect == EnumPotionType.Fire)
+            pBurnItem = compound.getBoolean("pBurnItem");
 
         immuneToFire = compound.getBoolean("ImmuneToFire");
         potionImmune = compound.getBoolean("PotionImmune");

@@ -44,7 +44,7 @@ public final class MagicNpcGetPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.WAND))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.WAND))
             return;
 
         NBTTagCompound compound = new NBTTagCompound();

@@ -9,8 +9,8 @@ import noppes.npcs.CustomItems;
 
 public class MessageAchievement extends Achievement {
 
-    private final String description;
-    private final String message;
+    private String description;
+    private String message;
 
     public MessageAchievement(Item item, String message, String description) {
         super("", message, 0, 0, item, null);

@@ -15,7 +15,7 @@ import java.util.Vector;
 
 public class GuiNPCFactionSelection extends GuiNPCInterface implements IScrollData {
     private GuiNPCStringSlot slot;
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private HashMap<String, Integer> data = new HashMap<String, Integer>();
     private int factionId;
     public GuiSelectionListener listener;

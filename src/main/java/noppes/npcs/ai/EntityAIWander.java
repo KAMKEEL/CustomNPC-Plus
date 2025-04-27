@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class EntityAIWander extends EntityAIBase {
-    private final EntityNPCInterface entity;
+    private EntityNPCInterface entity;
     public final IEntitySelector selector;
     private double xPosition;
     private double yPosition;

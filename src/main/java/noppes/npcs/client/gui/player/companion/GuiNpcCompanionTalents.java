@@ -27,8 +27,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GuiNpcCompanionTalents extends GuiNPCInterface {
-    private final RoleCompanion role;
-    private final Map<Integer, GuiTalent> talents = new HashMap<Integer, GuiTalent>();
+    private RoleCompanion role;
+    private Map<Integer, GuiTalent> talents = new HashMap<Integer, GuiTalent>();
     private GuiNpcButton selected;
 
     public GuiNpcCompanionTalents(EntityNPCInterface npc) {
@@ -145,10 +145,9 @@ public class GuiNpcCompanionTalents extends GuiNPCInterface {
     }
 
     public static class GuiTalent extends GuiScreen {
-        private final EnumCompanionTalent talent;
-        private final int x;
-        private final int y;
-        private final RoleCompanion role;
+        private EnumCompanionTalent talent;
+        private int x, y;
+        private RoleCompanion role;
         private static final ResourceLocation resource = new ResourceLocation("customnpcs:textures/gui/talent.png");
 
         public GuiTalent(RoleCompanion role, EnumCompanionTalent talent, int x, int y) {

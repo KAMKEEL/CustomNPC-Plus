@@ -31,11 +31,11 @@ public class GuiMerchantAdd extends GuiContainer {
     /**
      * Instance of IMerchant interface.
      */
-    private final IMerchant theIMerchant;
+    private IMerchant theIMerchant;
     private MerchantButton nextRecipeButtonIndex;
     private MerchantButton previousRecipeButtonIndex;
     private int currentRecipeIndex;
-    private final String field_94082_v;
+    private String field_94082_v;
 
     public GuiMerchantAdd() {
         super(new ContainerMerchantAdd(Minecraft.getMinecraft().thePlayer, ServerEventsHandler.Merchant, Minecraft.getMinecraft().theWorld));

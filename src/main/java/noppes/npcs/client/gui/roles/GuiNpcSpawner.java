@@ -14,7 +14,7 @@ import noppes.npcs.roles.JobSpawner;
 
 
 public class GuiNpcSpawner extends GuiNPCInterface2 implements ITextfieldListener, IGuiData {
-    private final JobSpawner job;
+    private JobSpawner job;
 
     private int slot = -1;
 

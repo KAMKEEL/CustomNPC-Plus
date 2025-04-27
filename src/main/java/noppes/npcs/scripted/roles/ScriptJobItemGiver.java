@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class ScriptJobItemGiver extends ScriptJobInterface implements IJobItemGiver {
-    private final JobItemGiver job;
+    private JobItemGiver job;
 
     public ScriptJobItemGiver(JobItemGiver job) {
         super(job);

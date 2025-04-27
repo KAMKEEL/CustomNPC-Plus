@@ -8,7 +8,6 @@ import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerFactionData;
 import noppes.npcs.api.handler.data.IFaction;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -80,17 +79,17 @@ public class Faction implements IFaction {
     }
 
     public boolean isFriendlyToPlayer(EntityPlayer player) {
-        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        PlayerFactionData data = PlayerData.get(player).factionData;
         return data.getFactionPoints(id) >= friendlyPoints;
     }
 
     public boolean isAggressiveToPlayer(EntityPlayer player) {
-        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        PlayerFactionData data = PlayerData.get(player).factionData;
         return data.getFactionPoints(id) < neutralPoints;
     }
 
     public boolean isNeutralToPlayer(EntityPlayer player) {
-        PlayerFactionData data = PlayerDataController.Instance.getPlayerData(player).factionData;
+        PlayerFactionData data = PlayerData.get(player).factionData;
         int points = data.getFactionPoints(id);
         return points >= neutralPoints && points < friendlyPoints;
     }

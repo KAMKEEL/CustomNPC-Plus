@@ -16,8 +16,8 @@ import java.util.HashMap;
 
 
 public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelectionListener, IGuiData {
-    private final GuiScreen parent;
-    private final HashMap<Integer, DialogOption> data = new HashMap<Integer, DialogOption>();
+    private GuiScreen parent;
+    private HashMap<Integer, DialogOption> data = new HashMap<Integer, DialogOption>();
 
     public GuiNPCDialogNpcOptions(EntityNPCInterface npc, GuiScreen parent) {
         super(npc);
@@ -65,6 +65,7 @@ public class GuiNPCDialogNpcOptions extends GuiNPCInterface2 implements GuiSelec
     }
 
     public void save() {
+        return;
     }
 
     @Override

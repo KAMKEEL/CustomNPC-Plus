@@ -29,7 +29,10 @@ public class CompanionGuard extends CompanionJobInterface {
 
         else if (entity instanceof EntityCreeper) {
             return false;
-        } else return entity instanceof IMob;
+        } else if (entity instanceof IMob) {
+            return true;
+        }
+        return false;
     }
 
     public boolean isSelfSufficient() {

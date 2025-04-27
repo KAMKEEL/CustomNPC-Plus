@@ -9,9 +9,9 @@ import noppes.npcs.entity.data.ModelScalePart;
 
 public class GuiModelScale extends GuiModelInterface implements ISliderListener {
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private int type = 0;
-    private final int offset = 10;
+    private int offset = 10;
 
     private GuiNpcSlider scaleWidth;
     private GuiNpcSlider scaleHeight;

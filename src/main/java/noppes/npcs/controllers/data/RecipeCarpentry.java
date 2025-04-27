@@ -126,7 +126,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
         int var9;
 
         if (par2ArrayOfObj[var4] instanceof String[]) {
-            String[] var7 = (String[]) par2ArrayOfObj[var4++];
+            String[] var7 = (String[]) ((String[]) par2ArrayOfObj[var4++]);
             String[] var8 = var7;
             var9 = var7.length;
 

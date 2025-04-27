@@ -520,7 +520,7 @@ public class NBTTags {
                 long slot = ((Long) var2.next()).longValue();
                 NBTTagCompound nbttagcompound = new NBTTagCompound();
                 nbttagcompound.setLong("Long", slot);
-                nbttagcompound.setString("String", map.get(Long.valueOf(slot)));
+                nbttagcompound.setString("String", (String) map.get(Long.valueOf(slot)));
                 nbttaglist.appendTag(nbttagcompound);
             }
 

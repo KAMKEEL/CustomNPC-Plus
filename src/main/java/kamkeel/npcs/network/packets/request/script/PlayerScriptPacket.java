@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.io.IOException;
@@ -70,13 +71,13 @@ public final class PlayerScriptPacket extends AbstractPacket {
         if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT))
             return;
 
-        if (!PacketUtil.verifyItemPacket(player, EnumItemPacketType.SCRIPTER))
+        if (!PacketUtil.verifyItemPacket(packetName, player, EnumItemPacketType.SCRIPTER))
             return;
 
         Action requestedAction = Action.values()[in.readInt()];
         PlayerDataScript data = ScriptController.Instance.playerScripts;
         if (requestedAction == Action.GET) {
-            PacketUtil.getScripts(data, (EntityPlayerMP) player);
+            PacketUtil.getScripts((IScriptHandler) data, (EntityPlayerMP) player);
         } else {
             int tab = in.getInt(in.readerIndex());
             PacketUtil.saveScripts(data, in);

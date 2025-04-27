@@ -3,6 +3,7 @@ package noppes.npcs.controllers;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -10,10 +11,13 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
@@ -43,13 +47,13 @@ public class ScriptController {
     public NBTTagCompound compound = new NBTTagCompound();
 
     public boolean shouldSave = false;
-    public PlayerDataScript playerScripts = new PlayerDataScript(null);
+    public PlayerDataScript playerScripts = new PlayerDataScript((EntityPlayer) null);
     public long lastPlayerUpdate = 0L;
 
     public ForgeDataScript forgeScripts = new ForgeDataScript();
     public long lastForgeUpdate = 0L;
 
-    public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript(null);
+    public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript((EntityNPCInterface) null);
     public long lastGlobalNpcUpdate = 0L;
 
     public ScriptController() {
@@ -144,6 +148,20 @@ public class ScriptController {
         } catch (IOException | JsonException var4) {
             var4.printStackTrace();
         }
+    }
+
+    public PlayerDataScript getPlayerScripts(EntityPlayer player){
+        if(ConfigScript.IndividualPlayerScripts)
+            return PlayerData.get(player).scriptData;
+
+        return this.playerScripts;
+    }
+
+    public PlayerDataScript getPlayerScripts(IPlayer player){
+        if(ConfigScript.IndividualPlayerScripts)
+            return PlayerData.get((EntityPlayer) player.getMCEntity()).scriptData;
+
+        return this.playerScripts;
     }
 
     public boolean loadGlobalNPCScripts() {

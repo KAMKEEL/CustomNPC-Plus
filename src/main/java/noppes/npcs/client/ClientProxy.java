@@ -43,12 +43,14 @@ import noppes.npcs.client.fx.EntityRainbowFX;
 import noppes.npcs.client.gui.*;
 import noppes.npcs.client.gui.custom.GuiCustom;
 import noppes.npcs.client.gui.global.*;
+import noppes.npcs.client.gui.item.GuiNpcMagicBook;
 import noppes.npcs.client.gui.item.GuiNpcPaintbrush;
 import noppes.npcs.client.gui.mainmenu.*;
 import noppes.npcs.client.gui.player.*;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionInv;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionStats;
 import noppes.npcs.client.gui.player.companion.GuiNpcCompanionTalents;
+import noppes.npcs.client.gui.player.modern.BlurEventHandler;
 import noppes.npcs.client.gui.questtypes.GuiNpcQuestTypeItem;
 import noppes.npcs.client.gui.roles.*;
 import noppes.npcs.client.gui.script.GuiScriptBlock;
@@ -111,6 +113,10 @@ public class ClientProxy extends CommonProxy {
         ClientRegistry.bindTileEntitySpecialRenderer(TileScripted.class, new BlockScriptedRenderer());
         MinecraftForgeClient.registerItemRenderer(Item.getItemFromBlock(CustomItems.scripted), new ScriptedBlockItemRenderer());
         RenderingRegistry.registerBlockHandler(new BlockBorderRenderer());
+
+        BlurEventHandler blurEventHandler = new BlurEventHandler();
+        MinecraftForge.EVENT_BUS.register(blurEventHandler);
+        FMLCommonHandler.instance().bus().register(blurEventHandler);
 
         if (!ConfigItem.DisableExtraBlock) {
             ClientRegistry.bindTileEntitySpecialRenderer(TileBanner.class, new BlockBannerRenderer());
@@ -422,6 +428,9 @@ public class ClientProxy extends CommonProxy {
         else if (gui == EnumGuiType.Paintbrush)
             return new GuiNpcPaintbrush();
 
+        else if (gui == EnumGuiType.MagicBook)
+            return new GuiNpcMagicBook();
+
         else if (gui == EnumGuiType.GlobalRemote)
             return new GuiNPCGlobalMainMenu(null);
 
@@ -516,7 +525,7 @@ public class ClientProxy extends CommonProxy {
         }
     }
 
-    private final ModelSkirtArmor model = new ModelSkirtArmor();
+    private ModelSkirtArmor model = new ModelSkirtArmor();
 
     public ModelBiped getSkirtModel() {
         return model;
@@ -548,7 +557,7 @@ public class ClientProxy extends CommonProxy {
                 return;
             TextureManager texturemanager = Minecraft.getMinecraft().getTextureManager();
             if (location != null)
-                texturemanager.bindTexture(location);
+                texturemanager.bindTexture((ResourceLocation) location);
         } catch (NullPointerException ex) {
 
         } catch (ReportedException ex) {

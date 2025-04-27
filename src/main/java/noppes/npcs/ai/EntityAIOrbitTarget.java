@@ -9,18 +9,18 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.Random;
 
 public class EntityAIOrbitTarget extends EntityAIBase {
-    private final EntityNPCInterface theEntity;
+    private EntityNPCInterface theEntity;
     private EntityLivingBase targetEntity;
     private double movePosX;
     private double movePosY;
     private double movePosZ;
-    private final double speed;
-    private final float distance;
+    private double speed;
+    private float distance;
     private int delay = 0;
     private float angle = 0;
     private int direction = 1;
     private float targetDistance;
-    private final boolean decay;
+    private boolean decay;
     private boolean canNavigate = true;
     private float decayRate = 1.0F;
     private int tick = 0;
@@ -47,7 +47,7 @@ public class EntityAIOrbitTarget extends EntityAIBase {
             return false;
         } else {
             double d0 = this.theEntity.getDistanceToEntity(this.targetEntity);
-            return d0 >= this.distance / 2.0F && (this.theEntity.inventory.getProjectile() != null || d0 <= this.distance);
+            return d0 >= this.distance / 2.0F && (this.theEntity.inventory.getProjectile() == null ? d0 <= this.distance : true);
         }
     }
 

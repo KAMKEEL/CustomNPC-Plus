@@ -13,12 +13,12 @@ import org.lwjgl.opengl.GL11;
 @SideOnly(Side.CLIENT)
 public class GuiCrate extends GuiContainer {
     private static final ResourceLocation field_147017_u = new ResourceLocation("textures/gui/container/generic_54.png");
-    private final IInventory upperChestInventory;
-    private final IInventory lowerChestInventory;
+    private IInventory upperChestInventory;
+    private IInventory lowerChestInventory;
     /**
      * window height is calculated with these values; the more rows, the heigher
      */
-    private final int inventoryRows;
+    private int inventoryRows;
 
     public GuiCrate(ContainerCrate container) {
         super(container);
@@ -35,8 +35,8 @@ public class GuiCrate extends GuiContainer {
      * Draw the foreground layer for the GuiContainer (everything in front of the items)
      */
     protected void drawGuiContainerForegroundLayer(int p_146979_1_, int p_146979_2_) {
-        this.fontRendererObj.drawString(this.lowerChestInventory.hasCustomInventoryName() ? this.lowerChestInventory.getInventoryName() : I18n.format(this.lowerChestInventory.getInventoryName()), 8, 6, CustomNpcResourceListener.DefaultTextColor);
-        this.fontRendererObj.drawString(this.upperChestInventory.hasCustomInventoryName() ? this.upperChestInventory.getInventoryName() : I18n.format(this.upperChestInventory.getInventoryName()), 8, this.ySize - 96 + 2, CustomNpcResourceListener.DefaultTextColor);
+        this.fontRendererObj.drawString(this.lowerChestInventory.hasCustomInventoryName() ? this.lowerChestInventory.getInventoryName() : I18n.format(this.lowerChestInventory.getInventoryName(), new Object[0]), 8, 6, CustomNpcResourceListener.DefaultTextColor);
+        this.fontRendererObj.drawString(this.upperChestInventory.hasCustomInventoryName() ? this.upperChestInventory.getInventoryName() : I18n.format(this.upperChestInventory.getInventoryName(), new Object[0]), 8, this.ySize - 96 + 2, CustomNpcResourceListener.DefaultTextColor);
     }
 
     protected void drawGuiContainerBackgroundLayer(float p_146976_1_, int p_146976_2_, int p_146976_3_) {

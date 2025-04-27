@@ -14,12 +14,8 @@ public class Model2DRenderer extends ModelRenderer {
 
     private int displayListModel;
 
-    private final float x1;
-    private final float x2;
-    private final float y1;
-    private final float y2;
-    private final int width;
-    private final int height;
+    private float x1, x2, y1, y2;
+    private int width, height;
     private float rotationOffsetX, rotationOffsetY;
 
     private float scaleX = 1, scaleY = 1, thickness = 1;

@@ -62,7 +62,7 @@ public class GuiMenuTopIconButton extends GuiMenuTopButton {
         if (hover && !active) {
             int x = i + mc.fontRenderer.getStringWidth(displayString);
             GL11.glTranslatef(x, yPosition + 2, 0);
-            drawHoveringText(Arrays.asList(displayString), 0, 0, mc.fontRenderer);
+            drawHoveringText(Arrays.asList(new String[]{displayString}), 0, 0, mc.fontRenderer);
             GL11.glTranslatef(-x, -(yPosition + 2), 0);
         }
         mc.getTextureManager().bindTexture(resource);

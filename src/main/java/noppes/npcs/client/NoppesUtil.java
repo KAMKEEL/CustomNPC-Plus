@@ -17,10 +17,13 @@ import net.minecraft.util.Util;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.gui.player.GuiDialogInteract;
 import noppes.npcs.client.gui.player.GuiQuestCompletion;
+import noppes.npcs.client.gui.player.modern.GuiModernDialogInteract;
+import noppes.npcs.client.gui.player.modern.GuiModernQuestDialog;
 import noppes.npcs.client.gui.util.GuiContainerNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.IPlayerDataInfo;
 import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.config.ConfigExperimental;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.Dialog;
@@ -101,7 +104,7 @@ public class NoppesUtil {
                 //logger.error("Couldn\'t open file", ioexception1);
             }
         } else if (Util.getOSType() == Util.EnumOS.WINDOWS) {
-            String s1 = String.format("cmd.exe /C start \"Open file\" \"%s\"", s);
+            String s1 = String.format("cmd.exe /C start \"Open file\" \"%s\"", new Object[]{s});
 
             try {
                 Runtime.getRuntime().exec(s1);
@@ -115,8 +118,8 @@ public class NoppesUtil {
 
         try {
             Class oclass = Class.forName("java.awt.Desktop");
-            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke(null);
-            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, dir.toURI());
+            Object object = oclass.getMethod("getDesktop", new Class[0]).invoke((Object) null, new Object[0]);
+            oclass.getMethod("browse", new Class[]{URI.class}).invoke(object, new Object[]{dir.toURI()});
         } catch (Throwable throwable) {
             //logger.error("Couldn\'t open link", throwable);
             flag = true;
@@ -169,10 +172,10 @@ public class NoppesUtil {
         } catch (Exception e) {
         }
         if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
-            gui = ((GuiNPCInterface) gui).getSubGui();
+            gui = (GuiScreen) ((GuiNPCInterface) gui).getSubGui();
         }
         if (gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface) gui).hasSubGui()) {
-            gui = ((GuiContainerNPCInterface) gui).getSubGui();
+            gui = (GuiScreen) ((GuiContainerNPCInterface) gui).getSubGui();
         }
         if (gui instanceof IScrollData)
             ((IScrollData) gui).setData(new Vector<String>(data.keySet()), data, dataType);
@@ -191,8 +194,17 @@ public class NoppesUtil {
         Dialog dialog = new Dialog();
         dialog.readNBT(compound);
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-        if (gui == null || !(gui instanceof GuiDialogInteract))
-            CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+        if(!(gui instanceof GuiDialogInteract)) {
+            if (ConfigExperimental.ModernGuiSystem) {
+                if (dialog.hasQuest()) {
+                    CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, dialog.getQuest(), dialog, -2));
+                } else {
+                    CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, dialog));
+                }
+            } else {
+                CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
+            }
+        }
         else {
             GuiDialogInteract dia = (GuiDialogInteract) gui;
             dia.appendDialog(dialog);
@@ -255,11 +267,11 @@ public class NoppesUtil {
         if (gui == null)
             return;
         if (gui instanceof GuiNPCInterface && ((GuiNPCInterface) gui).hasSubGui()) {
-            gui = ((GuiNPCInterface) gui).getSubGui();
+            gui = (GuiScreen) ((GuiNPCInterface) gui).getSubGui();
         }
 
         if (gui instanceof GuiContainerNPCInterface && ((GuiContainerNPCInterface) gui).hasSubGui()) {
-            gui = ((GuiContainerNPCInterface) gui).getSubGui();
+            gui = (GuiScreen) ((GuiContainerNPCInterface) gui).getSubGui();
         }
         if (gui instanceof IPlayerDataInfo) {
             IPlayerDataInfo info = (IPlayerDataInfo) gui;

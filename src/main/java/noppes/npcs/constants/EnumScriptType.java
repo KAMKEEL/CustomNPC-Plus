@@ -123,7 +123,7 @@ public enum EnumScriptType {
         return valueOf(channelName);
     }
 
-    EnumScriptType(String function) {
+    private EnumScriptType(String function) {
         this.function = function;
     }
 }

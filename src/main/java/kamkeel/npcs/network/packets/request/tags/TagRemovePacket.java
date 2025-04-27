@@ -47,11 +47,6 @@ public final class TagRemovePacket extends AbstractPacket {
         return CustomNpcsPermissions.GLOBAL_TAG;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
@@ -63,7 +58,7 @@ public final class TagRemovePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         int id = in.readInt();

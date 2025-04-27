@@ -29,20 +29,20 @@ public class ModelPony extends ModelBase {
     private float WingRotateAngleZ;
     private float TailRotateAngleY;
     public ModelRenderer Head;
-    public ModelRenderer[] Headpiece;
+    public ModelRenderer Headpiece[];
     public ModelRenderer Helmet;
     public ModelRenderer Body;
-    public ModelPlaneRenderer[] Bodypiece;
+    public ModelPlaneRenderer Bodypiece[];
     public ModelRenderer RightArm;
     public ModelRenderer LeftArm;
     public ModelRenderer RightLeg;
     public ModelRenderer LeftLeg;
     public ModelRenderer unicornarm;
-    public ModelPlaneRenderer[] Tail;
-    public ModelRenderer[] LeftWing;
-    public ModelRenderer[] RightWing;
-    public ModelRenderer[] LeftWingExt;
-    public ModelRenderer[] RightWingExt;
+    public ModelPlaneRenderer Tail[];
+    public ModelRenderer LeftWing[];
+    public ModelRenderer RightWing[];
+    public ModelRenderer LeftWingExt[];
+    public ModelRenderer RightWingExt[];
     public boolean isPegasus;
     public boolean isUnicorn;
     public boolean isFlying;
@@ -569,8 +569,8 @@ public class ModelPony extends ModelBase {
             unicornarm.rotateAngleZ += f36;
             unicornarm.rotateAngleX += f39;
             if (isPegasus && isFlying) {
-                WingRotateAngleY = MathHelper.sin(f2 * 0.067F * 8F);
-                WingRotateAngleZ = MathHelper.sin(f2 * 0.067F * 8F);
+                WingRotateAngleY = MathHelper.sin(f2 * 0.067F * 8F) * 1.0F;
+                WingRotateAngleZ = MathHelper.sin(f2 * 0.067F * 8F) * 1.0F;
                 for (int k4 = 0; k4 < LeftWingExt.length; k4++) {
                     LeftWingExt[k4].rotateAngleX = 2.5F;
                     LeftWingExt[k4].rotateAngleZ = -WingRotateAngleZ - 4.712F - 0.4F;
@@ -842,6 +842,7 @@ public class ModelPony extends ModelBase {
     protected void renderGlow(RenderManager rendermanager, EntityPlayer entityplayer) {
         ItemStack itemstack = entityplayer.inventory.getCurrentItem();
         if (itemstack == null) {
+            return;
         } else {
             GL11.glPushMatrix();
             double d = entityplayer.posX;
@@ -871,6 +872,7 @@ public class ModelPony extends ModelBase {
             tessellator.draw();
             GL11.glDisable(32826 /*GL_RESCALE_NORMAL_EXT*/);
             GL11.glPopMatrix();
+            return;
         }
     }
 }

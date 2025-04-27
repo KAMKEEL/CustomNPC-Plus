@@ -25,6 +25,8 @@ public class ItemNpcInterface extends Item implements ItemRenderInterface {
         GL11.glTranslatef(0, 0.3f, 0);
     }
 
+    ;
+
     @Override
     public int getItemEnchantability() {
         //return this.toolMaterial.getEnchantability();

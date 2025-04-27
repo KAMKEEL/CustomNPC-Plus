@@ -14,7 +14,7 @@ import noppes.npcs.controllers.data.DataTransform;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCNightSetup extends GuiNPCInterface2 implements IGuiData {
-    private final DataTransform data;
+    private DataTransform data;
 
     public GuiNPCNightSetup(EntityNPCInterface npc) {
         super(npc);

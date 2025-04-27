@@ -68,7 +68,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
             for (String name : map.keySet()) {
                 if (!(map.get(name) instanceof FallbackResourceManager))
                     continue;
-                FallbackResourceManager manager = map.get(name);
+                FallbackResourceManager manager = (FallbackResourceManager) map.get(name);
                 List<IResourcePack> list = ObfuscationReflectionHelper.getPrivateValue(FallbackResourceManager.class, manager, 0);
                 for (IResourcePack pack : list) {
                     if (pack instanceof AbstractResourcePack) {
@@ -147,8 +147,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
         }
         try {
             url = URLDecoder.decode(url, StandardCharsets.UTF_8.name());
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException ignored) {
         }
         return new File(url);
     }

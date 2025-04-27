@@ -4,7 +4,7 @@ import net.minecraft.entity.ai.EntityAIBase;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIWaterNav extends EntityAIBase {
-    private final EntityNPCInterface theEntity;
+    private EntityNPCInterface theEntity;
 
     public EntityAIWaterNav(EntityNPCInterface par1EntityNPCInterface) {
         this.theEntity = par1EntityNPCInterface;
@@ -18,7 +18,9 @@ public class EntityAIWaterNav extends EntityAIBase {
         if (this.theEntity.isInWater() || this.theEntity.handleLavaMovement()) {
             if (this.theEntity.ais.canSwim) {
                 return true;
-            } else return this.theEntity.isCollidedHorizontally;
+            } else if (this.theEntity.isCollidedHorizontally) {
+                return true;
+            }
 
         }
         return false;

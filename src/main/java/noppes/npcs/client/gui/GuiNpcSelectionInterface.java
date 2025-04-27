@@ -16,11 +16,11 @@ public abstract class GuiNpcSelectionInterface extends GuiNPCInterface {
     public GuiNPCStringSlot slot;
     public GuiScreen parent;
 
-    private final String up = "..<" + StatCollector.translateToLocal("gui.up") + ">..";
+    private String up = "..<" + StatCollector.translateToLocal("gui.up") + ">..";
 
     private String root = "";
     public AssetsBrowser assets;
-    private final HashSet<String> dataFolder = new HashSet<String>();
+    private HashSet<String> dataFolder = new HashSet<String>();
     protected HashSet<String> dataTextures = new HashSet<String>();
 
     public GuiNpcSelectionInterface(EntityNPCInterface npc, GuiScreen parent, String sound) {

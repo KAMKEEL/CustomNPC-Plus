@@ -10,7 +10,7 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class GuiModelHead extends GuiModelInterface {
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
 
     private final String[] arrHead = new String[]{"gui.no", "gui.yes"};
     private final String[] arrHeadwear = new String[]{"gui.no", "gui.yes", "Solid"};

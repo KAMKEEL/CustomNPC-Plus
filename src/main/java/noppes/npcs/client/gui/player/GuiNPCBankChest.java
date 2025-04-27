@@ -19,7 +19,7 @@ import org.lwjgl.opengl.GL12;
 
 public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiData {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/bankchest.png");
-    private final ContainerNPCBankInterface container;
+    private ContainerNPCBankInterface container;
     private int availableSlots = 0;
     private int maxSlots = 1;
     private int unlockedSlots = 1;
@@ -135,6 +135,7 @@ public class GuiNPCBankChest extends GuiContainerNPCInterface implements IGuiDat
 
     @Override
     public void save() {
+        return;
     }
 
     @Override

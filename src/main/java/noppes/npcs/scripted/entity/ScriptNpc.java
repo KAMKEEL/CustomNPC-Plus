@@ -1,6 +1,7 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.IPos;
 import noppes.npcs.api.ITimers;
@@ -291,7 +292,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
     @Override
     public boolean typeOf(int type) {
-        return type == EntityType.NPC || super.typeOf(type);
+        return type == EntityType.NPC ? true : super.typeOf(type);
     }
 
     /**
@@ -518,11 +519,21 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     }
 
     public boolean canAimWhileShooting() {
-        return !npc.stats.aimWhileShooting;
+        return npc.stats.aimType == 1;
     }
 
-    public void aimWhileShooting(boolean aimWhileShooting) {
-        npc.stats.aimWhileShooting = aimWhileShooting;
+    public void aimWhileShooting(boolean aimWhileShooting){
+        npc.stats.aimType = (byte) (aimWhileShooting ? 1 : 0);
+    }
+
+    public void setAimType(byte aimWhileShooting) {
+        if(aimWhileShooting < 0 || aimWhileShooting > 2)
+            return;
+        npc.stats.aimType = aimWhileShooting;
+    }
+
+    public byte getAimType() {
+        return npc.stats.aimType;
     }
 
     public void setMinProjectileDelay(int minDelay) {
@@ -634,7 +645,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      */
     public void setLootItem(int slot, IItemStack item) {
         if (item == null || item.getMCItemStack() == null) {
-            npc.inventory.setInventorySlotContents(slot + 7, null);
+            npc.inventory.setInventorySlotContents(slot + 7, (ItemStack) null);
         } else {
             npc.inventory.setInventorySlotContents(slot + 7, item.getMCItemStack());
         }
@@ -740,10 +751,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     public void setTacticalVariant(String variant) {
         boolean found = false;
         for (String s : EnumNavType.names()) {
-            if (s.equals(variant)) {
+            if (s.equals(variant))
                 found = true;
-                break;
-            }
         }
 
         if (!found)
@@ -770,10 +779,8 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     public void setCombatPolicy(String variant) {
         boolean found = false;
         for (String s : EnumCombatPolicy.names()) {
-            if (s.equals(variant)) {
+            if (s.equals(variant))
                 found = true;
-                break;
-            }
         }
 
         if (!found)
@@ -1266,7 +1273,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
     }
 
     public ITimers getTimers() {
-        return this.npc.timers;
+        return ((EntityNPCInterface) this.npc).timers;
     }
 
     public void setFly(int fly) {

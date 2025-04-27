@@ -14,12 +14,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ContainerManageRecipes extends Container {
-    private final InventoryBasic craftingMatrix;
+    private InventoryBasic craftingMatrix;
     public RecipeCarpentry recipe;
     public RecipeAnvil recipeAnvil;
     public int size;
     public int width;
-    private final boolean init = false;
+    private boolean init = false;
 
     public ContainerManageRecipes(EntityPlayer player, int size) {
         this.size = size * size;
@@ -108,6 +108,7 @@ public class ContainerManageRecipes extends Container {
             r.itemToRepair = output.copy();
             r.repairMaterial = repairMat.copy();
             this.recipeAnvil = RecipeAnvil.saveRecipe(r, output, repairMat);
+            return;
         } else {
             // Carpentry Recipe save (existing code)
             int nextChar = 0;

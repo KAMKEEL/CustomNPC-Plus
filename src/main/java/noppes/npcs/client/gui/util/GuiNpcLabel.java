@@ -11,6 +11,7 @@ public class GuiNpcLabel {
     public int x, y, color;
     public boolean enabled = true;
     public int id;
+    public boolean drawShadow = false;
 
     public GuiNpcLabel(int id, Object label, int x, int y, int color) {
         this.id = id;
@@ -26,7 +27,7 @@ public class GuiNpcLabel {
 
     public void drawLabel(GuiScreen gui, FontRenderer fontRenderer) {
         if (enabled)
-            fontRenderer.drawString(label, x, y, color);
+            fontRenderer.drawString(label, x, y, color, drawShadow);
     }
 
     public void center(int width) {

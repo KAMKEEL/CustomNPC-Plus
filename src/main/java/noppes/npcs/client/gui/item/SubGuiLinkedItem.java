@@ -121,7 +121,7 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
 
         // Item Use Action: BiDirectional button (None, Block, Eat, Drink)
         addLabel(new GuiNpcLabel(5, "display.useAction", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
-        String[] useActions = {"use_action.none", "use_action.block", "use_action.eat", "use_action.drink"};
+        String[] useActions = {"use_action.none", "use_action.block", "use_action.eat", "use_action.drink", "use_action.bow"};
         int useActionIndex = 0;
         switch (linkedItem.itemUseAction) {
             case 0:
@@ -129,6 +129,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
                 break;
             case 1:
                 useActionIndex = 1;
+                break;
+            case 2:
+                useActionIndex = 4;
                 break;
             case 3:
                 useActionIndex = 2;
@@ -281,25 +284,31 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         int id = guibutton.id;
         if (id == -5) {
             close();
+            return;
         } else if (id == -1 && tab != -1) {
             tab = -1;
             initGui();
+            return;
         } else if (id == -2 && tab != -2) {
             tab = -2;
             initGui();
+            return;
         } else if (id == -3) {
             PacketClient.sendClient(new LinkedItemSavePacket(linkedItem.writeToNBT(false), originalName));
             GuiScriptLinkedItem scriptGUI = new GuiScriptLinkedItem((GuiNPCManageLinked) this.parent, linkedItem);
             scriptGUI.setWorldAndResolution(mc, width, height);
             scriptGUI.initGui();
             mc.currentScreen = scriptGUI;
+            return;
         } else if (id == 20) {
             // Open confirmation for version bump.
             GuiYesNo guiyesno = new GuiYesNo(this, "Confirm", "Bump version and update all linked items?", 20);
             displayGuiScreen(guiyesno);
+            return;
         } else if (id == 24) {
             setSubGui(new SubGuiColorSelector(linkedItem.display.itemColor));
             colorPicked = 1;
+            return;
         } else if (id == 25) {
             // Clear color: set to 0xFFFFFF.
             linkedItem.display.itemColor = 0xFFFFFF;
@@ -326,6 +335,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
                     break;
                 case 3:
                     linkedItem.itemUseAction = 4;
+                    break;
+                case 4:
+                    linkedItem.itemUseAction = 2;
                     break;
             }
         } else if (id == 8) {

@@ -104,8 +104,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3) {
-        super.drawScreen(par1, par2, par3);
+    public void drawScreen(int par1, int par2, float partialTicks) {
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -113,6 +112,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
         } else if (data.isActive()) {
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
+                npc.display.animationData.increaseTime();
                 GuiNpcLabel label = this.getLabel(94);
                 if (label != null) {
                     label.label += ".";
@@ -123,6 +123,7 @@ public class GuiNPCManageAnimations extends GuiModelInterface2 implements IScrol
             }
             prevTick = time;
         }
+        super.drawScreen(par1, par2, partialTicks);
     }
 
     @Override

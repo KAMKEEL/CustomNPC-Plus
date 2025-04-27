@@ -2,6 +2,8 @@ package kamkeel.npcs.command;
 
 import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.math.BlockPos;
 import noppes.npcs.EventHooks;
@@ -42,11 +44,13 @@ public class CommandCommand extends CommandKamkeelBase {
         ChunkCoordinates senderCoords = sender.getPlayerCoordinates();
         IPos senderPos = NpcAPI.Instance().getIPos(new BlockPos(senderCoords.posX, senderCoords.posY, senderCoords.posZ));
 
-        CustomNPCsEvent.ScriptedCommandEvent event = new CustomNPCsEvent.ScriptedCommandEvent(senderWorld, senderPos, sender.getCommandSenderName(), commandId, commandArgs);
-        EventHooks.onScriptedCommand(event);
+        if(sender instanceof EntityPlayer) {
+            CustomNPCsEvent.ScriptedCommandEvent event = new CustomNPCsEvent.ScriptedCommandEvent(senderWorld, senderPos, sender.getCommandSenderName(), commandId, commandArgs);
+            EventHooks.onScriptedCommand((EntityPlayer) sender, event);
 
-        if (!event.replyMessage.isEmpty()) {
-            sendMessage(sender, event.replyMessage);
+            if (!event.replyMessage.isEmpty()) {
+                sendMessage(sender, event.replyMessage);
+            }
         }
     }
 }

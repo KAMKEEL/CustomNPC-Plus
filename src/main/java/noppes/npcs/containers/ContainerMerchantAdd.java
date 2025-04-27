@@ -15,8 +15,8 @@ public class ContainerMerchantAdd extends ContainerNpcInterface {
     /**
      * Instance of Merchant.
      */
-    private final IMerchant theMerchant;
-    private final InventoryBasic merchantInventory;
+    private IMerchant theMerchant;
+    private InventoryBasic merchantInventory;
 
     /**
      * Instance of World.
@@ -96,7 +96,7 @@ public class ContainerMerchantAdd extends ContainerNpcInterface {
             }
 
             if (itemstack1.stackSize == 0) {
-                slot.putStack(null);
+                slot.putStack((ItemStack) null);
             } else {
                 slot.onSlotChanged();
             }
@@ -116,7 +116,7 @@ public class ContainerMerchantAdd extends ContainerNpcInterface {
      */
     public void onContainerClosed(EntityPlayer par1EntityPlayer) {
         super.onContainerClosed(par1EntityPlayer);
-        this.theMerchant.setCustomer(null);
+        this.theMerchant.setCustomer((EntityPlayer) null);
         super.onContainerClosed(par1EntityPlayer);
 
         if (!this.theWorld.isRemote) {

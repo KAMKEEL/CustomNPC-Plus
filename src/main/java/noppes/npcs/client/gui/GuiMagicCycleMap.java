@@ -23,8 +23,8 @@ import java.util.Map;
 
 public class GuiMagicCycleMap extends GuiDiagram {
 
-    private final List<Magic> cycleMagics;
-    private final MagicCycle cycle;
+    private List<Magic> cycleMagics;
+    private MagicCycle cycle;
 
     /**
      * Constructor using a MagicCycle object.
@@ -36,7 +36,8 @@ public class GuiMagicCycleMap extends GuiDiagram {
         // If cycle is null, leave cycleMagics empty.
         if (this.cycle == null) {
             setLayout(EnumDiagramLayout.CIRCULAR_MANUAL);
-            setCurvedArrows(false);
+            setCurvedArrows(true);
+            setCurveAngle(-20);
             invalidateCache();
             return;
         }
@@ -54,9 +55,10 @@ public class GuiMagicCycleMap extends GuiDiagram {
         // Use the cycle's layout if set; otherwise default to CIRCULAR_MANUAL.
         setLayout(cycle.layout != null ? cycle.layout : EnumDiagramLayout.CIRCULAR_MANUAL);
         setCurvedArrows(true);
-        setCurveAngle(30);
+        setCurveAngle(-25);
         invalidateCache();
 
+        this.allowTwoWay = true;
         this.iconSize = 20;
         this.slotSize = iconSize + slotPadding;
     }
@@ -108,7 +110,10 @@ public class GuiMagicCycleMap extends GuiDiagram {
                 int targetId = entry.getKey();
                 if (!orderMap.containsKey(targetId)) continue;
                 float percent = entry.getValue();
-                String hover = "+" + (int) (percent * 100) + "%";
+                String modifier = "";
+                if(percent > 0.0)
+                    modifier += "+";
+                String hover = modifier + (int) (percent * 100) + "%";
                 conns.add(new DiagramConnection(m.id, targetId, percent, hover));
             }
         }
@@ -169,7 +174,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
     protected List<String> getIconTooltip(DiagramIcon icon) {
         Magic magic = ((MagicIcon) icon).magic;
         List<String> tooltip = new ArrayList<>();
-        tooltip.add(magic.getDisplayName().replace("&", "\u00A7"));
+        tooltip.add(magic.getDisplayName());
         return tooltip;
     }
 

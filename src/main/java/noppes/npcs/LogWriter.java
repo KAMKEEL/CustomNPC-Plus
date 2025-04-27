@@ -67,7 +67,7 @@ public class LogWriter {
                         StringWriter sw = new StringWriter();
                         PrintWriter pw = new PrintWriter(sw);
                         record.getThrown().printStackTrace(pw);
-                        return time + sw;
+                        return time + sw.toString();
                     }
                     return time + record.getMessage() + System.getProperty("line.separator");
                 }
@@ -222,4 +222,4 @@ class NPCStamp {
     public Date makeDate = new Date();
     public Date recentDate = new Date();
     public int counter = 1;
-}
+};

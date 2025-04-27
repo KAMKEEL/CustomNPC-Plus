@@ -7,7 +7,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.List;
 
 public class EntityAIMovingPath extends EntityAIBase {
-    private final EntityNPCInterface npc;
+    private EntityNPCInterface npc;
     private int[] pos;
 
     public EntityAIMovingPath(EntityNPCInterface par1EntityNPCInterface) {

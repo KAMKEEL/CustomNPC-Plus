@@ -26,7 +26,7 @@ public class JobSpawner extends JobInterface {
 
     public List<EntityLivingBase> spawned = new ArrayList<EntityLivingBase>();
 
-    private final Map<String, Long> cooldown = new HashMap<String, Long>();
+    private Map<String, Long> cooldown = new HashMap<String, Long>();
 
     private String id = RandomStringUtils.random(8, true, true);
 
@@ -249,7 +249,10 @@ public class JobSpawner extends JobInterface {
             return false;
         if (compound5 != null && compound5.hasKey("id"))
             return false;
-        return compound6 == null || !compound6.hasKey("id");
+        if (compound6 != null && compound6.hasKey("id"))
+            return false;
+
+        return true;
     }
 
     private void setTarget(EntityLivingBase base, EntityLivingBase target) {

@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util;
 
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -57,7 +58,7 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
         return false;
     }
 
-    private final long start = -1;
+    private long start = -1;
 
     @Override
     public void drawScreen(int par1, int par2, float par3) {
@@ -147,7 +148,7 @@ public class GuiModelInterface2 extends GuiNPCInterface2 {
     }
 
     public void close() {
-        this.mc.displayGuiScreen(null);
+        this.mc.displayGuiScreen((GuiScreen) null);
         this.mc.setIngameFocus();
     }
 

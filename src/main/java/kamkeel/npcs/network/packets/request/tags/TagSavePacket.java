@@ -48,11 +48,6 @@ public final class TagSavePacket extends AbstractPacket {
         return CustomNpcsPermissions.GLOBAL_TAG;
     }
 
-    @Override
-    public boolean needsNPC() {
-        return false;
-    }
-
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
@@ -64,7 +59,7 @@ public final class TagSavePacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.WAND, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.WAND, player))
             return;
 
         Tag tag = new Tag();

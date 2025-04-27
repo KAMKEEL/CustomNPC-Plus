@@ -11,7 +11,7 @@ public abstract class GuiContainerNPCInterface2 extends GuiContainerNPCInterface
     private final ResourceLocation defaultBackground = new ResourceLocation("customnpcs", "textures/gui/menubg.png");
     private final ResourceLocation defaultBackground2 = new ResourceLocation("customnpcs", "textures/gui/menubg2.png");
 
-    private final GuiNpcMenu menu;
+    private GuiNpcMenu menu;
     public int menuYOffset = 0;
 
     public GuiContainerNPCInterface2(EntityNPCInterface npc, Container cont) {

@@ -10,11 +10,11 @@ import noppes.npcs.constants.AiMutex;
 import java.util.Random;
 
 public class EntityAIMoveIndoors extends EntityAIBase {
-    private final EntityCreature theCreature;
+    private EntityCreature theCreature;
     private double shelterX;
     private double shelterY;
     private double shelterZ;
-    private final World theWorld;
+    private World theWorld;
 
     public EntityAIMoveIndoors(EntityCreature par1EntityCreature) {
         this.theCreature = par1EntityCreature;
@@ -73,7 +73,7 @@ public class EntityAIMoveIndoors extends EntityAIBase {
             int var5 = MathHelper.floor_double(this.theCreature.posZ + (double) var1.nextInt(20) - 10.0D);
 
             if (!this.theWorld.canBlockSeeTheSky(var3, var4, var5) && this.theWorld.getFullBlockLightValue(var3, var4, var5) > 8) {
-                return Vec3.createVectorHelper(var3, var4, var5);
+                return Vec3.createVectorHelper((double) var3, (double) var4, (double) var5);
             }
         }
 

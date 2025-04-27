@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcItemGiver extends GuiContainerNPCInterface2 {
-    private final JobItemGiver role;
+    private JobItemGiver role;
 
     public GuiNpcItemGiver(EntityNPCInterface npc, ContainerNpcItemGiver container) {
         super(npc, container);

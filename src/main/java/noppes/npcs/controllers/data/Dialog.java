@@ -23,6 +23,7 @@ public class Dialog implements ICompatibilty, IDialog {
     public String text = "";
     public int quest = -1;
     public DialogCategory category;
+    public DialogColorData colorData = new DialogColorData();
     public HashMap<Integer, DialogOption> options = new HashMap<Integer, DialogOption>();
     public Availability availability = new Availability();
     public FactionOptions factionOptions = new FactionOptions();
@@ -167,6 +168,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         availability.readFromNBT(compound);
         factionOptions.readFromNBT(compound);
+        colorData.readFromNBT(compound);
     }
 
 
@@ -202,6 +204,7 @@ public class Dialog implements ICompatibilty, IDialog {
 
         availability.writeToNBT(compound);
         factionOptions.writeToNBT(compound);
+        colorData.writeToNBT(compound);
         compound.setInteger("ModRev", version);
 
         compound.setInteger("Color", color);
@@ -284,6 +287,7 @@ public class Dialog implements ICompatibilty, IDialog {
         dialog.npcOffsetX = npcOffsetX;
         dialog.npcOffsetY = npcOffsetY;
         dialog.dialogImages = dialogImages;
+        dialog.colorData = colorData;
 
         for (int slot : options.keySet()) {
             DialogOption option = options.get(slot);
@@ -319,7 +323,7 @@ public class Dialog implements ICompatibilty, IDialog {
     public IDialogOption getOption(int slot) {
         IDialogOption option = (IDialogOption) this.options.get(slot);
         if (option == null) {
-            throw new CustomNPCsException("There is no DialogOption for slot: " + slot);
+            throw new CustomNPCsException("There is no DialogOption for slot: " + slot, new Object[0]);
         } else {
             return option;
         }
@@ -354,7 +358,7 @@ public class Dialog implements ICompatibilty, IDialog {
             this.quest = -1;
         } else {
             if (quest.getId() < 0) {
-                throw new CustomNPCsException("Quest id is lower than 0");
+                throw new CustomNPCsException("Quest id is lower than 0", new Object[0]);
             }
 
             this.quest = quest.getId();
@@ -363,7 +367,7 @@ public class Dialog implements ICompatibilty, IDialog {
     }
 
     public Quest getQuest() {
-        return QuestController.Instance == null ? null : QuestController.Instance.quests.get(this.quest);
+        return QuestController.Instance == null ? null : (Quest) QuestController.Instance.quests.get(this.quest);
     }
 
     public String getCommand() {

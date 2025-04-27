@@ -140,7 +140,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
         while (var3.hasNext()) {
             Map.Entry<Long, String> entry = (Map.Entry) var3.next();
-            builder.insert(0, new Date(entry.getKey()) + entry.getValue() + "\n");
+            builder.insert(0, new Date((Long) entry.getKey()) + (String) entry.getValue() + "\n");
         }
 
         return builder.toString();
@@ -210,7 +210,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
             displayGuiScreen(guiyesno);
         }
         if (guibutton.id == 103) {
-            script.scriptLanguage = guibutton.displayString;
+            script.scriptLanguage = ((GuiNpcButton) guibutton).displayString;
         }
         if (guibutton.id == 104) {
             script.enabled = ((GuiNpcButton) guibutton).getValue() == 1;

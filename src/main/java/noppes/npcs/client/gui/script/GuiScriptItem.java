@@ -14,7 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 public class GuiScriptItem extends GuiScriptInterface {
-    private final ScriptCustomItem item;
+    private ScriptCustomItem item;
     public static Map<Long, String> consoleText = new HashMap<>();
 
     public GuiScriptItem() {
@@ -59,7 +59,7 @@ public class GuiScriptItem extends GuiScriptInterface {
 
         while (var3.hasNext()) {
             Map.Entry<Long, String> entry = (Map.Entry) var3.next();
-            builder.insert(0, new Date(entry.getKey()) + entry.getValue() + "\n");
+            builder.insert(0, new Date((Long) entry.getKey()) + (String) entry.getValue() + "\n");
         }
 
         return builder.toString();

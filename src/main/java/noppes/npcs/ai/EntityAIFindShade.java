@@ -10,11 +10,11 @@ import noppes.npcs.constants.AiMutex;
 import java.util.Random;
 
 public class EntityAIFindShade extends EntityAIBase {
-    private final EntityCreature theCreature;
+    private EntityCreature theCreature;
     private double shelterX;
     private double shelterY;
     private double shelterZ;
-    private final World theWorld;
+    private World theWorld;
 
     public EntityAIFindShade(EntityCreature par1EntityCreature) {
         this.theCreature = par1EntityCreature;
@@ -68,7 +68,7 @@ public class EntityAIFindShade extends EntityAIBase {
 
             float light = this.theWorld.getLightBrightness(var3, var4, var5) - 0.5F;
             if (!this.theWorld.canBlockSeeTheSky(var3, var4, var5) && light < 0.0F) {
-                return Vec3.createVectorHelper(var3, var4, var5);
+                return Vec3.createVectorHelper((double) var3, (double) var4, (double) var5);
             }
         }
 

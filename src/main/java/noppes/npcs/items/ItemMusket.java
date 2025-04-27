@@ -63,6 +63,7 @@ public class ItemMusket extends ItemNpcInterface {
                     player.worldObj.playSoundAtEntity(player, "customnpcs:gun.ak47.load", 1.0F, 1);
                     stack.stackTagCompound.setBoolean("IsLoaded2", true);
                 }
+                return;
             }
         }
     }

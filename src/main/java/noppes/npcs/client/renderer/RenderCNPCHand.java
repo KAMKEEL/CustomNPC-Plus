@@ -2,6 +2,7 @@ package noppes.npcs.client.renderer;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityClientPlayerMP;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.ItemRenderer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
@@ -19,7 +20,7 @@ public class RenderCNPCHand extends ItemRenderer {
     /**
      * A reference to the Minecraft object.
      */
-    private final Minecraft mc;
+    private Minecraft mc;
     private ItemStack itemToRender;
     /**
      * How far the current item has been equipped (0 disequipped and 1 fully up)
@@ -48,8 +49,8 @@ public class RenderCNPCHand extends ItemRenderer {
         GL11.glRotatef(entityclientplayermp.prevRotationYaw + (entityclientplayermp.rotationYaw - entityclientplayermp.prevRotationYaw) * partialTickTime, 0.0F, 1.0F, 0.0F);
         RenderHelper.enableStandardItemLighting();
         GL11.glPopMatrix();
-        float f3 = entityclientplayermp.prevRenderArmPitch + (entityclientplayermp.renderArmPitch - entityclientplayermp.prevRenderArmPitch) * partialTickTime;
-        float f4 = entityclientplayermp.prevRenderArmYaw + (entityclientplayermp.renderArmYaw - entityclientplayermp.prevRenderArmYaw) * partialTickTime;
+        float f3 = ((EntityPlayerSP) entityclientplayermp).prevRenderArmPitch + (((EntityPlayerSP) entityclientplayermp).renderArmPitch - ((EntityPlayerSP) entityclientplayermp).prevRenderArmPitch) * partialTickTime;
+        float f4 = ((EntityPlayerSP) entityclientplayermp).prevRenderArmYaw + (((EntityPlayerSP) entityclientplayermp).renderArmYaw - ((EntityPlayerSP) entityclientplayermp).prevRenderArmYaw) * partialTickTime;
         GL11.glRotatef((entityclientplayermp.rotationPitch - f3) * 0.1F, 1.0F, 0.0F, 0.0F);
         GL11.glRotatef((entityclientplayermp.rotationYaw - f4) * 0.1F, 0.0F, 1.0F, 0.0F);
 
@@ -57,7 +58,7 @@ public class RenderCNPCHand extends ItemRenderer {
         int i = this.mc.theWorld.getLightBrightnessForSkyBlocks(MathHelper.floor_double(entityclientplayermp.posX), MathHelper.floor_double(entityclientplayermp.posY), MathHelper.floor_double(entityclientplayermp.posZ), 0);
         int j = i % 65536;
         int k = i / 65536;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j, (float) k);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) j / 1.0F, (float) k / 1.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         float f5;
         float f6;

@@ -170,7 +170,7 @@ public class TagController implements ITagHandler {
 
     public ITag delete(int id) {
         if (id >= 0 && this.tags.size() > 1) {
-            Tag tag = this.tags.remove(id);
+            Tag tag = (Tag) this.tags.remove(id);
             saveTags();
             if (tag == null) {
                 return null;

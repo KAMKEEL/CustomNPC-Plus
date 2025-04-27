@@ -15,7 +15,7 @@ import java.util.List;
 public class RolePostman extends RoleInterface {
 
     public NpcMiscInventory inventory = new NpcMiscInventory(1);
-    private final List<EntityPlayer> recentlyChecked = new ArrayList<EntityPlayer>();
+    private List<EntityPlayer> recentlyChecked = new ArrayList<EntityPlayer>();
     private List<EntityPlayer> toCheck;
 
     public RolePostman(EntityNPCInterface npc) {

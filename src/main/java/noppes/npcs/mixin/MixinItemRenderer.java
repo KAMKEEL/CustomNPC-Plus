@@ -20,6 +20,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(ItemRenderer.class)
 public abstract class MixinItemRenderer {
 
+    @Shadow
+    private RenderBlocks renderBlocksIr;
+    @Shadow
+    private static ResourceLocation RES_ITEM_GLINT;
+
     @Inject(method = "renderItemInFirstPerson", at = @At(value = "HEAD"), cancellable = true)
     public void renderItemInFirstPerson(float p_78440_1_, CallbackInfo callbackInfo) {
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
@@ -32,6 +37,7 @@ public abstract class MixinItemRenderer {
             ClientEventHandler.partialRenderTick = Minecraft.getMinecraft().timer.renderPartialTicks;
             ClientEventHandler.partialHandTicks = p_78440_1_;
 
+            ClientEventHandler.renderingNpc = null;
             ClientEventHandler.renderingPlayer = player;
             ClientEventHandler.firstPersonAnimation = true;
             ClientEventHandler.firstPersonModel = (ModelBiped) ((RendererLivingEntity) renderer).mainModel;
@@ -43,8 +49,9 @@ public abstract class MixinItemRenderer {
         }
     }
 
-    @Shadow
-    private RenderBlocks renderBlocksIr;
-    @Shadow
-    private static ResourceLocation RES_ITEM_GLINT;
+    @Inject(method = "renderItemInFirstPerson", at = @At(value = "TAIL"))
+    public void renderItemInFirstPerson_tail(float p_78440_1_, CallbackInfo callbackInfo) {
+        ClientEventHandler.firstPersonAnimation = false;
+        ClientEventHandler.renderingPlayer = null;
+    }
 }

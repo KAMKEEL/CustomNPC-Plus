@@ -31,7 +31,7 @@ public class Main {
         Iterator<Entry<String, MarkovGenerator>> g = GENERATORS.entrySet().iterator();
 
         while (g.hasNext()) {
-            Entry<String, MarkovGenerator> pair = g.next();
+            Entry<String, MarkovGenerator> pair = (Entry<String, MarkovGenerator>) g.next();
 
             System.out.println("===" + pair.getKey() + "===");
 

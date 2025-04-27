@@ -6,7 +6,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.data.Faction;
 
 public class SubGuiNpcFactionPoints extends SubGuiInterface implements ITextfieldListener {
-    private final Faction faction;
+    private Faction faction;
 
     public SubGuiNpcFactionPoints(Faction faction) {
         this.faction = faction;

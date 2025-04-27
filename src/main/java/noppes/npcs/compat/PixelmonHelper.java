@@ -162,7 +162,10 @@ public class PixelmonHelper {
         try {
             Class c = Class.forName("com.pixelmonmod.pixelmon.battles.BattleRegistry");
             Method m = c.getMethod("getBattle", EntityPlayer.class);
-            return m.invoke(null, player) == null;
+            if (m.invoke(null, player) != null)
+                return false;
+
+            return true;
         } catch (Exception e) {
             LogManager.getLogger().error("canBattle", e);
             return false;
@@ -194,7 +197,10 @@ public class PixelmonHelper {
 
             Method m = ob.getClass().getMethod("countAblePokemon");
 
-            return (Integer) m.invoke(ob) != 0;
+            if ((Integer) m.invoke(ob) == 0)
+                return false;
+
+            return true;
         } catch (Exception e) {
             LogManager.getLogger().error("canBattle", e);
             return false;

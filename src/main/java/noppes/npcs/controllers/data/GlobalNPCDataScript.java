@@ -160,14 +160,14 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
         private final GlobalNPCDataScript.ToStringHelper.ValueHolder holderHead;
         private GlobalNPCDataScript.ToStringHelper.ValueHolder holderTail;
         private boolean omitNullValues;
-        private final boolean omitEmptyValues;
+        private boolean omitEmptyValues;
 
         private ToStringHelper(String className) {
             this.holderHead = new GlobalNPCDataScript.ToStringHelper.ValueHolder();
             this.holderTail = this.holderHead;
             this.omitNullValues = false;
             this.omitEmptyValues = false;
-            this.className = Preconditions.checkNotNull(className);
+            this.className = (String) Preconditions.checkNotNull(className);
         }
 
         public GlobalNPCDataScript.ToStringHelper omitNullValues() {
@@ -302,7 +302,7 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
         private GlobalNPCDataScript.ToStringHelper addHolder(String name, @CheckForNull Object value) {
             GlobalNPCDataScript.ToStringHelper.ValueHolder valueHolder = this.addHolder();
             valueHolder.value = value;
-            valueHolder.name = Preconditions.checkNotNull(name);
+            valueHolder.name = (String) Preconditions.checkNotNull(name);
             return this;
         }
 
@@ -321,7 +321,7 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
         private GlobalNPCDataScript.ToStringHelper addUnconditionalHolder(String name, Object value) {
             GlobalNPCDataScript.ToStringHelper.UnconditionalValueHolder valueHolder = this.addUnconditionalHolder();
             valueHolder.value = value;
-            valueHolder.name = Preconditions.checkNotNull(name);
+            valueHolder.name = (String) Preconditions.checkNotNull(name);
             return this;
         }
 

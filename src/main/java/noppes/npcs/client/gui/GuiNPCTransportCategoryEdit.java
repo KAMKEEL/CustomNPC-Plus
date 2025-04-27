@@ -13,9 +13,9 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCTransportCategoryEdit extends GuiNPCInterface {
-    private final GuiScreen parent;
-    private final String name;
-    private final int id;
+    private GuiScreen parent;
+    private String name;
+    private int id;
 
     public GuiNPCTransportCategoryEdit(EntityNPCInterface npc, GuiScreen parent, String name, int id) {
         super(npc);

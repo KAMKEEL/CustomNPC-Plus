@@ -106,6 +106,7 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onRenderEntity(RenderLivingEvent.Pre event) {
         if (event.entity instanceof EntityNPCInterface) {
+            ClientEventHandler.renderingPlayer = null;
             ClientEventHandler.renderingNpc = (EntityNPCInterface) event.entity;
         }
         ClientEventHandler.renderer = event.renderer;
@@ -170,13 +171,14 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void onRenderPlayer(RenderPlayerEvent.Pre event) {
+        ClientEventHandler.renderingNpc = null;
         ClientEventHandler.renderingPlayer = event.entityPlayer;
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void pre(RenderPlayerEvent.Pre event) {
-        if (!(event.entity instanceof AbstractClientPlayer)) {
-        }
+        if (!(event.entity instanceof AbstractClientPlayer))
+            return;
     }
 
     @SubscribeEvent
@@ -184,8 +186,8 @@ public class ClientEventHandler {
         EntityPlayer player = event.entityPlayer;
         ClientEventHandler.renderingPlayer = null;
 
-        if (renderPlayerJBRA != null && hasOverlays(player)) {
-            if (renderPlayerJBRA.isInstance(event.renderer))
+        if (hasOverlays(player)) {
+            if (renderPlayerJBRA != null && renderPlayerJBRA.isInstance(event.renderer))
                 return;
 
             if (!(event.renderer instanceof RenderCNPCPlayer)) {
@@ -219,11 +221,11 @@ public class ClientEventHandler {
 
     @SubscribeEvent
     public void tryRenderDBC(RenderPlayerEvent.Specials.Post event) {
-        if (renderPlayerJBRA == null || !hasOverlays(event.entityPlayer)) {
+        if (!hasOverlays(event.entityPlayer)) {
             return;
         }
 
-        if (!renderPlayerJBRA.isInstance(event.renderer)) {
+        if (renderPlayerJBRA == null || !renderPlayerJBRA.isInstance(event.renderer)) {
             return;
         }
 

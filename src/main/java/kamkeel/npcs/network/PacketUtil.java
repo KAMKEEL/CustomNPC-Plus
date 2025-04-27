@@ -15,6 +15,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.items.ItemNpcTool;
 
 import java.io.IOException;
 import java.util.LinkedHashSet;
@@ -23,14 +24,14 @@ import java.util.Set;
 
 public class PacketUtil {
 
-    public static boolean verifyItemPacket(EnumItemPacketType type, EntityPlayer player) {
+    public static boolean verifyItemPacket(String name, EnumItemPacketType type, EntityPlayer player) {
         if (player == null)
             return false;
 
         ItemStack item = player.inventory.getCurrentItem();
         if (item == null) {
-            LogWriter.error(String.format("%s attempted to utilize a %s Packet without an item, they could be a hacker",
-                player.getCommandSenderName(), type));
+            LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without an item, they could be a hacker",
+                player.getCommandSenderName(), type, name));
             return false;
         }
 
@@ -38,42 +39,42 @@ public class PacketUtil {
             case WAND:
                 if (item.getItem() != CustomItems.wand) {
                     LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Wand, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case MOUNTER:
                 if (item.getItem() != CustomItems.mount) {
                     LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Mounter, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case CLONER:
                 if (item.getItem() != CustomItems.cloner) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Cloner, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Cloner, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case TELEPORTER:
                 if (item.getItem() != CustomItems.teleporter) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Teleporter, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Teleporter, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case SCRIPTER:
                 if (item.getItem() != CustomItems.scripter) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Scripter, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Scripter, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case PATHER:
                 if (item.getItem() != CustomItems.moving) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Pather, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Pather, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
@@ -81,22 +82,29 @@ public class PacketUtil {
                 if (item.getItem() == Item.getItemFromBlock(CustomItems.waypoint)
                     || item.getItem() == Item.getItemFromBlock(CustomItems.border)
                     || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock)) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a valid Block, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a valid Block, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case BRUSH:
                 if (item.getItem() != CustomItems.tool || item.getItemDamage() != 1) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Pather, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Pather, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
             case HAMMER:
                 if (item.getItem() != CustomItems.tool || item.getItemDamage() != 0) {
-                    LogWriter.error(String.format("%s attempted to utilize a %s Packet without a Pather, they could be a hacker",
-                        player.getCommandSenderName(), type));
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Hammer, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
+                    return false;
+                }
+                break;
+            case MAGIC_BOOK:
+                if (item.getItem() != CustomItems.tool || item.getItemDamage() != 2) {
+                    LogWriter.error(String.format("%s attempted to utilize a %s %s Packet without a Magic Book, they could be a hacker",
+                        player.getCommandSenderName(), type, name));
                     return false;
                 }
                 break;
@@ -109,14 +117,14 @@ public class PacketUtil {
      * It returns true if any one of the provided types is valid.
      * If none are valid, a merged error message is logged.
      */
-    public static boolean verifyItemPacket(EntityPlayer player, EnumItemPacketType... types) {
+    public static boolean verifyItemPacket(String name, EntityPlayer player, EnumItemPacketType... types) {
         if (player == null)
             return false;
 
         ItemStack item = player.inventory.getCurrentItem();
         if (item == null) {
-            LogWriter.error(String.format("%s attempted to utilize a Packet without an item. Expected one of: %s, they could be a hacker",
-                player.getCommandSenderName(), getExpectedItemNames(types)));
+            LogWriter.error(String.format("%s attempted to utilize a %s without an item. Expected one of: %s, they could be a hacker",
+                player.getCommandSenderName(), name, getExpectedItemNames(types)));
             return false;
         }
 
@@ -127,8 +135,8 @@ public class PacketUtil {
         }
 
         // None passed; log one merged error message listing all expected items.
-        LogWriter.error(String.format("%s attempted to utilize a Packet without a valid item. Expected one of: %s, they could be a hacker",
-            player.getCommandSenderName(), getExpectedItemNames(types)));
+        LogWriter.error(String.format("%s attempted to utilize a %s without a valid item. Expected one of: %s, they could be a hacker",
+            player.getCommandSenderName(), name, getExpectedItemNames(types)));
         return false;
     }
 
@@ -155,9 +163,11 @@ public class PacketUtil {
                     || item.getItem() == Item.getItemFromBlock(CustomItems.border)
                     || item.getItem() == Item.getItemFromBlock(CustomItems.redstoneBlock));
             case BRUSH:
-                return item.getItem() == CustomItems.tool && item.getItemDamage() == 1;
+                return item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 1;
             case HAMMER:
-                return item.getItem() == CustomItems.tool && item.getItemDamage() == 0;
+                return item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 0;
+            case MAGIC_BOOK:
+                return item.getItem() instanceof ItemNpcTool && item.getItemDamage() == 2;
             default:
                 return false;
         }
@@ -197,6 +207,8 @@ public class PacketUtil {
                 return "Paintbrush";
             case HAMMER:
                 return "Hammer";
+            case MAGIC_BOOK:
+                return "Magic Book";
             default:
                 return type.toString();
         }

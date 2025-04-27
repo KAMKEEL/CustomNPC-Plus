@@ -12,7 +12,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 
 public class GuiNPCMarks extends GuiNPCInterface2 implements ISubGuiListener {
     private final String[] marks = new String[]{"gui.none", "mark.question", "mark.exclamation", "mark.pointer", "mark.skull", "mark.cross", "mark.star"};
-    private final MarkData data;
+    private MarkData data;
     private MarkData.Mark selectedMark;
 
     public GuiNPCMarks(EntityNPCInterface npc) {

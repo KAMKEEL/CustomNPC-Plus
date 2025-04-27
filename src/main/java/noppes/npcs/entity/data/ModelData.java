@@ -13,7 +13,7 @@ public class ModelData extends ModelDataShared {
             return null;
         if (entity == null) {
             try {
-                entity = entityClass.getConstructor(new Class[]{World.class}).newInstance(npc.worldObj);
+                entity = entityClass.getConstructor(new Class[]{World.class}).newInstance(new Object[]{npc.worldObj});
 
                 entity.readEntityFromNBT(extra);
 

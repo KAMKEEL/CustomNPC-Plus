@@ -16,7 +16,7 @@ import java.util.List;
 
 public class BlockPlaceholder extends Block {
 
-    private final IIcon[] icons = new IIcon[16];
+    private IIcon[] icons = new IIcon[16];
 
     public BlockPlaceholder() {
         super(Material.rock);

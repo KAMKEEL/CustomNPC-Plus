@@ -21,7 +21,7 @@ public class RenderCustomNpc extends RenderNPCHumanMale {
     private RendererLivingEntity renderEntity;
     public static EntityLivingBase entity;
 
-    private final ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
+    private ModelRenderPassHelper renderpass = new ModelRenderPassHelper();
 
     // Default Renderer
     public RenderCustomNpc() {

@@ -7,7 +7,7 @@ import noppes.npcs.roles.JobHealer;
 import noppes.npcs.scripted.constants.JobType;
 
 public class ScriptJobHealer extends ScriptJobInterface implements IJobHealer {
-    private final JobHealer job;
+    private JobHealer job;
 
     public ScriptJobHealer(EntityNPCInterface npc) {
         super(npc);

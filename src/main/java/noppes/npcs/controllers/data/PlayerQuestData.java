@@ -16,7 +16,6 @@ import noppes.npcs.api.handler.data.IQuest;
 import noppes.npcs.constants.EnumQuestCompletion;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.PartyController;
-import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.PlayerQuestController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -104,7 +103,7 @@ public class PlayerQuestData implements IPlayerQuestData {
     }
 
     public QuestData getQuestCompletion(EntityPlayer player, EntityNPCInterface npc) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         for (QuestData data : activeQuests.values()) {
             Quest quest = data.quest;
             if (quest != null && quest.completion == EnumQuestCompletion.Npc && quest.completerNpc.equals(npc.getCommandSenderName()) && quest.questInterface.isCompleted(playerData)) {
@@ -115,7 +114,7 @@ public class PlayerQuestData implements IPlayerQuestData {
     }
 
     public Party getPartyQuestCompletion(EntityPlayer player, EntityNPCInterface npc) {
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData playerData = PlayerData.get(player);
         if (playerData != null) {
             Party party = playerData.getPlayerParty();
             if (party != null) {
@@ -260,26 +259,26 @@ public class PlayerQuestData implements IPlayerQuestData {
         List<IQuest> quests = new ArrayList<>();
 
         for (int id : activeQuests.keySet()) {
-            IQuest quest = QuestController.Instance.quests.get(id);
+            IQuest quest = (IQuest) QuestController.Instance.quests.get(id);
             if (quest != null) {
                 quests.add(quest);
             }
         }
 
-        return quests.toArray(new IQuest[0]);
+        return (IQuest[]) quests.toArray(new IQuest[0]);
     }
 
     public IQuest[] getFinishedQuests() {
         List<IQuest> quests = new ArrayList<>();
 
         for (int id : finishedQuests.keySet()) {
-            IQuest quest = QuestController.Instance.quests.get(id);
+            IQuest quest = (IQuest) QuestController.Instance.quests.get(id);
             if (quest != null) {
                 quests.add(quest);
             }
         }
 
-        return quests.toArray(new IQuest[0]);
+        return (IQuest[]) quests.toArray(new IQuest[0]);
     }
 
     public long getLastCompletedTime(int id) {

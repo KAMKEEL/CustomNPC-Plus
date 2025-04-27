@@ -10,8 +10,8 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.entity.data.ModelData;
 
 public class GuiPresetSave extends GuiNPCInterface {
-    private final ModelData data;
-    private final GuiScreen parent;
+    private ModelData data;
+    private GuiScreen parent;
 
     public GuiPresetSave(GuiScreen parent, ModelData data) {
         this.data = data;

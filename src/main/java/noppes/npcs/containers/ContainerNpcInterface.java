@@ -7,8 +7,7 @@ import noppes.npcs.api.IContainer;
 import noppes.npcs.scripted.ScriptContainer;
 
 public class ContainerNpcInterface extends Container {
-    private final int posX;
-    private final int posZ;
+    private int posX, posZ;
     public EntityPlayer player;
     public IContainer scriptContainer;
 

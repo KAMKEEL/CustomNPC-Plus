@@ -61,7 +61,7 @@ public final class MountPacket extends AbstractPacket {
         if (!(player instanceof EntityPlayerMP))
             return;
 
-        if (!PacketUtil.verifyItemPacket(EnumItemPacketType.MOUNTER, player))
+        if (!PacketUtil.verifyItemPacket(packetName, EnumItemPacketType.MOUNTER, player))
             return;
 
         MountPacket.Action requestedAction = MountPacket.Action.values()[in.readInt()];

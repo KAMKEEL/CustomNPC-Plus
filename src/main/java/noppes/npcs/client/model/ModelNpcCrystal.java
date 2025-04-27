@@ -8,9 +8,9 @@ import net.minecraft.util.MathHelper;
 import org.lwjgl.opengl.GL11;
 
 public class ModelNpcCrystal extends ModelBase {
-    private final ModelRenderer field_41057_g;
-    private final ModelRenderer field_41058_h;
-    private final ModelRenderer field_41059_i;
+    private ModelRenderer field_41057_g;
+    private ModelRenderer field_41058_h;
+    private ModelRenderer field_41059_i;
 
     public ModelNpcCrystal(float par1) {
         field_41058_h = new ModelRenderer(this, "glass");

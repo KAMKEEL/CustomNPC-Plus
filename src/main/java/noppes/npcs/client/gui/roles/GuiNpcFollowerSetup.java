@@ -15,7 +15,7 @@ import java.util.HashMap;
 
 
 public class GuiNpcFollowerSetup extends GuiContainerNPCInterface2 {
-    private final RoleFollower role;
+    private RoleFollower role;
     private static final ResourceLocation field_110422_t = new ResourceLocation("textures/gui/followersetup.png");
 
     public GuiNpcFollowerSetup(EntityNPCInterface npc, ContainerNPCFollowerSetup container) {

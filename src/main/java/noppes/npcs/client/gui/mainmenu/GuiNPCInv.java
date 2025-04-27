@@ -18,9 +18,9 @@ import org.lwjgl.opengl.GL11;
 import java.util.HashMap;
 
 public class GuiNPCInv extends GuiContainerNPCInterface2 implements IGuiData, ITextfieldListener {
-    private final HashMap<Integer, Double> chances = new HashMap<Integer, Double>();
-    private final ContainerNPCInv container;
-    private final ResourceLocation slot;
+    private HashMap<Integer, Double> chances = new HashMap<Integer, Double>();
+    private ContainerNPCInv container;
+    private ResourceLocation slot;
     private int inventoryTab = 0;
 
     public GuiNPCInv(EntityNPCInterface npc, ContainerNPCInv container) {

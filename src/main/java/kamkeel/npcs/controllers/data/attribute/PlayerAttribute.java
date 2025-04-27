@@ -1,13 +1,15 @@
 package kamkeel.npcs.controllers.data.attribute;
 
 
+import noppes.npcs.api.handler.data.ICustomAttribute;
+
 public class PlayerAttribute implements ICustomAttribute {
     private final AttributeDefinition attribute;
-    private float baseValue;
+    public float value;
 
-    public PlayerAttribute(AttributeDefinition attribute, float baseValue) {
+    public PlayerAttribute(AttributeDefinition attribute, float value) {
         this.attribute = attribute;
-        this.baseValue = baseValue;
+        this.value = value;
     }
 
     @Override
@@ -17,11 +19,6 @@ public class PlayerAttribute implements ICustomAttribute {
 
     @Override
     public float getValue() {
-        return baseValue;
-    }
-
-    @Override
-    public void setValue(float value) {
-        this.baseValue = value;
+        return value;
     }
 }

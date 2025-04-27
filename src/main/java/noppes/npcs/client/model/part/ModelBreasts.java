@@ -8,9 +8,9 @@ import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.entity.data.ModelData;
 
 public class ModelBreasts extends ModelPartInterface {
-    private final Model2DRenderer breasts;
-    private final ModelRenderer breasts2;
-    private final ModelRenderer breasts3;
+    private Model2DRenderer breasts;
+    private ModelRenderer breasts2;
+    private ModelRenderer breasts3;
 
     public ModelBreasts(ModelMPM base, int width, int height) {
         super(base);

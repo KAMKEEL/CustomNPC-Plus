@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SubGuiNpcBiomes extends SubGuiInterface {
-    private final SpawnData data;
+    private SpawnData data;
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
 

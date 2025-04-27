@@ -10,7 +10,7 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class GuiModelBody extends GuiModelInterface {
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
     private final String[] arrBody = new String[]{"gui.no", "gui.yes"};
     private final String[] arrBodywear = new String[]{"gui.no", "gui.yes", "Solid"};
     private final String[] arrWing = new String[]{"gui.no", "Player", "Type1", "Type2", "Type3", "Type4", "Type5", "Type6", "Type7", "Type8", "Type9",

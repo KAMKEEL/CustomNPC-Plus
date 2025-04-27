@@ -18,14 +18,14 @@ public class SubGuiMagic extends SubGuiInterface implements ITextfieldListener, 
     public GuiNpcManageMagic parent;
     private GuiCustomScroll allMagic;
     private GuiCustomScroll interactionsScroll;
-    private final Magic magic;
+    private Magic magic;
     private String search = "";
 
     private GuiNpcTextField interactionField;
 
     private String selectedInteraction;
-    private final HashMap<String, Integer> interactionNames = new HashMap<>();
-    private final HashMap<String, Float> interactionValues = new HashMap<>();
+    private HashMap<String, Integer> interactionNames = new HashMap<>();
+    private HashMap<String, Float> interactionValues = new HashMap<>();
 
     public SubGuiMagic(GuiNpcManageMagic parent, Magic magic) {
         this.magic = magic;
@@ -165,14 +165,14 @@ public class SubGuiMagic extends SubGuiInterface implements ITextfieldListener, 
                 guiNpcTextField.setText("");
             else {
                 String name = guiNpcTextField.getText();
-                if (name.isEmpty() || this.parent.magicData.containsKey(name)) {
+                if (name.isEmpty() || ((GuiNpcManageMagic) this.parent).magicData.containsKey(name)) {
                     guiNpcTextField.setText(magic.name);
                 } else if (magic.id >= 0) {
                     String old = magic.name;
-                    this.parent.magicData.remove(old);
+                    ((GuiNpcManageMagic) this.parent).magicData.remove(old);
                     magic.name = name;
-                    this.parent.magicData.put(magic.name, magic.id);
-                    this.parent.rightScroll.replace(old, magic.name);
+                    ((GuiNpcManageMagic) this.parent).magicData.put(magic.name, magic.id);
+                    ((GuiNpcManageMagic) this.parent).rightScroll.replace(old, magic.name);
                 }
             }
         }

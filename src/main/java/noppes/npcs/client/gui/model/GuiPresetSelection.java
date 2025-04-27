@@ -23,10 +23,10 @@ import java.util.Vector;
 
 public class GuiPresetSelection extends GuiNPCInterface {
     private GuiNPCStringSlot slot;
-    private final GuiCreationScreen parent;
-    private final NBTTagCompound prevData;
-    private final ModelData playerdata;
-    private final EntityCustomNpc npc;
+    private GuiCreationScreen parent;
+    private NBTTagCompound prevData;
+    private ModelData playerdata;
+    private EntityCustomNpc npc;
 
     public GuiPresetSelection(GuiCreationScreen parent, ModelData playerdata) {
         this.parent = parent;

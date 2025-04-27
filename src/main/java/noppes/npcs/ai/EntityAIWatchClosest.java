@@ -7,16 +7,16 @@ import noppes.npcs.constants.AiMutex;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIWatchClosest extends EntityAIBase {
-    private final EntityNPCInterface theWatcher;
+    private EntityNPCInterface theWatcher;
 
     /**
      * The closest entity which is being watched by this one.
      */
     protected Entity closestEntity;
-    private final float field_75333_c;
+    private float field_75333_c;
     private int lookTime;
-    private final float field_75331_e;
-    private final Class watchedClass;
+    private float field_75331_e;
+    private Class watchedClass;
 
     public EntityAIWatchClosest(EntityNPCInterface par1EntityLiving, Class par2Class, float par3) {
         this.theWatcher = par1EntityLiving;
@@ -39,9 +39,9 @@ public class EntityAIWatchClosest extends EntityAIBase {
             }
 
             if (this.watchedClass == EntityPlayer.class) {
-                this.closestEntity = this.theWatcher.worldObj.getClosestPlayerToEntity(this.theWatcher, this.field_75333_c);
+                this.closestEntity = this.theWatcher.worldObj.getClosestPlayerToEntity(this.theWatcher, (double) this.field_75333_c);
             } else {
-                this.closestEntity = this.theWatcher.worldObj.findNearestEntityWithinAABB(this.watchedClass, this.theWatcher.boundingBox.expand(this.field_75333_c, 3.0D, this.field_75333_c), this.theWatcher);
+                this.closestEntity = this.theWatcher.worldObj.findNearestEntityWithinAABB(this.watchedClass, this.theWatcher.boundingBox.expand((double) this.field_75333_c, 3.0D, (double) this.field_75333_c), this.theWatcher);
                 if (this.closestEntity != null) {
                     return this.theWatcher.canSee(this.closestEntity);
                 }
@@ -58,7 +58,7 @@ public class EntityAIWatchClosest extends EntityAIBase {
     public boolean continueExecuting() {
         if (theWatcher.isInteracting() || theWatcher.isAttacking() || !this.closestEntity.isEntityAlive() || !theWatcher.isEntityAlive())
             return false;
-        return !(this.theWatcher.getDistanceSqToEntity(this.closestEntity) > (double) (this.field_75333_c * this.field_75333_c)) && this.lookTime > 0;
+        return this.theWatcher.getDistanceSqToEntity(this.closestEntity) > (double) (this.field_75333_c * this.field_75333_c) ? false : this.lookTime > 0;
     }
 
     /**

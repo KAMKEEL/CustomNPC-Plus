@@ -200,7 +200,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
             String process = item.stackSize + "";
             if (item.stackSize > quest.stackSize)
                 process = quest.stackSize + "";
-            process += "/" + quest.stackSize;
+            process += "/" + quest.stackSize + "";
             if (item.hasDisplayName())
                 vec.add(item.getDisplayName() + ": " + process);
             else
@@ -294,7 +294,7 @@ public class QuestItem extends QuestInterface implements IQuestItem {
                         }
                         playerNamesBuilder.append(playerName);
                     }
-                    vec.add("[" + playerNamesBuilder + "]");
+                    vec.add("[" + playerNamesBuilder.toString() + "]");
                 }
             }
         } else if (objectives == EnumPartyObjectives.Shared || objectives == EnumPartyObjectives.Leader) {
@@ -540,12 +540,12 @@ public class QuestItem extends QuestInterface implements IQuestItem {
         }
 
         public void setProgress(int progress) {
-            throw new CustomNPCsException("Cant set the progress of ItemQuests");
+            throw new CustomNPCsException("Cant set the progress of ItemQuests", new Object[0]);
         }
 
         @Override
         public void setPlayerProgress(String playerName, int progress) {
-            throw new CustomNPCsException("Cant set the progress of ItemQuests");
+            throw new CustomNPCsException("Cant set the progress of ItemQuests", new Object[0]);
         }
 
         public int getMaxProgress() {

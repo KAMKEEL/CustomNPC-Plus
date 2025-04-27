@@ -27,6 +27,7 @@ public class QuestController implements IQuestHandler {
     public HashMap<Integer, Quest> sharedQuests = new HashMap<>();
 
     public static QuestController Instance = new QuestController();
+    ;
 
     private int lastUsedCatID = 0;
     private int lastUsedQuestID = 0;
@@ -256,6 +257,6 @@ public class QuestController implements IQuestHandler {
     }
 
     public IQuest get(int id) {
-        return this.quests.get(id);
+        return (IQuest) this.quests.get(id);
     }
 }

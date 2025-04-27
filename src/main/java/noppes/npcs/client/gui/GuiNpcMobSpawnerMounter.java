@@ -24,9 +24,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
 
     private GuiCustomScroll scroll;
 
-    private final int posX;
-    private final int posY;
-    private final int posZ;
+    private int posX, posY, posZ;
 
     private List<String> list;
 
@@ -105,7 +103,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
         for (Object name : data.keySet()) {
             Class<?> c = (Class<?>) data.get(name);
             try {
-                if (EntityLiving.class.isAssignableFrom(c) && c.getConstructor(World.class) != null && !Modifier.isAbstract(c.getModifiers()))
+                if (EntityLiving.class.isAssignableFrom(c) && c.getConstructor(new Class[]{World.class}) != null && !Modifier.isAbstract(c.getModifiers()))
                     list.add(name.toString());
             } catch (SecurityException e) {
                 e.printStackTrace();
@@ -174,7 +172,7 @@ public class GuiNpcMobSpawnerMounter extends GuiNPCInterface implements IGuiData
         if (id == 1) {
             NBTTagCompound compound = getCompound();
             if (compound != null) {
-                compound.setTag("Pos", this.newDoubleNBTList(this.posX + 0.5, this.posY + 1, this.posZ + 0.5));
+                compound.setTag("Pos", this.newDoubleNBTList(new double[]{this.posX + 0.5, this.posY + 1, this.posZ + 0.5}));
                 MountPacket.Spawn(compound);
                 close();
             }

@@ -3,6 +3,8 @@ package noppes.npcs.entity;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
 import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -35,6 +37,7 @@ import noppes.npcs.constants.EnumParticleType;
 import noppes.npcs.constants.EnumPotionType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.scripted.event.ProjectileEvent;
 import noppes.npcs.util.IProjectileCallback;
 
@@ -84,6 +87,7 @@ public class EntityProjectile extends EntityThrowable {
     public boolean destroyTerrain = true;
     public int explosiveRadius = 0;
     public EnumPotionType effect = EnumPotionType.None;
+    public boolean burnItem = true;
     public int duration = 5;
     public int amplify = 0;
     public int accuracy = 60;
@@ -99,7 +103,7 @@ public class EntityProjectile extends EntityThrowable {
 
     protected void entityInit() {
         this.dataWatcher.addObjectByDataType(21, 5);
-        this.dataWatcher.addObject(22, "");//particle
+        this.dataWatcher.addObject(22, String.valueOf(""));//particle
         this.dataWatcher.addObject(23, Integer.valueOf(5));//size
         this.dataWatcher.addObject(24, Byte.valueOf((byte) 0));//glows
         this.dataWatcher.addObject(25, Integer.valueOf(10));//velocity
@@ -132,9 +136,9 @@ public class EntityProjectile extends EntityThrowable {
         this.dataWatcher.updateObject(27, Byte.valueOf((byte) ((this.getItem() == Items.arrow) ? 1 : 0)));
         this.setSize(this.dataWatcher.getWatchableObjectInt(23) / 10, this.dataWatcher.getWatchableObjectInt(23) / 10);
         this.setLocationAndAngles(par2EntityLiving.posX, par2EntityLiving.posY + (double) par2EntityLiving.getEyeHeight(), par2EntityLiving.posZ, par2EntityLiving.rotationYaw, par2EntityLiving.rotationPitch);
-        this.posX -= MathHelper.cos(this.rotationYaw / 180.0F * (float) Math.PI) * 0.1F;
+        this.posX -= (double) (MathHelper.cos(this.rotationYaw / 180.0F * (float) Math.PI) * 0.1F);
         this.posY -= 0.1f;
-        this.posZ -= MathHelper.sin(this.rotationYaw / 180.0F * (float) Math.PI) * 0.1F;
+        this.posZ -= (double) (MathHelper.sin(this.rotationYaw / 180.0F * (float) Math.PI) * 0.1F);
         this.setPosition(this.posX, this.posY, this.posZ);
         this.yOffset = 0.0F;
 
@@ -157,12 +161,12 @@ public class EntityProjectile extends EntityThrowable {
         float f2 = MathHelper.sqrt_double(par1 * par1 + par3 * par3 + par5 * par5);
         float f3 = MathHelper.sqrt_double(par1 * par1 + par5 * par5);
         float yaw = (float) (Math.atan2(par1, par5) * 180.0D / Math.PI);
-        float pitch = this.hasGravity() ? par7 : (float) (Math.atan2(par3, f3) * 180.0D / Math.PI);
+        float pitch = this.hasGravity() ? par7 : (float) (Math.atan2(par3, (double) f3) * 180.0D / Math.PI);
         this.prevRotationYaw = this.rotationYaw = yaw;
         this.prevRotationPitch = this.rotationPitch = pitch;
-        this.motionX = MathHelper.sin(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(pitch / 180.0F * (float) Math.PI);
-        this.motionZ = MathHelper.cos(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(pitch / 180.0F * (float) Math.PI);
-        this.motionY = MathHelper.sin((pitch + 1.0F) / 180.0F * (float) Math.PI);
+        this.motionX = (double) (MathHelper.sin(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(pitch / 180.0F * (float) Math.PI));
+        this.motionZ = (double) (MathHelper.cos(yaw / 180.0F * (float) Math.PI) * MathHelper.cos(pitch / 180.0F * (float) Math.PI));
+        this.motionY = (double) (MathHelper.sin((pitch + 1.0F) / 180.0F * (float) Math.PI));
         this.motionX += this.rand.nextGaussian() * 0.007499999832361937D * (double) par8;
         this.motionZ += this.rand.nextGaussian() * 0.007499999832361937D * (double) par8;
         this.motionY += this.rand.nextGaussian() * 0.007499999832361937D * (double) par8;
@@ -192,9 +196,9 @@ public class EntityProjectile extends EntityThrowable {
     }
 
     public void shoot(float speed) {
-        double varX = -MathHelper.sin(this.rotationYaw / 180.0F * (float) Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float) Math.PI);
-        double varZ = MathHelper.cos(this.rotationYaw / 180.0F * (float) Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float) Math.PI);
-        double varY = -MathHelper.sin(this.rotationPitch / 180.0F * (float) Math.PI);
+        double varX = (double) (-MathHelper.sin(this.rotationYaw / 180.0F * (float) Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float) Math.PI));
+        double varZ = (double) (MathHelper.cos(this.rotationYaw / 180.0F * (float) Math.PI) * MathHelper.cos(this.rotationPitch / 180.0F * (float) Math.PI));
+        double varY = (double) (-MathHelper.sin(this.rotationPitch / 180.0F * (float) Math.PI));
         this.setThrowableHeading(varX, varY, varZ, -rotationPitch, speed);
     }
 
@@ -224,14 +228,13 @@ public class EntityProjectile extends EntityThrowable {
         if (this.prevRotationPitch == 0.0F && this.prevRotationYaw == 0.0F) {
             float f = MathHelper.sqrt_double(this.motionX * this.motionX + this.motionZ * this.motionZ);
             this.prevRotationYaw = this.rotationYaw = (float) (Math.atan2(this.motionX, this.motionZ) * 180.0D / Math.PI);
-            this.prevRotationPitch = this.rotationPitch = (float) (Math.atan2(this.motionY, f) * 180.0D / Math.PI);
+            this.prevRotationPitch = this.rotationPitch = (float) (Math.atan2(this.motionY, (double) f) * 180.0D / Math.PI);
             if (this.isRotating()) {
                 this.rotationPitch -= 20;
             }
         }
-        if (this.effect == EnumPotionType.Fire && !this.inGround)
+        if (this.effect == EnumPotionType.Fire && !this.inGround && this.burnItem)
             this.setFire(1);
-
 
         Block block = this.worldObj.getBlock(this.xTile, this.yTile, this.zTile);
 
@@ -258,9 +261,9 @@ public class EntityProjectile extends EntityThrowable {
                 }
             } else {
                 this.inGround = false;
-                this.motionX *= this.rand.nextFloat() * 0.2F;
-                this.motionY *= this.rand.nextFloat() * 0.2F;
-                this.motionZ *= this.rand.nextFloat() * 0.2F;
+                this.motionX *= (double) (this.rand.nextFloat() * 0.2F);
+                this.motionY *= (double) (this.rand.nextFloat() * 0.2F);
+                this.motionZ *= (double) (this.rand.nextFloat() * 0.2F);
                 this.ticksInGround = 0;
                 this.ticksInAir = 0;
             }
@@ -290,7 +293,7 @@ public class EntityProjectile extends EntityThrowable {
 
                     if (entity1.canBeCollidedWith() && (!entity1.isEntityEqual(this.thrower) || this.ticksInAir >= 25)) {
                         float f = 0.3F;
-                        AxisAlignedBB axisalignedbb = entity1.boundingBox.expand(f, f, f);
+                        AxisAlignedBB axisalignedbb = entity1.boundingBox.expand((double) f, (double) f, (double) f);
                         MovingObjectPosition movingobjectposition1 = axisalignedbb.calculateIntercept(vec3, vec31);
 
                         if (movingobjectposition1 != null) {
@@ -331,7 +334,8 @@ public class EntityProjectile extends EntityThrowable {
             float f1 = MathHelper.sqrt_double(this.motionX * this.motionX + this.motionZ * this.motionZ);
             this.rotationYaw = (float) (Math.atan2(this.motionX, this.motionZ) * 180.0D / Math.PI);
 
-            for (this.rotationPitch = (float) (Math.atan2(this.motionY, f1) * 180.0D / Math.PI); this.rotationPitch - this.prevRotationPitch < -180.0F; this.prevRotationPitch -= 360.0F) {
+            for (this.rotationPitch = (float) (Math.atan2(this.motionY, (double) f1) * 180.0D / Math.PI); this.rotationPitch - this.prevRotationPitch < -180.0F; this.prevRotationPitch -= 360.0F) {
+                ;
             }
 
             while (this.rotationPitch - this.prevRotationPitch >= 180.0F) {
@@ -367,12 +371,12 @@ public class EntityProjectile extends EntityThrowable {
                 f2 = 0.8F;
             }
 
-            this.motionX *= f2;
-            this.motionY *= f2;
-            this.motionZ *= f2;
+            this.motionX *= (double) f2;
+            this.motionY *= (double) f2;
+            this.motionZ *= (double) f2;
 
             if (hasGravity())
-                this.motionY -= f3;
+                this.motionY -= (double) f3;
 
             if (accelerate) {
                 this.motionX += this.accelerationX;
@@ -380,12 +384,25 @@ public class EntityProjectile extends EntityThrowable {
                 this.motionZ += this.accelerationZ;
             }
 
-            if (worldObj.isRemote && !this.dataWatcher.getWatchableObjectString(22).equals("")) {
-                this.worldObj.spawnParticle(this.dataWatcher.getWatchableObjectString(22), this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D);
+            if (worldObj.isRemote && !this.dataWatcher.getWatchableObjectString(22).isEmpty()) {
+                String particle = this.dataWatcher.getWatchableObjectString(22);
+                if(!particle.equals("custom")){
+                    this.worldObj.spawnParticle(particle, this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D);
+
+                }
+            } else if (!worldObj.isRemote){
+                if(this.npc != null && this.npc.stats.pTrail == EnumParticleType.Custom){
+                    this.npc.stats.pCustom.setPosition(this.posX, this.posY, this.posZ);
+                    spawnScriptedParticle(this.npc.stats.pCustom.writeToNBT(), this.npc);
+                }
             }
             this.setPosition(this.posX, this.posY, this.posZ);
             this.func_145775_I();//doBlockCollisions
         }
+    }
+
+    public static void spawnScriptedParticle(NBTTagCompound compound, EntityNPCInterface entity) {
+        PacketHandler.Instance.sendTracking(new ScriptedParticlePacket(compound), entity);
     }
 
     public boolean isBlock() {
@@ -501,9 +518,9 @@ public class EntityProjectile extends EntityThrowable {
                 this.zTile = movingobjectposition.blockZ;
                 this.inTile = this.worldObj.getBlock(this.xTile, this.yTile, this.zTile);
                 this.inData = this.worldObj.getBlockMetadata(this.xTile, this.yTile, this.zTile);
-                this.motionX = (float) (movingobjectposition.hitVec.xCoord - this.posX);
-                this.motionY = (float) (movingobjectposition.hitVec.yCoord - this.posY);
-                this.motionZ = (float) (movingobjectposition.hitVec.zCoord - this.posZ);
+                this.motionX = (double) ((float) (movingobjectposition.hitVec.xCoord - this.posX));
+                this.motionY = (double) ((float) (movingobjectposition.hitVec.yCoord - this.posY));
+                this.motionZ = (double) ((float) (movingobjectposition.hitVec.zCoord - this.posZ));
                 float f2 = MathHelper.sqrt_double(this.motionX * this.motionX + this.motionY * this.motionY + this.motionZ * this.motionZ);
                 this.posX -= this.motionX / (double) f2 * 0.05000000074505806D;
                 this.posY -= this.motionY / (double) f2 * 0.05000000074505806D;
@@ -634,7 +651,7 @@ public class EntityProjectile extends EntityThrowable {
         par1NBTTagCompound.setByte("shake", (byte) this.throwableShake);
         par1NBTTagCompound.setByte("inGround", (byte) (this.inGround ? 1 : 0));
         par1NBTTagCompound.setByte("isArrow", (byte) (this.isArrow() ? 1 : 0));
-        par1NBTTagCompound.setTag("direction", this.newDoubleNBTList(this.motionX, this.motionY, this.motionZ));
+        par1NBTTagCompound.setTag("direction", this.newDoubleNBTList(new double[]{this.motionX, this.motionY, this.motionZ}));
         par1NBTTagCompound.setBoolean("canBePickedUp", canBePickedUp);
 
         if ((this.throwerName == null || this.throwerName.length() == 0) && this.thrower != null && this.thrower instanceof EntityPlayer) {
@@ -662,6 +679,7 @@ public class EntityProjectile extends EntityThrowable {
         par1NBTTagCompound.setByte("Render3D", this.dataWatcher.getWatchableObjectByte(28));
         par1NBTTagCompound.setByte("Spins", this.dataWatcher.getWatchableObjectByte(29));
         par1NBTTagCompound.setByte("Sticks", this.dataWatcher.getWatchableObjectByte(30));
+        par1NBTTagCompound.setByte("trailCustom", this.dataWatcher.getWatchableObjectByte(31));
     }
 
     /**
@@ -695,6 +713,7 @@ public class EntityProjectile extends EntityThrowable {
         this.dataWatcher.updateObject(28, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Render3D") ? 1 : 0)));
         this.dataWatcher.updateObject(29, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Spins") ? 1 : 0)));
         this.dataWatcher.updateObject(30, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Sticks") ? 1 : 0)));
+        this.dataWatcher.updateObject(31, par1NBTTagCompound.getString("trailCustom"));
 
         if (this.throwerName != null && this.throwerName.length() == 0) {
             this.throwerName = null;
@@ -779,6 +798,7 @@ public class EntityProjectile extends EntityThrowable {
         this.explosive = stats.pExplode;
         this.explosiveRadius = stats.pArea;
         this.effect = stats.pEffect;
+        this.burnItem = stats.pBurnItem;
         this.duration = stats.pDur;
         this.amplify = stats.pEffAmp;
         this.setParticleEffect(stats.pTrail);
@@ -793,6 +813,10 @@ public class EntityProjectile extends EntityThrowable {
 
     public void setParticleEffect(EnumParticleType type) {
         this.dataWatcher.updateObject(22, type.particleName);
+    }
+
+    public void setCustomParticle(ScriptParticle particle) {
+
     }
 
     public void setHasGravity(boolean bo) {

@@ -10,7 +10,7 @@ import noppes.npcs.TextBlock;
 import noppes.npcs.controllers.data.Dialog;
 
 public class TextBlockClient extends TextBlock {
-    private final ChatStyle style;
+    private ChatStyle style;
     public int color = 0xe0e0e0;
     public int titleColor = 0xe0e0e0;
     public int titlePos = 0;

@@ -17,9 +17,9 @@ public class EntityAIAvoidTarget extends EntityAIBase {
     /**
      * The entity we are attached to
      */
-    private final EntityNPCInterface theEntity;
+    private EntityNPCInterface theEntity;
     private Entity closestLivingEntity;
-    private final float distanceFromEntity;
+    private float distanceFromEntity;
 
     private float health;
 
@@ -31,7 +31,7 @@ public class EntityAIAvoidTarget extends EntityAIBase {
     /**
      * The PathNavigate of our entity
      */
-    private final PathNavigate entityPathNavigate;
+    private PathNavigate entityPathNavigate;
 
     /**
      * The class of the entity we should avoid
@@ -59,13 +59,13 @@ public class EntityAIAvoidTarget extends EntityAIBase {
         targetEntityClass = target.getClass();
 
         if (this.targetEntityClass == EntityPlayer.class) {
-            this.closestLivingEntity = this.theEntity.worldObj.getClosestPlayerToEntity(this.theEntity, this.distanceFromEntity);
+            this.closestLivingEntity = this.theEntity.worldObj.getClosestPlayerToEntity(this.theEntity, (double) this.distanceFromEntity);
 
             if (this.closestLivingEntity == null) {
                 return false;
             }
         } else {
-            List var1 = this.theEntity.worldObj.getEntitiesWithinAABB(this.targetEntityClass, this.theEntity.boundingBox.expand(this.distanceFromEntity, 3.0D, this.distanceFromEntity));
+            List var1 = this.theEntity.worldObj.getEntitiesWithinAABB(this.targetEntityClass, this.theEntity.boundingBox.expand((double) this.distanceFromEntity, 3.0D, (double) this.distanceFromEntity));
 
             if (var1.isEmpty()) {
                 return false;
@@ -91,7 +91,7 @@ public class EntityAIAvoidTarget extends EntityAIBase {
                 return false;
             } else {
                 this.entityPathEntity = this.entityPathNavigate.getPathToXYZ(var2.xCoord, var2.yCoord, var2.zCoord);
-                return this.entityPathEntity != null && this.entityPathEntity.isDestinationSame(var2);
+                return this.entityPathEntity == null ? false : this.entityPathEntity.isDestinationSame(var2);
             }
         }
     }

@@ -15,7 +15,7 @@ import noppes.npcs.CustomNpcs;
 
 public class ItemSkirt extends ItemArmor {
 
-    private final String texture;
+    private String texture;
 
     public ItemSkirt(ArmorMaterial par2EnumArmorMaterial, String texture) {
         super(par2EnumArmorMaterial, 0, 2);

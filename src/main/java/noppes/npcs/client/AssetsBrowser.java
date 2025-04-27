@@ -21,7 +21,7 @@ public class AssetsBrowser {
     private String folder;
     public HashSet<String> folders = new HashSet<String>();
     public HashSet<String> files = new HashSet<String>();
-    private final String[] extensions;
+    private String[] extensions;
 
     public AssetsBrowser(String folder, String[] extensions) {
         this.extensions = extensions;

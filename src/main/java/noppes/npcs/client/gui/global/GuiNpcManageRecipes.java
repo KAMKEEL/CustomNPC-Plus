@@ -30,9 +30,9 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
     public static int tab = 1;
     public GuiCustomScroll scroll;
     public HashMap<String, Integer> data = new HashMap<String, Integer>();
-    private final ContainerManageRecipes container;
+    private ContainerManageRecipes container;
     private String selected = null;
-    private final ResourceLocation slot;
+    private ResourceLocation slot;
     private String search = "";
 
     public GuiNpcManageRecipes(EntityNPCInterface npc, ContainerManageRecipes container) {

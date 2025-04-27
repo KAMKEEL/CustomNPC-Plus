@@ -26,7 +26,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 
-import static noppes.npcs.scripted.event.PlayerEvent.EffectEvent.ExpirationType;
+import static noppes.npcs.scripted.event.player.PlayerEvent.EffectEvent.ExpirationType;
 
 public class CustomEffectController implements ICustomEffectHandler {
 
@@ -251,7 +251,6 @@ public class CustomEffectController implements ICustomEffectHandler {
         CustomEffect parent = get(id, index);
         if (parent != null) {
             PlayerEffect playerEffect = new PlayerEffect(id, duration, level, index);
-            playerEffect.index = index;
             currentEffects.put(new EffectKey(id, index), playerEffect);
             parent.onAdded(player, playerEffect);
         }
@@ -507,7 +506,9 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     @Override
     public boolean hasEffect(IPlayer player, ICustomEffect effect) {
-        return hasEffect((EntityPlayer) player, effect.getID(), effect.getIndex());
+        if (player == null || player.getMCEntity() == null)
+            return false;
+        return hasEffect((EntityPlayer) player.getMCEntity(), effect.getID(), effect.getIndex());
     }
 
     @Override
@@ -519,7 +520,9 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     @Override
     public int getEffectDuration(IPlayer player, ICustomEffect effect) {
-        return getEffectDuration(player, effect.getID());
+        if(effect == null)
+            return -1;
+        return getEffectDuration(player, effect.getID(), effect.getIndex());
     }
 
     @Override

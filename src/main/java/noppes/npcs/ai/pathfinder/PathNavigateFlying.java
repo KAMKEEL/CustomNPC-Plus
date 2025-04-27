@@ -22,8 +22,8 @@ import javax.annotation.Nullable;
 
 public class PathNavigateFlying extends PathNavigate {
 
-    private final EntityNPCInterface theEntity;
-    private final World worldObj;
+    private EntityNPCInterface theEntity;
+    private World worldObj;
     /**
      * The PathEntity being followed.
      */
@@ -32,7 +32,7 @@ public class PathNavigateFlying extends PathNavigate {
     /**
      * The number of blocks (extra) +/- in each axis that get pulled out as cache for the pathfinder's search space
      */
-    private final IAttributeInstance pathSearchRange;
+    private IAttributeInstance pathSearchRange;
     protected float maxDistanceToWaypoint = 0.5F;
     private boolean noSunPathfind;
     /**
@@ -168,7 +168,7 @@ public class PathNavigateFlying extends PathNavigate {
      * Try to find and set a path to XYZ. Returns true if successful.
      */
     public boolean tryMoveToXYZ(double p_75492_1_, double p_75492_3_, double p_75492_5_, double p_75492_7_) {
-        NPCPath pathentity = this.getPathToXYZ(MathHelper.floor_double(p_75492_1_), (int) p_75492_3_, MathHelper.floor_double(p_75492_5_));
+        NPCPath pathentity = this.getPathToXYZ((double) MathHelper.floor_double(p_75492_1_), (double) ((int) p_75492_3_), (double) MathHelper.floor_double(p_75492_5_));
         return this.setPath(pathentity, p_75492_7_);
     }
 
@@ -252,7 +252,7 @@ public class PathNavigateFlying extends PathNavigate {
 
         if (!this.noPath()) {
             if (this.canNavigate()) {
-                if (this.theEntity.display.modelSize >= 5)
+                if (((EntityNPCInterface) this.theEntity).display.modelSize >= 5)
                     this.pathFollowBig();
                 else
                     this.pathFollowSmall();
@@ -384,7 +384,10 @@ public class PathNavigateFlying extends PathNavigate {
     private boolean isDirectPathBetweenPoints(Vec3 startPos, Vec3 endPos, int width, int height) {
         Vec3 pos17 = Vec3.createVectorHelper(startPos.xCoord, startPos.yCoord, startPos.zCoord);
         Vec3 pos18 = Vec3.createVectorHelper(endPos.xCoord, endPos.yCoord, endPos.zCoord);
-        return !this.rayTraceBlocks(pos17, pos18, true, false, false, width, height);
+        if (this.rayTraceBlocks(pos17, pos18, true, false, false, width, height))
+            return false;
+
+        return true;
     }
 
     public boolean rayTraceBlocks(Vec3 p_147447_1_, Vec3 p_147447_2_, boolean p_147447_3_, boolean p_147447_4_, boolean p_147447_5_, int width, int height) {
@@ -508,21 +511,21 @@ public class PathNavigateFlying extends PathNavigate {
                     }
 
                     Vec3 vec32 = Vec3.createVectorHelper(p_147447_1_.xCoord, p_147447_1_.yCoord, p_147447_1_.zCoord);
-                    l = (int) (vec32.xCoord = MathHelper.floor_double(p_147447_1_.xCoord));
+                    l = (int) (vec32.xCoord = (double) MathHelper.floor_double(p_147447_1_.xCoord));
 
                     if (b0 == 5) {
                         --l;
                         ++vec32.xCoord;
                     }
 
-                    i1 = (int) (vec32.yCoord = MathHelper.floor_double(p_147447_1_.yCoord));
+                    i1 = (int) (vec32.yCoord = (double) MathHelper.floor_double(p_147447_1_.yCoord));
 
                     if (b0 == 1) {
                         --i1;
                         ++vec32.yCoord;
                     }
 
-                    j1 = (int) (vec32.zCoord = MathHelper.floor_double(p_147447_1_.zCoord));
+                    j1 = (int) (vec32.zCoord = (double) MathHelper.floor_double(p_147447_1_.zCoord));
 
                     if (b0 == 3) {
                         --j1;
@@ -621,6 +624,7 @@ public class PathNavigateFlying extends PathNavigate {
 
             if (this.timeoutLimit > 0.0D && (double) this.timeoutTimer > this.timeoutLimit * 3.0D) {
                 this.timeoutCachedNode = Vec3.createVectorHelper(0.0D, 0.0D, 0.0D);
+                ;
                 this.timeoutTimer = 0L;
                 this.timeoutLimit = 0.0D;
                 this.clearPathEntity();

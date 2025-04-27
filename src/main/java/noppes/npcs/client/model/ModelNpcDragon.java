@@ -10,18 +10,18 @@ import org.lwjgl.opengl.GL11;
 
 public class ModelNpcDragon extends ModelBase {
 
-    private final ModelRenderer head;
-    private final ModelRenderer neck;
-    private final ModelRenderer jaw;
-    private final ModelRenderer body;
-    private final ModelRenderer rearLeg;
-    private final ModelRenderer frontLeg;
-    private final ModelRenderer rearLegTip;
-    private final ModelRenderer frontLegTip;
-    private final ModelRenderer rearFoot;
-    private final ModelRenderer frontFoot;
-    private final ModelRenderer wing;
-    private final ModelRenderer wingTip;
+    private ModelRenderer head;
+    private ModelRenderer neck;
+    private ModelRenderer jaw;
+    private ModelRenderer body;
+    private ModelRenderer rearLeg;
+    private ModelRenderer frontLeg;
+    private ModelRenderer rearLegTip;
+    private ModelRenderer frontLegTip;
+    private ModelRenderer rearFoot;
+    private ModelRenderer frontFoot;
+    private ModelRenderer wing;
+    private ModelRenderer wingTip;
     private float field_40317_s;
 
 
@@ -122,7 +122,7 @@ public class ModelNpcDragon extends ModelBase {
         float f9 = 22F;
         float f10 = 0.0F;
         float f11 = 1.5F;
-        double[] ad = entitydragon.func_40160_a(6, field_40317_s);
+        double ad[] = entitydragon.func_40160_a(6, field_40317_s);
         float f12 = func_40307_a(entitydragon.func_40160_a(5, field_40317_s)[0] - entitydragon.func_40160_a(10, field_40317_s)[0]);
         float f13 = func_40307_a(entitydragon.func_40160_a(5, field_40317_s)[0] + (double) (f12 / 2.0F));
         f8 += 2.0F;
@@ -131,7 +131,7 @@ public class ModelNpcDragon extends ModelBase {
         f8 = 20F;
         f9 = -12F;
         for (int i = 0; i < 5; i++) {
-            double[] ad3 = entitydragon.func_40160_a(5 - i, field_40317_s);
+            double ad3[] = entitydragon.func_40160_a(5 - i, field_40317_s);
             f14 = (float) Math.cos((float) i * 0.45F + f15) * 0.15F;
             neck.rotateAngleY = ((func_40307_a(ad3[0] - ad[0]) * (float) Math.PI) / 180F) * f11;
             neck.rotateAngleX = f14 + (((float) (ad3[1] - ad[1]) * (float) Math.PI) / 180F) * f11 * 5F;
@@ -148,9 +148,9 @@ public class ModelNpcDragon extends ModelBase {
         head.rotationPointY = f8;
         head.rotationPointZ = f9;
         head.rotationPointX = f10;
-        double[] ad1 = entitydragon.func_40160_a(0, field_40317_s);
-        head.rotateAngleY = ((func_40307_a(ad1[0] - ad[0]) * (float) Math.PI) / 180F);
-        head.rotateAngleZ = ((-func_40307_a(ad1[0] - (double) f13) * (float) Math.PI) / 180F);
+        double ad1[] = entitydragon.func_40160_a(0, field_40317_s);
+        head.rotateAngleY = ((func_40307_a(ad1[0] - ad[0]) * (float) Math.PI) / 180F) * 1.0F;
+        head.rotateAngleZ = ((-func_40307_a(ad1[0] - (double) f13) * (float) Math.PI) / 180F) * 1.0F;
         head.render(f5);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0F, 1.0F, 0.0F);
@@ -222,7 +222,7 @@ public class ModelNpcDragon extends ModelBase {
         f10 = 0.0F;
         ad = entitydragon.func_40160_a(11, field_40317_s);
         for (int k = 0; k < 12; k++) {
-            double[] ad2 = entitydragon.func_40160_a(12 + k, field_40317_s);
+            double ad2[] = entitydragon.func_40160_a(12 + k, field_40317_s);
             f14 = (float) ((double) f14 + Math.sin((float) k * 0.45F + f15) * 0.05000000074505806D);
             neck.rotateAngleY = ((func_40307_a(ad2[0] - ad[0]) * f11 + 180F) * (float) Math.PI) / 180F;
             neck.rotateAngleX = f14 + (((float) (ad2[1] - ad[1]) * (float) Math.PI) / 180F) * f11 * 5F;

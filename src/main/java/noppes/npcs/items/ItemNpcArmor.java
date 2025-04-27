@@ -9,7 +9,7 @@ import noppes.npcs.CustomItems;
 
 public class ItemNpcArmor extends ItemArmor {
 
-    private final String texture;
+    private String texture;
 
     public ItemNpcArmor(int par1, ArmorMaterial par2EnumArmorMaterial, int par4, String texture) {
         super(par2EnumArmorMaterial, 0, par4);

@@ -154,7 +154,7 @@ public class FactionCommand extends CommandKamkeelBase {
     @Override
     public List addTabCompletionOptions(ICommandSender par1, String[] args) {
         if (args.length == 3) {
-            return getListOfStringsMatchingLastWord(args, "add", "subtract", "set", "reset", "drop", "create");
+            return getListOfStringsMatchingLastWord(args, new String[]{"add", "subtract", "set", "reset", "drop", "create"});
         }
         return null;
     }

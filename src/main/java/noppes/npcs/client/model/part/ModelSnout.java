@@ -8,11 +8,11 @@ import noppes.npcs.entity.data.ModelData;
 import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelSnout extends ModelPartInterface {
-    private final ModelRenderer small;
-    private final ModelRenderer medium;
-    private final ModelRenderer large;
-    private final ModelRenderer bunny;
-    private final ModelRenderer beak;
+    private ModelRenderer small;
+    private ModelRenderer medium;
+    private ModelRenderer large;
+    private ModelRenderer bunny;
+    private ModelRenderer beak;
 
     public ModelSnout(ModelMPM base) {
         super(base);

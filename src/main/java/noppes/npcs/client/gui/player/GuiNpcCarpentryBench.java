@@ -12,7 +12,7 @@ import org.lwjgl.opengl.GL11;
 
 public class GuiNpcCarpentryBench extends GuiContainerNPCInterface {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/carpentry.png");
-    private final ContainerCarpentryBench container;
+    private ContainerCarpentryBench container;
     private GuiNpcButton button;
 
     public GuiNpcCarpentryBench(ContainerCarpentryBench container) {
@@ -52,5 +52,6 @@ public class GuiNpcCarpentryBench extends GuiContainerNPCInterface {
 
     @Override
     public void save() {
+        return;
     }
 }

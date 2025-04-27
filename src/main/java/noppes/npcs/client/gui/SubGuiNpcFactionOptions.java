@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Vector;
 
 public class SubGuiNpcFactionOptions extends SubGuiInterface implements IScrollData, ICustomScrollListener {
-    private final FactionOptions options;
+    private FactionOptions options;
     private HashMap<String, Integer> data = new HashMap<String, Integer>();
     private GuiCustomScroll scrollFactions;
 

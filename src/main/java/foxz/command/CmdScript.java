@@ -20,7 +20,7 @@ public class CmdScript extends ChMcLogger {
         desc = "Reload scripts and saved data from disks script folder.",
         permissions = {OpOnly.class}
     )
-    public Boolean reload(String[] args) {
+    public Boolean reload(String args[]) {
         if (ScriptController.Instance.loadStoredData())
             sendmessage("Reload succesful");
         else

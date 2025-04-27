@@ -1,5 +1,6 @@
 package noppes.npcs.scripted.entity;
 
+import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
@@ -199,7 +200,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public boolean hasReadDialog(int id) {
-        PlayerDialogData data = PlayerDataController.Instance.getPlayerData(player).dialogData;
+        PlayerDialogData data = PlayerData.get(player).dialogData;
         return data.dialogsRead.contains(id);
     }
 
@@ -252,12 +253,12 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public boolean hasFinishedQuest(int id) {
-        PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData data = PlayerData.get(player).questData;
         return data.finishedQuests.containsKey(id);
     }
 
     public boolean hasActiveQuest(int id) {
-        PlayerQuestData data = PlayerDataController.Instance.getPlayerData(player).questData;
+        PlayerQuestData data = PlayerData.get(player).questData;
         return data.activeQuests.containsKey(id);
     }
 
@@ -270,14 +271,14 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
             return;
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         if (data.questData.activeQuests.containsKey(id))
             return;
         QuestData questdata = new QuestData(quest);
         data.questData.activeQuests.put(id, questdata);
 
-        AchievementPacket.sendAchievement(player, false, "quest.newquest", quest.title);
-        ChatAlertPacket.sendChatAlert(player, "quest.newquest", ": ", quest.title);
+        AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "quest.newquest", quest.title);
+        ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, "quest.newquest", ": ", quest.title);
         data.updateClient = true;
     }
 
@@ -304,7 +305,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         Quest quest = QuestController.Instance.quests.get(id);
         if (quest == null)
             return;
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.questData.activeQuests.remove(id);
         data.updateClient = true;
     }
@@ -331,7 +332,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
     @Override
     public boolean typeOf(int type) {
-        return type == EntityType.PLAYER || super.typeOf(type);
+        return type == EntityType.PLAYER ? true : super.typeOf(type);
     }
 
     /**
@@ -339,7 +340,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @param points  The points to increase. Use negative values to decrease
      */
     public void addFactionPoints(int faction, int points) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.factionData.increasePoints(faction, points, player);
     }
 
@@ -348,7 +349,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @param points  The new point value for this faction
      */
     public void setFactionPoints(int faction, int points) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         data.factionData.increasePoints(faction, points - getFactionPoints(faction), player);
     }
 
@@ -357,7 +358,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
      * @return points
      */
     public int getFactionPoints(int faction) {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.factionData.getFactionPoints(faction);
     }
 
@@ -603,6 +604,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         NoppesUtilPlayer.teleportPlayer(player, player.posX, player.posY, player.posZ, rotationYaw, rotationPitch, player.dimension);
     }
 
+    @Override
+    public float getRotation(){
+        return entity.rotationYaw;
+    }
+
     public void swingHand() {
         NoppesUtilPlayer.swingPlayerArm(player);
     }
@@ -712,18 +718,18 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public ITimers getTimers() {
-        return PlayerDataController.Instance.getPlayerData(player).timers;
+        return PlayerData.get(player).timers;
     }
 
     @Override
     public IScreenSize getScreenSize() {
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.getScreenSize();
     }
 
     public void updatePlayerInventory() {
-        this.entity.inventoryContainer.detectAndSendChanges();
-        PlayerData playerData = PlayerDataController.Instance.getPlayerData(player);
+        ((EntityPlayerMP) this.entity).inventoryContainer.detectAndSendChanges();
+        PlayerData playerData = PlayerData.get(player);
         PlayerQuestData questData = playerData.questData;
         Party playerParty = playerData.getPlayerParty();
         if (playerParty != null)
@@ -735,7 +741,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     @Deprecated
     public boolean checkGUIOpen() {
         NoppesUtilPlayer.isGUIOpen(player);
-        PlayerData data = PlayerDataController.Instance.getPlayerData(player);
+        PlayerData data = PlayerData.get(player);
         return data.getGUIOpen();
     }
 
@@ -750,7 +756,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
     public PlayerData getData() {
         if (this.data == null) {
-            this.data = PlayerDataController.Instance.getPlayerData(player);
+            this.data = PlayerData.get(player);
         }
 
         return this.data;
@@ -767,17 +773,17 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
         while (var3.hasNext()) {
             int id = (Integer) var3.next();
-            IQuest quest = QuestController.Instance.quests.get(id);
+            IQuest quest = (IQuest) QuestController.Instance.quests.get(id);
             if (quest != null) {
                 quests.add(quest);
             }
         }
 
-        return quests.toArray(new IQuest[quests.size()]);
+        return (IQuest[]) quests.toArray(new IQuest[quests.size()]);
     }
 
     public IContainer getOpenContainer() {
-        return NpcAPI.Instance().getIContainer(this.entity.openContainer);
+        return NpcAPI.Instance().getIContainer(((EntityPlayerMP) this.entity).openContainer);
     }
 
     public void showCustomGui(ICustomGui gui) {
@@ -785,11 +791,11 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public ICustomGui getCustomGui() {
-        return this.entity.openContainer instanceof ContainerCustomGui ? ((ContainerCustomGui) this.entity.openContainer).customGui : null;
+        return ((EntityPlayerMP) this.entity).openContainer instanceof ContainerCustomGui ? ((ContainerCustomGui) ((EntityPlayerMP) this.entity).openContainer).customGui : null;
     }
 
     public void closeGui() {
-        this.entity.closeContainer();
+        ((EntityPlayerMP) this.entity).closeContainer();
         GuiClosePacket.closeGUI(player, -1, new NBTTagCompound());
     }
 
@@ -798,7 +804,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     public void closeOverlay(int id) {
-        PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(id), this.entity);
+        PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(id), (EntityPlayerMP) this.entity);
     }
 
     public IOverlayHandler getOverlays() {
@@ -816,13 +822,13 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
         while (var3.hasNext()) {
             int id = (Integer) var3.next();
-            IQuest quest = QuestController.Instance.quests.get(id);
+            IQuest quest = (IQuest) QuestController.Instance.quests.get(id);
             if (quest != null) {
                 quests.add(quest);
             }
         }
 
-        return quests.toArray(new IQuest[quests.size()]);
+        return (IQuest[]) quests.toArray(new IQuest[quests.size()]);
     }
 
     public void setConqueredEnd(boolean conqueredEnd) {
@@ -836,4 +842,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     public IMagicData getMagicData() {
         return this.getData().magicData;
     }
+
+    public IPlayerAttributes getAttributes(){ return AttributeController.getTracker(this.player); }
 }

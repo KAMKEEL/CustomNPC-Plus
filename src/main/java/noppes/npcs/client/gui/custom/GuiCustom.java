@@ -154,8 +154,8 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
 
     public void drawScreenSuper(int mouseX, int mouseY, float partialTicks) {
         //this.drawDefaultBackground();
-        int k = guiLeft;
-        int l = guiTop;
+        int k = this.guiLeft;
+        int l = this.guiTop;
         //this.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         RenderHelper.disableStandardItemLighting();
@@ -170,7 +170,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         this.theSlot = null;
         short short1 = 240;
         short short2 = 240;
-        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) short1, (float) short2);
+        OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float) short1 / 1.0F, (float) short2 / 1.0F);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         int k1;
 
@@ -213,7 +213,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
                 itemstack.stackSize = this.field_146996_I;
 
                 if (itemstack.stackSize == 0) {
-                    s = EnumChatFormatting.YELLOW + "0";
+                    s = "" + EnumChatFormatting.YELLOW + "0";
                 }
             }
 
@@ -232,7 +232,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
             int j2 = this.returningStackDestSlot.yDisplayPosition - this.field_147010_z;
             int l1 = this.field_147011_y + (int) ((float) k1 * f1);
             int i2 = this.field_147010_z + (int) ((float) j2 * f1);
-            this.drawItemStack(this.returningStack, l1, i2, null);
+            this.drawItemStack(this.returningStack, l1, i2, (String) null);
         }
 
         GL11.glPopMatrix();
@@ -265,8 +265,8 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     }
 
     protected boolean isPointInRegion(int slotDisplayX, int slotDisplayY, int slotSizeX, int slotSizeY, int posX, int posY) {
-        int k1 = guiLeft;
-        int l1 = guiTop;
+        int k1 = this.guiLeft;
+        int l1 = this.guiTop;
         posX -= k1;
         posY -= l1;
         return posX >= slotDisplayX - 1 && posX < slotDisplayX + slotSizeX + 1 && posY >= slotDisplayY - 1 && posY < slotDisplayY + slotSizeY + 1;
@@ -523,7 +523,6 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
 
                 if (invSlot.equals(slot)) {
                     flag1 = false;
-                    break;
                 }
             }
 
@@ -536,7 +535,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
             }
 
             if (this.mc.gameSettings.touchscreen && flag1 && this.mc.thePlayer.inventory.getItemStack() == null) {
-                this.mc.displayGuiScreen(null);
+                this.mc.displayGuiScreen((GuiScreen) null);
                 return;
             }
 
@@ -654,8 +653,8 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
     protected void mouseMovedOrUp(int p_146286_1_, int p_146286_2_, int p_146286_3_) {
         super.mouseMovedOrUp(p_146286_1_, p_146286_2_, p_146286_3_); //Forge, Call parent to release buttons
         Slot slot = this.getSlotAtPosition(p_146286_1_, p_146286_2_);
-        int l = guiLeft;
-        int i1 = guiTop;
+        int l = this.guiLeft;
+        int i1 = this.guiTop;
         boolean flag = p_146286_1_ < l || p_146286_2_ < i1 || p_146286_1_ >= l + this.xSize || p_146286_2_ >= i1 + this.ySize;
         int j1 = -1;
 
@@ -670,7 +669,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
         Slot slot1;
         Iterator iterator;
 
-        if (this.field_146993_M && slot != null && p_146286_3_ == 0 && this.inventorySlots.func_94530_a(null, slot)) {
+        if (this.field_146993_M && slot != null && p_146286_3_ == 0 && this.inventorySlots.func_94530_a((ItemStack) null, slot)) {
             if (isShiftKeyDown()) {
                 if (slot != null && slot.inventory != null && this.field_146994_N != null) {
                     iterator = this.inventorySlots.inventorySlots.iterator();
@@ -738,7 +737,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
                     this.clickedSlot = null;
                 }
             } else if (this.field_147007_t && !this.field_147008_s.isEmpty()) {
-                this.handleMouseClick(null, -999, Container.func_94534_d(0, this.field_146987_F), 5);
+                this.handleMouseClick((Slot) null, -999, Container.func_94534_d(0, this.field_146987_F), 5);
                 iterator = this.field_147008_s.iterator();
 
                 while (iterator.hasNext()) {
@@ -746,7 +745,7 @@ public class GuiCustom extends GuiScreen implements ICustomScrollListener, IGuiD
                     this.handleMouseClick(slot1, slot1.slotNumber, Container.func_94534_d(1, this.field_146987_F), 5);
                 }
 
-                this.handleMouseClick(null, -999, Container.func_94534_d(2, this.field_146987_F), 5);
+                this.handleMouseClick((Slot) null, -999, Container.func_94534_d(2, this.field_146987_F), 5);
             } else if (this.mc.thePlayer.inventory.getItemStack() != null) {
                 if (p_146286_3_ == this.mc.gameSettings.keyBindPickBlock.getKeyCode() + 100) {
                     this.handleMouseClick(slot, j1, p_146286_3_, 3);

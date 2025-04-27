@@ -17,10 +17,10 @@ import noppes.npcs.quests.QuestDialog;
 import java.util.HashMap;
 
 public class GuiNpcQuestTypeDialog extends SubGuiInterface implements GuiSelectionListener, IGuiData {
-    private final GuiScreen parent;
-    private final QuestDialog quest;
+    private GuiScreen parent;
+    private QuestDialog quest;
 
-    private final HashMap<Integer, String> data = new HashMap<Integer, String>();
+    private HashMap<Integer, String> data = new HashMap<Integer, String>();
 
     public GuiNpcQuestTypeDialog(EntityNPCInterface npc, Quest q, GuiScreen parent) {
         this.npc = npc;

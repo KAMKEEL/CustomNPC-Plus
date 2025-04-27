@@ -8,7 +8,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleFollower;
 
 public class ContainerNPCFollowerSetup extends Container {
-    private final RoleFollower role;
+    private RoleFollower role;
 
     public ContainerNPCFollowerSetup(EntityNPCInterface npc, EntityPlayer player) {
         role = (RoleFollower) npc.roleInterface;

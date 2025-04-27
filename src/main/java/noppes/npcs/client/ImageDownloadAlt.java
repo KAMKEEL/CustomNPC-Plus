@@ -76,7 +76,7 @@ public class ImageDownloadAlt extends SimpleTexture {
 
         if (this.imageThread == null) {
             if (this.cacheFile != null && this.cacheFile.isFile()) {
-                logger.debug("Loading http texture from local cache ({})", this.cacheFile);
+                logger.debug("Loading http texture from local cache ({})", new Object[]{this.cacheFile});
 
                 try {
                     this.bufferedImage = ImageIO.read(this.cacheFile);
@@ -85,7 +85,7 @@ public class ImageDownloadAlt extends SimpleTexture {
                         this.setBufferedImage(this.imageBuffer.parseUserSkin(this.bufferedImage));
                     }
                 } catch (IOException ioexception) {
-                    logger.error("Couldn't load skin " + this.cacheFile, ioexception);
+                    logger.error("Couldn\'t load skin " + this.cacheFile, ioexception);
                     this.loadTextureFromServer();
                 }
             } else {
@@ -98,7 +98,7 @@ public class ImageDownloadAlt extends SimpleTexture {
         this.imageThread = new Thread("Texture Downloader #" + threadDownloadCounter.incrementAndGet()) {
             public void run() {
                 HttpURLConnection connection = null;
-                ImageDownloadAlt.logger.debug("Downloading http texture from {} to {}", ImageDownloadAlt.this.imageUrl, ImageDownloadAlt.this.cacheFile);
+                ImageDownloadAlt.logger.debug("Downloading http texture from {} to {}", new Object[]{ImageDownloadAlt.this.imageUrl, ImageDownloadAlt.this.cacheFile});
 
                 try {
                     URL url = new URL(ImageDownloadAlt.this.imageUrl);
@@ -137,7 +137,7 @@ public class ImageDownloadAlt extends SimpleTexture {
                     ImageDownloadAlt.this.setBufferedImage(bufferedimage);
                 } catch (MalformedURLException ignored) {
                 } catch (Exception exception) {
-                    ImageDownloadAlt.logger.error("Couldn't download http texture", exception);
+                    ImageDownloadAlt.logger.error("Couldn\'t download http texture", exception);
                 } finally {
                     if (connection != null) {
                         connection.disconnect();

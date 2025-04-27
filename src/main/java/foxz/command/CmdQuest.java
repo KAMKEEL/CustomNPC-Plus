@@ -71,7 +71,7 @@ public class CmdQuest extends ChMcLogger {
         usage = "<player> <quest>",
         permissions = {OpOnly.class, ParamCheck.class}
     )
-    public Boolean finish(String[] args) {
+    public Boolean finish(String args[]) {
         String playername = args[0];
         int questid;
         try {
@@ -168,7 +168,7 @@ public class CmdQuest extends ChMcLogger {
         desc = "reload quests from disk",
         permissions = {OpOnly.class}
     )
-    public boolean reload(String[] args) {
+    public boolean reload(String args[]) {
         new QuestController().load();
         SyncController.syncAllQuests();
         return true;

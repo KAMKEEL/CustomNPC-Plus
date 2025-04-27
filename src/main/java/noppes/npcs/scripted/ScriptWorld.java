@@ -631,21 +631,21 @@ public class ScriptWorld implements IWorld {
                     }
 
                     Vec3 vec32 = Vec3.createVectorHelper(startVec.xCoord, startVec.yCoord, startVec.zCoord);
-                    l = (int) (vec32.xCoord = MathHelper.floor_double(startVec.xCoord));
+                    l = (int) (vec32.xCoord = (double) MathHelper.floor_double(startVec.xCoord));
 
                     if (b0 == 5) {
                         --l;
                         ++vec32.xCoord;
                     }
 
-                    i1 = (int) (vec32.yCoord = MathHelper.floor_double(startVec.yCoord));
+                    i1 = (int) (vec32.yCoord = (double) MathHelper.floor_double(startVec.yCoord));
 
                     if (b0 == 1) {
                         --i1;
                         ++vec32.yCoord;
                     }
 
-                    j1 = (int) (vec32.zCoord = MathHelper.floor_double(startVec.zCoord));
+                    j1 = (int) (vec32.zCoord = (double) MathHelper.floor_double(startVec.zCoord));
 
                     if (b0 == 3) {
                         --j1;
@@ -898,21 +898,21 @@ public class ScriptWorld implements IWorld {
                     }
 
                     Vec3 vec32 = Vec3.createVectorHelper(startVec.xCoord, startVec.yCoord, startVec.zCoord);
-                    l = (int) (vec32.xCoord = MathHelper.floor_double(startVec.xCoord));
+                    l = (int) (vec32.xCoord = (double) MathHelper.floor_double(startVec.xCoord));
 
                     if (b0 == 5) {
                         --l;
                         ++vec32.xCoord;
                     }
 
-                    i1 = (int) (vec32.yCoord = MathHelper.floor_double(startVec.yCoord));
+                    i1 = (int) (vec32.yCoord = (double) MathHelper.floor_double(startVec.yCoord));
 
                     if (b0 == 1) {
                         --i1;
                         ++vec32.yCoord;
                     }
 
-                    j1 = (int) (vec32.zCoord = MathHelper.floor_double(startVec.zCoord));
+                    j1 = (int) (vec32.zCoord = (double) MathHelper.floor_double(startVec.zCoord));
 
                     if (b0 == 3) {
                         --j1;

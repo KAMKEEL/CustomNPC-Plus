@@ -10,12 +10,12 @@ import noppes.npcs.constants.AiMutex;
 import noppes.npcs.entity.EntityNPCInterface;
 
 public class EntityAIStalkTarget extends EntityAIBase {
-    private final EntityNPCInterface theEntity;
+    private EntityNPCInterface theEntity;
     private EntityLivingBase targetEntity;
     private Vec3 movePosition;
-    private final double distance;
+    private double distance;
     private boolean overRide;
-    private final World theWorld;
+    private World theWorld;
     private int delay;
     private int tick = 0;
 
@@ -146,7 +146,7 @@ public class EntityAIStalkTarget extends EntityAIBase {
                         Vec3 vec2 = Vec3.createVectorHelper(j, k + (double) this.theEntity.getEyeHeight(), l);
                         MovingObjectPosition movingobjectposition = this.theWorld.rayTraceBlocks(vec1, vec2);
                         if (movingobjectposition != null) {
-                            weight = !nearest || this.targetEntity.getDistanceSq(j, k, l) <= dist;
+                            weight = nearest ? this.targetEntity.getDistanceSq(j, k, l) <= dist : true;
                             if (weight && (j != u || k != v || l != w)) {
                                 idealPos = Vec3.createVectorHelper(j, k, l);
                                 if (nearest) dist = this.targetEntity.getDistanceSq(j, k, l);

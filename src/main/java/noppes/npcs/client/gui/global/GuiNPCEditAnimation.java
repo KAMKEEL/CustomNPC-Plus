@@ -486,7 +486,9 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         if (guibutton.id >= 300 && guibutton.id < 325) {
             int frameClicked = guibutton.id - 300;
             if (frameClicked < this.animation.frames.size()) {
-                this.frameIndex = frameClicked + this.frameOffset;
+                Animation playingAnim = data.animation != null && this.playingAnimation ? data.animation : this.animation;
+                int frameOffset = this.playingAnimation ? playingAnim.currentFrame - 24 : this.frameOffset;
+                this.frameIndex = frameClicked + Math.max(0, frameOffset);
                 overrideFrame = true;
             }
         }
@@ -510,7 +512,6 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
 
     @Override
     public void drawScreen(int par1, int par2, float par3) {
-        super.drawScreen(par1, par2, par3);
         AnimationData data = npc.display.animationData;
         if (!data.isActive() && this.playingAnimation) {
             this.playingAnimation = false;
@@ -518,6 +519,7 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
         } else if (data.isActive()) {
             long time = mc.theWorld.getTotalWorldTime();
             if (time != prevTick) {
+                npc.display.animationData.increaseTime();
                 GuiNpcLabel label = this.getLabel(213);
                 if (label != null) {
                     label.label += ".";
@@ -529,18 +531,22 @@ public class GuiNPCEditAnimation extends GuiModelInterface implements ITextfield
             prevTick = time;
         }
 
+        super.drawScreen(par1, par2, par3);
+
+        Animation playingAnim = data.animation != null && this.playingAnimation ? data.animation : this.animation;
         for (int i = 0; i < this.visibleFrames; i++) {
             if (getButton(300 + i) != null) {
                 GuiTexturedButton button = (GuiTexturedButton) getButton(300 + i);
 
-                int sliderFrame = i + this.frameOffset;
-                if (sliderFrame >= this.animation.frames.size()) {
+                int frameOffset = this.playingAnimation ? playingAnim.currentFrame - 24 : this.frameOffset;
+                int sliderFrame = i + Math.max(0, frameOffset);
+                if (sliderFrame >= playingAnim.frames.size()) {
                     button.color = 0x0;
                     button.alpha = 0.3F;
                 } else {
-                    button.color = this.animation.frames.get(sliderFrame).getColorMarker();
-                    if ((sliderFrame == this.animation.currentFrame && this.playingAnimation) || sliderFrame == this.frameIndex) {
-                        if ((sliderFrame == this.animation.currentFrame && this.playingAnimation)) {
+                    button.color = playingAnim.frames.get(sliderFrame).getColorMarker();
+                    if ((sliderFrame == playingAnim.currentFrame && this.playingAnimation) || sliderFrame == this.frameIndex) {
+                        if ((sliderFrame == playingAnim.currentFrame && this.playingAnimation)) {
                             button.color = 0xfcf232;
                         } else {
                             button.color = 0x32a852;

@@ -23,7 +23,7 @@ public class ScriptItemBook extends ScriptItemStack implements IItemBook {
             list.add(pages.getStringTagAt(i));
         }
 
-        return list.toArray(new String[list.size()]);
+        return (String[]) list.toArray(new String[list.size()]);
     }
 
     public void setText(String[] pages) {

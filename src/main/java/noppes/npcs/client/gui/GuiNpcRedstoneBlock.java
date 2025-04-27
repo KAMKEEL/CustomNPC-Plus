@@ -14,7 +14,7 @@ import noppes.npcs.client.gui.util.GuiNpcTextField;
 
 public class GuiNpcRedstoneBlock extends GuiNPCInterface {
 
-    private final TileRedstoneBlock tile;
+    private TileRedstoneBlock tile;
 
     public GuiNpcRedstoneBlock(int x, int y, int z) {
         super();

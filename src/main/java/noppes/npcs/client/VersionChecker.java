@@ -7,7 +7,7 @@ import net.minecraft.event.ClickEvent.Action;
 import net.minecraft.util.ChatComponentTranslation;
 
 public class VersionChecker extends Thread {
-    private final int revision = 15;
+    private int revision = 15;
 
     public VersionChecker() {
 

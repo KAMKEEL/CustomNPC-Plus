@@ -5,7 +5,7 @@ import noppes.npcs.constants.EnumNpcToolMaterial;
 
 
 public class ItemBullet extends ItemNpcInterface {
-    private final EnumNpcToolMaterial material;
+    private EnumNpcToolMaterial material;
 
     public ItemBullet(int par1, EnumNpcToolMaterial material) {
         super(par1);

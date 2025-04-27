@@ -26,6 +26,7 @@ public class DialogController implements IDialogHandler {
     public HashMap<Integer, DialogCategory> categories = new HashMap<Integer, DialogCategory>();
     public HashMap<Integer, Dialog> dialogs = new HashMap<Integer, Dialog>();
     public static DialogController Instance = new DialogController();
+    ;
 
     private int lastUsedDialogID = 0;
     private int lastUsedCatID = 0;
@@ -332,6 +333,6 @@ public class DialogController implements IDialogHandler {
     }
 
     public IDialog get(int id) {
-        return this.dialogs.get(id);
+        return (IDialog) this.dialogs.get(id);
     }
 }

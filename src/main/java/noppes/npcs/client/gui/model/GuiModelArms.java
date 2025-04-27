@@ -15,7 +15,7 @@ public class GuiModelArms extends GuiModelInterface {
     private final String[] arrSolidArmwear = new String[]{"gui.no", "Both", "Left", "Right"};
     private final String[] arrClaws = new String[]{"gui.no", "Both", "Left", "Right"};
 
-    private final GuiScreen parent;
+    private GuiScreen parent;
 
     public GuiModelArms(GuiScreen parent, EntityCustomNpc npc) {
         super(npc);

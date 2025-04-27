@@ -8,7 +8,7 @@ import noppes.npcs.entity.data.ModelPartData;
 
 public class ModelFin extends ModelPartInterface {
 
-    private final Model2DRenderer model;
+    private Model2DRenderer model;
 
     public ModelFin(ModelMPM base) {
         super(base);

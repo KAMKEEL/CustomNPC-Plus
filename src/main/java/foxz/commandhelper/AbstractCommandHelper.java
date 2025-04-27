@@ -37,16 +37,16 @@ public abstract class AbstractCommandHelper extends CommandHelper {
     }
 
     public void ctor() {
-        this.commandHelper.name = this.getClass().getAnnotation(Command.class).name();
-        this.commandHelper.usage = this.getClass().getAnnotation(Command.class).usage();
-        this.commandHelper.desc = this.getClass().getAnnotation(Command.class).desc();
+        this.commandHelper.name = ((Command) this.getClass().getAnnotation(Command.class)).name();
+        this.commandHelper.usage = ((Command) this.getClass().getAnnotation(Command.class)).usage();
+        this.commandHelper.desc = ((Command) this.getClass().getAnnotation(Command.class)).desc();
         // sub
         for (Class c : this.getClass().getAnnotation(Command.class).sub()) {
             try {
                 String name = ((Command) c.getAnnotation(Command.class)).name().toUpperCase();
                 Constructor<AbstractCommandHelper> ctor = c.getConstructor(Object.class);
                 ctor.setAccessible(true);
-                AbstractCommandHelper sc = ctor.newInstance(ctorParm);
+                AbstractCommandHelper sc = (AbstractCommandHelper) ctor.newInstance(ctorParm);
                 commands.put(name, sc);
             } catch (Exception ex) {
                 Logger.getLogger(AbstractCommandHelper.class.getName()).log(Level.SEVERE, null, ex);
@@ -120,12 +120,12 @@ public abstract class AbstractCommandHelper extends CommandHelper {
         for (CommandHelper cur : commands.values()) {
             help(cur.commandHelper.name, cur.commandHelper.desc, "");
         }
-        sendMsg("\u00A74noppes cmds are no longer supported |\u00A76 use /kamkeel");
-        sendMsg("\u00A77All bugs and issues will not be patched or maintained");
+        sendMsg(String.format("\u00A74noppes cmds are no longer supported |\u00A76 use /kamkeel"));
+        sendMsg(String.format("\u00A77All bugs and issues will not be patched or maintained"));
     }
 
     public void sendMsg(String msg) {
-        ICommandSender sender = pcParam;
+        ICommandSender sender = (ICommandSender) pcParam;
         sender.addChatMessage(new ChatComponentText(msg));
     }
 
@@ -191,7 +191,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
             if (ch instanceof AbstractCommandHelper) {
                 ((AbstractCommandHelper) ch).pcParam = param;
                 ((AbstractCommandHelper) ch).allHelp();
-            } else if (ch instanceof MethodSubCmd && ch.commandHelper.usage.isEmpty())
+            } else if (ch instanceof MethodSubCmd && ((MethodSubCmd) ch).commandHelper.usage.isEmpty())
                 return false;
             else
                 help(ch.commandHelper.name, ch.commandHelper.desc, ch.commandHelper.usage);
@@ -226,7 +226,7 @@ public abstract class AbstractCommandHelper extends CommandHelper {
                 list.add(data);
         } else {
             for (EntityPlayer player : players) {
-                list.add(PlayerDataController.Instance.getPlayerData(player));
+                list.add(PlayerData.get(player));
             }
         }
 

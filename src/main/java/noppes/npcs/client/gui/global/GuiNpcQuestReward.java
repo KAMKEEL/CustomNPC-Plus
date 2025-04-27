@@ -10,8 +10,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 
 public class GuiNpcQuestReward extends GuiContainerNPCInterface implements ITextfieldListener {
-    private final Quest quest;
-    private final ResourceLocation resource;
+    private Quest quest;
+    private ResourceLocation resource;
 
     public GuiNpcQuestReward(EntityNPCInterface npc, ContainerNpcQuestReward container) {
         super(npc, container);

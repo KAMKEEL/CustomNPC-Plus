@@ -10,7 +10,7 @@ import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendMessage;
 
 public class HelpCommand extends CommandKamkeelBase {
-    private final CommandKamkeel parent;
+    private CommandKamkeel parent;
 
     public HelpCommand(CommandKamkeel parent) {
         this.parent = parent;
