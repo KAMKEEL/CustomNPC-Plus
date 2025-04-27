@@ -29,6 +29,7 @@ import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScreenSize;
+import noppes.npcs.scripted.ScriptedActionManager;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -51,6 +52,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
+    public ScriptedActionManager actionManager = new ScriptedActionManager();
     public PlayerDataScript scriptData;
 
     public EntityNPCInterface editingNpc;
@@ -96,6 +98,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public void onLogout() {
         this.partyInvites.clear();
+        this.actionManager.clear();
     }
 
     @Override

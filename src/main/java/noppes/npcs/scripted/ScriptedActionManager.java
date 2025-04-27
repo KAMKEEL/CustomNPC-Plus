@@ -3,18 +3,27 @@ package noppes.npcs.scripted;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 
-import java.util.HashMap;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+/**
+ * Full-featured ActionManager:
+ * - delayed start, max-duration, tick-interval
+ * - chaining (getNext, getPrevious, scheduleAfter/Before)
+ * - per-action data
+ * - conditional actions
+ * - cancellation & clearing
+ */
 public class ScriptedActionManager implements IActionManager {
-    private boolean isWorking;
-    private Queue<IAction> actionQueue = new LinkedList<>();
+    private boolean isWorking = false;
+    private final Deque<IAction> actionQueue = new LinkedList<>();
 
     @Override
-    public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
-        return new CustomAction(name, maxDuration, startAfterTicks, action);
+    public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        return new Action(name, maxDuration, startAfterTicks, task);
     }
 
     @Override
@@ -29,29 +38,32 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public void scheduleAction(IAction action) {
-        actionQueue.add(action);
+        actionQueue.addLast(action);
     }
 
     @Override
-    public void scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
-        scheduleAction(create(name, maxDuration, startAfterTicks, action));
+    public void scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        scheduleAction(create(name, maxDuration, startAfterTicks, task));
     }
 
     @Override
     public void scheduleActionAt(int index, IAction action) {
-        ((LinkedList) actionQueue).add(index, action);
+        if (index < 0 || index > actionQueue.size()) {
+            actionQueue.addLast(action);
+        } else {
+            ((LinkedList<IAction>) actionQueue).add(index, action);
+        }
     }
 
     @Override
     public int getIndex(IAction action) {
-        if (action == null)
-            return -1;
-        return ((LinkedList) actionQueue).indexOf(action);
+        if (action == null) return -1;
+        return ((LinkedList<IAction>) actionQueue).indexOf(action);
     }
 
     @Override
     public IAction getCurrentAction() {
-        return actionQueue.peek();
+        return actionQueue.peekFirst();
     }
 
     @Override
@@ -59,57 +71,91 @@ public class ScriptedActionManager implements IActionManager {
         return actionQueue;
     }
 
+    @Override
     public void clear() {
         actionQueue.clear();
     }
 
+    @Override
+    public boolean cancelAction(String name) {
+        for (IAction act : actionQueue) {
+            if (act.getName().equals(name)) {
+                ((LinkedList<IAction>) actionQueue).remove(act);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void scheduleConditionalAction(String name,
+                                          int checkIntervalTicks,
+                                          Supplier<Boolean> predicate,
+                                          Consumer<IAction> task) {
+        scheduleConditionalAction(name, checkIntervalTicks, predicate, task, -1);
+    }
+
+    @Override
+    public void scheduleConditionalAction(String name,
+                                          int checkIntervalTicks,
+                                          Supplier<Boolean> predicate,
+                                          Consumer<IAction> task,
+                                          int maxChecks) {
+        scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
+    }
+
+    /**
+     * Call once per tick from your main loop.
+     *
+     * @param ticksExisted the global tick count, used for modulo checks.
+     */
     public void tick(int ticksExisted) {
-        if (isWorking) {
-            CustomAction current = (CustomAction) getCurrentAction();
-            if (current != null) {
-                current.tick(ticksExisted);
-                if (current.isDone || current.duration >= current.maxDuration) {
-                    current.destroy();
-                    actionQueue.poll();
-                }
+        if (!isWorking) return;
+        IAction current = getCurrentAction();
+        if (current instanceof ActionBase) {
+            ActionBase cab = (ActionBase) current;
+            cab.tick(ticksExisted);
+            if (cab.isDone() || cab.getDuration() >= cab.getMaxDuration()) {
+                actionQueue.pollFirst();
             }
         }
     }
 
-    //Nested not static to access outer class instance
-    public class CustomAction implements IAction {
-        Consumer<IAction> action;
-        private final HashMap<String, Object> data = new HashMap<>();
+    // ──── base class for all custom actions ──────────────────────────────────
 
-        private final String name;
-        private int startAfterTicks; //number of ticks to start action after
-        private int count; //number of times action ran
-        private int duration;
-        private final int maxDuration;  //duration since action began
-        private int updateEveryXTick = 5;
+    private abstract class ActionBase implements IAction {
+        protected final String name;
+        protected int startAfterTicks;
+        protected int count = 0;
+        protected int duration = 0;
+        protected final int maxDuration;
+        protected int updateEveryXTick = 5;
+        protected final Consumer<IAction> task;
+        private boolean done = false;
 
-        private boolean isDone;
-
-        public CustomAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        protected ActionBase(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
             this.name = name;
             this.maxDuration = maxDuration;
             this.startAfterTicks = startAfterTicks;
-            this.action = task;
+            this.task = task;
         }
 
-        private void tick(int ticksExisted) {
-            if (startAfterTicks <= 0) {
-                if (ticksExisted % updateEveryXTick == 0) {
-                    action.accept(this);
-                    count++;
-                }
-                duration++;
-            } else
+        /**
+         * Called once per global tick; respects delay, interval, duration & done‐flag.
+         */
+        public void tick(int ticksExisted) {
+            if (done) return;
+
+            if (startAfterTicks > 0) {
                 startAfterTicks--;
-        }
-
-        private void destroy() {
-            data.clear();
+                return;
+            }
+            // only run on our update tick
+            if (ticksExisted % updateEveryXTick == 0) {
+                task.accept(this);
+                count++;
+            }
+            duration++;
         }
 
         @Override
@@ -134,22 +180,22 @@ public class ScriptedActionManager implements IActionManager {
 
         @Override
         public void markDone() {
-            isDone = true;
+            done = true;
         }
 
         @Override
         public boolean isDone() {
-            return isDone;
+            return done;
         }
 
         @Override
         public Object getData(String key) {
-            return data.get(key);
+            return dataStore.get(key);
         }
 
         @Override
-        public void addData(String key, Object value) {
-            data.put(key, value);
+        public void addData(String key, Object v) {
+            dataStore.put(key, v);
         }
 
         @Override
@@ -158,8 +204,8 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public void setUpdateEveryXTick(int X) {
-            this.updateEveryXTick = X;
+        public void setUpdateEveryXTick(int x) {
+            updateEveryXTick = x;
         }
 
         @Override
@@ -168,45 +214,85 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> action) {
-            return ScriptedActionManager.this.create(name, maxDuration, startAfterTicks, action);
+        public IAction create(String n, int md, int sat, Consumer<IAction> t) {
+            return ScriptedActionManager.this.create(n, md, sat, t);
         }
 
         @Override
         public IAction getNext() {
-            int index = getIndex(this);
-            if (index != -1 && index + 1 < actionQueue.size())
-                return ((LinkedList<IAction>) actionQueue).get(index + 1);
-
-            return null;
+            int idx = getIndex(this);
+            return (idx >= 0 && idx + 1 < actionQueue.size())
+                ? ((LinkedList<IAction>) actionQueue).get(idx + 1)
+                : null;
         }
 
         @Override
         public IAction getPrevious() {
-            int index = getIndex(this);
-
-            if (index == 0)
-                return null;
-            else if (index != -1)
-                return ((LinkedList<IAction>) actionQueue).get(index - 1);
-
-            return null;
+            int idx = getIndex(this);
+            return (idx > 0)
+                ? ((LinkedList<IAction>) actionQueue).get(idx - 1)
+                : null;
         }
 
         @Override
         public void scheduleAfter(IAction after) {
-            int index = getIndex(this);
-            if (index != -1)
-                scheduleActionAt(index + 1, after);
+            int idx = getIndex(this);
+            if (idx >= 0) scheduleActionAt(idx + 1, after);
         }
 
         @Override
         public void scheduleBefore(IAction before) {
-            int index = getIndex(this);
-            if (index != -1)
-                scheduleActionAt(index == 0 ? 0 : index - 1, before);
+            int idx = getIndex(this);
+            if (idx >= 0) scheduleActionAt(Math.max(0, idx), before);
         }
+
+        private final java.util.Map<String, Object> dataStore = new java.util.HashMap<>();
+    }
+
+    private class Action extends ActionBase {
+        public Action(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+            super(name, maxDuration, startAfterTicks, task);
+        }
+
+        @Override public int getCheckCount() { return 0; }
+
+        @Override public int getMaxChecks()   { return 0; }
+    }
+
+    private class ConditionalAction extends ActionBase {
+        private final Supplier<Boolean> predicate;
+        private final int maxChecks;
+        private int checkCount = 0;
+
+        public ConditionalAction(String name,
+                                 int checkIntervalTicks,
+                                 Supplier<Boolean> predicate,
+                                 Consumer<IAction> task,
+                                 int maxChecks) {
+            super(name, Integer.MAX_VALUE, 0, task);
+            this.predicate       = predicate;
+            this.updateEveryXTick = checkIntervalTicks;
+            this.maxChecks       = maxChecks;
+        }
+
+        @Override
+        public void tick(int ticksExisted) {
+            if (isDone()) return;
+            if (ticksExisted % updateEveryXTick == 0) {
+                checkCount++;
+                if (maxChecks >= 0 && checkCount > maxChecks) {
+                    markDone();
+                    return;
+                }
+                if (predicate.get()) {
+                    task.accept(this);
+                    markDone();
+                }
+            }
+        }
+
+        @Override public int getCheckCount() { return checkCount; }
+
+        @Override public int getMaxChecks()   { return maxChecks;   }
     }
 }
-
-

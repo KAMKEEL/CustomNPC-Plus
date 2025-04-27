@@ -70,6 +70,7 @@ public class ScriptPlayerEventHandler {
 
             if (PlayerDataController.Instance != null) {
                 PlayerData playerData = PlayerData.get(player);
+                playerData.actionManager.tick(player.ticksExisted);
 
                 if (playerData.updateClient) {
                     SyncController.syncPlayerData((EntityPlayerMP) player, true);
@@ -452,6 +453,10 @@ public class ScriptPlayerEventHandler {
                     EventHooks.onPlayerDeath(handler, scriptPlayer, event.source, source);
                 } catch (Exception ignored) {
                 }
+
+                EntityPlayer player = (EntityPlayer) event.entityLiving;
+                PlayerData playerData = PlayerData.get(player);
+                playerData.actionManager.clear();
             }
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {
