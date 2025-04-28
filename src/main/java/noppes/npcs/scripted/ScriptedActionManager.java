@@ -3,10 +3,9 @@ package noppes.npcs.scripted;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
+import noppes.npcs.api.handler.data.actions.IConditionalAction;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Queue;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -21,6 +20,7 @@ import java.util.function.Supplier;
 public class ScriptedActionManager implements IActionManager {
     private boolean isWorking = false;
     private final Deque<IAction> actionQueue = new LinkedList<>();
+    private final List<IConditionalAction> conditionalActions = new LinkedList<>();
 
     @Override
     public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
@@ -124,12 +124,18 @@ public class ScriptedActionManager implements IActionManager {
                                           Supplier<Boolean> predicate,
                                           Consumer<IAction> task,
                                           int maxChecks) {
-        return scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
+        return scheduleConditionalAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
     }
 
     @Override
     public IAction scheduleConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, int maxChecks) {
-        return scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, terminateWhen, task, maxChecks));
+        return scheduleConditionalAction(new ConditionalAction(name, checkIntervalTicks, predicate, terminateWhen, task, maxChecks));
+    }
+
+    @Override
+    public IConditionalAction scheduleConditionalAction(IConditionalAction action) {
+        conditionalActions.add(action);
+        return action;
     }
 
     /**
@@ -143,10 +149,18 @@ public class ScriptedActionManager implements IActionManager {
         if (current instanceof ActionBase) {
             ActionBase cab = (ActionBase) current;
             cab.tick(ticksExisted);
-            if (cab.isDone() || cab.getDuration() >= cab.getMaxDuration()) {
+            if (cab.isDone())
                 actionQueue.pollFirst();
-            }
         }
+
+        Iterator<IConditionalAction> it = conditionalActions.iterator();
+        while (it.hasNext()) {
+            ConditionalAction con = (ConditionalAction) it.next();
+            con.tick(ticksExisted);
+            if (con.isDone())
+                it.remove();
+        }
+
     }
 
     @Override
@@ -222,6 +236,9 @@ public class ScriptedActionManager implements IActionManager {
                 startAfterTicks--;
                 return;
             }
+
+            if (getDuration() >= getMaxDuration())
+                markDone();
             // only run on our update tick
             if (ticksExisted % updateEveryXTick == 0) {
                 task.accept(this);
@@ -401,7 +418,7 @@ public class ScriptedActionManager implements IActionManager {
         @Override public int getMaxChecks()   { return 0; }
     }
 
-    private class ConditionalAction extends ActionBase {
+    private class ConditionalAction extends ActionBase implements IConditionalAction {
         private final Supplier<Boolean> predicate;
         private Supplier<Boolean> terminate;
         private final int maxChecks;
