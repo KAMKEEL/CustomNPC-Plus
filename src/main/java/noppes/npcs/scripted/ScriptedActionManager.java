@@ -28,6 +28,25 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IAction create(String name, int delay, Consumer<IAction> t) {
+        return new Action(name, delay, t);
+    }
+
+    @Override
+    public IAction create(int delay, Consumer<IAction> t) {
+        return new Action(delay, t);
+    }
+
+    @Override
+    public IAction create(String name, Consumer<IAction> t) {
+        return new Action(name, t);
+    }
+
+    @Override
+    public IAction create(Consumer<IAction> t) {
+        return new Action(t);
+    }
+    @Override
     public void start() {
         isWorking = true;
     }
@@ -268,11 +287,6 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public IAction create(String n, int md, int sat, Consumer<IAction> t) {
-            return ScriptedActionManager.this.create(n, md, sat, t);
-        }
-
-        @Override
         public IAction getNext() {
             int idx = getIndex(this);
             return (idx >= 0 && idx + 1 < actionQueue.size())
@@ -300,32 +314,27 @@ public class ScriptedActionManager implements IActionManager {
 
         @Override
         public IAction after(String name, int maxDuration, int delay, Consumer<IAction> t) {
-            IAction act = new Action(name, maxDuration, delay, t);
-            return after(act);
+            return after(create(name, maxDuration, delay, t));
         }
 
         @Override
         public IAction after(String name, int delay, Consumer<IAction> t) {
-            IAction act = new Action(name, delay, t);
-            return after(act);
+            return after(create(name, delay, t));
         }
 
         @Override
         public IAction after(int delay, Consumer<IAction> t) {
-            IAction act = new Action(delay, t);
-            return after(act);
+            return after(create(delay, t));
         }
 
         @Override
         public IAction after(String name, Consumer<IAction> t) {
-            IAction act = new Action(name, t);
-            return after(act);
+            return after(create(name, t));
         }
 
         @Override
         public IAction after(Consumer<IAction> t) {
-            IAction act = new Action(t);
-            return after(act);
+            return after(create(t));
 
         }
 
@@ -341,32 +350,28 @@ public class ScriptedActionManager implements IActionManager {
 
         @Override
         public IAction before(String name, int maxDuration, int delay, Consumer<IAction> t) {
-            IAction act = new Action(name, maxDuration, delay, t);
-            return before(act);
+            return before(create(name, maxDuration, delay, t));
         }
 
         @Override
         public IAction before(String name, int delay, Consumer<IAction> t) {
-            IAction act = new Action(name, delay, t);
-            return before(act);
+            return before(create(name, delay, t));
         }
 
         @Override
         public IAction before(int delay, Consumer<IAction> t) {
-            IAction act = new Action(delay, t);
-            return before(act);
+            return before(create(delay, t));
         }
 
         @Override
         public IAction before(String name, Consumer<IAction> t) {
-            IAction act = new Action(name, t);
-            return before(act);
+            return before(create(name, t));
         }
 
         @Override
         public IAction before(Consumer<IAction> t) {
-            IAction act = new Action(t);
-            return before(act);
+            return before(create(t));
+
         }
     }
 
