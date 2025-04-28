@@ -132,17 +132,12 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public IActionChain chain() {
-        return new ActionChain(this);
+        return new ActionChain();
     }
 
     /** helper to build a back‐to‐back chain of one‐shot actions */
-    public static class ActionChain implements IActionChain {
-        private final IActionManager mgr;
+    public class ActionChain implements IActionChain {
         private int offset = 0, index = 0;
-
-        private ActionChain(IActionManager mgr) {
-            this.mgr = mgr;
-        }
 
         /** schedule the next task ‘delay’ ticks after the previous one */
         @Override
@@ -152,9 +147,9 @@ public class ScriptedActionManager implements IActionManager {
                 task.accept(act);
                 act.markDone();
             };
-            IAction a = mgr.create("chain#" + (index++), Integer.MAX_VALUE, offset, wrapper);
+            IAction a = create("chain#" + (index++), Integer.MAX_VALUE, offset, wrapper);
             a.setUpdateEveryXTick(1);
-            mgr.scheduleAction(a);
+            scheduleAction(a);
             return this;
         }
     }
