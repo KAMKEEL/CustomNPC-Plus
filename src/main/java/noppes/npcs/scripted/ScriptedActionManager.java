@@ -161,7 +161,7 @@ public class ScriptedActionManager implements IActionManager {
         protected int startAfterTicks;
         protected int count = 0;
         protected int duration = 0;
-        protected final int maxDuration;
+        protected int maxDuration = -1;
         protected int updateEveryXTick = 5;
         protected final Consumer<IAction> task;
         private boolean done = false;
@@ -173,6 +173,26 @@ public class ScriptedActionManager implements IActionManager {
             this.task = task;
         }
 
+        public ActionBase(String name, int startAfterTicks, Consumer<IAction> task) {
+            this.name = name;
+            this.startAfterTicks = startAfterTicks;
+            this.task = task;
+        }
+
+        public ActionBase(String name, Consumer<IAction> task) {
+            this.name = name;
+            this.task = task;
+        }
+
+        public ActionBase(int startAfterTicks, Consumer<IAction> task) {
+            this(task);
+            this.startAfterTicks = startAfterTicks;
+        }
+
+        public ActionBase(Consumer<IAction> task) {
+            this.name = task.toString();
+            this.task = task;
+        }
         /**
          * Called once per global tick; respects delay, interval, duration & done‐flag.
          */
@@ -221,6 +241,7 @@ public class ScriptedActionManager implements IActionManager {
             return done;
         }
 
+        private final java.util.Map<String, Object> dataStore = new java.util.HashMap<>();
         @Override
         public Object getData(String key) {
             return dataStore.get(key);
@@ -267,6 +288,9 @@ public class ScriptedActionManager implements IActionManager {
                 : null;
         }
 
+        /////////////////////////////////////////////////
+        /////////////////////////////////////////////////
+        //After chains
         @Override
         public IAction after(IAction after) {
             int idx = getIndex(this);
@@ -274,8 +298,40 @@ public class ScriptedActionManager implements IActionManager {
             return after;
         }
 
+        @Override
+        public IAction after(String name, int maxDuration, int delay, Consumer<IAction> t) {
+            IAction act = new Action(name, maxDuration, delay, t);
+            return after(act);
+        }
 
+        @Override
+        public IAction after(String name, int delay, Consumer<IAction> t) {
+            IAction act = new Action(name, delay, t);
+            return after(act);
+        }
 
+        @Override
+        public IAction after(int delay, Consumer<IAction> t) {
+            IAction act = new Action(delay, t);
+            return after(act);
+        }
+
+        @Override
+        public IAction after(String name, Consumer<IAction> t) {
+            IAction act = new Action(name, t);
+            return after(act);
+        }
+
+        @Override
+        public IAction after(Consumer<IAction> t) {
+            IAction act = new Action(t);
+            return after(act);
+
+        }
+
+        /////////////////////////////////////////////////
+        /////////////////////////////////////////////////
+        //Before chains
         @Override
         public IAction before(IAction before) {
             int idx = getIndex(this);
@@ -283,12 +339,56 @@ public class ScriptedActionManager implements IActionManager {
             return before;
         }
 
-        private final java.util.Map<String, Object> dataStore = new java.util.HashMap<>();
+        @Override
+        public IAction before(String name, int maxDuration, int delay, Consumer<IAction> t) {
+            IAction act = new Action(name, maxDuration, delay, t);
+            return before(act);
+        }
+
+        @Override
+        public IAction before(String name, int delay, Consumer<IAction> t) {
+            IAction act = new Action(name, delay, t);
+            return before(act);
+        }
+
+        @Override
+        public IAction before(int delay, Consumer<IAction> t) {
+            IAction act = new Action(delay, t);
+            return before(act);
+        }
+
+        @Override
+        public IAction before(String name, Consumer<IAction> t) {
+            IAction act = new Action(name, t);
+            return before(act);
+        }
+
+        @Override
+        public IAction before(Consumer<IAction> t) {
+            IAction act = new Action(t);
+            return before(act);
+        }
     }
 
     private class Action extends ActionBase {
         public Action(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
             super(name, maxDuration, startAfterTicks, task);
+        }
+
+        public Action(String name, int startAfterTicks, Consumer<IAction> task) {
+            super(name, startAfterTicks, task);
+        }
+
+        public Action(String name, Consumer<IAction> task) {
+            super(name, task);
+        }
+
+        public Action(int startAfterTicks, Consumer<IAction> task) {
+            super(startAfterTicks, task);
+        }
+
+        public Action(Consumer<IAction> task) {
+            super(task);
         }
 
         @Override public int getCheckCount() { return 0; }
