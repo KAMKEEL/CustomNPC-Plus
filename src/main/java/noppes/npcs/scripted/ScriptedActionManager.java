@@ -19,7 +19,9 @@ import java.util.function.Supplier;
  */
 public class ScriptedActionManager implements IActionManager {
     private boolean isWorking = false;
+
     private final Deque<IAction> actionQueue = new LinkedList<>();
+    private final List<IAction> parallelActions = new LinkedList<>();
     private final List<IConditionalAction> conditionalActions = new LinkedList<>();
 
     @Override
@@ -118,6 +120,7 @@ public class ScriptedActionManager implements IActionManager {
     @Override
     public void clear() {
         actionQueue.clear();
+        parallelActions.clear();
         conditionalActions.clear();
     }
 
@@ -128,6 +131,14 @@ public class ScriptedActionManager implements IActionManager {
             IAction act = acts.next();
             if (act.getName().equals(name)) {
                 acts.remove();
+                return true;
+            }
+        }
+
+        Iterator<IAction> pit = parallelActions.iterator();
+        while (pit.hasNext()) {
+            if (pit.next().getName().equals(name)) {
+                pit.remove();
                 return true;
             }
         }
@@ -167,6 +178,13 @@ public class ScriptedActionManager implements IActionManager {
         return conditionalActions;
     }
 
+    @Override
+    public IAction scheduleParallelAction(IAction action) {
+        parallelActions.add(action);
+        return action;
+    }
+
+
     /**
      * Call once per tick from your main loop.
      *
@@ -174,28 +192,42 @@ public class ScriptedActionManager implements IActionManager {
      */
     public void tick(int ticksExisted) {
         if (!isWorking) return;
+
+        // ─── Sequential (head only) ─────────────────────────────────
         IAction current = getCurrentAction();
         if (current instanceof ActionBase) {
             ActionBase cab = (ActionBase) current;
             cab.tick(ticksExisted);
-            if (cab.isDone())
-                actionQueue.pollFirst();
+            if (cab.isDone()) actionQueue.pollFirst();
         }
 
-        Iterator<IConditionalAction> it = conditionalActions.iterator();
-        while (it.hasNext()) {
-            ConditionalAction con = (ConditionalAction) it.next();
+        // ─── Parallel (all) ───────────────────────────────────────
+        Iterator<IAction> pit = parallelActions.iterator();
+        while (pit.hasNext()) {
+            ActionBase a = (ActionBase) pit.next();
+            a.tick(ticksExisted);
+            if (a.isDone()) pit.remove();
+        }
+
+        // ─── Conditionals ─────────────────────────────────────────
+        Iterator<IConditionalAction> cit = conditionalActions.iterator();
+        while (cit.hasNext()) {
+            ConditionalAction con = (ConditionalAction) cit.next();
             con.tick(ticksExisted);
-            if (con.isDone())
-                it.remove();
+            if (con.isDone()) cit.remove();
         }
-
     }
 
     @Override
     public IActionChain chain() {
         return new ActionChain();
     }
+
+    @Override
+    public IActionChain parallelChain() {
+        return new ParallelActionChain();
+    }
+
 
     /** helper to build a back‐to‐back chain of one‐shot actions */
     public class ActionChain implements IActionChain {
@@ -212,6 +244,27 @@ public class ScriptedActionManager implements IActionManager {
             IAction a = create("chain#" + (index++), Integer.MAX_VALUE, offset, wrapper);
             a.setUpdateEveryXTick(1);
             scheduleAction(a);
+            return this;
+        }
+    }
+
+    private class ParallelActionChain implements IActionChain {
+        private int offset = 0, idx = 0;
+
+        /** schedule the next task ‘delay’ ticks after the previous one, fully in parallel */
+        @Override
+        public IActionChain after(int delay, Consumer<IAction> task) {
+            offset += delay;
+            Consumer<IAction> wrapper = act -> {
+                task.accept(act);
+                act.markDone();
+            };
+            IAction a = create("parallel#" + (idx++),
+                Integer.MAX_VALUE,   // no max-duration
+                offset,
+                wrapper);
+            a.setUpdateEveryXTick(1);
+            scheduleParallelAction(a);
             return this;
         }
     }
@@ -527,7 +580,5 @@ public class ScriptedActionManager implements IActionManager {
         public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
             return after(create(name, predicate, terminate, task));
         }
-
-
     }
 }
