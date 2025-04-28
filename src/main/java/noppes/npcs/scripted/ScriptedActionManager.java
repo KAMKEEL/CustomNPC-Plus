@@ -2,6 +2,7 @@ package noppes.npcs.scripted;
 
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.api.handler.data.IActionChain;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -123,6 +124,30 @@ public class ScriptedActionManager implements IActionManager {
             if (cab.isDone() || cab.getDuration() >= cab.getMaxDuration()) {
                 actionQueue.pollFirst();
             }
+        }
+    }
+
+    @Override
+    public IActionChain chain() {
+        return new ActionChain(this);
+    }
+
+    /** helper to build a back‐to‐back chain of one‐shot actions */
+    public static class ActionChain implements IActionChain {
+        private final IActionManager mgr;
+        private int offset = 0, index = 0;
+
+        private ActionChain(IActionManager mgr) {
+            this.mgr = mgr;
+        }
+
+        /** schedule the next task ‘delay’ ticks after the previous one */
+        @Override
+        public IActionChain after(int delay, Consumer<IAction> task) {
+            offset += delay;
+            IAction a = mgr.create("chain#" + (index++), 1, offset, task);
+            mgr.scheduleAction(a);
+            return this;
         }
     }
 
