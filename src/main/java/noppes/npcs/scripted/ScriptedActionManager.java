@@ -23,6 +23,16 @@ public class ScriptedActionManager implements IActionManager {
     private final List<IConditionalAction> conditionalActions = new LinkedList<>();
 
     @Override
+    public IAction create(String name) {
+        return new Action(name);
+    }
+
+    @Override
+    public IAction create(Consumer<IAction> t) {
+        return new Action(t);
+    }
+
+    @Override
     public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
         return new Action(name, maxDuration, startAfterTicks, task);
     }
@@ -40,11 +50,6 @@ public class ScriptedActionManager implements IActionManager {
     @Override
     public IAction create(String name, Consumer<IAction> t) {
         return new Action(name, t);
-    }
-
-    @Override
-    public IAction create(Consumer<IAction> t) {
-        return new Action(t);
     }
 
     @Override
@@ -235,9 +240,17 @@ public class ScriptedActionManager implements IActionManager {
         protected int duration;
         protected int maxDuration = -1;
         protected int updateEveryXTick = 5;
-        protected final Consumer<IAction> task;
+        protected Consumer<IAction> task;
         private boolean done = false;
 
+        protected ActionBase(String name) {
+            this.name = name;
+        }
+
+        protected ActionBase(Consumer<IAction> task) {
+            this(task.toString());
+            this.task = task;
+        }
         protected ActionBase(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
             this.name = name;
             this.maxDuration = maxDuration;
@@ -261,10 +274,12 @@ public class ScriptedActionManager implements IActionManager {
             this.startAfterTicks = startAfterTicks;
         }
 
-        protected ActionBase(Consumer<IAction> task) {
-            this.name = task.toString();
+        @Override
+        public IAction setTask(Consumer<IAction> task) {
             this.task = task;
+            return this;
         }
+
         /**
          * Called once per global tick; respects delay, interval, duration & done‐flag.
          */
@@ -307,6 +322,12 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
+        public IAction setMaxDuration(int x) {
+            maxDuration = x;
+            return this;
+        }
+
+        @Override
         public void markDone() {
             done = true;
         }
@@ -329,6 +350,12 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
+        public IAction removeData(String key) {
+            dataStore.remove(key);
+            return this;
+        }
+
+        @Override
         public int getUpdateEveryXTick() {
             return updateEveryXTick;
         }
@@ -344,6 +371,11 @@ public class ScriptedActionManager implements IActionManager {
             return startAfterTicks;
         }
 
+        @Override
+        public IAction pauseFor(int ticks) {
+            startAfterTicks = ticks;
+            return this;
+        }
         @Override
         public IAction getNext() {
             int idx = getIndex(this);
@@ -434,6 +466,14 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     private class Action extends ActionBase {
+
+        public Action(String name) {
+            super(name);
+        }
+
+        public Action(Consumer<IAction> task) {
+            super(task);
+        }
         public Action(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
             super(name, maxDuration, startAfterTicks, task);
         }
@@ -450,9 +490,6 @@ public class ScriptedActionManager implements IActionManager {
             super(startAfterTicks, task);
         }
 
-        public Action(Consumer<IAction> task) {
-            super(task);
-        }
 
         @Override public int getCheckCount() { return 0; }
 
