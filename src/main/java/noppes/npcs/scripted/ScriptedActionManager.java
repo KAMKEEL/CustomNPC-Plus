@@ -192,23 +192,23 @@ public class ScriptedActionManager implements IActionManager {
             this.task = task;
         }
 
-        public ActionBase(String name, int startAfterTicks, Consumer<IAction> task) {
+        protected ActionBase(String name, int startAfterTicks, Consumer<IAction> task) {
             this.name = name;
             this.startAfterTicks = startAfterTicks;
             this.task = task;
         }
 
-        public ActionBase(String name, Consumer<IAction> task) {
+        protected ActionBase(String name, Consumer<IAction> task) {
             this.name = name;
             this.task = task;
         }
 
-        public ActionBase(int startAfterTicks, Consumer<IAction> task) {
+        protected ActionBase(int startAfterTicks, Consumer<IAction> task) {
             this(task);
             this.startAfterTicks = startAfterTicks;
         }
 
-        public ActionBase(Consumer<IAction> task) {
+        protected ActionBase(Consumer<IAction> task) {
             this.name = task.toString();
             this.task = task;
         }
