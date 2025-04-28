@@ -145,7 +145,12 @@ public class ScriptedActionManager implements IActionManager {
         @Override
         public IActionChain after(int delay, Consumer<IAction> task) {
             offset += delay;
-            IAction a = mgr.create("chain#" + (index++), 1, offset, task);
+            Consumer<IAction> wrapper = act -> {
+                task.accept(act);
+                act.markDone();
+            };
+            IAction a = mgr.create("chain#" + (index++), Integer.MAX_VALUE, offset, wrapper);
+            a.setUpdateEveryXTick(1);
             mgr.scheduleAction(a);
             return this;
         }
