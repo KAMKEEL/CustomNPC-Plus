@@ -273,15 +273,19 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public void scheduleAfter(IAction after) {
+        public IAction after(IAction after) {
             int idx = getIndex(this);
             if (idx >= 0) scheduleActionAt(idx + 1, after);
+            return after;
         }
 
+
+
         @Override
-        public void scheduleBefore(IAction before) {
+        public IAction before(IAction before) {
             int idx = getIndex(this);
             if (idx >= 0) scheduleActionAt(Math.max(0, idx), before);
+            return before;
         }
 
         private final java.util.Map<String, Object> dataStore = new java.util.HashMap<>();
