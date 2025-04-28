@@ -468,6 +468,7 @@ public class ScriptedActionManager implements IActionManager {
                 if (predicate.get())
                     task.accept(this);
             }
+            duration++;
         }
 
         @Override
