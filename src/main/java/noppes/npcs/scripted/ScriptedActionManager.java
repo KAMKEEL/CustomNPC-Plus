@@ -4,6 +4,10 @@ import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
+import noppes.npcs.controllers.data.action.Action;
+import noppes.npcs.controllers.data.action.ActionChain;
+import noppes.npcs.controllers.data.action.ConditionalAction;
+import noppes.npcs.controllers.data.action.ParallelActionChain;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -26,62 +30,62 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public IAction create(String name) {
-        return new Action(name);
+        return new Action(this, name);
     }
 
     @Override
     public IAction create(Consumer<IAction> t) {
-        return new Action(t);
+        return new Action(this, t);
     }
 
     @Override
     public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        return new Action(name, maxDuration, startAfterTicks, task);
+        return new Action(this, name, maxDuration, startAfterTicks, task);
     }
 
     @Override
     public IAction create(String name, int delay, Consumer<IAction> t) {
-        return new Action(name, delay, t);
+        return new Action(this, name, delay, t);
     }
 
     @Override
     public IAction create(int delay, Consumer<IAction> t) {
-        return new Action(delay, t);
+        return new Action(this, delay, t);
     }
 
     @Override
     public IAction create(String name, Consumer<IAction> t) {
-        return new Action(name, t);
+        return new Action(this, name, t);
     }
 
     @Override
     public IConditionalAction create(Supplier<Boolean> predicate, Consumer<IAction> task) {
-        return new ConditionalAction(predicate, task);
+        return new ConditionalAction(this, predicate, task);
     }
 
     @Override
     public IConditionalAction create(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
-        return new ConditionalAction(name, predicate, task);
+        return new ConditionalAction(this, name, predicate, task);
     }
 
     @Override
     public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-        return new ConditionalAction(predicate, terminateWhen, task);
+        return new ConditionalAction(this, predicate, terminateWhen, task);
     }
 
     @Override
     public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-        return new ConditionalAction(name, predicate, terminateWhen, task);
+        return new ConditionalAction(this, name, predicate, terminateWhen, task);
     }
 
     @Override
     public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-        return new ConditionalAction(predicate, terminateWhen, onTermination, task);
+        return new ConditionalAction(this, predicate, terminateWhen, onTermination, task);
     }
 
     @Override
     public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-        return new ConditionalAction(name, predicate, terminateWhen, onTermination, task);
+        return new ConditionalAction(this, name, predicate, terminateWhen, onTermination, task);
     }
 
     @Override
@@ -174,12 +178,12 @@ public class ScriptedActionManager implements IActionManager {
     // Conditionals
     @Override
     public IConditionalAction scheduleAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
-        return scheduleAction(new ConditionalAction(name, predicate, task));
+        return scheduleAction(new ConditionalAction(this, name, predicate, task));
     }
 
     @Override
     public IConditionalAction scheduleAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-        return scheduleAction(new ConditionalAction(name, predicate, terminateWhen, task));
+        return scheduleAction(new ConditionalAction(this, name, predicate, terminateWhen, task));
     }
 
     @Override
@@ -210,8 +214,8 @@ public class ScriptedActionManager implements IActionManager {
 
         // ─── Sequential (head only) ─────────────────────────────────
         IAction current = getCurrentAction();
-        if (current instanceof ActionBase) {
-            ActionBase cab = (ActionBase) current;
+        if (current instanceof Action) {
+            Action cab = (Action) current;
             cab.tick(ticksExisted);
             if (cab.isDone()) actionQueue.pollFirst();
         }
@@ -219,7 +223,7 @@ public class ScriptedActionManager implements IActionManager {
         // ─── Parallel (all) ───────────────────────────────────────
         Iterator<IAction> pit = parallelActions.iterator();
         while (pit.hasNext()) {
-            ActionBase a = (ActionBase) pit.next();
+            Action a = (Action) pit.next();
             a.tick(ticksExisted);
             if (a.isDone()) pit.remove();
         }
@@ -235,451 +239,11 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public IActionChain chain() {
-        return new ActionChain();
+        return new ActionChain(this);
     }
 
     @Override
     public IActionChain parallelChain() {
-        return new ParallelActionChain();
-    }
-
-
-    /** helper to build a back‐to‐back chain of one‐shot actions */
-    public class ActionChain implements IActionChain {
-        private int offset = 0, index = 0;
-
-        /** schedule the next task ‘delay’ ticks after the previous one */
-        @Override
-        public IActionChain after(int delay, Consumer<IAction> task) {
-            offset += delay;
-            Consumer<IAction> wrapper = act -> {
-                task.accept(act);
-                act.markDone();
-            };
-            IAction a = create("chain#" + (index++), Integer.MAX_VALUE, offset, wrapper);
-            a.setUpdateEveryXTick(1);
-            scheduleAction(a);
-            return this;
-        }
-    }
-
-    private class ParallelActionChain implements IActionChain {
-        private int offset = 0, idx = 0;
-
-        /** schedule the next task ‘delay’ ticks after the previous one, fully in parallel */
-        @Override
-        public IActionChain after(int delay, Consumer<IAction> task) {
-            offset += delay;
-            Consumer<IAction> wrapper = act -> {
-                task.accept(act);
-                act.markDone();
-            };
-            IAction a = create("parallel#" + (idx++),
-                Integer.MAX_VALUE,   // no max-duration
-                offset,
-                wrapper);
-            a.setUpdateEveryXTick(1);
-            scheduleParallelAction(a);
-            return this;
-        }
-    }
-
-    // ──── base class for all custom actions ──────────────────────────────────
-
-    private abstract class ActionBase implements IAction {
-        protected final String name;
-        protected int startAfterTicks;
-        protected int count = 0;
-        protected int duration;
-        protected int maxDuration = -1;
-        protected int updateEveryXTick = 5;
-        protected Consumer<IAction> task;
-        private boolean done = false;
-
-        protected ActionBase(String name) {
-            this.name = name;
-        }
-
-        protected ActionBase(Consumer<IAction> task) {
-            this(task.toString());
-            this.task = task;
-        }
-        protected ActionBase(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-            this.name = name;
-            this.maxDuration = maxDuration;
-            this.startAfterTicks = startAfterTicks;
-            this.task = task;
-        }
-
-        protected ActionBase(String name, int startAfterTicks, Consumer<IAction> task) {
-            this.name = name;
-            this.startAfterTicks = startAfterTicks;
-            this.task = task;
-        }
-
-        protected ActionBase(String name, Consumer<IAction> task) {
-            this.name = name;
-            this.task = task;
-        }
-
-        protected ActionBase(int startAfterTicks, Consumer<IAction> task) {
-            this(task);
-            this.startAfterTicks = startAfterTicks;
-        }
-
-        @Override
-        public IAction setTask(Consumer<IAction> task) {
-            this.task = task;
-            return this;
-        }
-
-        /**
-         * Called once per global tick; respects delay, interval, duration & done‐flag.
-         */
-        public void tick(int ticksExisted) {
-            if (done) return;
-
-            if (startAfterTicks > 0) {
-                startAfterTicks--;
-                return;
-            }
-
-            if (maxDuration != -1 && duration >= maxDuration)
-                markDone();
-            // only run on our update tick
-            if (ticksExisted % updateEveryXTick == 0) {
-                task.accept(this);
-                count++;
-            }
-            duration++;
-        }
-
-        @Override
-        public int getCount() {
-            return count;
-        }
-
-        @Override
-        public int getDuration() {
-            return duration;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public int getMaxDuration() {
-            return maxDuration;
-        }
-
-        @Override
-        public IAction setMaxDuration(int x) {
-            maxDuration = x;
-            return this;
-        }
-
-        @Override
-        public void markDone() {
-            done = true;
-        }
-
-        @Override
-        public boolean isDone() {
-            return done;
-        }
-
-        private final java.util.Map<String, Object> dataStore = new java.util.HashMap<>();
-        @Override
-        public Object getData(String key) {
-            return dataStore.get(key);
-        }
-
-        @Override
-        public IAction addData(String key, Object v) {
-            dataStore.put(key, v);
-            return this;
-        }
-
-        @Override
-        public IAction removeData(String key) {
-            dataStore.remove(key);
-            return this;
-        }
-
-        @Override
-        public int getUpdateEveryXTick() {
-            return updateEveryXTick;
-        }
-
-        @Override
-        public IAction setUpdateEveryXTick(int x) {
-            updateEveryXTick = x;
-            return this;
-        }
-
-        @Override
-        public int getStartAfterTicks() {
-            return startAfterTicks;
-        }
-
-        @Override
-        public IAction pauseFor(int ticks) {
-            startAfterTicks = ticks;
-            return this;
-        }
-        @Override
-        public IAction getNext() {
-            int idx = getIndex(this);
-            return (idx >= 0 && idx + 1 < actionQueue.size())
-                ? ((LinkedList<IAction>) actionQueue).get(idx + 1)
-                : null;
-        }
-
-        @Override
-        public IAction getPrevious() {
-            int idx = getIndex(this);
-            return (idx > 0)
-                ? ((LinkedList<IAction>) actionQueue).get(idx - 1)
-                : null;
-        }
-
-        /////////////////////////////////////////////////
-        /////////////////////////////////////////////////
-        //After chains
-        @Override
-        public IAction after(IAction after) {
-            int idx = getIndex(this);
-            if (idx >= 0) scheduleActionAt(idx + 1, after);
-            return after;
-        }
-
-        @Override
-        public IAction after(String name, int maxDuration, int delay, Consumer<IAction> t) {
-            return after(create(name, maxDuration, delay, t));
-        }
-
-        @Override
-        public IAction after(String name, int delay, Consumer<IAction> t) {
-            return after(create(name, delay, t));
-        }
-
-        @Override
-        public IAction after(int delay, Consumer<IAction> t) {
-            return after(create(delay, t));
-        }
-
-        @Override
-        public IAction after(String name, Consumer<IAction> t) {
-            return after(create(name, t));
-        }
-
-        @Override
-        public IAction after(Consumer<IAction> t) {
-            return after(create(t));
-
-        }
-
-        /////////////////////////////////////////////////
-        /////////////////////////////////////////////////
-        //Before chains
-        @Override
-        public IAction before(IAction before) {
-            int idx = getIndex(this);
-            if (idx >= 0) scheduleActionAt(Math.max(0, idx), before);
-            return before;
-        }
-
-        @Override
-        public IAction before(String name, int maxDuration, int delay, Consumer<IAction> t) {
-            return before(create(name, maxDuration, delay, t));
-        }
-
-        @Override
-        public IAction before(String name, int delay, Consumer<IAction> t) {
-            return before(create(name, delay, t));
-        }
-
-        @Override
-        public IAction before(int delay, Consumer<IAction> t) {
-            return before(create(delay, t));
-        }
-
-        @Override
-        public IAction before(String name, Consumer<IAction> t) {
-            return before(create(name, t));
-        }
-
-        @Override
-        public IAction before(Consumer<IAction> t) {
-            return before(create(t));
-
-        }
-    }
-
-    private class Action extends ActionBase {
-
-        public Action(String name) {
-            super(name);
-        }
-
-        public Action(Consumer<IAction> task) {
-            super(task);
-        }
-        public Action(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-            super(name, maxDuration, startAfterTicks, task);
-        }
-
-        public Action(String name, int startAfterTicks, Consumer<IAction> task) {
-            super(name, startAfterTicks, task);
-        }
-
-        public Action(String name, Consumer<IAction> task) {
-            super(name, task);
-        }
-
-        public Action(int startAfterTicks, Consumer<IAction> task) {
-            super(startAfterTicks, task);
-        }
-
-
-        @Override public int getCheckCount() { return 0; }
-
-        @Override public int getMaxChecks()   { return 0; }
-    }
-
-    private class ConditionalAction extends ActionBase implements IConditionalAction {
-        private Supplier<Boolean> predicate;
-        private Supplier<Boolean> terminateWhen;
-        private Consumer<IAction> onTermination;
-        private int maxChecks = -1;
-        private int checkCount = 0;
-        private boolean taskExecuted;
-        public ConditionalAction(Supplier<Boolean> predicate, Consumer<IAction> task) {
-            super(task);
-            this.predicate = predicate;
-        }
-
-        public ConditionalAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
-            super(name, task);
-            this.predicate = predicate;
-        }
-
-        public ConditionalAction(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-            this(predicate, task);
-            this.terminateWhen = terminateWhen;
-        }
-
-        public ConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-            this(name, predicate, task);
-            this.terminateWhen = terminateWhen;
-        }
-
-        public ConditionalAction(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTerminate, Consumer<IAction> task) {
-            this(predicate, task);
-            this.terminateWhen = terminateWhen;
-            this.onTermination = onTerminate;
-        }
-
-        public ConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTerminate, Consumer<IAction> task) {
-            this(name, predicate, task);
-            this.terminateWhen = terminateWhen;
-            this.onTermination = onTerminate;
-        }
-
-
-        @Override
-        public void tick(int ticksExisted) {
-            if (isDone()) return;
-            if (ticksExisted % updateEveryXTick == 0) {
-                checkCount++;
-                boolean terminated = terminateWhen != null && terminateWhen.get();
-
-                if (terminated && onTermination != null)
-                    onTermination.accept(this);
-
-                if ((maxChecks >= 0 && checkCount > maxChecks) || terminated) {
-                    markDone();
-                    return;
-                }
-                if (predicate.get()) {
-                    task.accept(this);
-                    taskExecuted = true;
-                }
-            }
-            duration++;
-        }
-
-        @Override
-        public IConditionalAction setMaxChecks(int maxChecks) {
-            this.maxChecks = maxChecks;
-            return this;
-        }
-
-        @Override
-        public IConditionalAction setPredicate(Supplier<Boolean> predicate) {
-            this.predicate = predicate;
-            return this;
-        }
-
-        @Override
-        public IConditionalAction setTerminationPredicate(Supplier<Boolean> terminateWhen) {
-            this.terminateWhen = terminateWhen;
-            return this;
-        }
-
-        @Override
-        public IConditionalAction setTerminationTask(Consumer<IAction> onTermination) {
-            this.onTermination = onTermination;
-            return this;
-        }
-
-        @Override
-        public boolean wasTaskExecuted() {
-            return taskExecuted;
-        }
-
-        @Override public int getCheckCount() { return checkCount; }
-
-        @Override public int getMaxChecks()   { return maxChecks;   }
-
-        /////////////////////////////////////////////////
-        /////////////////////////////////////////////////
-        // Chaining methods
-        @Override
-        public IConditionalAction after(IConditionalAction after) {
-            return scheduleAction(after);
-        }
-
-        @Override
-        public IConditionalAction after(Supplier<Boolean> predicate, Consumer<IAction> task) {
-            return after(create(predicate, task));
-        }
-
-        @Override
-        public IConditionalAction after(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
-            return after(create(name, predicate, task));
-        }
-
-        @Override
-        public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-            return after(create(predicate, terminateWhen, task));
-        }
-
-        @Override
-        public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-            return after(create(name, predicate, terminateWhen, task));
-        }
-
-        @Override
-        public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-            return after(create(predicate, terminateWhen, onTermination, task));
-        }
-
-        @Override
-        public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-            return after(create(name, predicate, terminateWhen, onTermination, task));
-        }
+        return new ParallelActionChain(this);
     }
 }
