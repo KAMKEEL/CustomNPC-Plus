@@ -131,21 +131,28 @@ public class ScriptedActionManager implements IActionManager {
         return false;
     }
 
-
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Conditionals
     @Override
-    public IConditionalAction scheduleConditionalAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
-        return scheduleConditionalAction(new ConditionalAction(name, predicate, task));
+    public IConditionalAction scheduleAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
+        return scheduleAction(new ConditionalAction(name, predicate, task));
     }
 
     @Override
-    public IConditionalAction scheduleConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-        return scheduleConditionalAction(new ConditionalAction(name, predicate, terminateWhen, task));
+    public IConditionalAction scheduleAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+        return scheduleAction(new ConditionalAction(name, predicate, terminateWhen, task));
     }
 
     @Override
-    public IConditionalAction scheduleConditionalAction(IConditionalAction action) {
+    public IConditionalAction scheduleAction(IConditionalAction action) {
         conditionalActions.add(action);
         return action;
+    }
+
+    @Override
+    public List<IConditionalAction> getConditionalActions() {
+        return conditionalActions;
     }
 
     /**
@@ -486,7 +493,7 @@ public class ScriptedActionManager implements IActionManager {
         // Chaining methods
         @Override
         public IConditionalAction after(IConditionalAction after) {
-            return scheduleConditionalAction(after);
+            return scheduleAction(after);
         }
 
         @Override
