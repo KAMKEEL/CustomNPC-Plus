@@ -118,6 +118,7 @@ public class ScriptedActionManager implements IActionManager {
     @Override
     public void clear() {
         actionQueue.clear();
+        conditionalActions.clear();
     }
 
     @Override
