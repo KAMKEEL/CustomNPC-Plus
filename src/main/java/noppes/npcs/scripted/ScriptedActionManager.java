@@ -193,7 +193,7 @@ public class ScriptedActionManager implements IActionManager {
         protected final String name;
         protected int startAfterTicks;
         protected int count = 0;
-        protected int duration = 0;
+        protected int duration = -1;
         protected int maxDuration = -1;
         protected int updateEveryXTick = 5;
         protected final Consumer<IAction> task;
@@ -237,7 +237,7 @@ public class ScriptedActionManager implements IActionManager {
                 return;
             }
 
-            if (getDuration() >= getMaxDuration())
+            if (duration != -1 && duration >= maxDuration)
                 markDone();
             // only run on our update tick
             if (ticksExisted % updateEveryXTick == 0) {
@@ -429,7 +429,7 @@ public class ScriptedActionManager implements IActionManager {
                                  Supplier<Boolean> predicate,
                                  Consumer<IAction> task,
                                  int maxChecks) {
-            super(name, Integer.MAX_VALUE, 0, task);
+            super(name, 0, task);
             this.predicate       = predicate;
             this.updateEveryXTick = checkIntervalTicks;
             this.maxChecks       = maxChecks;
