@@ -122,9 +122,20 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public boolean cancelAction(String name) {
-        for (IAction act : actionQueue) {
+        Iterator<IAction> acts = actionQueue.iterator();
+        while (acts.hasNext()) {
+            IAction act = acts.next();
             if (act.getName().equals(name)) {
-                ((LinkedList<IAction>) actionQueue).remove(act);
+                acts.remove();
+                return true;
+            }
+        }
+
+        Iterator<IConditionalAction> cons = conditionalActions.iterator();
+        while (cons.hasNext()) {
+            IConditionalAction con = cons.next();
+            if (con.getName().equals(name)) {
+                cons.remove();
                 return true;
             }
         }
