@@ -27,7 +27,7 @@ public class ActionChain implements IActionChain {
             task.accept(act);
             act.markDone();
         };
-        IAction a = scriptedActionManager.create("chain#" + (index++), Integer.MAX_VALUE, offset, wrapper);
+        IAction a = scriptedActionManager.create("chain#" + (index++), offset, wrapper);
         a.setUpdateEveryXTick(1);
         scriptedActionManager.scheduleAction(a);
         return this;

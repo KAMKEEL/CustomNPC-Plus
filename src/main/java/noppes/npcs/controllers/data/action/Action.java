@@ -38,11 +38,13 @@ public class Action implements IAction {
     }
 
     public Action(ScriptedActionManager manager, String name, int startAfterTicks, Consumer<IAction> task) {
-        this(manager, name, Integer.MAX_VALUE, startAfterTicks, task);
+        this(manager, name, task);
+        this.startAfterTicks = startAfterTicks;
     }
 
     public Action(ScriptedActionManager manager, String name, Consumer<IAction> task) {
-        this(manager, name, Integer.MAX_VALUE, 0, task);
+        this(manager, name);
+        this.task = task;
     }
 
     public Action(ScriptedActionManager manager, int startAfterTicks, Consumer<IAction> task) {

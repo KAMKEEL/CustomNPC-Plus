@@ -25,7 +25,6 @@ public class ParallelActionChain implements IActionChain {
             act.markDone();
         };
         IAction a = scriptedActionManager.create("parallel#" + (idx++),
-            Integer.MAX_VALUE,   // no max-duration
             offset,
             wrapper);
         a.setUpdateEveryXTick(1);
