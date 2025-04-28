@@ -76,6 +76,11 @@ public class Action implements IAction {
     }
 
     @Override
+    public ScriptedActionManager getManager() {
+        return manager;
+    }
+
+    @Override
     public int getCount() {
         return count;
     }
