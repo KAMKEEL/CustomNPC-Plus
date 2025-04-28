@@ -79,13 +79,13 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-        return new ConditionalAction(this, predicate, terminateWhen, onTermination, task);
+    public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
+        return new ConditionalAction(this, predicate, terminateWhen, task, onTermination);
     }
 
     @Override
-    public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-        return new ConditionalAction(this, name, predicate, terminateWhen, onTermination, task);
+    public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
+        return new ConditionalAction(this, name, predicate, terminateWhen, task, onTermination);
     }
 
     @Override

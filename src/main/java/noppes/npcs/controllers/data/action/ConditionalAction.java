@@ -35,12 +35,12 @@ public class ConditionalAction extends Action implements IConditionalAction {
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
+    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
         this(manager, predicate, terminateWhen, task);
         this.onTermination = onTermination;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
+    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
         this(manager, name, predicate, terminateWhen, task);
         this.onTermination = onTermination;
     }
@@ -131,12 +131,12 @@ public class ConditionalAction extends Action implements IConditionalAction {
     }
 
     @Override
-    public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-        return after(manager.create(predicate, terminateWhen, onTermination, task));
+    public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
+        return after(manager.create(predicate, terminateWhen, task, onTermination));
     }
 
     @Override
-    public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
-        return after(manager.create(name, predicate, terminateWhen, onTermination, task));
+    public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
+        return after(manager.create(name, predicate, terminateWhen, task, onTermination));
     }
 }
