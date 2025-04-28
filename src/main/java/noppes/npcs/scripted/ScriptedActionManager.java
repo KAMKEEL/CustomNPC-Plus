@@ -482,7 +482,7 @@ public class ScriptedActionManager implements IActionManager {
 
         /////////////////////////////////////////////////
         /////////////////////////////////////////////////
-        //Before chains
+        // Chaining methods
         @Override
         public IConditionalAction after(IConditionalAction after) {
             return scheduleConditionalAction(after);
