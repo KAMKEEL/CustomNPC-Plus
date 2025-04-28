@@ -110,26 +110,15 @@ public class ScriptedActionManager implements IActionManager {
         return false;
     }
 
+
     @Override
-    public IAction scheduleConditionalAction(String name,
-                                          int checkIntervalTicks,
-                                          Supplier<Boolean> predicate,
-                                          Consumer<IAction> task) {
-        return scheduleConditionalAction(name, checkIntervalTicks, predicate, task, -1);
+    public IConditionalAction scheduleConditionalAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
+        return scheduleConditionalAction(new ConditionalAction(name, predicate, task));
     }
 
     @Override
-    public IAction scheduleConditionalAction(String name,
-                                          int checkIntervalTicks,
-                                          Supplier<Boolean> predicate,
-                                          Consumer<IAction> task,
-                                          int maxChecks) {
-        return scheduleConditionalAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
-    }
-
-    @Override
-    public IAction scheduleConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, int maxChecks) {
-        return scheduleConditionalAction(new ConditionalAction(name, checkIntervalTicks, predicate, terminateWhen, task, maxChecks));
+    public IConditionalAction scheduleConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+        return scheduleConditionalAction(new ConditionalAction(name, predicate, terminateWhen, task));
     }
 
     @Override
@@ -284,8 +273,9 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public void addData(String key, Object v) {
+        public IAction addData(String key, Object v) {
             dataStore.put(key, v);
+            return this;
         }
 
         @Override
@@ -294,8 +284,9 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public void setUpdateEveryXTick(int x) {
+        public IAction setUpdateEveryXTick(int x) {
             updateEveryXTick = x;
+            return this;
         }
 
         @Override
@@ -444,17 +435,6 @@ public class ScriptedActionManager implements IActionManager {
             this.terminate = terminate;
         }
 
-        public ConditionalAction(String name, int updateEveryXTick, Supplier<Boolean> predicate, Consumer<IAction> task, int maxChecks) {
-            this(name, predicate, task);
-            this.updateEveryXTick = updateEveryXTick;
-            this.maxChecks       = maxChecks;
-        }
-
-        public ConditionalAction(String name, int updateEveryXTick, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task, int maxChecks) {
-            this(name, updateEveryXTick, predicate, task, maxChecks);
-            this.terminate = terminate;
-        }
-
         @Override
         public void tick(int ticksExisted) {
             if (isDone()) return;
@@ -467,6 +447,12 @@ public class ScriptedActionManager implements IActionManager {
                 if (predicate.get())
                     task.accept(this);
             }
+        }
+
+        @Override
+        public IConditionalAction setMaxChecks(int maxChecks) {
+            this.maxChecks = maxChecks;
+            return this;
         }
 
         @Override public int getCheckCount() { return checkCount; }
