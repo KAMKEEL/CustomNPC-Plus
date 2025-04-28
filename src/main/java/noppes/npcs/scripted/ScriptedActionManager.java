@@ -38,22 +38,25 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public void scheduleAction(IAction action) {
+    public IAction scheduleAction(IAction action) {
         actionQueue.addLast(action);
+        return action;
     }
 
     @Override
-    public void scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        scheduleAction(create(name, maxDuration, startAfterTicks, task));
+    public IAction scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        return scheduleAction(create(name, maxDuration, startAfterTicks, task));
     }
 
     @Override
-    public void scheduleActionAt(int index, IAction action) {
+    public IAction scheduleActionAt(int index, IAction action) {
         if (index < 0 || index > actionQueue.size()) {
             actionQueue.addLast(action);
         } else {
             ((LinkedList<IAction>) actionQueue).add(index, action);
         }
+
+        return action;
     }
 
     @Override
@@ -89,25 +92,25 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public void scheduleConditionalAction(String name,
+    public IAction scheduleConditionalAction(String name,
                                           int checkIntervalTicks,
                                           Supplier<Boolean> predicate,
                                           Consumer<IAction> task) {
-        scheduleConditionalAction(name, checkIntervalTicks, predicate, task, -1);
+        return scheduleConditionalAction(name, checkIntervalTicks, predicate, task, -1);
     }
 
     @Override
-    public void scheduleConditionalAction(String name,
+    public IAction scheduleConditionalAction(String name,
                                           int checkIntervalTicks,
                                           Supplier<Boolean> predicate,
                                           Consumer<IAction> task,
                                           int maxChecks) {
-        scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
+        return scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, task, maxChecks));
     }
 
     @Override
-    public void scheduleConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, int maxChecks) {
-        scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, terminateWhen, task, maxChecks));
+    public IAction scheduleConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, int maxChecks) {
+        return scheduleAction(new ConditionalAction(name, checkIntervalTicks, predicate, terminateWhen, task, maxChecks));
     }
 
     /**
