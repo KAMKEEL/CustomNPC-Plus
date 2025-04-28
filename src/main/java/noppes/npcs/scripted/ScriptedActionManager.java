@@ -60,13 +60,23 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
-        return new ConditionalAction(predicate, terminate, task);
+    public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+        return new ConditionalAction(predicate, terminateWhen, task);
     }
 
     @Override
-    public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
-        return new ConditionalAction(name, predicate, terminate, task);
+    public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+        return new ConditionalAction(name, predicate, terminateWhen, task);
+    }
+
+    @Override
+    public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
+        return new ConditionalAction(predicate, terminateWhen, onTermination, task);
+    }
+
+    @Override
+    public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
+        return new ConditionalAction(name, predicate, terminateWhen, onTermination, task);
     }
 
     @Override
@@ -503,11 +513,12 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     private class ConditionalAction extends ActionBase implements IConditionalAction {
-        private final Supplier<Boolean> predicate;
-        private Supplier<Boolean> terminate;
+        private Supplier<Boolean> predicate;
+        private Supplier<Boolean> terminateWhen;
+        private Consumer<IAction> onTermination;
         private int maxChecks = -1;
         private int checkCount = 0;
-
+        private boolean taskExecuted;
         public ConditionalAction(Supplier<Boolean> predicate, Consumer<IAction> task) {
             super(task);
             this.predicate = predicate;
@@ -518,27 +529,47 @@ public class ScriptedActionManager implements IActionManager {
             this.predicate = predicate;
         }
 
-        public ConditionalAction(Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+        public ConditionalAction(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
             this(predicate, task);
-            this.terminate = terminate;
+            this.terminateWhen = terminateWhen;
         }
 
-        public ConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+        public ConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
             this(name, predicate, task);
-            this.terminate = terminate;
+            this.terminateWhen = terminateWhen;
         }
+
+        public ConditionalAction(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTerminate, Consumer<IAction> task) {
+            this(predicate, task);
+            this.terminateWhen = terminateWhen;
+            this.onTermination = onTerminate;
+        }
+
+        public ConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTerminate, Consumer<IAction> task) {
+            this(name, predicate, task);
+            this.terminateWhen = terminateWhen;
+            this.onTermination = onTerminate;
+        }
+
 
         @Override
         public void tick(int ticksExisted) {
             if (isDone()) return;
             if (ticksExisted % updateEveryXTick == 0) {
                 checkCount++;
-                if ((maxChecks >= 0 && checkCount > maxChecks) || terminate != null && terminate.get()) {
+                boolean terminated = terminateWhen != null && terminateWhen.get();
+
+                if (terminated && onTermination != null)
+                    onTermination.accept(this);
+
+                if ((maxChecks >= 0 && checkCount > maxChecks) || terminated) {
                     markDone();
                     return;
                 }
-                if (predicate.get())
+                if (predicate.get()) {
                     task.accept(this);
+                    taskExecuted = true;
+                }
             }
             duration++;
         }
@@ -547,6 +578,29 @@ public class ScriptedActionManager implements IActionManager {
         public IConditionalAction setMaxChecks(int maxChecks) {
             this.maxChecks = maxChecks;
             return this;
+        }
+
+        @Override
+        public IConditionalAction setPredicate(Supplier<Boolean> predicate) {
+            this.predicate = predicate;
+            return this;
+        }
+
+        @Override
+        public IConditionalAction setTerminationPredicate(Supplier<Boolean> terminateWhen) {
+            this.terminateWhen = terminateWhen;
+            return this;
+        }
+
+        @Override
+        public IConditionalAction setTerminationTask(Consumer<IAction> onTermination) {
+            this.onTermination = onTermination;
+            return this;
+        }
+
+        @Override
+        public boolean wasTaskExecuted() {
+            return taskExecuted;
         }
 
         @Override public int getCheckCount() { return checkCount; }
@@ -572,13 +626,23 @@ public class ScriptedActionManager implements IActionManager {
         }
 
         @Override
-        public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
-            return after(create(predicate, terminate, task));
+        public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+            return after(create(predicate, terminateWhen, task));
         }
 
         @Override
-        public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
-            return after(create(name, predicate, terminate, task));
+        public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+            return after(create(name, predicate, terminateWhen, task));
+        }
+
+        @Override
+        public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
+            return after(create(predicate, terminateWhen, onTermination, task));
+        }
+
+        @Override
+        public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination, Consumer<IAction> task) {
+            return after(create(name, predicate, terminateWhen, onTermination, task));
         }
     }
 }
