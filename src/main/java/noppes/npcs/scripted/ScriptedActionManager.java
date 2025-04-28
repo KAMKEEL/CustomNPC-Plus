@@ -421,22 +421,37 @@ public class ScriptedActionManager implements IActionManager {
     private class ConditionalAction extends ActionBase implements IConditionalAction {
         private final Supplier<Boolean> predicate;
         private Supplier<Boolean> terminate;
-        private final int maxChecks;
+        private int maxChecks = -1;
         private int checkCount = 0;
 
-        public ConditionalAction(String name,
-                                 int checkIntervalTicks,
-                                 Supplier<Boolean> predicate,
-                                 Consumer<IAction> task,
-                                 int maxChecks) {
-            super(name, 0, task);
-            this.predicate       = predicate;
-            this.updateEveryXTick = checkIntervalTicks;
+        public ConditionalAction(Supplier<Boolean> predicate, Consumer<IAction> task) {
+            super(task);
+            this.predicate = predicate;
+        }
+
+        public ConditionalAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
+            super(name, task);
+            this.predicate = predicate;
+        }
+
+        public ConditionalAction(Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+            this(predicate, task);
+            this.terminate = terminate;
+        }
+
+        public ConditionalAction(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+            this(name, predicate, task);
+            this.terminate = terminate;
+        }
+
+        public ConditionalAction(String name, int updateEveryXTick, Supplier<Boolean> predicate, Consumer<IAction> task, int maxChecks) {
+            this(name, predicate, task);
+            this.updateEveryXTick = updateEveryXTick;
             this.maxChecks       = maxChecks;
         }
 
-        public ConditionalAction(String name, int checkIntervalTicks, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task, int maxChecks) {
-            this(name, checkIntervalTicks, predicate, task, maxChecks);
+        public ConditionalAction(String name, int updateEveryXTick, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task, int maxChecks) {
+            this(name, updateEveryXTick, predicate, task, maxChecks);
             this.terminate = terminate;
         }
 
