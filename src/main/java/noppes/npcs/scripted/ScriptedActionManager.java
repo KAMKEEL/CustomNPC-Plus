@@ -46,6 +46,27 @@ public class ScriptedActionManager implements IActionManager {
     public IAction create(Consumer<IAction> t) {
         return new Action(t);
     }
+
+    @Override
+    public IConditionalAction create(Supplier<Boolean> predicate, Consumer<IAction> task) {
+        return new ConditionalAction(predicate, task);
+    }
+
+    @Override
+    public IConditionalAction create(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
+        return new ConditionalAction(name, predicate, task);
+    }
+
+    @Override
+    public IConditionalAction create(Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+        return new ConditionalAction(predicate, terminate, task);
+    }
+
+    @Override
+    public IConditionalAction create(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+        return new ConditionalAction(name, predicate, terminate, task);
+    }
+
     @Override
     public void start() {
         isWorking = true;
@@ -458,5 +479,35 @@ public class ScriptedActionManager implements IActionManager {
         @Override public int getCheckCount() { return checkCount; }
 
         @Override public int getMaxChecks()   { return maxChecks;   }
+
+        /////////////////////////////////////////////////
+        /////////////////////////////////////////////////
+        //Before chains
+        @Override
+        public IConditionalAction after(IConditionalAction after) {
+            return scheduleConditionalAction(after);
+        }
+
+        @Override
+        public IConditionalAction after(Supplier<Boolean> predicate, Consumer<IAction> task) {
+            return after(create(predicate, task));
+        }
+
+        @Override
+        public IConditionalAction after(String name, Supplier<Boolean> predicate, Consumer<IAction> task) {
+            return after(create(name, predicate, task));
+        }
+
+        @Override
+        public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+            return after(create(predicate, terminate, task));
+        }
+
+        @Override
+        public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminate, Consumer<IAction> task) {
+            return after(create(name, predicate, terminate, task));
+        }
+
+
     }
 }
