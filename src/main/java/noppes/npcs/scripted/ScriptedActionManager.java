@@ -187,6 +187,12 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IConditionalAction scheduleAction(String name, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return scheduleAction(new ConditionalAction(this, name, predicate, task, terminateWhen, onTermination));
+    }
+
+
+    @Override
     public IConditionalAction scheduleAction(IConditionalAction action) {
         conditionalActions.add(action);
         return action;
