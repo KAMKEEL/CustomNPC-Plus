@@ -21,15 +21,21 @@ public class ActionChain implements IActionChain {
      * schedule the next task ‘delay’ ticks after the previous one
      */
     @Override
-    public IActionChain after(int delay, Consumer<IAction> task) {
+    public IActionChain after(int delay, String name, Consumer<IAction> task) {
         offset += delay;
         Consumer<IAction> wrapper = act -> {
             task.accept(act);
             act.markDone();
         };
-        IAction a = scriptedActionManager.create("chain#" + (index++), offset, wrapper);
+        IAction a = scriptedActionManager.create(name, offset, wrapper);
+        index++;
         a.setUpdateEveryXTick(1);
         scriptedActionManager.scheduleAction(a);
         return this;
+    }
+
+    @Override
+    public IActionChain after(int delay, Consumer<IAction> task) {
+        return after(delay, "chain#" + index, task);
     }
 }
