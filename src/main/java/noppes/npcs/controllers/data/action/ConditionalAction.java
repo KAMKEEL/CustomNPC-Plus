@@ -25,23 +25,23 @@ public class ConditionalAction extends Action implements IConditionalAction {
         this.predicate = predicate;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
         this(manager, predicate, task);
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
+    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
         this(manager, name, predicate, task);
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
-        this(manager, predicate, terminateWhen, task);
+    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        this(manager, predicate, task, terminateWhen);
         this.onTermination = onTermination;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
-        this(manager, name, predicate, terminateWhen, task);
+    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        this(manager, name, predicate, task, terminateWhen);
         this.onTermination = onTermination;
     }
 
@@ -121,22 +121,22 @@ public class ConditionalAction extends Action implements IConditionalAction {
     }
 
     @Override
-    public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-        return after(manager.create(predicate, terminateWhen, task));
+    public IConditionalAction after(Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+        return after(manager.create(predicate, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task) {
-        return after(manager.create(name, predicate, terminateWhen, task));
+    public IConditionalAction after(String name, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+        return after(manager.create(name, predicate, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction after(Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
-        return after(manager.create(predicate, terminateWhen, task, onTermination));
+    public IConditionalAction after(Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return after(manager.create(predicate, task, terminateWhen, onTermination));
     }
 
     @Override
-    public IConditionalAction after(String name, Supplier<Boolean> predicate, Supplier<Boolean> terminateWhen, Consumer<IAction> task, Consumer<IAction> onTermination) {
-        return after(manager.create(name, predicate, terminateWhen, task, onTermination));
+    public IConditionalAction after(String name, Supplier<Boolean> predicate, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return after(manager.create(name, predicate, task, terminateWhen, onTermination));
     }
 }
