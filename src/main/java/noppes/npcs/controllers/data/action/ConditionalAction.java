@@ -51,14 +51,15 @@ public class ConditionalAction extends Action implements IConditionalAction {
         if (ticksExisted % updateEveryXTick == 0) {
             checkCount++;
             boolean terminated = terminateWhen != null && terminateWhen.get();
-            if (terminated && onTermination != null) {
+            if (terminated && onTermination != null)
                 onTermination.accept(this);
-            }
+
             if ((maxChecks >= 0 && checkCount > maxChecks) || terminated) {
                 markDone();
                 return;
             }
-            if (condition.get()) {
+
+            if (condition != null && condition.get()) {
                 task.accept(this);
                 taskExecuted = true;
             }
