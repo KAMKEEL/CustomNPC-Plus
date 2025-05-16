@@ -69,8 +69,14 @@ public class Action implements IAction {
             return;
         }
         if (ticksExisted % updateEveryXTick == 0 && task != null) {
-            task.accept(this);
-            count++;
+            try {
+                task.accept(this);
+                count++;
+            } catch (Throwable t) {
+                System.err.println("Scripted action '" + name + "' threw an exception:");
+                t.printStackTrace();
+                markDone();
+            }
         }
         duration++;
     }
