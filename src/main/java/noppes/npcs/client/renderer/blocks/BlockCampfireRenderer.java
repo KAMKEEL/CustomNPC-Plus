@@ -7,6 +7,7 @@ import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
+import noppes.npcs.CustomNpcs;
 import noppes.npcs.blocks.BlockRotated;
 import noppes.npcs.blocks.tiles.TileVariant;
 import noppes.npcs.client.model.blocks.ModelCampfire;
@@ -66,7 +67,10 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
                 GL11.glDisable(GL11.GL_LIGHTING);
                 GL11.glEnable(GL11.GL_ALPHA_TEST);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(Flame);
-                flameModel.render(null, tile.getWorldObj().getWorldTime(), 0, 0, 0, 0.0F, 0.0625F);
+
+                float animTime  = CustomNpcs.ticks + var8;
+
+                flameModel.render(null, animTime, 0, 0, 0, 0.0F, 0.0625F);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);
                 GL11.glEnable(GL11.GL_LIGHTING);
                 GL11.glPopAttrib();
