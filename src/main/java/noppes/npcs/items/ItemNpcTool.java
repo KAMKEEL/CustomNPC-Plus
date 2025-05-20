@@ -168,10 +168,11 @@ public class ItemNpcTool extends Item {
         return tagCompound.getInteger(BRUSH_COLOR_TAG);
     }
 
-    public static int setColor(NBTTagCompound tagCompound, int color) {
-        if (tagCompound == null || !tagCompound.hasKey(BRUSH_COLOR_TAG))
-            return 0xFFFFFF;
-
-        return tagCompound.getInteger(BRUSH_COLOR_TAG);
+    public static NBTTagCompound setColor(NBTTagCompound tagCompound, int color) {
+        if (tagCompound == null) {
+            tagCompound = new NBTTagCompound();
+        }
+        tagCompound.setInteger(BRUSH_COLOR_TAG, color);
+        return tagCompound;
     }
 }
