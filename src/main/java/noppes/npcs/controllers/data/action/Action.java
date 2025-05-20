@@ -163,16 +163,28 @@ public class Action implements IAction {
 
     @Override
     public IAction getNext() {
-        int idx = manager.getIndex(this);
-        LinkedList<IAction> list = (LinkedList<IAction>) manager.getActionQueue();
-        return (idx >= 0 && idx + 1 < list.size()) ? list.get(idx + 1) : null;
+        boolean seenMe = false;
+        for (IAction a : manager.getActionQueue()) {
+            if (seenMe) {
+                return a;
+            }
+            if (a == this) {
+                seenMe = true;
+            }
+        }
+        return null;
     }
 
     @Override
     public IAction getPrevious() {
-        int idx = manager.getIndex(this);
-        LinkedList<IAction> list = (LinkedList<IAction>) manager.getActionQueue();
-        return (idx > 0) ? list.get(idx - 1) : null;
+        IAction prev = null;
+        for (IAction a : manager.getActionQueue()) {
+            if (a == this) {
+                return prev;
+            }
+            prev = a;
+        }
+        return null;
     }
 
     @Override

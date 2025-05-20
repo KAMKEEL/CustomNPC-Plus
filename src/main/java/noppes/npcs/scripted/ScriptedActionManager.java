@@ -10,6 +10,7 @@ import noppes.npcs.controllers.data.action.ConditionalAction;
 import noppes.npcs.controllers.data.action.ParallelActionChain;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -24,9 +25,9 @@ import java.util.function.Supplier;
 public class ScriptedActionManager implements IActionManager {
     private boolean isWorking = false;
 
-    private final Deque<IAction> actionQueue = new LinkedList<>();
-    private final List<IAction> parallelActions = new LinkedList<>();
-    private final List<IConditionalAction> conditionalActions = new LinkedList<>();
+    private final Deque<IAction> actionQueue = new ConcurrentLinkedDeque<>();
+    private final Deque<IAction> parallelActions = new ConcurrentLinkedDeque<>();
+    private final Deque<IConditionalAction> conditionalActions = new ConcurrentLinkedDeque<>();
 
     @Override
     public IAction create(String name) {
@@ -111,19 +112,28 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public IAction scheduleActionAt(int index, IAction action) {
-        if (index < 0 || index > actionQueue.size()) {
+        int size = actionQueue.size();
+        if (index <= 0) {
+            actionQueue.addFirst(action);
+        } else if (index >= size) {
             actionQueue.addLast(action);
         } else {
-            ((LinkedList<IAction>) actionQueue).add(index, action);
+            List<IAction> tmp = new ArrayList<>(actionQueue);
+            tmp.add(index, action);
+            actionQueue.clear();
+            actionQueue.addAll(tmp);
         }
-
         return action;
     }
 
     @Override
     public int getIndex(IAction action) {
-        if (action == null) return -1;
-        return ((LinkedList<IAction>) actionQueue).indexOf(action);
+        int i = 0;
+        for (IAction a : actionQueue) {
+            if (a.equals(action)) return i;
+            i++;
+        }
+        return -1;
     }
 
     @Override
@@ -200,7 +210,7 @@ public class ScriptedActionManager implements IActionManager {
 
     @Override
     public List<IConditionalAction> getConditionalActions() {
-        return conditionalActions;
+        return new ArrayList<>(conditionalActions);
     }
 
     @Override

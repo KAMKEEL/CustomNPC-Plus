@@ -163,6 +163,4 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
             hasChanges = false;
         }
     }
-
-
 }
