@@ -102,7 +102,7 @@ public class GuiNpcSquareButton extends GuiNpcButton {
         }
         // Or if click is in the icon area, we also treat it as a click.
         return mouseX >= xPosition && mouseX < xPosition + size &&
-                mouseY >= yPosition && mouseY < yPosition + iconAreaHeight;
+            mouseY >= yPosition && mouseY < yPosition + iconAreaHeight;
     }
 
     @Override

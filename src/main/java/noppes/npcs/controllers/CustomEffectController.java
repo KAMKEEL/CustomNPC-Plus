@@ -520,7 +520,7 @@ public class CustomEffectController implements ICustomEffectHandler {
 
     @Override
     public int getEffectDuration(IPlayer player, ICustomEffect effect) {
-        if(effect == null)
+        if (effect == null)
             return -1;
         return getEffectDuration(player, effect.getID(), effect.getIndex());
     }

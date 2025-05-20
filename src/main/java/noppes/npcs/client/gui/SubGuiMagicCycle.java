@@ -78,10 +78,10 @@ public class SubGuiMagicCycle extends SubGuiInterface implements ITextfieldListe
 
         String index = "gui.unused";
         String priority = "gui.unused";
-        if(cycle.layout == EnumDiagramLayout.MANUAL) {
+        if (cycle.layout == EnumDiagramLayout.MANUAL) {
             index = "X";
             priority = "Y";
-        } else if(cycle.layout.isManual()) {
+        } else if (cycle.layout.isManual()) {
             index = "magic.index";
             priority = "magic.priority";
         }

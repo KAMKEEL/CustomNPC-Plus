@@ -876,7 +876,7 @@ public class EventHooks {
 
     public static void onPartyFinished(Party party, Quest quest) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             PartyEvent.PartyQuestCompletedEvent event = new PartyEvent.PartyQuestCompletedEvent(party, quest);
             handler.callScript(EnumScriptType.PARTY_QUEST_COMPLETED, event);
@@ -886,7 +886,7 @@ public class EventHooks {
 
     public static void onPartyQuestSet(Party party, PartyEvent.PartyQuestSetEvent event) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.PARTY_QUEST_SET, event);
             NpcAPI.EVENT_BUS.post(event);
@@ -895,7 +895,7 @@ public class EventHooks {
 
     public static void onPartyTurnIn(Party party, PartyEvent.PartyQuestTurnedInEvent event) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.PARTY_QUEST_TURNED_IN, event);
             NpcAPI.EVENT_BUS.post(event);
@@ -904,7 +904,7 @@ public class EventHooks {
 
     public static void onPartyInvite(Party party, PartyEvent.PartyInviteEvent event) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.PARTY_INVITE, event);
             NpcAPI.EVENT_BUS.post(event);
@@ -913,7 +913,7 @@ public class EventHooks {
 
     public static void onPartyKick(Party party, PartyEvent.PartyKickEvent event) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.PARTY_KICK, event);
             NpcAPI.EVENT_BUS.post(event);
@@ -922,7 +922,7 @@ public class EventHooks {
 
     public static void onPartyLeave(Party party, PartyEvent.PartyLeaveEvent event) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.PARTY_LEAVE, event);
             NpcAPI.EVENT_BUS.post(event);
@@ -931,7 +931,7 @@ public class EventHooks {
 
     public static void onPartyDisband(Party party, PartyEvent.PartyDisbandEvent event) {
         EntityPlayer player = party.getPartyLeader();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.PARTY_DISBAND, event);
             NpcAPI.EVENT_BUS.post(event);

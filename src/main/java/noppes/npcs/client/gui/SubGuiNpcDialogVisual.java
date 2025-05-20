@@ -41,9 +41,9 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         GuiMenuTopButton general = new GuiMenuTopButton(1, guiLeft + 4, guiTop - 17, "General");
         GuiMenuTopButton spacing = new GuiMenuTopButton(2, general.xPosition + general.getWidth(), guiTop - 17, "Spacing");
         GuiMenuTopButton images = new GuiMenuTopButton(3, spacing.xPosition + spacing.getWidth(), guiTop - 17, "Images");
-        GuiMenuTopButton colours =  new GuiMenuTopButton(5, images.xPosition + images.getWidth(), guiTop - 17, "Colors");
+        GuiMenuTopButton colours = new GuiMenuTopButton(5, images.xPosition + images.getWidth(), guiTop - 17, "Colors");
 
-        topButtons = new GuiMenuTopButton[]{general,images,spacing,close,colours};
+        topButtons = new GuiMenuTopButton[]{general, images, spacing, close, colours};
         for (GuiMenuTopButton button : topButtons) {
             button.active = button.id == activeMenu;
             addButton(button);
@@ -243,8 +243,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 getButton(24).setVisible(dialogImage.imageType == 0);
                 getLabel(21).enabled = dialogImage.imageType == 0;
             }
-        }
-        else if (activeMenu == 5) {
+        } else if (activeMenu == 5) {
             addButton(new GuiNpcButtonYesNo(10, guiLeft + 180, y += 22, 60, 20, dialog.colorData.getEnableColorSettings()));
             addLabel(new GuiNpcLabel(10, "dialog.enableColorSettings", guiLeft + 4, y + 5));
             if (dialog.colorData.getEnableColorSettings()) {
@@ -432,7 +431,7 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
         if (activeMenu == 5) {
             DialogColorData colData = dialog.colorData;
             if (button.id == 10) {
-                colData.setEnableColorSettings(button.getValue()==1);
+                colData.setEnableColorSettings(button.getValue() == 1);
             }
             if (button.id == 11) {
                 setSubGui(new SubGuiColorSelector(colData.getLineColor1()));
@@ -497,13 +496,13 @@ public class SubGuiNpcDialogVisual extends SubGuiInterface implements ISubGuiLis
                 colData.setLineColor1(((SubGuiColorSelector) subgui).color);
             } else if (lastColorClicked == 3) {
                 colData.setLineColor2(((SubGuiColorSelector) subgui).color);
-            }else if (lastColorClicked == 4) {
+            } else if (lastColorClicked == 4) {
                 colData.setLineColor3(((SubGuiColorSelector) subgui).color);
-            }else if (lastColorClicked == 5) {
+            } else if (lastColorClicked == 5) {
                 colData.setSlotColor(((SubGuiColorSelector) subgui).color);
-            }else if (lastColorClicked == 6) {
+            } else if (lastColorClicked == 6) {
                 colData.setButtonAcceptColor(((SubGuiColorSelector) subgui).color);
-            }else if (lastColorClicked == 7) {
+            } else if (lastColorClicked == 7) {
                 colData.setButtonRejectColor(((SubGuiColorSelector) subgui).color);
             }
             initGui();

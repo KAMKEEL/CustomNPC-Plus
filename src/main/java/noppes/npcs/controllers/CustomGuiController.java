@@ -77,7 +77,7 @@ public class CustomGuiController {
 
     public static void onButton(CustomGuiEvent.ButtonEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if(player != null){
+        if (player != null) {
             ScriptGui gui = getOpenGui(player);
             if (checkGui(event) && gui != null) {
                 gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_BUTTON, event);
@@ -88,7 +88,7 @@ public class CustomGuiController {
 
     public static void onSlotChange(CustomGuiEvent.SlotEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if(player != null){
+        if (player != null) {
             ScriptGui gui = getOpenGui(player);
             if (checkGui(event) && gui != null) {
                 gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_SLOT, event);
@@ -99,7 +99,7 @@ public class CustomGuiController {
 
     public static boolean onSlotClick(CustomGuiEvent.SlotClickEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if(player != null){
+        if (player != null) {
             ScriptGui gui = getOpenGui(player);
             if (checkGui(event) && gui != null) {
                 gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_SLOT_CLICKED, event);
@@ -110,7 +110,7 @@ public class CustomGuiController {
 
     public static void onCustomGuiUnfocused(CustomGuiEvent.UnfocusedEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if(player != null){
+        if (player != null) {
             ScriptGui gui = getOpenGui(player);
             if (checkGui(event) && gui != null) {
                 gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_TEXTFIELD, event);
@@ -121,7 +121,7 @@ public class CustomGuiController {
 
     public static void onScrollClick(CustomGuiEvent.ScrollEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if(player != null){
+        if (player != null) {
             ScriptGui gui = getOpenGui(player);
             if (checkGui(event) && gui != null) {
                 gui.getScriptHandler(player).callScript(EnumScriptType.CUSTOM_GUI_SCROLL, event);
@@ -132,7 +132,7 @@ public class CustomGuiController {
 
     public static void onClose(CustomGuiEvent.CloseEvent event) {
         EntityPlayer player = (EntityPlayer) event.player.getMCEntity();
-        if(player != null){
+        if (player != null) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
             handler.callScript(EnumScriptType.CUSTOM_GUI_CLOSED, event);
         }

@@ -4,7 +4,6 @@ import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Consumer;
 

@@ -105,7 +105,7 @@ public class SubGuiScriptParticle extends SubGuiInterface implements ITextfieldL
     }
 
     @Override
-    public void close(){
+    public void close() {
         GuiNpcTextField.unfocus();
         super.close();
     }

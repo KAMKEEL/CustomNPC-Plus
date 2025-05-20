@@ -194,7 +194,7 @@ public class NoppesUtil {
         Dialog dialog = new Dialog();
         dialog.readNBT(compound);
         GuiScreen gui = Minecraft.getMinecraft().currentScreen;
-        if(!(gui instanceof GuiDialogInteract)) {
+        if (!(gui instanceof GuiDialogInteract)) {
             if (ConfigExperimental.ModernGuiSystem) {
                 if (dialog.hasQuest()) {
                     CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, dialog.getQuest(), dialog, -2));
@@ -204,8 +204,7 @@ public class NoppesUtil {
             } else {
                 CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, dialog));
             }
-        }
-        else {
+        } else {
             GuiDialogInteract dia = (GuiDialogInteract) gui;
             dia.appendDialog(dialog);
         }

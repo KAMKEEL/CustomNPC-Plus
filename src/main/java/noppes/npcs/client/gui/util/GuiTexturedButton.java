@@ -93,8 +93,8 @@ public class GuiTexturedButton extends GuiNpcButton {
             mc.getTextureManager().bindTexture(this.location);
             this.drawTexturedModalRect(0, 0, this.textureX, this.textureY, this.width, this.height);
             GL11.glTranslated(0.0D, 0.0D, 0.1D);
-            this.drawCenteredString(mc.fontRenderer, this.label, (int) (this.xPosition + ((float)this.width)*scale / 2f),
-                (int) (this.yPosition+(((float)this.height)*scale- ClientProxy.Font.height()+4) / 2f), this.color);
+            this.drawCenteredString(mc.fontRenderer, this.label, (int) (this.xPosition + ((float) this.width) * scale / 2f),
+                (int) (this.yPosition + (((float) this.height) * scale - ClientProxy.Font.height() + 4) / 2f), this.color);
         } else {
             FontRenderer fontrenderer = mc.fontRenderer;
             mc.getTextureManager().bindTexture(buttonTextures);
@@ -159,12 +159,11 @@ public class GuiTexturedButton extends GuiNpcButton {
     }
 
     @Override
-    public boolean mousePressed(Minecraft minecraft, int i, int j)
-    {
+    public boolean mousePressed(Minecraft minecraft, int i, int j) {
         boolean bo = this.enabled && this.visible && i >= this.xPosition && j >= this.yPosition
-            && i < this.xPosition + this.width*scale && j < this.yPosition + this.height*scale;
-        if(bo && display != null && display.length != 0){
-            setDisplay((getValue()+1) % display.length);
+            && i < this.xPosition + this.width * scale && j < this.yPosition + this.height * scale;
+        if (bo && display != null && display.length != 0) {
+            setDisplay((getValue() + 1) % display.length);
         }
         return bo;
     }

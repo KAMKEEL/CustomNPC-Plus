@@ -16,12 +16,13 @@ public class BlurEventHandler {
         if (Minecraft.getMinecraft().theWorld != null) {
             EntityRenderer er = Minecraft.getMinecraft().entityRenderer;
             if (er.getShaderGroup() == null && (event.gui instanceof GuiModernDialogInteract) || (event.gui instanceof GuiModernQuestDialog)) {
-                loadEffect(er,new ResourceLocation("customnpcs", "shaders/post/blur.json"));
-            } else if (er.getShaderGroup()!=null && !(event.gui instanceof GuiModernDialogInteract)) {
+                loadEffect(er, new ResourceLocation("customnpcs", "shaders/post/blur.json"));
+            } else if (er.getShaderGroup() != null && !(event.gui instanceof GuiModernDialogInteract)) {
                 er.deactivateShader();
             }
         }
     }
+
     public static void loadEffect(EntityRenderer er, ResourceLocation p_175069_1_) {
         if (er.theShaderGroup != null) {
             er.theShaderGroup.deleteShaderGroup();
