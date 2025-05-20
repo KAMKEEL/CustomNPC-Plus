@@ -2,6 +2,9 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
+import net.minecraft.block.Block;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -17,6 +20,8 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.blocks.BlockBanner;
+import noppes.npcs.blocks.BlockTallLamp;
 import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
@@ -129,15 +134,26 @@ public class ScriptItemEventHandler {
             if (ItemNpcTool.isPaintbrush(held)
                 && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_BUILD)) {
 
-                TileEntity te = e.world.getTileEntity(e.x, e.y, e.z);
-                if (te instanceof TileColorable) {
-                    int color = ((TileColorable) te).color;
+                int x = e.x;
+                int y = e.y;
+                int z = e.z;
+
+                Block block = player.worldObj.getBlock(x, y, z);
+                if (block instanceof BlockTallLamp || block instanceof BlockBanner) {
+                    int meta = player.worldObj.getBlockMetadata(x, y, z);
+                    if (meta >= 7)
+                        y--;
+                }
+
+                TileEntity tile = player.worldObj.getTileEntity(x, y, z);
+                if (tile instanceof TileColorable) {
+                    int color = ((TileColorable) tile).color;
                     if (!held.hasTagCompound()) {
                         held.setTagCompound(new NBTTagCompound());
                     }
+
                     ItemNpcTool.setColor(held.getTagCompound(), color);
                     e.setCanceled(true);
-                    return;
                 }
             }
         }
