@@ -386,12 +386,12 @@ public class EntityProjectile extends EntityThrowable {
 
             if (worldObj.isRemote && !this.dataWatcher.getWatchableObjectString(22).isEmpty()) {
                 String particle = this.dataWatcher.getWatchableObjectString(22);
-                if(!particle.equals("custom")){
+                if (!particle.equals("custom")) {
                     this.worldObj.spawnParticle(particle, this.posX, this.posY, this.posZ, 0.0D, 0.0D, 0.0D);
 
                 }
-            } else if (!worldObj.isRemote){
-                if(this.npc != null && this.npc.stats.pTrail == EnumParticleType.Custom){
+            } else if (!worldObj.isRemote) {
+                if (this.npc != null && this.npc.stats.pTrail == EnumParticleType.Custom) {
                     this.npc.stats.pCustom.setPosition(this.posX, this.posY, this.posZ);
                     spawnScriptedParticle(this.npc.stats.pCustom.writeToNBT(), this.npc);
                 }

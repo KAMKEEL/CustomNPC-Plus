@@ -28,7 +28,8 @@ public class GuiMagicBookPacket extends AbstractPacket {
         this.posZ = posZ;
     }
 
-    public GuiMagicBookPacket() {}
+    public GuiMagicBookPacket() {
+    }
 
     @Override
     public Enum getType() {

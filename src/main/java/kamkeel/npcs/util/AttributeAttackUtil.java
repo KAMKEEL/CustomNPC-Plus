@@ -36,7 +36,7 @@ public class AttributeAttackUtil {
     private static AllocationResult allocateMagicDamage(float physicalDamage, Map<Integer, MagicEntry> magicData) {
         Map<Integer, Float> allocation = new HashMap<>();
         float totalSplit = 0f;
-        if(magicData != null){
+        if (magicData != null) {
             for (Map.Entry<Integer, MagicEntry> entry : magicData.entrySet()) {
                 int magicId = entry.getKey();
                 float splitVal = entry.getValue().split;
@@ -243,9 +243,9 @@ public class AttributeAttackUtil {
         PlayerAttributeTracker tracker = getTracker(player);
 
         // 1) Main-attack component
-        float mainAttackFlat   = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
+        float mainAttackFlat = tracker.getAttributeValue(CustomAttributes.MAIN_ATTACK);
         float mainBoostPercent = tracker.getAttributeValue(CustomAttributes.MAIN_BOOST) / 100f;
-        float mainDamage       = (baseDamage * (1 + mainBoostPercent)) + mainAttackFlat;
+        float mainDamage = (baseDamage * (1 + mainBoostPercent)) + mainAttackFlat;
 
         // 2) Gear component (neutral + magic) – gearOutput must itself divide its boosts by 100 internally
         float gearDamage = tracker.gearOutput;

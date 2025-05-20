@@ -9,7 +9,7 @@ import noppes.npcs.constants.EnumPotionType;
 public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
     private DataStats stats;
     private String[] potionNames = new String[]{"gui.none", "tile.fire.name", "potion.poison", "potion.hunger", "potion.weakness", "potion.moveSlowdown", "potion.confusion", "potion.blindness", "potion.wither"};
-    private String[] trailNames = new String[]{ "gui.none", "trail.smoke", "trail.portal", "trail.redstone",
+    private String[] trailNames = new String[]{"gui.none", "trail.smoke", "trail.portal", "trail.redstone",
         "trail.lightning", "trail.largesmoke", "trail.magic", "trail.enchant", "trail.crit",
         "trail.explode", "trail.music", "trail.flame", "trail.lava", "trail.splash",
         "trail.slime", "trail.heart", "trail.angryvillager", "trail.happyvillager", "trail.custom"
@@ -92,7 +92,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
 
         addLabel(new GuiNpcLabel(8, "stats.trail", guiLeft + 5, y + 5));
         addButton(new GuiNpcButton(5, guiLeft + 80, y, 75, 20, trailNames, stats.pTrail.ordinal()));
-        if(stats.pTrail == EnumParticleType.Custom){
+        if (stats.pTrail == EnumParticleType.Custom) {
             int internalY = y + 30;
             addLabel(new GuiNpcLabel(90, "trail.custom", guiLeft + 5, internalY + 5));
             addButton(new GuiNpcButton(90, guiLeft + 80, internalY, 75, 20, "gui.edit"));
@@ -103,7 +103,7 @@ public class SubGuiNpcProjectiles extends SubGuiInterface implements ITextfieldL
             addLabel(new GuiNpcLabel(10, "stats.spin", guiLeft + xSize - 80, guiTop + 45));
             addButton(new GuiNpcButton(8, guiLeft + xSize - 40, guiTop + 40, 30, 20, new String[]{"gui.no", "gui.yes"}, stats.pSpin ? 1 : 0));
             addLabel(new GuiNpcLabel(11, "stats.stick", guiLeft + xSize - 80, guiTop + 75));
-            addButton(new GuiNpcButton(9, guiLeft  + xSize - 40, guiTop + 70, 30, 20, new String[]{"gui.no", "gui.yes"}, stats.pStick ? 1 : 0));
+            addButton(new GuiNpcButton(9, guiLeft + xSize - 40, guiTop + 70, 30, 20, new String[]{"gui.no", "gui.yes"}, stats.pStick ? 1 : 0));
         }
         addButton(new GuiNpcButton(66, guiLeft + xSize - 50, guiTop + 190, 40, 20, "gui.done"));
     }

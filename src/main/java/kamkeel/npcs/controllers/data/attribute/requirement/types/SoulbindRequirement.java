@@ -40,8 +40,8 @@ public class SoulbindRequirement implements IRequirementChecker {
     }
 
     private String getUsernameFromUUID(String uuid) {
-        if(uuidToUsername.containsKey(uuid)){
-            if(!uuidToUsername.get(uuid).equals("null")){
+        if (uuidToUsername.containsKey(uuid)) {
+            if (!uuidToUsername.get(uuid).equals("null")) {
                 return uuidToUsername.get(uuid);
             }
         }
@@ -91,12 +91,13 @@ public class SoulbindRequirement implements IRequirementChecker {
     public boolean check(EntityPlayer player, NBTTagCompound nbt) {
         if (nbt.hasKey(getKey())) {
             String uuidString = nbt.getString(getKey());
-            if(uuidString != null && !uuidString.isEmpty()){
+            if (uuidString != null && !uuidString.isEmpty()) {
                 UUID convert = null;
                 try {
                     convert = UUID.fromString(uuidString);
-                } catch (Exception ignored){}
-                if(convert != null)
+                } catch (Exception ignored) {
+                }
+                if (convert != null)
                     return player.getUniqueID().equals(convert);
             }
             return false;

@@ -68,7 +68,7 @@ public class BlockCampfireRenderer extends BlockRendererInterface {
                 GL11.glEnable(GL11.GL_ALPHA_TEST);
                 Minecraft.getMinecraft().getTextureManager().bindTexture(Flame);
 
-                float animTime  = CustomNpcs.ticks + var8;
+                float animTime = CustomNpcs.ticks + var8;
 
                 flameModel.render(null, animTime, 0, 0, 0, 0.0F, 0.0625F);
                 GL11.glDisable(GL11.GL_ALPHA_TEST);

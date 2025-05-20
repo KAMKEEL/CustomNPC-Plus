@@ -18,7 +18,8 @@ public class MagicCycle implements IMagicCycle {
     public EnumDiagramLayout layout = EnumDiagramLayout.CIRCULAR;
     public HashMap<Integer, MagicAssociation> associations = new HashMap<>();
 
-    public MagicCycle(){}
+    public MagicCycle() {
+    }
 
     public void readNBT(NBTTagCompound compound) {
         id = compound.getInteger("ID");
@@ -93,7 +94,7 @@ public class MagicCycle implements IMagicCycle {
 
     @Override
     public void setLayoutType(int layout) {
-        if(layout < 0 || layout > EnumDiagramLayout.values().length - 1)
+        if (layout < 0 || layout > EnumDiagramLayout.values().length - 1)
             return;
         this.layout = EnumDiagramLayout.values()[layout];
     }

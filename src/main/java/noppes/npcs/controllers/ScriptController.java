@@ -150,15 +150,15 @@ public class ScriptController {
         }
     }
 
-    public PlayerDataScript getPlayerScripts(EntityPlayer player){
-        if(ConfigScript.IndividualPlayerScripts)
+    public PlayerDataScript getPlayerScripts(EntityPlayer player) {
+        if (ConfigScript.IndividualPlayerScripts)
             return PlayerData.get(player).scriptData;
 
         return this.playerScripts;
     }
 
-    public PlayerDataScript getPlayerScripts(IPlayer player){
-        if(ConfigScript.IndividualPlayerScripts)
+    public PlayerDataScript getPlayerScripts(IPlayer player) {
+        if (ConfigScript.IndividualPlayerScripts)
             return PlayerData.get((EntityPlayer) player.getMCEntity()).scriptData;
 
         return this.playerScripts;

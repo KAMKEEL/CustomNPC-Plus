@@ -149,7 +149,7 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
      */
     public void updatePlayerMaxHealth(EntityPlayer player) {
         float bonusHealth = extraHealth;
-        float healthBoostPercent = extraHealthBoost  / 100;
+        float healthBoostPercent = extraHealthBoost / 100;
         IAttributeInstance maxHealthAttr = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.maxHealth);
         try {
             AttributeModifier oldFlat = maxHealthAttr.getModifier(healthUUID);
@@ -160,7 +160,8 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
             if (oldBoost != null) {
                 maxHealthAttr.removeModifier(oldBoost);
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         // Apply the flat bonus (operation 0)
         if (bonusHealth != 0) {
             maxHealthAttr.applyModifier(new AttributeModifier(healthUUID, "RPGCoreHealthBonus", bonusHealth, 0));
@@ -177,14 +178,15 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
     }
 
     public void updatePlayerMovementSpeed(EntityPlayer player) {
-        float extraSpeed = movementSpeed  / 100;
+        float extraSpeed = movementSpeed / 100;
         IAttributeInstance speedAttr = player.getAttributeMap().getAttributeInstance(SharedMonsterAttributes.movementSpeed);
         try {
             AttributeModifier old = speedAttr.getModifier(movementSpeedUUID);
             if (old != null) {
                 speedAttr.removeModifier(old);
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         if (extraSpeed != 0) {
             speedAttr.applyModifier(new AttributeModifier(movementSpeedUUID, "RPGCoreMovementSpeed", extraSpeed, 1));
         }
@@ -198,7 +200,8 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
             if (old != null) {
                 knockResAttr.removeModifier(old);
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
         if (extraRes != 0) {
             knockResAttr.applyModifier(new AttributeModifier(knockbackResUUID, "RPGCoreKnockbackRes", extraRes, 1));
         }
@@ -222,7 +225,7 @@ public class PlayerAttributeTracker implements IPlayerAttributes {
     }
 
     public void recalculate(IPlayer player) {
-        if(player == null || player.getMCEntity() == null)
+        if (player == null || player.getMCEntity() == null)
             return;
 
         recalcAttributes((EntityPlayer) player.getMCEntity());

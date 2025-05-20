@@ -226,7 +226,7 @@ public class AnimationMixinFunctions {
 
     public static boolean mixin_renderFirstPersonAnimation(float partialRenderTick, EntityPlayer player, ModelBiped model, RenderBlocks renderBlocksIr, ResourceLocation resItemGlint) {
         if (DBCAddon.IsAvailable()) {
-            return DBCClient.Instance.firstPersonAnimation(partialRenderTick, player,model, renderBlocksIr, resItemGlint);
+            return DBCClient.Instance.firstPersonAnimation(partialRenderTick, player, model, renderBlocksIr, resItemGlint);
         }
 
         AnimationData animationData = ClientCacheHandler.playerAnimations.get(player.getUniqueID());

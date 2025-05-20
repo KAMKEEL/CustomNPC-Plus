@@ -320,7 +320,7 @@ public class RenderCNPCPlayer extends RenderPlayer {
             this.modelBipedMain.onGround = 0.0F;
             this.modelBipedMain.setRotationAngles(0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0625F, player);
 
-            if(this.modelBipedMain.bipedRightArm != null)
+            if (this.modelBipedMain.bipedRightArm != null)
                 this.modelBipedMain.bipedRightArm.render(0.0625F);
 
             postRenderOverlay();

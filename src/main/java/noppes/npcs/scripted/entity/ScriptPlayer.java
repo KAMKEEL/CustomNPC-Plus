@@ -605,7 +605,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
     @Override
-    public float getRotation(){
+    public float getRotation() {
         return entity.rotationYaw;
     }
 
@@ -843,5 +843,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
         return this.getData().magicData;
     }
 
-    public IPlayerAttributes getAttributes(){ return AttributeController.getTracker(this.player); }
+    public IPlayerAttributes getAttributes() {
+        return AttributeController.getTracker(this.player);
+    }
 }

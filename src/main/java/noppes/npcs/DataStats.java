@@ -116,9 +116,9 @@ public class DataStats {
         compound.setBoolean("FiringSoundBegin", onSoundBegin);
         compound.setByte("AimType", aimType);
         compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
-        if(pTrail == EnumParticleType.Custom)
+        if (pTrail == EnumParticleType.Custom)
             compound.setTag("pCustom", pCustom.writeToNBT());
-        if(pEffect == EnumPotionType.Fire)
+        if (pEffect == EnumPotionType.Fire)
             compound.setBoolean("pBurnItem", pBurnItem);
 
         compound.setBoolean("ImmuneToFire", immuneToFire);
@@ -185,9 +185,9 @@ public class DataStats {
         onSoundBegin = compound.getBoolean("FiringSoundBegin");
         aimType = compound.getByte("AimType");
         projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
-        if(pTrail == EnumParticleType.Custom)
+        if (pTrail == EnumParticleType.Custom)
             pCustom = ScriptParticle.fromNBT(compound.getCompoundTag("pCustom"));
-        if(pEffect == EnumPotionType.Fire)
+        if (pEffect == EnumPotionType.Fire)
             pBurnItem = compound.getBoolean("pBurnItem");
 
         immuneToFire = compound.getBoolean("ImmuneToFire");

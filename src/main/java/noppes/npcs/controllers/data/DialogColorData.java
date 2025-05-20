@@ -13,7 +13,7 @@ public class DialogColorData {
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setBoolean("ColorSettings", enableColorSettings);
-        if(enableColorSettings){
+        if (enableColorSettings) {
             compound.setInteger("LineColor1", lineColor1);
             compound.setInteger("LineColor2", lineColor2);
             compound.setInteger("LineColor3", lineColor3);
@@ -26,13 +26,13 @@ public class DialogColorData {
 
     public void readFromNBT(NBTTagCompound compound) {
         this.enableColorSettings = compound.getBoolean("ColorSettings");
-        if(enableColorSettings){
-            lineColor1 =compound.getInteger("LineColor1");
-            lineColor2 =compound.getInteger("LineColor2");
-            lineColor3 =compound.getInteger("LineColor3");
-            slotColor =compound.getInteger("SlotColor");
-            buttonAcceptColor =compound.getInteger("ButtonAcceptColor");
-            buttonRejectColor =compound.getInteger("ButtonRejectColor");
+        if (enableColorSettings) {
+            lineColor1 = compound.getInteger("LineColor1");
+            lineColor2 = compound.getInteger("LineColor2");
+            lineColor3 = compound.getInteger("LineColor3");
+            slotColor = compound.getInteger("SlotColor");
+            buttonAcceptColor = compound.getInteger("ButtonAcceptColor");
+            buttonRejectColor = compound.getInteger("ButtonRejectColor");
         }
     }
 

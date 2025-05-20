@@ -75,8 +75,8 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         this.scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         this.drawDefaultBackground = prevDialog.darkenScreen;
         setOptionOffset();
-        addButton(new GuiTexturedButton(0,"questgui.reject",720,326,156,40,decomposed.toString(),72,15));
-        addButton(new GuiTexturedButton(1,"questgui.accept",812,326,156,40,decomposed.toString(),72,15));
+        addButton(new GuiTexturedButton(0, "questgui.reject", 720, 326, 156, 40, decomposed.toString(), 72, 15));
+        addButton(new GuiTexturedButton(1, "questgui.accept", 812, 326, 156, 40, decomposed.toString(), 72, 15));
     }
 
     public void setOptionOffset() {
@@ -94,18 +94,18 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
     }
 
     public void drawLine(int x, int y, int width) {
-        drawRect(x, y, width, y + 1,0xff000000+ prevDialog.colorData.getLineColor1());//0xff8d3800);//
-        drawRect(x, y + 1, width, y + 2, 0xff000000+ prevDialog.colorData.getLineColor2()); //0xfffea53b);//
-        drawRect(x, y + 2, width, y + 3, 0xff000000+ prevDialog.colorData.getLineColor3()); //0xff8d3800);
+        drawRect(x, y, width, y + 1, 0xff000000 + prevDialog.colorData.getLineColor1());//0xff8d3800);//
+        drawRect(x, y + 1, width, y + 2, 0xff000000 + prevDialog.colorData.getLineColor2()); //0xfffea53b);//
+        drawRect(x, y + 2, width, y + 3, 0xff000000 + prevDialog.colorData.getLineColor3()); //0xff8d3800);
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         GL11.glColor4f(1, 1, 1, 1);
         this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x66000000);
         if (!prevDialog.hideNPC) {
-            float scaleHeight = height/509f;
-            float scaleWidth = width/960f;
-            drawNpc(npc, -210+prevDialog.npcOffsetX+(int)(300*(1-scaleWidth)), 350+prevDialog.npcOffsetY-(int)(100*(1-scaleHeight)), 9.5F*prevDialog.npcScale*scaleHeight, -20);
+            float scaleHeight = height / 509f;
+            float scaleWidth = width / 960f;
+            drawNpc(npc, -210 + prevDialog.npcOffsetX + (int) (300 * (1 - scaleWidth)), 350 + prevDialog.npcOffsetY - (int) (100 * (1 - scaleHeight)), 9.5F * prevDialog.npcScale * scaleHeight, -20);
         }
         setOptionOffset();
 
@@ -166,7 +166,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         }
         GL11.glPopMatrix();
         int textBlockWidth = 700;
-        String takeQuestString=translate("questgui.doyouaccept");
+        String takeQuestString = translate("questgui.doyouaccept");
         int lineCount = getLineCount(takeQuestString, textBlockWidth);
         int gap = Math.max(16, Math.min((int) (2.6f * (float) lineCount), 32));
         int textPartHeight = 23 + 3 + lineCount * ClientProxy.Font.height() + 2 * gap;
@@ -177,24 +177,24 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         GL11.glScalef(1.5f, 1.5f, 1);
         drawString(fontRendererObj, npc.getCommandSenderName(), (int) (47 / 1.5), (int) ((height - textPartHeight + 5) / 1.5), prevDialog.titleColor);
         GL11.glScalef(1 / 1.5f, 1 / 1.5f, 1);
-        drawTextBlock(takeQuestString, (width - textBlockWidth) / 2, height - textPartHeight + 23 + 3 + gap, textBlockWidth,-1);
+        drawTextBlock(takeQuestString, (width - textBlockWidth) / 2, height - textPartHeight + 23 + 3 + gap, textBlockWidth, -1);
 
         Map<Integer, QuestData> activeQuests = PlayerData.get(this.player).questData.activeQuests;
         boolean hadQuest = activeQuests.containsKey(quest.id);
-        activeQuests.put(quest.id,new QuestData(quest));
+        activeQuests.put(quest.id, new QuestData(quest));
         StringBuilder objectiveString = new StringBuilder();
         String[] questType = {translate("questgui.bringitems"), translate("questgui.readdialog"),
-                translate("questgui.killmobs"), translate("questgui.findlocation"), translate("questgui.defeat")};
+            translate("questgui.killmobs"), translate("questgui.findlocation"), translate("questgui.defeat")};
         for (IQuestObjective objective : quest.questInterface.getObjectives(this.player)) {
-            if(objective!=null)
+            if (objective != null)
                 objectiveString.append("- " + questType[quest.getType()] + ": ").append(objective.getText()).append("\n");
         }
-        if(!hadQuest)
+        if (!hadQuest)
             activeQuests.remove(quest.id);
         int questLineCount = getLineCount(quest.logText, 180);
-        int objectivesLineCount = getLineCount(objectiveString.toString(),180);
-        int topToTextBottom = (int)(height*0.08) + 38+questLineCount*ClientProxy.Font.height()+20;
-        int topToObjectivesBottom = topToTextBottom+19+objectivesLineCount*ClientProxy.Font.height()+14;
+        int objectivesLineCount = getLineCount(objectiveString.toString(), 180);
+        int topToTextBottom = (int) (height * 0.08) + 38 + questLineCount * ClientProxy.Font.height() + 20;
+        int topToObjectivesBottom = topToTextBottom + 19 + objectivesLineCount * ClientProxy.Font.height() + 14;
         int rewardCount = 0;
 
         List<Integer> facIDs = new ArrayList<Integer>();
@@ -202,74 +202,74 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             if (facID != -1) facIDs.add(facID);
         }
         for (IItemStack reward : quest.getRewards().getItems()) {
-            if (reward!=null && !(reward.getMCItemStack()==null)) rewardCount++;
+            if (reward != null && !(reward.getMCItemStack() == null)) rewardCount++;
         }
-        int topToRewardsBottom = topToObjectivesBottom+(rewardCount==0?0:(36+13));
-        int topToExpBottom = topToRewardsBottom+(quest.rewardExp==0?0:(12));
+        int topToRewardsBottom = topToObjectivesBottom + (rewardCount == 0 ? 0 : (36 + 13));
+        int topToExpBottom = topToRewardsBottom + (quest.rewardExp == 0 ? 0 : (12));
         int topToFactionBottom = topToExpBottom + (facIDs.size() * 15);
-        int questBlockHeight = topToFactionBottom+28;
-        drawGradientRect( width-285, (int)(height*0.08), width-285+260, questBlockHeight, 0x99000000, 0x99000000);
+        int questBlockHeight = topToFactionBottom + 28;
+        drawGradientRect(width - 285, (int) (height * 0.08), width - 285 + 260, questBlockHeight, 0x99000000, 0x99000000);
         GL11.glScalef(1.5f, 1.5f, 1);
-        drawString(fontRendererObj, quest.getName(), (int) ((width-268) / 1.5), (int) ((height*0.095) / 1.5), -1);
+        drawString(fontRendererObj, quest.getName(), (int) ((width - 268) / 1.5), (int) ((height * 0.095) / 1.5), -1);
         GL11.glScalef(1 / 1.5f, 1 / 1.5f, 1);
-        drawLine(width-274,(int)(height*0.13),width-285+260-11);
-        drawTextBlock(quest.logText, width-245, (int)(height*0.157), 180,0xb8b8b8);
-        drawString(fontRendererObj, translate("questgui.objectives"),width-270, topToTextBottom, -1);
-        drawLeftAllignedTextBlock(objectiveString.toString(), width-255, topToTextBottom+12, 180,0xb8b8b8);
-        if(rewardCount!=0)
-            drawString(fontRendererObj, translate("questgui.rewards"),width-270, topToObjectivesBottom, -1);
-        for(int i=0;i<quest.rewardItems.getSizeInventory();i++){
+        drawLine(width - 274, (int) (height * 0.13), width - 285 + 260 - 11);
+        drawTextBlock(quest.logText, width - 245, (int) (height * 0.157), 180, 0xb8b8b8);
+        drawString(fontRendererObj, translate("questgui.objectives"), width - 270, topToTextBottom, -1);
+        drawLeftAllignedTextBlock(objectiveString.toString(), width - 255, topToTextBottom + 12, 180, 0xb8b8b8);
+        if (rewardCount != 0)
+            drawString(fontRendererObj, translate("questgui.rewards"), width - 270, topToObjectivesBottom, -1);
+        for (int i = 0; i < quest.rewardItems.getSizeInventory(); i++) {
             ItemStack rewardStack = quest.rewardItems.getStackInSlot(i);
-            if(rewardStack==null) continue;
+            if (rewardStack == null) continue;
             Minecraft.getMinecraft().getTextureManager().bindTexture(decomposed);
             GL11.glDisable(GL11.GL_LIGHTING);
             int color = prevDialog.colorData.getSlotColor();
             GL11.glColor4f((color >> 16 & 0xff) / 255f, (color >> 8 & 0xff) / 255f, (color & 0xff) / 255f, 1);
-            drawTexturedModalRect(width-270+26*i, topToObjectivesBottom+16, 0, 27, 24, 24);
+            drawTexturedModalRect(width - 270 + 26 * i, topToObjectivesBottom + 16, 0, 27, 24, 24);
 
-            itemRender.renderItemAndEffectIntoGUI(fontRendererObj,Minecraft.getMinecraft().renderEngine, rewardStack, width-266+26*i, topToObjectivesBottom+20);
-            itemRender.renderItemOverlayIntoGUI(fontRendererObj,Minecraft.getMinecraft().renderEngine, rewardStack, width-266+26*i, topToObjectivesBottom+20, ""+rewardStack.stackSize);
+            itemRender.renderItemAndEffectIntoGUI(fontRendererObj, Minecraft.getMinecraft().renderEngine, rewardStack, width - 266 + 26 * i, topToObjectivesBottom + 20);
+            itemRender.renderItemOverlayIntoGUI(fontRendererObj, Minecraft.getMinecraft().renderEngine, rewardStack, width - 266 + 26 * i, topToObjectivesBottom + 20, "" + rewardStack.stackSize);
         }
         GL11.glDisable(GL11.GL_LIGHTING);
-        if(quest.rewardExp!=0) {
-            drawString(fontRendererObj, translate("questgui.experience"), width-270, topToRewardsBottom, 0xb8b8b8);
-            int expPosX = width-270+ClientProxy.Font.width(translate("questgui.experience"));
-            drawString(fontRendererObj, ""+quest.rewardExp, expPosX, topToRewardsBottom, -1);
-            int expSymbolPosX = expPosX+ClientProxy.Font.width(""+quest.rewardExp+"  ");
+        if (quest.rewardExp != 0) {
+            drawString(fontRendererObj, translate("questgui.experience"), width - 270, topToRewardsBottom, 0xb8b8b8);
+            int expPosX = width - 270 + ClientProxy.Font.width(translate("questgui.experience"));
+            drawString(fontRendererObj, "" + quest.rewardExp, expPosX, topToRewardsBottom, -1);
+            int expSymbolPosX = expPosX + ClientProxy.Font.width("" + quest.rewardExp + "  ");
             Minecraft.getMinecraft().getTextureManager().bindTexture(decomposed);
             drawTexturedModalRect(expSymbolPosX, topToRewardsBottom, 26, 27, 8, 8);
         }
-        int fac1ID =  quest.factionOptions.factionId;
+        int fac1ID = quest.factionOptions.factionId;
         if (fac1ID != -1) {
             String fac1Name = FactionController.getInstance().getFaction(fac1ID).getName();
             String fac1Color = (quest.factionOptions.decreaseFactionPoints) ? "§c-" : "§a+";
             int fac1Point = quest.factionOptions.factionPoints;
             int facIDIndex = facIDs.indexOf(fac1ID);
-            drawString(fontRendererObj, fac1Name + " " + fac1Color + fac1Point, width-270, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
+            drawString(fontRendererObj, fac1Name + " " + fac1Color + fac1Point, width - 270, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
         }
-        int fac2ID =  quest.factionOptions.faction2Id;
+        int fac2ID = quest.factionOptions.faction2Id;
         if (fac2ID != -1) {
             String fac2Name = FactionController.getInstance().getFaction(fac2ID).getName();
             String fac2Color = (quest.factionOptions.decreaseFaction2Points) ? "§c-" : "§a+";
             int fac2Point = quest.factionOptions.faction2Points;
             int facIDIndex = facIDs.indexOf(fac2ID);
-            drawString(fontRendererObj, fac2Name + " " + fac2Color + fac2Point, width-270, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
+            drawString(fontRendererObj, fac2Name + " " + fac2Color + fac2Point, width - 270, topToExpBottom + (facIDIndex * 12), 0xb8b8b8);
         }
-        this.buttons.get(0).xPosition=width-240;
-        this.buttons.get(1).xPosition=width-148;
-        this.buttons.get(0).yPosition=topToFactionBottom;
-        this.buttons.get(1).yPosition=topToFactionBottom;
-        ((GuiTexturedButton)this.buttons.get(0)).scale=0.5f;
-        ((GuiTexturedButton)this.buttons.get(1)).scale=0.5f;
-        ((GuiTexturedButton)this.buttons.get(0)).color=prevDialog.colorData.getButtonRejectColor();
-        ((GuiTexturedButton)this.buttons.get(1)).color=prevDialog.colorData.getButtonAcceptColor();
+        this.buttons.get(0).xPosition = width - 240;
+        this.buttons.get(1).xPosition = width - 148;
+        this.buttons.get(0).yPosition = topToFactionBottom;
+        this.buttons.get(1).yPosition = topToFactionBottom;
+        ((GuiTexturedButton) this.buttons.get(0)).scale = 0.5f;
+        ((GuiTexturedButton) this.buttons.get(1)).scale = 0.5f;
+        ((GuiTexturedButton) this.buttons.get(0)).color = prevDialog.colorData.getButtonRejectColor();
+        ((GuiTexturedButton) this.buttons.get(1)).color = prevDialog.colorData.getButtonAcceptColor();
         super.drawScreen(mouseX, mouseY, partialTicks);
-        GL11.glColor4f(1,1,1,1);
+        GL11.glColor4f(1, 1, 1, 1);
         GL11.glPopMatrix();
         GL11.glPopMatrix();
     }
 
-    public String translate(String key){
+    public String translate(String key) {
         return StatCollector.translateToLocal(key);
     }
 
@@ -316,7 +316,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         entity.prevRotationYawHead = f5;
         entity.rotationYawHead = f6;
         npc.ais.orientation = orientation;
-        npc.display.showName=visibleName;
+        npc.display.showName = visibleName;
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
@@ -330,21 +330,21 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
     public void drawString(FontRenderer fontRendererIn, String text, int x, int y, int color) {
         ClientProxy.Font.drawString(text, x, y, color);
     }
+
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         GuiNpcButton button = (GuiNpcButton) guibutton;
-        if(button.id==0){
+        if (button.id == 0) {
             PacketClient.sendClient(new DialogSelectPacket(prevDialog.id, -1));
             closed();
             close();
-        }else if(button.id==1){
-            if(optionId!=-2){
+        } else if (button.id == 1) {
+            if (optionId != -2) {
                 PacketClient.sendClient(new DialogSelectPacket(prevDialog.id, optionId));
-            }else{
-                if(ConfigExperimental.ModernGuiSystem) {
+            } else {
+                if (ConfigExperimental.ModernGuiSystem) {
                     CustomNpcs.proxy.openGui(player, new GuiModernDialogInteract(npc, prevDialog));
-                }
-                else {
+                } else {
                     CustomNpcs.proxy.openGui(player, new GuiDialogInteract(npc, prevDialog));
                 }
             }
@@ -378,6 +378,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
             drawCenteredString(fontRendererObj, line.getFormattedText(), x + width / 2, height, color);
         }
     }
+
     public void drawLeftAllignedTextBlock(String text, int x, int y, int width, int color) {
         TextBlockClient block = new TextBlockClient("", text, width, -1, player, npc);
 

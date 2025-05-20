@@ -26,6 +26,7 @@ public final class AttributeRecalcEvent {
     public static void registerListener(Listener l) {
         postListeners.add(l);
     }
+
     public static void post(EntityPlayer player, PlayerAttributeTracker tracker) {
         for (Listener l : postListeners) l.onPost(player, tracker);
     }

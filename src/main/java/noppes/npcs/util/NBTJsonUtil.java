@@ -332,8 +332,8 @@ public class NBTJsonUtil {
             comp2.setIntArray("intArray", new int[]{0, 0, 1, 1, 0});
 
             // Primitive types
-            comp2.setByte("byte", (byte)7);
-            comp2.setShort("short", (short)123);
+            comp2.setByte("byte", (byte) 7);
+            comp2.setShort("short", (short) 123);
             comp2.setInteger("int", 456);
             comp2.setLong("long", 789L);
             comp2.setFloat("float", 3.14F);

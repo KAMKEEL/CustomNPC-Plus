@@ -24,7 +24,8 @@ public class MagicCyclesPacket extends AbstractPacket {
 
     private int id;
 
-    public MagicCyclesPacket() {}
+    public MagicCyclesPacket() {
+    }
 
     public MagicCyclesPacket(int id) {
         this.id = id;
@@ -54,7 +55,7 @@ public class MagicCyclesPacket extends AbstractPacket {
             return;
 
         int id = in.readInt();
-        if(id == -1){
+        if (id == -1) {
             HashMap<String, Integer> map = new HashMap<>();
             for (MagicCycle magicCycle : MagicController.getInstance().cycles.values()) {
                 map.put(magicCycle.displayName.replace("&", "\u00A7"), magicCycle.id);
@@ -62,7 +63,7 @@ public class MagicCyclesPacket extends AbstractPacket {
             sendScrollData((EntityPlayerMP) player, map, EnumScrollData.MAGIC_CYCLES);
         } else {
             MagicCycle cycle = MagicController.getInstance().getCycle(id);
-            if(cycle == null)
+            if (cycle == null)
                 return;
             NBTTagCompound compound = new NBTTagCompound();
             NBTTagCompound magicCompound = new NBTTagCompound();

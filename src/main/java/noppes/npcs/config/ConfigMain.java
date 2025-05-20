@@ -248,7 +248,7 @@ public class ConfigMain {
             }
 
             config.setCategoryPropertyOrder(ATTRIBUTES, new ArrayList<>(Arrays.asList("Enable Attributes",
-                    "Critical Amount")));
+                "Critical Amount")));
 
             // Attributes
             AttributesEnabled = config.get(ATTRIBUTES, "Enable Attributes", true, "Allows Attributes to be applied to Items and Armors").getBoolean(true);

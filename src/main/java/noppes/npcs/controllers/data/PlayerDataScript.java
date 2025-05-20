@@ -85,16 +85,16 @@ public class PlayerDataScript implements INpcScriptHandler {
 
     @Override
     public void callScript(String hookName, Event event) {
-        if(!isEnabled())
+        if (!isEnabled())
             return;
 
-        if(ConfigScript.IndividualPlayerScripts){
-            if(ScriptController.Instance.lastLoaded > lastInited || ScriptController.Instance.lastPlayerUpdate > lastPlayerUpdate){
+        if (ConfigScript.IndividualPlayerScripts) {
+            if (ScriptController.Instance.lastLoaded > lastInited || ScriptController.Instance.lastPlayerUpdate > lastPlayerUpdate) {
                 lastInited = ScriptController.Instance.lastLoaded;
                 errored.clear();
-                if(player != null) {
+                if (player != null) {
                     scripts.clear();
-                    for(ScriptContainer script : ScriptController.Instance.playerScripts.scripts){
+                    for (ScriptContainer script : ScriptController.Instance.playerScripts.scripts) {
                         ScriptContainer s = new ScriptContainer(this);
                         s.readFromNBT(script.writeToNBT(new NBTTagCompound()));
                         scripts.add(s);
@@ -106,16 +106,16 @@ public class PlayerDataScript implements INpcScriptHandler {
                     EventHooks.onPlayerInit(this, playerEvent.player);
                 }
             }
-            for(int i = 0; i < scripts.size(); i++){
+            for (int i = 0; i < scripts.size(); i++) {
                 ScriptContainer script = scripts.get(i);
-                if(errored.contains(i))
+                if (errored.contains(i))
                     continue;
                 script.run(hookName, event);
-                if(script.errored){
+                if (script.errored) {
                     errored.add(i);
                 }
-                for(Entry<Long, String> entry : script.console.entrySet()){
-                    if(!console.containsKey(entry.getKey()))
+                for (Entry<Long, String> entry : script.console.entrySet()) {
+                    if (!console.containsKey(entry.getKey()))
                         console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + entry.getValue());
                 }
                 script.console.clear();
@@ -190,7 +190,7 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public Map<Long, String> getConsoleText() {
-        if(ConfigScript.IndividualPlayerScripts)
+        if (ConfigScript.IndividualPlayerScripts)
             return console;
 
         TreeMap<Long, String> map = new TreeMap<>();
@@ -206,7 +206,7 @@ public class PlayerDataScript implements INpcScriptHandler {
     }
 
     public void clearConsole() {
-        if(ConfigScript.IndividualPlayerScripts)
+        if (ConfigScript.IndividualPlayerScripts)
             console.clear();
         else {
             for (ScriptContainer script : this.getScripts()) {

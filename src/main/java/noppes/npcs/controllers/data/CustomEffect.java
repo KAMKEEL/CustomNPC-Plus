@@ -182,7 +182,7 @@ public class CustomEffect implements ICustomEffect {
 
     public void onAdded(EntityPlayer player, PlayerEffect playerEffect) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
-        if(playerEffect.index == 0){
+        if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Added event = new PlayerEvent.EffectEvent.Added(iPlayer, playerEffect);
 
             if (onAddedConsumer != null)
@@ -201,7 +201,7 @@ public class CustomEffect implements ICustomEffect {
 
     public void onTick(EntityPlayer player, PlayerEffect playerEffect) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
-        if(playerEffect.index == 0){
+        if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Ticked event = new PlayerEvent.EffectEvent.Ticked(iPlayer, playerEffect);
 
             if (onTickConsumer != null) {
@@ -222,7 +222,7 @@ public class CustomEffect implements ICustomEffect {
     public void onRemoved(EntityPlayer player, PlayerEffect playerEffect, PlayerEvent.EffectEvent.ExpirationType type) {
         IPlayer iPlayer = NoppesUtilServer.getIPlayer(player);
 
-        if(playerEffect.index == 0){
+        if (playerEffect.index == 0) {
             PlayerEvent.EffectEvent.Removed event = new PlayerEvent.EffectEvent.Removed(iPlayer, playerEffect, type);
 
             if (onRemovedConsumer != null) {

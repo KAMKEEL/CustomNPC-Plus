@@ -664,6 +664,7 @@ public abstract class GuiDiagram extends Gui {
     }
 
     // --- Arrow Drawing Methods ---
+
     /**
      * Draws a connection line between two endpoints.
      * If a reverse connection exists and allowTwoWay is false, the line is drawn with a perpendicular offset.
@@ -673,7 +674,7 @@ public abstract class GuiDiagram extends Gui {
         boolean twoWay = (reverse != null && allowTwoWay);
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
         int effectiveCurveAngle = (conn.customCurveAngle != null ? conn.customCurveAngle : this.curveAngle);
-        boolean useCustomCurveAngle = (conn.customAllowCurve  != null ? conn.customAllowCurve : this.curvedArrows);
+        boolean useCustomCurveAngle = (conn.customAllowCurve != null ? conn.customAllowCurve : this.curvedArrows);
 
         if (!useCustomCurveAngle) {
             if (separateTwoWay) {
@@ -869,7 +870,7 @@ public abstract class GuiDiagram extends Gui {
             color = 0xFFFFFFFF;
         boolean separateTwoWay = (reverse != null && !allowTwoWay);
         double angle;
-        boolean useCustomCurveAngle = (conn.customAllowCurve  != null ? conn.customAllowCurve : this.curvedArrows);
+        boolean useCustomCurveAngle = (conn.customAllowCurve != null ? conn.customAllowCurve : this.curvedArrows);
 
         if (!useCustomCurveAngle) {
             if (separateTwoWay) {
@@ -1243,7 +1244,7 @@ public abstract class GuiDiagram extends Gui {
                 if (pFrom == null || pTo == null) continue;
                 double dist;
                 boolean separateTwoWay = (getConnectionByIds(conn.idTo, conn.idFrom) != null && !allowTwoWay);
-                boolean useCustomCurveAngle = (conn.customAllowCurve  != null ? conn.customAllowCurve : this.curvedArrows);
+                boolean useCustomCurveAngle = (conn.customAllowCurve != null ? conn.customAllowCurve : this.curvedArrows);
                 if (separateTwoWay) {
                     if (useCustomCurveAngle) {
                         int offsetAmount = 4;
@@ -1339,7 +1340,7 @@ public abstract class GuiDiagram extends Gui {
             GL11.glTranslatef(-centerX, -centerY, 0);
             for (DiagramConnection conn : getConnections()) {
                 boolean showArrow = (conn.showArrowHead != null ? conn.showArrowHead : this.showArrowHeads);
-                if(!showArrow)
+                if (!showArrow)
                     continue;
 
                 DiagramIcon iconFrom = getIconById(conn.idFrom);
@@ -1419,13 +1420,13 @@ public abstract class GuiDiagram extends Gui {
         int r, g, b;
         if (value >= 0f) {
             float t = value;
-            r = (int)(144 + (0 - 144) * t);
-            g = (int)(238 + (100 - 238) * t);
-            b = (int)(144 + (0 - 144) * t);
+            r = (int) (144 + (0 - 144) * t);
+            g = (int) (238 + (100 - 238) * t);
+            b = (int) (144 + (0 - 144) * t);
         } else {
             float t = -value;
-            r = (int)(255 + (139 - 255) * t);
-            g = (int)(200 + (0 - 200) * t);
+            r = (int) (255 + (139 - 255) * t);
+            g = (int) (200 + (0 - 200) * t);
             b = 0;
         }
         return (0xFF << 24) | (r << 16) | (g << 8) | b;

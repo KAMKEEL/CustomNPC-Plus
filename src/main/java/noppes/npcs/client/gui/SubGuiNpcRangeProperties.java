@@ -107,7 +107,7 @@ public class SubGuiNpcRangeProperties extends SubGuiInterface implements ITextfi
             soundSelected = getTextField(7);
             setSubGui(new GuiSoundSelection(soundSelected.getText()));
         }
-        if(id == 10){
+        if (id == 10) {
             stats.onSoundBegin = ((GuiNpcButton) guibutton).getValue() == 1;
         }
         if (id == 66) {

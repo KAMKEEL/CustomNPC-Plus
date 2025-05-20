@@ -91,9 +91,9 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
     }
 
     public void drawLine(int x, int y, int width) {
-        drawRect(x, y, width, y + 1,0xff000000+ dialog.colorData.getLineColor1());
-        drawRect(x, y + 1, width, y + 2, 0xff000000+ dialog.colorData.getLineColor2());
-        drawRect(x, y + 2, width, y + 3, 0xff000000+ dialog.colorData.getLineColor3());
+        drawRect(x, y, width, y + 1, 0xff000000 + dialog.colorData.getLineColor1());
+        drawRect(x, y + 1, width, y + 2, 0xff000000 + dialog.colorData.getLineColor2());
+        drawRect(x, y + 2, width, y + 3, 0xff000000 + dialog.colorData.getLineColor3());
     }
 
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
@@ -125,7 +125,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
-            GL11.glTranslatef(image.x,image.y,0.0f);
+            GL11.glTranslatef(image.x, image.y, 0.0f);
             GL11.glTranslatef(image.alignment % 3 * ((float) (scaledResolution.getScaledWidth()) / 2), (float) (Math.floor((float) (image.alignment / 3)) * ((float) (scaledResolution.getScaledHeight()) / 2)), 0.0F);
             image.onRender(mc);
 
@@ -151,7 +151,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             OpenGlHelper.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA, 1, 0);
             GL11.glDisable(GL11.GL_ALPHA_TEST);
 
-            GL11.glTranslatef(image.x,image.y,0.0f);
+            GL11.glTranslatef(image.x, image.y, 0.0f);
             GL11.glTranslatef(guiLeft + dialog.textOffsetX, optionStart + dialog.textOffsetY - image.height * image.scale, 0.0F);
             image.onRender(mc);
 
@@ -179,22 +179,22 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
         drawTextBlock(dialog.text, (width - textBlockWidth) / 2, height - textPartHeight + 23 + 3 + gap, textBlockWidth);
         selected = -1;
         for (int i = 0; i < this.options.size(); i++) {
-            int optionHeight = height/2-30 + i * (13 + 6);
+            int optionHeight = height / 2 - 30 + i * (13 + 6);
             int optionNum = options.get(i);
             DialogOption option = dialog.options.get(optionNum);
-            if (mouseX >= width-237 && mouseX <= width-14 && mouseY >= optionHeight && mouseY <= optionHeight + 13) {
+            if (mouseX >= width - 237 && mouseX <= width - 14 && mouseY >= optionHeight && mouseY <= optionHeight + 13) {
                 selected = i;
             }
             GL11.glEnable(GL11.GL_BLEND);
             Minecraft.getMinecraft().getTextureManager().bindTexture(decomposed);
-            drawTexturedModalRect(width-233, optionHeight, 0, i == selected ? 13 : 0, 223, 13);
+            drawTexturedModalRect(width - 233, optionHeight, 0, i == selected ? 13 : 0, 223, 13);
             GL11.glDisable(GL11.GL_BLEND);
             if (getQuestByOptionId(optionNum) != null) {
-                drawString(fontRendererObj, "!", width-229, optionHeight + 3, 0x76e85b);
+                drawString(fontRendererObj, "!", width - 229, optionHeight + 3, 0x76e85b);
             } else {
-                drawString(fontRendererObj, ">", width-229, optionHeight + 3, -1);
+                drawString(fontRendererObj, ">", width - 229, optionHeight + 3, -1);
             }
-            drawString(fontRendererObj, option.title, width-221, optionHeight + 3, option.optionColor);
+            drawString(fontRendererObj, option.title, width - 221, optionHeight + 3, option.optionColor);
         }
         GL11.glPopMatrix();
         GL11.glPopMatrix();
@@ -250,7 +250,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
         entity.prevRotationYawHead = f5;
         entity.rotationYawHead = f6;
         npc.ais.orientation = orientation;
-        npc.display.showName=visibleName;
+        npc.display.showName = visibleName;
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
@@ -328,10 +328,10 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
             optionId = selected;
         else if (!options.isEmpty())
             optionId = options.get(selected);
-        if(getQuestByOptionId(optionId) == null){
+        if (getQuestByOptionId(optionId) == null) {
             PacketClient.sendClient(new DialogSelectPacket(dialog.id, optionId));
-        }else{
-            CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc,getQuestByOptionId(optionId),dialog,optionId));
+        } else {
+            CustomNpcs.proxy.openGui(player, new GuiModernQuestDialog(npc, getQuestByOptionId(optionId), dialog, optionId));
         }
 
         if (dialog == null || !dialog.hasOtherOptions() || options.isEmpty()) {

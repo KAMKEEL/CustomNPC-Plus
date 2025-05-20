@@ -81,7 +81,7 @@ public class AttributeController implements IAttributeHandler {
     }
 
     public IPlayerAttributes getPlayerAttributes(IPlayer player) {
-        if(player == null || player.getMCEntity() == null)
+        if (player == null || player.getMCEntity() == null)
             return null;
 
         EntityPlayer entityPlayer = (EntityPlayer) player.getMCEntity();

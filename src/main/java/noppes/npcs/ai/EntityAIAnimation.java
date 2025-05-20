@@ -27,7 +27,7 @@ public class EntityAIAnimation extends EntityAIBase {
         if (npc.stats.aimType == 1 && npc.isAttacking())
             return npc.currentAnimation != EnumAnimation.AIMING;
 
-        if(npc.stats.aimType == 2 && npc.isAttacking() && npc.getRangedTask() != null && npc.getRangedTask().isShooting())
+        if (npc.stats.aimType == 2 && npc.isAttacking() && npc.getRangedTask() != null && npc.getRangedTask().isShooting())
             return npc.currentAnimation != EnumAnimation.AIMING;
 
         if (npc.ais.animationType == EnumAnimation.NONE)

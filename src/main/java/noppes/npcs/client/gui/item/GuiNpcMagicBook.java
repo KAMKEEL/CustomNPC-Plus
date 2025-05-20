@@ -46,7 +46,7 @@ public class GuiNpcMagicBook extends GuiNPCInterface implements ICustomScrollLis
         addScroll(leftScroll);
 
         // --- Magic Map (Diagram) on the Right ---
-        if(magicCycle == null)
+        if (magicCycle == null)
             return;
 
         String displayName = magicCycle.getDisplayName().replace("&", "\u00A7");
@@ -76,7 +76,8 @@ public class GuiNpcMagicBook extends GuiNPCInterface implements ICustomScrollLis
     }
 
     @Override
-    public void actionPerformed(GuiButton guibutton) {}
+    public void actionPerformed(GuiButton guibutton) {
+    }
 
     @Override
     public void drawScreen(int i, int j, float f) {
@@ -84,7 +85,7 @@ public class GuiNpcMagicBook extends GuiNPCInterface implements ICustomScrollLis
     }
 
     @Override
-    protected void drawBackground(){
+    protected void drawBackground() {
         super.drawBackground();
 
         int spacing = 10;
@@ -144,7 +145,7 @@ public class GuiNpcMagicBook extends GuiNPCInterface implements ICustomScrollLis
 
     @Override
     public void setData(Vector<String> list, HashMap<String, Integer> data, EnumScrollData type) {
-        if(type == EnumScrollData.MAGIC_CYCLES){
+        if (type == EnumScrollData.MAGIC_CYCLES) {
             cycleData.clear();
             cycleData.putAll(data);
             if (leftScroll != null) {

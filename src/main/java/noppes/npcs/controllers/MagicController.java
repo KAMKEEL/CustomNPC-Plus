@@ -101,54 +101,54 @@ public class MagicController implements IMagicHandler {
 
             // Insiders
             earth.interactions.put(air.id, -0.50f);
-            air.interactions.put(earth.id,  0.50f);
+            air.interactions.put(earth.id, 0.50f);
 
             water.interactions.put(earth.id, -0.50f);
-            earth.interactions.put(water.id,  0.50f);
+            earth.interactions.put(water.id, 0.50f);
 
             fire.interactions.put(water.id, -0.50f);
-            water.interactions.put(fire.id,  0.50f);
+            water.interactions.put(fire.id, 0.50f);
 
             air.interactions.put(fire.id, -0.50f);
-            fire.interactions.put(air.id,  0.50f);
+            fire.interactions.put(air.id, 0.50f);
 
             // Outsiders
             dark.interactions.put(nature.id, -0.50f);
-            nature.interactions.put(dark.id,  0.50f);
+            nature.interactions.put(dark.id, 0.50f);
 
             nature.interactions.put(holy.id, -0.50f);
-            holy.interactions.put(nature.id,  0.50f);
+            holy.interactions.put(nature.id, 0.50f);
 
             holy.interactions.put(arcane.id, -0.50f);
-            arcane.interactions.put(holy.id,  0.50f);
+            arcane.interactions.put(holy.id, 0.50f);
 
             arcane.interactions.put(dark.id, -0.50f);
-            dark.interactions.put(arcane.id,  0.50f);
+            dark.interactions.put(arcane.id, 0.50f);
 
             // Cross Interactions
             earth.interactions.put(nature.id, -0.25f);
-            nature.interactions.put(earth.id,  0.25f);
+            nature.interactions.put(earth.id, 0.25f);
 
             water.interactions.put(holy.id, -0.25f);
-            holy.interactions.put(water.id,  0.25f);
+            holy.interactions.put(water.id, 0.25f);
 
             fire.interactions.put(arcane.id, -0.25f);
-            arcane.interactions.put(fire.id,  0.25f);
+            arcane.interactions.put(fire.id, 0.25f);
 
             air.interactions.put(dark.id, -0.25f);
-            dark.interactions.put(air.id,  0.25f);
+            dark.interactions.put(air.id, 0.25f);
 
             dark.interactions.put(fire.id, -0.25f);
-            fire.interactions.put(dark.id,  0.25f);
+            fire.interactions.put(dark.id, 0.25f);
 
             nature.interactions.put(air.id, -0.25f);
-            air.interactions.put(nature.id,  0.25f);
+            air.interactions.put(nature.id, 0.25f);
 
             holy.interactions.put(earth.id, -0.25f);
-            earth.interactions.put(holy.id,  0.25f);
+            earth.interactions.put(holy.id, 0.25f);
 
             arcane.interactions.put(water.id, -0.25f);
-            water.interactions.put(arcane.id,  0.25f);
+            water.interactions.put(arcane.id, 0.25f);
 
             // Add them to the registry
             magics.put(earth.id, earth);

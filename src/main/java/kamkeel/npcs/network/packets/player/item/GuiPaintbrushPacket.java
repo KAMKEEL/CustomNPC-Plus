@@ -28,7 +28,8 @@ public class GuiPaintbrushPacket extends AbstractPacket {
         this.posZ = posZ;
     }
 
-    public GuiPaintbrushPacket() {}
+    public GuiPaintbrushPacket() {
+    }
 
     @Override
     public Enum getType() {

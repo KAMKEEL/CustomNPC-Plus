@@ -2,14 +2,11 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
-import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
@@ -63,7 +60,7 @@ public class ScriptItemEventHandler {
         if (!isValidContext(e.player) || e.isCanceled())
             return;
 
-        if(e.entityItem == null)
+        if (e.entityItem == null)
             return;
 
         EntityItem entityItem = e.entityItem;
@@ -90,7 +87,7 @@ public class ScriptItemEventHandler {
         if (e.world.isRemote || !(e.entity instanceof EntityItem))
             return;
 
-        EntityItem itemEnt = (EntityItem)e.entity;
+        EntityItem itemEnt = (EntityItem) e.entity;
         IItemCustomizable c = getCustomizable(itemEnt.getEntityItem());
         if (c != null) {
             e.setCanceled(EventHooks.onScriptItemSpawn(c, itemEnt));
@@ -117,12 +114,13 @@ public class ScriptItemEventHandler {
             }
         }
     }
+
     @SubscribeEvent
     public void onPlayerInteract(PlayerInteractEvent e) {
         EntityPlayer player = e.entityPlayer;
         if (player == null || e.action == null) return;
 
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
         // Paintbrush on LEFT_CLICK_BLOCK
@@ -133,7 +131,7 @@ public class ScriptItemEventHandler {
 
                 TileEntity te = e.world.getTileEntity(e.x, e.y, e.z);
                 if (te instanceof TileColorable) {
-                    int color = ((TileColorable)te).color;
+                    int color = ((TileColorable) te).color;
                     if (!held.hasTagCompound()) {
                         held.setTagCompound(new NBTTagCompound());
                     }
@@ -172,7 +170,7 @@ public class ScriptItemEventHandler {
 
         } else if (e.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             pd.hadInteract = true;
-            IWorld iw = (IWorld)NpcAPI.Instance().getIWorld(e.world);
+            IWorld iw = (IWorld) NpcAPI.Instance().getIWorld(e.world);
             Object blockCtx = NpcAPI.Instance().getIBlock(iw, e.x, e.y, e.z);
             if (EventHooks.onScriptItemRightClick(
                 c, new ItemEvent.RightClickEvent(c, ip, 2, blockCtx))) {
@@ -183,7 +181,7 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void onStartUseItem(PlayerUseItemEvent.Start e) {
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
         IItemCustomizable c = getCustomizable(e.item);
@@ -195,7 +193,7 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void onUseItemTick(PlayerUseItemEvent.Tick e) {
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
         IItemCustomizable c = getCustomizable(e.item);
@@ -207,7 +205,7 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void onStopUseItem(PlayerUseItemEvent.Stop e) {
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
         IItemCustomizable c = getCustomizable(e.item);
@@ -220,7 +218,7 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void onFinishUseItem(PlayerUseItemEvent.Finish e) {
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
         IItemCustomizable c = getCustomizable(e.item);
@@ -232,33 +230,33 @@ public class ScriptItemEventHandler {
 
     @SubscribeEvent
     public void onAnvilRepair(AnvilRepairEvent e) {
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
-        if(e.output == null)
+        if (e.output == null)
             return;
 
         IItemStack out = NpcAPI.Instance().getIItemStack(e.output);
         if (out instanceof IItemCustomizable) {
             IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
-            IItemStack left  = NpcAPI.Instance().getIItemStack(e.left);
+            IItemStack left = NpcAPI.Instance().getIItemStack(e.left);
             IItemStack right = NpcAPI.Instance().getIItemStack(e.right);
-            EventHooks.onRepairCustomItem((IItemCustomizable)out, ip, left, right, e.breakChance);
+            EventHooks.onRepairCustomItem((IItemCustomizable) out, ip, left, right, e.breakChance);
         }
     }
 
     @SubscribeEvent
     public void onDestroyItem(PlayerDestroyItemEvent e) {
-        if(!isValidContext(e.entityPlayer))
+        if (!isValidContext(e.entityPlayer))
             return;
 
-        if(e.original == null)
+        if (e.original == null)
             return;
 
         IItemStack orig = NpcAPI.Instance().getIItemStack(e.original);
         if (orig instanceof IItemCustomizable) {
             IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
-            EventHooks.onBreakCustomItem((IItemCustomizable)orig, ip);
+            EventHooks.onBreakCustomItem((IItemCustomizable) orig, ip);
         }
     }
 

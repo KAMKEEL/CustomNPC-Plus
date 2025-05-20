@@ -572,7 +572,7 @@ public class ScriptPlayerEventHandler {
         if (event.player == null || event.player.worldObj == null)
             return;
 
-        if (event.player.worldObj instanceof WorldServer&& event.player instanceof EntityPlayerMP) {
+        if (event.player.worldObj instanceof WorldServer && event.player instanceof EntityPlayerMP) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.player);
             IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.player);
             AttributeController.removeTracker(event.player.getUniqueID());

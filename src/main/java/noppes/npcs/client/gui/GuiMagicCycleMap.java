@@ -111,7 +111,7 @@ public class GuiMagicCycleMap extends GuiDiagram {
                 if (!orderMap.containsKey(targetId)) continue;
                 float percent = entry.getValue();
                 String modifier = "";
-                if(percent > 0.0)
+                if (percent > 0.0)
                     modifier += "+";
                 String hover = modifier + (int) (percent * 100) + "%";
                 conns.add(new DiagramConnection(m.id, targetId, percent, hover));

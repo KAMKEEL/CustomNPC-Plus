@@ -78,9 +78,9 @@ public class ItemToolRenderer implements IItemRenderer {
                 float blue = (color & 0xFF) / 255.0F;
                 GL11.glColor3f(red, green, blue);
                 renderEntityCustomItem(itemStack, entityItem, PAINTBRUSH_BRUSH);
-            } else if (itemStack.getItemDamage() == 0){
+            } else if (itemStack.getItemDamage() == 0) {
                 renderEntityCustomItem(itemStack, entityItem, HAMMER);
-            } else if (itemStack.getItemDamage() == 2){
+            } else if (itemStack.getItemDamage() == 2) {
                 renderEntityCustomItem(itemStack, entityItem, MAGIC_BOOK);
             }
             GL11.glPopMatrix();
@@ -114,11 +114,11 @@ public class ItemToolRenderer implements IItemRenderer {
             GL11.glPushMatrix();
             renderItem3d(entityLivingBase, itemStack, PAINTBRUSH_BRUSH);
             GL11.glPopMatrix();
-        } else if (itemStack.getItemDamage() == 0){
+        } else if (itemStack.getItemDamage() == 0) {
             GL11.glPushMatrix();
             renderItem3d(entityLivingBase, itemStack, HAMMER);
             GL11.glPopMatrix();
-        } else if (itemStack.getItemDamage() == 2){
+        } else if (itemStack.getItemDamage() == 2) {
             GL11.glPushMatrix();
             renderItem3d(entityLivingBase, itemStack, MAGIC_BOOK);
             GL11.glPopMatrix();
@@ -297,10 +297,10 @@ public class ItemToolRenderer implements IItemRenderer {
             float blue = (color & 0xFF) / 255.0F;
             textureManager.bindTexture(PAINTBRUSH_BRUSH);
             renderCustomItemSlot(0, 0, 16, 16, red, green, blue);
-        } else if (itemStack.getItemDamage() == 0){
+        } else if (itemStack.getItemDamage() == 0) {
             textureManager.bindTexture(HAMMER);
             renderCustomItemSlot(0, 0, 16, 16, 1.0f, 1.0f, 1.0f);
-        } else if (itemStack.getItemDamage() == 2){
+        } else if (itemStack.getItemDamage() == 2) {
             textureManager.bindTexture(MAGIC_BOOK);
             renderCustomItemSlot(0, 0, 16, 16, 1.0f, 1.0f, 1.0f);
         }
