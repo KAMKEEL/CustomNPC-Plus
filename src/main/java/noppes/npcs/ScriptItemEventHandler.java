@@ -2,10 +2,16 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.packets.request.item.ColorBrushPacket;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.LivingEvent;
@@ -14,9 +20,11 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
+import noppes.npcs.blocks.tiles.TileColorable;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.ItemEvent;
 
@@ -27,7 +35,7 @@ public class ScriptItemEventHandler {
     }
 
     @SubscribeEvent
-    public void invoke(LivingEvent.LivingUpdateEvent event) {
+    public void onLivingUpdate(LivingEvent.LivingUpdateEvent event) {
         if (event.entityLiving == null || event.entityLiving.worldObj == null || event.entityLiving instanceof EntityPlayer || event.entityLiving.ticksExisted % 10 != 0)
             return;
 
@@ -51,205 +59,222 @@ public class ScriptItemEventHandler {
     }
 
     @SubscribeEvent
-    public void invoke(ItemTossEvent event) {
-        if (event.player == null || event.player.worldObj == null)
+    public void onItemToss(ItemTossEvent e) {
+        if (!isValidContext(e.player) || e.isCanceled())
             return;
 
-        if (event.player.worldObj instanceof WorldServer) {
-            try {
-                if (NoppesUtilServer.isScriptableItem(event.entityItem.getEntityItem().getItem()) && !event.isCanceled()) {
-                    IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityItem.getEntityItem());
-                    if (isw instanceof IItemCustomizable)
-                        event.setCanceled(EventHooks.onScriptItemTossed((IItemCustomizable) isw, event.player, event.entityItem));
-                }
-            } catch (Exception e) {
-            }
+        if(e.entityItem == null)
+            return;
+
+        EntityItem entityItem = e.entityItem;
+        IItemCustomizable c = getCustomizable(entityItem.getEntityItem());
+        if (c != null) {
+            e.setCanceled(EventHooks.onScriptItemTossed(c, e.player, entityItem));
+        }
+    }
+
+
+    @SubscribeEvent
+    public void onItemPickup(PlayerEvent.ItemPickupEvent e) {
+        if (!isValidContext(e.player) || e.isCanceled())
+            return;
+
+        IItemCustomizable c = getCustomizable(e.player.getHeldItem());
+        if (c != null) {
+            EventHooks.onScriptItemPickedUp(c, e.player);
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerEvent.ItemPickupEvent event) {
-        if (event.player == null || event.player.worldObj == null)
+    public void onEntityJoinWorld(EntityJoinWorldEvent e) {
+        if (e.world.isRemote || !(e.entity instanceof EntityItem))
             return;
 
-        if (event.player.worldObj instanceof WorldServer) {
-            try {
-                if (NoppesUtilServer.isScriptableItem(event.player.getHeldItem().getItem()) && !event.isCanceled()) {
-                    IItemStack isw = NpcAPI.Instance().getIItemStack(event.player.getHeldItem());
-                    if (isw instanceof IItemCustomizable)
-                        EventHooks.onScriptItemPickedUp((IItemCustomizable) isw, event.player);
-                }
-            } catch (Exception e) {
-            }
+        EntityItem itemEnt = (EntityItem)e.entity;
+        IItemCustomizable c = getCustomizable(itemEnt.getEntityItem());
+        if (c != null) {
+            e.setCanceled(EventHooks.onScriptItemSpawn(c, itemEnt));
         }
     }
 
     @SubscribeEvent
-    public void invoke(EntityJoinWorldEvent event) {
-        if (!event.world.isRemote && event.entity instanceof EntityItem) {
-            EntityItem entity = (EntityItem) event.entity;
-            ItemStack stack = entity.getEntityItem();
+    public void onEntityInteract(EntityInteractEvent e) {
+        EntityPlayer player = e.entityPlayer;
+        if (!isValidContext(player) || e.isCanceled())
+            return;
 
-            try {
-                if (stack.stackSize > 0 && NoppesUtilServer.isScriptableItem(stack.getItem())) {
-                    IItemStack isw = NpcAPI.Instance().getIItemStack(stack);
-                    if (isw instanceof IItemCustomizable) {
-                        if (EventHooks.onScriptItemSpawn((IItemCustomizable) isw, entity)) {
-                            event.setCanceled(true);
-                        }
+        IItemCustomizable c = getCustomizable(player.getHeldItem());
+        IPlayer ip = NoppesUtilServer.getIPlayer(player);
+        if (c != null && ip != null) {
+            boolean cancelA = EventHooks.onScriptItemInteract(
+                c, new ItemEvent.InteractEvent(c, ip, 2, NpcAPI.Instance().getIEntity(e.target))
+            );
+            boolean cancelB = EventHooks.onScriptItemRightClick(
+                c, new ItemEvent.RightClickEvent(c, ip, 1, NpcAPI.Instance().getIEntity(e.target))
+            );
+            if (cancelA || cancelB) {
+                e.setCanceled(true);
+            }
+        }
+    }
+    @SubscribeEvent
+    public void onPlayerInteract(PlayerInteractEvent e) {
+        EntityPlayer player = e.entityPlayer;
+        if (player == null || e.action == null) return;
+
+        if(!isValidContext(e.entityPlayer))
+            return;
+
+        // Paintbrush on LEFT_CLICK_BLOCK
+        if (e.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK) {
+            ItemStack held = player.getHeldItem();
+            if (ItemNpcTool.isPaintbrush(held)
+                && CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.NPC_BUILD)) {
+
+                TileEntity te = e.world.getTileEntity(e.x, e.y, e.z);
+                if (te instanceof TileColorable) {
+                    int color = ((TileColorable)te).color;
+                    if (!held.hasTagCompound()) {
+                        held.setTagCompound(new NBTTagCompound());
                     }
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void invoke(EntityInteractEvent event) {
-        if (event.entityPlayer == null || event.entityPlayer.worldObj == null)
-            return;
-
-        if (!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer) {
-            try {
-                if (NoppesUtilServer.isScriptableItem(event.entityPlayer.getHeldItem().getItem()) && !event.isCanceled()) {
-                    IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
-                    if (isw instanceof IItemCustomizable) {
-                        ItemEvent.InteractEvent eve = new ItemEvent.InteractEvent((IItemCustomizable) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIEntity(event.target));
-                        event.setCanceled(EventHooks.onScriptItemInteract((IItemCustomizable) isw, eve));
-
-                        ItemEvent.RightClickEvent rightClickEvent = new ItemEvent.RightClickEvent((IItemCustomizable) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 1, NpcAPI.Instance().getIEntity(event.target));
-                        event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustomizable) isw, rightClickEvent));
-                    }
-                }
-            } catch (Exception e) {
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void invoke(PlayerInteractEvent event) {
-        if (event.entityPlayer == null || event.entityPlayer.worldObj == null || event.action == null)
-            return;
-
-        if (event.entityPlayer.worldObj.isRemote || !(event.entityPlayer.worldObj instanceof WorldServer))
-            return;
-
-        if (PlayerDataController.Instance != null) {
-            if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
-                PlayerData handler = PlayerData.get(event.entityPlayer);
-                if (handler == null)
-                    return;
-
-                if (handler.hadInteract) {
-                    handler.hadInteract = false;
+                    ItemNpcTool.setColor(held.getTagCompound(), color);
+                    e.setCanceled(true);
                     return;
                 }
-                try {
-                    if (NoppesUtilServer.isScriptableItem(event.entityPlayer.getHeldItem().getItem()) && !event.isCanceled()) {
-                        IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
-                        if (isw instanceof IItemCustomizable) {
-                            ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent((IItemCustomizable) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 0, null);
-                            event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustomizable) isw, eve));
-                        }
-                    }
-                } catch (Exception e) {
-                }
-            } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
-                PlayerData handler = PlayerData.get(event.entityPlayer);
-                if (handler == null)
-                    return;
+            }
+        }
 
-                handler.hadInteract = true;
-                try {
-                    if (NoppesUtilServer.isScriptableItem(event.entityPlayer.getHeldItem().getItem()) && !event.isCanceled()) {
-                        IItemStack isw = NpcAPI.Instance().getIItemStack(event.entityPlayer.getHeldItem());
-                        if (isw instanceof IItemCustomizable) {
-                            ItemEvent.RightClickEvent eve = new ItemEvent.RightClickEvent((IItemCustomizable) isw, (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer), 2, NpcAPI.Instance().getIBlock((IWorld) NpcAPI.Instance().getIWorld(event.world), event.x, event.y, event.z));
-                            event.setCanceled(EventHooks.onScriptItemRightClick((IItemCustomizable) isw, eve));
-                        }
-                    }
-                } catch (Exception e) {
-                }
+        // Scriptable-item RIGHT_CLICK hooks
+        if (PlayerDataController.Instance == null) {
+            return;
+        }
+        PlayerData pd = PlayerData.get(player);
+        if (pd == null) {
+            return;
+        }
+
+        ItemStack held = player.getHeldItem();
+        IItemCustomizable c = getCustomizable(held);
+        IPlayer ip = NoppesUtilServer.getIPlayer(player);
+        if (c == null || ip == null) {
+            return;
+        }
+
+        if (e.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
+            if (pd.hadInteract) {
+                pd.hadInteract = false;
+                return;
+            }
+            if (EventHooks.onScriptItemRightClick(
+                c, new ItemEvent.RightClickEvent(c, ip, 0, null))) {
+                e.setCanceled(true);
+            }
+
+        } else if (e.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
+            pd.hadInteract = true;
+            IWorld iw = (IWorld)NpcAPI.Instance().getIWorld(e.world);
+            Object blockCtx = NpcAPI.Instance().getIBlock(iw, e.x, e.y, e.z);
+            if (EventHooks.onScriptItemRightClick(
+                c, new ItemEvent.RightClickEvent(c, ip, 2, blockCtx))) {
+                e.setCanceled(true);
             }
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerUseItemEvent.Start event) {
-        if (event.entityPlayer == null || event.entityPlayer.worldObj == null)
+    public void onStartUseItem(PlayerUseItemEvent.Start e) {
+        if(!isValidContext(e.entityPlayer))
             return;
 
-        if (event.entityPlayer.worldObj instanceof WorldServer) {
-
-            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
-            if (isw instanceof IItemCustomizable) {
-                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-                event.setCanceled(EventHooks.onStartUsingCustomItem((IItemCustomizable) isw, IPlayer, event.duration));
-            }
+        IItemCustomizable c = getCustomizable(e.item);
+        IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
+        if (c != null && ip != null && EventHooks.onStartUsingCustomItem(c, ip, e.duration)) {
+            e.setCanceled(true);
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerUseItemEvent.Tick event) {
-        if (event.entityPlayer == null || event.entityPlayer.worldObj == null)
+    public void onUseItemTick(PlayerUseItemEvent.Tick e) {
+        if(!isValidContext(e.entityPlayer))
             return;
 
-        if (event.entityPlayer.worldObj instanceof WorldServer && NoppesUtilServer.isScriptableItem(event.item.getItem())) {
-
-            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
-            if (isw instanceof IItemCustomizable) {
-                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-                event.setCanceled(EventHooks.onUsingCustomItem((IItemCustomizable) isw, IPlayer, event.duration));
-            }
+        IItemCustomizable c = getCustomizable(e.item);
+        IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
+        if (c != null && ip != null && EventHooks.onUsingCustomItem(c, ip, e.duration)) {
+            e.setCanceled(true);
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerUseItemEvent.Stop event) {
-        if (event.entityPlayer == null || event.entityPlayer.worldObj == null)
+    public void onStopUseItem(PlayerUseItemEvent.Stop e) {
+        if(!isValidContext(e.entityPlayer))
             return;
 
-        if (event.entityPlayer.worldObj instanceof WorldServer && NoppesUtilServer.isScriptableItem(event.item.getItem())) {
-            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
-            if (isw instanceof IItemCustomizable) {
-                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-                event.setCanceled(EventHooks.onStopUsingCustomItem((IItemCustomizable) isw, IPlayer, event.duration));
-            }
+        IItemCustomizable c = getCustomizable(e.item);
+        IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
+        if (c != null && ip != null
+            && EventHooks.onStopUsingCustomItem(c, ip, e.duration)) {
+            e.setCanceled(true);
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerUseItemEvent.Finish event) {
-        if (event.entityPlayer == null || event.entityPlayer.worldObj == null)
+    public void onFinishUseItem(PlayerUseItemEvent.Finish e) {
+        if(!isValidContext(e.entityPlayer))
             return;
 
-        if (event.entityPlayer.worldObj instanceof WorldServer && NoppesUtilServer.isScriptableItem(event.item.getItem())) {
-            IItemStack isw = NpcAPI.Instance().getIItemStack(event.item);
-            if (isw instanceof IItemCustomizable) {
-                IPlayer IPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-                EventHooks.onFinishUsingCustomItem((IItemCustomizable) isw, IPlayer, event.duration);
-            }
+        IItemCustomizable c = getCustomizable(e.item);
+        IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
+        if (c != null && ip != null) {
+            EventHooks.onFinishUsingCustomItem(c, ip, e.duration);
         }
     }
 
     @SubscribeEvent
-    public void invoke(AnvilRepairEvent repairEvent) {
-        IItemStack output = NpcAPI.Instance().getIItemStack(repairEvent.output);
-        if (output instanceof IItemCustomizable) {
-            IPlayer player = (IPlayer) NpcAPI.Instance().getIEntity(repairEvent.entityPlayer);
-            IItemStack left = NpcAPI.Instance().getIItemStack(repairEvent.left);
-            IItemStack right = NpcAPI.Instance().getIItemStack(repairEvent.right);
-            float breakChance = repairEvent.breakChance;
-            EventHooks.onRepairCustomItem((IItemCustomizable) output, player, left, right, breakChance);
+    public void onAnvilRepair(AnvilRepairEvent e) {
+        if(!isValidContext(e.entityPlayer))
+            return;
+
+        if(e.output == null)
+            return;
+
+        IItemStack out = NpcAPI.Instance().getIItemStack(e.output);
+        if (out instanceof IItemCustomizable) {
+            IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
+            IItemStack left  = NpcAPI.Instance().getIItemStack(e.left);
+            IItemStack right = NpcAPI.Instance().getIItemStack(e.right);
+            EventHooks.onRepairCustomItem((IItemCustomizable)out, ip, left, right, e.breakChance);
         }
     }
 
     @SubscribeEvent
-    public void invoke(PlayerDestroyItemEvent destroyItemEvent) {
-        IItemStack itemStack = NpcAPI.Instance().getIItemStack(destroyItemEvent.original);
-        if (itemStack instanceof IItemCustomizable) {
-            IPlayer player = (IPlayer) NpcAPI.Instance().getIEntity(destroyItemEvent.entityPlayer);
-            EventHooks.onBreakCustomItem((IItemCustomizable) itemStack, player);
+    public void onDestroyItem(PlayerDestroyItemEvent e) {
+        if(!isValidContext(e.entityPlayer))
+            return;
+
+        if(e.original == null)
+            return;
+
+        IItemStack orig = NpcAPI.Instance().getIItemStack(e.original);
+        if (orig instanceof IItemCustomizable) {
+            IPlayer ip = NoppesUtilServer.getIPlayer(e.entityPlayer);
+            EventHooks.onBreakCustomItem((IItemCustomizable)orig, ip);
         }
+    }
+
+    private boolean isValidContext(EntityPlayer player) {
+        return player != null
+            && player.worldObj instanceof WorldServer
+            && !player.worldObj.isRemote
+            && !(player instanceof FakePlayer);
+    }
+
+    private IItemCustomizable getCustomizable(ItemStack stack) {
+        if (stack == null || stack.getItem() == null || !NoppesUtilServer.isScriptableItem(stack.getItem())) {
+            return null;
+        }
+
+        IItemStack raw = NpcAPI.Instance().getIItemStack(stack);
+        return (raw instanceof IItemCustomizable) ? (IItemCustomizable) raw : null;
     }
 }
