@@ -144,6 +144,8 @@ public class ItemNpcTool extends Item {
     }
 
     public static boolean isPaintbrush(ItemStack itemStack) {
+        if(itemStack == null)
+            return false;
         return itemStack.getItemDamage() == 1;
     }
 
