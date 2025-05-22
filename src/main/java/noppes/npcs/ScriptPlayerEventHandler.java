@@ -495,7 +495,7 @@ public class ScriptPlayerEventHandler {
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void invoke(LivingHurtEvent event) {
         if (event.entityLiving == null || event.entityLiving.worldObj == null)
             return;
