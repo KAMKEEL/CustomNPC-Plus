@@ -713,7 +713,10 @@ public class EntityProjectile extends EntityThrowable {
         this.dataWatcher.updateObject(28, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Render3D") ? 1 : 0)));
         this.dataWatcher.updateObject(29, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Spins") ? 1 : 0)));
         this.dataWatcher.updateObject(30, Byte.valueOf((byte) (par1NBTTagCompound.getBoolean("Sticks") ? 1 : 0)));
-        this.dataWatcher.updateObject(31, par1NBTTagCompound.getString("trailCustom"));
+        if (par1NBTTagCompound.hasKey("trailCustom")) {
+            byte trailCustom = par1NBTTagCompound.getByte("trailCustom");
+            this.dataWatcher.updateObject(31, Byte.valueOf(trailCustom));
+        }
 
         if (this.throwerName != null && this.throwerName.length() == 0) {
             this.throwerName = null;
@@ -892,6 +895,7 @@ public class EntityProjectile extends EntityThrowable {
         }
 
     }
+
 
     @Override
     protected boolean canTriggerWalking() {
