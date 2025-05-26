@@ -63,9 +63,20 @@ public class ScriptController {
             return;
         LogWriter.info("Script Engines Available:");
 
-        ScriptEngine engine = manager.getEngineByName("nashorn");
-        if (engine != null) {
-            this.nashornFactory = engine.getFactory();
+        try {
+            this.nashornFactory = new NashornScriptEngineFactory();
+            LogWriter.info("→ standalone Nashorn loaded");
+        } catch (NoClassDefFoundError e) {
+            // fallback to built-in (Java 8–11) — also guarded
+            try {
+                ScriptEngine eng = manager.getEngineByName("nashorn");
+                if (eng != null) {
+                    this.nashornFactory = eng.getFactory();
+                    LogWriter.info("→ built-in Nashorn loaded");
+                }
+            } catch (Throwable t) {
+                LogWriter.error("No Nashorn engine available");
+            }
         }
 
         for (ScriptEngineFactory fac : manager.getEngineFactories()) {
