@@ -58,6 +58,8 @@ public class ConfigScript {
     public static Property BannedClassesProperty;
     public final static HashSet<String> BannedClasses = new HashSet<>();
 
+    public static int ActionManagerTickDefault = 5;
+
     public static boolean IndividualPlayerScripts = false;
 
     public static void init(File configFile) {
@@ -113,6 +115,7 @@ public class ConfigScript {
 
 
             IndividualPlayerScripts = config.get(CUSTOMIZATION, "Individual Player Scripts", false, "Acts similar to CNPC 1.12 where Player Scripts like Init are run PER Player").getBoolean(false);
+            ActionManagerTickDefault = config.get(CUSTOMIZATION, "Action Manager Tick Default", ActionManagerTickDefault, "How frequent to update the action manager ticking tasks").getInt(ActionManagerTickDefault);
 
             // Convert to Legacy
             if (CustomNpcs.legacyExist) {
@@ -143,6 +146,10 @@ public class ConfigScript {
 
             if (ExpandedScriptLimit < 0)
                 ExpandedScriptLimit = 0;
+
+            if(ActionManagerTickDefault < 0){
+                ActionManagerTickDefault = 1;
+            }
 
             try {
                 Developer.ScriptUser.clear();

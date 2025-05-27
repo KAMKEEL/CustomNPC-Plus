@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.HashMap;
