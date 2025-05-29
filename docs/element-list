@@ -10,6 +10,7 @@ noppes.npcs.api.event
 noppes.npcs.api.gui
 noppes.npcs.api.handler
 noppes.npcs.api.handler.data
+noppes.npcs.api.handler.data.actions
 noppes.npcs.api.item
 noppes.npcs.api.jobs
 noppes.npcs.api.overlay
