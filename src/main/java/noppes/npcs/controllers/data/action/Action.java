@@ -1,7 +1,6 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
-import noppes.npcs.config.ConfigScript;
 import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.HashMap;
@@ -128,7 +127,7 @@ public class Action implements IAction {
     }
 
     @Override
-    public IAction addData(String key, Object v) {
+    public IAction setData(String key, Object v) {
         dataStore.put(key, v);
         return this;
     }
@@ -137,6 +136,11 @@ public class Action implements IAction {
     public IAction removeData(String key) {
         dataStore.remove(key);
         return this;
+    }
+
+    @Override
+    public boolean hasData(String key) {
+        return dataStore.containsKey(key);
     }
 
     @Override
