@@ -136,7 +136,11 @@ public class ScriptWorld implements IWorld {
     }
 
     public IBlock getTopBlock(int x, int z) {
-        return NpcAPI.Instance().getIBlock(this, x, world.getTopSolidOrLiquidBlock(x, z), z);
+        int yAbove = world.getTopSolidOrLiquidBlock(x, z);
+        if (yAbove <= 0) {
+            return null;
+        }
+        return NpcAPI.Instance().getIBlock(this, x, yAbove - 1, z);
     }
 
     public IBlock getTopBlock(IPos pos) {
