@@ -92,22 +92,20 @@ public class ScriptContainer {
 
     private String getFullCode() {
         if (!this.evaluated) {
-            this.fullscript = this.script;
-            if (!this.fullscript.isEmpty()) {
-                this.fullscript = this.fullscript + "\n";
-            }
-
-            Iterator var1 = this.scripts.iterator();
-
-            while (var1.hasNext()) {
-                String loc = (String) var1.next();
-                String code = (String) ScriptController.Instance.scripts.get(loc);
+            // build includes first
+            StringBuilder sb = new StringBuilder();
+            for (String loc : this.scripts) {
+                String code = ScriptController.Instance.scripts.get(loc);
                 if (code != null && !code.isEmpty()) {
-                    this.fullscript = this.fullscript + code + "\n";
+                    sb.append(code).append("\n");
                 }
             }
-
-            this.unknownFunctions = new HashSet<String>();
+            // then your per‐hook script
+            if (this.script != null && !this.script.isEmpty()) {
+                sb.append(this.script).append("\n");
+            }
+            this.fullscript = sb.toString();
+            this.unknownFunctions = new HashSet<>();
         }
         return this.fullscript;
     }
