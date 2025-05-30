@@ -30,6 +30,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.*;
 
 import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
@@ -64,9 +66,12 @@ public class ScriptController {
         LogWriter.info("Script Engines Available:");
 
         try {
-            this.nashornFactory = new NashornScriptEngineFactory();
-            LogWriter.info("→ standalone Nashorn loaded");
-        } catch (NoClassDefFoundError e) {
+//            this.nashornFactory = new NashornScriptEngineFactory();
+//            LogWriter.info("→ standalone Nashorn loaded");
+            Class<?> clazz = Class.forName("org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory");
+            this.nashornFactory = (ScriptEngineFactory) clazz.newInstance();
+            LogWriter.info("→ standalone Nashorn loaded: " + this.nashornFactory.getEngineName());
+        } catch (Exception e) {
             // fallback to built-in (Java 8–11) — also guarded
             try {
                 ScriptEngine eng = manager.getEngineByName("nashorn");
@@ -299,7 +304,9 @@ public class ScriptController {
 
     public ScriptEngine getEngineByName(String language) {
         if (nashornNames.contains(language) && this.nashornFactory != null) {
-            ScriptEngine scriptEngine;
+            ScriptEngine scriptEngine = getOpenJDKNashornEngine();
+            if (scriptEngine != null) return scriptEngine;
+
             if (ConfigScript.EnableBannedClasses) {
                 try {
                     ClassFilter filter = s -> {
@@ -322,6 +329,63 @@ public class ScriptController {
             return scriptEngine;
         }
         return manager.getEngineByName(language);
+    }
+
+    public ScriptEngine getOpenJDKNashornEngine() {
+        ScriptEngine engine;
+        try {
+            // Load factory and class filter
+            Class<?> factoryClass = Class.forName("org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory");
+            Object factory = factoryClass.getConstructor().newInstance();
+
+            // Load ClassFilter interface (from Nashorn 15.6)
+            Class<?> classFilterClass = Class.forName("org.openjdk.nashorn.api.scripting.ClassFilter");
+
+            Object classFilter;
+            if (ConfigScript.EnableBannedClasses) {
+                // Create proxy instance of ClassFilter
+                classFilter = Proxy.newProxyInstance(
+                    classFilterClass.getClassLoader(),
+                    new Class[]{classFilterClass},
+                    (proxy, method, args) -> {
+                        if ("exposeToScripts".equals(method.getName()) && args.length == 1) {
+                            String className = (String) args[0];
+                            for (String banned : ConfigScript.BannedClasses) {
+                                if (className.equals(banned)) return false;
+                            }
+                            return true;
+                        }
+                        throw new UnsupportedOperationException("Unsupported method: " + method);
+                    });
+
+                Method getEngineMethod = factoryClass.getMethod(
+                    "getScriptEngine",
+                    String[].class,
+                    ClassLoader.class,
+                    classFilterClass
+                );
+
+                String[] options = new String[] { "--language=es6" };
+                ClassLoader loader = Thread.currentThread().getContextClassLoader();
+                Object filter = classFilterClass.cast(null); // or your actual filter instance
+
+                engine = (ScriptEngine) getEngineMethod.invoke(
+                    factory,
+                    (Object) options,
+                    loader,
+                    filter
+                );
+            } else {
+                Method getEngineMethod = factoryClass.getMethod("getScriptEngine", String[].class);
+                String[] args = new String[] { "--language=es6" };
+                engine = (ScriptEngine) getEngineMethod.invoke(factory, (Object) args);
+            }
+
+            engine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
+            return engine;
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private static List<String> immutableList(String... elements) {
