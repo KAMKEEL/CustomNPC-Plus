@@ -25,6 +25,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public Map<String, List<String>> languages = new HashMap();
     private int scriptLimit = 1;
     public List<String> hookList = new ArrayList<String>();
+    protected boolean loaded = false;
 
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
@@ -338,7 +339,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void save() {
-        this.setScript();
+        if(loaded)
+            this.setScript();
     }
 
     public void textUpdate(String text) {

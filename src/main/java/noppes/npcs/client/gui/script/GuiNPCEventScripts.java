@@ -39,6 +39,11 @@ public class GuiNPCEventScripts extends GuiScriptInterface {
     }
 
     public void setGuiData(NBTTagCompound compound) {
+        if(compound.hasKey("LoadComplete")){
+            loaded = true;
+            return;
+        }
+
         if (!compound.hasKey("Tab")) {
             script.setLanguage(compound.getString("ScriptLanguage"));
             script.setEnabled(compound.getBoolean("ScriptEnabled"));
@@ -58,16 +63,18 @@ public class GuiNPCEventScripts extends GuiScriptInterface {
     }
 
     public void save() {
-        super.save();
-        List<ScriptContainer> containers = this.script.getScripts();
-        for (int i = 0; i < containers.size(); i++) {
-            ScriptContainer container = containers.get(i);
-            EventScriptPacket.Save(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+        if(loaded) {
+            super.save();
+            List<ScriptContainer> containers = this.script.getScripts();
+            for (int i = 0; i < containers.size(); i++) {
+                ScriptContainer container = containers.get(i);
+                EventScriptPacket.Save(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            }
+            NBTTagCompound scriptData = new NBTTagCompound();
+            scriptData.setString("ScriptLanguage", this.script.getLanguage());
+            scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
+            scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
+            EventScriptPacket.Save(-1, containers.size(), scriptData);
         }
-        NBTTagCompound scriptData = new NBTTagCompound();
-        scriptData.setString("ScriptLanguage", this.script.getLanguage());
-        scriptData.setBoolean("ScriptEnabled", this.script.getEnabled());
-        scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.script.getConsoleText()));
-        EventScriptPacket.Save(-1, containers.size(), scriptData);
     }
 }

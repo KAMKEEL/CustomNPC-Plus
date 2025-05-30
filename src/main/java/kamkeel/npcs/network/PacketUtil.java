@@ -230,6 +230,10 @@ public class PacketUtil {
             tabCompound.setInteger("TotalScripts", containers.size());
             GuiDataPacket.sendGuiData(player, tabCompound);
         }
+
+        NBTTagCompound loadComplete = new NBTTagCompound();
+        loadComplete.setInteger("LoadComplete", 1);
+        GuiDataPacket.sendGuiData(player, loadComplete);
     }
 
     public static void saveScripts(IScriptHandler data, ByteBuf buffer) throws IOException {

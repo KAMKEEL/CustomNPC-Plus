@@ -27,6 +27,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
     public Map<String, List<String>> languages = new HashMap<String, List<String>>();
 
     private static int activeConsole = 0;
+    boolean loaded = false;
 
     public GuiScript(EntityNPCInterface npc) {
         super(npc);
@@ -258,12 +259,15 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
         }
         this.languages = languages;
         initGui();
+        loaded = true;
     }
 
     @Override
     public void save() {
-        setScript();
-        NPCScriptPacket.Save(script.writeToNBT(new NBTTagCompound()));
+        if(loaded){
+            setScript();
+            NPCScriptPacket.Save(script.writeToNBT(new NBTTagCompound()));
+        }
     }
 
     @Override
