@@ -377,7 +377,11 @@ public class ScriptController {
                 );
             } else {
                 Method getEngineMethod = factoryClass.getMethod("getScriptEngine", String[].class);
-                String[] args = new String[] { "--language=es6" };
+                String[] args = new String[] {
+                    "--language=es6",
+                    "--optimistic-types=true",
+                    "--lazy-parse=true"
+                };
                 engine = (ScriptEngine) getEngineMethod.invoke(factory, (Object) args);
             }
 
