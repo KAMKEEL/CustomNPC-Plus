@@ -1,8 +1,10 @@
 package noppes.npcs.controllers;
 
+import com.oracle.truffle.js.scriptengine.GraalJSEngineFactory;
+import com.oracle.truffle.js.scriptengine.GraalJSScriptEngine;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import jdk.nashorn.api.scripting.ClassFilter;
-import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+//import jdk.nashorn.api.scripting.ClassFilter;
+//import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -21,6 +23,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -31,6 +35,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Predicate;
 
 import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
 
@@ -39,7 +44,7 @@ public class ScriptController {
     public static ScriptController Instance;
     public static boolean HasStart = false;
     private final ScriptEngineManager manager;
-    private ScriptEngineFactory nashornFactory;
+    private ScriptEngineFactory graalFactory;
     public Map<String, String> languages = new HashMap<String, String>();
     public Map<String, String> scripts = new HashMap<String, String>();
     public long lastLoaded = 0;
@@ -64,14 +69,14 @@ public class ScriptController {
         LogWriter.info("Script Engines Available:");
 
         try {
-            this.nashornFactory = new NashornScriptEngineFactory();
-            LogWriter.info("→ standalone Nashorn loaded");
-        } catch (NoClassDefFoundError e) {
+            this.graalFactory = new GraalJSEngineFactory();
+            LogWriter.info("→ standalone Nashorn loaded: " + this.graalFactory.getEngineName());
+        } catch (Exception e) {
             // fallback to built-in (Java 8–11) — also guarded
             try {
                 ScriptEngine eng = manager.getEngineByName("nashorn");
                 if (eng != null) {
-                    this.nashornFactory = eng.getFactory();
+                    this.graalFactory = eng.getFactory();
                     LogWriter.info("→ built-in Nashorn loaded");
                 }
             } catch (Throwable t) {
@@ -298,30 +303,48 @@ public class ScriptController {
     private static final List<String> nashornNames = immutableList("nashorn", "Nashorn", "js", "JS", "JavaScript", "javascript", "ECMAScript", "ecmascript");
 
     public ScriptEngine getEngineByName(String language) {
-        if (nashornNames.contains(language) && this.nashornFactory != null) {
-            ScriptEngine scriptEngine;
+        if (nashornNames.contains(language) && this.graalFactory != null) {
+            ScriptEngine scriptEngine = getGraalJSEngine();
+            if (scriptEngine != null) return scriptEngine;
+
             if (ConfigScript.EnableBannedClasses) {
                 try {
-                    ClassFilter filter = s -> {
-                        for (String className : ConfigScript.BannedClasses) {
-                            if (s.compareTo(className) == 0) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    };
-                    NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.nashornFactory;
-                    scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
+//                    ClassFilter filter = s -> {
+//                        for (String className : ConfigScript.BannedClasses) {
+//                            if (s.compareTo(className) == 0) {
+//                                return false;
+//                            }
+//                        }
+//                        return true;
+//                    };
+//                    NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.graalFactory;
+//                    scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
                 } catch (Exception e) {
-                    scriptEngine = this.nashornFactory.getScriptEngine();
+                    scriptEngine = this.graalFactory.getScriptEngine();
                 }
             } else {
-                scriptEngine = this.nashornFactory.getScriptEngine();
+                scriptEngine = this.graalFactory.getScriptEngine();
             }
             scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
             return scriptEngine;
         }
         return manager.getEngineByName(language);
+    }
+
+    public ScriptEngine getGraalJSEngine() {
+        Context.Builder polyglotContext = Context.newBuilder("js")
+            .option("js.nashorn-compat", "true")
+            .option("js.scripting", "true")
+            .option("js.syntax-extensions", "true")
+            .allowAllAccess(true)
+            .allowNativeAccess(true)
+            .allowIO(true)
+            .allowHostAccess(HostAccess.ALL)
+            .allowHostClassLookup(s -> true);
+
+        return GraalJSScriptEngine.create(
+            ((GraalJSEngineFactory)this.graalFactory).getPolyglotEngine(),
+            polyglotContext);
     }
 
     private static List<String> immutableList(String... elements) {

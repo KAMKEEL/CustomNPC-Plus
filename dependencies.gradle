@@ -36,7 +36,7 @@
 def embedMixin = !project.hasProperty("nomixin");
 dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.5.4-GTNH:dev")
-    runtimeOnlyNonPublishable("curse.maven:Nashorn-374413:2924946")
+    shadowImplementation(project.files("lib/GraalJS.jar"))
 
     if(embedMixin){
         // Normal Jar will include built in Mixins
