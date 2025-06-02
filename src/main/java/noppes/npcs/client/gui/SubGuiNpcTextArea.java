@@ -2,13 +2,13 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.NoppesStringUtils;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcTextArea;
-import noppes.npcs.client.gui.util.SubGuiInterface;
+import noppes.npcs.client.gui.util.*;
 
-public class SubGuiNpcTextArea extends SubGuiInterface {
+public class SubGuiNpcTextArea extends SubGuiInterface implements ITextChangeListener {
     public String text;
-    private GuiNpcTextArea textarea;
+    public String originalText;
+    private GuiScriptTextArea textarea;
+    private boolean highlighting = false;
 
     public SubGuiNpcTextArea(String text) {
         this.text = text;
@@ -16,6 +16,11 @@ public class SubGuiNpcTextArea extends SubGuiInterface {
         xSize = 256;
         ySize = 256;
         closeOnEsc = true;
+    }
+
+    public SubGuiNpcTextArea(String originalText, String text){
+        this(text);
+        this.originalText = originalText;
     }
 
     @Override
@@ -26,13 +31,20 @@ public class SubGuiNpcTextArea extends SubGuiInterface {
         super.initGui();
         if (textarea != null)
             this.text = textarea.getText();
+        if(textarea != null)
+            this.text = textarea.getText();
         int yoffset = (int) (ySize * 0.02);
-        this.addTextField(textarea = new GuiNpcTextArea(2, this, guiLeft + yoffset, guiTop + yoffset, xSize - 100 - yoffset * 2, ySize - yoffset * 2, text));
 
+        textarea = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 100 - yoffset, (int) (ySize) - yoffset * 2, text);
+        textarea.setListener(this);
+        if(highlighting)
+            textarea.enableCodeHighlighting();
+        addTextField(textarea);
 
         this.buttonList.add(new GuiNpcButton(102, guiLeft + xSize - 90 - yoffset, guiTop + 20, 56, 20, "gui.clear"));
         this.buttonList.add(new GuiNpcButton(101, guiLeft + xSize - 90 - yoffset, guiTop + 43, 56, 20, "gui.paste"));
         this.buttonList.add(new GuiNpcButton(100, guiLeft + xSize - 90 - yoffset, guiTop + 66, 56, 20, "gui.copy"));
+        this.buttonList.add(new GuiNpcButton(103, guiLeft + xSize - 90 - yoffset, guiTop + 89, 56, 20, "remote.reset"));
 
         this.buttonList.add(new GuiNpcButton(0, guiLeft + xSize - 90 - yoffset, guiTop + 160, 56, 20, "gui.close"));
 
@@ -47,20 +59,33 @@ public class SubGuiNpcTextArea extends SubGuiInterface {
         super.close();
     }
 
+    public SubGuiNpcTextArea enableHighlighting() {
+        highlighting = true;
+        return this;
+    }
+
     @Override
     public void buttonEvent(GuiButton guibutton) {
         int id = guibutton.id;
         if (id == 100) {
-            NoppesStringUtils.setClipboardContents(getTextField(2).getText());
+            NoppesStringUtils.setClipboardContents(textarea.getText());
         }
         if (id == 101) {
-            getTextField(2).setText(NoppesStringUtils.getClipboardContents());
+            textarea.setText(NoppesStringUtils.getClipboardContents());
         }
         if (id == 102) {
-            getTextField(2).setText("");
+            textarea.setText("");
         }
-        if (id == 0) {
+        if (id == 103) {
+            textarea.setText(originalText);
+        }
+        if(id == 0){
             close();
         }
+    }
+
+    @Override
+    public void textUpdate(String text) {
+        this.text = text;
     }
 }

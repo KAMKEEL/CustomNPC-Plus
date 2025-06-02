@@ -55,6 +55,7 @@ import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetAllPack
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnGetPacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnRemovePacket;
 import kamkeel.npcs.network.packets.request.naturalspawns.NaturalSpawnSavePacket;
+import kamkeel.npcs.network.packets.request.nbtbook.NbtBookPacket;
 import kamkeel.npcs.network.packets.request.npc.*;
 import kamkeel.npcs.network.packets.request.party.*;
 import kamkeel.npcs.network.packets.request.pather.MovingPathGetPacket;
@@ -318,6 +319,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new ColorBrushPacket());
         REQUEST_PACKET.registerPacket(new ColorSetPacket());
         REQUEST_PACKET.registerPacket(new HammerPacket());
+        REQUEST_PACKET.registerPacket(new NbtBookPacket());
 
         // Custom Effect Packets
         REQUEST_PACKET.registerPacket(new EffectGetPacket());

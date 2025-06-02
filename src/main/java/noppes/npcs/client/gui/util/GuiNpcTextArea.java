@@ -15,10 +15,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GuiNpcTextArea extends GuiNpcTextField {
-    public boolean inMenu = true;
-    public boolean numbersOnly = false;
-    private int posX, posY, width, height;
+    public int id;
+    public int x;
+    public int y;
+    public int width;
+    public int height;
     private int cursorCounter;
+    private ITextChangeListener listener;
+    public String text = null;
     private FontContainer font;
     private int cursorPosition = 0;
     private int listHeight;
@@ -30,8 +34,8 @@ public class GuiNpcTextArea extends GuiNpcTextField {
 
     public GuiNpcTextArea(int id, GuiScreen guiscreen, int i, int j, int k, int l, String s) {
         super(id, guiscreen, i, j, k, l, s);
-        posX = i;
-        posY = j;
+        x = i;
+        y = j;
         width = k;
         listHeight = height = l;
         this.font = ClientProxy.Font;
@@ -101,8 +105,8 @@ public class GuiNpcTextArea extends GuiNpcTextField {
             return;
         }
 
-        int x = i - posX;
-        int y = (j - posY - 4) / font.height() + getStartLineY();
+        int x = i - this.x;
+        int y = (j - this.y - 4) / font.height() + getStartLineY();
         cursorPosition = 0;
         int charCount = 0;
         int lineCount = 0;
@@ -160,8 +164,8 @@ public class GuiNpcTextArea extends GuiNpcTextField {
 
     @Override
     public void drawTextBox(int mouseX, int mouseY) {
-        drawRect(posX - 1, posY - 1, posX + width + 1, posY + height + 1, 0xffa0a0a0);
-        drawRect(posX, posY, posX + width, posY + height, 0xff000000);
+        drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
+        drawRect(x, y, x + width, y + height, 0xff000000);
 
         //int color = isEnabled?0xe0e0e0:0x707070;
         int color = 0xe0e0e0;
@@ -180,13 +184,13 @@ public class GuiNpcTextArea extends GuiNpcTextField {
             for (char c : wholeLine.toCharArray()) {
                 if (font.width(line + c) > maxSize && wrapLine) {
                     if (lineCount >= startLine && lineCount < maxLine)
-                        drawString(null, line, posX + 4, posY + 4 + ((lineCount - startLine) * font.height()), color);
+                        drawString(null, line, x + 4, y + 4 + ((lineCount - startLine) * font.height()), color);
                     line = "";
                     lineCount++;
                 }
                 if (flag && charCount == cursorPosition && lineCount >= startLine && lineCount < maxLine && canEdit) {
-                    int xx = posX + font.width(line) + 4;
-                    int yy = posY + ((lineCount - startLine) * font.height()) + 4;
+                    int xx = x + font.width(line) + 4;
+                    int yy = y + ((lineCount - startLine) * font.height()) + 4;
                     if (getText().length() == cursorPosition) {
                         font.drawString("_", xx, yy, color);
                     } else {
@@ -197,10 +201,10 @@ public class GuiNpcTextArea extends GuiNpcTextField {
                 line += c;
             }
             if (lineCount >= startLine && lineCount < maxLine) {
-                drawString(null, line, posX + 4, posY + 4 + ((lineCount - startLine) * (font.height())), color);
+                drawString(null, line, x + 4, y + 4 + ((lineCount - startLine) * (font.height())), color);
                 if (flag && charCount == cursorPosition && canEdit) {
-                    int xx = posX + font.width(line) + 4;
-                    int yy = posY + ((lineCount - startLine) * font.height()) + 4;
+                    int xx = x + font.width(line) + 4;
+                    int yy = y + ((lineCount - startLine) * font.height()) + 4;
                     if (getText().length() == cursorPosition) {
                         font.drawString("_", xx, yy, color);
                     } else {
@@ -221,12 +225,12 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         if (Mouse.isButtonDown(0)) {
             if (clickVerticalBar) {
                 if (startClick >= 0)
-                    addScrollY(startClick - (mouseY - posY));
+                    addScrollY(startClick - (mouseY - y));
 
                 if (hoverVerticalScrollBar(mouseX, mouseY))
-                    startClick = mouseY - posY;
+                    startClick = mouseY - y;
 
-                startClick = mouseY - posY;
+                startClick = mouseY - y;
             }
         } else
             clickVerticalBar = false;
@@ -260,7 +264,7 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         if (listHeight <= height - 4)
             return false;
 
-        if (posY < y && posY + height > y && x < posX + width && x > posX + (width - 8))
+        if (this.y < y && this.y + height > y && x < this.x + width && x > this.x + (width - 8))
             return true;
 
         return false;
@@ -281,12 +285,12 @@ public class GuiNpcTextArea extends GuiNpcTextField {
             p_146188_4_ = i1;
         }
 
-        if (p_146188_3_ > this.posX + this.width) {
-            p_146188_3_ = this.posX + this.width;
+        if (p_146188_3_ > this.x + this.width) {
+            p_146188_3_ = this.x + this.width;
         }
 
-        if (p_146188_1_ > this.posX + this.width) {
-            p_146188_1_ = this.posX + this.width;
+        if (p_146188_1_ > this.x + this.width) {
+            p_146188_1_ = this.x + this.width;
         }
 
         Tessellator tessellator = Tessellator.instance;
@@ -312,8 +316,8 @@ public class GuiNpcTextArea extends GuiNpcTextField {
         if (listHeight <= height - 4)
             return;
         Minecraft.getMinecraft().renderEngine.bindTexture(GuiCustomScroll.resource);
-        int x = posX + width - 6;
-        int y = (int) (posY + scrolledY * height) + 2;
+        int x = this.x + width - 6;
+        int y = (int) (this.y + scrolledY * height) + 2;
         GL11.glColor4f(1, 1, 1, 1);
         int sbSize = getVerticalBarSize();
         drawTexturedModalRect(x, y, width, 9, 5, 1);

@@ -34,6 +34,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.items.ItemNbtBook;
 import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.items.ItemScripted;
 import noppes.npcs.quests.QuestItem;
@@ -125,6 +126,12 @@ public class ScriptPlayerEventHandler {
             return;
 
         if (!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer && event.entityPlayer instanceof EntityPlayerMP) {
+            if(event.entityPlayer.getHeldItem() != null && event.entityPlayer.getHeldItem().getItem() != null && event.entityPlayer.getHeldItem().getItem() == CustomItems.nbt_book) {
+                ((ItemNbtBook)event.entityPlayer.getHeldItem().getItem()).entityEvent(event);
+                event.setCanceled(true);
+                return;
+            }
+
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.entityPlayer);
             IPlayer ip = NoppesUtilServer.getIPlayer(event.entityPlayer);
 
@@ -161,6 +168,12 @@ public class ScriptPlayerEventHandler {
             noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent rightClickEvent = new noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent(ip, 0, null);
             event.setCanceled(EventHooks.onPlayerRightClick(handler, rightClickEvent));
         } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK){
+            if(event.entityPlayer.getHeldItem() != null && event.entityPlayer.getHeldItem().getItem() != null && event.entityPlayer.getHeldItem().getItem() == CustomItems.nbt_book) {
+                ((ItemNbtBook)event.entityPlayer.getHeldItem().getItem()).blockEvent(event);
+                event.setCanceled(true);
+                return;
+            }
+
             pd.hadInteract = true;
             IWorld iw = (IWorld) NpcAPI.Instance().getIWorld(event.world);
             Object blockCtx = NpcAPI.Instance().getIBlock(iw, event.x, event.y, event.z);

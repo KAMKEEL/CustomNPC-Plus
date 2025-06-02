@@ -28,6 +28,7 @@ public class CustomItems {
     public static Item mount;
     public static Item teleporter;
     public static Item tool;
+    public static Item nbt_book;
 
     public static Item scripted_item;
     public static Item linked_item;
@@ -249,6 +250,7 @@ public class CustomItems {
         scripted_item = new ItemScripted().setUnlocalizedName("scripted_item").setFull3D();
         linked_item = new ItemLinked().setUnlocalizedName("linked_item").setFull3D();
         tool = new ItemNpcTool().setUnlocalizedName("npcTool").setFull3D();
+        nbt_book = new ItemNbtBook().setUnlocalizedName("npc_book");
 
         redstoneBlock = new BlockNpcRedstone().setHardness(50.0F).setResistance(2000).setBlockName("npcRedstoneBlock").setBlockTextureName("customnpcs:npcRedstoneBlock").setCreativeTab(tab);
         carpentyBench = new BlockCarpentryBench().setBlockName("npcCarpentyBench").setHardness(5.0F).setResistance(10.0F).setStepSound(Block.soundTypePiston).setCreativeTab(tabBlocks);

@@ -184,6 +184,7 @@ public enum EnumRequestPacket {
 
     ColorSet,
     ColorBrush,
+    Hammer,
 
     MagicCycleRemove,
     MagicCycleSave,
@@ -192,5 +193,7 @@ public enum EnumRequestPacket {
     MagicGet,
     MagicSave,
     NpcMagicGet,
-    NpcMagicSave, Hammer,
+    NpcMagicSave,
+
+    NbtBookSave,
 }

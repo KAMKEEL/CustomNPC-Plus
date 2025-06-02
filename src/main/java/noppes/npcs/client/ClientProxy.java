@@ -431,6 +431,9 @@ public class ClientProxy extends CommonProxy {
         else if (gui == EnumGuiType.MagicBook)
             return new GuiNpcMagicBook();
 
+        else if (gui == EnumGuiType.NbtBook)
+            return new GuiNbtBook(x, y, z);
+
         else if (gui == EnumGuiType.GlobalRemote)
             return new GuiNPCGlobalMainMenu(null);
 
