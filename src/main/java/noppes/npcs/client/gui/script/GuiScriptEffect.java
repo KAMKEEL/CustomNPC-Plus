@@ -29,7 +29,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
     public final GuiNPCManageEffects parent;
     public final CustomEffect effect;
     private final EffectScript scriptHandler;
-
+    boolean loaded = false;
 
     public GuiScriptEffect(GuiNPCManageEffects parent, CustomEffect effect) {
         this.drawDefaultBackground = true;
@@ -315,6 +315,11 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
     }
 
     public void setGuiData(NBTTagCompound compound) {
+        if(compound.hasKey("LoadComplete")){
+            loaded = true;
+            return;
+        }
+
         if (!compound.hasKey("Tab")) {
             this.scriptHandler.setLanguage(compound.getString("ScriptLanguage"));
             this.scriptHandler.setEnabled(compound.getBoolean("ScriptEnabled"));
@@ -326,7 +331,6 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
             this.scriptHandler.container = container;
             this.initGui();
         }
-
     }
 
     private void copiedSetGuiData(NBTTagCompound compound) {
@@ -350,19 +354,21 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
     }
 
     public void save() {
-        this.setScript();
+        if(loaded) {
+            this.setScript();
 
-        List<ScriptContainer> containers = this.scriptHandler.getScripts();
-        for (int i = 0; i < containers.size(); i++) {
-            ScriptContainer container = containers.get(i);
-            EffectScriptPacket.Save(effect.id, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            List<ScriptContainer> containers = this.scriptHandler.getScripts();
+            for (int i = 0; i < containers.size(); i++) {
+                ScriptContainer container = containers.get(i);
+                EffectScriptPacket.Save(effect.id, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            }
+            NBTTagCompound scriptData = new NBTTagCompound();
+            scriptData.setString("ScriptLanguage", this.scriptHandler.getLanguage());
+            scriptData.setBoolean("ScriptEnabled", this.scriptHandler.getEnabled());
+            scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.scriptHandler.getConsoleText()));
+
+            EffectScriptPacket.Save(effect.id, -1, containers.size(), scriptData);
         }
-        NBTTagCompound scriptData = new NBTTagCompound();
-        scriptData.setString("ScriptLanguage", this.scriptHandler.getLanguage());
-        scriptData.setBoolean("ScriptEnabled", this.scriptHandler.getEnabled());
-        scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.scriptHandler.getConsoleText()));
-
-        EffectScriptPacket.Save(effect.id, -1, containers.size(), scriptData);
     }
 
     public void textUpdate(String text) {

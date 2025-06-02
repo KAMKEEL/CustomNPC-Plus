@@ -98,8 +98,6 @@ public class ImageDownloadAlt extends SimpleTexture {
         this.imageThread = new Thread("Texture Downloader #" + threadDownloadCounter.incrementAndGet()) {
             public void run() {
                 HttpURLConnection connection = null;
-                ImageDownloadAlt.logger.debug("Downloading http texture from {} to {}", new Object[]{ImageDownloadAlt.this.imageUrl, ImageDownloadAlt.this.cacheFile});
-
                 try {
                     URL url = new URL(ImageDownloadAlt.this.imageUrl);
                     connection = (HttpURLConnection) (url).openConnection(Minecraft.getMinecraft().getProxy());

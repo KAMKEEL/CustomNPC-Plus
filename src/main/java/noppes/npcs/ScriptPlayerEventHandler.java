@@ -23,6 +23,7 @@ import net.minecraftforge.event.entity.item.ItemTossEvent;
 import net.minecraftforge.event.entity.living.*;
 import net.minecraftforge.event.entity.player.*;
 import net.minecraftforge.event.world.BlockEvent;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.config.ConfigMain;
@@ -34,8 +35,10 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemNpcTool;
+import noppes.npcs.items.ItemScripted;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.ItemEvent;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -123,9 +126,46 @@ public class ScriptPlayerEventHandler {
 
         if (!event.entityPlayer.worldObj.isRemote && event.entityPlayer.worldObj instanceof WorldServer && event.entityPlayer instanceof EntityPlayerMP) {
             PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.entityPlayer);
-            IPlayer scriptPlayer = (IPlayer) NpcAPI.Instance().getIEntity(event.entityPlayer);
-            noppes.npcs.scripted.event.player.PlayerEvent.InteractEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.InteractEvent(scriptPlayer, 1, NpcAPI.Instance().getIEntity(event.target));
-            event.setCanceled(EventHooks.onPlayerInteract(handler, ev));
+            IPlayer ip = NoppesUtilServer.getIPlayer(event.entityPlayer);
+
+            noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent rightClickEvent = new noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent(ip, 1, NpcAPI.Instance().getIEntity(event.target));
+            boolean rightClick = EventHooks.onPlayerRightClick(handler, rightClickEvent);
+
+            noppes.npcs.scripted.event.player.PlayerEvent.InteractEvent ev = new noppes.npcs.scripted.event.player.PlayerEvent.InteractEvent(ip, 1, NpcAPI.Instance().getIEntity(event.target));
+            boolean interact = EventHooks.onPlayerInteract(handler, ev);
+
+            event.setCanceled(rightClick || interact);
+        }
+    }
+
+    @SubscribeEvent
+    public void invoke(PlayerInteractEvent event) {
+        if (event.entityPlayer == null || event.entityPlayer.worldObj == null || event.entityPlayer.worldObj.isRemote || !(event.entityPlayer instanceof EntityPlayerMP))
+            return;
+
+        if(event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK)
+            return;
+
+        IPlayer ip = NoppesUtilServer.getIPlayer(event.entityPlayer);
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.entityPlayer);
+        PlayerData pd = PlayerData.get(event.entityPlayer);
+        if (pd == null) {
+            return;
+        }
+
+        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR){
+            if (pd.hadInteract) {
+                pd.hadInteract = false;
+                return;
+            }
+            noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent rightClickEvent = new noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent(ip, 0, null);
+            event.setCanceled(EventHooks.onPlayerRightClick(handler, rightClickEvent));
+        } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK){
+            pd.hadInteract = true;
+            IWorld iw = (IWorld) NpcAPI.Instance().getIWorld(event.world);
+            Object blockCtx = NpcAPI.Instance().getIBlock(iw, event.x, event.y, event.z);
+            noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent rightClickEvent = new noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent(ip, 2, blockCtx);
+            event.setCanceled(EventHooks.onPlayerRightClick(handler, rightClickEvent));
         }
     }
 

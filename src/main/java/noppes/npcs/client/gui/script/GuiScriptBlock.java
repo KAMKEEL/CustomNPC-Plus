@@ -30,10 +30,13 @@ public class GuiScriptBlock extends GuiScriptInterface {
     public void setGuiData(NBTTagCompound compound) {
         this.tileScripted.setNBT(compound);
         super.setGuiData(compound);
+        loaded = true;
     }
 
     public void save() {
-        super.save();
-        BlockScriptPacket.Save(tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord, this.tileScripted.getNBT(new NBTTagCompound()));
+        if(loaded) {
+            super.save();
+            BlockScriptPacket.Save(tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord, this.tileScripted.getNBT(new NBTTagCompound()));
+        }
     }
 }

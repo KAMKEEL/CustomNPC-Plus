@@ -44,12 +44,15 @@ public class GuiScriptItem extends GuiScriptInterface {
             this.item.setMCNbt(compound);
             this.item.loadScriptData();
             super.setGuiData(compound);
+            loaded = true;
         }
     }
 
     public void save() {
-        super.save();
-        ItemScriptPacket.Save(this.item.getMCNbt());
+        if(loaded) {
+            super.save();
+            ItemScriptPacket.Save(this.item.getMCNbt());
+        }
     }
 
     protected String getConsoleText() {

@@ -13,13 +13,16 @@ import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.data.IPlayerEffect;
 import noppes.npcs.api.handler.data.IProfile;
+import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.CustomNPCsEvent;
+import noppes.npcs.scripted.event.ItemEvent;
 
 public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public final IPlayer player;
@@ -647,6 +650,38 @@ public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
 
         public IEntity getTarget() {
             return target;
+        }
+    }
+
+    @Cancelable
+    public static class RightClickEvent extends PlayerEvent implements IPlayerEvent.RightClickEvent {
+
+        /**
+         * 0:air, 1:entity, 2:block
+         */
+        public final int type;
+        public final Object target;
+
+        public RightClickEvent(IPlayer player, int type, Object target) {
+            super(player);
+            this.type = type;
+            this.target = target;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.RIGHT_CLICK.function;
+        }
+
+        public int getType() {
+            return type;
+        }
+
+        public Object getTarget() {
+            return target;
+        }
+
+        public IPlayer getPlayer() {
+            return player;
         }
     }
 

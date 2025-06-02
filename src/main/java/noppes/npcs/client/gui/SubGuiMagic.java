@@ -93,6 +93,8 @@ public class SubGuiMagic extends SubGuiInterface implements ITextfieldListener, 
         addLabel(new GuiNpcLabel(50, "magic.interaction", guiLeft + 170, guiTop + 30 + 160 + 5));
         interactionField = new GuiNpcTextField(90, this, fontRendererObj, guiLeft + 245, guiTop + 30 + 160, 45, 20, "");
         interactionField.setFloatsOnly();
+        interactionField.setMinMaxDefaultFloat(-Float.MAX_VALUE, Float.MAX_VALUE, 0.0f);
+
         addTextField(interactionField);
         if (selectedInteraction != null) {
             interactionField.setText(interactionValues.get(selectedInteraction) + "");

@@ -30,6 +30,7 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
     public final GuiNPCManageLinked parent;
     public final LinkedItem linkedItem;
     private final LinkedItemScript scriptHandler;
+    boolean loaded = false;
 
     public GuiScriptLinkedItem(GuiNPCManageLinked parent, LinkedItem linkedItem) {
         this.drawDefaultBackground = true;
@@ -326,6 +327,11 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
     }
 
     public void setGuiData(NBTTagCompound compound) {
+        if(compound.hasKey("LoadComplete")){
+            loaded = true;
+            return;
+        }
+
         if (!compound.hasKey("Tab")) {
             this.scriptHandler.setLanguage(compound.getString("ScriptLanguage"));
             this.scriptHandler.setEnabled(compound.getBoolean("ScriptEnabled"));
@@ -361,19 +367,21 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
     }
 
     public void save() {
-        this.setScript();
+        if(loaded) {
+            this.setScript();
 
-        List<ScriptContainer> containers = this.scriptHandler.getScripts();
-        for (int i = 0; i < containers.size(); i++) {
-            ScriptContainer container = containers.get(i);
-            LinkedItemScriptPacket.Save(linkedItem.id, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            List<ScriptContainer> containers = this.scriptHandler.getScripts();
+            for (int i = 0; i < containers.size(); i++) {
+                ScriptContainer container = containers.get(i);
+                LinkedItemScriptPacket.Save(linkedItem.id, i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            }
+            NBTTagCompound scriptData = new NBTTagCompound();
+            scriptData.setString("ScriptLanguage", this.scriptHandler.getLanguage());
+            scriptData.setBoolean("ScriptEnabled", this.scriptHandler.getEnabled());
+            scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.scriptHandler.getConsoleText()));
+
+            LinkedItemScriptPacket.Save(linkedItem.id, -1, containers.size(), scriptData);
         }
-        NBTTagCompound scriptData = new NBTTagCompound();
-        scriptData.setString("ScriptLanguage", this.scriptHandler.getLanguage());
-        scriptData.setBoolean("ScriptEnabled", this.scriptHandler.getEnabled());
-        scriptData.setTag("ScriptConsole", NBTTags.NBTLongStringMap(this.scriptHandler.getConsoleText()));
-
-        LinkedItemScriptPacket.Save(linkedItem.id, -1, containers.size(), scriptData);
     }
 
     public void textUpdate(String text) {
