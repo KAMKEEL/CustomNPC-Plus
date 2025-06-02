@@ -49,9 +49,6 @@ public final class CustomGuiClosePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player.openContainer instanceof ContainerCustomGui))
-            return;
-
         NBTTagCompound comp = ByteBufUtils.readNBT(in);
         EventHooks.onCustomGuiClose((IPlayer) NpcAPI.Instance().getIEntity(player), (new ScriptGui()).fromNBT(comp));
     }
