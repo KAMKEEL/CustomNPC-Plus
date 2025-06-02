@@ -143,6 +143,9 @@ public class ScriptPlayerEventHandler {
         if (event.entityPlayer == null || event.entityPlayer.worldObj == null || event.entityPlayer.worldObj.isRemote || !(event.entityPlayer instanceof EntityPlayerMP))
             return;
 
+        if(event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK)
+            return;
+
         IPlayer ip = NoppesUtilServer.getIPlayer(event.entityPlayer);
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(event.entityPlayer);
         PlayerData pd = PlayerData.get(event.entityPlayer);
