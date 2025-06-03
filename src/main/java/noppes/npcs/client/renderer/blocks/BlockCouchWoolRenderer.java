@@ -100,7 +100,7 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface {
             setCouchWood(var1.getBlockMetadata());
             if (tile.hasCornerLeft) {
                 GL11.glPushMatrix();
-                GL11.glRotatef(90, 0, 1, 0);
+                GL11.glRotatef(270, 0, 1, 0);
                 modelCouchCorner.CouchBack.render(0.0625F);
                 GL11.glPopMatrix();
             } else if (tile.hasCornerRight)
@@ -119,8 +119,12 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface {
             float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
 
-            if (tile.hasCornerLeft)
+            if (tile.hasCornerLeft){
+                GL11.glPushMatrix();
+                GL11.glRotatef(270, 0, 1, 0);
                 modelCouchCorner.Cussion.render(0.0625F);
+                GL11.glPopMatrix();
+            }
             else if (tile.hasCornerRight)
                 modelCouchCorner.Cussion.render(0.0625F);
             else if (tile.hasLeft && tile.hasRight)

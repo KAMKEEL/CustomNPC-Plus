@@ -7,6 +7,7 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.Facing;
 
 import static noppes.npcs.items.ItemNpcTool.BRUSH_COLOR_TAG;
 
@@ -17,6 +18,11 @@ public class TileVariant extends TileEntity {
     int version = variantVersion;
     public int variant = 14;
     public int rotation;
+
+    //    Rotation = 0 Couch is Facing North
+    //    Rotation = 1 Couch is Facing East
+    //    Rotation = 2 Couch is Facing South
+    //    Rotation = 3 Couch is Facing West
 
     public void readFromNBT(NBTTagCompound compound) {
         super.readFromNBT(compound);

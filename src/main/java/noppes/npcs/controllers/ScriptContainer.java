@@ -1,6 +1,7 @@
 package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
@@ -8,10 +9,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.NpcAPI;
 
-import javax.script.Compilable;
-import javax.script.CompiledScript;
-import javax.script.Invocable;
-import javax.script.ScriptEngine;
+import javax.script.*;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -35,6 +33,7 @@ public class ScriptContainer {
     private static Method luaCoerce;
     private static Method luaCall;
     private CompiledScript compScript = null;
+    private final HashMap<String, ScriptObjectMirror> cachedFunctions = new HashMap<>();
 
     public ScriptContainer(IScriptHandler handler) {
         this.handler = handler;
@@ -173,6 +172,7 @@ public class ScriptContainer {
 
             try {
                 if (!evaluated) {
+                    this.cachedFunctions.clear();
                     engine.eval(getFullCode());
                     evaluated = true;
                 }
@@ -188,7 +188,15 @@ public class ScriptContainer {
                         unknownFunctions.add(type);
                     }
                 } else {
-                    ((Invocable) engine).invokeFunction(type, event);
+                    if (!this.cachedFunctions.containsKey(type)) {
+                        ScriptObjectMirror global = (ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE);
+                        ScriptObjectMirror func = (ScriptObjectMirror) global.get(type);
+                        this.cachedFunctions.put(type, func);
+                    }
+                    ScriptObjectMirror func = this.cachedFunctions.get(type);
+                    if (func != null) {
+                        func.call(null, event);
+                    }
                 }
             } catch (NoSuchMethodException e) {
                 unknownFunctions.add(type);
