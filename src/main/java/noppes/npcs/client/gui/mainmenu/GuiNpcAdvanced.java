@@ -119,6 +119,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
     @Override
     public void setGuiData(NBTTagCompound compound) {
         if (compound.hasKey("RoleData")) {
+            npc.advanced.setRole(compound.getInteger("RoleOrdinal"));
             if (npc.roleInterface != null)
                 npc.roleInterface.readFromNBT(compound);
 

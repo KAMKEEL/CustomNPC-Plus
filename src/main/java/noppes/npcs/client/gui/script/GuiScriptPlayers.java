@@ -18,6 +18,7 @@ public class GuiScriptPlayers extends GuiScriptInterface {
         hookList.add(EnumScriptType.INIT.function);
         hookList.add(EnumScriptType.TICK.function);
         hookList.add(EnumScriptType.INTERACT.function);
+        hookList.add(EnumScriptType.RIGHT_CLICK.function);
         hookList.add(EnumScriptType.ATTACK.function);
         hookList.add(EnumScriptType.ATTACKED.function);
         hookList.add(EnumScriptType.DAMAGED_ENTITY.function);

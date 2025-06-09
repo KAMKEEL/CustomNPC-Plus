@@ -136,12 +136,20 @@ public abstract class GuiDiagram extends Gui {
         String nameFrom = iconFrom != null ? getIconName(iconFrom) : "Unknown";
         String nameTo = iconTo != null ? getIconName(iconTo) : "Unknown";
         tooltip.add(nameFrom + " > " + nameTo + ":");
-        tooltip.add(conn.hoverText);
+        // Split Hover Text by newlines
+        if (conn.hoverText != null && !conn.hoverText.isEmpty()) {
+            String[] lines = conn.hoverText.split("\n");
+            tooltip.addAll(Arrays.asList(lines));
+        }
         if (allowTwoWay) {
             DiagramConnection reverse = getConnectionByIds(conn.idTo, conn.idFrom);
             if (reverse != null) {
                 tooltip.add(nameTo + " > " + nameFrom + ":");
-                tooltip.add(reverse.hoverText);
+                // Split Hover Text by newlines
+                if (reverse.hoverText != null && !reverse.hoverText.isEmpty()) {
+                    String[] lines = reverse.hoverText.split("\n");
+                    tooltip.addAll(Arrays.asList(lines));
+                }
             }
         }
         return tooltip;

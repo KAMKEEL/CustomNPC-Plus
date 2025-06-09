@@ -10,7 +10,7 @@ public class ModelPartData {
     public byte pattern = 0;
     public boolean playerTexture;
 
-    private ResourceLocation location;
+    public ResourceLocation location;
 
     public ModelPartData() {
         playerTexture = true;

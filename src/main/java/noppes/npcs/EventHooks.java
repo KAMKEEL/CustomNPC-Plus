@@ -390,6 +390,11 @@ public class EventHooks {
         return NpcAPI.EVENT_BUS.post(event);
     }
 
+    public static boolean onPlayerRightClick(PlayerDataScript handler, PlayerEvent.RightClickEvent event) {
+        handler.callScript(EnumScriptType.RIGHT_CLICK, event);
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onProfileChange(PlayerDataScript handler, IPlayer player, IProfile profile, int newSlot, int prevSlot, boolean post) {
         PlayerEvent.ProfileEvent.Changed event = new PlayerEvent.ProfileEvent.Changed(player, profile, newSlot, prevSlot, post);
         handler.callScript(EnumScriptType.PROFILE_CHANGE, event);

@@ -154,6 +154,7 @@ public class ScriptItemEventHandler {
 
                     ItemNpcTool.setColor(held.getTagCompound(), color);
                     e.setCanceled(true);
+                    return;
                 }
             }
         }
