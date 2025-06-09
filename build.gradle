@@ -5,6 +5,12 @@ plugins {
     id 'idea'
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 version = "1.10.2"
 group= "kamkeel.customnpc-plus"
 archivesBaseName = "CustomNPC-Plus"
