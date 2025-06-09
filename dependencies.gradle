@@ -50,5 +50,5 @@ dependencies {
         }
     }
 
-    shadowImplementation('org.openjdk.nashorn:nashorn-core:15.6')
+    implementation('org.openjdk.nashorn:nashorn-core:15.4')
 }

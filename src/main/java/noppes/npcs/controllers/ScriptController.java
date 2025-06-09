@@ -70,6 +70,7 @@ public class ScriptController {
 //            LogWriter.info("→ standalone Nashorn loaded");
             Class<?> clazz = Class.forName("org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory");
             this.nashornFactory = (ScriptEngineFactory) clazz.newInstance();
+            this.languages.put("ECMAScript", ".js");
             LogWriter.info("→ standalone Nashorn loaded: " + this.nashornFactory.getEngineName());
         } catch (Exception e) {
             // fallback to built-in (Java 8–11) — also guarded
@@ -77,24 +78,11 @@ public class ScriptController {
                 ScriptEngine eng = manager.getEngineByName("nashorn");
                 if (eng != null) {
                     this.nashornFactory = eng.getFactory();
+                    this.languages.put("ECMAScript", ".js");
                     LogWriter.info("→ built-in Nashorn loaded");
                 }
             } catch (Throwable t) {
                 LogWriter.error("No Nashorn engine available");
-            }
-        }
-
-        for (ScriptEngineFactory fac : manager.getEngineFactories()) {
-            if (fac.getExtensions().isEmpty())
-                continue;
-
-            ScriptEngine scriptEngine = fac.getScriptEngine();
-            try {
-                scriptEngine.put("$RunTest", null);
-                String ext = "." + fac.getExtensions().get(0).toLowerCase();
-                LogWriter.info("Engine " + fac.getEngineName() + " running " + fac.getLanguageName() + " with extension: " + ext);
-                languages.put(fac.getLanguageName(), ext);
-            } catch (Exception ignored) {
             }
         }
     }
@@ -365,22 +353,25 @@ public class ScriptController {
                     classFilterClass
                 );
 
-                String[] options = new String[] { "--language=es6" };
+                String[] args = new String[] {
+                    "--language=es6",
+                    "--optimistic-types=true",
+                    "--lazy-compilation=true"
+                };
                 ClassLoader loader = Thread.currentThread().getContextClassLoader();
-                Object filter = classFilterClass.cast(null); // or your actual filter instance
 
                 engine = (ScriptEngine) getEngineMethod.invoke(
                     factory,
-                    (Object) options,
+                    (Object) args,
                     loader,
-                    filter
+                    classFilter
                 );
             } else {
                 Method getEngineMethod = factoryClass.getMethod("getScriptEngine", String[].class);
                 String[] args = new String[] {
                     "--language=es6",
                     "--optimistic-types=true",
-                    "--lazy-parse=true"
+                    "--lazy-compilation=true"
                 };
                 engine = (ScriptEngine) getEngineMethod.invoke(factory, (Object) args);
             }
@@ -388,6 +379,7 @@ public class ScriptController {
             engine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
             return engine;
         } catch (Exception ignored) {
+            ignored.printStackTrace();
             return null;
         }
     }
