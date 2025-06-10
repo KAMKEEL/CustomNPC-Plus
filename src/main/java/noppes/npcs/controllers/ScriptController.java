@@ -1,6 +1,8 @@
 package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import jdk.nashorn.api.scripting.ClassFilter;
+import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -298,20 +300,47 @@ public class ScriptController {
     private static final List<String> nashornNames = immutableList("nashorn", "Nashorn", "js", "JS", "JavaScript", "javascript", "ECMAScript", "ecmascript");
 
     public ScriptEngine getEngineByName(String language) {
-        try {
+        if (nashornNames.contains(language) && this.nashornFactory != null) {
+            try {
+                ScriptEngine scriptEngine;
+                Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory",
+                    true, this.loader);
 
-            ScriptEngine scriptEngine;
-            Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory",
-                true, this.loader);
-            Method getScriptEngine = factoryClass.getMethod("getScriptEngine");
+                if (ConfigScript.EnableBannedClasses) {
+                    Class<?> classFilterClass = Class.forName("jdk.nashorn.api.scripting.ClassFilter",
+                        true, this.loader);
 
-            scriptEngine = (ScriptEngine) getScriptEngine.invoke(this.nashornFactory);
-            scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
-            return scriptEngine;
-        } catch (Exception exception) {
-            LogWriter.except(exception);
-            return null;
+                    Object classFilter = Proxy.newProxyInstance(
+                        classFilterClass.getClassLoader(),
+                        new Class[]{classFilterClass},
+                        (proxy, method, args) -> {
+                            if ("exposeToScripts".equals(method.getName()) && args.length == 1) {
+                                String className = (String) args[0];
+                                for (String banned : ConfigScript.BannedClasses) {
+                                    if (className.equals(banned)) return false;
+                                }
+                                return true;
+                            }
+                            throw new UnsupportedOperationException("Unsupported method: " + method);
+                        });
+
+                    Method getScriptEngine = factoryClass.getMethod(
+                        "getScriptEngine",
+                        classFilterClass);
+
+                    scriptEngine = (ScriptEngine) getScriptEngine.invoke(this.nashornFactory, classFilter);
+                } else {
+                    Method getScriptEngine = factoryClass.getMethod("getScriptEngine");
+                    scriptEngine = (ScriptEngine) getScriptEngine.invoke(this.nashornFactory);
+                }
+                scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
+                return scriptEngine;
+            } catch (Exception exception) {
+                LogWriter.except(exception);
+                return null;
+            }
         }
+        return manager.getEngineByName(language);
     }
 
     public ScriptEngine getOpenJDKNashornEngine() {
