@@ -335,27 +335,36 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
 
     public void setGuiData(NBTTagCompound compound) {
         this.slot = null;
-        if (compound.hasKey("PROFILE")) {
-            // Load Profile
-            this.profile = new Profile(mc.thePlayer, compound);
-            this.data = new HashMap<>();
-            String currentSlot = "\u00A7e";
-            String otherSlot = "\u00A7f";
-            for (ISlot slot1 : profile.getSlots().values()) {
-                String name = slot1.getId() + " - " + slot1.getName();
-                if (profile.currentSlotId == slot1.getId())
-                    name = currentSlot + name;
-                else
-                    name = otherSlot + name;
-                this.data.put(name, slot1.getId());
-            }
+        if (compound.hasKey("CHANGE_PACKET")) {
+            this.readProfileCompound(
+                compound.getCompoundTag("PROFILE"));
+            this.slotInfoMap = ProfileGetInfoPacket.readProfileInfo(
+                compound.getCompoundTag("PROFILE_INFO"));
+        } else if (compound.hasKey("PROFILE")) {
+            this.readProfileCompound(compound);
         } else if (compound.hasKey("PROFILE_INFO")) {
-            slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
+            this.slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
         }
         if (scroll != null) {
             scroll.setSelected("");
         }
         initGui();
+    }
+
+    private void readProfileCompound(NBTTagCompound compound) {
+        // Load Profile
+        this.profile = new Profile(mc.thePlayer, compound);
+        this.data = new HashMap<>();
+        String currentSlot = "\u00A7e";
+        String otherSlot = "\u00A7f";
+        for (ISlot slot1 : profile.getSlots().values()) {
+            String name = slot1.getId() + " - " + slot1.getName();
+            if (profile.currentSlotId == slot1.getId())
+                name = currentSlot + name;
+            else
+                name = otherSlot + name;
+            this.data.put(name, slot1.getId());
+        }
     }
 
     /**

@@ -10,8 +10,10 @@ import kamkeel.npcs.network.PacketChannel;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumPlayerPacket;
 import kamkeel.npcs.network.packets.data.ChatAlertPacket;
+import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigMain;
 
@@ -60,8 +62,13 @@ public final class ProfileChangePacket extends AbstractPacket {
 
         int slot = in.readInt();
         ProfileOperation operation = ProfileController.Instance.changeSlot(player, slot);
-        ProfileGetPacket.sendProfileNBT(player);
-        ProfileGetInfoPacket.sendProfileInfo(player);
+
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setBoolean("CHANGE_PACKET", true);
+        compound.setTag("PROFILE", ProfileGetPacket.profileNBTPayload(player));
+        compound.setTag("PROFILE_INFO", ProfileGetInfoPacket.profileInfoPayload(player));
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+
         ChatAlertPacket.sendChatAlert((EntityPlayerMP) player, operation.getMessage());
     }
 }
