@@ -49,6 +49,4 @@ dependencies {
             exclude module: 'log4j-core'
         }
     }
-
-    implementation('org.openjdk.nashorn:nashorn-core:15.4')
 }

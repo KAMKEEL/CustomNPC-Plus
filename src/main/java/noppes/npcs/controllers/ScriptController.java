@@ -19,8 +19,6 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
-import org.openjdk.nashorn.api.scripting.ClassFilter;
-import org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -32,6 +30,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.*;
 
 import static noppes.npcs.util.CustomNPCsThreader.customNPCThread;
@@ -57,6 +57,7 @@ public class ScriptController {
 
     public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript((EntityNPCInterface) null);
     public long lastGlobalNpcUpdate = 0L;
+    private URLClassLoader loader;
 
     public ScriptController() {
         Instance = this;
@@ -66,10 +67,16 @@ public class ScriptController {
         LogWriter.info("Script Engines Available:");
 
         try {
-//            this.nashornFactory = new NashornScriptEngineFactory();
-//            LogWriter.info("→ standalone Nashorn loaded");
-            Class<?> clazz = Class.forName("org.openjdk.nashorn.api.scripting.NashornScriptEngineFactory");
-            this.nashornFactory = (ScriptEngineFactory) clazz.newInstance();
+            File nashornJar = new File("mods/nashorn.jar"); // Adjust path if needed
+            this.loader = new URLClassLoader(new URL[]{nashornJar.toURI().toURL()}, CustomNpcs.class.getClassLoader());
+
+            ClassLoader cl = CustomNpcs.class.getClassLoader();
+            Thread.currentThread().setContextClassLoader(cl);
+            LogWriter.info("ClassLoader: " + cl);
+            LogWriter.info("Parent: " + cl.getParent());
+
+            Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory", true, loader);
+            this.nashornFactory = (ScriptEngineFactory) factoryClass.getDeclaredConstructor().newInstance();
             this.languages.put("ECMAScript", ".js");
             LogWriter.info("→ standalone Nashorn loaded: " + this.nashornFactory.getEngineName());
         } catch (Exception e) {
@@ -291,32 +298,20 @@ public class ScriptController {
     private static final List<String> nashornNames = immutableList("nashorn", "Nashorn", "js", "JS", "JavaScript", "javascript", "ECMAScript", "ecmascript");
 
     public ScriptEngine getEngineByName(String language) {
-        if (nashornNames.contains(language) && this.nashornFactory != null) {
-            ScriptEngine scriptEngine = getOpenJDKNashornEngine();
-            if (scriptEngine != null) return scriptEngine;
+        try {
 
-            if (ConfigScript.EnableBannedClasses) {
-                try {
-                    ClassFilter filter = s -> {
-                        for (String className : ConfigScript.BannedClasses) {
-                            if (s.compareTo(className) == 0) {
-                                return false;
-                            }
-                        }
-                        return true;
-                    };
-                    NashornScriptEngineFactory nashornScriptEngineFactory = (NashornScriptEngineFactory) this.nashornFactory;
-                    scriptEngine = nashornScriptEngineFactory.getScriptEngine(filter);
-                } catch (Exception e) {
-                    scriptEngine = this.nashornFactory.getScriptEngine();
-                }
-            } else {
-                scriptEngine = this.nashornFactory.getScriptEngine();
-            }
+            ScriptEngine scriptEngine;
+            Class<?> factoryClass = Class.forName("jdk.nashorn.api.scripting.NashornScriptEngineFactory",
+                true, this.loader);
+            Method getScriptEngine = factoryClass.getMethod("getScriptEngine");
+
+            scriptEngine = (ScriptEngine) getScriptEngine.invoke(this.nashornFactory);
             scriptEngine.setBindings(this.manager.getBindings(), ScriptContext.GLOBAL_SCOPE);
             return scriptEngine;
+        } catch (Exception exception) {
+            LogWriter.except(exception);
+            return null;
         }
-        return manager.getEngineByName(language);
     }
 
     public ScriptEngine getOpenJDKNashornEngine() {
