@@ -91,15 +91,18 @@ public class ScriptContainer {
 
     private String getFullCode() {
         if (!this.evaluated) {
-            // build includes first
+            // build includes first depending on config setting
             StringBuilder sb = new StringBuilder();
             if (ConfigScript.RunLoadedScriptsFirst) {
                 this.appendExternalScripts(sb);
             }
-            // then your per‐hook script
+
+            // then your per‐hook main script
             if (this.script != null && !this.script.isEmpty()) {
                 sb.append(this.script).append("\n");
             }
+
+            // build includes last if not built first
             if (!ConfigScript.RunLoadedScriptsFirst) {
                 this.appendExternalScripts(sb);
             }
