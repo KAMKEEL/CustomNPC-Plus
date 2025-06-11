@@ -55,6 +55,9 @@ public class ConfigScript {
     public static Property EnableBannedClassesProperty;
     public static boolean EnableBannedClasses = false;
 
+    public static Property RunLoadedScriptsFirstProperty;
+    public static boolean RunLoadedScriptsFirst = true;
+
     public static Property BannedClassesProperty;
     public final static HashSet<String> BannedClasses = new HashSet<>();
 
@@ -107,6 +110,12 @@ public class ConfigScript {
 
             EnableBannedClassesProperty = config.get(CUSTOMIZATION, "Enable Banned Classes", false, "Enables the Banned Classes Functionality");
             EnableBannedClasses = EnableBannedClassesProperty.getBoolean(false);
+
+            RunLoadedScriptsFirstProperty = config.get(CUSTOMIZATION, "Run Loaded Scripts First", true,
+                "If scripts have been loaded from the scripting GUI, the script engine will evaluates them by\n" +
+                    "merging your loaded scripts with your main script, then running the combined script.\n" +
+                    "This config determines the order in while the loaded scripts are merged with your main scripts: before (true), or after (false).");
+            RunLoadedScriptsFirst = RunLoadedScriptsFirstProperty.getBoolean(true);
 
             BannedClassesProperty = config.get(CUSTOMIZATION, "Banned Classes", "java.net.URL,java.net.URI",
                 "Comma separated list of classes that cannot be used in scripts through Java.for().\n" +

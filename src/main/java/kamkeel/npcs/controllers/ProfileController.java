@@ -616,6 +616,10 @@ public class ProfileController implements IProfileHandler {
         ISlot slot = profile.getSlots().get(profile.getCurrentSlotId());
         if (slot == null)
             return;
+
+        PlayerData pdata = PlayerData.get(player);
+        pdata.profileSlot = profile.getCurrentSlotId();
+
         for (IProfileData profileData : profileTypes.values()) {
             NBTTagCompound data;
             if (slot.getComponents().containsKey(profileData.getTagName()))
@@ -627,10 +631,6 @@ public class ProfileController implements IProfileHandler {
         for (IProfileData profileData : profileTypes.values()) {
             profileData.save(player);
         }
-
-        PlayerData pdata = PlayerData.get(player);
-        pdata.profileSlot = profile.getCurrentSlotId();
-        pdata.save();
 
         if (ConfigMain.AttributesEnabled)
             AttributeController.getTracker(player).recalcAttributes(player);

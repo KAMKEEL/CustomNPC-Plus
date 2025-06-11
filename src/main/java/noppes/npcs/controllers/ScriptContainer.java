@@ -93,20 +93,29 @@ public class ScriptContainer {
         if (!this.evaluated) {
             // build includes first
             StringBuilder sb = new StringBuilder();
-            for (String loc : this.scripts) {
-                String code = ScriptController.Instance.scripts.get(loc);
-                if (code != null && !code.isEmpty()) {
-                    sb.append(code).append("\n");
-                }
+            if (ConfigScript.RunLoadedScriptsFirst) {
+                this.appendExternalScripts(sb);
             }
             // then your per‐hook script
             if (this.script != null && !this.script.isEmpty()) {
                 sb.append(this.script).append("\n");
             }
+            if (!ConfigScript.RunLoadedScriptsFirst) {
+                this.appendExternalScripts(sb);
+            }
             this.fullscript = sb.toString();
             this.unknownFunctions = new HashSet<>();
         }
         return this.fullscript;
+    }
+
+    private void appendExternalScripts(StringBuilder sb) {
+        for (String loc : this.scripts) {
+            String code = ScriptController.Instance.scripts.get(loc);
+            if (code != null && !code.isEmpty()) {
+                sb.append(code).append("\n");
+            }
+        }
     }
 
     public void run(ScriptEngine engine) {
