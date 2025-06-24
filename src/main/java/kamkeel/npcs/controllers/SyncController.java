@@ -9,6 +9,7 @@ import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.data.LoginPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
+import kamkeel.npcs.network.packets.request.party.PartyInfoPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
@@ -97,6 +98,9 @@ public class SyncController {
 
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
+
+        // Send party information to the player on login
+        PartyInfoPacket.sendPartyData(player);
     }
 
     public static NBTTagCompound workbenchNBT() {
