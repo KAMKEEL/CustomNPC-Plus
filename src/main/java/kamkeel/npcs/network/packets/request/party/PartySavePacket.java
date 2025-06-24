@@ -51,6 +51,7 @@ public final class PartySavePacket extends AbstractPacket {
         if (playerData.partyUUID != null) {
             Party party = PartyController.Instance().getParty(playerData.partyUUID);
             party.readClientNBT(ByteBufUtils.readNBT(in));
+            PartyController.Instance().pingPartyUpdate(party);
         }
     }
 }
