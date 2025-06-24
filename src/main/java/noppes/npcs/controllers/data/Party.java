@@ -459,6 +459,15 @@ public class Party implements IParty {
         this.currentQuestID = compound.getInteger("PartyQuestID");
         this.currentQuestName = compound.getString("PartyQuestName");
         this.friendlyFire = compound.getBoolean("FriendlyFire");
+
+        NBTTagList list = compound.getTagList("PartyMembers", 10);
+        for (int i = 0; i < list.tagCount(); i++) {
+            NBTTagCompound tagCompound = list.getCompoundTagAt(i);
+            UUID uuid = UUID.fromString(tagCompound.getString("UUID"));
+            String playerName = tagCompound.getString("PlayerName");
+            this.partyOrder.add(uuid);
+            this.partyMembers.put(uuid, playerName);
+        }
     }
 
     public NBTTagCompound writeClientNBT() {
@@ -466,6 +475,15 @@ public class Party implements IParty {
         compound.setInteger("PartyQuestID", this.currentQuestID);
         compound.setString("PartyQuestName", this.currentQuestName);
         compound.setBoolean("FriendlyFire", this.friendlyFire);
+
+        NBTTagList list = new NBTTagList();
+        for (UUID uuid : this.partyOrder) {
+            NBTTagCompound uuidCompound = new NBTTagCompound();
+            uuidCompound.setString("UUID", uuid.toString());
+            uuidCompound.setString("PlayerName", this.partyMembers.get(uuid));
+            list.appendTag(uuidCompound);
+        }
+        compound.setTag("PartyMembers", list);
         return compound;
     }
 }
