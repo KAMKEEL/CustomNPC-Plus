@@ -217,7 +217,11 @@ public class Party implements IParty {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
             return this.partyLeaderName;
         } else {
-            return this.getPartyLeader().getCommandSenderName();
+            EntityPlayer leader = this.getPartyLeader();
+            if (leader != null)
+                return leader.getCommandSenderName();
+            String name = this.partyMembers.get(this.partyLeader);
+            return name == null ? "" : name;
         }
     }
 
@@ -426,12 +430,14 @@ public class Party implements IParty {
         for (UUID uuid : this.partyOrder) {
             NBTTagCompound uuidCompound = new NBTTagCompound();
             uuidCompound.setString("UUID", uuid.toString());
-            uuidCompound.setString("PlayerName", this.partyMembers.get(uuid));
+            String name = this.partyMembers.get(uuid);
+            uuidCompound.setString("PlayerName", name == null ? "" : name);
             list.appendTag(uuidCompound);
         }
         compound.setTag("PartyMembers", list);
 
-        compound.setString("PartyLeader", getPartyLeader().getCommandSenderName());
+        EntityPlayer leader = getPartyLeader();
+        compound.setString("PartyLeader", leader != null ? leader.getCommandSenderName() : "");
         Quest quest = (Quest) QuestController.Instance.get(this.getCurrentQuestID());
         if (quest != null) {
             compound.setString("QuestName", quest.getName());
@@ -480,7 +486,8 @@ public class Party implements IParty {
         for (UUID uuid : this.partyOrder) {
             NBTTagCompound uuidCompound = new NBTTagCompound();
             uuidCompound.setString("UUID", uuid.toString());
-            uuidCompound.setString("PlayerName", this.partyMembers.get(uuid));
+            String name = this.partyMembers.get(uuid);
+            uuidCompound.setString("PlayerName", name == null ? "" : name);
             list.appendTag(uuidCompound);
         }
         compound.setTag("PartyMembers", list);
