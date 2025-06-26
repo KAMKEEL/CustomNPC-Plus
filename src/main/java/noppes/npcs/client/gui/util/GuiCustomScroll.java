@@ -26,7 +26,7 @@ public class GuiCustomScroll extends GuiScreen {
     protected int oldHover;
     private int hoverCount = 0;
     protected boolean hoverableText = false;
-    private int listHeight;
+    public int listHeight;
     protected int scrollY;
     protected int maxScrollY;
     protected int scrollHeight;
