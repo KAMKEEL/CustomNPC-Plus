@@ -16,8 +16,10 @@ public class Action implements IAction {
     protected int maxDuration = -1;
     protected int updateEveryXTick = 5;
     protected Consumer<IAction> task;
-    private boolean done;
-    private final Map<String, Object> dataStore = new HashMap<>();
+    protected boolean done;
+    protected final Map<String, Object> dataStore = new HashMap<>();
+    protected boolean isThreaded;
+    protected ActionThread threaded;
 
     public Action(ScriptedActionManager manager, String name) {
         this.manager = manager;
@@ -68,13 +70,17 @@ public class Action implements IAction {
             return;
         }
         if (ticksExisted % updateEveryXTick == 0 && task != null) {
-            try {
-                task.accept(this);
-                count++;
-            } catch (Throwable t) {
-                System.err.println("Scripted action '" + name + "' threw an exception:");
-                t.printStackTrace();
-                markDone();
+            if (isThreaded)
+                threaded.run();
+            else {
+                try {
+                    task.accept(this);
+                    count++;
+                } catch (Throwable t) {
+                    System.err.println("Scripted action '" + name + "' threw an exception:");
+                    t.printStackTrace();
+                    markDone();
+                }
             }
         }
         duration++;
@@ -161,10 +167,34 @@ public class Action implements IAction {
 
     @Override
     public IAction pauseFor(int ticks) {
+        if (isThreaded)
+            return threaded.pauseFor(ticks);
+
         this.startAfterTicks = ticks;
         return this;
     }
 
+    @Override
+    public IAction pauseFor(long millis) {
+        if (isThreaded)
+            return threaded.pauseFor(millis);
+
+        return pauseFor((int) (millis / 50));
+    }
+
+    @Override
+    public boolean isPaused() {
+        if (isThreaded)
+            return threaded.isPaused();
+
+        return startAfterTicks > 0;
+    }
+
+    @Override
+    public void threadify() {
+        isThreaded = true;
+        threaded = new ActionThread(this);
+    }
     @Override
     public IAction getNext() {
         boolean seenMe = false;
