@@ -1,11 +1,13 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class Action implements IAction {
     protected final ScriptedActionManager manager;
@@ -168,18 +170,43 @@ public class Action implements IAction {
     @Override
     public IAction pauseFor(int ticks) {
         if (isThreaded)
-            return threaded.pauseFor(ticks);
+            threaded.pauseFor(ticks);
+        else
+            this.startAfterTicks = ticks;
 
-        this.startAfterTicks = ticks;
         return this;
     }
 
     @Override
     public IAction pauseFor(long millis) {
-        if (isThreaded)
-            return threaded.pauseFor(millis);
+        if (isThreaded) {
+            threaded.pauseFor(millis);
+            return this;
+        }
 
         return pauseFor((int) (millis / 50));
+    }
+
+    @Override
+    public void pause() {
+        if (isThreaded)
+            threaded.pause();
+        else
+            throw new CustomNPCsException("Must threadify() IAction before pausing!");
+    }
+
+    @Override
+    public void pauseUntil(Supplier<Boolean> until) {
+        if (isThreaded)
+            threaded.pauseUntil(until);
+        else
+            throw new CustomNPCsException("Must threadify() IAction before pausing!");
+    }
+
+    @Override
+    public void resume() {
+        if (isThreaded)
+            threaded.resume();
     }
 
     @Override
@@ -191,9 +218,13 @@ public class Action implements IAction {
     }
 
     @Override
-    public void threadify() {
-        isThreaded = true;
-        threaded = new ActionThread(this);
+    public IAction threadify() {
+        if (!isThreaded) {
+            isThreaded = true;
+            threaded = new ActionThread(this);
+        }
+
+        return this;
     }
     @Override
     public IAction getNext() {

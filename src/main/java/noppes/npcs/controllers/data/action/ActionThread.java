@@ -1,12 +1,16 @@
 package noppes.npcs.controllers.data.action;
 
-import noppes.npcs.api.handler.data.IAction;
+import java.util.function.Supplier;
 
 public class ActionThread {
-    private Action action;
+    private final Action action;
+
+    private final Object lock = new Object();
     private Thread thread;
-    private volatile boolean threadPaused;
+    private volatile boolean threadPaused, threadSleeping;
     private boolean threadRunning;
+
+    private Supplier<Boolean> pauseUntil;
 
     public ActionThread(Action action) {
         this.action = action;
@@ -22,41 +26,73 @@ public class ActionThread {
         });
     }
 
-    public IAction pauseFor(long millis) {
-        if (Thread.currentThread() == thread) {
+
+    public void pauseFor(long millis) {
+        if (isPaused())
+            return;
+
+        if (inActionThread()) {
             try {
-                threadPaused = true;
+                threadSleeping = true;
                 Thread.sleep(millis);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } finally {
-                threadPaused = false;
-                return action;
+                threadSleeping = false;
             }
         } else
-            return action.pauseFor((int) (millis / 50));
+            action.pauseFor((int) (millis / 50));
     }
 
-    public IAction pauseFor(int ticks) {
-        if (Thread.currentThread() == thread) {
-            try {
-                threadPaused = true;
-                Thread.sleep(ticks * 50);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                threadPaused = false;
-                return action;
+    public void pauseFor(int ticks) {
+        pauseFor(ticks * 50L);
+    }
+
+    public void pause() {
+        if (!inActionThread() || isPaused())
+            return;
+
+        threadPaused = true;
+        synchronized (lock) {
+            while (threadPaused) {
+                try {
+                    lock.wait(); // Wait until notified
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
             }
-        } else
-            return action.pauseFor(ticks);
+        }
+    }
+
+    public void pauseUntil(Supplier<Boolean> until) {
+        this.pauseUntil = until;
+        pause();
+    }
+
+    public void resume() {
+        synchronized (lock) {
+            if (threadPaused) {
+                threadPaused = false;
+                lock.notify();
+            }
+
+            if (threadSleeping)
+                thread.interrupt();
+        }
     }
 
     public boolean isPaused() {
-        return threadPaused;
+        return threadPaused || threadSleeping;
     }
 
-    public void run() {
+    public boolean inActionThread() {
+        return Thread.currentThread() == thread;
+    }
+
+    protected void run() {
+        if (threadPaused && pauseUntil != null && pauseUntil.get())
+            resume();
+
         if (threadRunning)
             return;
 
