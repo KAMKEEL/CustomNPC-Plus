@@ -496,7 +496,7 @@ public class ScriptPlayerEventHandler {
 
                 EntityPlayer player = (EntityPlayer) event.entityLiving;
                 PlayerData playerData = PlayerData.get(player);
-                playerData.actionManager.clear();
+               // playerData.actionManager.clear();
             }
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {
