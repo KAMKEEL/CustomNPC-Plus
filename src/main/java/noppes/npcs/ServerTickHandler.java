@@ -11,13 +11,22 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class ServerTickHandler {
+
     @SubscribeEvent
-    public void onServerTick(TickEvent.WorldTickEvent event) {
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == Phase.END) {
+            NpcAPI.actionManager.tick(MinecraftServer.getServer().getTickCounter());
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldTick(TickEvent.WorldTickEvent event) {
         if (event.phase == Phase.START) {
             NPCSpawning.findChunksForSpawning((WorldServer) event.world);
         }
