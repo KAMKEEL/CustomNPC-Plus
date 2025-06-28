@@ -142,6 +142,26 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IAction getAction(String name) {
+        for (IAction action : actionQueue) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
+        for (IAction action : parallelActions) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
+        for (IAction action : conditionalActions) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
+        return null;
+    }
+
+    @Override
     public Queue<IAction> getActionQueue() {
         return actionQueue;
     }
