@@ -1,10 +1,8 @@
 package noppes.npcs.controllers.data.action;
 
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Set;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -12,7 +10,9 @@ public class ActionThread {
     private final Object lock = new Object();
     private Thread thread;
     ExecutorService executor;
+
     private final Queue<Future<?>> runningTasks = new ConcurrentLinkedQueue<>();
+    private final Set<Object> runningKeys = ConcurrentHashMap.newKeySet();
 
     private volatile boolean threadPaused, threadSleeping;
 
@@ -98,20 +98,22 @@ public class ActionThread {
         return runningTasks.stream().anyMatch(task -> !task.isDone());
     }
 
-    protected void execute(Runnable task) {
+    protected void execute(String taskKey, Runnable task) {
         if (threadPaused && pauseUntil != null && pauseUntil.get())
             resume();
 
-        if (isThreadRunning())
+        if (runningKeys.contains(taskKey))
             return;
 
         final AtomicReference<Future<?>> taskRef = new AtomicReference<>();
         taskRef.set(executor.submit(() -> {
             runningTasks.add(taskRef.get());
+            runningKeys.add(taskKey);
             try {
                 task.run();
             } finally {
                 runningTasks.remove(taskRef.get());
+                runningKeys.remove(taskKey);
             }
         }));
     }

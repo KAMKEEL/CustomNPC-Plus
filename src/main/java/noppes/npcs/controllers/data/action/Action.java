@@ -73,7 +73,7 @@ public class Action implements IAction {
         }
         if (ticksExisted % updateEveryXTick == 0 && task != null) {
             if (isThreaded)
-                actionThread.execute(this::executeTask);
+                actionThread.execute("task", this::executeTask);
             else
                 executeTask();
         }
