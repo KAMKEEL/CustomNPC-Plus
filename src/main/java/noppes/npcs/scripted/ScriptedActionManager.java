@@ -276,6 +276,19 @@ public class ScriptedActionManager implements IActionManager {
         parallelActions.add(action);
         return action;
     }
+    @Override
+    public IAction scheduleParallelAction(String name, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, task));
+    }
+    @Override
+    public IAction scheduleParallelAction(String name, int startAfterTicks, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name,  startAfterTicks, task));
+    }
+
+    @Override
+    public IAction scheduleParallelAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, maxDuration, startAfterTicks, task));
+    }
 
 
     /**
