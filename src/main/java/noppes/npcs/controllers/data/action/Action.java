@@ -129,6 +129,10 @@ public class Action implements IAction {
         return done;
     }
 
+    public void kill() {
+
+    }
+
     @Override
     public Object getData(String key) {
         return dataStore.get(key);
