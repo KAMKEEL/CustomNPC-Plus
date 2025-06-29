@@ -1,11 +1,13 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class Action implements IAction {
     protected final ScriptedActionManager manager;
@@ -16,8 +18,10 @@ public class Action implements IAction {
     protected int maxDuration = -1;
     protected int updateEveryXTick = 5;
     protected Consumer<IAction> task;
-    private boolean done;
-    private final Map<String, Object> dataStore = new HashMap<>();
+    protected boolean done;
+    protected final Map<String, Object> dataStore = new HashMap<>();
+    protected boolean isThreaded;
+    protected ActionThread threaded;
 
     public Action(ScriptedActionManager manager, String name) {
         this.manager = manager;
@@ -68,13 +72,17 @@ public class Action implements IAction {
             return;
         }
         if (ticksExisted % updateEveryXTick == 0 && task != null) {
-            try {
-                task.accept(this);
-                count++;
-            } catch (Throwable t) {
-                System.err.println("Scripted action '" + name + "' threw an exception:");
-                t.printStackTrace();
-                markDone();
+            if (isThreaded)
+                threaded.run();
+            else {
+                try {
+                    task.accept(this);
+                    count++;
+                } catch (Throwable t) {
+                    System.err.println("Scripted action '" + name + "' threw an exception:");
+                    t.printStackTrace();
+                    markDone();
+                }
             }
         }
         duration++;
@@ -107,7 +115,7 @@ public class Action implements IAction {
 
     @Override
     public IAction setMaxDuration(int x) {
-        this.maxDuration = x;
+        this.maxDuration = Math.max(-1, x);
         return this;
     }
 
@@ -119,6 +127,11 @@ public class Action implements IAction {
     @Override
     public boolean isDone() {
         return done;
+    }
+
+    public void kill() {
+        if (threaded != null)
+            threaded.stop();
     }
 
     @Override
@@ -150,7 +163,7 @@ public class Action implements IAction {
 
     @Override
     public IAction setUpdateEveryXTick(int x) {
-        this.updateEveryXTick = x;
+        this.updateEveryXTick = Math.max(1, x);
         return this;
     }
 
@@ -161,7 +174,67 @@ public class Action implements IAction {
 
     @Override
     public IAction pauseFor(int ticks) {
-        this.startAfterTicks = ticks;
+        if (isThreaded)
+            threaded.pauseFor(ticks);
+        else
+            this.startAfterTicks = ticks;
+
+        return this;
+    }
+
+    @Override
+    public IAction pauseFor(long millis) {
+        if (isThreaded) {
+            threaded.pauseFor(millis);
+            return this;
+        }
+
+        return pauseFor((int) (millis / 50));
+    }
+
+    @Override
+    public void pause() {
+        if (isThreaded)
+            threaded.pause();
+        else
+            throw new CustomNPCsException("Must threadify() IAction before pausing!");
+    }
+
+    @Override
+    public void pauseUntil(Supplier<Boolean> until) {
+        if (isThreaded)
+            threaded.pauseUntil(until);
+        else
+            throw new CustomNPCsException("Must threadify() IAction before pausing!");
+    }
+
+    @Override
+    public void resume() {
+        if (isThreaded)
+            threaded.resume();
+    }
+
+    @Override
+    public boolean isPaused() {
+        if (isThreaded)
+            return threaded.isPaused();
+
+        return startAfterTicks > 0;
+    }
+
+    @Override
+    public IAction threadify() {
+        if (!isThreaded) {
+            isThreaded = true;
+            threaded = new ActionThread(this);
+        }
+
+        return this;
+    }
+
+    @Override
+    public IAction start() {
+        manager.start();
         return this;
     }
 
@@ -190,6 +263,32 @@ public class Action implements IAction {
         }
         return null;
     }
+
+    @Override
+    public IAction parallel(IAction after) {
+        return manager.scheduleParallelAction(after);
+    }
+
+    @Override
+    public IAction parallel(Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(task));
+    }
+
+    @Override
+    public IAction parallel(int delay, Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(delay, task));
+    }
+
+    @Override
+    public IAction parallel(String name, Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(name, task));
+    }
+
+    @Override
+    public IAction parallel(String name, int startAfterTicks, Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(name, startAfterTicks, task));
+    }
+
 
     @Override
     public IAction after(IAction after) {

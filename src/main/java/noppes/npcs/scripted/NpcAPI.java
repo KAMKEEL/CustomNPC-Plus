@@ -79,6 +79,7 @@ public class NpcAPI extends AbstractNpcAPI {
     private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60 * 1000);
     public static final HashMap<String, Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
+    public static final ScriptedActionManager actionManager = new ScriptedActionManager();
     private static AbstractNpcAPI instance = null;
 
     private final static String API_USER_AGENT = "CNPC+API";
@@ -557,6 +558,10 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IContainer getIContainer(Container container) {
         return container instanceof ContainerNpcInterface ? ContainerNpcInterface.getOrCreateIContainer((ContainerNpcInterface) container) : new ScriptContainer(container);
+    }
+
+    public IActionManager getActionManager() {
+        return actionManager;
     }
 
     private void checkWorld() {

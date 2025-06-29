@@ -1168,7 +1168,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         setHealth(getMaxHealth());
         dataWatcher.updateObject(14, 0); // animation Normal
         dataWatcher.updateObject(15, 0);
-        actionManager.clear();
+       // actionManager.clear();
         combatHandler.reset();
         this.setAttackTarget(null);
         this.setRevengeTarget(null);

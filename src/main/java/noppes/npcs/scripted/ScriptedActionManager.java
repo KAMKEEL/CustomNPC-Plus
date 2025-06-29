@@ -40,8 +40,8 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        return new Action(this, name, maxDuration, startAfterTicks, task);
+    public IAction create(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return new Action(this, name, maxDuration, delay, task);
     }
 
     @Override
@@ -106,8 +106,27 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IAction scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        return scheduleAction(create(name, maxDuration, startAfterTicks, task));
+    public IAction scheduleAction(Consumer<IAction> task) {
+        return scheduleAction(create(task));
+    }
+
+    @Override
+    public IAction scheduleAction(int delay, Consumer<IAction> task) {
+        return scheduleAction(create(delay, task));
+    }
+
+    @Override
+    public IAction scheduleAction(String name, Consumer<IAction> task) {
+        return scheduleAction(create(name, task));
+    }
+    @Override
+    public IAction scheduleAction(String name, int delay, Consumer<IAction> task) {
+        return scheduleAction(create(name, delay, task));
+    }
+
+    @Override
+    public IAction scheduleAction(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleAction(create(name, maxDuration, delay, task));
     }
 
     @Override
@@ -142,8 +161,48 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IAction getAction(String name) {
+        for (IAction action : actionQueue) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
+        for (IAction action : parallelActions) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
+        for (IAction action : conditionalActions) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
+        return null;
+    }
+
+    @Override
     public Queue<IAction> getActionQueue() {
         return actionQueue;
+    }
+
+    @Override
+    public boolean hasAction(String name) {
+        for (IAction act : actionQueue)
+            if (act.getName().equals(name))
+                return true;
+
+        return false;
+    }
+    @Override
+    public boolean hasAny(String name) {
+        if (hasAction(name))
+            return true;
+        else if (hasParallel(name))
+            return true;
+        else if (hasConditional(name))
+            return true;
+
+        return false;
     }
 
     @Override
@@ -214,9 +273,31 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public boolean hasConditional(String name) {
+        for (IAction act : conditionalActions)
+            if (act.getName().equals(name))
+                return true;
+
+        return false;
+    }
+
+    @Override
     public IAction scheduleParallelAction(IAction action) {
         parallelActions.add(action);
         return action;
+    }
+    @Override
+    public IAction scheduleParallelAction(String name, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, task));
+    }
+    @Override
+    public IAction scheduleParallelAction(String name, int delay, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, delay, task));
+    }
+
+    @Override
+    public IAction scheduleParallelAction(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, maxDuration, delay, task));
     }
 
 
@@ -233,7 +314,10 @@ public class ScriptedActionManager implements IActionManager {
         if (current instanceof Action) {
             Action cab = (Action) current;
             cab.tick(ticksExisted);
-            if (cab.isDone()) actionQueue.pollFirst();
+            if (cab.isDone()) {
+                cab.kill();
+                actionQueue.pollFirst();
+            }
         }
 
         // ─── Parallel (all) ───────────────────────────────────────
@@ -241,7 +325,10 @@ public class ScriptedActionManager implements IActionManager {
         while (pit.hasNext()) {
             Action a = (Action) pit.next();
             a.tick(ticksExisted);
-            if (a.isDone()) pit.remove();
+            if (a.isDone()) {
+                a.kill();
+                pit.remove();
+            }
         }
 
         // ─── Conditionals ─────────────────────────────────────────
@@ -249,7 +336,10 @@ public class ScriptedActionManager implements IActionManager {
         while (cit.hasNext()) {
             ConditionalAction con = (ConditionalAction) cit.next();
             con.tick(ticksExisted);
-            if (con.isDone()) cit.remove();
+            if (con.isDone()) {
+                con.kill();
+                cit.remove();
+            }
         }
     }
 
@@ -261,5 +351,19 @@ public class ScriptedActionManager implements IActionManager {
     @Override
     public IActionChain parallelChain() {
         return new ParallelActionChain(this);
+    }
+
+    @Override
+    public Queue<IAction> getParallelActions() {
+        return parallelActions;
+    }
+
+    @Override
+    public boolean hasParallel(String name) {
+        for (IAction act : parallelActions)
+            if (act.getName().equals(name))
+                return true;
+
+        return false;
     }
 }
