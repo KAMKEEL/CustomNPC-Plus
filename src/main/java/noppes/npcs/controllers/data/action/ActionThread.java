@@ -1,5 +1,8 @@
 package noppes.npcs.controllers.data.action;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.function.Supplier;
 
 public class ActionThread {
@@ -7,41 +10,41 @@ public class ActionThread {
 
     private final Object lock = new Object();
     private Thread thread;
+    ExecutorService executor;
+    private Future<?> currentExecution;
     private volatile boolean threadPaused, threadSleeping;
-    private boolean threadRunning;
 
     private Supplier<Boolean> pauseUntil;
 
     public ActionThread(Action action) {
         this.action = action;
-        createThread();
-    }
 
-    private void createThread() {
-        thread = new Thread(() -> {
-            threadRunning = true;
-            action.task.accept(action);
-            threadRunning = false;
-            action.count++;
+        executor = Executors.newSingleThreadExecutor(r -> {
+            thread = new Thread(r);
+            thread.setName(String.format("ActionThread (%s)", action.getName()));
+            return thread;
         });
     }
 
+    public void stop() {
+        if (isThreadRunning())
+            currentExecution.cancel(true);
+
+        executor.shutdown();
+    }
 
     public void pauseFor(long millis) {
-        if (isPaused())
+        if (isPaused() || !inActionThread())
             return;
 
-        if (inActionThread()) {
-            try {
-                threadSleeping = true;
-                Thread.sleep(millis);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } finally {
-                threadSleeping = false;
-            }
-        } else
-            action.pauseFor((int) (millis / 50));
+        try {
+            threadSleeping = true;
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } finally {
+            threadSleeping = false;
+        }
     }
 
     public void pauseFor(int ticks) {
@@ -76,32 +79,41 @@ public class ActionThread {
                 lock.notify();
             }
 
-            if (threadSleeping)
-                thread.interrupt();
+            if (threadSleeping && currentExecution != null)
+                currentExecution.cancel(true);
         }
-    }
-
-    public boolean isPaused() {
-        return threadPaused || threadSleeping;
     }
 
     public boolean inActionThread() {
         return Thread.currentThread() == thread;
     }
 
+    public boolean isPaused() {
+        return threadPaused || threadSleeping;
+    }
+
+    public boolean isThreadRunning() {
+        return currentExecution != null && !currentExecution.isDone();
+    }
+
+
     protected void run() {
         if (threadPaused && pauseUntil != null && pauseUntil.get())
             resume();
 
-        if (threadRunning)
+        if (isThreadRunning())
             return;
 
-        try {
-            thread.start();
-        } catch (Throwable t) {
-            System.err.println("Scripted threaded action '" + action.name + "' threw an exception:");
-            t.printStackTrace();
-            action.markDone();
-        }
+        currentExecution = executor.submit(() -> {
+            try {
+                action.task.accept(action);
+                action.count++;
+            } catch (Throwable t) {
+                System.err.println("Scripted threaded action '" + action.name + "' threw an exception:");
+                t.printStackTrace();
+                action.markDone();
+            }
+        });
+
     }
 }

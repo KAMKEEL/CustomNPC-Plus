@@ -130,7 +130,8 @@ public class Action implements IAction {
     }
 
     public void kill() {
-
+        if (threaded != null)
+            threaded.stop();
     }
 
     @Override
