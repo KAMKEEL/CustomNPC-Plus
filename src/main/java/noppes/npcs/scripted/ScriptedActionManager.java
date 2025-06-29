@@ -40,8 +40,8 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IAction create(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        return new Action(this, name, maxDuration, startAfterTicks, task);
+    public IAction create(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return new Action(this, name, maxDuration, delay, task);
     }
 
     @Override
@@ -106,17 +106,27 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IAction scheduleAction(Consumer<IAction> task) {
+        return scheduleAction(create(task));
+    }
+
+    @Override
+    public IAction scheduleAction(int delay, Consumer<IAction> task) {
+        return scheduleAction(create(delay, task));
+    }
+
+    @Override
     public IAction scheduleAction(String name, Consumer<IAction> task) {
         return scheduleAction(create(name, task));
     }
     @Override
-    public IAction scheduleAction(String name, int startAfterTicks, Consumer<IAction> task) {
-        return scheduleAction(create(name,  startAfterTicks, task));
+    public IAction scheduleAction(String name, int delay, Consumer<IAction> task) {
+        return scheduleAction(create(name, delay, task));
     }
 
     @Override
-    public IAction scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        return scheduleAction(create(name, maxDuration, startAfterTicks, task));
+    public IAction scheduleAction(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleAction(create(name, maxDuration, delay, task));
     }
 
     @Override
@@ -281,13 +291,13 @@ public class ScriptedActionManager implements IActionManager {
         return scheduleParallelAction(create(name, task));
     }
     @Override
-    public IAction scheduleParallelAction(String name, int startAfterTicks, Consumer<IAction> task) {
-        return scheduleParallelAction(create(name,  startAfterTicks, task));
+    public IAction scheduleParallelAction(String name, int delay, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, delay, task));
     }
 
     @Override
-    public IAction scheduleParallelAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        return scheduleParallelAction(create(name, maxDuration, startAfterTicks, task));
+    public IAction scheduleParallelAction(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleParallelAction(create(name, maxDuration, delay, task));
     }
 
 
