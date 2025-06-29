@@ -67,23 +67,27 @@ public class Action implements IAction {
             startAfterTicks--;
             return;
         }
-        if (maxDuration != -1 && duration >= maxDuration) {
+        if (maxDuration > -1 && duration >= maxDuration) {
             markDone();
             return;
         }
         if (ticksExisted % updateEveryXTick == 0 && task != null) {
             if (isThreaded)
-                actionThread.run();
-            else {
-                try {
-                    task.accept(this);
-                    count++;
-                } catch (Throwable t) {
-                    System.err.println("Scripted action '" + name + "' threw an exception:");
-                    t.printStackTrace();
-                    markDone();
-                }
-            }
+                actionThread.execute(this::executeTask);
+            else
+                executeTask();
+        }
+        duration++;
+    }
+
+    protected void executeTask() {
+        try {
+            task.accept(this);
+            count++;
+        } catch (Throwable t) {
+            System.err.println("IAction '" + name + "' threw an exception:");
+            t.printStackTrace();
+            markDone();
         }
         duration++;
     }

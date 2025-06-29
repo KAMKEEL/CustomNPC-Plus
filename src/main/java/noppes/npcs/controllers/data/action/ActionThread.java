@@ -1,24 +1,24 @@
 package noppes.npcs.controllers.data.action;
 
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 public class ActionThread {
-    private final Action action;
-
     private final Object lock = new Object();
     private Thread thread;
     ExecutorService executor;
-    private Future<?> currentExecution;
+    private final Queue<Future<?>> runningTasks = new ConcurrentLinkedQueue<>();
+
     private volatile boolean threadPaused, threadSleeping;
 
     private Supplier<Boolean> pauseUntil;
 
     public ActionThread(Action action) {
-        this.action = action;
-
         executor = Executors.newSingleThreadExecutor(r -> {
             thread = new Thread(r);
             thread.setName(String.format("ActionThread (%s)", action.getName()));
@@ -27,8 +27,10 @@ public class ActionThread {
     }
 
     public void stop() {
-        if (isThreadRunning())
-            currentExecution.cancel(true);
+        runningTasks.forEach((task) -> {
+            if (!task.isDone())
+                task.cancel(true);
+        });
 
         executor.shutdown();
     }
@@ -79,8 +81,8 @@ public class ActionThread {
                 lock.notify();
             }
 
-            if (threadSleeping && currentExecution != null)
-                currentExecution.cancel(true);
+            if (threadSleeping)
+                thread.interrupt();
         }
     }
 
@@ -93,27 +95,24 @@ public class ActionThread {
     }
 
     public boolean isThreadRunning() {
-        return currentExecution != null && !currentExecution.isDone();
+        return runningTasks.stream().anyMatch(task -> !task.isDone());
     }
 
-
-    protected void run() {
+    protected void execute(Runnable task) {
         if (threadPaused && pauseUntil != null && pauseUntil.get())
             resume();
 
         if (isThreadRunning())
             return;
 
-        currentExecution = executor.submit(() -> {
+        final AtomicReference<Future<?>> taskRef = new AtomicReference<>();
+        taskRef.set(executor.submit(() -> {
+            runningTasks.add(taskRef.get());
             try {
-                action.task.accept(action);
-                action.count++;
-            } catch (Throwable t) {
-                System.err.println("Scripted threaded action '" + action.name + "' threw an exception:");
-                t.printStackTrace();
-                action.markDone();
+                task.run();
+            } finally {
+                runningTasks.remove(taskRef.get());
             }
-        });
-
+        }));
     }
 }
