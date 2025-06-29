@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTBase.NBTPrimitive;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagIntArray;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.NoppesUtilServer;
@@ -463,6 +464,31 @@ public class ScriptEntity<T extends Entity> implements IEntity {
             this.entity.velocityChanged = true;
         }
     }
+
+
+    @Override
+    public IEntity[] getCollidingEntities() {
+        AxisAlignedBB axisalignedbb;
+        boolean isPl = entity instanceof EntityPlayer;
+
+        if (entity.ridingEntity != null && entity.ridingEntity.isEntityAlive()) {
+            axisalignedbb = entity.boundingBox.func_111270_a(entity.ridingEntity.boundingBox).expand(isPl ? 0 : 1.0D, 0.0D, isPl ? 0 : 1.0D);
+        } else {
+            axisalignedbb = entity.boundingBox.expand(isPl ? 0 : 1.0D, isPl ? 0 : 0.5D, isPl ? 0 : 1.0D);
+        }
+
+        List<Entity> entities = (List<Entity>) entity.worldObj.getEntitiesWithinAABBExcludingEntity(entity, axisalignedbb);
+        List<IEntity> list = new ArrayList<>();
+
+        for (Entity living : entities) {
+            if (living.isEntityAlive())
+                list.add(NpcAPI.Instance().getIEntity(living));
+        }
+
+
+        return list.toArray(new IEntity[list.size()]);
+    }
+
 
     /**
      * @param range The search range for entities around this entity
