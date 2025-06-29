@@ -265,6 +265,32 @@ public class Action implements IAction {
     }
 
     @Override
+    public IAction parallel(IAction after) {
+        return manager.scheduleParallelAction(after);
+    }
+
+    @Override
+    public IAction parallel(Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(task));
+    }
+
+    @Override
+    public IAction parallel(int delay, Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(delay, task));
+    }
+
+    @Override
+    public IAction parallel(String name, Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(name, task));
+    }
+
+    @Override
+    public IAction parallel(String name, int startAfterTicks, Consumer<IAction> task) {
+        return manager.scheduleParallelAction(manager.create(name, startAfterTicks, task));
+    }
+
+
+    @Override
     public IAction after(IAction after) {
         int idx = manager.getIndex(this);
         if (idx >= 0) manager.scheduleActionAt(idx + 1, after);
