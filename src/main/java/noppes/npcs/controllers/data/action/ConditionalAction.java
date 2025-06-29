@@ -47,39 +47,62 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     @Override
     public void tick(int ticksExisted) {
-        if (isDone()) return;
+        if (done)
+            return;
 
-        try {
-            if (ticksExisted % updateEveryXTick == 0) {
-                checkCount++;
-                boolean terminated = terminateWhen != null && terminateWhen.get();
+        if (maxChecks > -1 && checkCount > maxChecks) {
+            markDone();
+            return;
+        }
 
-                if (terminated && onTermination != null) {
-                    try {
-                        onTermination.accept(this);
-                    } catch (Throwable t) {
-                        System.err.println("Error in onTermination for conditional '" + getName() + "':");
-                        t.printStackTrace();
-                    }
-                }
-
-                if ((maxChecks >= 0 && checkCount > maxChecks) || terminated) {
-                    markDone();
-                    return;
-                }
-
-                if (condition != null && condition.get()) {
-                    task.accept(this);
-                    taskExecuted = true;
-                }
+        if (ticksExisted % updateEveryXTick == 0) {
+            if (condition != null && condition.get()) {
+                if (isThreaded)
+                    actionThread.execute("task", this::executeTask);
+                else
+                    executeTask();
             }
+
+            if (isTerminated()) {
+                if (onTermination != null) {
+                    if (isThreaded)
+                        actionThread.execute("onTermination", this::executeOnTermination);
+                    else
+                        executeOnTermination();
+                }
+                markDone();
+                return;
+            }
+
+            checkCount++;
+        }
+        duration++;
+    }
+
+    protected void executeTask() {
+        try {
+            task.accept(this);
+            count++;
+            taskExecuted = true;
         } catch (Throwable t) {
-            System.err.println("Scripted conditional '" + getName() + "' threw an exception:");
+            System.err.println("IConditionalAction '" + getName() + "' threw an exception:");
             t.printStackTrace();
             markDone();
-        } finally {
-            duration++;
         }
+    }
+
+    protected void executeOnTermination() {
+        try {
+            onTermination.accept(this);
+        } catch (Throwable t) {
+            System.err.println("IConditionalAction's onTermination '" + getName() + "' threw an exception:");
+            t.printStackTrace();
+        }
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return terminateWhen != null && terminateWhen.get();
     }
 
     @Override
@@ -123,7 +146,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     @Override
     public IConditionalAction after(IConditionalAction after) {
-        return ((ScriptedActionManager) manager).scheduleAction(after);
+        return manager.scheduleAction(after);
     }
 
     @Override
