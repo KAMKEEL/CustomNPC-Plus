@@ -32,6 +32,7 @@ import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemNpcTool;
@@ -496,7 +497,8 @@ public class ScriptPlayerEventHandler {
 
                 EntityPlayer player = (EntityPlayer) event.entityLiving;
                 PlayerData playerData = PlayerData.get(player);
-               // playerData.actionManager.clear();
+                if (ConfigScript.ClearActionsOnDeath)
+                    playerData.actionManager.clear();
             }
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {

@@ -66,6 +66,7 @@ import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.*;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
@@ -1168,7 +1169,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         setHealth(getMaxHealth());
         dataWatcher.updateObject(14, 0); // animation Normal
         dataWatcher.updateObject(15, 0);
-       // actionManager.clear();
+        if (ConfigScript.ClearActionsOnDeath)
+            actionManager.clear();
         combatHandler.reset();
         this.setAttackTarget(null);
         this.setRevengeTarget(null);

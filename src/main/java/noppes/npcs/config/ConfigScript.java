@@ -63,6 +63,9 @@ public class ConfigScript {
 
     public static int ActionManagerTickDefault = 5;
 
+    public static Property ClearActionsOnDeathProperty;
+    public static boolean ClearActionsOnDeath = true;
+
     public static boolean IndividualPlayerScripts = false;
 
     public static void init(File configFile) {
@@ -125,6 +128,8 @@ public class ConfigScript {
 
             IndividualPlayerScripts = config.get(CUSTOMIZATION, "Individual Player Scripts", false, "Acts similar to CNPC 1.12 where Player Scripts like Init are run PER Player").getBoolean(false);
             ActionManagerTickDefault = config.get(CUSTOMIZATION, "Action Manager Tick Default", ActionManagerTickDefault, "How frequent to update the action manager ticking tasks").getInt(ActionManagerTickDefault);
+            ClearActionsOnDeathProperty = config.get(CUSTOMIZATION, "Clear Actions On Death", true, "If true, clears the Action Manager for players and NPCs when they die");
+            ClearActionsOnDeath = ClearActionsOnDeathProperty.getBoolean(true);
 
             // Convert to Legacy
             if (CustomNpcs.legacyExist) {
