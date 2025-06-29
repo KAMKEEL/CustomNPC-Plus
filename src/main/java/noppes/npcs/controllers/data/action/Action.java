@@ -115,7 +115,7 @@ public class Action implements IAction {
 
     @Override
     public IAction setMaxDuration(int x) {
-        this.maxDuration = x;
+        this.maxDuration = Math.max(-1, x);
         return this;
     }
 
@@ -158,7 +158,7 @@ public class Action implements IAction {
 
     @Override
     public IAction setUpdateEveryXTick(int x) {
-        this.updateEveryXTick = x;
+        this.updateEveryXTick = Math.max(1, x);
         return this;
     }
 
@@ -226,6 +226,13 @@ public class Action implements IAction {
 
         return this;
     }
+
+    @Override
+    public IAction start() {
+        manager.start();
+        return this;
+    }
+
     @Override
     public IAction getNext() {
         boolean seenMe = false;

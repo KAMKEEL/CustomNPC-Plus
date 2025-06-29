@@ -106,6 +106,15 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IAction scheduleAction(String name,  Consumer<IAction> task) {
+        return scheduleAction(create(name, task));
+    }
+    @Override
+    public IAction scheduleAction(String name, int startAfterTicks, Consumer<IAction> task) {
+        return scheduleAction(create(name,  startAfterTicks, task));
+    }
+
+    @Override
     public IAction scheduleAction(String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
         return scheduleAction(create(name, maxDuration, startAfterTicks, task));
     }
