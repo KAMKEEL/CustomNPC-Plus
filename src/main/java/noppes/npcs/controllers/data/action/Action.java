@@ -21,7 +21,7 @@ public class Action implements IAction {
     protected boolean done;
     protected final Map<String, Object> dataStore = new HashMap<>();
     protected boolean isThreaded;
-    protected ActionThread threaded;
+    protected ActionThread actionThread;
 
     public Action(ScriptedActionManager manager, String name) {
         this.manager = manager;
@@ -73,7 +73,7 @@ public class Action implements IAction {
         }
         if (ticksExisted % updateEveryXTick == 0 && task != null) {
             if (isThreaded)
-                threaded.run();
+                actionThread.run();
             else {
                 try {
                     task.accept(this);
@@ -130,8 +130,8 @@ public class Action implements IAction {
     }
 
     public void kill() {
-        if (threaded != null)
-            threaded.stop();
+        if (actionThread != null)
+            actionThread.stop();
     }
 
     @Override
@@ -175,7 +175,7 @@ public class Action implements IAction {
     @Override
     public IAction pauseFor(int ticks) {
         if (isThreaded)
-            threaded.pauseFor(ticks);
+            actionThread.pauseFor(ticks);
         else
             this.startAfterTicks = ticks;
 
@@ -185,7 +185,7 @@ public class Action implements IAction {
     @Override
     public IAction pauseFor(long millis) {
         if (isThreaded) {
-            threaded.pauseFor(millis);
+            actionThread.pauseFor(millis);
             return this;
         }
 
@@ -195,7 +195,7 @@ public class Action implements IAction {
     @Override
     public void pause() {
         if (isThreaded)
-            threaded.pause();
+            actionThread.pause();
         else
             throw new CustomNPCsException("Must threadify() IAction before pausing!");
     }
@@ -203,7 +203,7 @@ public class Action implements IAction {
     @Override
     public void pauseUntil(Supplier<Boolean> until) {
         if (isThreaded)
-            threaded.pauseUntil(until);
+            actionThread.pauseUntil(until);
         else
             throw new CustomNPCsException("Must threadify() IAction before pausing!");
     }
@@ -211,13 +211,13 @@ public class Action implements IAction {
     @Override
     public void resume() {
         if (isThreaded)
-            threaded.resume();
+            actionThread.resume();
     }
 
     @Override
     public boolean isPaused() {
         if (isThreaded)
-            return threaded.isPaused();
+            return actionThread.isPaused();
 
         return startAfterTicks > 0;
     }
@@ -226,7 +226,7 @@ public class Action implements IAction {
     public IAction threadify() {
         if (!isThreaded) {
             isThreaded = true;
-            threaded = new ActionThread(this);
+            actionThread = new ActionThread(this);
         }
 
         return this;
