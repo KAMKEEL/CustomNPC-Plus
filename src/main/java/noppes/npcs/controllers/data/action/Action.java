@@ -365,6 +365,9 @@ public class Action implements IAction {
     }
     @Override
     public IAction after(IAction after) {
+        if (after instanceof IConditionalAction)
+            return conditional((IConditionalAction) after);
+
         int idx = manager.getIndex(this);
         if (idx >= 0)
             manager.scheduleActionAt(idx + 1, after);
@@ -403,6 +406,9 @@ public class Action implements IAction {
 
     @Override
     public IAction before(IAction before) {
+        if (before instanceof IConditionalAction)
+            return conditional((IConditionalAction) before);
+
         int idx = manager.getIndex(this);
         if (idx >= 0)
             manager.scheduleActionAt(Math.max(0, idx), before);

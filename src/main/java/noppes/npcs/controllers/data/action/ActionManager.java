@@ -101,6 +101,9 @@ public class ActionManager implements IActionManager {
 
     @Override
     public IAction schedule(IAction action) {
+        if (action instanceof IConditionalAction)
+            return schedule((IConditionalAction) action);
+
         Action act = (Action) action;
         if (act.unscheduledBefore != null)
             act.scheduleAllBefore(actionQueue);
