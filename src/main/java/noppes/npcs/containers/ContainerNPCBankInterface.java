@@ -86,7 +86,24 @@ public class ContainerNPCBankInterface extends ContainerNpcInterface {
 
     @Override
     public ItemStack transferStackInSlot(EntityPlayer par1EntityPlayer, int i) {
-        return null;
+        ItemStack itemstack = null;
+        Slot slot = (Slot) this.inventorySlots.get(targetSlot);
+        if (slot != null && slot.getHasStack()) {
+            ItemStack itemstackLoop = slot.getStack();
+            itemstack = itemstackLoop.copy();
+            if (targetSlot < this.getRowNumber() * 9) {
+                if (!mergeItemStack(itemstackLoop, this.getRowNumber() * 9, this.inventorySlots.size(), true))
+                    return null;
+            } else if (!mergeItemStack(itemstackLoop, 0, this.getRowNumber() * 9, false)) {
+                return null;
+            }
+            if (itemstackLoop.stackSize == 0) {
+                slot.putStack(null);
+            } else {
+                slot.onSlotChanged();
+            }
+        }
+        return itemstack;
     }
 
     @Override
