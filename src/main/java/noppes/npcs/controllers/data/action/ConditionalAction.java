@@ -144,38 +144,4 @@ public class ConditionalAction extends Action implements IConditionalAction {
         return maxChecks;
     }
 
-    @Override
-    public IConditionalAction after(IConditionalAction after) {
-        return manager.scheduleAction(after);
-    }
-
-    @Override
-    public IConditionalAction after(Supplier<Boolean> condition, Consumer<IAction> task) {
-        return after(manager.create(condition, task));
-    }
-
-    @Override
-    public IConditionalAction after(String name, Supplier<Boolean> condition, Consumer<IAction> task) {
-        return after(manager.create(name, condition, task));
-    }
-
-    @Override
-    public IConditionalAction after(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
-        return after(manager.create(condition, task, terminateWhen));
-    }
-
-    @Override
-    public IConditionalAction after(String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
-        return after(manager.create(name, condition, task, terminateWhen));
-    }
-
-    @Override
-    public IConditionalAction after(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
-        return after(manager.create(condition, task, terminateWhen, onTermination));
-    }
-
-    @Override
-    public IConditionalAction after(String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
-        return after(manager.create(name, condition, task, terminateWhen, onTermination));
-    }
 }

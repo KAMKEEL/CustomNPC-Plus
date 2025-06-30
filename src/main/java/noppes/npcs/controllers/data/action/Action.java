@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptedActionManager;
 
@@ -53,6 +54,11 @@ public class Action implements IAction {
     public Action(ScriptedActionManager manager, int startAfterTicks, Consumer<IAction> task) {
         this(manager, task);
         this.startAfterTicks = startAfterTicks;
+    }
+
+    public Action(ScriptedActionManager manager, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        this(manager, startAfterTicks, task);
+        this.maxDuration = maxDuration;
     }
 
     @Override
@@ -269,37 +275,6 @@ public class Action implements IAction {
     }
 
     @Override
-    public IAction parallel(IAction after) {
-        return manager.scheduleParallelAction(after);
-    }
-
-    @Override
-    public IAction parallel(Consumer<IAction> task) {
-        return parallel(manager.create(task));
-    }
-
-    @Override
-    public IAction parallel(int delay, Consumer<IAction> task) {
-        return parallel(manager.create(delay, task));
-    }
-
-    @Override
-    public IAction parallel(String name, Consumer<IAction> task) {
-        return parallel(manager.create(name, task));
-    }
-
-    @Override
-    public IAction parallel(String name, int startAfterTicks, Consumer<IAction> task) {
-        return parallel(manager.create(name, startAfterTicks, task));
-    }
-
-    @Override
-    public IAction parallel(String name, int maxDuration, int delay, Consumer<IAction> t) {
-        return parallel(manager.create(name, maxDuration, delay, t));
-    }
-
-
-    @Override
     public IAction after(IAction after) {
         int idx = manager.getIndex(this);
         if (idx >= 0) manager.scheduleActionAt(idx + 1, after);
@@ -361,5 +336,70 @@ public class Action implements IAction {
     @Override
     public IAction before(Consumer<IAction> t) {
         return before(manager.create(t));
+    }
+
+    @Override
+    public IConditionalAction conditional(IConditionalAction after) {
+        return manager.scheduleAction(after);
+    }
+
+    @Override
+    public IConditionalAction conditional(Supplier<Boolean> condition, Consumer<IAction> task) {
+        return conditional(manager.create(condition, task));
+    }
+
+    @Override
+    public IConditionalAction conditional(String name, Supplier<Boolean> condition, Consumer<IAction> task) {
+        return conditional(manager.create(name, condition, task));
+    }
+
+    @Override
+    public IConditionalAction conditional(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+        return conditional(manager.create(condition, task, terminateWhen));
+    }
+
+    @Override
+    public IConditionalAction conditional(String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+        return conditional(manager.create(name, condition, task, terminateWhen));
+    }
+
+    @Override
+    public IConditionalAction conditional(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return conditional(manager.create(condition, task, terminateWhen, onTermination));
+    }
+
+    @Override
+    public IConditionalAction conditional(String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return conditional(manager.create(name, condition, task, terminateWhen, onTermination));
+    }
+
+    @Override
+    public IAction parallel(IAction after) {
+        return manager.scheduleParallelAction(after);
+    }
+
+    @Override
+    public IAction parallel(Consumer<IAction> task) {
+        return parallel(manager.create(task));
+    }
+
+    @Override
+    public IAction parallel(int delay, Consumer<IAction> task) {
+        return parallel(manager.create(delay, task));
+    }
+
+    @Override
+    public IAction parallel(String name, Consumer<IAction> task) {
+        return parallel(manager.create(name, task));
+    }
+
+    @Override
+    public IAction parallel(String name, int startAfterTicks, Consumer<IAction> task) {
+        return parallel(manager.create(name, startAfterTicks, task));
+    }
+
+    @Override
+    public IAction parallel(String name, int maxDuration, int delay, Consumer<IAction> t) {
+        return parallel(manager.create(name, maxDuration, delay, t));
     }
 }

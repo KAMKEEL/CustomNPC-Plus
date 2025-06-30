@@ -40,6 +40,10 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
+    public IAction create(int maxDuration, int delay, Consumer<IAction> task) {
+        return new Action(this, maxDuration, delay, task);
+    }
+    @Override
     public IAction create(String name, int maxDuration, int delay, Consumer<IAction> task) {
         return new Action(this, name, maxDuration, delay, task);
     }
@@ -113,6 +117,11 @@ public class ScriptedActionManager implements IActionManager {
     @Override
     public IAction scheduleAction(int delay, Consumer<IAction> task) {
         return scheduleAction(create(delay, task));
+    }
+
+    @Override
+    public IAction scheduleAction(int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleAction(create(maxDuration, delay, task));
     }
 
     @Override
@@ -245,6 +254,22 @@ public class ScriptedActionManager implements IActionManager {
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     // Conditionals
+    @Override
+    public IConditionalAction scheduleAction(Supplier<Boolean> condition, Consumer<IAction> task) {
+        return scheduleAction(new ConditionalAction(this, condition, task));
+    }
+
+    @Override
+    public IConditionalAction scheduleAction(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+        return scheduleAction(new ConditionalAction(this, condition, task, terminateWhen));
+    }
+
+    @Override
+    public IConditionalAction scheduleAction(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return scheduleAction(new ConditionalAction(this, condition, task, terminateWhen, onTermination));
+    }
+
+
     @Override
     public IConditionalAction scheduleAction(String name, Supplier<Boolean> condition, Consumer<IAction> task) {
         return scheduleAction(new ConditionalAction(this, name, condition, task));
