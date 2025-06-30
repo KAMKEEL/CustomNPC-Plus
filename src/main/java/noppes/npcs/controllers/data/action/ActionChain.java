@@ -10,11 +10,12 @@ import java.util.function.Consumer;
  * helper to build a back‐to‐back chain of one‐shot actions
  */
 public class ActionChain implements IActionChain {
-    private final ScriptedActionManager manager;
-    private int index = 0;
+    protected final ScriptedActionManager manager;
+    protected String defaultName = "sequential#";
+    protected int index = 0;
 
-    public ActionChain(ScriptedActionManager scriptedActionManager) {
-        this.manager = scriptedActionManager;
+    public ActionChain(ScriptedActionManager manager) {
+        this.manager = manager;
     }
 
     /**
@@ -22,14 +23,14 @@ public class ActionChain implements IActionChain {
      */
     @Override
     public IActionChain after(int delay, String name, Consumer<IAction> task) {
-        index++;
         manager.schedule(name, delay, task).updateEvery(1).once();
+        index++;
         return this;
     }
 
     @Override
     public IActionChain after(int delay, Consumer<IAction> task) {
-        return after(delay, "chain#" + index, task);
+        return after(delay, defaultName + index, task);
     }
 
     @Override
