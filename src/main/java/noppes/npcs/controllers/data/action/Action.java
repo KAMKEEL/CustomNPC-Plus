@@ -2,8 +2,10 @@ package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.scripted.ScriptedActionManager;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,26 +26,18 @@ public class Action implements IAction {
     protected boolean isThreaded;
     protected ActionThread actionThread;
 
+    protected ScriptContainer reportTo;
+
     public Action(ScriptedActionManager manager, String name) {
         this.manager = manager;
         this.name = name;
+
+        if (ScriptContainer.Current != null)
+            reportTo = ScriptContainer.Current;
     }
 
     public Action(ScriptedActionManager manager, Consumer<IAction> task) {
         this(manager, task.toString(), task);
-    }
-
-    public Action(ScriptedActionManager manager, String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
-        this.manager = manager;
-        this.name = name;
-        this.maxDuration = maxDuration;
-        this.startAfterTicks = startAfterTicks;
-        this.task = task;
-    }
-
-    public Action(ScriptedActionManager manager, String name, int startAfterTicks, Consumer<IAction> task) {
-        this(manager, name, task);
-        this.startAfterTicks = startAfterTicks;
     }
 
     public Action(ScriptedActionManager manager, String name, Consumer<IAction> task) {
@@ -56,10 +50,21 @@ public class Action implements IAction {
         this.startAfterTicks = startAfterTicks;
     }
 
+    public Action(ScriptedActionManager manager, String name, int startAfterTicks, Consumer<IAction> task) {
+        this(manager, name, task);
+        this.startAfterTicks = startAfterTicks;
+    }
+
     public Action(ScriptedActionManager manager, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
         this(manager, startAfterTicks, task);
         this.maxDuration = maxDuration;
     }
+
+    public Action(ScriptedActionManager manager, String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+        this(manager, name, startAfterTicks, task);
+        this.maxDuration = maxDuration;
+    }
+
 
     @Override
     public IAction setTask(Consumer<IAction> task) {
@@ -91,7 +96,12 @@ public class Action implements IAction {
             task.accept(this);
             count++;
         } catch (Throwable t) {
-            System.err.println("IAction '" + name + "' threw an exception:");
+            String err = "IAction '" + name + "' threw an exception:";
+
+            if (reportTo != null)
+                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
+
+            System.err.println(err);
             t.printStackTrace();
             markDone();
         }
