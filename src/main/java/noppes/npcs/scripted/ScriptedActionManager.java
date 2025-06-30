@@ -104,38 +104,38 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IAction scheduleAction(IAction action) {
+    public IAction schedule(IAction action) {
         actionQueue.addLast(action);
         return action;
     }
 
     @Override
-    public IAction scheduleAction(Consumer<IAction> task) {
-        return scheduleAction(create(task));
+    public IAction schedule(Consumer<IAction> task) {
+        return schedule(create(task));
     }
 
     @Override
-    public IAction scheduleAction(int delay, Consumer<IAction> task) {
-        return scheduleAction(create(delay, task));
+    public IAction schedule(int delay, Consumer<IAction> task) {
+        return schedule(create(delay, task));
     }
 
     @Override
-    public IAction scheduleAction(int maxDuration, int delay, Consumer<IAction> task) {
-        return scheduleAction(create(maxDuration, delay, task));
+    public IAction schedule(int maxDuration, int delay, Consumer<IAction> task) {
+        return schedule(create(maxDuration, delay, task));
     }
 
     @Override
-    public IAction scheduleAction(String name, Consumer<IAction> task) {
-        return scheduleAction(create(name, task));
+    public IAction schedule(String name, Consumer<IAction> task) {
+        return schedule(create(name, task));
     }
     @Override
-    public IAction scheduleAction(String name, int delay, Consumer<IAction> task) {
-        return scheduleAction(create(name, delay, task));
+    public IAction schedule(String name, int delay, Consumer<IAction> task) {
+        return schedule(create(name, delay, task));
     }
 
     @Override
-    public IAction scheduleAction(String name, int maxDuration, int delay, Consumer<IAction> task) {
-        return scheduleAction(create(name, maxDuration, delay, task));
+    public IAction schedule(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return schedule(create(name, maxDuration, delay, task));
     }
 
     @Override
@@ -218,39 +218,39 @@ public class ScriptedActionManager implements IActionManager {
     ///////////////////////////////////////////////////
     // Conditionals
     @Override
-    public IConditionalAction scheduleAction(Function<IAction,Boolean> condition, Consumer<IAction> task) {
-        return scheduleAction(new ConditionalAction(this, condition, task));
+    public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task) {
+        return schedule(new ConditionalAction(this, condition, task));
     }
 
     @Override
-    public IConditionalAction scheduleAction(Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen) {
-        return scheduleAction(new ConditionalAction(this, condition, task, terminateWhen));
+    public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen) {
+        return schedule(new ConditionalAction(this, condition, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction scheduleAction(Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
-        return scheduleAction(new ConditionalAction(this, condition, task, terminateWhen, onTermination));
-    }
-
-
-    @Override
-    public IConditionalAction scheduleAction(String name,Function<IAction,Boolean> condition, Consumer<IAction> task) {
-        return scheduleAction(new ConditionalAction(this, name, condition, task));
-    }
-
-    @Override
-    public IConditionalAction scheduleAction(String name,Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen) {
-        return scheduleAction(new ConditionalAction(this, name, condition, task, terminateWhen));
-    }
-
-    @Override
-    public IConditionalAction scheduleAction(String name,Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
-        return scheduleAction(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
+    public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return schedule(new ConditionalAction(this, condition, task, terminateWhen, onTermination));
     }
 
 
     @Override
-    public IConditionalAction scheduleAction(IConditionalAction action) {
+    public IConditionalAction schedule(String name, Function<IAction,Boolean> condition, Consumer<IAction> task) {
+        return schedule(new ConditionalAction(this, name, condition, task));
+    }
+
+    @Override
+    public IConditionalAction schedule(String name, Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen) {
+        return schedule(new ConditionalAction(this, name, condition, task, terminateWhen));
+    }
+
+    @Override
+    public IConditionalAction schedule(String name, Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return schedule(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
+    }
+
+
+    @Override
+    public IConditionalAction schedule(IConditionalAction action) {
         conditionalActions.add(action);
         return action;
     }
@@ -270,22 +270,22 @@ public class ScriptedActionManager implements IActionManager {
     }
 
     @Override
-    public IAction scheduleParallelAction(IAction action) {
+    public IAction scheduleParallel(IAction action) {
         parallelActions.add(action);
         return action;
     }
     @Override
-    public IAction scheduleParallelAction(String name, Consumer<IAction> task) {
-        return scheduleParallelAction(create(name, task));
+    public IAction scheduleParallel(String name, Consumer<IAction> task) {
+        return scheduleParallel(create(name, task));
     }
     @Override
-    public IAction scheduleParallelAction(String name, int delay, Consumer<IAction> task) {
-        return scheduleParallelAction(create(name, delay, task));
+    public IAction scheduleParallel(String name, int delay, Consumer<IAction> task) {
+        return scheduleParallel(create(name, delay, task));
     }
 
     @Override
-    public IAction scheduleParallelAction(String name, int maxDuration, int delay, Consumer<IAction> task) {
-        return scheduleParallelAction(create(name, maxDuration, delay, task));
+    public IAction scheduleParallel(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleParallel(create(name, maxDuration, delay, task));
     }
 
 

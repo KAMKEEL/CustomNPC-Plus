@@ -30,7 +30,7 @@ public class ActionChain implements IActionChain {
         IAction a = scriptedActionManager.create(name, offset, wrapper);
         index++;
         a.setUpdateEveryXTick(1);
-        scriptedActionManager.scheduleAction(a);
+        scriptedActionManager.schedule(a);
         return this;
     }
 

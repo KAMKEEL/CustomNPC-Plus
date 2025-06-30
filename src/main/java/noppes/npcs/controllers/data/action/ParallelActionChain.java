@@ -29,7 +29,7 @@ public class ParallelActionChain implements IActionChain {
             wrapper);
         idx++;
         a.setUpdateEveryXTick(1);
-        scriptedActionManager.scheduleParallelAction(a);
+        scriptedActionManager.scheduleParallel(a);
         return this;
     }
 

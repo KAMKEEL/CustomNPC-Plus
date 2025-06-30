@@ -354,7 +354,7 @@ public class Action implements IAction {
 
     @Override
     public IConditionalAction conditional(IConditionalAction after) {
-        return manager.scheduleAction(after);
+        return manager.schedule(after);
     }
 
     @Override
@@ -389,7 +389,7 @@ public class Action implements IAction {
 
     @Override
     public IAction parallel(IAction after) {
-        return manager.scheduleParallelAction(after);
+        return manager.scheduleParallel(after);
     }
 
     @Override
