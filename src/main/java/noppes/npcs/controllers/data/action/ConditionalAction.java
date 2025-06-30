@@ -57,31 +57,27 @@ public class ConditionalAction extends Action implements IConditionalAction {
         }
 
         if (ticksExisted % updateEveryXTick == 0) {
-            if (condition != null && condition.apply(this)) {
-                if (isThreaded)
-                    actionThread.execute("task", this::executeTask);
-                else
-                    executeTask();
-            }
-
-            if (isTerminated()) {
-                if (onTermination != null) {
-                    if (isThreaded)
-                        actionThread.execute("onTermination", this::executeOnTermination);
-                    else
-                        executeOnTermination();
-                }
-                markDone();
-                return;
-            }
-
             checkCount++;
+
+            Runnable execute = () -> {
+                if (condition != null && condition.apply(this))
+                    executeTask();
+
+                if (isTerminated()) {
+                    if (onTermination != null)
+                        executeOnTermination();
+                    markDone();
+                }
+            };
+
+            if (isThreaded)
+                actionThread.execute("task", execute);
+            else
+                execute.run();
         }
 
-        if (maxCount > -1 && count >= maxCount) {
+        if (maxCount > -1 && count >= maxCount)
             markDone();
-            return;
-        }
 
         duration++;
     }
