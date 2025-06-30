@@ -11,7 +11,7 @@ import java.util.function.Consumer;
  */
 public class ActionChain implements IActionChain {
     private final ScriptedActionManager manager;
-    private int offset = 0, index = 0;
+    private int index = 0;
 
     public ActionChain(ScriptedActionManager scriptedActionManager) {
         this.manager = scriptedActionManager;
@@ -22,9 +22,8 @@ public class ActionChain implements IActionChain {
      */
     @Override
     public IActionChain after(int delay, String name, Consumer<IAction> task) {
-        offset += delay;
         index++;
-        manager.schedule(name, offset, task).updateEvery(1).once();
+        manager.schedule(name, delay, task).updateEvery(1).once();
         return this;
     }
 
