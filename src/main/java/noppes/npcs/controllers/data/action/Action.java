@@ -16,9 +16,8 @@ public class Action implements IAction {
     protected final ScriptedActionManager manager;
     protected final String name;
     protected int startAfterTicks;
-    protected int count;
-    protected int duration;
-    protected int maxDuration = -1;
+    protected int count, maxCount = -1;
+    protected int duration, maxDuration = -1;
     protected int updateEveryXTick = 5;
     protected Consumer<IAction> task;
     protected boolean done;
@@ -78,7 +77,7 @@ public class Action implements IAction {
             startAfterTicks--;
             return;
         }
-        if (maxDuration > -1 && duration >= maxDuration) {
+        if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
             markDone();
             return;
         }
@@ -88,6 +87,12 @@ public class Action implements IAction {
             else
                 executeTask();
         }
+
+        if (maxCount > -1 && count >= maxCount) {
+            markDone();
+            return;
+        }
+
         duration++;
     }
 
@@ -105,7 +110,6 @@ public class Action implements IAction {
             t.printStackTrace();
             markDone();
         }
-        duration++;
     }
 
     @Override
@@ -136,6 +140,23 @@ public class Action implements IAction {
     @Override
     public IAction setMaxDuration(int x) {
         this.maxDuration = Math.max(-1, x);
+        return this;
+    }
+
+    @Override
+    public int getMaxCount() {
+        return maxCount;
+    }
+
+    @Override
+    public IAction times(int x) {
+        this.maxCount = Math.max(-1, x);
+        return this;
+    }
+
+    @Override
+    public IAction once() {
+        this.maxCount = 1;
         return this;
     }
 
@@ -181,12 +202,12 @@ public class Action implements IAction {
     }
 
     @Override
-    public int getUpdateEveryXTick() {
+    public int getUpdateEvery() {
         return updateEveryXTick;
     }
 
     @Override
-    public IAction setUpdateEveryXTick(int x) {
+    public IAction updateEvery(int x) {
         this.updateEveryXTick = Math.max(1, x);
         return this;
     }

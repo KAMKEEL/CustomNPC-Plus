@@ -18,7 +18,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
     private boolean taskExecuted;
 
     public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task) {
-        super(manager, "conditional", task);
+        super(manager, task);
         this.condition = condition;
     }
 
@@ -52,7 +52,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
         if (done)
             return;
 
-        if (maxChecks > -1 && checkCount > maxChecks) {
+        if (maxChecks > -1 && checkCount > maxChecks || maxCount == 0) {
             markDone();
             return;
         }
@@ -78,6 +78,12 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
             checkCount++;
         }
+
+        if (maxCount > -1 && count >= maxCount) {
+            markDone();
+            return;
+        }
+
         duration++;
     }
 
