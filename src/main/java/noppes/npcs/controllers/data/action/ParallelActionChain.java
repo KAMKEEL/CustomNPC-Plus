@@ -2,14 +2,13 @@ package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
-import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.function.Consumer;
 
 public class ParallelActionChain extends ActionChain implements IActionChain {
     private int offset;
 
-    public ParallelActionChain(ScriptedActionManager manager) {
+    public ParallelActionChain(ActionManager manager) {
         super(manager);
         defaultName = "parallel#";
     }

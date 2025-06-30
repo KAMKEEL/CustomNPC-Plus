@@ -1,13 +1,9 @@
-package noppes.npcs.scripted;
+package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
-import noppes.npcs.controllers.data.action.Action;
-import noppes.npcs.controllers.data.action.ActionChain;
-import noppes.npcs.controllers.data.action.ConditionalAction;
-import noppes.npcs.controllers.data.action.ParallelActionChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -22,7 +18,7 @@ import java.util.function.Function;
  * - conditional actions
  * - cancellation & clearing
  */
-public class ScriptedActionManager implements IActionManager {
+public class ActionManager implements IActionManager {
     private boolean isWorking = false;
 
     private final Deque<IAction> actionQueue = new ConcurrentLinkedDeque<>();

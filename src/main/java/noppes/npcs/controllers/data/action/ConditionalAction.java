@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
-import noppes.npcs.scripted.ScriptedActionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.function.Consumer;
@@ -17,32 +16,32 @@ public class ConditionalAction extends Action implements IConditionalAction {
     private int checkCount;
     private boolean taskExecuted;
 
-    public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task) {
+    public ConditionalAction(ActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         super(manager, task);
         this.condition = condition;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
+    public ConditionalAction(ActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         super(manager, name, task);
         this.condition = condition;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
+    public ConditionalAction(ActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         this(manager, condition, task);
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
+    public ConditionalAction(ActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         this(manager, name, condition, task);
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public ConditionalAction(ActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         this(manager, condition, task, terminateWhen);
         this.onTermination = onTermination;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public ConditionalAction(ActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         this(manager, name, condition, task, terminateWhen);
         this.onTermination = onTermination;
     }

@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
-import noppes.npcs.scripted.ScriptedActionManager;
 
 import java.util.function.Consumer;
 
@@ -10,11 +9,11 @@ import java.util.function.Consumer;
  * helper to build a back‐to‐back chain of one‐shot actions
  */
 public class ActionChain implements IActionChain {
-    protected final ScriptedActionManager manager;
+    protected final ActionManager manager;
     protected String defaultName = "sequential#";
     protected int index = 0;
 
-    public ActionChain(ScriptedActionManager manager) {
+    public ActionChain(ActionManager manager) {
         this.manager = manager;
     }
 

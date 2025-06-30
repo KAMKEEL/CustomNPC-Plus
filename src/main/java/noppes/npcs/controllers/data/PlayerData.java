@@ -22,6 +22,7 @@ import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
@@ -29,7 +30,6 @@ import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScreenSize;
-import noppes.npcs.scripted.ScriptedActionManager;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -52,7 +52,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
-    public ScriptedActionManager actionManager = new ScriptedActionManager();
+    public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
     public EntityNPCInterface editingNpc;

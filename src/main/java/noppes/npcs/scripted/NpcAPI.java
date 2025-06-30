@@ -51,10 +51,8 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
 import noppes.npcs.controllers.*;
-import noppes.npcs.controllers.data.Animation;
-import noppes.npcs.controllers.data.Frame;
-import noppes.npcs.controllers.data.FramePart;
-import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
@@ -79,7 +77,7 @@ public class NpcAPI extends AbstractNpcAPI {
     private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60 * 1000);
     public static final HashMap<String, Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
-    public static final ScriptedActionManager actionManager = new ScriptedActionManager();
+    public static final ActionManager actionManager = new ActionManager();
     private static AbstractNpcAPI instance = null;
 
     private final static String API_USER_AGENT = "CNPC+API";

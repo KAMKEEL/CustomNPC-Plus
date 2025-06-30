@@ -4,7 +4,6 @@ import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
-import noppes.npcs.scripted.ScriptedActionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.HashMap;
@@ -13,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Action implements IAction {
-    protected final ScriptedActionManager manager;
+    protected final ActionManager manager;
     protected final String name;
     protected int startAfterTicks;
     protected int count, maxCount = -1;
@@ -27,7 +26,7 @@ public class Action implements IAction {
 
     protected ScriptContainer reportTo;
 
-    public Action(ScriptedActionManager manager, String name) {
+    public Action(ActionManager manager, String name) {
         this.manager = manager;
         this.name = name;
 
@@ -35,31 +34,31 @@ public class Action implements IAction {
             reportTo = ScriptContainer.Current;
     }
 
-    public Action(ScriptedActionManager manager, Consumer<IAction> task) {
+    public Action(ActionManager manager, Consumer<IAction> task) {
         this(manager, task.toString(), task);
     }
 
-    public Action(ScriptedActionManager manager, String name, Consumer<IAction> task) {
+    public Action(ActionManager manager, String name, Consumer<IAction> task) {
         this(manager, name);
         this.task = task;
     }
 
-    public Action(ScriptedActionManager manager, int startAfterTicks, Consumer<IAction> task) {
+    public Action(ActionManager manager, int startAfterTicks, Consumer<IAction> task) {
         this(manager, task);
         this.startAfterTicks = startAfterTicks;
     }
 
-    public Action(ScriptedActionManager manager, String name, int startAfterTicks, Consumer<IAction> task) {
+    public Action(ActionManager manager, String name, int startAfterTicks, Consumer<IAction> task) {
         this(manager, name, task);
         this.startAfterTicks = startAfterTicks;
     }
 
-    public Action(ScriptedActionManager manager, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+    public Action(ActionManager manager, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
         this(manager, startAfterTicks, task);
         this.maxDuration = maxDuration;
     }
 
-    public Action(ScriptedActionManager manager, String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
+    public Action(ActionManager manager, String name, int maxDuration, int startAfterTicks, Consumer<IAction> task) {
         this(manager, name, startAfterTicks, task);
         this.maxDuration = maxDuration;
     }
@@ -113,7 +112,7 @@ public class Action implements IAction {
     }
 
     @Override
-    public ScriptedActionManager getManager() {
+    public ActionManager getManager() {
         return manager;
     }
 

@@ -72,10 +72,10 @@ import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
 import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.*;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptedActionManager;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
@@ -98,7 +98,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public DataTimers timers;
 
     public CombatHandler combatHandler = new CombatHandler(this);
-    public ScriptedActionManager actionManager = new ScriptedActionManager();
+    public ActionManager actionManager = new ActionManager();
 
     public String linkedName = "";
     public long linkedLast = 0;
