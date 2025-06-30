@@ -7,11 +7,11 @@ import noppes.npcs.scripted.ScriptedActionManager;
 import java.util.function.Consumer;
 
 public class ParallelActionChain implements IActionChain {
-    private final ScriptedActionManager scriptedActionManager;
+    private final ScriptedActionManager manager;
     private int offset = 0, idx = 0;
 
     public ParallelActionChain(ScriptedActionManager scriptedActionManager) {
-        this.scriptedActionManager = scriptedActionManager;
+        this.manager = scriptedActionManager;
     }
 
     /**
@@ -20,21 +20,20 @@ public class ParallelActionChain implements IActionChain {
     @Override
     public IActionChain after(int delay, String name, Consumer<IAction> task) {
         offset += delay;
-        Consumer<IAction> wrapper = act -> {
-            task.accept(act);
-            act.markDone();
-        };
-        IAction a = scriptedActionManager.create(name,
-            offset,
-            wrapper);
         idx++;
-        a.setUpdateEveryXTick(1);
-        scriptedActionManager.scheduleParallel(a);
+
+        manager.scheduleParallel(name, offset, task).updateEvery(1).once();
         return this;
     }
 
     @Override
     public IActionChain after(int delay, Consumer<IAction> task) {
         return after(delay, "parallel#" + idx, task);
+    }
+
+    @Override
+    public IActionChain start() {
+        manager.start();
+        return this;
     }
 }
