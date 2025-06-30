@@ -149,9 +149,13 @@ public class Action implements IAction {
         return done;
     }
 
+    @Override
     public void kill() {
         if (actionThread != null)
             actionThread.stop();
+
+        dataStore.clear();
+        done = true;
     }
 
     @Override

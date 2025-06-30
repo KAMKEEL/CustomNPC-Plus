@@ -214,43 +214,6 @@ public class ScriptedActionManager implements IActionManager {
         return false;
     }
 
-    @Override
-    public void clear() {
-        actionQueue.clear();
-        parallelActions.clear();
-        conditionalActions.clear();
-    }
-
-    @Override
-    public boolean cancelAction(String name) {
-        Iterator<IAction> acts = actionQueue.iterator();
-        while (acts.hasNext()) {
-            IAction act = acts.next();
-            if (act.getName().equals(name)) {
-                acts.remove();
-                return true;
-            }
-        }
-
-        Iterator<IAction> pit = parallelActions.iterator();
-        while (pit.hasNext()) {
-            if (pit.next().getName().equals(name)) {
-                pit.remove();
-                return true;
-            }
-        }
-
-        Iterator<IConditionalAction> cons = conditionalActions.iterator();
-        while (cons.hasNext()) {
-            IConditionalAction con = cons.next();
-            if (con.getName().equals(name)) {
-                cons.remove();
-                return true;
-            }
-        }
-        return false;
-    }
-
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     // Conditionals
@@ -366,6 +329,48 @@ public class ScriptedActionManager implements IActionManager {
                 cit.remove();
             }
         }
+    }
+
+    @Override
+    public void clear() {
+        actionQueue.forEach((act) -> act.kill());
+        actionQueue.clear();
+
+        parallelActions.forEach((act) -> act.kill());
+        parallelActions.clear();
+
+        conditionalActions.forEach((act) -> act.kill());
+        conditionalActions.clear();
+    }
+
+    @Override
+    public boolean cancelAction(String name) {
+        Iterator<IAction> acts = actionQueue.iterator();
+        while (acts.hasNext()) {
+            IAction act = acts.next();
+            if (act.getName().equals(name)) {
+                acts.remove();
+                return true;
+            }
+        }
+
+        Iterator<IAction> pit = parallelActions.iterator();
+        while (pit.hasNext()) {
+            if (pit.next().getName().equals(name)) {
+                pit.remove();
+                return true;
+            }
+        }
+
+        Iterator<IConditionalAction> cons = conditionalActions.iterator();
+        while (cons.hasNext()) {
+            IConditionalAction con = cons.next();
+            if (con.getName().equals(name)) {
+                cons.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

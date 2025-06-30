@@ -1407,6 +1407,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             roleInterface.delete();
         if (advanced.job != EnumJobType.None && jobInterface != null)
             jobInterface.delete();
+        actionManager.clear();
+
         super.setDead();
     }
 
