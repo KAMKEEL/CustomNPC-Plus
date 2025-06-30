@@ -120,7 +120,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     @Override
     public IConditionalAction setMaxChecks(int maxChecks) {
-        this.maxChecks = maxChecks;
+        this.maxChecks = Math.max(-1, maxChecks);
         return this;
     }
 

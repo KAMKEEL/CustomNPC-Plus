@@ -89,10 +89,8 @@ public class Action implements IAction {
                 executeTask();
         }
 
-        if (maxCount > -1 && count >= maxCount) {
+        if (maxCount > -1 && count >= maxCount)
             markDone();
-            return;
-        }
 
         duration++;
     }
@@ -145,8 +143,8 @@ public class Action implements IAction {
     }
 
     @Override
-    public IAction setMaxDuration(int x) {
-        this.maxDuration = Math.max(-1, x);
+    public IAction setMaxDuration(int ticks) {
+        this.maxDuration = Math.max(-1, ticks);
         return this;
     }
 
@@ -156,8 +154,8 @@ public class Action implements IAction {
     }
 
     @Override
-    public IAction times(int x) {
-        this.maxCount = Math.max(-1, x);
+    public IAction times(int n) {
+        this.maxCount = Math.max(-1, n);
         return this;
     }
 

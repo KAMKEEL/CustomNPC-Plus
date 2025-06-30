@@ -285,6 +285,21 @@ public class ActionManager implements IActionManager {
         ((Action) action).isScheduled = true;
         return action;
     }
+
+    @Override
+    public IAction scheduleParallel(Consumer<IAction> task) {
+        return scheduleParallel(create(task));
+    }
+
+    @Override
+    public IAction scheduleParallel(int delay, Consumer<IAction> task) {
+        return scheduleParallel(create(delay, task));
+    }
+    @Override
+    public IAction scheduleParallel(int maxDuration, int delay, Consumer<IAction> task) {
+        return scheduleParallel(create(maxDuration, delay, task));
+    }
+
     @Override
     public IAction scheduleParallel(String name, Consumer<IAction> task) {
         return scheduleParallel(create(name, task));
