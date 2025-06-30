@@ -10,7 +10,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 public class Action implements IAction {
     protected final ScriptedActionManager manager;
@@ -225,7 +225,7 @@ public class Action implements IAction {
     }
 
     @Override
-    public void pauseUntil(Supplier<Boolean> until) {
+    public void pauseUntil(Function<IAction, Boolean> until) {
         if (isThreaded)
             actionThread.pauseUntil(until);
         else
@@ -358,32 +358,32 @@ public class Action implements IAction {
     }
 
     @Override
-    public IConditionalAction conditional(Supplier<Boolean> condition, Consumer<IAction> task) {
+    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return conditional(manager.create(condition, task));
     }
 
     @Override
-    public IConditionalAction conditional(String name, Supplier<Boolean> condition, Consumer<IAction> task) {
+    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return conditional(manager.create(name, condition, task));
     }
 
     @Override
-    public IConditionalAction conditional(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         return conditional(manager.create(condition, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction conditional(String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         return conditional(manager.create(name, condition, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction conditional(Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return conditional(manager.create(condition, task, terminateWhen, onTermination));
     }
 
     @Override
-    public IConditionalAction conditional(String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return conditional(manager.create(name, condition, task, terminateWhen, onTermination));
     }
 

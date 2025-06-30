@@ -1,12 +1,17 @@
 package noppes.npcs.controllers.data.action;
 
+import noppes.npcs.api.handler.data.IAction;
+
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class ActionThread {
+    private Action action;
+
     private final Object lock = new Object();
     private Thread thread;
     ExecutorService executor;
@@ -16,9 +21,10 @@ public class ActionThread {
 
     private volatile boolean threadPaused, threadSleeping;
 
-    private Supplier<Boolean> pauseUntil;
+    private Function<IAction, Boolean> pauseUntil;
 
     public ActionThread(Action action) {
+        this.action = action;
         executor = Executors.newSingleThreadExecutor(r -> {
             thread = new Thread(r);
             thread.setName(String.format("ActionThread (%s)", action.getName()));
@@ -69,7 +75,7 @@ public class ActionThread {
         }
     }
 
-    public void pauseUntil(Supplier<Boolean> until) {
+    public void pauseUntil(Function<IAction, Boolean> until) {
         this.pauseUntil = until;
         pause();
     }
@@ -99,7 +105,7 @@ public class ActionThread {
     }
 
     protected void execute(String taskKey, Runnable task) {
-        if (threadPaused && pauseUntil != null && pauseUntil.get())
+        if (threadPaused && pauseUntil != null && pauseUntil.apply(action))
             resume();
 
         if (runningKeys.contains(taskKey))

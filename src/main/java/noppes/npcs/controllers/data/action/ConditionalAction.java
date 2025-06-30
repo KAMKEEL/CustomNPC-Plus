@@ -6,42 +6,43 @@ import noppes.npcs.scripted.ScriptedActionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
+import java.util.function.Function;
+
 
 public class ConditionalAction extends Action implements IConditionalAction {
-    private Supplier<Boolean> condition;
-    private Supplier<Boolean> terminateWhen;
+    private Function<IAction, Boolean> condition;
+    private Function<IAction, Boolean> terminateWhen;
     private Consumer<IAction> onTermination;
     private int maxChecks = -1;
     private int checkCount;
     private boolean taskExecuted;
 
-    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> condition, Consumer<IAction> task) {
+    public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         super(manager, "conditional", task);
         this.condition = condition;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> condition, Consumer<IAction> task) {
+    public ConditionalAction(ScriptedActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         super(manager, name, task);
         this.condition = condition;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+    public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         this(manager, condition, task);
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen) {
+    public ConditionalAction(ScriptedActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         this(manager, name, condition, task);
         this.terminateWhen = terminateWhen;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public ConditionalAction(ScriptedActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         this(manager, condition, task, terminateWhen);
         this.onTermination = onTermination;
     }
 
-    public ConditionalAction(ScriptedActionManager manager, String name, Supplier<Boolean> condition, Consumer<IAction> task, Supplier<Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public ConditionalAction(ScriptedActionManager manager, String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         this(manager, name, condition, task, terminateWhen);
         this.onTermination = onTermination;
     }
@@ -57,7 +58,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
         }
 
         if (ticksExisted % updateEveryXTick == 0) {
-            if (condition != null && condition.get()) {
+            if (condition != null && condition.apply(this)) {
                 if (isThreaded)
                     actionThread.execute("task", this::executeTask);
                 else
@@ -113,7 +114,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     @Override
     public boolean isTerminated() {
-        return terminateWhen != null && terminateWhen.get();
+        return terminateWhen != null && terminateWhen.apply(this);
     }
 
     @Override
@@ -123,13 +124,13 @@ public class ConditionalAction extends Action implements IConditionalAction {
     }
 
     @Override
-    public IConditionalAction setCondition(Supplier<Boolean> condition) {
+    public IConditionalAction setCondition(Function<IAction, Boolean> condition) {
         this.condition = condition;
         return this;
     }
 
     @Override
-    public IConditionalAction terminateWhen(Supplier<Boolean> terminateWhen) {
+    public IConditionalAction terminateWhen(Function<IAction, Boolean> terminateWhen) {
         this.terminateWhen = terminateWhen;
         return this;
     }
