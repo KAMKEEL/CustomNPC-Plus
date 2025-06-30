@@ -6,13 +6,16 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class Action implements IAction {
     protected final ActionManager manager;
+    protected boolean isScheduled;
     protected final String name;
     protected int startAfterTicks;
     protected int count, maxCount = -1;
@@ -23,7 +26,6 @@ public class Action implements IAction {
     protected final Map<String, Object> dataStore = new HashMap<>();
     protected boolean isThreaded;
     protected ActionThread actionThread;
-
     protected ScriptContainer reportTo;
 
     public Action(ActionManager manager, String name) {
@@ -117,6 +119,12 @@ public class Action implements IAction {
     }
 
     @Override
+    public boolean isScheduled() {
+        return isScheduled;
+    }
+
+
+    @Override
     public int getCount() {
         return count;
     }
@@ -175,6 +183,7 @@ public class Action implements IAction {
             actionThread.stop();
 
         dataStore.clear();
+        isScheduled = false;
         done = true;
     }
 
@@ -308,10 +317,62 @@ public class Action implements IAction {
         return null;
     }
 
+    protected Action unscheduledBefore, unscheduledAfter;
+
+    protected LinkedList<Action> allUnscheduledBefore() {
+        Action before = unscheduledBefore;
+
+        LinkedList<Action> befores = new LinkedList<>();
+        while (before != null) {
+            befores.addFirst(before);
+            before = before.unscheduledBefore;
+        }
+
+        return befores;
+    }
+
+    protected void scheduleAllBefore(Deque<IAction> actionQueue) {
+        allUnscheduledBefore().forEach((bef) -> {
+            if (bef.unscheduledAfter != null)
+                bef.unscheduledAfter.unscheduledBefore = null;
+            bef.unscheduledAfter = null;
+
+            actionQueue.addLast(bef);
+            bef.isScheduled = true;
+        });
+    }
+
+    protected LinkedList<Action> allUnscheduledAfter() {
+        Action after = unscheduledAfter;
+
+        LinkedList<Action> afters = new LinkedList<>();
+        while (after != null) {
+            afters.add(after);
+            after = after.unscheduledAfter;
+        }
+        return afters;
+    }
+
+    protected void scheduleAllAfter(Deque<IAction> actionQueue) {
+        allUnscheduledAfter().forEach((aft) -> {
+            if (aft.unscheduledBefore != null)
+                aft.unscheduledBefore.unscheduledAfter = null;
+            aft.unscheduledBefore = null;
+
+            actionQueue.addLast(aft);
+            aft.isScheduled = true;
+        });
+    }
     @Override
     public IAction after(IAction after) {
         int idx = manager.getIndex(this);
-        if (idx >= 0) manager.scheduleActionAt(idx + 1, after);
+        if (idx >= 0)
+            manager.scheduleActionAt(idx + 1, after);
+        else {
+            Action aft = (Action) after;
+            unscheduledAfter = aft;
+            aft.unscheduledBefore = this;
+        }
         return after;
     }
 
@@ -343,7 +404,13 @@ public class Action implements IAction {
     @Override
     public IAction before(IAction before) {
         int idx = manager.getIndex(this);
-        if (idx >= 0) manager.scheduleActionAt(Math.max(0, idx), before);
+        if (idx >= 0)
+            manager.scheduleActionAt(Math.max(0, idx), before);
+        else {
+            Action bef = (Action) before;
+            unscheduledBefore = bef;
+            bef.unscheduledAfter = this;
+        }
         return before;
     }
 

@@ -101,7 +101,16 @@ public class ActionManager implements IActionManager {
 
     @Override
     public IAction schedule(IAction action) {
+        Action act = (Action) action;
+        if (act.unscheduledBefore != null)
+            act.scheduleAllBefore(actionQueue);
+
         actionQueue.addLast(action);
+
+        if (act.unscheduledAfter != null)
+            act.scheduleAllAfter(actionQueue);
+
+        act.isScheduled = true;
         return action;
     }
 
@@ -147,6 +156,7 @@ public class ActionManager implements IActionManager {
             actionQueue.clear();
             actionQueue.addAll(tmp);
         }
+        ((Action) action).isScheduled = true;
         return action;
     }
 
@@ -248,6 +258,7 @@ public class ActionManager implements IActionManager {
     @Override
     public IConditionalAction schedule(IConditionalAction action) {
         conditionalActions.add(action);
+        ((Action) action).isScheduled = true;
         return action;
     }
 
@@ -268,6 +279,7 @@ public class ActionManager implements IActionManager {
     @Override
     public IAction scheduleParallel(IAction action) {
         parallelActions.add(action);
+        ((Action) action).isScheduled = true;
         return action;
     }
     @Override
