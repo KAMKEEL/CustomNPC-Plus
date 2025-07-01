@@ -132,7 +132,7 @@ public class GuiNPCManageFactions extends GuiNPCInterface2 implements IScrollDat
         if (button.id == 4) {
             faction.getsAttacked = button.getValue() == 1;
         }
-        if (button.id == 4) {
+        if (button.id == 5) {
             faction.isPassive = button.getValue() == 1;
         }
         if (button.id == 10) {
