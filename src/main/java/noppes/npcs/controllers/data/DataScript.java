@@ -245,6 +245,12 @@ public class DataScript implements INpcScriptHandler {
             EnumScriptType enumScriptType = EnumScriptType.valueOfIgnoreCase(hookName);
             this.callScript(enumScriptType, event);
         } catch (IllegalArgumentException ignored) {
+            for (ScriptContainer script : this.eventScripts) {
+                if (script == null || script.errored || !script.hasCode())
+                    continue;
+
+                script.run(hookName, event);
+            }
         }
     }
 

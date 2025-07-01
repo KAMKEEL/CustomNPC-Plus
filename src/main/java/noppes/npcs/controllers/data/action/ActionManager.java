@@ -4,6 +4,9 @@ import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
+import noppes.npcs.api.handler.data.actions.IEventAction;
+import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.action.EventAction;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -24,6 +27,7 @@ public class ActionManager implements IActionManager {
     private final Deque<IAction> actionQueue = new ConcurrentLinkedDeque<>();
     private final Deque<IAction> parallelActions = new ConcurrentLinkedDeque<>();
     private final Deque<IConditionalAction> conditionalActions = new ConcurrentLinkedDeque<>();
+    private final Deque<IEventAction> eventActions = new ConcurrentLinkedDeque<>();
 
     @Override
     public IAction create(String name) {
@@ -87,6 +91,14 @@ public class ActionManager implements IActionManager {
     @Override
     public IConditionalAction create(String name,Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return new ConditionalAction(this, name, condition, task, terminateWhen, onTermination);
+    }
+
+    public IEventAction create(INpcScriptHandler handler, String hook, Function<IAction,Boolean> condition) {
+        return new EventAction(this, handler, hook, condition);
+    }
+
+    public IEventAction create(String name, INpcScriptHandler handler, String hook, Function<IAction,Boolean> condition) {
+        return new EventAction(this, name, handler, hook, condition);
     }
 
     @Override
@@ -195,6 +207,11 @@ public class ActionManager implements IActionManager {
                 return action;
         }
 
+        for (IAction action : eventActions) {
+            if (action.getName().equals(name))
+                return action;
+        }
+
         return null;
     }
 
@@ -218,6 +235,8 @@ public class ActionManager implements IActionManager {
         else if (hasParallel(name))
             return true;
         else if (hasConditional(name))
+            return true;
+        else if (hasEvent(name))
             return true;
 
         return false;
@@ -257,10 +276,24 @@ public class ActionManager implements IActionManager {
         return schedule(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
     }
 
+    public IEventAction schedule(INpcScriptHandler handler, String hook, Function<IAction,Boolean> condition) {
+        return schedule(new EventAction(this, handler, hook, condition));
+    }
+
+    public IEventAction schedule(String name, INpcScriptHandler handler, String hook, Function<IAction,Boolean> condition) {
+        return schedule(new EventAction(this, name, handler, hook, condition));
+    }
+
 
     @Override
     public IConditionalAction schedule(IConditionalAction action) {
         conditionalActions.add(action);
+        ((Action) action).isScheduled = true;
+        return action;
+    }
+
+    public IEventAction schedule(IEventAction action) {
+        eventActions.add(action);
         ((Action) action).isScheduled = true;
         return action;
     }
@@ -270,9 +303,21 @@ public class ActionManager implements IActionManager {
         return new ArrayList<>(conditionalActions);
     }
 
+    public List<IEventAction> getEventActions() {
+        return new ArrayList<>(eventActions);
+    }
+
     @Override
     public boolean hasConditional(String name) {
         for (IAction act : conditionalActions)
+            if (act.getName().equals(name))
+                return true;
+
+        return false;
+    }
+
+    public boolean hasEvent(String name) {
+        for (IAction act : eventActions)
             if (act.getName().equals(name))
                 return true;
 
@@ -355,6 +400,17 @@ public class ActionManager implements IActionManager {
                 cit.remove();
             }
         }
+
+        // ─── Event Actions ───────────────────────────────────────
+        Iterator<IEventAction> eit = eventActions.iterator();
+        while (eit.hasNext()) {
+            EventAction ea = (EventAction) eit.next();
+            ea.tick(ticksExisted);
+            if (ea.isDone()) {
+                ea.kill();
+                eit.remove();
+            }
+        }
     }
 
     @Override
@@ -367,6 +423,9 @@ public class ActionManager implements IActionManager {
 
         conditionalActions.forEach((act) -> act.kill());
         conditionalActions.clear();
+
+        eventActions.forEach((act) -> act.kill());
+        eventActions.clear();
     }
 
     @Override
@@ -393,6 +452,15 @@ public class ActionManager implements IActionManager {
             IConditionalAction con = cons.next();
             if (con.getName().equals(name)) {
                 cons.remove();
+                return true;
+            }
+        }
+
+        Iterator<IEventAction> evs = eventActions.iterator();
+        while (evs.hasNext()) {
+            IEventAction ev = evs.next();
+            if (ev.getName().equals(name)) {
+                evs.remove();
                 return true;
             }
         }

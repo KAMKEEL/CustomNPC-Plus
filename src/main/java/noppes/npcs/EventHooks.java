@@ -17,6 +17,8 @@ import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.*;
 import noppes.npcs.api.event.IAnimationEvent;
+import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.scripted.event.ActionTriggerEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
@@ -986,5 +988,14 @@ public class EventHooks {
             return;
         }
         postAnimationEvent(new AnimationEvent.FrameEvent.Exited(animation, frame));
+    }
+
+    // Custom EventAction hook
+    public static void onEventAction(INpcScriptHandler handler, ActionTriggerEvent event) {
+        if (handler == null || handler.isClient())
+            return;
+
+        handler.callScript(event.getHookName(), event);
+        NpcAPI.EVENT_BUS.post(event);
     }
 }
