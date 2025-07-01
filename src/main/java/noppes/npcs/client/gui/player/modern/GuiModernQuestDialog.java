@@ -54,6 +54,11 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
 
     private boolean isGrabbed = false;
 
+    /**
+     * Flag to ensure the dialog close packet is only sent once.
+     */
+    private boolean sentClosePacket = false;
+
     private final HashMap<Integer, GuiDialogImage> dialogImages = new HashMap<>();
     private Dialog prevDialog;
     private int optionId;
@@ -70,6 +75,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
     public void initGui() {
         super.initGui();
         isGrabbed = false;
+        sentClosePacket = false;
         guiTop = (height - ySize);
         calculateRowHeight();
         this.scaledResolution = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
@@ -353,6 +359,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
     }
 
     private void closed() {
+        sentClosePacket = true;
         grabMouse(false);
         PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
     }
@@ -402,5 +409,16 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
     @Override
     public void setClose(int i, NBTTagCompound data) {
         grabMouse(false);
+    }
+
+    @Override
+    public void onGuiClosed() {
+        if (!sentClosePacket) {
+            if (prevDialog != null) {
+                PacketClient.sendClient(new DialogSelectPacket(prevDialog.id, -1));
+            }
+            closed();
+        }
+        super.onGuiClosed();
     }
 }

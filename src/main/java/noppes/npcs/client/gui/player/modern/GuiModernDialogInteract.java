@@ -57,6 +57,12 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
 
     private final HashMap<Integer, GuiDialogImage> dialogImages = new HashMap<>();
 
+    /**
+     * Similar to {@link noppes.npcs.client.gui.player.GuiDialogInteract#sentClosePacket} this flag
+     * tracks if a close packet was already sent to the server.
+     */
+    private boolean sentClosePacket = false;
+
     public GuiModernDialogInteract(EntityNPCInterface npc, Dialog dialog) {
         super(npc);
         this.dialog = dialog;
@@ -357,6 +363,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
     }
 
     private void closed() {
+        sentClosePacket = true;
         grabMouse(false);
         PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
     }
@@ -367,6 +374,7 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
 
     public void appendDialog(Dialog dialog) {
         closeOnEsc = !dialog.disableEsc;
+        sentClosePacket = false;
         this.dialogImages.clear();
         this.dialog = dialog;
         this.options = new ArrayList<Integer>();
@@ -422,5 +430,16 @@ public class GuiModernDialogInteract extends GuiNPCInterface implements IGuiClos
     @Override
     public void setClose(int i, NBTTagCompound data) {
         grabMouse(false);
+    }
+
+    @Override
+    public void onGuiClosed() {
+        if (!sentClosePacket) {
+            if (dialog != null) {
+                PacketClient.sendClient(new DialogSelectPacket(dialog.id, -1));
+            }
+            closed();
+        }
+        super.onGuiClosed();
     }
 }
