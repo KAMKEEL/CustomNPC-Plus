@@ -110,8 +110,12 @@ public class ProfileController implements IProfileHandler {
                 profile.currentSlotId = 0;
                 saveSlotData(player);
             }
+            if (!profile.getSlots().containsKey(profile.currentSlotId)) {
+                profile.currentSlotId = 0;
+            }
             profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
+            loadSlotData(player);
             verifySlotQuests(profile.player);
             save(player, profile);
         }
@@ -147,9 +151,9 @@ public class ProfileController implements IProfileHandler {
 
     public synchronized void saveOffline(Profile profile, UUID uuid) {
         profile.setLocked(true);
+        final NBTTagCompound compound = profile.writeToNBT();
+        final String filename = uuid.toString() + ".dat";
         CustomNPCsThreader.customNPCThread.execute(() -> {
-            final NBTTagCompound compound = profile.writeToNBT();
-            final String filename = uuid.toString() + ".dat";
             try {
                 File saveDir = getProfileDir();
                 File fileNew = new File(saveDir, filename + "_new");
@@ -170,9 +174,9 @@ public class ProfileController implements IProfileHandler {
 
     public synchronized void save(EntityPlayer player, Profile profile) {
         profile.setLocked(true);
+        final NBTTagCompound compound = profile.writeToNBT();
+        final String filename = player.getUniqueID() + ".dat";
         CustomNPCsThreader.customNPCThread.execute(() -> {
-            final NBTTagCompound compound = profile.writeToNBT();
-            final String filename = player.getUniqueID() + ".dat";
             try {
                 File saveDir = getProfileDir();
                 File fileNew = new File(saveDir, filename + "_new");
@@ -623,7 +627,7 @@ public class ProfileController implements IProfileHandler {
         for (IProfileData profileData : profileTypes.values()) {
             NBTTagCompound data;
             if (slot.getComponents().containsKey(profileData.getTagName()))
-                data = slot.getComponentData(profileData.getTagName());
+                data = (NBTTagCompound) slot.getComponentData(profileData.getTagName()).copy();
             else
                 data = new NBTTagCompound();
             profileData.setNBT(player, data);
@@ -656,7 +660,7 @@ public class ProfileController implements IProfileHandler {
             ISlot slot = profile.getSlots().get(slotId);
             for (IProfileData pd : dataList) {
                 if (slot.getComponents().containsKey(pd.getTagName())) {
-                    NBTTagCompound sub = slot.getComponentData(pd.getTagName());
+                    NBTTagCompound sub = (NBTTagCompound) slot.getComponentData(pd.getTagName()).copy();
                     List<ProfileInfoEntry> subInfo = pd.getInfo(player, sub);
                     infoList.addAll(subInfo);
                 }
@@ -770,6 +774,8 @@ public class ProfileController implements IProfileHandler {
         NBTTagCompound compound = slot.getComponentData(new CNPCData().getTagName());
         if (compound == null)
             compound = new NBTTagCompound();
+        else
+            compound = (NBTTagCompound) compound.copy();
         playerData.setNBT(compound);
         return playerData;
     }
