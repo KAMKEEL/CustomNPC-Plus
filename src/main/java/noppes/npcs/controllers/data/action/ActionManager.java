@@ -6,8 +6,6 @@ import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
-import noppes.npcs.controllers.data.action.chain.ActionChain;
-import noppes.npcs.controllers.data.action.chain.ParallelActionChain;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -341,11 +339,11 @@ public class ActionManager implements IActionManager {
 
     @Override
     public IActionChain chain() {
-        return new ActionChain(this);
+        return sequentialQueue.chain();
     }
 
     @Override
     public IActionChain parallelChain() {
-        return new ParallelActionChain(this);
+        return parallelQueue.chain();
     }
 }

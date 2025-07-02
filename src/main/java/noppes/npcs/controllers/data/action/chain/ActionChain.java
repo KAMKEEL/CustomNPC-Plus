@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data.action.chain;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
+import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.controllers.data.action.ActionManager;
 
 import java.util.function.Consumer;
@@ -11,26 +12,30 @@ import java.util.function.Consumer;
  */
 public class ActionChain implements IActionChain {
     protected final ActionManager manager;
-    protected String defaultName = "sequential#";
-    protected int index = 0;
+    protected final IActionQueue queue;
+    protected String name;
+    protected int index = 0, offset;
 
-    public ActionChain(ActionManager manager) {
+    public ActionChain(ActionManager manager, IActionQueue queue, String name) {
         this.manager = manager;
+        this.queue = queue;
+        this.name = name;
     }
 
-    /**
-     * schedule the next task ‘delay’ ticks after the previous one
-     */
     @Override
-    public IActionChain after(int delay, String name, Consumer<IAction> task) {
-        manager.schedule(name, delay, task).updateEvery(1).once();
-        index++;
+    public IActionQueue getQueue() {
+        return queue;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public IActionChain setName(String name) {
+        this.name = name;
         return this;
-    }
-
-    @Override
-    public IActionChain after(int delay, Consumer<IAction> task) {
-        return after(delay, defaultName + index, task);
     }
 
     @Override
@@ -38,4 +43,21 @@ public class ActionChain implements IActionChain {
         manager.start();
         return this;
     }
+
+    /**
+     * schedule the next task ‘delay’ ticks after the previous one
+     */
+    @Override
+    public IActionChain after(int delay, String name, Consumer<IAction> task) {
+        offset = queue.isParallel() ? offset + delay : delay;
+        queue.schedule(name, offset, task).updateEvery(1).once();
+        index++;
+        return this;
+    }
+
+    @Override
+    public IActionChain after(int delay, Consumer<IAction> task) {
+        return after(delay, name + index, task);
+    }
+
 }

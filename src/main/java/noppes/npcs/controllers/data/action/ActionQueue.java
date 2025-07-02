@@ -1,7 +1,9 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.IActionQueue;
+import noppes.npcs.controllers.data.action.chain.ActionChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -233,4 +235,10 @@ public class ActionQueue implements IActionQueue {
         queue.forEach((act) -> act.kill());
         queue.clear();
     }
+
+    @Override
+    public IActionChain chain() {
+        return new ActionChain(manager, this, isParallel ? "parallel#" : "sequential#");
+    }
+
 }
