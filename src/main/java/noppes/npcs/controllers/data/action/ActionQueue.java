@@ -74,6 +74,9 @@ public class ActionQueue implements IActionQueue {
         if (!isParallel && act.unscheduledAfter != null)
             act.scheduleAllAfter(queue);
 
+        if (act.queue != this)
+            act.setQueue(this);
+
         act.isScheduled = true;
         return action;
     }

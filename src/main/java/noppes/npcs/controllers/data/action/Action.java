@@ -1,6 +1,7 @@
 package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -15,6 +16,7 @@ import java.util.function.Function;
 
 public class Action implements IAction {
     protected final ActionManager manager;
+    protected IActionQueue queue;
     protected boolean isScheduled;
     protected final String name;
     protected int startAfterTicks;
@@ -65,6 +67,23 @@ public class Action implements IAction {
         this.maxDuration = maxDuration;
     }
 
+    @Override
+    public IActionQueue getQueue() {
+        return queue;
+    }
+
+    @Override
+    public IAction setQueue(IActionQueue queue) {
+        if (this.queue == queue)
+            return this;
+
+        if (this.queue != null)
+            this.queue.getQueue().remove(this);
+
+        this.queue = queue;
+        queue.schedule(this);
+        return this;
+    }
 
     @Override
     public IAction setTask(Consumer<IAction> task) {
@@ -289,31 +308,10 @@ public class Action implements IAction {
         return this;
     }
 
-    @Override
-    public IAction getNext() {
-        boolean seenMe = false;
-        for (IAction a : manager.getActionQueue()) {
-            if (seenMe) {
-                return a;
-            }
-            if (a == this) {
-                seenMe = true;
-            }
-        }
-        return null;
-    }
 
-    @Override
-    public IAction getPrevious() {
-        IAction prev = null;
-        for (IAction a : manager.getActionQueue()) {
-            if (a == this) {
-                return prev;
-            }
-            prev = a;
-        }
-        return null;
-    }
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Sequential
 
     protected Action unscheduledBefore, unscheduledAfter;
 
@@ -361,14 +359,46 @@ public class Action implements IAction {
             aft.isScheduled = true;
         });
     }
+
+    @Override
+    public IAction getNext() {
+        if (queue == null)
+            return null;
+
+        boolean seenMe = false;
+        for (IAction a : queue.getQueue()) {
+            if (seenMe) {
+                return a;
+            }
+            if (a == this) {
+                seenMe = true;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public IAction getPrevious() {
+        if (queue == null)
+            return null;
+
+        IAction prev = null;
+        for (IAction a : queue.getQueue()) {
+            if (a == this) {
+                return prev;
+            }
+            prev = a;
+        }
+        return null;
+    }
     @Override
     public IAction after(IAction after) {
         if (after instanceof IConditionalAction)
             return conditional((IConditionalAction) after);
 
-        int idx = manager.getIndex(this);
+        int idx = queue == null ? -1 : queue.getIndex(this);
         if (idx >= 0)
-            manager.scheduleActionAt(idx + 1, after);
+            queue.scheduleActionAt(idx + 1, after);
         else {
             Action aft = (Action) after;
             unscheduledAfter = aft;
@@ -423,9 +453,9 @@ public class Action implements IAction {
         if (before instanceof IConditionalAction)
             return conditional((IConditionalAction) before);
 
-        int idx = manager.getIndex(this);
+        int idx = queue == null ? -1 : queue.getIndex(this);
         if (idx >= 0)
-            manager.scheduleActionAt(Math.max(0, idx), before);
+            queue.scheduleActionAt(Math.max(0, idx), before);
         else {
             Action bef = (Action) before;
             unscheduledBefore = bef;
@@ -464,6 +494,10 @@ public class Action implements IAction {
         return manager.schedule(after);
     }
 
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Conditionals
+
     @Override
     public void conditional(IConditionalAction... actions) {
         for (IConditionalAction act : actions)
@@ -500,9 +534,16 @@ public class Action implements IAction {
         return conditional(manager.create(name, condition, task, terminateWhen, onTermination));
     }
 
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Parallels
+
     @Override
-    public IAction parallel(IAction after) {
-        return manager.scheduleParallel(after);
+    public IAction parallel(IAction act) {
+        if (queue != null && queue.isParallel() && queue != manager.conditionalQueue)
+            return queue.schedule(act);
+
+        return manager.scheduleParallel(act);
     }
 
     @Override
