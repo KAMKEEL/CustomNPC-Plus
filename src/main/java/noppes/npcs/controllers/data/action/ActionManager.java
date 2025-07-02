@@ -90,13 +90,15 @@ public class ActionManager implements IActionManager {
     }
 
     @Override
-    public void start() {
+    public IActionManager start() {
         isWorking = true;
+        return this;
     }
 
     @Override
-    public void stop() {
+    public IActionManager stop() {
         isWorking = false;
+        return this;
     }
 
     @Override
