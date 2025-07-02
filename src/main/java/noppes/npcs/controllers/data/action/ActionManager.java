@@ -4,6 +4,9 @@ import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
+import noppes.npcs.controllers.data.action.action.ConditionalAction;
+import noppes.npcs.controllers.data.action.chain.ActionChain;
+import noppes.npcs.controllers.data.action.chain.ParallelActionChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;

@@ -1,7 +1,8 @@
-package noppes.npcs.controllers.data.action;
+package noppes.npcs.controllers.data.action.chain;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
+import noppes.npcs.controllers.data.action.ActionManager;
 
 import java.util.function.Consumer;
 

@@ -1,7 +1,9 @@
-package noppes.npcs.controllers.data.action;
+package noppes.npcs.controllers.data.action.action;
 
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
+import noppes.npcs.controllers.data.action.Action;
+import noppes.npcs.controllers.data.action.ActionManager;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.function.Consumer;

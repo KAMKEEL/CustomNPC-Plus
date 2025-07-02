@@ -104,7 +104,7 @@ public class ActionThread {
         return runningTasks.stream().anyMatch(task -> !task.isDone());
     }
 
-    protected void execute(String taskKey, Runnable task) {
+    public void execute(String taskKey, Runnable task) {
         if (threadPaused && pauseUntil != null && pauseUntil.apply(action))
             resume();
 
