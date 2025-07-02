@@ -49,6 +49,50 @@ public class ConditionalAction extends Action implements IConditionalAction {
     }
 
     @Override
+    public int getCheckCount() {
+        return checkCount;
+    }
+
+    @Override
+    public int getMaxChecks() {
+        return maxChecks;
+    }
+
+    @Override
+    public IConditionalAction setMaxChecks(int maxChecks) {
+        this.maxChecks = Math.max(-1, maxChecks);
+        return this;
+    }
+
+    @Override
+    public IConditionalAction setCondition(Function<IAction, Boolean> condition) {
+        this.condition = condition;
+        return this;
+    }
+
+    @Override
+    public IConditionalAction terminateWhen(Function<IAction, Boolean> terminateWhen) {
+        this.terminateWhen = terminateWhen;
+        return this;
+    }
+
+    @Override
+    public IConditionalAction onTermination(Consumer<IAction> onTermination) {
+        this.onTermination = onTermination;
+        return this;
+    }
+
+    @Override
+    public boolean wasTaskExecuted() {
+        return taskExecuted;
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return terminateWhen != null && terminateWhen.apply(this);
+    }
+
+    @Override
     public void tick(int ticksExisted) {
         if (done)
             return;
@@ -113,50 +157,6 @@ public class ConditionalAction extends Action implements IConditionalAction {
             System.err.println(err);
             t.printStackTrace();
         }
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return terminateWhen != null && terminateWhen.apply(this);
-    }
-
-    @Override
-    public IConditionalAction setMaxChecks(int maxChecks) {
-        this.maxChecks = Math.max(-1, maxChecks);
-        return this;
-    }
-
-    @Override
-    public IConditionalAction setCondition(Function<IAction, Boolean> condition) {
-        this.condition = condition;
-        return this;
-    }
-
-    @Override
-    public IConditionalAction terminateWhen(Function<IAction, Boolean> terminateWhen) {
-        this.terminateWhen = terminateWhen;
-        return this;
-    }
-
-    @Override
-    public IConditionalAction onTermination(Consumer<IAction> onTermination) {
-        this.onTermination = onTermination;
-        return this;
-    }
-
-    @Override
-    public boolean wasTaskExecuted() {
-        return taskExecuted;
-    }
-
-    @Override
-    public int getCheckCount() {
-        return checkCount;
-    }
-
-    @Override
-    public int getMaxChecks() {
-        return maxChecks;
     }
 
 }

@@ -68,6 +68,16 @@ public class Action implements IAction {
     }
 
     @Override
+    public ActionManager getManager() {
+        return manager;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
     public IActionQueue getQueue() {
         return queue;
     }
@@ -86,13 +96,116 @@ public class Action implements IAction {
     }
 
     @Override
+    public boolean isScheduled() {
+        return isScheduled;
+    }
+
+    @Override
     public IAction setTask(Consumer<IAction> task) {
         this.task = task;
         return this;
     }
 
+    @Override
+    public int getDuration() {
+        return duration;
+    }
+
+
+    @Override
+    public int getMaxDuration() {
+        return maxDuration;
+    }
+
+    @Override
+    public IAction setMaxDuration(int ticks) {
+        this.maxDuration = Math.max(-1, ticks);
+        return this;
+    }
+
+    @Override
+    public int getStartAfterTicks() {
+        return startAfterTicks;
+    }
+
+    @Override
+    public int getUpdateEvery() {
+        return updateEveryXTick;
+    }
+
+    @Override
+    public IAction updateEvery(int x) {
+        this.updateEveryXTick = Math.max(1, x);
+        return this;
+    }
+
+    @Override
+    public int getCount() {
+        return count;
+    }
+
+    @Override
+    public int getMaxCount() {
+        return maxCount;
+    }
+
+    @Override
+    public IAction times(int n) {
+        this.maxCount = Math.max(-1, n);
+        return this;
+    }
+
+    @Override
+    public IAction once() {
+        this.maxCount = 1;
+        return this;
+    }
+
+    @Override
+    public Object getData(String key) {
+        return dataStore.get(key);
+    }
+
+    @Override
+    public IAction setData(String key, Object v) {
+        dataStore.put(key, v);
+        return this;
+    }
+
+    @Override
+    public IAction removeData(String key) {
+        dataStore.remove(key);
+        return this;
+    }
+
+    @Override
+    public boolean hasData(String key) {
+        return dataStore.containsKey(key);
+    }
+
+    @Override
+    public void markDone() {
+        done = true;
+    }
+
+    @Override
+    public boolean isDone() {
+        return done;
+    }
+
+    ///////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    // Handling
+
+    @Override
+    public IAction start() {
+        manager.start();
+        return this;
+    }
+
     public void tick(int ticksExisted) {
-        if (done) return;
+        if (done)
+            return;
         if (startAfterTicks > 0) {
             startAfterTicks--;
             return;
@@ -131,70 +244,6 @@ public class Action implements IAction {
     }
 
     @Override
-    public ActionManager getManager() {
-        return manager;
-    }
-
-    @Override
-    public boolean isScheduled() {
-        return isScheduled;
-    }
-
-
-    @Override
-    public int getCount() {
-        return count;
-    }
-
-    @Override
-    public int getDuration() {
-        return duration;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public int getMaxDuration() {
-        return maxDuration;
-    }
-
-    @Override
-    public IAction setMaxDuration(int ticks) {
-        this.maxDuration = Math.max(-1, ticks);
-        return this;
-    }
-
-    @Override
-    public int getMaxCount() {
-        return maxCount;
-    }
-
-    @Override
-    public IAction times(int n) {
-        this.maxCount = Math.max(-1, n);
-        return this;
-    }
-
-    @Override
-    public IAction once() {
-        this.maxCount = 1;
-        return this;
-    }
-
-    @Override
-    public void markDone() {
-        done = true;
-    }
-
-    @Override
-    public boolean isDone() {
-        return done;
-    }
-
-    @Override
     public void kill() {
         if (actionThread != null)
             actionThread.stop();
@@ -204,42 +253,32 @@ public class Action implements IAction {
         done = true;
     }
 
-    @Override
-    public Object getData(String key) {
-        return dataStore.get(key);
-    }
+    ///////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    // Thread
 
     @Override
-    public IAction setData(String key, Object v) {
-        dataStore.put(key, v);
+    public IAction threadify() {
+        if (!isThreaded) {
+            isThreaded = true;
+            actionThread = new ActionThread(this);
+        }
+
         return this;
     }
 
     @Override
-    public IAction removeData(String key) {
-        dataStore.remove(key);
-        return this;
+    public void resume() {
+        if (isThreaded)
+            actionThread.resume();
     }
 
     @Override
-    public boolean hasData(String key) {
-        return dataStore.containsKey(key);
-    }
-
-    @Override
-    public int getUpdateEvery() {
-        return updateEveryXTick;
-    }
-
-    @Override
-    public IAction updateEvery(int x) {
-        this.updateEveryXTick = Math.max(1, x);
-        return this;
-    }
-
-    @Override
-    public int getStartAfterTicks() {
-        return startAfterTicks;
+    public void pause() {
+        if (isThreaded)
+            actionThread.pause();
+        else
+            throw new CustomNPCsException("Must threadify() IAction before pausing!");
     }
 
     @Override
@@ -263,25 +302,11 @@ public class Action implements IAction {
     }
 
     @Override
-    public void pause() {
-        if (isThreaded)
-            actionThread.pause();
-        else
-            throw new CustomNPCsException("Must threadify() IAction before pausing!");
-    }
-
-    @Override
     public void pauseUntil(Function<IAction, Boolean> until) {
         if (isThreaded)
             actionThread.pauseUntil(until);
         else
             throw new CustomNPCsException("Must threadify() IAction before pausing!");
-    }
-
-    @Override
-    public void resume() {
-        if (isThreaded)
-            actionThread.resume();
     }
 
     @Override
@@ -291,23 +316,6 @@ public class Action implements IAction {
 
         return startAfterTicks > 0;
     }
-
-    @Override
-    public IAction threadify() {
-        if (!isThreaded) {
-            isThreaded = true;
-            actionThread = new ActionThread(this);
-        }
-
-        return this;
-    }
-
-    @Override
-    public IAction start() {
-        manager.start();
-        return this;
-    }
-
 
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
@@ -496,46 +504,6 @@ public class Action implements IAction {
 
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
-    // Conditionals
-
-    @Override
-    public void conditional(IConditionalAction... actions) {
-        for (IConditionalAction act : actions)
-            conditional(act);
-    }
-
-    @Override
-    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task) {
-        return conditional(manager.create(condition, task));
-    }
-
-    @Override
-    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
-        return conditional(manager.create(name, condition, task));
-    }
-
-    @Override
-    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
-        return conditional(manager.create(condition, task, terminateWhen));
-    }
-
-    @Override
-    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
-        return conditional(manager.create(name, condition, task, terminateWhen));
-    }
-
-    @Override
-    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
-        return conditional(manager.create(condition, task, terminateWhen, onTermination));
-    }
-
-    @Override
-    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
-        return conditional(manager.create(name, condition, task, terminateWhen, onTermination));
-    }
-
-    ///////////////////////////////////////////////////
-    ///////////////////////////////////////////////////
     // Parallels
 
     @Override
@@ -581,4 +549,45 @@ public class Action implements IAction {
     public IAction parallel(String name, int maxDuration, int delay, Consumer<IAction> t) {
         return parallel(manager.create(name, maxDuration, delay, t));
     }
+
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Conditionals
+
+    @Override
+    public void conditional(IConditionalAction... actions) {
+        for (IConditionalAction act : actions)
+            conditional(act);
+    }
+
+    @Override
+    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task) {
+        return conditional(manager.create(condition, task));
+    }
+
+    @Override
+    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
+        return conditional(manager.create(name, condition, task));
+    }
+
+    @Override
+    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
+        return conditional(manager.create(condition, task, terminateWhen));
+    }
+
+    @Override
+    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
+        return conditional(manager.create(name, condition, task, terminateWhen));
+    }
+
+    @Override
+    public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return conditional(manager.create(condition, task, terminateWhen, onTermination));
+    }
+
+    @Override
+    public IConditionalAction conditional(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
+        return conditional(manager.create(name, condition, task, terminateWhen, onTermination));
+    }
+
 }
