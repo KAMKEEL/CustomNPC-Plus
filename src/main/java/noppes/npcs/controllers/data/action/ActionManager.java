@@ -118,6 +118,18 @@ public class ActionManager implements IActionManager {
     }
 
     @Override
+    public void schedule(IAction... actions) {
+        for (IAction act : actions)
+            schedule(act);
+    }
+
+    @Override
+    public void schedule(Consumer<IAction>... tasks) {
+        for (Consumer<IAction> task : tasks)
+            schedule(task);
+    }
+
+    @Override
     public IAction schedule(Consumer<IAction> task) {
         return schedule(create(task));
     }
@@ -257,12 +269,17 @@ public class ActionManager implements IActionManager {
         return schedule(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
     }
 
-
     @Override
     public IConditionalAction schedule(IConditionalAction action) {
         conditionalActions.add(action);
         ((Action) action).isScheduled = true;
         return action;
+    }
+
+    @Override
+    public void schedule(IConditionalAction... actions) {
+        for (IConditionalAction act : actions)
+            schedule(act);
     }
 
     @Override
@@ -284,6 +301,18 @@ public class ActionManager implements IActionManager {
         parallelActions.add(action);
         ((Action) action).isScheduled = true;
         return action;
+    }
+
+    @Override
+    public void scheduleParallel(IAction... actions) {
+        for (IAction act : actions)
+            scheduleParallel(act);
+    }
+
+    @Override
+    public void scheduleParallel(Consumer<IAction>... tasks) {
+        for (Consumer<IAction> task : tasks)
+            scheduleParallel(task);
     }
 
     @Override

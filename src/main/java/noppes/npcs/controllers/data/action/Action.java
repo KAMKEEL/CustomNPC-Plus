@@ -378,6 +378,22 @@ public class Action implements IAction {
     }
 
     @Override
+    public void after(IAction... actions) {
+        for (int i = 0; i < actions.length - 1; i++)
+            actions[i].after(actions[i + 1]);
+    }
+
+    @Override
+    public void after(Consumer<IAction>... tasks) {
+        IAction[] actions = new IAction[tasks.length];
+
+        for (int i = 0; i < tasks.length; i++)
+            actions[i] = manager.create(tasks[i]);
+
+        after(actions);
+    }
+
+    @Override
     public IAction after(String name, int maxDuration, int delay, Consumer<IAction> t) {
         return after(manager.create(name, maxDuration, delay, t));
     }
@@ -449,6 +465,12 @@ public class Action implements IAction {
     }
 
     @Override
+    public void conditional(IConditionalAction... actions) {
+        for (IConditionalAction act : actions)
+            conditional(act);
+    }
+
+    @Override
     public IConditionalAction conditional(Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return conditional(manager.create(condition, task));
     }
@@ -484,10 +506,21 @@ public class Action implements IAction {
     }
 
     @Override
+    public void parallel(IAction... actions) {
+        for (IAction act : actions)
+            parallel(act);
+    }
+
+    @Override
     public IAction parallel(Consumer<IAction> task) {
         return parallel(manager.create(task));
     }
 
+    @Override
+    public void parallel(Consumer<IAction>... tasks) {
+        for (Consumer<IAction> task : tasks)
+            parallel(task);
+    }
     @Override
     public IAction parallel(int delay, Consumer<IAction> task) {
         return parallel(manager.create(delay, task));
