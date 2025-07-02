@@ -3,13 +3,12 @@ package noppes.npcs.controllers.data.action;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
+import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
 import noppes.npcs.controllers.data.action.chain.ActionChain;
 import noppes.npcs.controllers.data.action.chain.ParallelActionChain;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -22,11 +21,27 @@ import java.util.function.Function;
  * - cancellation & clearing
  */
 public class ActionManager implements IActionManager {
-    private boolean isWorking = false;
+    protected boolean isWorking = false;
 
-    private final Deque<IAction> actionQueue = new ConcurrentLinkedDeque<>();
-    private final Deque<IAction> parallelActions = new ConcurrentLinkedDeque<>();
-    private final Deque<IConditionalAction> conditionalActions = new ConcurrentLinkedDeque<>();
+    protected final IActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
+    protected final IActionQueue parallelQueue = new ActionQueue(this, "mainParallel").setParallel(true);
+    protected final IActionQueue conditionalQueue = new ActionQueue(this, "mainConditional").setParallel(true);
+
+    @Override
+    public IActionManager start() {
+        isWorking = true;
+        return this;
+    }
+
+    @Override
+    public IActionManager stop() {
+        isWorking = false;
+        return this;
+    }
+
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Creators
 
     @Override
     public IAction create(String name) {
@@ -92,157 +107,139 @@ public class ActionManager implements IActionManager {
         return new ConditionalAction(this, name, condition, task, terminateWhen, onTermination);
     }
 
-    @Override
-    public IActionManager start() {
-        isWorking = true;
-        return this;
-    }
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Sequential
 
     @Override
-    public IActionManager stop() {
-        isWorking = false;
-        return this;
+    public IActionQueue getSequentialQueue() {
+        return sequentialQueue;
     }
 
     @Override
     public IAction schedule(IAction action) {
         if (action instanceof IConditionalAction)
-            return schedule((IConditionalAction) action);
+            return conditionalQueue.schedule(action);
 
-        Action act = (Action) action;
-        if (act.unscheduledBefore != null)
-            act.scheduleAllBefore(actionQueue);
-
-        actionQueue.addLast(action);
-
-        if (act.unscheduledAfter != null)
-            act.scheduleAllAfter(actionQueue);
-
-        act.isScheduled = true;
-        return action;
+        return sequentialQueue.schedule(action);
     }
 
     @Override
     public void schedule(IAction... actions) {
-        for (IAction act : actions)
-            schedule(act);
+        sequentialQueue.schedule(actions);
     }
 
     @Override
     public void schedule(Consumer<IAction>... tasks) {
-        for (Consumer<IAction> task : tasks)
-            schedule(task);
+        sequentialQueue.schedule(tasks);
     }
 
     @Override
     public IAction schedule(Consumer<IAction> task) {
-        return schedule(create(task));
+        return sequentialQueue.schedule(task);
     }
 
     @Override
     public IAction schedule(int delay, Consumer<IAction> task) {
-        return schedule(create(delay, task));
+        return sequentialQueue.schedule(delay, task);
     }
 
     @Override
     public IAction schedule(int maxDuration, int delay, Consumer<IAction> task) {
-        return schedule(create(maxDuration, delay, task));
+        return sequentialQueue.schedule(maxDuration, delay, task);
     }
 
     @Override
     public IAction schedule(String name, Consumer<IAction> task) {
-        return schedule(create(name, task));
+        return sequentialQueue.schedule(name, task);
     }
     @Override
     public IAction schedule(String name, int delay, Consumer<IAction> task) {
-        return schedule(create(name, delay, task));
+        return sequentialQueue.schedule(name, delay, task);
     }
 
     @Override
     public IAction schedule(String name, int maxDuration, int delay, Consumer<IAction> task) {
-        return schedule(create(name, maxDuration, delay, task));
+        return sequentialQueue.schedule(name, maxDuration, delay, task);
     }
 
     @Override
     public IAction scheduleActionAt(int index, IAction action) {
-        int size = actionQueue.size();
-        if (index <= 0) {
-            actionQueue.addFirst(action);
-        } else if (index >= size) {
-            actionQueue.addLast(action);
-        } else {
-            List<IAction> tmp = new ArrayList<>(actionQueue);
-            tmp.add(index, action);
-            actionQueue.clear();
-            actionQueue.addAll(tmp);
-        }
-        ((Action) action).isScheduled = true;
-        return action;
+        return sequentialQueue.scheduleActionAt(index, action);
+    }
+
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Parallels
+
+    @Override
+    public IActionQueue getParallelQueue() {
+        return parallelQueue;
     }
 
     @Override
-    public int getIndex(IAction action) {
-        int i = 0;
-        for (IAction a : actionQueue) {
-            if (a.equals(action)) return i;
-            i++;
-        }
-        return -1;
+    public IAction scheduleParallel(IAction action) {
+        return parallelQueue.schedule(action);
     }
 
     @Override
-    public IAction getCurrentAction() {
-        return actionQueue.peekFirst();
+    public void scheduleParallel(IAction... actions) {
+        parallelQueue.schedule(actions);
     }
 
     @Override
-    public IAction getAction(String name) {
-        for (IAction action : actionQueue) {
-            if (action.getName().equals(name))
-                return action;
-        }
-
-        for (IAction action : parallelActions) {
-            if (action.getName().equals(name))
-                return action;
-        }
-
-        for (IAction action : conditionalActions) {
-            if (action.getName().equals(name))
-                return action;
-        }
-
-        return null;
+    public void scheduleParallel(Consumer<IAction>... tasks) {
+        parallelQueue.schedule(tasks);
     }
 
     @Override
-    public Queue<IAction> getActionQueue() {
-        return actionQueue;
+    public IAction scheduleParallel(Consumer<IAction> task) {
+        return parallelQueue.schedule(task);
     }
 
     @Override
-    public boolean hasAction(String name) {
-        for (IAction act : actionQueue)
-            if (act.getName().equals(name))
-                return true;
+    public IAction scheduleParallel(int delay, Consumer<IAction> task) {
+        return parallelQueue.schedule(delay, task);
+    }
 
-        return false;
+    @Override
+    public IAction scheduleParallel(int maxDuration, int delay, Consumer<IAction> task) {
+        return parallelQueue.schedule(maxDuration, delay, task);
+    }
+
+    @Override
+    public IAction scheduleParallel(String name, Consumer<IAction> task) {
+        return parallelQueue.schedule(name, task);
     }
     @Override
-    public boolean hasAny(String name) {
-        if (hasAction(name))
-            return true;
-        else if (hasParallel(name))
-            return true;
-        else if (hasConditional(name))
-            return true;
+    public IAction scheduleParallel(String name, int delay, Consumer<IAction> task) {
+        return parallelQueue.schedule(delay, task);
+    }
 
-        return false;
+    @Override
+    public IAction scheduleParallel(String name, int maxDuration, int delay, Consumer<IAction> task) {
+        return parallelQueue.schedule(name, maxDuration, delay, task);
     }
 
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     // Conditionals
+
+    @Override
+    public IActionQueue getConditionalQueue() {
+        return conditionalQueue;
+    }
+
+    @Override
+    public IConditionalAction schedule(IConditionalAction action) {
+        return (IConditionalAction) conditionalQueue.schedule(action);
+    }
+
+    @Override
+    public void schedule(IConditionalAction... actions) {
+        conditionalQueue.schedule(actions);
+    }
+
     @Override
     public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task) {
         return schedule(new ConditionalAction(this, condition, task));
@@ -274,80 +271,48 @@ public class ActionManager implements IActionManager {
         return schedule(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
     }
 
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Handling
+
     @Override
-    public IConditionalAction schedule(IConditionalAction action) {
-        conditionalActions.add(action);
-        ((Action) action).isScheduled = true;
-        return action;
+    public boolean hasAny(String name) {
+        return getAny(name) != null;
     }
 
     @Override
-    public void schedule(IConditionalAction... actions) {
-        for (IConditionalAction act : actions)
-            schedule(act);
+    public IAction getAny(String name) {
+        IAction act = sequentialQueue.get(name);
+        if (act != null)
+            return act;
+
+        act = parallelQueue.get(name);
+        if (act != null)
+            return act;
+
+        act = conditionalQueue.get(name);
+        if (act != null)
+            return act;
+
+        return null;
     }
 
     @Override
-    public List<IConditionalAction> getConditionalActions() {
-        return new ArrayList<>(conditionalActions);
-    }
+    public boolean cancelAny(String name) {
+        boolean canceled = sequentialQueue.cancel(name);
+        if (canceled)
+            return true;
 
-    @Override
-    public boolean hasConditional(String name) {
-        for (IAction act : conditionalActions)
-            if (act.getName().equals(name))
-                return true;
+        canceled = parallelQueue.cancel(name);
+        if (canceled)
+            return true;
+
+        canceled = conditionalQueue.cancel(name);
+        if (canceled)
+            return true;
 
         return false;
     }
-
-    @Override
-    public IAction scheduleParallel(IAction action) {
-        parallelActions.add(action);
-        ((Action) action).isScheduled = true;
-        return action;
-    }
-
-    @Override
-    public void scheduleParallel(IAction... actions) {
-        for (IAction act : actions)
-            scheduleParallel(act);
-    }
-
-    @Override
-    public void scheduleParallel(Consumer<IAction>... tasks) {
-        for (Consumer<IAction> task : tasks)
-            scheduleParallel(task);
-    }
-
-    @Override
-    public IAction scheduleParallel(Consumer<IAction> task) {
-        return scheduleParallel(create(task));
-    }
-
-    @Override
-    public IAction scheduleParallel(int delay, Consumer<IAction> task) {
-        return scheduleParallel(create(delay, task));
-    }
-    @Override
-    public IAction scheduleParallel(int maxDuration, int delay, Consumer<IAction> task) {
-        return scheduleParallel(create(maxDuration, delay, task));
-    }
-
-    @Override
-    public IAction scheduleParallel(String name, Consumer<IAction> task) {
-        return scheduleParallel(create(name, task));
-    }
-    @Override
-    public IAction scheduleParallel(String name, int delay, Consumer<IAction> task) {
-        return scheduleParallel(create(name, delay, task));
-    }
-
-    @Override
-    public IAction scheduleParallel(String name, int maxDuration, int delay, Consumer<IAction> task) {
-        return scheduleParallel(create(name, maxDuration, delay, task));
-    }
-
 
     /**
      * Call once per tick from your main loop.
@@ -358,79 +323,20 @@ public class ActionManager implements IActionManager {
         if (!isWorking) return;
 
         // ─── Sequential (head only) ─────────────────────────────────
-        IAction current = getCurrentAction();
-        if (current instanceof Action) {
-            Action cab = (Action) current;
-            cab.tick(ticksExisted);
-            if (cab.isDone()) {
-                cab.kill();
-                actionQueue.pollFirst();
-            }
-        }
+        ((ActionQueue) sequentialQueue).tick(ticksExisted);
 
         // ─── Parallel (all) ───────────────────────────────────────
-        Iterator<IAction> pit = parallelActions.iterator();
-        while (pit.hasNext()) {
-            Action a = (Action) pit.next();
-            a.tick(ticksExisted);
-            if (a.isDone()) {
-                a.kill();
-                pit.remove();
-            }
-        }
+        ((ActionQueue) parallelQueue).tick(ticksExisted);
 
         // ─── Conditionals ─────────────────────────────────────────
-        Iterator<IConditionalAction> cit = conditionalActions.iterator();
-        while (cit.hasNext()) {
-            ConditionalAction con = (ConditionalAction) cit.next();
-            con.tick(ticksExisted);
-            if (con.isDone()) {
-                con.kill();
-                cit.remove();
-            }
-        }
+        ((ActionQueue) conditionalQueue).tick(ticksExisted);
     }
 
     @Override
     public void clear() {
-        actionQueue.forEach((act) -> act.kill());
-        actionQueue.clear();
-
-        parallelActions.forEach((act) -> act.kill());
-        parallelActions.clear();
-
-        conditionalActions.forEach((act) -> act.kill());
-        conditionalActions.clear();
-    }
-
-    @Override
-    public boolean cancelAction(String name) {
-        Iterator<IAction> acts = actionQueue.iterator();
-        while (acts.hasNext()) {
-            IAction act = acts.next();
-            if (act.getName().equals(name)) {
-                acts.remove();
-                return true;
-            }
-        }
-
-        Iterator<IAction> pit = parallelActions.iterator();
-        while (pit.hasNext()) {
-            if (pit.next().getName().equals(name)) {
-                pit.remove();
-                return true;
-            }
-        }
-
-        Iterator<IConditionalAction> cons = conditionalActions.iterator();
-        while (cons.hasNext()) {
-            IConditionalAction con = cons.next();
-            if (con.getName().equals(name)) {
-                cons.remove();
-                return true;
-            }
-        }
-        return false;
+        sequentialQueue.clear();
+        parallelQueue.clear();
+        conditionalQueue.clear();
     }
 
     @Override
@@ -441,19 +347,5 @@ public class ActionManager implements IActionManager {
     @Override
     public IActionChain parallelChain() {
         return new ParallelActionChain(this);
-    }
-
-    @Override
-    public Queue<IAction> getParallelActions() {
-        return parallelActions;
-    }
-
-    @Override
-    public boolean hasParallel(String name) {
-        for (IAction act : parallelActions)
-            if (act.getName().equals(name))
-                return true;
-
-        return false;
     }
 }

@@ -20,6 +20,11 @@ public class ActionQueue implements IActionQueue {
         this.name = name;
     }
 
+    public ActionQueue(ActionManager manager, String name, boolean isParallel) {
+        this(manager, name);
+        this.isParallel = isParallel;
+    }
+
     @Override
     public IActionQueue start() {
         isWorking = true;
@@ -45,6 +50,11 @@ public class ActionQueue implements IActionQueue {
         return isParallel;
     }
 
+    public IActionQueue setParallel(boolean parallel) {
+        isParallel = parallel;
+        return this;
+    }
+
     @Override
     public Queue<IAction> getQueue() {
         return queue;
@@ -53,12 +63,15 @@ public class ActionQueue implements IActionQueue {
     @Override
     public IAction schedule(IAction action) {
         Action act = (Action) action;
-        if (act.unscheduledBefore != null)
+
+        if (!isParallel && act.unscheduledBefore != null)
             act.scheduleAllBefore(queue);
+
 
         queue.addLast(action);
 
-        if (act.unscheduledAfter != null)
+
+        if (!isParallel && act.unscheduledAfter != null)
             act.scheduleAllAfter(queue);
 
         act.isScheduled = true;
@@ -72,15 +85,16 @@ public class ActionQueue implements IActionQueue {
     }
 
     @Override
+    public IAction schedule(Consumer<IAction> task) {
+        return schedule(manager.create(task));
+    }
+
+    @Override
     public void schedule(Consumer<IAction>... tasks) {
         for (Consumer<IAction> task : tasks)
             schedule(task);
     }
 
-    @Override
-    public IAction schedule(Consumer<IAction> task) {
-        return schedule(manager.create(task));
-    }
 
     @Override
     public IAction schedule(int delay, Consumer<IAction> task) {
