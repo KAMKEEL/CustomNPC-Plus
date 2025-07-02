@@ -7,6 +7,8 @@ import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -24,6 +26,8 @@ public class ActionManager implements IActionManager {
     protected final IActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
     protected final IActionQueue parallelQueue = new ActionQueue(this, "mainParallel").setParallel(true);
     protected final IActionQueue conditionalQueue = new ActionQueue(this, "mainConditional").setParallel(true);
+
+    protected final Map<String, IActionQueue> otherQueues = new HashMap<>();
 
     @Override
     public IActionManager start() {
@@ -103,6 +107,47 @@ public class ActionManager implements IActionManager {
     @Override
     public IConditionalAction create(String name,Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return new ConditionalAction(this, name, condition, task, terminateWhen, onTermination);
+    }
+
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Queues
+
+    public IActionQueue createQueue(String name) {
+        return createQueue(name, false);
+    }
+
+    public IActionQueue createQueue(String name, boolean isParallel) {
+        IActionQueue queue = new ActionQueue(this, name, isParallel);
+        otherQueues.put(name, queue);
+        return queue;
+    }
+
+    public IActionQueue getOrCreateQueue(String name) {
+        return getOrCreateQueue(name, false);
+    }
+
+    public IActionQueue getOrCreateQueue(String name, boolean isParallel) {
+        IActionQueue queue = getQueue(name);
+
+        if (queue == null)
+            queue = createQueue(name, isParallel);
+        return queue;
+    }
+
+    public IActionQueue getQueue(String name) {
+        return otherQueues.get(name);
+    }
+
+    public boolean removeQueue(String name) {
+        IActionQueue queue = otherQueues.get(name);
+
+        if (queue == null)
+            return false;
+
+        otherQueues.remove(name);
+        queue.clear();
+        return true;
     }
 
     ///////////////////////////////////////////////////
@@ -292,6 +337,12 @@ public class ActionManager implements IActionManager {
         if (act != null)
             return act;
 
+        for (IActionQueue q : otherQueues.values()) {
+            act = q.get(name);
+            if (act != null)
+                return act;
+        }
+
         return null;
     }
 
@@ -308,6 +359,10 @@ public class ActionManager implements IActionManager {
         canceled = conditionalQueue.cancel(name);
         if (canceled)
             return true;
+
+        for (IActionQueue queue : otherQueues.values())
+            if (queue.cancel(name))
+                return true;
 
         return false;
     }
@@ -328,6 +383,9 @@ public class ActionManager implements IActionManager {
 
         // ─── Conditionals ─────────────────────────────────────────
         ((ActionQueue) conditionalQueue).tick(ticksExisted);
+
+        // ─── Other Queues ─────────────────────────────────────────
+        otherQueues.forEach((name, queue) -> ((ActionQueue) queue).tick(ticksExisted));
     }
 
     @Override
@@ -335,6 +393,7 @@ public class ActionManager implements IActionManager {
         sequentialQueue.clear();
         parallelQueue.clear();
         conditionalQueue.clear();
+        otherQueues.forEach((name, queue) -> queue.clear());
     }
 
     @Override
