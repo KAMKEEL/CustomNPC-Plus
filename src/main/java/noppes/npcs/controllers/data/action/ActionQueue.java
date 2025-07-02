@@ -14,8 +14,10 @@ public class ActionQueue implements IActionQueue {
     protected final ActionManager manager;
     protected final String name;
 
-    protected boolean isParallel;
     protected boolean isWorking;
+    protected boolean isParallel;
+    protected boolean killWhenEmpty;
+    protected int killAfterTicks = 100;
 
     public ActionQueue(ActionManager manager, String name) {
         this.manager = manager;
@@ -47,20 +49,47 @@ public class ActionQueue implements IActionQueue {
     public String getName() {
         return name;
     }
-    @Override
-    public boolean isParallel() {
-        return isParallel;
-    }
-
-    public IActionQueue setParallel(boolean parallel) {
-        isParallel = parallel;
-        return this;
-    }
 
     @Override
     public Queue<IAction> getQueue() {
         return queue;
     }
+
+    @Override
+    public boolean isParallel() {
+        return isParallel;
+    }
+
+    @Override
+    public IActionQueue setParallel(boolean parallel) {
+        isParallel = parallel;
+        return this;
+    }
+    @Override
+    public boolean isKilledWhenEmpty() {
+        return killWhenEmpty;
+    }
+
+    @Override
+    public int getKillAfterTicks() {
+        return killAfterTicks;
+    }
+
+    @Override
+    public IActionQueue killWhenEmpty(boolean killWhenEmpty) {
+        this.killWhenEmpty = killWhenEmpty;
+        return this;
+    }
+
+    @Override
+    public IActionQueue killAfter(int ticks) {
+        this.killAfterTicks = ticks;
+        return this;
+    }
+
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Schedulers
 
     @Override
     public IAction schedule(IAction action) {
@@ -143,6 +172,10 @@ public class ActionQueue implements IActionQueue {
         return action;
     }
 
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Queue Data
+
     @Override
     public int getIndex(IAction action) {
         int i = 0;
@@ -202,6 +235,10 @@ public class ActionQueue implements IActionQueue {
         return false;
     }
 
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Handling
+
     protected void tick(int ticksExisted) {
         if (!isWorking)
             return;
@@ -228,6 +265,15 @@ public class ActionQueue implements IActionQueue {
                 }
             }
         }
+
+        if (killWhenEmpty && queue.isEmpty())
+            schedule(killAfterTicks, (act) -> {
+                if (!queue.isEmpty())
+                    act.markDone();
+
+                manager.removeQueue(name);
+            });
+
     }
 
     @Override

@@ -23,9 +23,9 @@ import java.util.function.Function;
 public class ActionManager implements IActionManager {
     protected boolean isWorking = false;
 
-    protected final IActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
-    protected final IActionQueue parallelQueue = new ActionQueue(this, "mainParallel").setParallel(true);
-    protected final IActionQueue conditionalQueue = new ActionQueue(this, "mainConditional").setParallel(true);
+    protected final ActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
+    protected final ActionQueue parallelQueue = new ActionQueue(this, "mainParallel", true);
+    protected final ActionQueue conditionalQueue = new ActionQueue(this, "mainConditional", true);
 
     protected final Map<String, IActionQueue> otherQueues = new HashMap<>();
 
@@ -118,7 +118,7 @@ public class ActionManager implements IActionManager {
     }
 
     public IActionQueue createQueue(String name, boolean isParallel) {
-        IActionQueue queue = new ActionQueue(this, name, isParallel);
+        IActionQueue queue = new ActionQueue(this, name, isParallel).killWhenEmpty(true);
         otherQueues.put(name, queue);
         return queue;
     }
@@ -376,13 +376,13 @@ public class ActionManager implements IActionManager {
         if (!isWorking) return;
 
         // ─── Sequential (head only) ─────────────────────────────────
-        ((ActionQueue) sequentialQueue).tick(ticksExisted);
+        sequentialQueue.tick(ticksExisted);
 
         // ─── Parallel (all) ───────────────────────────────────────
-        ((ActionQueue) parallelQueue).tick(ticksExisted);
+        parallelQueue.tick(ticksExisted);
 
         // ─── Conditionals ─────────────────────────────────────────
-        ((ActionQueue) conditionalQueue).tick(ticksExisted);
+        conditionalQueue.tick(ticksExisted);
 
         // ─── Other Queues ─────────────────────────────────────────
         otherQueues.forEach((name, queue) -> ((ActionQueue) queue).tick(ticksExisted));
