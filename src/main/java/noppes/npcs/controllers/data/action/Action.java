@@ -207,9 +207,7 @@ public class Action implements IAction {
         if (done)
             return;
 
-
         duration++;
-        System.out.println(duration);
 
         if (startAfterTicks > 0) {
             startAfterTicks--;
