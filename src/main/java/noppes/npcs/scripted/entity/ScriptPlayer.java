@@ -58,6 +58,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     public ScriptPlayer(T player) {
         super(player);
         this.player = player;
+        this.data = getData();
     }
 
     /**
