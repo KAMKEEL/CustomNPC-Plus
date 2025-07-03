@@ -267,8 +267,6 @@ public class ActionQueue implements IActionQueue {
         if (!isWorking)
             return;
 
-        killWhenEmpty();
-
         if (!isParallel) {
             IAction current = getCurrentAction();
             if (current instanceof Action) {
@@ -290,6 +288,8 @@ public class ActionQueue implements IActionQueue {
                 }
             }
         }
+
+        killWhenEmpty();
     }
 
     protected void killWhenEmpty() {

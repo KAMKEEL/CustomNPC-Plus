@@ -509,10 +509,6 @@ public class Action implements IAction {
         return before(manager.create(t));
     }
 
-    @Override
-    public IConditionalAction conditional(IConditionalAction after) {
-        return manager.schedule(after);
-    }
 
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
@@ -565,6 +561,11 @@ public class Action implements IAction {
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     // Conditionals
+
+    @Override
+    public IConditionalAction conditional(IConditionalAction after) {
+        return manager.schedule(after);
+    }
 
     @Override
     public void conditional(IConditionalAction... actions) {
