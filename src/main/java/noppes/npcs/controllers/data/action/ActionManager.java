@@ -114,20 +114,24 @@ public class ActionManager implements IActionManager {
     ///////////////////////////////////////////////////
     // Queues
 
+    @Override
     public IActionQueue createQueue(String name) {
         return createQueue(name, false);
     }
 
+    @Override
     public IActionQueue createQueue(String name, boolean isParallel) {
         IActionQueue queue = new ActionQueue(this, name, isParallel).killWhenEmpty(true);
         otherQueues.put(name, queue);
         return queue;
     }
 
+    @Override
     public IActionQueue getOrCreateQueue(String name) {
         return getOrCreateQueue(name, false);
     }
 
+    @Override
     public IActionQueue getOrCreateQueue(String name, boolean isParallel) {
         IActionQueue queue = getQueue(name);
 
@@ -136,10 +140,12 @@ public class ActionManager implements IActionManager {
         return queue;
     }
 
+    @Override
     public IActionQueue getQueue(String name) {
         return otherQueues.get(name);
     }
 
+    @Override
     public boolean removeQueue(String name) {
         IActionQueue queue = otherQueues.get(name);
 
