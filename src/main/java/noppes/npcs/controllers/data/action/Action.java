@@ -186,6 +186,10 @@ public class Action implements IAction {
     @Override
     public void markDone() {
         done = true;
+
+        if (isThreaded && actionThread.inActionThread()) {
+            queue.cancel(this);
+        }
     }
 
     @Override
@@ -335,13 +339,17 @@ public class Action implements IAction {
         return befores;
     }
 
-    protected void scheduleAllBefore(Deque<IAction> actionQueue) {
+    protected void scheduleAllBefore(Deque<IAction> deque) {
         allUnscheduledBefore().forEach((bef) -> {
             if (bef.unscheduledAfter != null)
                 bef.unscheduledAfter.unscheduledBefore = null;
             bef.unscheduledAfter = null;
 
-            actionQueue.addLast(bef);
+            deque.addLast(bef);
+
+            if (bef.queue != queue)
+                bef.queue = queue;
+
             bef.isScheduled = true;
         });
     }
@@ -357,13 +365,17 @@ public class Action implements IAction {
         return afters;
     }
 
-    protected void scheduleAllAfter(Deque<IAction> actionQueue) {
+    protected void scheduleAllAfter(Deque<IAction> deque) {
         allUnscheduledAfter().forEach((aft) -> {
             if (aft.unscheduledBefore != null)
                 aft.unscheduledBefore.unscheduledAfter = null;
             aft.unscheduledBefore = null;
 
-            actionQueue.addLast(aft);
+            deque.addLast(aft);
+
+            if (aft.queue != queue)
+                aft.queue = queue;
+
             aft.isScheduled = true;
         });
     }

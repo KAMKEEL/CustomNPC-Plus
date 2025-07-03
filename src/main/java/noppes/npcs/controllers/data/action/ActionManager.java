@@ -8,6 +8,7 @@ import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -145,8 +146,7 @@ public class ActionManager implements IActionManager {
         if (queue == null)
             return false;
 
-        otherQueues.remove(name);
-        queue.clear();
+        queue.kill();
         return true;
     }
 
@@ -385,7 +385,16 @@ public class ActionManager implements IActionManager {
         conditionalQueue.tick(ticksExisted);
 
         // ─── Other Queues ─────────────────────────────────────────
-        otherQueues.forEach((name, queue) -> ((ActionQueue) queue).tick(ticksExisted));
+        Iterator<IActionQueue> it = otherQueues.values().iterator();
+        while (it.hasNext()) {
+            IActionQueue other = it.next();
+            ((ActionQueue) other).tick(ticksExisted);
+
+            if (other.isKilled()) {
+                other.clear();
+                it.remove();
+            }
+        }
     }
 
     @Override

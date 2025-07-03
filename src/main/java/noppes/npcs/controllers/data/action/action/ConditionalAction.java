@@ -94,7 +94,8 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     @Override
     public void tick(int ticksExisted) {
-        if (done)
+        updateEveryXTick = 10;
+        if (isDone())
             return;
 
         if (maxChecks > -1 && checkCount > maxChecks || maxCount == 0) {
@@ -103,6 +104,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
         }
 
         if (ticksExisted % updateEveryXTick == 0) {
+            System.out.println("start");
             checkCount++;
 
             Runnable execute = () -> {
@@ -114,6 +116,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
                         executeOnTermination();
                     markDone();
                 }
+                System.out.println("exec'd!");
             };
 
             if (isThreaded)
