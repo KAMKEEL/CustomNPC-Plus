@@ -1,5 +1,6 @@
 package noppes.npcs.controllers.data.action;
 
+import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
@@ -68,7 +69,7 @@ public class Action implements IAction {
     }
 
     @Override
-    public ActionManager getManager() {
+    public IActionManager getManager() {
         return manager;
     }
 
