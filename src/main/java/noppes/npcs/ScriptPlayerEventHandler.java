@@ -36,10 +36,8 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemNpcTool;
-import noppes.npcs.items.ItemScripted;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.ItemEvent;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -74,7 +72,7 @@ public class ScriptPlayerEventHandler {
 
             if (PlayerDataController.Instance != null) {
                 PlayerData playerData = PlayerData.get(player);
-                playerData.actionManager.tick(player.ticksExisted);
+                playerData.actionManager.tick();
 
                 if (playerData.updateClient) {
                     SyncController.syncPlayerData((EntityPlayerMP) player, true);

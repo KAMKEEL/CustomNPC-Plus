@@ -262,17 +262,17 @@ public class ActionQueue implements IActionQueue {
     ///////////////////////////////////////////////////
     // Handling
 
-    protected void tick(int ticksExisted) {
+    protected void tick() {
         if (!isWorking)
             return;
 
-        killWhenEmpty(ticksExisted);
+        killWhenEmpty();
 
         if (!isParallel) {
             IAction current = getCurrentAction();
             if (current instanceof Action) {
                 Action cab = (Action) current;
-                cab.tick(ticksExisted);
+                cab.tick();
                 if (cab.isDone()) {
                     cab.kill();
                     queue.pollFirst();
@@ -282,7 +282,7 @@ public class ActionQueue implements IActionQueue {
             Iterator<IAction> pit = queue.iterator();
             while (pit.hasNext()) {
                 Action a = (Action) pit.next();
-                a.tick(ticksExisted);
+                a.tick();
                 if (a.isDone()) {
                     a.kill();
                     pit.remove();
@@ -291,7 +291,7 @@ public class ActionQueue implements IActionQueue {
         }
     }
 
-    protected void killWhenEmpty(int ticksExisted) {
+    protected void killWhenEmpty() {
         if (killWhenEmpty && !hasActiveTasks() && autoKill == null)
             autoKill = (Action) manager.create(killAfterTicks, (act) -> {
                 if (hasActiveTasks())
@@ -301,7 +301,7 @@ public class ActionQueue implements IActionQueue {
             }).updateEvery(1).once();
 
         if (autoKill != null) {
-            autoKill.tick(ticksExisted);
+            autoKill.tick();
             if (autoKill.isDone())
                 autoKill = null;
         }

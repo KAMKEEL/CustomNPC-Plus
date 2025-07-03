@@ -369,26 +369,24 @@ public class ActionManager implements IActionManager {
 
     /**
      * Call once per tick from your main loop.
-     *
-     * @param ticksExisted the global tick count, used for modulo checks.
      */
-    public void tick(int ticksExisted) {
+    public void tick() {
         if (!isWorking) return;
 
         // ─── Sequential (head only) ─────────────────────────────────
-        sequentialQueue.tick(ticksExisted);
+        sequentialQueue.tick();
 
         // ─── Parallel (all) ───────────────────────────────────────
-        parallelQueue.tick(ticksExisted);
+        parallelQueue.tick();
 
         // ─── Conditionals ─────────────────────────────────────────
-        conditionalQueue.tick(ticksExisted);
+        conditionalQueue.tick();
 
         // ─── Other Queues ─────────────────────────────────────────
         Iterator<IActionQueue> it = otherQueues.values().iterator();
         while (it.hasNext()) {
             IActionQueue other = it.next();
-            ((ActionQueue) other).tick(ticksExisted);
+            ((ActionQueue) other).tick();
 
             if (other.isKilled()) {
                 other.clear();

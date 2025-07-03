@@ -21,7 +21,7 @@ public class ServerTickHandler {
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == Phase.END) {
-            NpcAPI.actionManager.tick(MinecraftServer.getServer().getTickCounter());
+            NpcAPI.actionManager.tick();
         }
     }
 

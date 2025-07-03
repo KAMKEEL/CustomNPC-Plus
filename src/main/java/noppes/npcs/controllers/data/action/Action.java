@@ -186,10 +186,6 @@ public class Action implements IAction {
     @Override
     public void markDone() {
         done = true;
-
-        if (isThreaded && actionThread.inActionThread()) {
-            queue.cancel(this);
-        }
     }
 
     @Override
@@ -207,9 +203,14 @@ public class Action implements IAction {
         return this;
     }
 
-    public void tick(int ticksExisted) {
+    public void tick() {
         if (done)
             return;
+
+
+        duration++;
+        System.out.println(duration);
+
         if (startAfterTicks > 0) {
             startAfterTicks--;
             return;
@@ -218,7 +219,8 @@ public class Action implements IAction {
             markDone();
             return;
         }
-        if (ticksExisted % updateEveryXTick == 0 && task != null) {
+
+        if (duration % updateEveryXTick == 0 && task != null) {
             if (isThreaded)
                 actionThread.execute("task", this::executeTask);
             else
@@ -228,7 +230,6 @@ public class Action implements IAction {
         if (maxCount > -1 && count >= maxCount)
             markDone();
 
-        duration++;
     }
 
     protected void executeTask() {

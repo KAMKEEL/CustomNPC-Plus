@@ -92,6 +92,10 @@ public class ActionThread {
         }
     }
 
+    public boolean isTaskRunning(String taskKey) {
+        return runningTasks.contains(taskKey);
+    }
+
     public boolean inActionThread() {
         return Thread.currentThread() == thread;
     }
@@ -108,13 +112,12 @@ public class ActionThread {
         if (threadPaused && pauseUntil != null && pauseUntil.apply(action))
             resume();
 
-        if (runningKeys.contains(taskKey))
+        if (!runningKeys.add(taskKey))
             return;
 
         final AtomicReference<Future<?>> taskRef = new AtomicReference<>();
         taskRef.set(executor.submit(() -> {
             runningTasks.add(taskRef.get());
-            runningKeys.add(taskKey);
             try {
                 task.run();
             } finally {

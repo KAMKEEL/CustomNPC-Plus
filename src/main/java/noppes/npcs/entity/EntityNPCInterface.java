@@ -367,7 +367,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             combatHandler.update();
             onCollide();
 
-            actionManager.tick(ticksExisted);
+            actionManager.tick();
         }
 
         if (wasKilled != isKilled() && wasKilled) {
