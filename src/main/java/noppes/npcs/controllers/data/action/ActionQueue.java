@@ -20,7 +20,7 @@ public class ActionQueue implements IActionQueue {
 
     protected boolean kill;
     protected boolean killWhenEmpty;
-    protected int killAfterTicks = 100;
+    protected int killWhenEmptyAfter = 100;
 
     private Action autoKill;
 
@@ -76,8 +76,8 @@ public class ActionQueue implements IActionQueue {
     }
 
     @Override
-    public int getKillAfterTicks() {
-        return killAfterTicks;
+    public int getKillWhenEmptyAfter() {
+        return killWhenEmptyAfter;
     }
 
     @Override
@@ -87,8 +87,8 @@ public class ActionQueue implements IActionQueue {
     }
 
     @Override
-    public IActionQueue killAfter(int ticks) {
-        this.killAfterTicks = ticks;
+    public IActionQueue killWhenEmptyAfter(int ticks) {
+        this.killWhenEmptyAfter = ticks;
         return this;
     }
 
@@ -294,7 +294,7 @@ public class ActionQueue implements IActionQueue {
 
     protected void killWhenEmpty() {
         if (killWhenEmpty && !hasActiveTasks() && autoKill == null)
-            autoKill = (Action) manager.create(killAfterTicks, (act) -> {
+            autoKill = (Action) manager.create(killWhenEmptyAfter, (act) -> {
                 if (hasActiveTasks())
                     return;
 
