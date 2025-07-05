@@ -116,13 +116,12 @@ public class ActionQueue implements IActionQueue {
 
         act.isScheduled = true;
 
-        if (!isParallel && act.unscheduledBefore != null)
-            act.scheduleAllBefore(queue);
+        if (!isParallel && act.unscheduledList != null) {
+            act.unscheduledList.scheduleAll(this).forEach((act1) -> act1.unscheduledList = null).kill();
+            return action;
+        }
 
         queue.addLast(action);
-
-        if (!isParallel && act.unscheduledAfter != null)
-            act.scheduleAllAfter(queue);
 
         return action;
     }
@@ -183,6 +182,7 @@ public class ActionQueue implements IActionQueue {
             queue.clear();
             queue.addAll(tmp);
         }
+        ((Action) action).queue = this;
         ((Action) action).isScheduled = true;
         return action;
     }

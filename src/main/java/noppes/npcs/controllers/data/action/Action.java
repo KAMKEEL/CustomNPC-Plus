@@ -31,6 +31,9 @@ public class Action implements IAction {
     protected ActionThread actionThread;
     protected ScriptContainer reportTo;
 
+    //allows chaining .before() and .after() on unscheduled actions
+    protected ActionList unscheduledList;
+
     public Action(ActionManager manager, String name) {
         this.manager = manager;
         this.name = name;
@@ -337,61 +340,6 @@ public class Action implements IAction {
     ///////////////////////////////////////////////////
     // Sequential
 
-    protected Action unscheduledBefore, unscheduledAfter;
-
-    protected LinkedList<Action> allUnscheduledBefore() {
-        Action before = unscheduledBefore;
-
-        LinkedList<Action> befores = new LinkedList<>();
-        while (before != null) {
-            befores.addFirst(before);
-            before = before.unscheduledBefore;
-        }
-
-        return befores;
-    }
-
-    protected void scheduleAllBefore(Deque<IAction> deque) {
-        allUnscheduledBefore().forEach((bef) -> {
-            if (bef.unscheduledAfter != null)
-                bef.unscheduledAfter.unscheduledBefore = null;
-            bef.unscheduledAfter = null;
-
-            deque.addLast(bef);
-
-            if (bef.queue != queue)
-                bef.queue = queue;
-
-            bef.isScheduled = true;
-        });
-    }
-
-    protected LinkedList<Action> allUnscheduledAfter() {
-        Action after = unscheduledAfter;
-
-        LinkedList<Action> afters = new LinkedList<>();
-        while (after != null) {
-            afters.add(after);
-            after = after.unscheduledAfter;
-        }
-        return afters;
-    }
-
-    protected void scheduleAllAfter(Deque<IAction> deque) {
-        allUnscheduledAfter().forEach((aft) -> {
-            if (aft.unscheduledBefore != null)
-                aft.unscheduledBefore.unscheduledAfter = null;
-            aft.unscheduledBefore = null;
-
-            deque.addLast(aft);
-
-            if (aft.queue != queue)
-                aft.queue = queue;
-
-            aft.isScheduled = true;
-        });
-    }
-
     @Override
     public IAction getNext() {
         if (queue == null)
@@ -429,12 +377,13 @@ public class Action implements IAction {
             return conditional((IConditionalAction) after);
 
         int idx = queue == null ? -1 : queue.getIndex(this);
-        if (idx >= 0)
+        if (idx >= 0 && !queue.isParallel())
             queue.scheduleActionAt(idx + 1, after);
         else {
-            Action aft = (Action) after;
-            unscheduledAfter = aft;
-            aft.unscheduledBefore = this;
+            if (unscheduledList == null)
+                unscheduledList = new ActionList(this);
+
+            unscheduledList.after(this, (Action) after);
         }
         return after;
     }
@@ -486,12 +435,13 @@ public class Action implements IAction {
             return conditional((IConditionalAction) before);
 
         int idx = queue == null ? -1 : queue.getIndex(this);
-        if (idx >= 0)
+        if (idx >= 0 && !queue.isParallel())
             queue.scheduleActionAt(Math.max(0, idx), before);
         else {
-            Action bef = (Action) before;
-            unscheduledBefore = bef;
-            bef.unscheduledAfter = this;
+            if (unscheduledList == null)
+                unscheduledList = new ActionList(this);
+
+            unscheduledList.before(this, (Action) before);
         }
         return before;
     }
@@ -528,6 +478,9 @@ public class Action implements IAction {
 
     @Override
     public IAction parallel(IAction act) {
+        if (unscheduledList != null)
+            ((Action) act).unscheduledList = unscheduledList;
+
         if (queue != null && queue.isParallel() && queue != manager.conditionalQueue)
             return queue.schedule(act);
 
@@ -576,6 +529,9 @@ public class Action implements IAction {
 
     @Override
     public IConditionalAction conditional(IConditionalAction after) {
+        if (unscheduledList != null)
+            ((Action) after).unscheduledList = unscheduledList;
+
         return manager.schedule(after);
     }
 
