@@ -11,12 +11,12 @@ import java.util.function.Function;
 
 
 public class ConditionalAction extends Action implements IConditionalAction {
-    private Function<IAction, Boolean> condition;
-    private Function<IAction, Boolean> terminateWhen;
-    private Consumer<IAction> onTermination;
-    private int maxChecks = -1;
-    private int checkCount;
-    private boolean taskExecuted;
+    protected Function<IAction, Boolean> condition;
+    protected Function<IAction, Boolean> terminateWhen;
+    protected Consumer<IAction> onTermination;
+    protected int maxChecks = -1;
+    protected int checkCount;
+    protected boolean taskExecuted;
 
     public ConditionalAction(ActionManager manager, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         super(manager, task);

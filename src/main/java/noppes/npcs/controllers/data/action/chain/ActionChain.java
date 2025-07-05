@@ -50,7 +50,7 @@ public class ActionChain implements IActionChain {
     @Override
     public IActionChain after(int delay, String name, Consumer<IAction> task) {
         offset = queue.isParallel() ? offset + delay : delay;
-        queue.schedule(name, offset, task).updateEvery(1).once();
+        queue.schedule(name, offset, task).everyTick().once();
         index++;
         return this;
     }

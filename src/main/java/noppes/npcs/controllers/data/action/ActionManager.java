@@ -27,8 +27,8 @@ public class ActionManager implements IActionManager {
     protected final ActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
     protected final ActionQueue parallelQueue = new ActionQueue(this, "mainParallel", true);
     protected final ActionQueue conditionalQueue = new ActionQueue(this, "mainConditional", true);
-
     protected final Map<String, IActionQueue> otherQueues = new HashMap<>();
+
 
     @Override
     public IActionManager start() {
@@ -143,6 +143,11 @@ public class ActionManager implements IActionManager {
     @Override
     public IActionQueue getQueue(String name) {
         return otherQueues.get(name);
+    }
+
+    @Override
+    public boolean hasQueue(String name) {
+        return otherQueues.containsKey(name);
     }
 
     @Override
@@ -394,7 +399,7 @@ public class ActionManager implements IActionManager {
             IActionQueue other = it.next();
             ((ActionQueue) other).tick();
 
-            if (other.isKilled()) {
+            if (other.isDead()) {
                 other.clear();
                 it.remove();
             }

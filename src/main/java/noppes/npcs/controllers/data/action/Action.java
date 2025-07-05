@@ -141,6 +141,18 @@ public class Action implements IAction {
     }
 
     @Override
+    public IAction everyTick() {
+        this.updateEveryXTick = 1;
+        return this;
+    }
+
+    @Override
+    public IAction everySecond() {
+        this.updateEveryXTick = 20;
+        return this;
+    }
+
+    @Override
     public int getCount() {
         return count;
     }

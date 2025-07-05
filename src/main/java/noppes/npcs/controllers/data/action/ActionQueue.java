@@ -18,11 +18,11 @@ public class ActionQueue implements IActionQueue {
     protected boolean isWorking = true;
     protected boolean isParallel;
 
-    protected boolean kill;
+    protected boolean isDead;
     protected boolean killWhenEmpty;
     protected int killWhenEmptyAfter = 100;
 
-    private Action autoKill;
+    protected Action autoKill;
 
     public ActionQueue(ActionManager manager, String name) {
         this.manager = manager;
@@ -93,13 +93,13 @@ public class ActionQueue implements IActionQueue {
     }
 
     @Override
-    public boolean isKilled() {
-        return kill;
+    public boolean isDead() {
+        return isDead;
     }
 
     @Override
     public IActionQueue kill() {
-        this.kill = true;
+        this.isDead = true;
         return this;
     }
 
@@ -264,7 +264,7 @@ public class ActionQueue implements IActionQueue {
     // Handling
 
     protected void tick() {
-        if (!isWorking)
+        if (!isWorking || isDead)
             return;
 
         if (!isParallel) {
@@ -299,7 +299,7 @@ public class ActionQueue implements IActionQueue {
                     return;
 
                 manager.removeQueue(name);
-            }).updateEvery(1).once();
+            }).everyTick().once();
 
         if (autoKill != null) {
             autoKill.tick();
