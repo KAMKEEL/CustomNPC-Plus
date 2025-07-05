@@ -644,18 +644,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (entity instanceof EntityPlayer && DBCAddon.instance.isKO(this, (EntityPlayer) entity))
             return;
         if (!isRemote()) {
-            if (getAttackTarget() != entity && entity != null) {
-                NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(wrappedNPC, entity);
-                if (EventHooks.onNPCTarget(this, event))
-                    return;
+            if (getAttackTarget() != entity) {
+                if (entity != null) {
+                    NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(wrappedNPC, entity);
+                    if (EventHooks.onNPCTarget(this, event))
+                        return;
 
-                if (event.getTarget() == null)
-                    entity = null;
-                else
-                    entity = event.getTarget().getMCEntity();
-            } else {
-                if (EventHooks.onNPCTargetLost(this, getAttackTarget(), entity))
-                    return;
+                    if (event.getTarget() == null)
+                        entity = null;
+                    else
+                        entity = event.getTarget().getMCEntity();
+                }
+                if (getAttackTarget() != null) {
+                    if (EventHooks.onNPCTargetLost(this, getAttackTarget(), entity))
+                        return;
+                }
             }
             if (entity != null && entity != this && ais.onAttack != 3 && !isAttacking()) {
                 Line line = advanced.getAttackLine();
