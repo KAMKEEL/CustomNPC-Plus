@@ -212,6 +212,12 @@ public class Action implements IAction {
     }
 
     @Override
+    public IAction copyDataTo(IAction to) {
+        ((Action) to).dataStore.putAll(dataStore);
+        return this;
+    }
+
+    @Override
     public String printData() {
         if (dataStore.isEmpty()) {
             return String.format("Action[name=%s] dataStore is empty", name);

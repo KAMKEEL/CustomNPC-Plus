@@ -93,7 +93,7 @@ public class ActionThread {
     }
 
     public boolean isTaskRunning(String taskKey) {
-        return runningTasks.contains(taskKey);
+        return runningKeys.contains(taskKey);
     }
 
     public boolean inActionThread() {
