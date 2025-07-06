@@ -97,6 +97,13 @@ public class Action implements IAction {
         return this;
     }
 
+    protected void schedule(IActionQueue queue) {
+        queue.getQueue().add(this);
+
+        this.queue = queue;
+        this.isScheduled = true;
+    }
+
     @Override
     public boolean isScheduled() {
         return isScheduled;
@@ -248,16 +255,19 @@ public class Action implements IAction {
             return;
         }
 
-        if (duration % updateEveryXTick == 0 && task != null) {
-            if (isThreaded)
-                actionThread.execute("task", this::executeTask);
-            else
-                executeTask();
-        }
+        if (duration % updateEveryXTick == 0 && task != null)
+            execute("task", this::executeTask);
 
         if (maxCount > -1 && count >= maxCount)
             markDone();
 
+    }
+
+    public void execute(String taskName, Runnable task) {
+        if (isThreaded)
+            actionThread.execute(taskName, task);
+        else
+            task.run();
     }
 
     protected void executeTask() {
@@ -265,13 +275,7 @@ public class Action implements IAction {
             task.accept(this);
             count++;
         } catch (Throwable t) {
-            String err = "Task of " + this + " threw an exception:";
-
-            if (reportTo != null)
-                reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
-
-            System.err.println(err);
-            t.printStackTrace();
+            logDebug("Task of " + this + " threw an exception:", t);
             markDone();
         }
     }
@@ -284,6 +288,19 @@ public class Action implements IAction {
         dataStore.clear();
         isScheduled = false;
         done = true;
+    }
+
+    public void logDebug(String err) {
+        logDebug(err, null);
+    }
+
+    public void logDebug(String err, Throwable t) {
+        if (reportTo != null)
+            reportTo.appendConsole(err + (t != null ? "\n" + ExceptionUtils.getStackTrace(t) : ""));
+
+        System.err.println(err);
+        if (t != null)
+            t.printStackTrace();
     }
 
     public String toString() {

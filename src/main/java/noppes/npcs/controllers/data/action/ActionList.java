@@ -42,11 +42,7 @@ public class ActionList {
     }
 
     public ActionList scheduleAll(IActionQueue queue) {
-        list.forEach(act -> {
-            queue.getQueue().add(act);
-            act.queue = queue;
-            act.isScheduled = true;
-        });
+        list.forEach(act -> act.schedule(queue));
 
         return this;
     }

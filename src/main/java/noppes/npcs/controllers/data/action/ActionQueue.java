@@ -116,10 +116,7 @@ public class ActionQueue implements IActionQueue {
             return action;
         }
 
-        queue.addLast(action);
-
-        act.queue = this;
-        act.isScheduled = true;
+        act.schedule(this);
         return action;
     }
 
