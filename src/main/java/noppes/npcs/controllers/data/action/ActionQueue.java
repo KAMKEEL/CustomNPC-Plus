@@ -111,11 +111,6 @@ public class ActionQueue implements IActionQueue {
     public IAction schedule(IAction action) {
         Action act = (Action) action;
 
-        if (act.queue != this)
-            act.setQueue(this);
-
-        act.isScheduled = true;
-
         if (!isParallel && act.unscheduledList != null) {
             act.unscheduledList.scheduleAll(this).forEach((act1) -> act1.unscheduledList = null).kill();
             return action;
@@ -123,6 +118,8 @@ public class ActionQueue implements IActionQueue {
 
         queue.addLast(action);
 
+        act.queue = this;
+        act.isScheduled = true;
         return action;
     }
 
@@ -317,6 +314,27 @@ public class ActionQueue implements IActionQueue {
     @Override
     public IActionChain chain() {
         return new ActionChain(manager, this, isParallel ? "parallel#" : "sequential#");
+    }
+
+    @Override
+    public String printQueue() {
+        if (queue.isEmpty()) {
+            return String.format("ActionQueue[name=%s] is empty", name);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("%s\n", this));
+
+        int i = 0;
+        for (IAction action : queue) {
+            sb.append(String.format("  [%d] %s\n", i++, action.toString()));
+        }
+
+        return sb.toString();
+    }
+
+    public String toString() {
+        return String.format("ActionQueue '%s' [size=%d, parallel=%s, working=%s, dead=%s, killWhenEmpty=%s, killAfter=%d]", name, queue.size(), isParallel, isWorking, isDead, killWhenEmpty, killWhenEmptyAfter);
     }
 
 }

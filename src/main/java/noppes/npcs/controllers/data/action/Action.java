@@ -8,9 +8,7 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -43,7 +41,7 @@ public class Action implements IAction {
     }
 
     public Action(ActionManager manager, Consumer<IAction> task) {
-        this(manager, task.toString(), task);
+        this(manager, Integer.toHexString(task.hashCode()), task);
     }
 
     public Action(ActionManager manager, String name, Consumer<IAction> task) {
@@ -195,6 +193,22 @@ public class Action implements IAction {
     }
 
     @Override
+    public String printData() {
+        if (dataStore.isEmpty()) {
+            return String.format("Action[name=%s] dataStore is empty", name);
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Action[name=%s] dataStore contents:\n", name));
+
+        for (Map.Entry<String, Object> entry : dataStore.entrySet()) {
+            sb.append(String.format("  %s = %s\n", entry.getKey(), entry.getValue()));
+        }
+
+        return sb.toString();
+    }
+
+    @Override
     public boolean hasData(String key) {
         return dataStore.containsKey(key);
     }
@@ -272,6 +286,9 @@ public class Action implements IAction {
         done = true;
     }
 
+    public String toString() {
+        return String.format("Action '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", name != null ? name : "unnamed", queue != null ? queue.getName() : "null", isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
+    }
     ///////////////////////////////////////////////////
     //////////////////////////////////////////////////
     // Thread

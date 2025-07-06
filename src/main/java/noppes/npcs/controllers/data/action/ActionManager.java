@@ -7,9 +7,7 @@ import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -330,6 +328,18 @@ public class ActionManager implements IActionManager {
     // Handling
 
     @Override
+    public IActionQueue[] getAllQueues() {
+        ArrayList<IActionQueue> allQueues = new ArrayList<>();
+
+        allQueues.add(sequentialQueue);
+        allQueues.add(parallelQueue);
+        allQueues.add(conditionalQueue);
+
+        allQueues.addAll(otherQueues.values());
+
+        return allQueues.toArray(new IActionQueue[0]);
+    }
+    @Override
     public boolean hasAny(String name) {
         return getAny(name) != null;
     }
@@ -423,4 +433,20 @@ public class ActionManager implements IActionManager {
     public IActionChain parallelChain() {
         return parallelQueue.chain();
     }
+
+    @Override
+    public String printQueues() {
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("ActionManager [working=%s]\n", isWorking));
+
+
+        int i = 0;
+        for (IActionQueue action : getAllQueues()) {
+            sb.append(String.format("  [%d] %s\n", i++, action.toString()));
+        }
+
+        return sb.toString();
+    }
+
 }
