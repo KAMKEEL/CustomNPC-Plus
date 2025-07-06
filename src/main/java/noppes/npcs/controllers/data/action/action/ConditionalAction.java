@@ -134,7 +134,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
             count++;
             taskExecuted = true;
         } catch (Throwable t) {
-            String err = "IConditionalAction '" + getName() + "' threw an exception:";
+            String err = "Task of " + this + " threw an exception:";
 
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
@@ -149,7 +149,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
         try {
             onTermination.accept(this);
         } catch (Throwable t) {
-            String err = "IConditionalAction's onTermination '" + getName() + "' threw an exception:";
+            String err = "Termination Task of " + this + " threw an exception:";
 
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
@@ -161,8 +161,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
 
     public String toString() {
-        return String.format(
-            "ConditionalAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]",
+        return String.format("IConditionalAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]",
             name != null ? name : "unnamed",
             queue != null ? queue.getName() : "null",
             isScheduled,

@@ -265,7 +265,7 @@ public class Action implements IAction {
             task.accept(this);
             count++;
         } catch (Throwable t) {
-            String err = "IAction '" + name + "' threw an exception:";
+            String err = "Task of " + this + " threw an exception:";
 
             if (reportTo != null)
                 reportTo.appendConsole(err + "\n" + ExceptionUtils.getStackTrace(t));
@@ -287,7 +287,7 @@ public class Action implements IAction {
     }
 
     public String toString() {
-        return String.format("Action '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", name != null ? name : "unnamed", queue != null ? queue.getName() : "null", isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
+        return String.format("IAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", name != null ? name : "unnamed", queue != null ? queue.getName() : "null", isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
     }
     ///////////////////////////////////////////////////
     //////////////////////////////////////////////////
