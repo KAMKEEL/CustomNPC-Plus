@@ -96,6 +96,9 @@ public class ConditionalAction extends Action implements IConditionalAction {
         if (isDone())
             return;
 
+        if (duration == 0 && onStart != null)
+            execute("start", this::executeOnStart);
+
         duration++;
 
         if (maxChecks > -1 && checkCount > maxChecks || maxCount == 0) {

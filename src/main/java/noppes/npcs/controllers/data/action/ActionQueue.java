@@ -267,6 +267,8 @@ public class ActionQueue implements IActionQueue {
                 Action cab = (Action) current;
                 cab.tick();
                 if (cab.isDone()) {
+                    if (cab.onDone != null)
+                        cab.execute("task", cab::executeOnDone);
                     cab.kill();
                     queue.pollFirst();
                 }
@@ -277,6 +279,8 @@ public class ActionQueue implements IActionQueue {
                 Action a = (Action) pit.next();
                 a.tick();
                 if (a.isDone()) {
+                    if (a.onDone != null)
+                        a.execute("complete", a::executeOnDone);
                     a.kill();
                     pit.remove();
                 }

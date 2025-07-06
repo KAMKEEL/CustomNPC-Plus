@@ -22,7 +22,7 @@ public class Action implements IAction {
     protected int count, maxCount = -1;
     protected int duration, maxDuration = -1;
     protected int updateEveryXTick = 5;
-    protected Consumer<IAction> task;
+    protected Consumer<IAction> task, onStart, onDone;
     protected boolean done;
     protected final Map<String, Object> dataStore = new HashMap<>();
     protected boolean isThreaded;
@@ -112,6 +112,18 @@ public class Action implements IAction {
     @Override
     public IAction setTask(Consumer<IAction> task) {
         this.task = task;
+        return this;
+    }
+
+    @Override
+    public IAction onStart(Consumer<IAction> task) {
+        this.onStart = task;
+        return this;
+    }
+
+    @Override
+    public IAction onDone(Consumer<IAction> task) {
+        this.onDone = task;
         return this;
     }
 
@@ -244,6 +256,9 @@ public class Action implements IAction {
         if (done)
             return;
 
+        if (duration == 0 && onStart != null)
+            execute("start", this::executeOnStart);
+
         duration++;
 
         if (startAfterTicks > 0) {
@@ -270,6 +285,14 @@ public class Action implements IAction {
             task.run();
     }
 
+    protected void executeOnStart() {
+        try {
+            onStart.accept(this);
+        } catch (Throwable t) {
+            logDebug("Start Task of " + this + " threw an exception:", t);
+        }
+    }
+
     protected void executeTask() {
         try {
             task.accept(this);
@@ -279,6 +302,15 @@ public class Action implements IAction {
             markDone();
         }
     }
+
+    protected void executeOnDone() {
+        try {
+            onDone.accept(this);
+        } catch (Throwable t) {
+            logDebug("Done Task of " + this + " threw an exception:", t);
+        }
+    }
+
 
     @Override
     public void kill() {
