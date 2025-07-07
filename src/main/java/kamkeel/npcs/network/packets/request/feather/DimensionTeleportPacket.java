@@ -46,7 +46,6 @@ public final class DimensionTeleportPacket extends AbstractPacket {
         out.writeInt(dimensionID);
     }
 
-    @SideOnly(Side.SERVER)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         if (!(player instanceof EntityPlayerMP))
