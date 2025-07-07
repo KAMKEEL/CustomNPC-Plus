@@ -281,7 +281,7 @@ public class NpcAPI extends AbstractNpcAPI {
         List<String> biomes = new ArrayList<>();
         Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
         for (Type type : BiomeDictionary.Type.values()) {
-            allBiomes.addAll(BiomeDictionary.getBiomesForType(type));
+            Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
         }
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
             if (base != null)

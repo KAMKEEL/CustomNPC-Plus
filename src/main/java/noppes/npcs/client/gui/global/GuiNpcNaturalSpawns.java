@@ -66,6 +66,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         addButton(new GuiNpcButton(4, guiLeft + 90, y - 5, 50, 20, "selectServer.edit"));
 
         addSlider(new GuiNpcSlider(this, 5, guiLeft + 4, y += 17, 180, 20, (float) this.spawn.itemWeight / 100));
+        addExtra(new GuiHoverText(1, "spawning.naturalInfo", guiLeft + 188, y + 5));
 
         this.spawnEntryScroll.guiLeft = guiLeft + 4;
         this.spawnEntryScroll.guiTop = y + 40;
