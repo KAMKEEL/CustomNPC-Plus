@@ -644,6 +644,8 @@ public class ProfileController implements IProfileHandler {
 
         if (ConfigMain.AttributesEnabled)
             AttributeController.getTracker(player).recalcAttributes(player);
+
+        // pdata.save();
     }
 
     public List<ProfileInfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
