@@ -58,7 +58,6 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     public ScriptPlayer(T player) {
         super(player);
         this.player = player;
-        this.data = getData();
     }
 
     /**
@@ -851,7 +850,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
 
     @Override
     public IActionManager getActionManager() {
-        if (data.actionManager.getName().isEmpty())
+        if (getData().actionManager.getName().isEmpty())
             data.actionManager.setName(player.getDisplayName());
 
         return data.actionManager;
