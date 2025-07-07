@@ -9,10 +9,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.SpawnData;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class SubGuiNpcBiomes extends SubGuiInterface {
     private SpawnData data;
@@ -50,7 +47,7 @@ public class SubGuiNpcBiomes extends SubGuiInterface {
         List<String> biomes = new ArrayList<String>();
         Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
         for (BiomeDictionary.Type type : BiomeDictionary.Type.values()) {
-            allBiomes.addAll(BiomeDictionary.getBiomesForType(type));
+            Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
         }
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
             if (base != null)
@@ -95,7 +92,7 @@ public class SubGuiNpcBiomes extends SubGuiInterface {
             data.biomes.clear();
             Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
             for (BiomeDictionary.Type type : BiomeDictionary.Type.values()) {
-                allBiomes.addAll(BiomeDictionary.getBiomesForType(type));
+                Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
             }
             for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
                 if (base != null)
