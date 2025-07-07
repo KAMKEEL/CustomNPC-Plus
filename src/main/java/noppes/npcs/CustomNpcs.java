@@ -41,7 +41,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.2-beta")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.2-beta2")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
