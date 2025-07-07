@@ -423,6 +423,9 @@ public class ActionManager implements IActionManager {
     public void tick() {
         if (!isWorking) return;
 
+        if (debug)
+            logDebug(String.format("Started '%s' Tick Cycle", getInternalName()));
+
         // ─── Sequential (head only) ─────────────────────────────────
         sequentialQueue.tick();
 
@@ -440,9 +443,14 @@ public class ActionManager implements IActionManager {
 
             if (other.isDead()) {
                 other.clear();
+                if (debug)
+                    logDebug(String.format("Removing queue '%s' from '%s'", other.getName(), getInternalName()));
                 it.remove();
             }
         }
+
+        if (debug)
+            logDebug(String.format("Finished '%s' Tick Cycle", getInternalName()));
     }
 
     @Override
@@ -451,6 +459,13 @@ public class ActionManager implements IActionManager {
         parallelQueue.clear();
         conditionalQueue.clear();
         otherQueues.forEach((name, queue) -> queue.clear());
+
+        if (debug)
+            logDebug(String.format("Cleared '%s'", getInternalName()));
+    }
+
+    public String getInternalName() {
+        return name.isEmpty() ? "Action Manager" : name;
     }
 
     public void logDebug(String err) {

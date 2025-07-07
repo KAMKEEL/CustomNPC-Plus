@@ -100,6 +100,9 @@ public class ActionQueue implements IActionQueue {
     @Override
     public IActionQueue kill() {
         this.isDead = true;
+
+        if (manager.debug)
+            manager.logDebug(String.format("Killing queue '%s' on '%s'", name, manager.getInternalName()));
         return this;
     }
 
@@ -277,6 +280,9 @@ public class ActionQueue implements IActionQueue {
         if (!isWorking || isDead)
             return;
 
+        if (manager.debug)
+            manager.logDebug(String.format("Started ticking queue '%s'", name));
+
         if (!isParallel) {
             if (tick((Action) getCurrentAction()))
                     queue.pollFirst();
@@ -288,16 +294,26 @@ public class ActionQueue implements IActionQueue {
         }
 
         killWhenEmpty();
+
+        if (manager.debug)
+            manager.logDebug(String.format("Finished ticking queue '%s'", name));
     }
 
     protected void killWhenEmpty() {
-        if (killWhenEmpty && !hasActiveTasks() && autoKill == null)
+        if (killWhenEmpty && !hasActiveTasks() && autoKill == null) {
+            if (manager.debug)
+                manager.logDebug(String.format("Queue '%s' is empty! Killing in %s ticks", name, killWhenEmptyAfter));
+
             autoKill = (Action) manager.create(killWhenEmptyAfter, (act) -> {
-                if (hasActiveTasks())
+                if (hasActiveTasks()) {
+                    if (manager.debug)
+                        manager.logDebug(String.format("Scheduled Actions found! Aborted kill process for queue '%s'", name));
                     return;
+                }
 
                 manager.removeQueue(name);
             }).everyTick().once();
+        }
 
         if (autoKill != null) {
             autoKill.tick();
@@ -310,6 +326,9 @@ public class ActionQueue implements IActionQueue {
     public void clear() {
         queue.forEach((act) -> act.kill());
         queue.clear();
+
+        if (manager.debug)
+            manager.logDebug(String.format("Cleared queue '%s' on '%s'", name, manager.getInternalName()));
     }
 
     @Override
