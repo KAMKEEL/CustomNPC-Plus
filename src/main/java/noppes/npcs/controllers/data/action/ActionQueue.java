@@ -257,34 +257,30 @@ public class ActionQueue implements IActionQueue {
     ///////////////////////////////////////////////////
     // Handling
 
+    protected boolean tick(Action a) {
+        a.tick();
+        if (a.isDone()) {
+            if (a.onDone != null)
+                a.execute("done", a::executeOnDone);
+            a.kill();
+            return true;
+        }
+
+        return false;
+    }
+
     protected void tick() {
         if (!isWorking || isDead)
             return;
 
         if (!isParallel) {
-            IAction current = getCurrentAction();
-            if (current instanceof Action) {
-                Action cab = (Action) current;
-                cab.tick();
-                if (cab.isDone()) {
-                    if (cab.onDone != null)
-                        cab.execute("task", cab::executeOnDone);
-                    cab.kill();
+            if (tick((Action) getCurrentAction()))
                     queue.pollFirst();
-                }
-            }
         } else {
             Iterator<IAction> pit = queue.iterator();
-            while (pit.hasNext()) {
-                Action a = (Action) pit.next();
-                a.tick();
-                if (a.isDone()) {
-                    if (a.onDone != null)
-                        a.execute("complete", a::executeOnDone);
-                    a.kill();
+            while (pit.hasNext())
+                if (tick((Action) pit.next()))
                     pit.remove();
-                }
-            }
         }
 
         killWhenEmpty();

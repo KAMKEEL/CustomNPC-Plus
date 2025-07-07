@@ -265,6 +265,9 @@ public class Action implements IAction {
         if (duration == 0 && onStart != null)
             execute("start", this::executeOnStart);
 
+        if (done)
+            return;
+
         duration++;
 
         if (startAfterTicks > 0) {
