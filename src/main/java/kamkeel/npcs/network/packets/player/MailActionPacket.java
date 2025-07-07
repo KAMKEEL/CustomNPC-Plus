@@ -168,7 +168,6 @@ public class MailActionPacket extends AbstractPacket {
         }
 
         @Override
-        @SideOnly(Side.SERVER)
         protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
             if (!(player instanceof EntityPlayerMP))
                 return;
