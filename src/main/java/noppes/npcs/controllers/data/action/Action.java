@@ -271,6 +271,12 @@ public class Action implements IAction {
         if (done)
             return;
 
+        if (startAfterTicks > 0) {
+            manager.LOGGER.log(String.format("Starts after %s ticks...", startAfterTicks), this);
+            startAfterTicks--;
+            return;
+        }
+
         if (duration == 0 && onStart != null)
             execute("start", this::executeOnStart);
 
@@ -279,13 +285,7 @@ public class Action implements IAction {
 
         duration++;
 
-        if (manager.debug)
-            manager.LOGGER.log(String.format("Ticking... (duration = %s/%s, count = %s/%s)", duration, maxDuration, count, maxCount), this);
-
-        if (startAfterTicks > 0) {
-            startAfterTicks--;
-            return;
-        }
+        inheritedTick();
 
         if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
             if (manager.debug)
@@ -295,16 +295,23 @@ public class Action implements IAction {
             return;
         }
 
-        if (duration % updateEveryXTick == 0 && task != null)
-            execute("task", this::executeTask);
 
         if (maxCount > -1 && count >= maxCount) {
             if (manager.debug)
-                manager.LOGGER.log("Reached max count of Action '%s' on queue '%s'", this);
+                manager.LOGGER.log("Reached max count", this);
 
             markDone();
         }
 
+    }
+
+    public void inheritedTick() {
+        if (manager.debug)
+            manager.LOGGER.log(String.format("Ticking... (duration = %s/%s, count = %s/%s)", duration, maxDuration, count, maxCount), this);
+
+
+        if (duration % updateEveryXTick == 0 && task != null)
+            execute("task", this::executeTask);
     }
 
     public void execute(String taskName, Runnable task) {
@@ -341,7 +348,7 @@ public class Action implements IAction {
         }
 
         if (manager.debug)
-            manager.LOGGER.log("Finished executing task", this);
+            manager.LOGGER.log(String.format("Finished executing task (count = %s/%s)", count, maxCount), this);
     }
 
     protected void executeOnDone() {
@@ -373,7 +380,7 @@ public class Action implements IAction {
     }
 
     public String toString() {
-        return String.format("IAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", name != null ? name : "unnamed", getQueueName(), isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
+        return String.format("%s '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", getClass().getSimpleName(), name != null ? name : "unnamed", getQueueName(), isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
     }
     ///////////////////////////////////////////////////
     //////////////////////////////////////////////////

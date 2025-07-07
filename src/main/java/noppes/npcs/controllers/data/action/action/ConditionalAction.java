@@ -91,31 +91,11 @@ public class ConditionalAction extends Action implements IConditionalAction {
         return terminateWhen != null && terminateWhen.apply(this);
     }
 
-    @Override
-    public void tick() {
-        if (isDone())
-            return;
-
-        if (duration == 0 && onStart != null)
-            execute("start", this::executeOnStart);
-
-        if (isDone())
-            return;
-
-        duration++;
-
+    public void inheritedTick() {
         if (manager.inDebugMode())
             manager.LOGGER.log(String.format("Ticking... (duration = %s/%s, count = %s/%s, checkCount = %s/%s)", duration, maxDuration, count, maxCount, checkCount, maxChecks), this);
 
-        if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
-            if (manager.inDebugMode())
-                manager.LOGGER.log("Reached max duration", this);
-
-            markDone();
-            return;
-        }
-
-        if (maxChecks > -1 && checkCount > maxChecks) {
+        if (maxChecks > -1 && checkCount >= maxChecks) {
             if (manager.inDebugMode())
                 manager.LOGGER.log("Reached max check count", this);
 
@@ -139,18 +119,12 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
             execute("task", execute);
         }
-
-        if (maxCount > -1 && count >= maxCount) {
-            if (manager.inDebugMode())
-                manager.LOGGER.log("Reached max count", this);
-
-            markDone();
-        }
     }
 
     protected void executeTask() {
         if (manager.inDebugMode())
             manager.LOGGER.log("Executing task...", this);
+
         try {
             task.accept(this);
             count++;
@@ -161,7 +135,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
         }
 
         if (manager.inDebugMode())
-            manager.LOGGER.log("Finished executing task", this);
+            manager.LOGGER.log(String.format("Finished executing task (count = %s/%s)", count, maxCount), this);
 
     }
 
@@ -181,7 +155,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
 
     public String toString() {
-        return String.format("IConditionalAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]",
+        return String.format("%s '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]", getClass().getSimpleName(),
             name != null ? name : "unnamed", getQueueName(),
             isScheduled,
             done,
