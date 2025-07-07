@@ -1,10 +1,13 @@
 package noppes.npcs.client.gui.util;
 
+import kamkeel.npcs.util.TextSplitter;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GuiHoverText extends GuiScreen {
@@ -28,8 +31,7 @@ public class GuiHoverText extends GuiScreen {
         this.drawTexturedModalRect(this.x, this.y, 0, 0, 12, 12);
 
         if (inArea(x, y, 12, 12, par1, par2)) {
-            List<String> lines = new ArrayList<String>();
-            lines.add(text);
+            List<String> lines = TextSplitter.splitText(StatCollector.translateToLocal(text), 30);
             this.drawHoveringText(lines, x + 8, y + 6, this.fontRendererObj);
             GL11.glDisable(GL11.GL_LIGHTING);
         }
