@@ -23,6 +23,7 @@ import java.util.function.Function;
  */
 public class ActionManager implements IActionManager {
     protected boolean isWorking = false;
+    protected String name = "";
 
     protected final ActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
     protected final ActionQueue parallelQueue = new ActionQueue(this, "mainParallel", true);
@@ -44,6 +45,18 @@ public class ActionManager implements IActionManager {
         isWorking = false;
         return this;
     }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public IActionManager setName(String name) {
+        this.name = name;
+        return this;
+    }
+
 
     @Override
     public boolean inDebugMode() {
