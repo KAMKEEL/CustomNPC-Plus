@@ -314,8 +314,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
             scroll.updateSubGUI(subGui);
             scroll.drawScreen(i, j, f, !subGui && scroll.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
         }
-        for (GuiScreen gui : extra.values())
-            gui.drawScreen(i, j, f);
         // Draw scrollable windows.
         for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
             guiScrollableComponent.drawScreen(i, j, f, !subGui && guiScrollableComponent.isMouseOver(i, j) ? Mouse.getDWheel() : 0);
@@ -334,6 +332,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 button.drawHover(i, j, subGui);
             }
         }
+
+        for (GuiScreen gui : extra.values())
+            gui.drawScreen(i, j, f);
 
         if (subgui != null) {
             subgui.drawScreen(i, j, f);
