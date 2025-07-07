@@ -286,7 +286,7 @@ public class ServerEventsHandler {
     }
 
     @SubscribeEvent
-    public void onPlayerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+    public void onPlayerRespawn(cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent event) {
         if (event.player == null || event.player.worldObj == null || event.player.worldObj.isRemote)
             return;
 
