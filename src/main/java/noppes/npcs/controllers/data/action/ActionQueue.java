@@ -262,7 +262,11 @@ public class ActionQueue implements IActionQueue {
         if (a.isDone()) {
             if (a.onDone != null)
                 a.execute("done", a::executeOnDone);
+
             a.kill();
+
+            if (manager.debug)
+                a.manager.logDebug(String.format("Removing Action '%s' from queue '%s'", a.name, name));
             return true;
         }
 

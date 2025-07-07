@@ -99,9 +99,26 @@ public class ConditionalAction extends Action implements IConditionalAction {
         if (duration == 0 && onStart != null)
             execute("start", this::executeOnStart);
 
+        if (isDone())
+            return;
+
         duration++;
 
-        if (maxChecks > -1 && checkCount > maxChecks || maxCount == 0) {
+        if (manager.inDebugMode())
+            manager.logDebug(String.format("Ticking ConditionalAction '%s' (duration = %s/%s, count = %s/%s, checkCount = %s/%s) on queue '%s'", name, duration, maxDuration, count, maxCount, checkCount, maxChecks, getQueueName()));
+
+        if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
+            if (manager.inDebugMode())
+                manager.logDebug(String.format("Reached max duration of Action '%s' on queue '%s'", name, getQueueName()));
+
+            markDone();
+            return;
+        }
+
+        if (maxChecks > -1 && checkCount > maxChecks) {
+            if (manager.inDebugMode())
+                manager.logDebug(String.format("Reached max check count of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+
             markDone();
             return;
         }
@@ -123,34 +140,50 @@ public class ConditionalAction extends Action implements IConditionalAction {
             execute("task", execute);
         }
 
-        if (maxCount > -1 && count >= maxCount)
+        if (maxCount > -1 && count >= maxCount) {
+            if (manager.inDebugMode())
+                manager.logDebug(String.format("Reached max count of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+
             markDone();
+        }
     }
 
     protected void executeTask() {
+        if (manager.inDebugMode())
+            manager.logDebug(String.format("Started executing task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+
         try {
             task.accept(this);
             count++;
             taskExecuted = true;
         } catch (Throwable t) {
-            logDebug("Task of " + this + " threw an exception:", t);
+            manager.logDebug("Task of " + this + " threw an exception:", t);
             markDone();
         }
+
+        if (manager.inDebugMode())
+            manager.logDebug(String.format("Finished executing task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+
     }
 
     protected void executeOnTermination() {
+        if (manager.inDebugMode())
+            manager.logDebug(String.format("Started executing onTermination task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+
         try {
             onTermination.accept(this);
         } catch (Throwable t) {
-            logDebug("Termination Task of " + this + " threw an exception:", t);
+            manager.logDebug("Termination Task of " + this + " threw an exception:", t);
         }
+
+        if (manager.inDebugMode())
+            manager.logDebug(String.format("Finished executing onTermination task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
     }
 
 
     public String toString() {
         return String.format("IConditionalAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]",
-            name != null ? name : "unnamed",
-            queue != null ? queue.getName() : "null",
+            name != null ? name : "unnamed", getQueueName(),
             isScheduled,
             done,
             isPaused(),

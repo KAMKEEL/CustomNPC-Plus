@@ -6,7 +6,6 @@ import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.scripted.CustomNPCsException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,6 +83,10 @@ public class Action implements IAction {
         return queue;
     }
 
+    public String getQueueName() {
+        return queue != null ? queue.getName() : "null";
+    }
+
     @Override
     public IAction setQueue(IActionQueue queue) {
         if (this.queue == queue)
@@ -102,6 +105,9 @@ public class Action implements IAction {
 
         this.queue = queue;
         this.isScheduled = true;
+
+        if (manager.debug)
+            manager.logDebug(String.format("Scheduled Action '%s' on queue '%s'", name, getQueueName()));
     }
 
     @Override
@@ -241,6 +247,9 @@ public class Action implements IAction {
     @Override
     public void markDone() {
         done = true;
+
+        if (manager.debug)
+            manager.logDebug(String.format("Marked done Action '%s' on queue '%s'", name, getQueueName()));
     }
 
     @Override
@@ -270,11 +279,18 @@ public class Action implements IAction {
 
         duration++;
 
+        if (manager.debug)
+            manager.logDebug(String.format("Ticking Action '%s' (duration = %s/%s, count = %s/%s) on queue '%s'", name, duration, maxDuration, count, maxCount, getQueueName()));
+
         if (startAfterTicks > 0) {
             startAfterTicks--;
             return;
         }
+
         if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
+            if (manager.debug)
+                manager.logDebug(String.format("Reached max duration of Action '%s' on queue '%s'", name, getQueueName()));
+
             markDone();
             return;
         }
@@ -282,8 +298,12 @@ public class Action implements IAction {
         if (duration % updateEveryXTick == 0 && task != null)
             execute("task", this::executeTask);
 
-        if (maxCount > -1 && count >= maxCount)
+        if (maxCount > -1 && count >= maxCount) {
+            if (manager.debug)
+                manager.logDebug(String.format("Reached max count of Action '%s' on queue '%s'", name, getQueueName()));
+
             markDone();
+        }
 
     }
 
@@ -295,29 +315,46 @@ public class Action implements IAction {
     }
 
     protected void executeOnStart() {
+        if (manager.debug)
+            manager.logDebug(String.format("Started executing onStart task of Action '%s' on queue '%s'", name, getQueueName()));
         try {
             onStart.accept(this);
         } catch (Throwable t) {
-            logDebug("Start Task of " + this + " threw an exception:", t);
+            manager.logDebug("Start Task of " + this + " threw an exception:", t);
         }
+
+        if (manager.debug)
+            manager.logDebug(String.format("Finished executing onStart task of Action '%s' on queue '%s'", name, getQueueName()));
     }
 
     protected void executeTask() {
+        if (manager.debug)
+            manager.logDebug(String.format("Started executing task of Action '%s' on queue '%s'", name, getQueueName()));
+
         try {
             task.accept(this);
             count++;
         } catch (Throwable t) {
-            logDebug("Task of " + this + " threw an exception:", t);
+            manager.logDebug("Task of " + this + " threw an exception:", t);
             markDone();
         }
+
+        if (manager.debug)
+            manager.logDebug(String.format("Finished executing task of Action '%s' on queue '%s'", name, getQueueName()));
     }
 
     protected void executeOnDone() {
+        if (manager.debug)
+            manager.logDebug(String.format("Started executing onDone task of Action '%s' on queue '%s'", name, getQueueName()));
+
         try {
             onDone.accept(this);
         } catch (Throwable t) {
-            logDebug("Done Task of " + this + " threw an exception:", t);
+            manager.logDebug("Done Task of " + this + " threw an exception:", t);
         }
+
+        if (manager.debug)
+            manager.logDebug(String.format("Finished executing onDone task of Action '%s' on queue '%s'", name, getQueueName()));
     }
 
 
@@ -329,23 +366,13 @@ public class Action implements IAction {
         dataStore.clear();
         isScheduled = false;
         done = true;
-    }
 
-    public void logDebug(String err) {
-        logDebug(err, null);
-    }
-
-    public void logDebug(String err, Throwable t) {
-        if (reportTo != null)
-            reportTo.appendConsole(err + (t != null ? "\n" + ExceptionUtils.getStackTrace(t) : ""));
-
-        System.err.println(err);
-        if (t != null)
-            t.printStackTrace();
+        if (manager.debug)
+            manager.logDebug(String.format("Killing Action '%s' on queue '%s'", name, queue != null ? getQueueName() : "null"));
     }
 
     public String toString() {
-        return String.format("IAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", name != null ? name : "unnamed", queue != null ? queue.getName() : "null", isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
+        return String.format("IAction '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", name != null ? name : "unnamed", getQueueName(), isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
     }
     ///////////////////////////////////////////////////
     //////////////////////////////////////////////////

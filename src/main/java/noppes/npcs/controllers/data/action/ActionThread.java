@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class ActionThread {
     private Action action;
@@ -39,6 +38,10 @@ public class ActionThread {
         });
 
         executor.shutdown();
+
+
+        if (action.manager.debug)
+            action.manager.logDebug(String.format("Stopping thread of Action '%s' on queue '%s'", action.name, action.getQueueName()));
     }
 
     public void pauseFor(long millis) {
@@ -47,11 +50,17 @@ public class ActionThread {
 
         try {
             threadSleeping = true;
+            if (action.manager.debug)
+                action.manager.logDebug(String.format("Sleeping thread of Action '%s' on queue '%s' for %s ticks", action.name, action.getQueueName(), millis / 50));
+
             Thread.sleep(millis);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
             threadSleeping = false;
+
+            if (action.manager.debug)
+                action.manager.logDebug(String.format("Woken up thread of Action '%s' on queue '%s' after sleeping for %s ticks", action.name, action.getQueueName(), millis / 50));
         }
     }
 
@@ -67,6 +76,9 @@ public class ActionThread {
         synchronized (lock) {
             while (threadPaused) {
                 try {
+                    if (action.manager.debug)
+                        action.manager.logDebug(String.format("Pausing thread of Action '%s' on queue '%s'", action.name, action.getQueueName()));
+
                     lock.wait(); // Wait until notified
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -85,6 +97,9 @@ public class ActionThread {
             if (threadPaused) {
                 threadPaused = false;
                 lock.notify();
+
+                if (action.manager.debug)
+                    action.manager.logDebug(String.format("Resumed thread of Action '%s' on queue '%s'", action.name, action.getQueueName()));
             }
 
             if (threadSleeping)

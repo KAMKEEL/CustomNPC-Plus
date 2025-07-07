@@ -5,7 +5,9 @@ import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
+import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -27,6 +29,9 @@ public class ActionManager implements IActionManager {
     protected final ActionQueue conditionalQueue = new ActionQueue(this, "mainConditional", true);
     protected final Map<String, IActionQueue> otherQueues = new HashMap<>();
 
+    protected boolean debug;
+    protected ScriptContainer reportTo;
+
 
     @Override
     public IActionManager start() {
@@ -37,6 +42,17 @@ public class ActionManager implements IActionManager {
     @Override
     public IActionManager stop() {
         isWorking = false;
+        return this;
+    }
+
+    @Override
+    public boolean inDebugMode() {
+        return debug;
+    }
+
+    @Override
+    public IActionManager setDebugMode(boolean debug) {
+        this.debug = debug;
         return this;
     }
 
@@ -424,6 +440,19 @@ public class ActionManager implements IActionManager {
         otherQueues.forEach((name, queue) -> queue.clear());
     }
 
+    public void logDebug(String err) {
+        logDebug(err, null);
+    }
+
+    public void logDebug(String err, Throwable t) {
+        if (this.reportTo != null)
+            this.reportTo.appendConsole(err + (t != null ? "\n" + ExceptionUtils.getStackTrace(t) : ""));
+
+        System.err.println(err);
+        if (t != null)
+            t.printStackTrace();
+    }
+
     @Override
     public IActionChain chain() {
         return sequentialQueue.chain();
@@ -448,5 +477,4 @@ public class ActionManager implements IActionManager {
 
         return sb.toString();
     }
-
 }
