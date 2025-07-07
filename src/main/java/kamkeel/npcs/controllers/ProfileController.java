@@ -97,6 +97,7 @@ public class ProfileController implements IProfileHandler {
         if (player == null)
             return;
         Profile profile;
+        boolean profileModified = false;
         if (activeProfiles.containsKey(player.getUniqueID())) {
             profile = activeProfiles.get(player.getUniqueID());
             profile.player = player;
@@ -109,6 +110,7 @@ public class ProfileController implements IProfileHandler {
                 profile.getSlots().put(0, defaultSlot);
                 profile.currentSlotId = 0;
                 saveSlotData(player);
+                profileModified = true;
             }
             if (!profile.getSlots().containsKey(profile.currentSlotId)) {
                 profile.currentSlotId = 0;
@@ -117,7 +119,10 @@ public class ProfileController implements IProfileHandler {
             activeProfiles.put(player.getUniqueID(), profile);
             loadSlotData(player);
             verifySlotQuests(profile.player);
-            save(player, profile);
+            // Avoid saving on every login; only persist if the profile was
+            // modified (e.g. default slot creation).
+            if (profileModified)
+                save(player, profile);
         }
     }
 
@@ -341,6 +346,7 @@ public class ProfileController implements IProfileHandler {
             return ProfileOperation.error(MSG_CANNOT_CLONE_CURRENT);
         }
         if (temporary) {
+            // Use a negative ID for temporary slots so they are never saved to disk.
             destinationSlotId = getNextAvailableTempSlot(profile);
         } else {
             if (destinationSlotId <= 0) {
