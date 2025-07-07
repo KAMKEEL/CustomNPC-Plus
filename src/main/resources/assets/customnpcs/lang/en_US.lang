@@ -405,6 +405,7 @@ spawning.liquidSpawning=Spawns in Liquid
 spawning.airSpawning=Spawns in Air
 spawning.minHeight=Minimum Height
 spawning.maxHeight=Maximum Height
+spawning.naturalInfo=Add at least one spawn entry and configure spawn options for the NPC to spawn naturally
 
 role.name=Role
 role.none=No Role
