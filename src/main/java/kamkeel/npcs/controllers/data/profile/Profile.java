@@ -81,7 +81,8 @@ public class Profile implements IProfile {
         compound.setInteger("CurrentSlotId", currentSlotId);
         NBTTagCompound slotsCompound = new NBTTagCompound();
         for (Map.Entry<Integer, ISlot> entry : slots.entrySet()) {
-            // Save only non-temporary slots.
+            // Temporary slots (typically using negative IDs) are kept in memory
+            // only and skipped here so they never persist to disk.
             if (entry.getValue().isTemporary())
                 continue;
             slotsCompound.setTag(String.valueOf(entry.getKey()), entry.getValue().toNBT());
