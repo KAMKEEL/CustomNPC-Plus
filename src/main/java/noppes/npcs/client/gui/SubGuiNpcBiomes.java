@@ -2,14 +2,14 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.BiomeDictionary;
 import noppes.npcs.client.gui.util.GuiCustomScroll;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.data.SpawnData;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class SubGuiNpcBiomes extends SubGuiInterface {
     private SpawnData data;
@@ -45,7 +45,15 @@ public class SubGuiNpcBiomes extends SubGuiInterface {
         addLabel(new GuiNpcLabel(2, "spawning.spawningBiomes", guiLeft + 200, guiTop + 4));
 
         List<String> biomes = new ArrayList<String>();
+        Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
+        for (BiomeDictionary.Type type : BiomeDictionary.Type.values()) {
+            Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
+        }
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
+            if (base != null)
+                allBiomes.add(base);
+        }
+        for (BiomeGenBase base : allBiomes) {
             if (base != null && base.biomeName != null && !data.biomes.contains(base.biomeName)) {
                 biomes.add(base.biomeName);
             }
@@ -82,7 +90,15 @@ public class SubGuiNpcBiomes extends SubGuiInterface {
         }
         if (button.id == 3) {
             data.biomes.clear();
+            Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
+            for (BiomeDictionary.Type type : BiomeDictionary.Type.values()) {
+                Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
+            }
             for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
+                if (base != null)
+                    allBiomes.add(base);
+            }
+            for (BiomeGenBase base : allBiomes) {
                 if (base != null) {
                     data.biomes.add(base.biomeName);
                 }

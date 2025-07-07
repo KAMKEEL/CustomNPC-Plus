@@ -32,6 +32,8 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.common.BiomeDictionary.Type;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.*;
@@ -277,7 +279,15 @@ public class NpcAPI extends AbstractNpcAPI {
     @Override
     public String[] getAllBiomeNames() {
         List<String> biomes = new ArrayList<>();
+        Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
+        for (Type type : BiomeDictionary.Type.values()) {
+            Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
+        }
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
+            if (base != null)
+                allBiomes.add(base);
+        }
+        for (BiomeGenBase base : allBiomes) {
             if (base != null && base.biomeName != null) {
                 biomes.add(base.biomeName);
             }
