@@ -1409,7 +1409,7 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
 
     public IActionManager getActionManager() {
         if (npc.actionManager.getName().isEmpty())
-            npc.actionManager.setName(String.format("%s's Action Manager", npc.getCommandSenderName()));
+            npc.actionManager.setName(npc.getCommandSenderName());
 
         return npc.actionManager;
     }

@@ -41,7 +41,7 @@ public class ActionThread {
 
 
         if (action.manager.debug)
-            action.manager.logDebug(String.format("Stopping thread of Action '%s' on queue '%s'", action.name, action.getQueueName()));
+            action.manager.LOGGER.log("Stopping thread", action);
     }
 
     public void pauseFor(long millis) {
@@ -51,7 +51,7 @@ public class ActionThread {
         try {
             threadSleeping = true;
             if (action.manager.debug)
-                action.manager.logDebug(String.format("Sleeping thread of Action '%s' on queue '%s' for %s ticks", action.name, action.getQueueName(), millis / 50));
+                action.manager.LOGGER.log(String.format("Sleeping thread for %s ticks", millis / 50), action);
 
             Thread.sleep(millis);
         } catch (InterruptedException e) {
@@ -60,7 +60,7 @@ public class ActionThread {
             threadSleeping = false;
 
             if (action.manager.debug)
-                action.manager.logDebug(String.format("Woken up thread of Action '%s' on queue '%s' after sleeping for %s ticks", action.name, action.getQueueName(), millis / 50));
+                action.manager.LOGGER.log(String.format("Woken up thread after sleeping for %s ticks", millis / 50), action);
         }
     }
 
@@ -77,7 +77,7 @@ public class ActionThread {
             while (threadPaused) {
                 try {
                     if (action.manager.debug)
-                        action.manager.logDebug(String.format("Pausing thread of Action '%s' on queue '%s'", action.name, action.getQueueName()));
+                        action.manager.LOGGER.log(String.format("Pausing thread"), action);
 
                     lock.wait(); // Wait until notified
                 } catch (InterruptedException e) {
@@ -99,7 +99,7 @@ public class ActionThread {
                 lock.notify();
 
                 if (action.manager.debug)
-                    action.manager.logDebug(String.format("Resumed thread of Action '%s' on queue '%s'", action.name, action.getQueueName()));
+                    action.manager.LOGGER.log(String.format("Resumed thread"), action);
             }
 
             if (threadSleeping)

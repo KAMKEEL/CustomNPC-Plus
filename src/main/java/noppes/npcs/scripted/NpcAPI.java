@@ -570,7 +570,7 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IActionManager getActionManager() {
         if (actionManager.getName().isEmpty())
-            actionManager.setName("Global Action Manager");
+            actionManager.setName("Global");
 
         return actionManager;
     }

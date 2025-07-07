@@ -105,11 +105,11 @@ public class ConditionalAction extends Action implements IConditionalAction {
         duration++;
 
         if (manager.inDebugMode())
-            manager.logDebug(String.format("Ticking ConditionalAction '%s' (duration = %s/%s, count = %s/%s, checkCount = %s/%s) on queue '%s'", name, duration, maxDuration, count, maxCount, checkCount, maxChecks, getQueueName()));
+            manager.LOGGER.log(String.format("Ticking... (duration = %s/%s, count = %s/%s, checkCount = %s/%s)", duration, maxDuration, count, maxCount, checkCount, maxChecks), this);
 
         if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
             if (manager.inDebugMode())
-                manager.logDebug(String.format("Reached max duration of Action '%s' on queue '%s'", name, getQueueName()));
+                manager.LOGGER.log("Reached max duration", this);
 
             markDone();
             return;
@@ -117,7 +117,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
         if (maxChecks > -1 && checkCount > maxChecks) {
             if (manager.inDebugMode())
-                manager.logDebug(String.format("Reached max check count of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+                manager.LOGGER.log("Reached max check count", this);
 
             markDone();
             return;
@@ -142,7 +142,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
         if (maxCount > -1 && count >= maxCount) {
             if (manager.inDebugMode())
-                manager.logDebug(String.format("Reached max count of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+                manager.LOGGER.log("Reached max count", this);
 
             markDone();
         }
@@ -150,34 +150,33 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     protected void executeTask() {
         if (manager.inDebugMode())
-            manager.logDebug(String.format("Started executing task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
-
+            manager.LOGGER.log("Executing task...", this);
         try {
             task.accept(this);
             count++;
             taskExecuted = true;
         } catch (Throwable t) {
-            manager.logDebug("Task of " + this + " threw an exception:", t);
+            manager.LOGGER.error("Task of " + this + " threw an exception:", t);
             markDone();
         }
 
         if (manager.inDebugMode())
-            manager.logDebug(String.format("Finished executing task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Finished executing task", this);
 
     }
 
     protected void executeOnTermination() {
         if (manager.inDebugMode())
-            manager.logDebug(String.format("Started executing onTermination task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Executing onTermination task...", this);
 
         try {
             onTermination.accept(this);
         } catch (Throwable t) {
-            manager.logDebug("Termination Task of " + this + " threw an exception:", t);
+            manager.LOGGER.error("Termination Task of " + this + " threw an exception:", t);
         }
 
         if (manager.inDebugMode())
-            manager.logDebug(String.format("Finished executing onTermination task of ConditionalAction '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Finished executing onTermination task", this);
     }
 
 

@@ -107,7 +107,7 @@ public class Action implements IAction {
         this.isScheduled = true;
 
         if (manager.debug)
-            manager.logDebug(String.format("Scheduled Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log(String.format("Scheduled Action '%s'", name), queue);
     }
 
     @Override
@@ -249,7 +249,7 @@ public class Action implements IAction {
         done = true;
 
         if (manager.debug)
-            manager.logDebug(String.format("Marked done Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Marked done!", this);
     }
 
     @Override
@@ -280,7 +280,7 @@ public class Action implements IAction {
         duration++;
 
         if (manager.debug)
-            manager.logDebug(String.format("Ticking Action '%s' (duration = %s/%s, count = %s/%s) on queue '%s'", name, duration, maxDuration, count, maxCount, getQueueName()));
+            manager.LOGGER.log(String.format("Ticking... (duration = %s/%s, count = %s/%s)", duration, maxDuration, count, maxCount), this);
 
         if (startAfterTicks > 0) {
             startAfterTicks--;
@@ -289,7 +289,7 @@ public class Action implements IAction {
 
         if (maxDuration > -1 && duration >= maxDuration || maxCount == 0) {
             if (manager.debug)
-                manager.logDebug(String.format("Reached max duration of Action '%s' on queue '%s'", name, getQueueName()));
+                manager.LOGGER.log("Reached max duration", this);
 
             markDone();
             return;
@@ -300,7 +300,7 @@ public class Action implements IAction {
 
         if (maxCount > -1 && count >= maxCount) {
             if (manager.debug)
-                manager.logDebug(String.format("Reached max count of Action '%s' on queue '%s'", name, getQueueName()));
+                manager.LOGGER.log("Reached max count of Action '%s' on queue '%s'", this);
 
             markDone();
         }
@@ -316,45 +316,46 @@ public class Action implements IAction {
 
     protected void executeOnStart() {
         if (manager.debug)
-            manager.logDebug(String.format("Started executing onStart task of Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Executing onStart task...", this);
+
         try {
             onStart.accept(this);
         } catch (Throwable t) {
-            manager.logDebug("Start Task of " + this + " threw an exception:", t);
+            manager.LOGGER.error("onStart Task of " + this + " threw an exception:", t);
         }
 
         if (manager.debug)
-            manager.logDebug(String.format("Finished executing onStart task of Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Finished executing onStart task", this);
     }
 
     protected void executeTask() {
         if (manager.debug)
-            manager.logDebug(String.format("Started executing task of Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Executing task...", this);
 
         try {
             task.accept(this);
             count++;
         } catch (Throwable t) {
-            manager.logDebug("Task of " + this + " threw an exception:", t);
+            manager.LOGGER.error("Task of " + this + " threw an exception:", t);
             markDone();
         }
 
         if (manager.debug)
-            manager.logDebug(String.format("Finished executing task of Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Finished executing task", this);
     }
 
     protected void executeOnDone() {
         if (manager.debug)
-            manager.logDebug(String.format("Started executing onDone task of Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Executing onDone task...", this);
 
         try {
             onDone.accept(this);
         } catch (Throwable t) {
-            manager.logDebug("Done Task of " + this + " threw an exception:", t);
+            manager.LOGGER.error("onDone Task of " + this + " threw an exception:", t);
         }
 
         if (manager.debug)
-            manager.logDebug(String.format("Finished executing onDone task of Action '%s' on queue '%s'", name, getQueueName()));
+            manager.LOGGER.log("Finished executing onDone task", this);
     }
 
 
@@ -368,7 +369,7 @@ public class Action implements IAction {
         done = true;
 
         if (manager.debug)
-            manager.logDebug(String.format("Killing Action '%s' on queue '%s'", name, queue != null ? getQueueName() : "null"));
+            manager.LOGGER.log(String.format("Killed Action '%s'", name), queue);
     }
 
     public String toString() {

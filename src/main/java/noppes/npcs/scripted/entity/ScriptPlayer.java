@@ -852,7 +852,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     @Override
     public IActionManager getActionManager() {
         if (data.actionManager.getName().isEmpty())
-            data.actionManager.setName(String.format("%s's Action Manager", player.getDisplayName()));
+            data.actionManager.setName(player.getDisplayName());
 
         return data.actionManager;
     }

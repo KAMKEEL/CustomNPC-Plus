@@ -7,7 +7,6 @@ import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -23,6 +22,7 @@ import java.util.function.Function;
  */
 public class ActionManager implements IActionManager {
     protected boolean isWorking = false;
+    public ActionLogger LOGGER = new ActionLogger(this);
     protected String name = "";
 
     protected final ActionQueue sequentialQueue = new ActionQueue(this, "mainSequential");
@@ -368,6 +368,10 @@ public class ActionManager implements IActionManager {
 
         return allQueues.toArray(new IActionQueue[0]);
     }
+
+    public boolean hasActiveTasks() {
+        return Arrays.stream(getAllQueues()).anyMatch(queue -> queue.hasActiveTasks());
+    }
     @Override
     public boolean hasAny(String name) {
         return getAny(name) != null;
@@ -423,8 +427,9 @@ public class ActionManager implements IActionManager {
     public void tick() {
         if (!isWorking) return;
 
-        if (debug)
-            logDebug(String.format("Started '%s' Tick Cycle", getInternalName()));
+        boolean active = hasActiveTasks();
+        if (debug && active)
+            LOGGER.beginTick(this).log("Started Tick Cycle", this);
 
         // ─── Sequential (head only) ─────────────────────────────────
         sequentialQueue.tick();
@@ -444,13 +449,13 @@ public class ActionManager implements IActionManager {
             if (other.isDead()) {
                 other.clear();
                 if (debug)
-                    logDebug(String.format("Removing queue '%s' from '%s'", other.getName(), getInternalName()));
+                    LOGGER.log(String.format("Removing queue '%s' from '%s'", other.getName(), getInternalName()), this);
                 it.remove();
             }
         }
 
-        if (debug)
-            logDebug(String.format("Finished '%s' Tick Cycle", getInternalName()));
+        if (debug && active)
+            LOGGER.finish("Finished Tick Cycle",this);
     }
 
     @Override
@@ -461,24 +466,11 @@ public class ActionManager implements IActionManager {
         otherQueues.forEach((name, queue) -> queue.clear());
 
         if (debug)
-            logDebug(String.format("Cleared '%s'", getInternalName()));
+            LOGGER.log("Cleared all queues!", this);
     }
 
     public String getInternalName() {
         return name.isEmpty() ? "Action Manager" : name;
-    }
-
-    public void logDebug(String err) {
-        logDebug(err, null);
-    }
-
-    public void logDebug(String err, Throwable t) {
-        if (this.reportTo != null)
-            this.reportTo.appendConsole(err + (t != null ? "\n" + ExceptionUtils.getStackTrace(t) : ""));
-
-        System.err.println(err);
-        if (t != null)
-            t.printStackTrace();
     }
 
     @Override

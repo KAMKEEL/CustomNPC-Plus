@@ -102,7 +102,7 @@ public class ActionQueue implements IActionQueue {
         this.isDead = true;
 
         if (manager.debug)
-            manager.logDebug(String.format("Killing queue '%s' on '%s'", name, manager.getInternalName()));
+            manager.LOGGER.log(String.format("Killing queue '%s' on '%s'", name, manager.getInternalName()), this);
         return this;
     }
 
@@ -188,6 +188,7 @@ public class ActionQueue implements IActionQueue {
     ///////////////////////////////////////////////////
     // Queue Data
 
+    @Override
     public boolean hasActiveTasks() {
         return !queue.isEmpty();
     }
@@ -261,7 +262,17 @@ public class ActionQueue implements IActionQueue {
     // Handling
 
     protected boolean tick(Action a) {
+        if (a == null)
+            return false;
+
+        if (manager.debug)
+            manager.LOGGER.push(this).log(String.format("Started ticking Action '%s' ", a.name), this).push(a);
+
         a.tick();
+
+        if (manager.debug)
+            manager.LOGGER.pop().finish(String.format("Finished ticking Action '%s' ", a.name), this).pop();
+
         if (a.isDone()) {
             if (a.onDone != null)
                 a.execute("done", a::executeOnDone);
@@ -269,7 +280,7 @@ public class ActionQueue implements IActionQueue {
             a.kill();
 
             if (manager.debug)
-                a.manager.logDebug(String.format("Removing Action '%s' from queue '%s'", a.name, name));
+                manager.LOGGER.finish(String.format("Removing Action '%s' from queue", a.name), this);
             return true;
         }
 
@@ -280,8 +291,9 @@ public class ActionQueue implements IActionQueue {
         if (!isWorking || isDead)
             return;
 
-        if (manager.debug)
-            manager.logDebug(String.format("Started ticking queue '%s'", name));
+        boolean active = hasActiveTasks();
+        if (manager.debug && active)
+            manager.LOGGER.push(manager).log(String.format("Started ticking queue '%s' ", name), manager).push(this);
 
         if (!isParallel) {
             if (tick((Action) getCurrentAction()))
@@ -295,19 +307,19 @@ public class ActionQueue implements IActionQueue {
 
         killWhenEmpty();
 
-        if (manager.debug)
-            manager.logDebug(String.format("Finished ticking queue '%s'", name));
+        if (manager.debug && active)
+            manager.LOGGER.pop().finish(String.format("Finished ticking queue '%s' ", name), manager).pop();
     }
 
     protected void killWhenEmpty() {
         if (killWhenEmpty && !hasActiveTasks() && autoKill == null) {
             if (manager.debug)
-                manager.logDebug(String.format("Queue '%s' is empty! Killing in %s ticks", name, killWhenEmptyAfter));
+                manager.LOGGER.log(String.format("Queue is empty! Killing in %s ticks", killWhenEmptyAfter), this);
 
-            autoKill = (Action) manager.create(killWhenEmptyAfter, (act) -> {
+            autoKill = (Action) manager.create(String.format("Kill '%s'", name), killWhenEmptyAfter, (act) -> {
                 if (hasActiveTasks()) {
                     if (manager.debug)
-                        manager.logDebug(String.format("Scheduled Actions found! Aborted kill process for queue '%s'", name));
+                        manager.LOGGER.log("Scheduled Actions found! Aborted kill process", this);
                     return;
                 }
 
@@ -328,7 +340,7 @@ public class ActionQueue implements IActionQueue {
         queue.clear();
 
         if (manager.debug)
-            manager.logDebug(String.format("Cleared queue '%s' on '%s'", name, manager.getInternalName()));
+            manager.LOGGER.log("Cleared queue!", this);
     }
 
     @Override
