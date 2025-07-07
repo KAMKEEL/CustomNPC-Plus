@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
+import kamkeel.npcs.controllers.ProfileController;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -83,7 +84,25 @@ public class SoulbindRequirement implements IRequirementChecker {
     @Override
     public void apply(NBTTagCompound nbt, Object value) {
         if (value instanceof String) {
-            nbt.setString(getKey(), (String) value);
+            String entry = (String) value;
+            if (entry.isEmpty())
+                return;
+
+            // Check if the provided value is already a valid UUID
+            UUID uuid = null;
+            try {
+                uuid = UUID.fromString(entry);
+            } catch (Exception ignored) {
+            }
+
+            // If not a UUID, attempt to treat the value as a username
+            if (uuid == null) {
+                uuid = ProfileController.Instance.getUUIDFromUsername(entry);
+            }
+
+            if (uuid != null) {
+                nbt.setString(getKey(), uuid.toString());
+            }
         }
     }
 
