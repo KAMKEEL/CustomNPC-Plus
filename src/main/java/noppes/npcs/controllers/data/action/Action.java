@@ -107,7 +107,7 @@ public class Action implements IAction {
         this.isScheduled = true;
 
         if (manager.debug)
-            manager.LOGGER.log(String.format("Scheduled Action '%s'", name), queue);
+            manager.LOGGER.log(String.format("Scheduled %s", getIdentifier()), queue);
     }
 
     @Override
@@ -278,7 +278,7 @@ public class Action implements IAction {
         }
 
         if (duration == 0 && onStart != null)
-            execute("start", this::executeOnStart);
+            execute("onStart", this::executeOnStart);
 
         if (done)
             return;
@@ -369,7 +369,7 @@ public class Action implements IAction {
     @Override
     public void kill() {
         if (manager.debug)
-            manager.LOGGER.log(String.format("Killing Action '%s'...", name), queue);
+            manager.LOGGER.log(String.format("Killing %s...", getIdentifier()), queue);
 
         if (actionThread != null)
             actionThread.stop();
@@ -380,8 +380,13 @@ public class Action implements IAction {
 
     }
 
+    @Override
+    public String getIdentifier() {
+        return String.format("%s '%s'", getClass().getSimpleName(), name);
+    }
+
     public String toString() {
-        return String.format("%s '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", getClass().getSimpleName(), name != null ? name : "unnamed", getQueueName(), isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
+        return String.format("%s [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, threaded=%s]", getIdentifier(), getQueueName(), isScheduled, done, isPaused(), updateEveryXTick, duration, maxDuration, count, maxCount, isThreaded);
     }
     ///////////////////////////////////////////////////
     //////////////////////////////////////////////////

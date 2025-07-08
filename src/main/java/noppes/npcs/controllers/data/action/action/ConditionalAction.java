@@ -155,8 +155,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
 
     public String toString() {
-        return String.format("%s '%s' [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]", getClass().getSimpleName(),
-            name != null ? name : "unnamed", getQueueName(),
+        return String.format("%s [queue='%s', scheduled=%s, done=%s, paused=%s, updateEvery=%s, duration=%d/%d, count=%d/%d, checks=%d/%d, taskExecuted=%s, threaded=%s]", getIdentifier(), getQueueName(),
             isScheduled,
             done,
             isPaused(),
