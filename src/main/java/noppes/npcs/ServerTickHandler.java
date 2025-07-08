@@ -11,7 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.controllers.data.action.ActionManager;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -21,7 +21,7 @@ public class ServerTickHandler {
     @SubscribeEvent
     public void onServerTick(TickEvent.ServerTickEvent event) {
         if (event.phase == Phase.END) {
-            NpcAPI.actionManager.tick();
+           ActionManager.GLOBAL.tick();
         }
     }
 

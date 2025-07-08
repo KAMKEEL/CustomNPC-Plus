@@ -79,7 +79,6 @@ public class NpcAPI extends AbstractNpcAPI {
     private static final CacheHashMap<ItemStack, CacheHashMap.CachedObject<ScriptItemStack>> scriptItemCache = new CacheHashMap<>(60 * 1000);
     public static final HashMap<String, Object> engineObjects = new HashMap<>();
     public static final EventBus EVENT_BUS = new EventBus();
-    public static final ActionManager actionManager = new ActionManager();
     private static AbstractNpcAPI instance = null;
 
     private final static String API_USER_AGENT = "CNPC+API";
@@ -569,10 +568,7 @@ public class NpcAPI extends AbstractNpcAPI {
     }
 
     public IActionManager getActionManager() {
-        if (actionManager.getName().isEmpty())
-            actionManager.setName("Global");
-
-        return actionManager;
+        return ActionManager.GLOBAL;
     }
 
     private void checkWorld() {
