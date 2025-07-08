@@ -17,6 +17,9 @@ import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityFishHook;
+import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
@@ -327,6 +330,12 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptProjectile<>((EntityProjectile) entity));
                 else if (entity instanceof EntityItem)
                     data = new ScriptEntityData(new ScriptEntityItem<>((EntityItem) entity));
+                else if (entity instanceof EntityThrowable)
+                    data = new ScriptEntityData(new ScriptThrowable<>((EntityThrowable) entity));
+                else if (entity instanceof EntityArrow)
+                    data = new ScriptEntityData(new ScriptArrow<>((EntityArrow) entity));
+                else if (entity instanceof EntityFishHook)
+                    data = new ScriptEntityData(new ScriptFishHook<>((EntityFishHook) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);
