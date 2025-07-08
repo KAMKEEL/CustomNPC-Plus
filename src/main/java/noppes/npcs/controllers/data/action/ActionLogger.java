@@ -93,6 +93,7 @@ public class ActionLogger {
         ListIterator<TreeNode> it = new ArrayList<>(stack).listIterator(stack.size());
 
         while (it.hasPrevious()) {
+            TreeNode node = it.previous();
             if (it.hasPrevious())
                 prefix.append("│    ");
             else
