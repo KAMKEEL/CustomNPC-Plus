@@ -93,17 +93,14 @@ public class ActionLogger {
         ListIterator<TreeNode> it = new ArrayList<>(stack).listIterator(stack.size());
 
         while (it.hasPrevious()) {
-            TreeNode node = it.previous();
-            if (it.hasPrevious()) {
+            if (it.hasPrevious())
                 prefix.append("│    ");
-            } else {
+            else
                 prefix.append(isLast ? "└──── " : "├──── ");
-            }
         }
 
         String header = getLogHeader(source);
-        LogWriter.info(prefix + header + message);
-
+        println(prefix + header + message);
         return this;
     }
 
@@ -126,11 +123,20 @@ public class ActionLogger {
             name = ((IActionQueue) obj).getName();
         } else if (obj instanceof IAction) {
             name = ((IAction) obj).getName();
+        } else if (obj instanceof ActionThread) {
+            name = ((ActionThread) obj).getAction().getName();
         }
 
         return String.format("[%s/'%s'] ", type, name);
     }
 
+    private static final String ANSI_CYAN = "\u001B[96m";
+    private static final String ANSI_GOLD = "\u001B[93m";
+    private static final String ANSI_RESET = "\u001B[0m";
+
+    public void println(String str) {
+        System.out.printf("[%tT] %s[%s]:%s %s%s%n", new Date(), ANSI_CYAN, Thread.currentThread().getName(), ANSI_GOLD, str, ANSI_RESET);
+    }
 
     //    public ActionLogger beginTick1(ActionManager manager) {
     //        snapshot.clear();

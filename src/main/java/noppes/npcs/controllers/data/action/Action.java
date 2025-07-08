@@ -368,6 +368,9 @@ public class Action implements IAction {
 
     @Override
     public void kill() {
+        if (manager.debug)
+            manager.LOGGER.log(String.format("Killing Action '%s'...", name), queue);
+
         if (actionThread != null)
             actionThread.stop();
 
@@ -375,8 +378,6 @@ public class Action implements IAction {
         isScheduled = false;
         done = true;
 
-        if (manager.debug)
-            manager.LOGGER.log(String.format("Killed Action '%s'", name), queue);
     }
 
     public String toString() {

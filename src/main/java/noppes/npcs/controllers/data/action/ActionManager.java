@@ -66,6 +66,9 @@ public class ActionManager implements IActionManager {
     @Override
     public IActionManager setDebugMode(boolean debug) {
         this.debug = debug;
+
+        if (debug)
+            LOGGER.log("Enabled debug mode", this);
         return this;
     }
 

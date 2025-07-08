@@ -261,18 +261,7 @@ public class ActionQueue implements IActionQueue {
     ///////////////////////////////////////////////////
     // Handling
 
-    protected boolean tick(Action a) {
-        if (a == null)
-            return false;
-
-        if (manager.debug)
-            manager.LOGGER.push(this).log(String.format("Started ticking Action '%s' ", a.name), this).push(a);
-
-        a.tick();
-
-        if (manager.debug)
-            manager.LOGGER.pop().finish(String.format("Finished ticking Action '%s' ", a.name), this).pop();
-
+    public boolean finish(Action a) {
         if (a.isDone()) {
             if (a.onDone != null)
                 a.execute("done", a::executeOnDone);
@@ -285,6 +274,21 @@ public class ActionQueue implements IActionQueue {
         }
 
         return false;
+    }
+    protected boolean tick(Action a) {
+        if (a == null)
+            return false;
+
+        boolean wasDone = a.isDone();
+        if (manager.debug && !wasDone)
+            manager.LOGGER.push(this).log(String.format("Started ticking Action '%s' ", a.name), this).push(a);
+
+        a.tick();
+
+        if (manager.debug && !wasDone)
+            manager.LOGGER.pop().finish(String.format("Finished ticking Action '%s' ", a.name), this).pop();
+
+        return finish(a);
     }
 
     protected void tick() {
