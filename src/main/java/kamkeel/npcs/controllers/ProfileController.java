@@ -117,10 +117,7 @@ public class ProfileController implements IProfileHandler {
             }
             profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
-            loadSlotData(player);
             verifySlotQuests(profile.player);
-            // Avoid saving on every login; only persist if the profile was
-            // modified (e.g. default slot creation).
             if (profileModified)
                 save(player, profile);
         }
