@@ -19,6 +19,8 @@ public class ActionQueue implements IActionQueue {
     protected boolean isParallel;
 
     protected boolean isDead;
+    protected boolean stopWhenEmpty;
+
     protected boolean killWhenEmpty;
     protected int killWhenEmptyAfter = 100;
 
@@ -70,6 +72,18 @@ public class ActionQueue implements IActionQueue {
         isParallel = parallel;
         return this;
     }
+
+    @Override
+    public boolean isStoppedWhenEmpty() {
+        return stopWhenEmpty;
+    }
+
+    @Override
+    public IActionQueue stopWhenEmpty(boolean stopWhenEmpty) {
+        this.stopWhenEmpty = stopWhenEmpty;
+        return this;
+    }
+
     @Override
     public boolean isKilledWhenEmpty() {
         return killWhenEmpty;
@@ -308,6 +322,9 @@ public class ActionQueue implements IActionQueue {
                 if (tick((Action) pit.next()))
                     pit.remove();
         }
+
+        if (stopWhenEmpty && !hasActiveTasks())
+            stop();
 
         killWhenEmpty();
 
