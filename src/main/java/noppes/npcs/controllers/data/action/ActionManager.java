@@ -3,13 +3,14 @@ package noppes.npcs.controllers.data.action;
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionChain;
+import noppes.npcs.api.handler.data.IActionListener;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
-import noppes.npcs.scripted.NpcAPI;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -23,6 +24,7 @@ import java.util.function.Function;
  */
 public class ActionManager implements IActionManager {
     public static final ActionManager GLOBAL = new ActionManager("GLOBAL");
+    private static final Map<Object, IActionListener> listeners = new ConcurrentHashMap<>();
 
     protected boolean isWorking = false;
     public ActionLogger LOGGER = new ActionLogger(this);
@@ -35,12 +37,6 @@ public class ActionManager implements IActionManager {
 
     protected boolean debug;
     protected ScriptContainer reportTo;
-
-    private static final Map<Object, IActionListener> listeners = new WeakHashMap<>();
-
-    public IActionListener getOrCreateListener(Object obj) {
-        return listeners.computeIfAbsent(obj, o -> new ActionListener(o));
-    }
 
     public ActionManager() {
     }
@@ -73,7 +69,6 @@ public class ActionManager implements IActionManager {
         return this;
     }
 
-
     @Override
     public boolean inDebugMode() {
         return debug;
@@ -88,6 +83,34 @@ public class ActionManager implements IActionManager {
         return this;
     }
 
+    ///////////////////////////////////////////////////
+    ///////////////////////////////////////////////////
+    // Listeners
+
+    public IActionListener getOrCreateListener(Object obj) {
+        return listeners.computeIfAbsent(obj, o -> new ActionListener(o));
+    }
+
+    public IActionListener getListener(Object obj) {
+        return listeners.get(obj);
+    }
+
+    public boolean removeListener(Object obj) {
+        if (listeners.containsKey(obj)) {
+            listeners.remove(obj);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean fireListener(String hookName, Object obj) {
+        IActionListener listener = getListener(obj);
+        if (listener != null)
+            return listener.fire(hookName);
+
+        return false;
+    }
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     // Creators
@@ -471,6 +494,10 @@ public class ActionManager implements IActionManager {
                     LOGGER.log(String.format("Removing queue '%s' from '%s'", other.getName(), getInternalName()), this);
                 it.remove();
             }
+        }
+        // ─── All Listeners ─────────────────────────────────────────
+        if (this == GLOBAL) {
+            listeners.forEach((obj, listener) -> ((ActionListener) listener).tick());
         }
 
         if (debug && active)

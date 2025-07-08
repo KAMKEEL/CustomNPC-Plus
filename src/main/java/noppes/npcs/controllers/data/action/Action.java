@@ -2,6 +2,7 @@ package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
+import noppes.npcs.api.handler.data.IActionListener;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
@@ -255,6 +256,23 @@ public class Action implements IAction {
     @Override
     public boolean isDone() {
         return done;
+    }
+
+    ///////////////////////////////////////////////////
+    //////////////////////////////////////////////////
+    // Listener
+
+    public IAction listenTo(String hook, Object object) {
+        return listenTo(hook, manager.getOrCreateListener(object));
+    }
+
+    public IAction listenTo(String hook, IActionListener listener) {
+        return listenTo(listener.getOrCreateHook(hook));
+    }
+
+    public IAction listenTo(ActionListener.Hook hook) {
+        hook.schedule(this);
+        return this;
     }
 
     ///////////////////////////////////////////////////
