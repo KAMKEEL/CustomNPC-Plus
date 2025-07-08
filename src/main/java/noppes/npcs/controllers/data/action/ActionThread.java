@@ -29,6 +29,9 @@ public class ActionThread {
             thread.setName(String.format("ActionThread (%s)", action.getName()));
             return thread;
         });
+
+        if (action.manager.debug)
+            action.manager.LOGGER.log("Created Action thread!", this);
     }
 
     public void stop() {
@@ -41,7 +44,11 @@ public class ActionThread {
 
 
         if (action.manager.debug)
-            action.manager.LOGGER.log("Stopping thread", action);
+            action.manager.LOGGER.log("Stopping thread", this);
+    }
+
+    public Action getAction() {
+        return action;
     }
 
     public void pauseFor(long millis) {
@@ -51,7 +58,7 @@ public class ActionThread {
         try {
             threadSleeping = true;
             if (action.manager.debug)
-                action.manager.LOGGER.log(String.format("Sleeping thread for %s ticks", millis / 50), action);
+                action.manager.LOGGER.log(String.format("Sleeping thread for %s ticks", millis / 50), this);
 
             Thread.sleep(millis);
         } catch (InterruptedException e) {
@@ -60,7 +67,7 @@ public class ActionThread {
             threadSleeping = false;
 
             if (action.manager.debug)
-                action.manager.LOGGER.log(String.format("Woken up thread after sleeping for %s ticks", millis / 50), action);
+                action.manager.LOGGER.log(String.format("Woken up thread after sleeping for %s ticks", millis / 50), this);
         }
     }
 
@@ -77,7 +84,7 @@ public class ActionThread {
             while (threadPaused) {
                 try {
                     if (action.manager.debug)
-                        action.manager.LOGGER.log(String.format("Pausing thread"), action);
+                        action.manager.LOGGER.log(String.format("Pausing thread"), this);
 
                     lock.wait(); // Wait until notified
                 } catch (InterruptedException e) {
@@ -99,7 +106,7 @@ public class ActionThread {
                 lock.notify();
 
                 if (action.manager.debug)
-                    action.manager.LOGGER.log(String.format("Resumed thread"), action);
+                    action.manager.LOGGER.log(String.format("Resumed thread"), this);
             }
 
             if (threadSleeping)
@@ -130,14 +137,27 @@ public class ActionThread {
         if (!runningKeys.add(taskKey))
             return;
 
+        if (action.manager.debug)
+            action.manager.LOGGER.log(String.format("Delegating task '%s' to Action thread...", taskKey), action);
+
         final AtomicReference<Future<?>> taskRef = new AtomicReference<>();
         taskRef.set(executor.submit(() -> {
+            if (action.manager.debug)
+                action.manager.LOGGER.log(String.format("Started executing task '%s' on Action thread...", taskKey), this);
+
             runningTasks.add(taskRef.get());
             try {
                 task.run();
             } finally {
                 runningTasks.remove(taskRef.get());
                 runningKeys.remove(taskKey);
+
+                if (action.manager.debug)
+                    action.manager.LOGGER.log(String.format("Finished executing task '%s' on Action thread", taskKey), this);
+
+                if (((ActionQueue) action.queue).finish(action))
+                    action.queue.getQueue().remove(action);
+
             }
         }));
     }

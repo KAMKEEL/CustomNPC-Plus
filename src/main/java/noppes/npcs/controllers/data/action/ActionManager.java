@@ -7,6 +7,7 @@ import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -21,6 +22,8 @@ import java.util.function.Function;
  * - cancellation & clearing
  */
 public class ActionManager implements IActionManager {
+    public static final ActionManager GLOBAL = new ActionManager("GLOBAL");
+
     protected boolean isWorking = false;
     public ActionLogger LOGGER = new ActionLogger(this);
     protected String name = "";
@@ -32,6 +35,19 @@ public class ActionManager implements IActionManager {
 
     protected boolean debug;
     protected ScriptContainer reportTo;
+
+    private static final Map<Object, IActionListener> listeners = new WeakHashMap<>();
+
+    public IActionListener getOrCreateListener(Object obj) {
+        return listeners.computeIfAbsent(obj, o -> new ActionListener(o));
+    }
+
+    public ActionManager() {
+    }
+
+    public ActionManager(String name) {
+        this.name = name;
+    }
 
 
     @Override
@@ -66,6 +82,9 @@ public class ActionManager implements IActionManager {
     @Override
     public IActionManager setDebugMode(boolean debug) {
         this.debug = debug;
+
+        if (debug)
+            LOGGER.log("Enabled debug mode", this);
         return this;
     }
 

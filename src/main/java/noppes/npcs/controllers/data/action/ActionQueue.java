@@ -19,6 +19,8 @@ public class ActionQueue implements IActionQueue {
     protected boolean isParallel;
 
     protected boolean isDead;
+    protected boolean stopWhenEmpty;
+
     protected boolean killWhenEmpty;
     protected int killWhenEmptyAfter = 100;
 
@@ -70,6 +72,18 @@ public class ActionQueue implements IActionQueue {
         isParallel = parallel;
         return this;
     }
+
+    @Override
+    public boolean isStoppedWhenEmpty() {
+        return stopWhenEmpty;
+    }
+
+    @Override
+    public IActionQueue stopWhenEmpty(boolean stopWhenEmpty) {
+        this.stopWhenEmpty = stopWhenEmpty;
+        return this;
+    }
+
     @Override
     public boolean isKilledWhenEmpty() {
         return killWhenEmpty;
@@ -261,30 +275,34 @@ public class ActionQueue implements IActionQueue {
     ///////////////////////////////////////////////////
     // Handling
 
-    protected boolean tick(Action a) {
-        if (a == null)
-            return false;
-
-        if (manager.debug)
-            manager.LOGGER.push(this).log(String.format("Started ticking Action '%s' ", a.name), this).push(a);
-
-        a.tick();
-
-        if (manager.debug)
-            manager.LOGGER.pop().finish(String.format("Finished ticking Action '%s' ", a.name), this).pop();
-
+    public boolean finish(Action a) {
         if (a.isDone()) {
             if (a.onDone != null)
-                a.execute("done", a::executeOnDone);
+                a.execute("onDone", a::executeOnDone);
 
             a.kill();
 
             if (manager.debug)
-                manager.LOGGER.finish(String.format("Removing Action '%s' from queue", a.name), this);
+                manager.LOGGER.finish(String.format("Removing %s from queue", a.getIdentifier()), this);
             return true;
         }
 
         return false;
+    }
+    protected boolean tick(Action a) {
+        if (a == null)
+            return false;
+
+        boolean wasDone = a.isDone();
+        if (manager.debug && !wasDone)
+            manager.LOGGER.push(this).log(String.format("Started ticking %s", a.getIdentifier(), a.name), this).push(a);
+
+        a.tick();
+
+        if (manager.debug && !wasDone)
+            manager.LOGGER.pop().finish(String.format("Finished ticking %s", a.getIdentifier(), a.name), this).pop();
+
+        return finish(a);
     }
 
     protected void tick() {
@@ -304,6 +322,9 @@ public class ActionQueue implements IActionQueue {
                 if (tick((Action) pit.next()))
                     pit.remove();
         }
+
+        if (stopWhenEmpty && !hasActiveTasks())
+            stop();
 
         killWhenEmpty();
 
