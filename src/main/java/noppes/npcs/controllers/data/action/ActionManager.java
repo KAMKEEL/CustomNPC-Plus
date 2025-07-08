@@ -38,8 +38,7 @@ public class ActionManager implements IActionManager {
     protected boolean debug;
     protected ScriptContainer reportTo;
 
-    public ActionManager() {
-    }
+    public ActionManager() {}
 
     public ActionManager(String name) {
         this.name = name;
@@ -87,30 +86,32 @@ public class ActionManager implements IActionManager {
     ///////////////////////////////////////////////////
     // Listeners
 
-    public IActionListener getOrCreateListener(Object obj) {
-        return listeners.computeIfAbsent(obj, o -> new ActionListener(o));
-    }
+    // IActionListener Comments
+//    public IActionListener getOrCreateListener(Object obj) {
+//        return listeners.computeIfAbsent(obj, o -> new ActionListener(o));
+//    }
 
-    public IActionListener getListener(Object obj) {
-        return listeners.get(obj);
-    }
+//    public IActionListener getListener(Object obj) {
+//        return listeners.get(obj);
+//    }
 
-    public boolean removeListener(Object obj) {
-        if (listeners.containsKey(obj)) {
-            listeners.remove(obj);
-            return true;
-        }
+//    public boolean removeListener(Object obj) {
+//        if (listeners.containsKey(obj)) {
+//            listeners.remove(obj);
+//            return true;
+//        }
+//
+//        return false;
+//    }
 
-        return false;
-    }
+//    public boolean fireListener(String hookName, Object obj) {
+//        IActionListener listener = getListener(obj);
+//        if (listener != null)
+//            return listener.fire(hookName);
+//
+//        return false;
+//    }
 
-    public boolean fireListener(String hookName, Object obj) {
-        IActionListener listener = getListener(obj);
-        if (listener != null)
-            return listener.fire(hookName);
-
-        return false;
-    }
     ///////////////////////////////////////////////////
     ///////////////////////////////////////////////////
     // Creators
@@ -496,9 +497,10 @@ public class ActionManager implements IActionManager {
             }
         }
         // ─── All Listeners ─────────────────────────────────────────
-        if (this == GLOBAL) {
-            listeners.forEach((obj, listener) -> ((ActionListener) listener).tick());
-        }
+        // IActionListener Comments
+//        if (this == GLOBAL) {
+//            listeners.forEach((obj, listener) -> ((ActionListener) listener).tick());
+//        }
 
         if (debug && active)
             LOGGER.finish("Finished Tick Cycle",this);

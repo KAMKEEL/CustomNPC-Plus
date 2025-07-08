@@ -262,18 +262,18 @@ public class Action implements IAction {
     //////////////////////////////////////////////////
     // Listener
 
-    public IAction listenTo(String hook, Object object) {
-        return listenTo(hook, manager.getOrCreateListener(object));
-    }
-
-    public IAction listenTo(String hook, IActionListener listener) {
-        return listenTo(listener.getOrCreateHook(hook));
-    }
-
-    public IAction listenTo(ActionListener.Hook hook) {
-        hook.schedule(this);
-        return this;
-    }
+//    public IAction listenTo(String hook, Object object) {
+//        return listenTo(hook, manager.getOrCreateListener(object));
+//    }
+//
+//    public IAction listenTo(String hook, IActionListener listener) {
+//        return listenTo(listener.getOrCreateHook(hook));
+//    }
+//
+//    public IAction listenTo(ActionListener.Hook hook) {
+//        hook.schedule(this);
+//        return this;
+//    }
 
     ///////////////////////////////////////////////////
     //////////////////////////////////////////////////
