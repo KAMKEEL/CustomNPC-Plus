@@ -38,17 +38,17 @@ public class ActionListener implements IActionListener {
         return object;
     }
 
-    @Override
+//    @Override
     public Hook getOrCreateHook(String hookName) {
         return hooks.computeIfAbsent(hookName, Hook::new);
     }
 
-    @Override
+//    @Override
     public Hook getHook(String hookName) {
         return hooks.get(hookName);
     }
 
-    @Override
+//    @Override
     public boolean fire(String hookName) {
         Hook hook = hooks.get(hookName);
         if (hook != null) {
