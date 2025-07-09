@@ -112,6 +112,10 @@ public class ContainerCarpentryBench extends Container {
             var2 = var4.copy();
 
             if (par1 == 0) {
+                SlotCarpentryResult resultSlot = (SlotCarpentryResult) var3;
+                if (!resultSlot.preEvent(par1EntityPlayer)) {
+                    return null;
+                }
                 if (!this.mergeItemStack(var4, 17, 53, true)) {
                     return null;
                 }
@@ -159,6 +163,8 @@ public class ContainerCarpentryBench extends Container {
     private class SlotCarpentryResult extends SlotCrafting {
         private final ContainerCarpentryBench container;
         private final InventoryCrafting matrix;
+        private boolean preChecked = false;
+        private boolean canPickup = true;
 
         public SlotCarpentryResult(ContainerCarpentryBench container, EntityPlayer player, InventoryCrafting matrix, IInventory result, int index, int x, int y) {
             super(player, matrix, result, index, x, y);
@@ -166,20 +172,50 @@ public class ContainerCarpentryBench extends Container {
             this.matrix = matrix;
         }
 
+        public boolean preEvent(EntityPlayer player) {
+            preChecked = true;
+            RecipeCarpentry recipe = container.currentRecipe;
+            if (recipe != null) {
+                ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
+                for (int i = 0; i < items.length; i++) {
+                    items[i] = matrix.getStackInSlot(i);
+                }
+                canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
+                if (!canPickup) {
+                    container.onCraftMatrixChanged(matrix);
+                }
+            } else {
+                canPickup = true;
+            }
+            return canPickup;
+        }
+
+        @Override
+        public boolean canTakeStack(EntityPlayer player) {
+            if (!preChecked) {
+                preEvent(player);
+            }
+            return canPickup && super.canTakeStack(player);
+        }
+
         @Override
         public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
-            RecipeCarpentry recipe = container.currentRecipe;
-            ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
-            for (int i = 0; i < items.length; i++) {
-                items[i] = matrix.getStackInSlot(i);
-            }
-            if (recipe != null) {
-                if (EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items)) {
-                    container.onCraftMatrixChanged(matrix);
+            if (!preChecked) {
+                if (!preEvent(player))
                     return;
+            }
+            if (!canPickup)
+                return;
+            RecipeCarpentry recipe = container.currentRecipe;
+            if (recipe != null) {
+                ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
+                for (int i = 0; i < items.length; i++) {
+                    items[i] = matrix.getStackInSlot(i);
                 }
                 stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
             }
+            preChecked = false;
+            canPickup = true;
             super.onPickupFromSlot(player, stack);
         }
     }
