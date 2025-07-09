@@ -174,19 +174,21 @@ public class ContainerCarpentryBench extends Container {
 
         public boolean preEvent(EntityPlayer player) {
             preChecked = true;
-            RecipeCarpentry recipe = container.currentRecipe;
-            if (recipe != null) {
-                ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
-                for (int i = 0; i < items.length; i++) {
-                    items[i] = matrix.getStackInSlot(i);
+            if (!container.worldObj.isRemote) {
+                RecipeCarpentry recipe = container.currentRecipe;
+                if (recipe != null) {
+                    ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
+                    for (int i = 0; i < items.length; i++) {
+                        items[i] = matrix.getStackInSlot(i);
+                    }
+                    canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
+                    if (!canPickup) {
+                        container.onCraftMatrixChanged(matrix);
+                        preChecked = false; // reset for next attempt
+                    }
+                } else {
+                    canPickup = true;
                 }
-                canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
-                if (!canPickup) {
-                    container.onCraftMatrixChanged(matrix);
-                    preChecked = false; // reset for next attempt
-                }
-            } else {
-                canPickup = true;
             }
             return canPickup;
         }
@@ -207,13 +209,15 @@ public class ContainerCarpentryBench extends Container {
             }
             if (!canPickup)
                 return;
-            RecipeCarpentry recipe = container.currentRecipe;
-            if (recipe != null) {
-                ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
-                for (int i = 0; i < items.length; i++) {
-                    items[i] = matrix.getStackInSlot(i);
+            if (!container.worldObj.isRemote) {
+                RecipeCarpentry recipe = container.currentRecipe;
+                if (recipe != null) {
+                    ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
+                    for (int i = 0; i < items.length; i++) {
+                        items[i] = matrix.getStackInSlot(i);
+                    }
+                    stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
                 }
-                stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
             }
             preChecked = false;
             canPickup = true;

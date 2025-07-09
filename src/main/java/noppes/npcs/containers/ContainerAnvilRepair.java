@@ -273,19 +273,21 @@ public class ContainerAnvilRepair extends Container {
 
         public boolean preEvent(EntityPlayer player) {
             preChecked = true;
-            RecipeAnvil recipe = container.currentRecipe;
-            if (recipe != null) {
-                ItemStack[] items = new ItemStack[]{
-                    container.anvilMatrix.getStackInRowAndColumn(0, 0),
-                    container.anvilMatrix.getStackInRowAndColumn(1, 0)
-                };
-                canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
-                if (!canPickup) {
-                    container.updateRepairResult();
-                    preChecked = false; // reset for next attempt
+            if (!container.worldObj.isRemote) {
+                RecipeAnvil recipe = container.currentRecipe;
+                if (recipe != null) {
+                    ItemStack[] items = new ItemStack[]{
+                        container.anvilMatrix.getStackInRowAndColumn(0, 0),
+                        container.anvilMatrix.getStackInRowAndColumn(1, 0)
+                    };
+                    canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
+                    if (!canPickup) {
+                        container.updateRepairResult();
+                        preChecked = false; // reset for next attempt
+                    }
+                } else {
+                    canPickup = true;
                 }
-            } else {
-                canPickup = true;
             }
             return canPickup;
         }
@@ -317,7 +319,7 @@ public class ContainerAnvilRepair extends Container {
                 container.anvilMatrix.getStackInRowAndColumn(0, 0),
                 container.anvilMatrix.getStackInRowAndColumn(1, 0)
             };
-            if (recipe != null) {
+            if (!container.worldObj.isRemote && recipe != null) {
                 container.updateRepairResult();
                 stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
             }
