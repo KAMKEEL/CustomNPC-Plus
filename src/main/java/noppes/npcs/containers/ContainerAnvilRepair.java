@@ -29,6 +29,7 @@ public class ContainerAnvilRepair extends Container {
 
     private RecipeAnvil currentRecipe;
     private SlotAnvilOutput resultSlot;
+    private boolean resultCanPickup = true;
 
     public ContainerAnvilRepair(InventoryPlayer playerInv, World world, int x, int y, int z) {
         this.worldObj = world;
@@ -172,6 +173,7 @@ public class ContainerAnvilRepair extends Container {
             }
 
             anvilResult.setInventorySlotContents(0, output);
+            this.resultCanPickup = canPickup;
             if (this.resultSlot != null) {
                 this.resultSlot.setCanPickup(canPickup);
             }
@@ -184,6 +186,7 @@ public class ContainerAnvilRepair extends Container {
     public void addCraftingToCrafters(ICrafting listener) {
         super.addCraftingToCrafters(listener);
         listener.sendProgressBarUpdate(this, 0, this.repairCost);
+        listener.sendProgressBarUpdate(this, 1, this.resultCanPickup ? 1 : 0);
     }
 
     @Override
@@ -191,6 +194,7 @@ public class ContainerAnvilRepair extends Container {
         super.detectAndSendChanges();
         for (Object crafterObj : this.crafters) {
             ((ICrafting) crafterObj).sendProgressBarUpdate(this, 0, this.repairCost);
+            ((ICrafting) crafterObj).sendProgressBarUpdate(this, 1, this.resultCanPickup ? 1 : 0);
         }
     }
 
@@ -198,6 +202,8 @@ public class ContainerAnvilRepair extends Container {
     public void updateProgressBar(int id, int data) {
         if (id == 0) {
             this.repairCost = data;
+        } else if (id == 1 && this.resultSlot != null) {
+            this.resultSlot.setCanPickup(data != 0);
         }
     }
     // --- End Sync Methods ---

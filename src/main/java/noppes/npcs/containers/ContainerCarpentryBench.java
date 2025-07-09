@@ -24,6 +24,7 @@ public class ContainerCarpentryBench extends Container {
 
     private RecipeCarpentry currentRecipe;
     private SlotCarpentryResult resultSlot;
+    private boolean resultCanPickup = true;
 
     public ContainerCarpentryBench(InventoryPlayer par1InventoryPlayer, World par2World, int par3, int par4, int par5) {
         this.worldObj = par2World;
@@ -84,6 +85,7 @@ public class ContainerCarpentryBench extends Container {
             }
 
             this.craftResult.setInventorySlotContents(0, item);
+            this.resultCanPickup = canPickup;
             if (this.resultSlot != null) {
                 this.resultSlot.setCanPickup(canPickup);
             }
@@ -174,6 +176,29 @@ public class ContainerCarpentryBench extends Container {
     public boolean func_94530_a(ItemStack stack, Slot slotIn) {
         return slotIn.inventory != this.craftResult && super.func_94530_a(stack, slotIn);
     }
+
+    // --- Sync Methods ---
+    @Override
+    public void addCraftingToCrafters(ICrafting listener) {
+        super.addCraftingToCrafters(listener);
+        listener.sendProgressBarUpdate(this, 0, this.resultCanPickup ? 1 : 0);
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        for (Object crafterObj : this.crafters) {
+            ((ICrafting) crafterObj).sendProgressBarUpdate(this, 0, this.resultCanPickup ? 1 : 0);
+        }
+    }
+
+    @Override
+    public void updateProgressBar(int id, int data) {
+        if (id == 0 && this.resultSlot != null) {
+            this.resultSlot.setCanPickup(data != 0);
+        }
+    }
+    // --- End Sync Methods ---
 
     // Custom result slot to handle recipe scripts
     private class SlotCarpentryResult extends SlotCrafting {
