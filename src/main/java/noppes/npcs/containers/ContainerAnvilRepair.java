@@ -282,6 +282,7 @@ public class ContainerAnvilRepair extends Container {
                 canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
                 if (!canPickup) {
                     container.updateRepairResult();
+                    preChecked = false; // reset for next attempt
                 }
             } else {
                 canPickup = true;

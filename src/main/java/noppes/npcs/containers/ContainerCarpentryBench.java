@@ -147,8 +147,8 @@ public class ContainerCarpentryBench extends Container {
         }
 
         // Update client-side inventory
-        if (!this.worldObj.isRemote && player instanceof EntityPlayerMP) {
-            ((EntityPlayerMP) player).sendContainerToPlayer(this);
+        if (!this.worldObj.isRemote && par1EntityPlayer instanceof EntityPlayerMP) {
+            ((EntityPlayerMP) par1EntityPlayer).sendContainerToPlayer(this);
         }
 
         return var2;
@@ -183,6 +183,7 @@ public class ContainerCarpentryBench extends Container {
                 canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
                 if (!canPickup) {
                     container.onCraftMatrixChanged(matrix);
+                    preChecked = false; // reset for next attempt
                 }
             } else {
                 canPickup = true;
