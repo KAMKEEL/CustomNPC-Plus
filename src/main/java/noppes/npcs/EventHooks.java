@@ -35,6 +35,7 @@ import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.player.*;
 import noppes.npcs.scripted.event.player.PlayerEvent.*;
 import noppes.npcs.scripted.item.ScriptItemStack;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -167,7 +168,7 @@ public class EventHooks {
     }
 
 
-    public static boolean onRecipeScriptPre(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items) {
+    public static RecipeScriptEvent.Pre onRecipeScriptPre(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items) {
         IItemStack[] iitems = new IItemStack[items.length];
         for (int i = 0; i < items.length; i++) {
             iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
@@ -176,7 +177,13 @@ public class EventHooks {
         if (script != null) {
             script.callScript(RecipeScript.ScriptType.PRE.function, event);
         }
-        return NpcAPI.EVENT_BUS.post(event);
+        NpcAPI.EVENT_BUS.post(event);
+        if (!player.worldObj.isRemote) {
+            String msg = event.getMessage();
+            if (msg == null) msg = "";
+            AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "", msg);
+        }
+        return event;
     }
 
     public static ItemStack onRecipeScriptPost(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items, ItemStack result) {

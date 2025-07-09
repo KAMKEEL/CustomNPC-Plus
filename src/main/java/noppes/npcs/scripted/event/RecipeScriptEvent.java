@@ -35,9 +35,20 @@ public class RecipeScriptEvent extends PlayerEvent {
 
     @Cancelable
     public static class Pre extends RecipeScriptEvent {
+        private String message = "";
+
         public Pre(IPlayer player, Object recipe, boolean isAnvil, IItemStack[] items) {
             super(player, recipe, isAnvil, items);
         }
+
+        public void setMessage(String message) {
+            this.message = message == null ? "" : message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
         public String getHookName() {
             return RecipeScript.ScriptType.PRE.function;
         }

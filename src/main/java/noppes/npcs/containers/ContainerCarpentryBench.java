@@ -9,6 +9,7 @@ import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.EventHooks;
+import noppes.npcs.scripted.event.RecipeScriptEvent;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
@@ -22,6 +23,7 @@ public class ContainerCarpentryBench extends Container {
     private int posZ;
 
     private RecipeCarpentry currentRecipe;
+    private SlotCarpentryResult resultSlot;
 
     public ContainerCarpentryBench(InventoryPlayer par1InventoryPlayer, World par2World, int par3, int par4, int par5) {
         this.worldObj = par2World;
@@ -29,7 +31,8 @@ public class ContainerCarpentryBench extends Container {
         this.posY = par4;
         this.posZ = par5;
         this.player = par1InventoryPlayer.player;
-        this.addSlotToContainer(new SlotCarpentryResult(this, par1InventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 133, 41));
+        this.resultSlot = new SlotCarpentryResult(this, par1InventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 133, 41);
+        this.addSlotToContainer(this.resultSlot);
         int var6;
         int var7;
 
@@ -66,11 +69,24 @@ public class ContainerCarpentryBench extends Container {
             this.currentRecipe = recipe;
 
             ItemStack item = null;
+            boolean canPickup = true;
             if (recipe != null && recipe.availability.isAvailable(player)) {
                 item = recipe.getCraftingResult(this.craftMatrix);
+
+                ItemStack[] items = new ItemStack[this.craftMatrix.getSizeInventory()];
+                for (int i = 0; i < items.length; i++) {
+                    items[i] = this.craftMatrix.getStackInSlot(i);
+                }
+
+                RecipeScriptEvent.Pre pre = EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
+                canPickup = !pre.isCanceled();
+                item = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, item);
             }
 
             this.craftResult.setInventorySlotContents(0, item);
+            if (this.resultSlot != null) {
+                this.resultSlot.setCanPickup(canPickup);
+            }
             EntityPlayerMP plmp = (EntityPlayerMP) player;
             plmp.playerNetServerHandler.sendPacket(new S2FPacketSetSlot(this.windowId, 0, item));
         }
@@ -113,7 +129,7 @@ public class ContainerCarpentryBench extends Container {
 
             if (par1 == 0) {
                 SlotCarpentryResult resultSlot = (SlotCarpentryResult) var3;
-                if (!resultSlot.preEvent(par1EntityPlayer)) {
+                if (!resultSlot.canPickup()) {
                     return null;
                 }
                 if (!this.mergeItemStack(var4, 17, 53, true)) {
@@ -162,65 +178,30 @@ public class ContainerCarpentryBench extends Container {
     // Custom result slot to handle recipe scripts
     private class SlotCarpentryResult extends SlotCrafting {
         private final ContainerCarpentryBench container;
-        private final InventoryCrafting matrix;
-        private boolean preChecked = false;
         private boolean canPickup = true;
 
         public SlotCarpentryResult(ContainerCarpentryBench container, EntityPlayer player, InventoryCrafting matrix, IInventory result, int index, int x, int y) {
             super(player, matrix, result, index, x, y);
             this.container = container;
-            this.matrix = matrix;
         }
 
-        public boolean preEvent(EntityPlayer player) {
-            preChecked = true;
-            if (!container.worldObj.isRemote) {
-                RecipeCarpentry recipe = container.currentRecipe;
-                if (recipe != null) {
-                    ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
-                    for (int i = 0; i < items.length; i++) {
-                        items[i] = matrix.getStackInSlot(i);
-                    }
-                    canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
-                    if (!canPickup) {
-                        container.onCraftMatrixChanged(matrix);
-                        preChecked = false; // reset for next attempt
-                    }
-                } else {
-                    canPickup = true;
-                }
-            }
-            return canPickup;
+        public void setCanPickup(boolean value) {
+            this.canPickup = value;
+        }
+
+        public boolean canPickup() {
+            return this.canPickup;
         }
 
         @Override
         public boolean canTakeStack(EntityPlayer player) {
-            if (!preChecked) {
-                preEvent(player);
-            }
             return canPickup && super.canTakeStack(player);
         }
 
         @Override
         public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
-            if (!preChecked) {
-                if (!preEvent(player))
-                    return;
-            }
             if (!canPickup)
                 return;
-            if (!container.worldObj.isRemote) {
-                RecipeCarpentry recipe = container.currentRecipe;
-                if (recipe != null) {
-                    ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
-                    for (int i = 0; i < items.length; i++) {
-                        items[i] = matrix.getStackInSlot(i);
-                    }
-                    stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
-                }
-            }
-            preChecked = false;
-            canPickup = true;
             super.onPickupFromSlot(player, stack);
         }
     }
