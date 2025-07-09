@@ -173,6 +173,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new RecipeGetPacket());
         REQUEST_PACKET.registerPacket(new RecipeRemovePacket());
         REQUEST_PACKET.registerPacket(new RecipeSavePacket());
+        REQUEST_PACKET.registerPacket(new RecipeScriptPacket());
 
         // Natural Spawn Packets
         REQUEST_PACKET.registerPacket(new NaturalSpawnGetAllPacket());

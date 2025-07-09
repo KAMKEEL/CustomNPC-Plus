@@ -7,6 +7,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ShapedRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
@@ -24,7 +25,6 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
     public boolean ignoreDamage = false;
     public boolean ignoreNBT = false;
 
-
     public RecipeCarpentry(int width, int height, ItemStack[] recipe, ItemStack result) {
         super(width, height, recipe, result);
     }
@@ -34,20 +34,33 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
         this.name = name;
     }
 
-    public static RecipeCarpentry read(NBTTagCompound compound) {
-        RecipeCarpentry recipe = new RecipeCarpentry(compound.getInteger("Width"), compound.getInteger("Height"),
+    public static RecipeCarpentry create(NBTTagCompound compound) {
+        return new RecipeCarpentry(compound.getInteger("Width"), compound.getInteger("Height"),
             NBTTags.getItemStackArray(compound.getTagList("Materials", 10)), NoppesUtilServer.readItem(compound.getCompoundTag("Item")));
-        recipe.name = compound.getString("Name");
-        recipe.id = compound.getInteger("ID");
-        recipe.availability.readFromNBT(compound.getCompoundTag("Availability"));
-        recipe.ignoreDamage = compound.getBoolean("IgnoreDamage");
-        recipe.ignoreNBT = compound.getBoolean("IgnoreNBT");
-        recipe.isGlobal = compound.getBoolean("Global");
+    }
 
-        return recipe;
+    public void readNBT(NBTTagCompound compound) {
+        this.name = compound.getString("Name");
+        this.id = compound.getInteger("ID");
+        this.availability.readFromNBT(compound.getCompoundTag("Availability"));
+        this.ignoreDamage = compound.getBoolean("IgnoreDamage");
+        this.ignoreNBT = compound.getBoolean("IgnoreNBT");
+        this.isGlobal = compound.getBoolean("Global");
+
+        if(!isGlobal){
+            if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
+                RecipeScript handler = new RecipeScript();
+                handler.readFromNBT(compound.getCompoundTag("ScriptData"));
+                setScriptHandler(handler);
+            }
+        }
     }
 
     public NBTTagCompound writeNBT() {
+        return writeNBT(true);
+    }
+
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("ID", id);
         compound.setInteger("Width", recipeWidth);
@@ -60,6 +73,13 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
         compound.setBoolean("Global", isGlobal);
         compound.setBoolean("IgnoreDamage", ignoreDamage);
         compound.setBoolean("IgnoreNBT", ignoreNBT);
+        if (saveScripts) {
+            NBTTagCompound scriptData = new NBTTagCompound();
+            RecipeScript handler = getScriptHandler();
+            if (handler != null)
+                handler.writeToNBT(scriptData);
+            compound.setTag("ScriptData", scriptData);
+        }
         return compound;
     }
 
@@ -253,7 +273,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 
     public void save() {
         try {
-            RecipeController.Instance.saveRecipe(this.writeNBT());
+            RecipeController.Instance.saveRecipe(this.writeNBT(true));
         } catch (IOException var2) {
         }
 
@@ -269,5 +289,20 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 
     public int getId() {
         return this.id;
+    }
+
+    public RecipeScript getScriptHandler() {
+        return RecipeController.Instance.carpentryScripts.get(this.id);
+    }
+
+    public void setScriptHandler(RecipeScript handler) {
+        RecipeController.Instance.carpentryScripts.put(this.id, handler);
+    }
+
+    public RecipeScript getOrCreateScriptHandler() {
+        RecipeScript data = getScriptHandler();
+        if (data == null)
+            setScriptHandler(data = new RecipeScript());
+        return data;
     }
 }

@@ -19,10 +19,7 @@ import noppes.npcs.api.entity.*;
 import noppes.npcs.api.event.IAnimationEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
-import noppes.npcs.api.handler.data.IAnimation;
-import noppes.npcs.api.handler.data.IFrame;
-import noppes.npcs.api.handler.data.IPlayerEffect;
-import noppes.npcs.api.handler.data.IProfile;
+import noppes.npcs.api.handler.data.*;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemLinked;
 import noppes.npcs.api.item.IItemStack;
@@ -37,6 +34,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.player.*;
 import noppes.npcs.scripted.event.player.PlayerEvent.*;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -167,6 +165,33 @@ public class EventHooks {
         }
         NpcAPI.EVENT_BUS.post(event);
     }
+
+
+    public static boolean onRecipeScriptPre(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items) {
+        IItemStack[] iitems = new IItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
+        }
+        RecipeScriptEvent.Pre event = new RecipeScriptEvent.Pre(NoppesUtilServer.getIPlayer(player), recipe, recipe instanceof IAnvilRecipe, iitems);
+        if (script != null) {
+            script.callScript(RecipeScript.ScriptType.PRE.function, event);
+        }
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static ItemStack onRecipeScriptPost(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items, ItemStack result) {
+        IItemStack[] iitems = new IItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
+        }
+        RecipeScriptEvent.Post event = new RecipeScriptEvent.Post(NoppesUtilServer.getIPlayer(player), recipe, recipe instanceof IAnvilRecipe, iitems, NpcAPI.Instance().getIItemStack(result));
+        if (script != null) {
+            script.callScript(RecipeScript.ScriptType.POST.function, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
+        return event.getResult() == null ? null : ((ScriptItemStack) event.getCraft()).getMCItemStack();
+    }
+
 
     public static void onLinkedItemVersionChange(IItemLinked item, int version, int prevVersion) {
         INpcScriptHandler handler = (INpcScriptHandler) item.getScriptHandler();

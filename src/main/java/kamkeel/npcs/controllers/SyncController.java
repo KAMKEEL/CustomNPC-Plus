@@ -108,7 +108,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeCarpentry recipe : controller.globalRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -119,7 +119,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeCarpentry recipe : controller.carpentryRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -130,7 +130,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeAnvil recipe : controller.anvilRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -430,7 +430,9 @@ public class SyncController {
                     return;
 
                 for (int i = 0; i < list.tagCount(); i++) {
-                    RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
+                    NBTTagCompound recipeCompound = list.getCompoundTagAt(i);
+                    RecipeCarpentry recipe = RecipeCarpentry.create(recipeCompound);
+                    recipe.readNBT(recipeCompound);
                     RecipeController.syncRecipes.put(recipe.id, recipe);
                 }
 
@@ -444,7 +446,9 @@ public class SyncController {
                     return;
 
                 for (int i = 0; i < list.tagCount(); i++) {
-                    RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
+                    NBTTagCompound recipeCompound = list.getCompoundTagAt(i);
+                    RecipeCarpentry recipe = RecipeCarpentry.create(recipeCompound);
+                    recipe.readNBT(recipeCompound);
                     RecipeController.syncRecipes.put(recipe.id, recipe);
                 }
 
@@ -458,7 +462,8 @@ public class SyncController {
                     return;
 
                 for (int i = 0; i < list.tagCount(); i++) {
-                    RecipeAnvil recipe = RecipeAnvil.read(list.getCompoundTagAt(i));
+                    RecipeAnvil recipe = new RecipeAnvil();
+                    recipe.readNBT(list.getCompoundTagAt(i));
                     RecipeController.syncAnvilRecipes.put(recipe.id, recipe);
                 }
 

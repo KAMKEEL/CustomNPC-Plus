@@ -192,5 +192,8 @@ public enum EnumRequestPacket {
     MagicGet,
     MagicSave,
     NpcMagicGet,
-    NpcMagicSave, Hammer,
+    NpcMagicSave,
+    Hammer,
+
+    RecipeScript,
 }

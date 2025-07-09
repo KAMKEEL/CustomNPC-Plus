@@ -12,6 +12,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
+import noppes.npcs.client.gui.script.GuiScriptRecipe;
 import noppes.npcs.client.gui.util.*;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
@@ -83,10 +84,12 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
             buttonPos += 22;
             this.addButton(new GuiNpcButton(15, guiLeft + 172, buttonPos - 5, 103, 20, "availability.options"));
+            this.addButton(new GuiNpcButton(16, guiLeft + 172, buttonPos + 17, 103, 20, "script.scripts"));
 
             this.getButton(5).setEnabled(false);
             this.getButton(6).setEnabled(false);
             this.getButton(15).setEnabled(false);
+            this.getButton(16).setEnabled(false);
 
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipe.name));
             this.getTextField(0).enabled = false;
@@ -116,11 +119,13 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
             buttonPos += 22;
             this.addButton(new GuiNpcButton(15, guiLeft + 172, buttonPos - 5, 103, 20, "availability.options"));
+            this.addButton(new GuiNpcButton(16, guiLeft + 172, buttonPos + 17, 103, 20, "script.scripts"));
 
             this.getButton(7).setEnabled(false);
             this.getButton(8).setEnabled(false);
             this.getButton(9).setEnabled(false);
             this.getButton(15).setEnabled(false);
+            this.getButton(16).setEnabled(false);
 
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipeAnvil.name));
             this.getTextField(0).enabled = false;
@@ -200,6 +205,21 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
                 setSubGui(new SubGuiNpcAvailability(container.recipe.availability));
             }
         }
+
+        if (button.id == 16) {
+            save();
+            if (container.width == 1) {
+                GuiScriptRecipe gui = new GuiScriptRecipe(this, container.recipeAnvil);
+                gui.setWorldAndResolution(mc, width, height);
+                gui.initGui();
+                mc.currentScreen = gui;
+            } else if (!container.recipe.isGlobal) {
+                GuiScriptRecipe gui = new GuiScriptRecipe(this, container.recipe);
+                gui.setWorldAndResolution(mc, width, height);
+                gui.initGui();
+                mc.currentScreen = gui;
+            }
+        }
     }
 
     @Override
@@ -231,13 +251,15 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
     @Override
     public void setGuiData(NBTTagCompound compound) {
         if (compound.hasKey("IsAnvil")) {
-            RecipeAnvil recipe = RecipeAnvil.read(compound);
+            RecipeAnvil recipe = new RecipeAnvil();
+            recipe.readNBT(compound);
             container.setRecipe(recipe);
             container.width = 1;
             tab = 2;
             fixButtons();
         } else {
-            RecipeCarpentry recipe = RecipeCarpentry.read(compound);
+            RecipeCarpentry recipe = RecipeCarpentry.create(compound);
+            recipe.readNBT(compound);
             container.setRecipe(recipe);
             fixButtons();
         }
@@ -273,6 +295,10 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             GuiNpcButton avail = this.getButton(15);
             if (avail != null)
                 avail.setEnabled(true);
+
+            GuiNpcButton script = this.getButton(16);
+            if (script != null)
+                script.setEnabled(true);
         } else {
             getTextField(0).setText(container.recipe.name);
 
@@ -287,6 +313,10 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
                 GuiNpcButton avail = this.getButton(15);
                 if (avail != null)
                     avail.setEnabled(true);
+
+                GuiNpcButton script = this.getButton(16);
+                if (script != null)
+                    script.setEnabled(true);
             }
         }
     }

@@ -2,9 +2,11 @@ package noppes.npcs.controllers.data;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.common.util.Constants;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
+import noppes.npcs.controllers.RecipeController;
 
 public class RecipeAnvil implements IAnvilRecipe {
     public int id = -1;
@@ -21,8 +23,6 @@ public class RecipeAnvil implements IAnvilRecipe {
     public int xpCost;
     public float repairPercentage;
 
-    private boolean isAnvil = true;
-
     public RecipeAnvil() {
     }
 
@@ -34,23 +34,31 @@ public class RecipeAnvil implements IAnvilRecipe {
         this.repairPercentage = repairPercentage;
     }
 
-    public static RecipeAnvil read(NBTTagCompound compound) {
-        RecipeAnvil recipe = new RecipeAnvil();
-        recipe.id = compound.getInteger("ID");
-        recipe.name = compound.getString("Name");
-        recipe.availability.readFromNBT(compound.getCompoundTag("Availability"));
-        recipe.xpCost = compound.getInteger("XPCost");
-        recipe.repairPercentage = compound.getFloat("RepairPercentage");
-        recipe.itemToRepair = NoppesUtilServer.readItem(compound.getCompoundTag("ItemToRepair"));
-        recipe.repairMaterial = NoppesUtilServer.readItem(compound.getCompoundTag("RepairMaterial"));
-        recipe.ignoreRepairMaterialNBT = compound.getBoolean("IgnoreRepairMatNBT");
-        recipe.ignoreRepairItemNBT = compound.getBoolean("IgnoreRepairItemNBT");
-        recipe.ignoreRepairMaterialDamage = compound.getBoolean("IgnoreRepairMatDamage");
-        recipe.isAnvil = true;
-        return recipe;
+    public void readNBT(NBTTagCompound compound) {
+        this.id = compound.getInteger("ID");
+        this.name = compound.getString("Name");
+        this.availability.readFromNBT(compound.getCompoundTag("Availability"));
+        this.xpCost = compound.getInteger("XPCost");
+        this.repairPercentage = compound.getFloat("RepairPercentage");
+        this.itemToRepair = NoppesUtilServer.readItem(compound.getCompoundTag("ItemToRepair"));
+        this.repairMaterial = NoppesUtilServer.readItem(compound.getCompoundTag("RepairMaterial"));
+        this.ignoreRepairMaterialNBT = compound.getBoolean("IgnoreRepairMatNBT");
+        this.ignoreRepairItemNBT = compound.getBoolean("IgnoreRepairItemNBT");
+        this.ignoreRepairMaterialDamage = compound.getBoolean("IgnoreRepairMatDamage");
+
+        if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
+            RecipeScript handler = new RecipeScript();
+            handler.readFromNBT(compound.getCompoundTag("ScriptData"));
+            setScriptHandler(handler);
+        }
     }
 
     public NBTTagCompound writeNBT() {
+        return writeNBT(true);
+    }
+
+
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("ID", id);
         compound.setString("Name", name);
@@ -67,6 +75,14 @@ public class RecipeAnvil implements IAnvilRecipe {
         compound.setBoolean("IgnoreRepairItemNBT", ignoreRepairItemNBT);
         compound.setBoolean("IgnoreRepairMatDamage", ignoreRepairMaterialDamage);
         compound.setBoolean("IsAnvil", true);
+
+        if (saveScripts) {
+            NBTTagCompound scriptData = new NBTTagCompound();
+            RecipeScript handler = getScriptHandler();
+            if (handler != null)
+                handler.writeToNBT(scriptData);
+            compound.setTag("ScriptData", scriptData);
+        }
         return compound;
     }
 
@@ -146,7 +162,20 @@ public class RecipeAnvil implements IAnvilRecipe {
         this.ignoreRepairItemNBT = recipe.ignoreRepairItemNBT;
         this.ignoreRepairMaterialNBT = recipe.ignoreRepairMaterialNBT;
         this.repairPercentage = recipe.repairPercentage;
-        ;
         this.xpCost = recipe.xpCost;
+    }
+    public RecipeScript getScriptHandler() {
+        return RecipeController.Instance.anvilScripts.get(this.id);
+    }
+
+    public void setScriptHandler(RecipeScript handler) {
+        RecipeController.Instance.anvilScripts.put(this.id, handler);
+    }
+
+    public RecipeScript getOrCreateScriptHandler() {
+        RecipeScript data = getScriptHandler();
+        if (data == null)
+            setScriptHandler(data = new RecipeScript());
+        return data;
     }
 }
