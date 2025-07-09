@@ -424,6 +424,42 @@ public class NpcEvent extends CustomNPCsEvent implements INpcEvent {
     }
 
     @Cancelable
+    public static class TradeEvent extends NpcEvent implements INpcEvent.TradeEvent {
+        public final IPlayer player;
+        public final IItemStack currency1;
+        public final IItemStack currency2;
+        public final IItemStack soldItem;
+
+        public TradeEvent(ICustomNpc npc, EntityPlayer player, ItemStack soldItem, ItemStack currency1, ItemStack currency2) {
+            super(npc);
+            this.player = (IPlayer) NpcAPI.Instance().getIEntity(player);
+            this.soldItem = NpcAPI.Instance().getIItemStack(soldItem);
+            this.currency1 = currency1 != null ? NpcAPI.Instance().getIItemStack(currency1) : null;
+            this.currency2 = currency2 != null ? NpcAPI.Instance().getIItemStack(currency2) : null;
+        }
+
+        public String getHookName() {
+            return EnumScriptType.TRADE.function;
+        }
+
+        public IPlayer getPlayer() {
+            return player;
+        }
+
+        public IItemStack getCurrency1() {
+            return currency1;
+        }
+
+        public IItemStack getCurrency2() {
+            return currency2;
+        }
+
+        public IItemStack getSoldItem() {
+            return soldItem;
+        }
+    }
+
+    @Cancelable
     public static class TargetLostEvent extends NpcEvent implements INpcEvent.TargetLostEvent {
         public final IEntityLivingBase oldTarget;
         public final IEntityLivingBase newTarget;

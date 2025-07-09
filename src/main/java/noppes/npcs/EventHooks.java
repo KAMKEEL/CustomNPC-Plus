@@ -240,6 +240,16 @@ public class EventHooks {
         return result;
     }
 
+    public static boolean onNPCTrade(EntityNPCInterface npc, EntityPlayer player, ItemStack sold, ItemStack currency1, ItemStack currency2) {
+        if (npc == null || npc.wrappedNPC == null)
+            return false;
+
+        NpcEvent.TradeEvent event = new NpcEvent.TradeEvent(npc.wrappedNPC, player, sold, currency1, currency2);
+        ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TRADE, event);
+        npc.script.callScript(EnumScriptType.TRADE, event, "player", event.getPlayer(), "sold", event.getSoldItem(), "currency1", event.getCurrency1(), "currency2", event.getCurrency2());
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
     public static boolean onNPCMeleeAttack(EntityNPCInterface npc, NpcEvent.MeleeAttackEvent event) {
         if (npc == null || npc.wrappedNPC == null)
             return false;
@@ -773,6 +783,12 @@ public class EventHooks {
         PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
         handler.callScript(EnumScriptType.DIALOG_CLOSE, event);
         NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onTrade(EntityPlayer player, TradeEvent event) {
+        PlayerDataScript handler = ScriptController.Instance.getPlayerScripts(player);
+        handler.callScript(EnumScriptType.TRADE, event);
+        return NpcAPI.EVENT_BUS.post(event);
     }
 
     public static boolean onScriptBlockInteract(IScriptBlockHandler handler, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {

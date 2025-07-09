@@ -4,6 +4,7 @@ public enum EnumScriptType {
     INIT("init"),
     TICK("tick"),
     INTERACT("interact"),
+    TRADE("trade"),
     DIALOG("dialog"),
     DAMAGED("damaged"),
     KILLED("killed"),

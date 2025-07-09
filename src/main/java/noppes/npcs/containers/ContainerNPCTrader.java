@@ -4,8 +4,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.EventHooks;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
+import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.event.player.TradeEvent;
+import noppes.npcs.api.entity.IPlayer;
 
 
 public class ContainerNPCTrader extends ContainerNpcInterface {
@@ -65,8 +69,23 @@ public class ContainerNPCTrader extends ContainerNpcInterface {
             return null;
         if (!isSlotEnabled(i, entityplayer))
             return null;
-        NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i), role.ignoreDamage, role.ignoreNBT);
-        NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i + 18), role.ignoreDamage, role.ignoreNBT);
+
+        ItemStack currency1 = role.inventoryCurrency.getStackInSlot(i);
+        ItemStack currency2 = role.inventoryCurrency.getStackInSlot(i + 18);
+
+        if (!entityplayer.worldObj.isRemote) {
+            if (EventHooks.onNPCTrade(role.npc, entityplayer, item.copy(), currency1 == null ? null : currency1.copy(), currency2 == null ? null : currency2.copy()))
+                return null;
+            TradeEvent tradeEvent = new TradeEvent((IPlayer) NpcAPI.Instance().getIEntity(entityplayer), role.npc.wrappedNPC,
+                    currency1 == null ? null : NpcAPI.Instance().getIItemStack(currency1.copy()),
+                    currency2 == null ? null : NpcAPI.Instance().getIItemStack(currency2.copy()),
+                    NpcAPI.Instance().getIItemStack(item.copy()));
+            if (EventHooks.onTrade(entityplayer, tradeEvent))
+                return null;
+        }
+
+        NoppesUtilPlayer.consumeItem(entityplayer, currency1, role.ignoreDamage, role.ignoreNBT);
+        NoppesUtilPlayer.consumeItem(entityplayer, currency2, role.ignoreDamage, role.ignoreNBT);
         ItemStack soldItem = item.copy();
         givePlayer(soldItem, entityplayer);
         role.addPurchase(i, entityplayer.getDisplayName());
