@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
+import noppes.npcs.controllers.data.RecipeScript;
 
 public class RecipeAnvil implements IAnvilRecipe {
     public int id = -1;
@@ -22,6 +23,8 @@ public class RecipeAnvil implements IAnvilRecipe {
     public float repairPercentage;
 
     private boolean isAnvil = true;
+
+    public RecipeScript script;
 
     public RecipeAnvil() {
     }
@@ -47,10 +50,17 @@ public class RecipeAnvil implements IAnvilRecipe {
         recipe.ignoreRepairItemNBT = compound.getBoolean("IgnoreRepairItemNBT");
         recipe.ignoreRepairMaterialDamage = compound.getBoolean("IgnoreRepairMatDamage");
         recipe.isAnvil = true;
+        if (compound.hasKey("ScriptData", 10)) {
+            recipe.script = new RecipeScript().readFromNBT(compound.getCompoundTag("ScriptData"));
+        }
         return recipe;
     }
 
     public NBTTagCompound writeNBT() {
+        return writeNBT(true);
+    }
+
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("ID", id);
         compound.setString("Name", name);
@@ -67,6 +77,11 @@ public class RecipeAnvil implements IAnvilRecipe {
         compound.setBoolean("IgnoreRepairItemNBT", ignoreRepairItemNBT);
         compound.setBoolean("IgnoreRepairMatDamage", ignoreRepairMaterialDamage);
         compound.setBoolean("IsAnvil", true);
+        if (saveScripts && script != null) {
+            NBTTagCompound scriptData = new NBTTagCompound();
+            script.writeToNBT(scriptData);
+            compound.setTag("ScriptData", scriptData);
+        }
         return compound;
     }
 
@@ -148,5 +163,19 @@ public class RecipeAnvil implements IAnvilRecipe {
         this.repairPercentage = recipe.repairPercentage;
         ;
         this.xpCost = recipe.xpCost;
+    }
+
+    public RecipeScript getScriptHandler() {
+        return script;
+    }
+
+    public void setScriptHandler(RecipeScript handler) {
+        this.script = handler;
+    }
+
+    public RecipeScript getOrCreateScriptHandler() {
+        if (script == null)
+            script = new RecipeScript();
+        return script;
     }
 }

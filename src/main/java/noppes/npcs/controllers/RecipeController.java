@@ -130,13 +130,13 @@ public class RecipeController implements IRecipeHandler {
             File saveDir = CustomNpcs.getWorldSaveDirectory();
             NBTTagList list = new NBTTagList();
             for (RecipeCarpentry recipe : globalRecipes.values()) {
-                list.appendTag(recipe.writeNBT());
+                list.appendTag(recipe.writeNBT(true));
             }
             for (RecipeCarpentry recipe : carpentryRecipes.values()) {
-                list.appendTag(recipe.writeNBT());
+                list.appendTag(recipe.writeNBT(true));
             }
             for (RecipeAnvil recipe : anvilRecipes.values()) {
-                list.appendTag(recipe.writeNBT());
+                list.appendTag(recipe.writeNBT(true));
             }
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setTag("Data", list);
@@ -329,7 +329,7 @@ public class RecipeController implements IRecipeHandler {
         recipe = RecipeCarpentry.saveRecipe(recipe, result, objects);
 
         try {
-            this.saveRecipe(recipe.writeNBT());
+            this.saveRecipe(recipe.writeNBT(true));
         } catch (Exception var7) {
             var7.printStackTrace();
         }
@@ -352,7 +352,7 @@ public class RecipeController implements IRecipeHandler {
         recipe.name = name;
 
         try {
-            this.saveRecipe(recipe.writeNBT());
+            this.saveRecipe(recipe.writeNBT(true));
         } catch (IOException var12) {
             var12.printStackTrace();
         }
@@ -362,7 +362,7 @@ public class RecipeController implements IRecipeHandler {
     public void addAnvilRecipe(String name, boolean global, ItemStack itemToRepair, ItemStack repairMaterial, int xpCost, float repairPercentage) {
         RecipeAnvil recipe = new RecipeAnvil(name, itemToRepair, repairMaterial, xpCost, repairPercentage);
         try {
-            this.saveAnvilRecipe(recipe.writeNBT());
+            this.saveAnvilRecipe(recipe.writeNBT(true));
         } catch (Exception e) {
             e.printStackTrace();
         }

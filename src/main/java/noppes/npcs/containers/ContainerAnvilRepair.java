@@ -9,6 +9,7 @@ import net.minecraft.world.World;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeAnvil;
+import noppes.npcs.EventHooks;
 
 public class ContainerAnvilRepair extends Container {
     // A 2-slot crafting matrix: slot 0 = damaged item, slot 1 = repair material.
@@ -24,6 +25,8 @@ public class ContainerAnvilRepair extends Container {
 
     public int repairCost = 0;
     public int repairMaterialConsumed = 0;
+
+    private RecipeAnvil currentRecipe;
 
     public ContainerAnvilRepair(InventoryPlayer playerInv, World world, int x, int y, int z) {
         this.worldObj = world;
@@ -108,6 +111,8 @@ public class ContainerAnvilRepair extends Container {
                     break;
                 }
             }
+
+            currentRecipe = matchingRecipe;
 
             ItemStack output = null;
             if (matchingRecipe != null) {
@@ -272,6 +277,19 @@ public class ContainerAnvilRepair extends Container {
 
         @Override
         public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
+            RecipeAnvil recipe = container.currentRecipe;
+            ItemStack[] items = new ItemStack[]{
+                container.anvilMatrix.getStackInRowAndColumn(0, 0),
+                container.anvilMatrix.getStackInRowAndColumn(1, 0)
+            };
+            if (recipe != null) {
+                if (EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items)) {
+                    container.updateRepairResult();
+                    return;
+                }
+                stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
+            }
+
             if (player.experienceTotal < container.repairCost) {
                 container.updateRepairResult();
                 return;

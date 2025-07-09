@@ -34,6 +34,9 @@ import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.scripted.event.recipe.RecipeScriptEvent;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.player.*;
 import noppes.npcs.scripted.event.player.PlayerEvent.*;
@@ -166,6 +169,31 @@ public class EventHooks {
             handler.callScript(EnumScriptType.BREAK_ITEM, event);
         }
         NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static boolean onRecipeScriptPre(EntityPlayer player, RecipeScript script, IRecipe recipe, ItemStack[] items) {
+        IItemStack[] iitems = new IItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
+        }
+        RecipeScriptEvent.Pre event = new RecipeScriptEvent.Pre(NoppesUtilServer.getIPlayer(player), recipe, iitems);
+        if (script != null) {
+            script.callScript(RecipeScript.ScriptType.PRE.function, event);
+        }
+        return NpcAPI.EVENT_BUS.post(event);
+    }
+
+    public static ItemStack onRecipeScriptPost(EntityPlayer player, RecipeScript script, IRecipe recipe, ItemStack[] items, ItemStack result) {
+        IItemStack[] iitems = new IItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
+        }
+        RecipeScriptEvent.Post event = new RecipeScriptEvent.Post(NoppesUtilServer.getIPlayer(player), recipe, iitems, NpcAPI.Instance().getIItemStack(result));
+        if (script != null) {
+            script.callScript(RecipeScript.ScriptType.POST.function, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
+        return event.getResult() == null ? null : ((ScriptItemStack) event.getResult()).getMCItemStack();
     }
 
     public static void onLinkedItemVersionChange(IItemLinked item, int version, int prevVersion) {

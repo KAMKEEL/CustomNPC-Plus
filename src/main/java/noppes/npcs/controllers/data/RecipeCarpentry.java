@@ -24,6 +24,8 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
     public boolean ignoreDamage = false;
     public boolean ignoreNBT = false;
 
+    public RecipeScript script;
+
 
     public RecipeCarpentry(int width, int height, ItemStack[] recipe, ItemStack result) {
         super(width, height, recipe, result);
@@ -43,11 +45,18 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
         recipe.ignoreDamage = compound.getBoolean("IgnoreDamage");
         recipe.ignoreNBT = compound.getBoolean("IgnoreNBT");
         recipe.isGlobal = compound.getBoolean("Global");
+        if (compound.hasKey("ScriptData", 10)) {
+            recipe.script = new RecipeScript().readFromNBT(compound.getCompoundTag("ScriptData"));
+        }
 
         return recipe;
     }
 
     public NBTTagCompound writeNBT() {
+        return writeNBT(true);
+    }
+
+    public NBTTagCompound writeNBT(boolean saveScripts) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setInteger("ID", id);
         compound.setInteger("Width", recipeWidth);
@@ -60,6 +69,11 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
         compound.setBoolean("Global", isGlobal);
         compound.setBoolean("IgnoreDamage", ignoreDamage);
         compound.setBoolean("IgnoreNBT", ignoreNBT);
+        if (saveScripts && script != null) {
+            NBTTagCompound scriptData = new NBTTagCompound();
+            script.writeToNBT(scriptData);
+            compound.setTag("ScriptData", scriptData);
+        }
         return compound;
     }
 
@@ -253,7 +267,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 
     public void save() {
         try {
-            RecipeController.Instance.saveRecipe(this.writeNBT());
+            RecipeController.Instance.saveRecipe(this.writeNBT(true));
         } catch (IOException var2) {
         }
 
@@ -269,5 +283,19 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
 
     public int getId() {
         return this.id;
+    }
+
+    public RecipeScript getScriptHandler() {
+        return script;
+    }
+
+    public void setScriptHandler(RecipeScript handler) {
+        this.script = handler;
+    }
+
+    public RecipeScript getOrCreateScriptHandler() {
+        if (script == null)
+            script = new RecipeScript();
+        return script;
     }
 }

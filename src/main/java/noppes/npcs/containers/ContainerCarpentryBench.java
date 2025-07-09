@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.EventHooks;
 
 public class ContainerCarpentryBench extends Container {
     public InventoryCrafting craftMatrix = new InventoryCrafting(this, 4, 4);
@@ -20,13 +21,15 @@ public class ContainerCarpentryBench extends Container {
     private int posY;
     private int posZ;
 
+    private RecipeCarpentry currentRecipe;
+
     public ContainerCarpentryBench(InventoryPlayer par1InventoryPlayer, World par2World, int par3, int par4, int par5) {
         this.worldObj = par2World;
         this.posX = par3;
         this.posY = par4;
         this.posZ = par5;
         this.player = par1InventoryPlayer.player;
-        this.addSlotToContainer(new SlotCrafting(par1InventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 133, 41));
+        this.addSlotToContainer(new SlotCarpentryResult(this, par1InventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 133, 41));
         int var6;
         int var7;
 
@@ -60,6 +63,7 @@ public class ContainerCarpentryBench extends Container {
     public void onCraftMatrixChanged(IInventory par1IInventory) {
         if (!this.worldObj.isRemote) {
             RecipeCarpentry recipe = RecipeController.Instance.findMatchingRecipe(this.craftMatrix);
+            this.currentRecipe = recipe;
 
             ItemStack item = null;
             if (recipe != null && recipe.availability.isAvailable(player)) {
@@ -149,5 +153,34 @@ public class ContainerCarpentryBench extends Container {
     @Override
     public boolean func_94530_a(ItemStack stack, Slot slotIn) {
         return slotIn.inventory != this.craftResult && super.func_94530_a(stack, slotIn);
+    }
+
+    // Custom result slot to handle recipe scripts
+    private class SlotCarpentryResult extends SlotCrafting {
+        private final ContainerCarpentryBench container;
+        private final InventoryCrafting matrix;
+
+        public SlotCarpentryResult(ContainerCarpentryBench container, EntityPlayer player, InventoryCrafting matrix, IInventory result, int index, int x, int y) {
+            super(player, matrix, result, index, x, y);
+            this.container = container;
+            this.matrix = matrix;
+        }
+
+        @Override
+        public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
+            RecipeCarpentry recipe = container.currentRecipe;
+            ItemStack[] items = new ItemStack[matrix.getSizeInventory()];
+            for (int i = 0; i < items.length; i++) {
+                items[i] = matrix.getStackInSlot(i);
+            }
+            if (recipe != null) {
+                if (EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items)) {
+                    container.onCraftMatrixChanged(matrix);
+                    return;
+                }
+                stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
+            }
+            super.onPickupFromSlot(player, stack);
+        }
     }
 }

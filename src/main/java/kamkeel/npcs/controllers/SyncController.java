@@ -108,7 +108,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeCarpentry recipe : controller.globalRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -119,7 +119,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeCarpentry recipe : controller.carpentryRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -130,7 +130,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeAnvil recipe : controller.anvilRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
