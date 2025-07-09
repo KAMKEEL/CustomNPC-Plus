@@ -217,6 +217,10 @@ public class ContainerAnvilRepair extends Container {
             ItemStack stack = slot.getStack();
             copy = stack.copy();
             if (index == 0) { // output slot
+                SlotAnvilOutput resultSlot = (SlotAnvilOutput) slot;
+                if (!resultSlot.preEvent(player)) {
+                    return null;
+                }
                 if (player.experienceTotal < this.repairCost) {
                     return null;
                 }
@@ -259,10 +263,33 @@ public class ContainerAnvilRepair extends Container {
     // subtracts one from the damaged item stack.
     public class SlotAnvilOutput extends Slot {
         private final ContainerAnvilRepair container;
+        private boolean preChecked = false;
+        private boolean canPickup = true;
 
         public SlotAnvilOutput(ContainerAnvilRepair container, IInventory inventory, int index, int x, int y) {
             super(inventory, index, x, y);
             this.container = container;
+        }
+
+        public boolean preEvent(EntityPlayer player) {
+            preChecked = true;
+            if (!container.worldObj.isRemote) {
+                RecipeAnvil recipe = container.currentRecipe;
+                if (recipe != null) {
+                    ItemStack[] items = new ItemStack[]{
+                        container.anvilMatrix.getStackInRowAndColumn(0, 0),
+                        container.anvilMatrix.getStackInRowAndColumn(1, 0)
+                    };
+                    canPickup = !EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
+                    if (!canPickup) {
+                        container.updateRepairResult();
+                        preChecked = false; // reset for next attempt
+                    }
+                } else {
+                    canPickup = true;
+                }
+            }
+            return canPickup;
         }
 
         @Override
@@ -272,20 +299,27 @@ public class ContainerAnvilRepair extends Container {
 
         @Override
         public boolean canTakeStack(EntityPlayer player) {
-            return player.experienceTotal >= container.repairCost;
+            if (!preChecked) {
+                preEvent(player);
+            }
+            return canPickup && player.experienceTotal >= container.repairCost;
         }
 
         @Override
         public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
+            if (!preChecked) {
+                if (!preEvent(player))
+                    return;
+            }
+            if (!canPickup) {
+                return;
+            }
             RecipeAnvil recipe = container.currentRecipe;
             ItemStack[] items = new ItemStack[]{
                 container.anvilMatrix.getStackInRowAndColumn(0, 0),
                 container.anvilMatrix.getStackInRowAndColumn(1, 0)
             };
-            if (recipe != null) {
-                if (EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items)) {
-                    return;
-                }
+            if (!container.worldObj.isRemote && recipe != null) {
                 container.updateRepairResult();
                 stack = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, stack);
             }
@@ -319,6 +353,8 @@ public class ContainerAnvilRepair extends Container {
             }
             container.repairCost = 0;
             container.updateRepairResult();
+            preChecked = false;
+            canPickup = true;
             super.onPickupFromSlot(player, stack);
         }
     }
