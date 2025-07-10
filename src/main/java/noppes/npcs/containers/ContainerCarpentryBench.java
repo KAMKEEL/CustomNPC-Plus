@@ -200,6 +200,7 @@ public class ContainerCarpentryBench extends Container {
     public void updateProgressBar(int id, int data) {
         if (id == 0 && this.resultSlot != null) {
             this.resultSlot.setCanPickup(data != 0);
+            resultCanPickup = data != 0;
         }
     }
     // --- End Sync Methods ---

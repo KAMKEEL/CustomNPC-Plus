@@ -47,7 +47,7 @@ public class GuiNpcCarpentryBench extends GuiContainerNPCInterface {
         drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
         super.drawGuiContainerBackgroundLayer(f, i, j);
         if (!container.canPickupResult()) {
-            drawRedSlotOutline(guiLeft + 133, guiTop + 41);
+            drawRedSlotOutline(guiLeft + 129, guiTop + 37);
         }
         fontRendererObj.drawString(title, guiLeft + 4, guiTop + 4, CustomNpcResourceListener.DefaultTextColor);
         fontRendererObj.drawString(StatCollector.translateToLocal("container.inventory"), guiLeft + 4, guiTop + 87, CustomNpcResourceListener.DefaultTextColor);
@@ -55,10 +55,12 @@ public class GuiNpcCarpentryBench extends GuiContainerNPCInterface {
 
     private void drawRedSlotOutline(int x, int y) {
         int c = 0xFFFF0000;
-        drawRect(x - 1, y - 1, x + 17, y, c);
-        drawRect(x - 1, y + 16, x + 17, y + 17, c);
-        drawRect(x - 1, y, x, y + 16, c);
-        drawRect(x + 16, y, x + 17, y + 16, c);
+        int size = 24;
+
+        drawRect(x - 1, y - 1, x + 1 + size, y, c);
+        drawRect(x - 1, y + size, x + 1 + size, y + 1 + size, c);
+        drawRect(x - 1, y, x, y + size, c);
+        drawRect(x + size, y, x + 1 + size, y + size, c);
     }
 
     @Override
