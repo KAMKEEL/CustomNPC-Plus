@@ -46,6 +46,9 @@ public class GuiNpcAnvil extends GuiContainerNPCInterface {
         int i1 = (height - ySize) / 2;
         drawTexturedModalRect(l, i1, 0, 0, xSize, ySize);
         super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
+        if (!container.canPickupResult()) {
+            drawRedSlotOutline(guiLeft + 133, guiTop + 47);
+        }
 
         // Draw title and player's inventory label.
         fontRendererObj.drawString(StatCollector.translateToLocal("tile.anvil.name"), guiLeft + 4, guiTop + 4, CustomNpcResourceListener.DefaultTextColor);
@@ -72,6 +75,14 @@ public class GuiNpcAnvil extends GuiContainerNPCInterface {
             textColor = 0xFF0000; // red when not enough XP
         }
         fontRendererObj.drawString(status, guiLeft + 5, guiTop + 75, textColor);
+    }
+
+    private void drawRedSlotOutline(int x, int y) {
+        int c = 0xFFFF0000;
+        drawRect(x - 1, y - 1, x + 17, y, c);
+        drawRect(x - 1, y + 16, x + 17, y + 17, c);
+        drawRect(x - 1, y, x, y + 16, c);
+        drawRect(x + 16, y, x + 17, y + 16, c);
     }
 
     @Override

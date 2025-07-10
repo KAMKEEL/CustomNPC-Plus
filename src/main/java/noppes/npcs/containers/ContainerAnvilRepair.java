@@ -11,6 +11,8 @@ import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.scripted.event.RecipeScriptEvent;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 
 public class ContainerAnvilRepair extends Container {
     // A 2-slot crafting matrix: slot 0 = damaged item, slot 1 = repair material.
@@ -212,6 +214,7 @@ public class ContainerAnvilRepair extends Container {
     public void onContainerClosed(EntityPlayer player) {
         super.onContainerClosed(player);
         if (!this.worldObj.isRemote) {
+            PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(EventHooks.RECIPE_OVERLAY_ID), (EntityPlayerMP) player);
             for (int i = 0; i < this.anvilMatrix.getSizeInventory(); i++) {
                 ItemStack stack = this.anvilMatrix.getStackInSlotOnClosing(i);
                 if (stack != null) {
@@ -226,6 +229,10 @@ public class ContainerAnvilRepair extends Container {
         return player.getDistanceSq((double) this.posX + 0.5D,
             (double) this.posY + 0.5D,
             (double) this.posZ + 0.5D) <= 64.0D;
+    }
+
+    public boolean canPickupResult() {
+        return this.resultCanPickup;
     }
 
     @Override

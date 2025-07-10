@@ -9,6 +9,8 @@ import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
 import noppes.npcs.EventHooks;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import noppes.npcs.scripted.event.RecipeScriptEvent;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
@@ -102,6 +104,7 @@ public class ContainerCarpentryBench extends Container {
         super.onContainerClosed(par1EntityPlayer);
 
         if (!this.worldObj.isRemote) {
+            PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(EventHooks.RECIPE_OVERLAY_ID), (EntityPlayerMP) par1EntityPlayer);
             for (int var2 = 0; var2 < 16; ++var2) {
                 ItemStack var3 = this.craftMatrix.getStackInSlotOnClosing(var2);
 
@@ -115,6 +118,10 @@ public class ContainerCarpentryBench extends Container {
     @Override
     public boolean canInteractWith(EntityPlayer par1EntityPlayer) {
         return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != CustomItems.carpentyBench ? false : par1EntityPlayer.getDistanceSq((double) this.posX + 0.5D, (double) this.posY + 0.5D, (double) this.posZ + 0.5D) <= 64.0D;
+    }
+
+    public boolean canPickupResult() {
+        return this.resultCanPickup;
     }
 
     /**
