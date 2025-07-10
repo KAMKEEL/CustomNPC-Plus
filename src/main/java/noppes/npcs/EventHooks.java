@@ -35,19 +35,13 @@ import noppes.npcs.scripted.event.*;
 import noppes.npcs.scripted.event.player.*;
 import noppes.npcs.scripted.event.player.PlayerEvent.*;
 import noppes.npcs.scripted.item.ScriptItemStack;
-import kamkeel.npcs.network.PacketHandler;
-import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
-import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.scripted.overlay.ScriptOverlayLabel;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
 import noppes.npcs.NoppesUtilServer;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 
 public class EventHooks {
-    // Overlay id used for recipe pre-event banner messages
-    public static final int RECIPE_OVERLAY_ID = 901;
     public EventHooks() {
     }
 
@@ -187,14 +181,8 @@ public class EventHooks {
         NpcAPI.EVENT_BUS.post(event);
         if (!player.worldObj.isRemote) {
             String msg = event.getMessage();
-            if (msg == null) msg = "";
-            if (!msg.isEmpty()) {
-                ScriptOverlay overlay = new ScriptOverlay(RECIPE_OVERLAY_ID);
-                ScriptOverlayLabel lbl = (ScriptOverlayLabel) overlay.addLabel(0, msg, 0, 5, 200, 20);
-                lbl.setAlignment(1);
-                CustomGuiController.openOverlay(NoppesUtilServer.getIPlayer(player), overlay);
-            } else {
-                PacketHandler.Instance.sendToPlayer(new ScriptOverlayClosePacket(RECIPE_OVERLAY_ID), (EntityPlayerMP) player);
+            if (msg != null && !msg.isEmpty()) {
+                AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "", msg);
             }
         }
         return event;
