@@ -120,6 +120,7 @@ public class ContainerAnvilRepair extends Container {
 
             ItemStack output = null;
             boolean canPickup = true;
+            RecipeScriptEvent.Pre pre = null;
             if (matchingRecipe != null) {
                 if (!matchingRecipe.availability.isAvailable(player)) {
                     return;
@@ -157,20 +158,28 @@ public class ContainerAnvilRepair extends Container {
                 int xpCost = baseXpCost * materialsUsed;
 
                 calcItem.setItemDamage(currentDamage);
+
+                ItemStack[] items = new ItemStack[]{input0, input1};
+                pre = EventHooks.onRecipeScriptPre(player, matchingRecipe.getScriptHandler(), matchingRecipe, items);
+                int scriptXp = pre.getXpCost();
+                int scriptMat = pre.getMaterialUsage();
+                xpCost += scriptXp;
+                materialsUsed += scriptMat;
+                pre.setXpCost(xpCost);
+                pre.setMaterialUsage(materialsUsed);
+                canPickup = !pre.isCanceled();
+
                 if (player.experienceTotal >= xpCost) {
                     output = calcItem;
                 }
+
                 repairMaterialConsumed = materialsUsed;
                 repairCost = xpCost;
+                output = EventHooks.onRecipeScriptPost(player, matchingRecipe.getScriptHandler(), matchingRecipe, items, output);
             } else {
                 repairCost = 0;
             }
-            if (matchingRecipe != null) {
-                ItemStack[] items = new ItemStack[]{input0, input1};
-                RecipeScriptEvent.Pre pre = EventHooks.onRecipeScriptPre(player, matchingRecipe.getScriptHandler(), matchingRecipe, items);
-                canPickup = !pre.isCanceled();
-                output = EventHooks.onRecipeScriptPost(player, matchingRecipe.getScriptHandler(), matchingRecipe, items, output);
-            }
+
 
             anvilResult.setInventorySlotContents(0, output);
             this.resultCanPickup = canPickup;

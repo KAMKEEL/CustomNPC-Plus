@@ -36,6 +36,8 @@ public class RecipeScriptEvent extends PlayerEvent {
     @Cancelable
     public static class Pre extends RecipeScriptEvent {
         private String message = "";
+        private int xpCost = 0;
+        private int materialUsage = 0;
 
         public Pre(IPlayer player, Object recipe, boolean isAnvil, IItemStack[] items) {
             super(player, recipe, isAnvil, items);
@@ -47,6 +49,24 @@ public class RecipeScriptEvent extends PlayerEvent {
 
         public String getMessage() {
             return message;
+        }
+
+        public int getXpCost() {
+            return xpCost;
+        }
+
+        public void setXpCost(int xpCost) {
+            if (this.isAnvil)
+                this.xpCost = xpCost;
+        }
+
+        public int getMaterialUsage() {
+            return materialUsage;
+        }
+
+        public void setMaterialUsage(int materialUsage) {
+            if (this.isAnvil)
+                this.materialUsage = materialUsage;
         }
 
         public String getHookName() {
