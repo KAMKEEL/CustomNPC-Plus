@@ -326,6 +326,18 @@ display.fixed=Fixed
 display.glow=Glow
 display.solid=Solid
 display.tintsettings=Tint Settings
+display.bossbarsettings=BossBar Settings
+
+# Boss Bar Settings
+bossbar.enable=Enable Boss Bar
+bossbar.enablecustom=Enable Custom Boss Bar
+bossbar.texture=Boss Bar Texture
+bossbar.backgroundtexture=Background Texture
+bossbar.color=Boss Bar Color
+bossbar.backgroundcolor=Background Color
+bossbar.scale=Scale
+bossbar.offsetx=Offset X
+bossbar.offsety=Offset Y
 display.hitboxsettings=Hitbox Settings
 display.version=Version
 display.versionInfo=Sends Version Update to all Items

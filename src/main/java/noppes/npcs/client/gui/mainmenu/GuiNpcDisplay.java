@@ -92,7 +92,8 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
 
         y += 23;
         addLabel(new GuiNpcLabel(10, "display.bossbar", guiLeft + 5, y + 5));
-        this.addButton(new GuiNpcButton(10, guiLeft + 60, y, 110, 20, new String[]{"display.hide", "display.show", "display.showAttacking"}, display.showBossBar));
+        //this.addButton(new GuiNpcButton(10, guiLeft + 60, y, 110, 20, new String[]{"display.hide", "display.show", "display.showAttacking"}, display.showBossBar));
+        this.addButton(new GuiNpcButton(10, guiLeft + 60, y, 110, 20, "display.bossbarsettings"));
 
         GeckoAddonClient.Instance.geckoNpcDisplayInitGui(this);
     }
@@ -164,7 +165,7 @@ public class GuiNpcDisplay extends GuiNPCInterface2 implements ITextfieldListene
         } else if (button.id == 9) {
             NoppesUtil.openGUI(player, new GuiNpcTextureOverlays(npc, this));
         } else if (button.id == 10) {
-            display.showBossBar = (byte) button.getValue();
+            setSubGui(new SubGuiNpcBossBar(display.bossBarData, display));
         } else if (button.id == 11) {
             npc.display.skinOverlayData.overlayList.get(0).setGlow(button.getValue() == 0);
             npc.display.skinOverlayData.overlayList.get(0).setBlend(button.getValue() == 0);

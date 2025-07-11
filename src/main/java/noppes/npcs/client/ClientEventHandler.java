@@ -20,6 +20,7 @@ import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.QuestTrackingComponent;
+import noppes.npcs.client.renderer.CustomBossStatus;
 import noppes.npcs.client.renderer.MarkRenderer;
 import noppes.npcs.client.renderer.RenderCNPCPlayer;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -90,6 +91,9 @@ public class ClientEventHandler {
     @SubscribeEvent
     public void onOverlayRender(RenderGameOverlayEvent.Post event) {
         if (event.type == RenderGameOverlayEvent.ElementType.ALL) {
+            // 渲染自定义血条
+            CustomBossStatus.renderBossHealth();
+
             for (OverlayCustom overlayCustom : ClientCacheHandler.customOverlays.values()) {
                 overlayCustom.renderGameOverlay(event.partialTicks);
             }
