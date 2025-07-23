@@ -6,8 +6,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import org.lwjgl.opengl.GL11;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class GuiHoverText extends GuiScreen {

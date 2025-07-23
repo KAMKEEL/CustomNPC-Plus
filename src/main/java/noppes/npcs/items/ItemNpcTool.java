@@ -144,39 +144,39 @@ public class ItemNpcTool extends Item {
     }
 
     public static boolean isPaintbrush(ItemStack itemStack) {
-        if(itemStack == null)
+        if (itemStack == null)
             return false;
 
-        if(itemStack.getItem() == null)
+        if (itemStack.getItem() == null)
             return false;
 
-        if(!(itemStack.getItem() instanceof ItemNpcTool))
+        if (!(itemStack.getItem() instanceof ItemNpcTool))
             return false;
 
         return itemStack.getItemDamage() == 1;
     }
 
     public static boolean isHammer(ItemStack itemStack) {
-        if(itemStack == null)
+        if (itemStack == null)
             return false;
 
-        if(itemStack.getItem() == null)
+        if (itemStack.getItem() == null)
             return false;
 
-        if(!(itemStack.getItem() instanceof ItemNpcTool))
+        if (!(itemStack.getItem() instanceof ItemNpcTool))
             return false;
 
         return itemStack.getItemDamage() == 0;
     }
 
     public static boolean isMagicBook(ItemStack itemStack) {
-        if(itemStack == null)
+        if (itemStack == null)
             return false;
 
-        if(itemStack.getItem() == null)
+        if (itemStack.getItem() == null)
             return false;
 
-        if(!(itemStack.getItem() instanceof ItemNpcTool))
+        if (!(itemStack.getItem() instanceof ItemNpcTool))
             return false;
 
         return itemStack.getItemDamage() == 2;

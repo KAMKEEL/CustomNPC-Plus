@@ -14,7 +14,7 @@ public class ScriptFishHook<T extends EntityFishHook> extends ScriptEntity<T> im
 
     @Override
     public IPlayer getCaster() {
-        if(entity.field_146042_b != null)
+        if (entity.field_146042_b != null)
             return (IPlayer) NpcAPI.Instance().getIEntity(entity.field_146042_b);
         return null;
     }

@@ -8,7 +8,11 @@ import net.minecraft.client.audio.SoundRegistry;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.controllers.MusicController;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 import java.util.ArrayList;
 import java.util.HashMap;

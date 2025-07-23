@@ -18,7 +18,11 @@ import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class QuestController implements IQuestHandler {
     public HashMap<Integer, QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();

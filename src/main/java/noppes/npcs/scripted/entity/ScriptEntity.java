@@ -30,7 +30,12 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptParticle;
 import noppes.npcs.scripted.constants.EntityType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class ScriptEntity<T extends Entity> implements IEntity {
     protected T entity;

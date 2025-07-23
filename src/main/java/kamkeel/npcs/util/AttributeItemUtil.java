@@ -19,7 +19,12 @@ import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.data.Magic;
 import org.lwjgl.input.Keyboard;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**

@@ -10,8 +10,17 @@ import noppes.npcs.api.handler.INaturalSpawnsHandler;
 import noppes.npcs.api.handler.data.INaturalSpawn;
 import noppes.npcs.controllers.data.SpawnData;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
 public class SpawnController implements INaturalSpawnsHandler {

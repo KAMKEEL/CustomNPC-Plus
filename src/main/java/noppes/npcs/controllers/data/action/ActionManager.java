@@ -9,7 +9,11 @@ import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.action.action.ConditionalAction;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -38,7 +42,8 @@ public class ActionManager implements IActionManager {
     protected boolean debug = false;
     protected ScriptContainer reportTo;
 
-    public ActionManager() {}
+    public ActionManager() {
+    }
 
     public ActionManager(String name) {
         this.name = name;
@@ -130,6 +135,7 @@ public class ActionManager implements IActionManager {
     public IAction create(int maxDuration, int delay, Consumer<IAction> task) {
         return new Action(this, maxDuration, delay, task);
     }
+
     @Override
     public IAction create(String name, int maxDuration, int delay, Consumer<IAction> task) {
         return new Action(this, name, maxDuration, delay, task);
@@ -151,32 +157,32 @@ public class ActionManager implements IActionManager {
     }
 
     @Override
-    public IConditionalAction create(Function<IAction,Boolean> condition, Consumer<IAction> task) {
+    public IConditionalAction create(Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return new ConditionalAction(this, condition, task);
     }
 
     @Override
-    public IConditionalAction create(String name,Function<IAction,Boolean> condition, Consumer<IAction> task) {
+    public IConditionalAction create(String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return new ConditionalAction(this, name, condition, task);
     }
 
     @Override
-    public IConditionalAction create(Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen) {
+    public IConditionalAction create(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         return new ConditionalAction(this, condition, task, terminateWhen);
     }
 
     @Override
-    public IConditionalAction create(String name,Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen) {
+    public IConditionalAction create(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         return new ConditionalAction(this, name, condition, task, terminateWhen);
     }
 
     @Override
-    public IConditionalAction create(Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public IConditionalAction create(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return new ConditionalAction(this, condition, task, terminateWhen, onTermination);
     }
 
     @Override
-    public IConditionalAction create(String name,Function<IAction,Boolean> condition, Consumer<IAction> task,Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public IConditionalAction create(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return new ConditionalAction(this, name, condition, task, terminateWhen, onTermination);
     }
 
@@ -277,6 +283,7 @@ public class ActionManager implements IActionManager {
     public IAction schedule(String name, Consumer<IAction> task) {
         return sequentialQueue.schedule(name, task);
     }
+
     @Override
     public IAction schedule(String name, int delay, Consumer<IAction> task) {
         return sequentialQueue.schedule(name, delay, task);
@@ -335,6 +342,7 @@ public class ActionManager implements IActionManager {
     public IAction scheduleParallel(String name, Consumer<IAction> task) {
         return parallelQueue.schedule(name, task);
     }
+
     @Override
     public IAction scheduleParallel(String name, int delay, Consumer<IAction> task) {
         return parallelQueue.schedule(delay, task);
@@ -365,33 +373,33 @@ public class ActionManager implements IActionManager {
     }
 
     @Override
-    public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task) {
+    public IConditionalAction schedule(Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return schedule(new ConditionalAction(this, condition, task));
     }
 
     @Override
-    public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen) {
+    public IConditionalAction schedule(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         return schedule(new ConditionalAction(this, condition, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction schedule(Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public IConditionalAction schedule(Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return schedule(new ConditionalAction(this, condition, task, terminateWhen, onTermination));
     }
 
 
     @Override
-    public IConditionalAction schedule(String name, Function<IAction,Boolean> condition, Consumer<IAction> task) {
+    public IConditionalAction schedule(String name, Function<IAction, Boolean> condition, Consumer<IAction> task) {
         return schedule(new ConditionalAction(this, name, condition, task));
     }
 
     @Override
-    public IConditionalAction schedule(String name, Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen) {
+    public IConditionalAction schedule(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen) {
         return schedule(new ConditionalAction(this, name, condition, task, terminateWhen));
     }
 
     @Override
-    public IConditionalAction schedule(String name, Function<IAction,Boolean> condition, Consumer<IAction> task, Function<IAction,Boolean> terminateWhen, Consumer<IAction> onTermination) {
+    public IConditionalAction schedule(String name, Function<IAction, Boolean> condition, Consumer<IAction> task, Function<IAction, Boolean> terminateWhen, Consumer<IAction> onTermination) {
         return schedule(new ConditionalAction(this, name, condition, task, terminateWhen, onTermination));
     }
 
@@ -415,6 +423,7 @@ public class ActionManager implements IActionManager {
     public boolean hasActiveTasks() {
         return Arrays.stream(getAllQueues()).anyMatch(queue -> queue.hasActiveTasks());
     }
+
     @Override
     public boolean hasAny(String name) {
         return getAny(name) != null;
@@ -503,7 +512,7 @@ public class ActionManager implements IActionManager {
 //        }
 
         if (debug && active)
-            LOGGER.finish("Finished Tick Cycle",this);
+            LOGGER.finish("Finished Tick Cycle", this);
     }
 
     @Override

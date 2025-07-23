@@ -11,13 +11,20 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.api.handler.IRecipeHandler;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.api.handler.data.IRecipe;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.RecipeAnvil;
+import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeScript;
+import noppes.npcs.controllers.data.RecipesDefault;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class RecipeController implements IRecipeHandler {
     private static Collection<RecipeCarpentry> prevRecipes;
@@ -278,7 +285,7 @@ public class RecipeController implements IRecipeHandler {
             SyncController.syncAllWorkbenchRecipes();
 
         RecipeCarpentry carpentry = carpentryRecipes.remove(recipe.id);
-        if (carpentry != null){
+        if (carpentry != null) {
             carpentryScripts.remove(recipe.id);
             SyncController.syncAllCarpentryRecipes();
         }

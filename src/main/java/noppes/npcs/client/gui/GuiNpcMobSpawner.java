@@ -1,7 +1,12 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.clone.*;
+import kamkeel.npcs.network.packets.request.clone.CloneAllTagsPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneListPacket;
+import kamkeel.npcs.network.packets.request.clone.CloneRemovePacket;
+import kamkeel.npcs.network.packets.request.clone.CloneTagListPacket;
+import kamkeel.npcs.network.packets.request.clone.MobSpawnerPacket;
+import kamkeel.npcs.network.packets.request.clone.SpawnMobPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.entity.Entity;
@@ -13,12 +18,25 @@ import net.minecraft.util.StatCollector;
 import net.minecraft.world.World;
 import noppes.npcs.client.controllers.ClientCloneController;
 import noppes.npcs.client.controllers.ClientTagMapController;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiCustomScrollCloner;
+import noppes.npcs.client.gui.util.GuiMenuSideButton;
+import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.controllers.data.Tag;
 import noppes.npcs.controllers.data.TagMap;
 
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class GuiNpcMobSpawner extends GuiNPCInterface implements IGuiData {
     public static HashMap<UUID, Tag> tags = new HashMap<>();

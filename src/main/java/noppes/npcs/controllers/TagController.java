@@ -9,8 +9,18 @@ import noppes.npcs.api.handler.ITagHandler;
 import noppes.npcs.api.handler.data.ITag;
 import noppes.npcs.controllers.data.Tag;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 
 public class TagController implements ITagHandler {

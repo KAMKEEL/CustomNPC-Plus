@@ -16,7 +16,11 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-import noppes.npcs.*;
+import noppes.npcs.CustomItems;
+import noppes.npcs.EventHooks;
+import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.TextBlock;
 import noppes.npcs.api.IBlock;
 import noppes.npcs.api.block.ITextPlane;
 import noppes.npcs.client.renderer.blocks.BlockScriptedRenderer;
@@ -28,8 +32,12 @@ import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.scripted.BlockScriptedWrapper;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public List<ScriptContainer> scripts = new ArrayList<>();

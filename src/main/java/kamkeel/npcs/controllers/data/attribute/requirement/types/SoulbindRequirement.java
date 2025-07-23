@@ -3,8 +3,8 @@ package kamkeel.npcs.controllers.data.attribute.requirement.types;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.data.attribute.requirement.IRequirementChecker;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 

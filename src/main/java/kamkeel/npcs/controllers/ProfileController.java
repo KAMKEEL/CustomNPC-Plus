@@ -1,10 +1,20 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.profile.*;
+import kamkeel.npcs.controllers.data.profile.CNPCData;
+import kamkeel.npcs.controllers.data.profile.EnumProfileOperation;
+import kamkeel.npcs.controllers.data.profile.IProfileData;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
+import kamkeel.npcs.controllers.data.profile.ProfileOperation;
+import kamkeel.npcs.controllers.data.profile.Slot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.*;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.EventHooks;
+import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.IProfileHandler;
@@ -20,13 +30,27 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static noppes.npcs.CustomNpcsPermissions.*;
+import static noppes.npcs.CustomNpcsPermissions.PROFILE_MAX;
+import static noppes.npcs.CustomNpcsPermissions.PROFILE_REGION_BYPASS;
+import static noppes.npcs.CustomNpcsPermissions.hasCustomPermission;
 
 public class ProfileController implements IProfileHandler {
 

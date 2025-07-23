@@ -4,11 +4,15 @@ import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.config.ConfigDebug;
-import noppes.npcs.config.ConfigScript;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Deque;
+import java.util.List;
+import java.util.ListIterator;
 
 public class ActionLogger {
     // private final Map<Object, List<?>> snapshot = new HashMap<>();
@@ -138,7 +142,7 @@ public class ActionLogger {
     private static final String ANSI_RESET = "\u001B[0m";
 
     public void println(String str) {
-        if(ConfigDebug.LogActionManager)
+        if (ConfigDebug.LogActionManager)
             System.out.printf("[%tT] %s[%s]:%s %s%s%n", new Date(), ANSI_CYAN, Thread.currentThread().getName(), ANSI_GOLD, str, ANSI_RESET);
     }
 

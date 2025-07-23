@@ -12,7 +12,9 @@ import java.io.File;
 import java.util.Map;
 import java.util.UUID;
 
-import static kamkeel.npcs.util.ColorUtil.*;
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendMessage;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class CommandProfileAdmin extends CommandProfileBase {
 

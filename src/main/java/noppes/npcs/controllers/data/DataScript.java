@@ -27,7 +27,13 @@ import noppes.npcs.scripted.constants.RoleType;
 import noppes.npcs.scripted.entity.ScriptNpc;
 
 import javax.script.ScriptEngine;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class DataScript implements INpcScriptHandler {
     public List<ScriptContainer> eventScripts = new ArrayList<>();

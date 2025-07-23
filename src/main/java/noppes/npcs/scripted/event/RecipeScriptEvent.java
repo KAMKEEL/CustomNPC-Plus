@@ -1,12 +1,9 @@
 package noppes.npcs.scripted.event;
 
 import cpw.mods.fml.common.eventhandler.Cancelable;
-import noppes.npcs.api.handler.data.IRecipe;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.RecipeScript;
-import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 
 public class RecipeScriptEvent extends PlayerEvent {

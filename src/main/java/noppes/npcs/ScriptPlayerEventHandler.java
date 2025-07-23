@@ -20,20 +20,41 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.entity.EntityStruckByLightningEvent;
 import net.minecraftforge.event.entity.PlaySoundAtEntityEvent;
 import net.minecraftforge.event.entity.item.ItemTossEvent;
-import net.minecraftforge.event.entity.living.*;
-import net.minecraftforge.event.entity.player.*;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent;
+import net.minecraftforge.event.entity.living.LivingFallEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.player.AchievementEvent;
+import net.minecraftforge.event.entity.player.ArrowLooseEvent;
+import net.minecraftforge.event.entity.player.ArrowNockEvent;
+import net.minecraftforge.event.entity.player.BonemealEvent;
+import net.minecraftforge.event.entity.player.EntityInteractEvent;
+import net.minecraftforge.event.entity.player.FillBucketEvent;
+import net.minecraftforge.event.entity.player.PlayerDropsEvent;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.entity.player.PlayerOpenContainerEvent;
+import net.minecraftforge.event.entity.player.PlayerPickupXpEvent;
+import net.minecraftforge.event.entity.player.PlayerSleepInBedEvent;
+import net.minecraftforge.event.entity.player.PlayerUseItemEvent;
+import net.minecraftforge.event.entity.player.PlayerWakeUpEvent;
+import net.minecraftforge.event.entity.player.UseHoeEvent;
 import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.config.ConfigMain;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
@@ -142,7 +163,7 @@ public class ScriptPlayerEventHandler {
         if (event.entityPlayer == null || event.entityPlayer.worldObj == null || event.entityPlayer.worldObj.isRemote || !(event.entityPlayer instanceof EntityPlayerMP))
             return;
 
-        if(event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK)
+        if (event.action == PlayerInteractEvent.Action.LEFT_CLICK_BLOCK)
             return;
 
         IPlayer ip = NoppesUtilServer.getIPlayer(event.entityPlayer);
@@ -152,14 +173,14 @@ public class ScriptPlayerEventHandler {
             return;
         }
 
-        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR){
+        if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_AIR) {
             if (pd.hadInteract) {
                 pd.hadInteract = false;
                 return;
             }
             noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent rightClickEvent = new noppes.npcs.scripted.event.player.PlayerEvent.RightClickEvent(ip, 0, null);
             event.setCanceled(EventHooks.onPlayerRightClick(handler, rightClickEvent));
-        } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK){
+        } else if (event.action == PlayerInteractEvent.Action.RIGHT_CLICK_BLOCK) {
             pd.hadInteract = true;
             IWorld iw = (IWorld) NpcAPI.Instance().getIWorld(event.world);
             Object blockCtx = NpcAPI.Instance().getIBlock(iw, event.x, event.y, event.z);

@@ -25,7 +25,11 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
 
 public class DataDisplay {
     public EntityNPCInterface npc;

@@ -4,7 +4,11 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import kamkeel.npcs.network.*;
+import kamkeel.npcs.network.AbstractPacket;
+import kamkeel.npcs.network.PacketChannel;
+import kamkeel.npcs.network.PacketClient;
+import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.network.PacketUtil;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
@@ -14,7 +18,6 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigDebug;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.RecipeController;
-import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.data.RecipeScript;
@@ -31,7 +34,8 @@ public final class RecipeScriptPacket extends AbstractPacket {
     private int maxSize;
     private NBTTagCompound compound;
 
-    public RecipeScriptPacket() {}
+    public RecipeScriptPacket() {
+    }
 
     public RecipeScriptPacket(Action type, boolean anvil, int id, int tab, int maxSize, NBTTagCompound compound) {
         this.type = type;

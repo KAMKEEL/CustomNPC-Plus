@@ -29,12 +29,20 @@ import noppes.npcs.client.gui.util.GuiTexturedButton;
 import noppes.npcs.client.gui.util.IGuiClose;
 import noppes.npcs.config.ConfigExperimental;
 import noppes.npcs.controllers.FactionController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogImage;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityNPCInterface;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
     private int selected = 0;

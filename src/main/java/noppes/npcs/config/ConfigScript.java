@@ -161,7 +161,7 @@ public class ConfigScript {
             if (ExpandedScriptLimit < 0)
                 ExpandedScriptLimit = 0;
 
-            if(ActionManagerTickDefault < 0){
+            if (ActionManagerTickDefault < 0) {
                 ActionManagerTickDefault = 1;
             }
 

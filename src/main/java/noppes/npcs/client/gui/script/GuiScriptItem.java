@@ -49,7 +49,7 @@ public class GuiScriptItem extends GuiScriptInterface {
     }
 
     public void save() {
-        if(loaded) {
+        if (loaded) {
             super.save();
             ItemScriptPacket.Save(this.item.getMCNbt());
         }

@@ -92,7 +92,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         int startBracket = 0, endBracket = 0;
         if (startSelection >= 0 && startSelection < text.length() &&
-                (endSelection - startSelection == 1 || startSelection == endSelection)) {
+            (endSelection - startSelection == 1 || startSelection == endSelection)) {
             char c = text.charAt(startSelection);
             int found = 0;
             if (c == '{') {

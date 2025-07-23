@@ -1,6 +1,5 @@
 package noppes.npcs.controllers.data.action;
 
-import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionQueue;
 
 import java.util.LinkedList;

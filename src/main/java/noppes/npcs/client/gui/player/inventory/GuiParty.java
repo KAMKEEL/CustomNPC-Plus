@@ -2,7 +2,17 @@ package noppes.npcs.client.gui.player.inventory;
 
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
-import kamkeel.npcs.network.packets.request.party.*;
+import kamkeel.npcs.network.packets.request.party.PartyAcceptInvitePacket;
+import kamkeel.npcs.network.packets.request.party.PartyDisbandPacket;
+import kamkeel.npcs.network.packets.request.party.PartyIgnoreInvitePacket;
+import kamkeel.npcs.network.packets.request.party.PartyInfoPacket;
+import kamkeel.npcs.network.packets.request.party.PartyInvitePacket;
+import kamkeel.npcs.network.packets.request.party.PartyKickPacket;
+import kamkeel.npcs.network.packets.request.party.PartyLeavePacket;
+import kamkeel.npcs.network.packets.request.party.PartyLogToServerPacket;
+import kamkeel.npcs.network.packets.request.party.PartySavePacket;
+import kamkeel.npcs.network.packets.request.party.PartySetLeaderPacket;
+import kamkeel.npcs.network.packets.request.party.PartySetQuestPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -14,13 +24,25 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.QuestLogData;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiButtonNextPage;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IPartyData;
+import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.Quest;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.Vector;
 
 public class GuiParty extends GuiCNPCInventory implements ITextfieldListener, ICustomScrollListener, IPartyData, GuiYesNoCallback {
     private final ResourceLocation resource = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");

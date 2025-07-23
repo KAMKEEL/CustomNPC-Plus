@@ -15,7 +15,16 @@ import noppes.npcs.scripted.NpcAPI;
 
 import javax.annotation.CheckForNull;
 import java.lang.reflect.Array;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.TreeMap;
 
 public class GlobalNPCDataScript implements INpcScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();

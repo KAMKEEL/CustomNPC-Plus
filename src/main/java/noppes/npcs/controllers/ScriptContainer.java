@@ -9,11 +9,20 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.NpcAPI;
 
-import javax.script.*;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
+import javax.script.ScriptContext;
+import javax.script.ScriptEngine;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 public class ScriptContainer {
     private static final String lock = "lock";

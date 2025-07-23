@@ -1,7 +1,8 @@
 package noppes.npcs.scripted.entity;
 
 import net.minecraft.entity.projectile.EntityThrowable;
-import noppes.npcs.api.entity.*;
+import noppes.npcs.api.entity.IEntityLivingBase;
+import noppes.npcs.api.entity.IThrowable;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.EntityType;
 
@@ -13,7 +14,7 @@ public class ScriptThrowable<T extends EntityThrowable> extends ScriptEntity<T> 
 
     @Override
     public IEntityLivingBase getThrower() {
-        if(entity.getThrower() != null)
+        if (entity.getThrower() != null)
             return (IEntityLivingBase) NpcAPI.Instance().getIEntity(entity.getThrower());
         return null;
     }

@@ -34,7 +34,7 @@ public class GuiScriptBlock extends GuiScriptInterface {
     }
 
     public void save() {
-        if(loaded) {
+        if (loaded) {
             super.save();
             BlockScriptPacket.Save(tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord, this.tileScripted.getNBT(new NBTTagCompound()));
         }

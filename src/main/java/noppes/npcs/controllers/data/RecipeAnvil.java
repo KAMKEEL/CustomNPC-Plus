@@ -164,6 +164,7 @@ public class RecipeAnvil implements IAnvilRecipe {
         this.repairPercentage = recipe.repairPercentage;
         this.xpCost = recipe.xpCost;
     }
+
     public RecipeScript getScriptHandler() {
         return RecipeController.Instance.anvilScripts.get(this.id);
     }

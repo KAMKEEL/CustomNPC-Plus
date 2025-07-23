@@ -14,7 +14,7 @@ public class ScriptArrow<T extends EntityArrow> extends ScriptEntity<T> implemen
 
     @Override
     public IEntity getShooter() {
-        if(entity.shootingEntity != null)
+        if (entity.shootingEntity != null)
             return NpcAPI.Instance().getIEntity(entity.shootingEntity);
         return null;
     }

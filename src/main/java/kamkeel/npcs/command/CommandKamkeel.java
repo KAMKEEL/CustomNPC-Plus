@@ -13,7 +13,11 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static kamkeel.npcs.command.EffectCommand.getSortedEffectNames;
 

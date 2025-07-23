@@ -4,7 +4,11 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.overlay.*;
+import noppes.npcs.api.overlay.ICustomOverlay;
+import noppes.npcs.api.overlay.ICustomOverlayComponent;
+import noppes.npcs.api.overlay.IOverlayLabel;
+import noppes.npcs.api.overlay.IOverlayLine;
+import noppes.npcs.api.overlay.IOverlayTexturedRect;
 import noppes.npcs.controllers.CustomGuiController;
 
 import java.util.ArrayList;

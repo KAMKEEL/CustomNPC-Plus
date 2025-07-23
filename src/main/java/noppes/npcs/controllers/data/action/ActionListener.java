@@ -4,7 +4,8 @@ import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionListener;
 import noppes.npcs.api.handler.data.IActionQueue;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ActionListener implements IActionListener {
@@ -38,17 +39,17 @@ public class ActionListener implements IActionListener {
         return object;
     }
 
-//    @Override
+    //    @Override
     public Hook getOrCreateHook(String hookName) {
         return hooks.computeIfAbsent(hookName, Hook::new);
     }
 
-//    @Override
+    //    @Override
     public Hook getHook(String hookName) {
         return hooks.get(hookName);
     }
 
-//    @Override
+    //    @Override
     public boolean fire(String hookName) {
         Hook hook = hooks.get(hookName);
         if (hook != null) {

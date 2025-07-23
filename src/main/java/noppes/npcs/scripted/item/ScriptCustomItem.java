@@ -12,7 +12,11 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.INpcScriptHandler;
 import noppes.npcs.scripted.CustomNPCsException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, INpcScriptHandler {
     public List<ScriptContainer> scripts = new ArrayList();

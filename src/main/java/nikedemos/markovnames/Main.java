@@ -1,6 +1,14 @@
 package nikedemos.markovnames;
 
-import nikedemos.markovnames.generators.*;
+import nikedemos.markovnames.generators.MarkovAncientGreek;
+import nikedemos.markovnames.generators.MarkovAztec;
+import nikedemos.markovnames.generators.MarkovGenerator;
+import nikedemos.markovnames.generators.MarkovJapanese;
+import nikedemos.markovnames.generators.MarkovOldNorse;
+import nikedemos.markovnames.generators.MarkovRoman;
+import nikedemos.markovnames.generators.MarkovSaami;
+import nikedemos.markovnames.generators.MarkovSlavic;
+import nikedemos.markovnames.generators.MarkovWelsh;
 
 import java.util.HashMap;
 import java.util.Iterator;

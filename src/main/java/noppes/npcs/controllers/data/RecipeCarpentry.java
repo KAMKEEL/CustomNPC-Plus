@@ -47,7 +47,7 @@ public class RecipeCarpentry extends ShapedRecipes implements IRecipe {
         this.ignoreNBT = compound.getBoolean("IgnoreNBT");
         this.isGlobal = compound.getBoolean("Global");
 
-        if(!isGlobal){
+        if (!isGlobal) {
             if (compound.hasKey("ScriptData", Constants.NBT.TAG_COMPOUND)) {
                 RecipeScript handler = new RecipeScript();
                 handler.readFromNBT(compound.getCompoundTag("ScriptData"));

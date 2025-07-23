@@ -14,7 +14,13 @@ import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.util.ValueUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.Vector;
 
 public class QuestItem extends QuestInterface implements IQuestItem {
     public NpcMiscInventory items = new NpcMiscInventory(3);

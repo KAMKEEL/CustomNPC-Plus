@@ -6,7 +6,11 @@ import noppes.npcs.api.handler.data.IActionChain;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.controllers.data.action.chain.ActionChain;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.function.Consumer;
 
@@ -47,6 +51,7 @@ public class ActionQueue implements IActionQueue {
         isWorking = false;
         return this;
     }
+
     @Override
     public IActionManager getManager() {
         return manager;
@@ -289,6 +294,7 @@ public class ActionQueue implements IActionQueue {
 
         return false;
     }
+
     protected boolean tick(Action a) {
         if (a == null)
             return false;
@@ -315,7 +321,7 @@ public class ActionQueue implements IActionQueue {
 
         if (!isParallel) {
             if (tick((Action) getCurrentAction()))
-                    queue.pollFirst();
+                queue.pollFirst();
         } else {
             Iterator<IAction> pit = queue.iterator();
             while (pit.hasNext())

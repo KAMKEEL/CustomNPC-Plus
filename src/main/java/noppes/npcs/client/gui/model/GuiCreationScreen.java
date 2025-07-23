@@ -16,13 +16,29 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiModelInterface;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.compat.PixelmonHelper;
-import noppes.npcs.entity.*;
+import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.EntityFakeLiving;
+import noppes.npcs.entity.EntityNPCGolem;
+import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.entity.EntityNpcCrystal;
+import noppes.npcs.entity.EntityNpcDragon;
+import noppes.npcs.entity.EntityNpcPony;
+import noppes.npcs.entity.EntityNpcSlime;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class GuiCreationScreen extends GuiModelInterface implements ICustomScrollListener {
 

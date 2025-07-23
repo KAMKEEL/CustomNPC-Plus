@@ -2,7 +2,6 @@ package noppes.npcs.controllers.data.action;
 
 import noppes.npcs.api.handler.IActionManager;
 import noppes.npcs.api.handler.data.IAction;
-import noppes.npcs.api.handler.data.IActionListener;
 import noppes.npcs.api.handler.data.IActionQueue;
 import noppes.npcs.api.handler.data.actions.IConditionalAction;
 import noppes.npcs.controllers.ScriptContainer;
@@ -505,6 +504,7 @@ public class Action implements IAction {
         }
         return null;
     }
+
     @Override
     public IAction after(IAction after) {
         if (after instanceof IConditionalAction)
@@ -637,6 +637,7 @@ public class Action implements IAction {
         for (Consumer<IAction> task : tasks)
             parallel(task);
     }
+
     @Override
     public IAction parallel(int delay, Consumer<IAction> task) {
         return parallel(manager.create(delay, task));
