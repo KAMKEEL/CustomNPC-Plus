@@ -16,6 +16,9 @@ import noppes.npcs.client.model.animation.AniHug;
 import noppes.npcs.client.model.part.*;
 import noppes.npcs.client.model.util.ModelPartInterface;
 import noppes.npcs.client.model.util.ModelScaleRenderer;
+import noppes.npcs.client.model.skin3d.PixelModelPart;
+import noppes.npcs.client.model.skin3d.SkinLayerUtil;
+import noppes.npcs.client.model.skin3d.SkinLayerCache;
 import noppes.npcs.client.renderer.ImageData;
 import noppes.npcs.constants.EnumAnimation;
 import noppes.npcs.constants.EnumAnimationPart;
@@ -63,6 +66,12 @@ public class ModelMPM extends ModelNPCMale {
     public ModelTail tail;
     public ModelBase entityModel;
     public EntityLivingBase entity;
+    private PixelModelPart headLayer3d;
+    private PixelModelPart bodyLayer3d;
+    private PixelModelPart rightArmLayer3d;
+    private PixelModelPart leftArmLayer3d;
+    private PixelModelPart rightLegLayer3d;
+    private PixelModelPart leftLegLayer3d;
 
     public boolean currentlyPlayerTexture;
 
@@ -750,8 +759,19 @@ public class ModelMPM extends ModelNPCMale {
                 ((ModelScaleRenderer) this.bipedHeadwear).setConfig(head, x, y, z);
                 ((ModelScaleRenderer) this.bipedHeadwear).render(f);
             } else if (entity.modelData.headwear == 2) {
-                this.headwear.setConfig(head, x, y, z);
-                this.headwear.render(f);
+                if (headLayer3d == null) {
+                    ImageData data = ClientCacheHandler.getNPCTexture(entity.display.url, entity.display.skinType == 3, entity.textureLocation);
+                    SkinLayerCache.LayerSet layers = SkinLayerCache.getLayers(data, isAlexArmor);
+                    if (layers != null) {
+                        headLayer3d = layers.head;
+                    }
+                }
+                if (headLayer3d != null) {
+                    GL11.glPushMatrix();
+                    this.bipedHead.postRender(0.0625F);
+                    headLayer3d.render();
+                    GL11.glPopMatrix();
+                }
             }
         }
         ((ModelScaleRenderer) this.bipedHead).setConfig(head, x, y, z);
@@ -780,6 +800,21 @@ public class ModelMPM extends ModelNPCMale {
         // Hide Bodywear
         this.bipedBodywear.isHidden = entity.modelData.bodywear != 1;
         this.bodywear.isHidden = entity.modelData.bodywear != 2;
+        if(entity.modelData.bodywear == 2){
+            if(bodyLayer3d == null){
+                ImageData data = ClientCacheHandler.getNPCTexture(entity.display.url, entity.display.skinType == 3, entity.textureLocation);
+                SkinLayerCache.LayerSet layers = SkinLayerCache.getLayers(data, isAlexArmor);
+                if(layers != null){
+                    bodyLayer3d = layers.body;
+                }
+            }
+            if(bodyLayer3d != null){
+                GL11.glPushMatrix();
+                this.bipedBody.postRender(0.0625F);
+                bodyLayer3d.render();
+                GL11.glPopMatrix();
+            }
+        }
 
         ((ModelScaleRenderer) this.bipedBody).setConfig(body, x, y, z);
         ((ModelScaleRenderer) this.bipedBody).render(f);
@@ -846,6 +881,38 @@ public class ModelMPM extends ModelNPCMale {
             this.solidLeftArmWear.isHidden = true;
         }
 
+        if(entity.modelData.rightArmWear() == 2){
+            if(rightArmLayer3d == null){
+                ImageData data = ClientCacheHandler.getNPCTexture(entity.display.url, entity.display.skinType == 3, entity.textureLocation);
+                SkinLayerCache.LayerSet layers = SkinLayerCache.getLayers(data, isAlexArmor);
+                if(layers != null){
+                    rightArmLayer3d = layers.rightArm;
+                }
+            }
+            if(rightArmLayer3d != null){
+                GL11.glPushMatrix();
+                this.bipedRightArm.postRender(0.0625F);
+                rightArmLayer3d.render();
+                GL11.glPopMatrix();
+            }
+        }
+
+        if(entity.modelData.leftArmWear() == 2){
+            if(leftArmLayer3d == null){
+                ImageData data = ClientCacheHandler.getNPCTexture(entity.display.url, entity.display.skinType == 3, entity.textureLocation);
+                SkinLayerCache.LayerSet layers = SkinLayerCache.getLayers(data, isAlexArmor);
+                if(layers != null){
+                    leftArmLayer3d = layers.leftArm;
+                }
+            }
+            if(leftArmLayer3d != null){
+                GL11.glPushMatrix();
+                this.bipedLeftArm.postRender(0.0625F);
+                leftArmLayer3d.render();
+                GL11.glPopMatrix();
+            }
+        }
+
         loadPlayerTexture(entity);
         if (!bo) {
             ((ModelScaleRenderer) this.bipedLeftArm).setConfig(arms, -x, y, z);
@@ -907,11 +974,44 @@ public class ModelMPM extends ModelNPCMale {
 
             this.solidRightLegWear.isHidden = entity.modelData.solidLegwear == 0 || entity.modelData.solidLegwear == 2;
             this.solidLeftLegWear.isHidden = true;
+
         } else {
             ((ModelScaleRenderer) this.bipedRightLegWear).isHidden = true;
             ((ModelScaleRenderer) this.bipedLeftLegWear).isHidden = true;
             this.solidRightLegWear.isHidden = true;
             this.solidLeftLegWear.isHidden = true;
+        }
+
+        if(entity.modelData.rightLegWear() == 2){
+            if(rightLegLayer3d == null){
+                ImageData data = ClientCacheHandler.getNPCTexture(entity.display.url, entity.display.skinType == 3, entity.textureLocation);
+                SkinLayerCache.LayerSet layers = SkinLayerCache.getLayers(data, isAlexArmor);
+                if(layers != null){
+                    rightLegLayer3d = layers.rightLeg;
+                }
+            }
+            if(rightLegLayer3d != null){
+                GL11.glPushMatrix();
+                this.bipedRightLeg.postRender(0.0625F);
+                rightLegLayer3d.render();
+                GL11.glPopMatrix();
+            }
+        }
+
+        if(entity.modelData.leftLegWear() == 2){
+            if(leftLegLayer3d == null){
+                ImageData data = ClientCacheHandler.getNPCTexture(entity.display.url, entity.display.skinType == 3, entity.textureLocation);
+                SkinLayerCache.LayerSet layers = SkinLayerCache.getLayers(data, isAlexArmor);
+                if(layers != null){
+                    leftLegLayer3d = layers.leftLeg;
+                }
+            }
+            if(leftLegLayer3d != null){
+                GL11.glPushMatrix();
+                this.bipedLeftLeg.postRender(0.0625F);
+                leftLegLayer3d.render();
+                GL11.glPopMatrix();
+            }
         }
 
         this.legs.setConfig(legs, x, y, z);

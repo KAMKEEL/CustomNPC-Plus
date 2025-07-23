@@ -10,6 +10,7 @@ import noppes.npcs.client.gui.hud.HudComponent;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.select.GuiTextureSelection;
 import noppes.npcs.client.renderer.ImageData;
+import noppes.npcs.client.model.skin3d.SkinLayerCache;
 import noppes.npcs.config.ConfigClient;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Party;
@@ -82,6 +83,9 @@ public class ClientCacheHandler {
         ClientCacheHandler.imageDataCache.clear();
         ClientCacheHandler.customOverlays.clear();
         ClientCacheHandler.skinOverlays.clear();
+
+        // Clear 3D layer cache
+        SkinLayerCache.clearCache();
 
         // Clear Texture Caches
         GuiSoundSelection.cachedDomains.clear();
