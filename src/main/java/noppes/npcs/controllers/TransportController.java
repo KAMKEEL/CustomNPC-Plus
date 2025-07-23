@@ -66,7 +66,10 @@ public class TransportController implements ITransportHandler {
     public void loadCategories(File file) throws IOException {
         HashMap<Integer, TransportLocation> locations = new HashMap<Integer, TransportLocation>();
         HashMap<Integer, TransportCategory> categories = new HashMap<Integer, TransportCategory>();
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         lastUsedID = nbttagcompound1.getInteger("lastID");
         NBTTagList list = nbttagcompound1.getTagList("NPCTransportCategories", 10);
         if (list == null) {

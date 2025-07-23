@@ -400,8 +400,8 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     private void readFontTexture() {
         BufferedImage bufferedimage;
 
-        try {
-            bufferedimage = ImageIO.read(getResourceInputStream(this.locationFontTexture));
+        try (InputStream stream = getResourceInputStream(this.locationFontTexture)) {
+            bufferedimage = ImageIO.read(stream);
         } catch (IOException ioexception) {
             throw new RuntimeException(ioexception);
         }
@@ -454,8 +454,7 @@ public class CustomOverlayLabel extends Gui implements IOverlayComponent {
     }
 
     private void readGlyphSizes() {
-        try {
-            InputStream inputstream = getResourceInputStream(new ResourceLocation("font/glyph_sizes.bin"));
+        try (InputStream inputstream = getResourceInputStream(new ResourceLocation("font/glyph_sizes.bin"))) {
             inputstream.read(this.glyphWidth);
         } catch (IOException ioexception) {
             throw new RuntimeException(ioexception);

@@ -253,19 +253,19 @@ public class GlyphCache {
     }
 
     void setCustomFont(ResourceLocation location, int size, boolean antiAlias) throws Exception {
-        InputStream stream = Minecraft.getMinecraft().getResourceManager().getResource(location).getInputStream();
+        try (InputStream stream = Minecraft.getMinecraft().getResourceManager().getResource(location).getInputStream()) {
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            Font font = Font.createFont(Font.TRUETYPE_FONT, stream);
+            ge.registerFont(font);
+            font = font.deriveFont(Font.PLAIN, 72);
 
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        Font font = Font.createFont(Font.TRUETYPE_FONT, stream);
-        ge.registerFont(font);
-        font = font.deriveFont(Font.PLAIN, 72);
+            usedFonts.clear();
+            usedFonts.add(font);
 
-        usedFonts.clear();
-        usedFonts.add(font);
-
-        fontSize = size;
-        antiAliasEnabled = antiAlias;
-        setRenderingHints();
+            fontSize = size;
+            antiAliasEnabled = antiAlias;
+            setRenderingHints();
+        }
     }
 
     int fontHeight(String s) {

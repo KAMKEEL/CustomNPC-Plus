@@ -94,7 +94,10 @@ public class RecipeController implements IRecipeHandler {
     }
 
     private void loadCategories(File file) throws Exception {
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         nextId = nbttagcompound1.getInteger("LastId");
         nextAnvilId = nbttagcompound1.getInteger("LastAnvilId");
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);

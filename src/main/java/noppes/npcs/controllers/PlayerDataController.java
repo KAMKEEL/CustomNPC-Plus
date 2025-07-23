@@ -184,7 +184,10 @@ public class PlayerDataController {
         try {
             File file = new File(saveDir, filename);
             if (file.exists()) {
-                NBTTagCompound comp = CompressedStreamTools.readCompressed(new FileInputStream(file));
+                NBTTagCompound comp;
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    comp = CompressedStreamTools.readCompressed(fis);
+                }
                 file.delete();
                 file = new File(saveDir, filename + "_old");
                 if (file.exists())
@@ -197,7 +200,9 @@ public class PlayerDataController {
         try {
             File file = new File(saveDir, filename + "_old");
             if (file.exists()) {
-                return CompressedStreamTools.readCompressed(new FileInputStream(file));
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    return CompressedStreamTools.readCompressed(fis);
+                }
             }
 
         } catch (Exception e) {

@@ -213,8 +213,8 @@ public class NBTJsonUtil {
     }
 
     public static NBTTagCompound loadNBTData(File file) {
-        try {
-            return CompressedStreamTools.readCompressed(new FileInputStream(file));
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return CompressedStreamTools.readCompressed(fis);
         } catch (Exception e) {
             LogWriter.error("Error loading: " + file.getName(), e);
         }
