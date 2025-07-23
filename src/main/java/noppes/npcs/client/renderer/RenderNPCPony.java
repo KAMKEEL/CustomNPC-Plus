@@ -93,10 +93,11 @@ public class RenderNPCPony extends RenderNPCInterface {
         if (check) {
             try {
                 IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(loc);
-                BufferedImage bufferedimage = ImageIO.read(resource.getInputStream());
+                try (InputStream stream = resource.getInputStream()) {
+                    BufferedImage bufferedimage = ImageIO.read(stream);
 
-                pony.isPegasus = false;
-                pony.isUnicorn = false;
+                    pony.isPegasus = false;
+                    pony.isUnicorn = false;
                 Color color = new Color(bufferedimage.getRGB(0, 0), true);
                 Color color1 = new Color(249, 177, 49, 255);
                 Color color2 = new Color(136, 202, 240, 255);
@@ -114,8 +115,8 @@ public class RenderNPCPony extends RenderNPCInterface {
                     pony.isPegasus = true;
                     pony.isUnicorn = true;
                 }
-                pony.checked = loc;
-
+                    pony.checked = loc;
+                }
             } catch (IOException e) {
 
             }

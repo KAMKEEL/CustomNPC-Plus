@@ -52,7 +52,9 @@ public class PresetController {
             if (!file.exists()) {
                 return null;
             }
-            return CompressedStreamTools.readCompressed(new FileInputStream(file));
+            try (FileInputStream fis = new FileInputStream(file)) {
+                return CompressedStreamTools.readCompressed(fis);
+            }
         } catch (Exception e) {
             LogWriter.except(e);
         }
@@ -61,7 +63,9 @@ public class PresetController {
             if (!file.exists()) {
                 return null;
             }
-            return CompressedStreamTools.readCompressed(new FileInputStream(file));
+            try (FileInputStream fis = new FileInputStream(file)) {
+                return CompressedStreamTools.readCompressed(fis);
+            }
 
         } catch (Exception e) {
             LogWriter.except(e);

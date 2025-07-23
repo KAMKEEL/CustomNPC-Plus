@@ -40,7 +40,10 @@ public class GlobalDataController {
     }
 
     private void loadData(File file) throws Exception {
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         itemGiverId = nbttagcompound1.getInteger("itemGiverId");
     }
 

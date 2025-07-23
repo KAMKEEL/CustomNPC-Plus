@@ -93,8 +93,9 @@ public class ImageData {
             if (!this.isUrl) {
                 try {
                     IResource iresource = Minecraft.getMinecraft().getResourceManager().getResource(location);
-                    InputStream inputstream = iresource.getInputStream();
-                    this.bufferedImage = ImageIO.read(inputstream);
+                    try (InputStream inputstream = iresource.getInputStream()) {
+                        this.bufferedImage = ImageIO.read(inputstream);
+                    }
                 } catch (IOException ignored) {
                 }
             } else {

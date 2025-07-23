@@ -112,7 +112,10 @@ public class QuestController implements IQuestHandler {
         if (!dir.exists()) {
             dir.mkdir();
         }
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         lastUsedCatID = nbttagcompound1.getInteger("lastID");
         lastUsedQuestID = nbttagcompound1.getInteger("lastQuestID");
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);

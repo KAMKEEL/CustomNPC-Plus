@@ -756,11 +756,12 @@ public class ModelPony extends ModelBase {
         if (pony.textureLocation != pony.checked && pony.textureLocation != null) {
             try {
                 IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(pony.textureLocation);
-                BufferedImage bufferedimage = ImageIO.read(resource.getInputStream());
+                try (InputStream stream = resource.getInputStream()) {
+                    BufferedImage bufferedimage = ImageIO.read(stream);
 
-                pony.isPegasus = false;
-                pony.isUnicorn = false;
-                Color color = new Color(bufferedimage.getRGB(0, 0), true);
+                    pony.isPegasus = false;
+                    pony.isUnicorn = false;
+                    Color color = new Color(bufferedimage.getRGB(0, 0), true);
                 Color color1 = new Color(249, 177, 49, 255);
                 Color color2 = new Color(136, 202, 240, 255);
                 Color color3 = new Color(209, 159, 228, 255);
@@ -778,7 +779,7 @@ public class ModelPony extends ModelBase {
                     pony.isUnicorn = true;
                 }
                 pony.checked = pony.textureLocation;
-
+                }
             } catch (IOException e) {
 
             }

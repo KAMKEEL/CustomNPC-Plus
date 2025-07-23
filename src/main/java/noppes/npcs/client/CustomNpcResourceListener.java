@@ -59,21 +59,23 @@ public class CustomNpcResourceListener implements
         try {
             IResourceManager manager = Minecraft.getMinecraft().getResourceManager();
             ResourceLocation location = new ResourceLocation("textures/blocks/" + texture + ".png");
-            BufferedImage bufferedimage = ImageIO.read(manager.getResource(location).getInputStream());
-            int i = bufferedimage.getWidth();
-            int j = bufferedimage.getHeight();
+            try (InputStream stream = manager.getResource(location).getInputStream()) {
+                BufferedImage bufferedimage = ImageIO.read(stream);
+                int i = bufferedimage.getWidth();
+                int j = bufferedimage.getHeight();
 
-            BufferedImage image = new BufferedImage(i * 4, j * 2, BufferedImage.TYPE_INT_RGB);
-            Graphics g = image.getGraphics();
-            g.drawImage(bufferedimage, 0, 0, null);
-            g.drawImage(bufferedimage, i, 0, null);
-            g.drawImage(bufferedimage, i * 2, 0, null);
-            g.drawImage(bufferedimage, i * 3, 0, null);
-            g.drawImage(bufferedimage, 0, i, null);
-            g.drawImage(bufferedimage, i, j, null);
-            g.drawImage(bufferedimage, i * 2, j, null);
-            g.drawImage(bufferedimage, i * 3, j, null);
-            ImageIO.write(image, "png", new File(dir, texture + ".png"));
+                BufferedImage image = new BufferedImage(i * 4, j * 2, BufferedImage.TYPE_INT_RGB);
+                Graphics g = image.getGraphics();
+                g.drawImage(bufferedimage, 0, 0, null);
+                g.drawImage(bufferedimage, i, 0, null);
+                g.drawImage(bufferedimage, i * 2, 0, null);
+                g.drawImage(bufferedimage, i * 3, 0, null);
+                g.drawImage(bufferedimage, 0, i, null);
+                g.drawImage(bufferedimage, i, j, null);
+                g.drawImage(bufferedimage, i * 2, j, null);
+                g.drawImage(bufferedimage, i * 3, j, null);
+                ImageIO.write(image, "png", new File(dir, texture + ".png"));
+            }
         } catch (Exception e) {
             LogWriter.error("Failed caching texture: " + texture, e);
         }

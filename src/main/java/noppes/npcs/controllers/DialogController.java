@@ -120,7 +120,10 @@ public class DialogController implements IDialogHandler {
         if (!dir.exists()) {
             dir.mkdir();
         }
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);
         if (list == null)
             return;
