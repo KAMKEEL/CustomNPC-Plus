@@ -91,7 +91,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrolledLine = Math.min(Math.max((int) (1f * diff * (yMouse - y) / height), 0), diff);
         }
         int startBracket = 0, endBracket = 0;
-        if (endSelection - startSelection == 1 || startSelection == endSelection && startSelection < text.length()) {
+        if (startSelection >= 0 && startSelection < text.length() &&
+                (endSelection - startSelection == 1 || startSelection == endSelection)) {
             char c = text.charAt(startSelection);
             int found = 0;
             if (c == '{') {
