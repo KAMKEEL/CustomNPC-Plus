@@ -35,7 +35,7 @@ public class ActionManager implements IActionManager {
     protected final ActionQueue conditionalQueue = new ActionQueue(this, "mainConditional", true);
     protected final Map<String, IActionQueue> otherQueues = new HashMap<>();
 
-    protected boolean debug;
+    protected boolean debug = false;
     protected ScriptContainer reportTo;
 
     public ActionManager() {}

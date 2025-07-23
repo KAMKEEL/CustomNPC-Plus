@@ -3,6 +3,8 @@ package noppes.npcs.controllers.data.action;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.IAction;
 import noppes.npcs.api.handler.data.IActionQueue;
+import noppes.npcs.config.ConfigDebug;
+import noppes.npcs.config.ConfigScript;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
@@ -136,7 +138,8 @@ public class ActionLogger {
     private static final String ANSI_RESET = "\u001B[0m";
 
     public void println(String str) {
-        System.out.printf("[%tT] %s[%s]:%s %s%s%n", new Date(), ANSI_CYAN, Thread.currentThread().getName(), ANSI_GOLD, str, ANSI_RESET);
+        if(ConfigDebug.LogActionManager)
+            System.out.printf("[%tT] %s[%s]:%s %s%s%n", new Date(), ANSI_CYAN, Thread.currentThread().getName(), ANSI_GOLD, str, ANSI_RESET);
     }
 
     //    public ActionLogger beginTick1(ActionManager manager) {

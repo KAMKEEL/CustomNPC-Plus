@@ -33,6 +33,8 @@ public class ConfigDebug {
     public static Property ScriptLogIgnoreTypeProperty;
     public static String ScriptLogIgnoreType = "TICK";
 
+    public static boolean LogActionManager = false;
+
     public static void init(File configFile) {
         config = new Configuration(configFile);
 
@@ -58,6 +60,9 @@ public class ConfigDebug {
             ScriptLogIgnoreTypeProperty = config.get(LOGGING, "Script Type Ignore", "TICK", "Comma separated list of NPC Script Types that will omit these from the logs,\n" +
                 "INIT,TICK,INTERACT,DIALOG,DAMAGED,KILLED,ATTACK,TARGET,COLLIDE,KILLS,DIALOG_CLOSE,TIMER");
             ScriptLogIgnoreType = ScriptLogIgnoreTypeProperty.getString();
+
+            LogActionManager = config.get(LOGGING, "Log Action Manager", LogActionManager, "Log the Performance of the Action Manager").getBoolean(LogActionManager);
+
 
             // Convert to Legacy
             if (CustomNpcs.legacyExist) {
