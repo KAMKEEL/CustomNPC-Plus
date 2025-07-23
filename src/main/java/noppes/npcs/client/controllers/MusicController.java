@@ -56,15 +56,21 @@ public class MusicController {
 
     public void stopMusic() {
         SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
-        if (soundHandler != null) {
+        if (this.playingSound != null) {
+            if (soundHandler != null) {
+                try {
+                    soundHandler.stopSound(this.playingSound);
+                } catch (Exception ignored) {
+                }
+            }
+            this.playingSound.stopSound();
+            this.sounds.remove(this.playingSound.sound);
+            this.playingSound = null;
+        } else if (soundHandler != null) {
             try {
                 soundHandler.stopSounds();
             } catch (Exception ignored) {
             }
-        }
-        if (this.playingSound != null) {
-            this.playingSound.stopSound();
-            this.playingSound = null;
         }
     }
 
