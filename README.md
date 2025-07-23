@@ -38,6 +38,15 @@ This mod is an ***update*** to CustomNPC and not an add-on. Do not install Custo
 - Markov Name Generator
 - Dark Mode GUI (Link Below)
 - 1.12 Scripting Features (Details below)
+- Profile System (Multiple Character Slots)
+- Quest Party System
+- Item and Armor Attributes
+- Magic System with Elemental Cycles
+- Custom Effect Engine
+- Scripted Blocks & Particles
+- Compass Marks for Waypoints
+- Custom Model Support
+- Gecko & Dragon Block C Addons
 
 #### Scripting:
 - CustomNPC+ Api: [API](https://github.com/KAMKEEL/CustomNPC-Plus-API)
