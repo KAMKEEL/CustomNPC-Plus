@@ -35,6 +35,14 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         return false;
     }
 
+    @Override
+    public void onLivingUpdate() {
+        super.onLivingUpdate();
+        if (this.canFly() && this.getNavigator().noPath()) {
+            this.motionY = -Math.abs(this.ais.flyGravity);
+        }
+    }
+
     public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_) {
         if (!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
             super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
