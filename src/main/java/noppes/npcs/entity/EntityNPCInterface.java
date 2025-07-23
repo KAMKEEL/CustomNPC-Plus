@@ -653,8 +653,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                     entity = null;
                 else
                     entity = event.getTarget().getMCEntity();
-            } else {
-                if (EventHooks.onNPCTargetLost(this, getAttackTarget(), entity))
+            } else if (entity == null && getAttackTarget() != null) {
+                if (EventHooks.onNPCTargetLost(this, getAttackTarget(), null))
                     return;
             }
             if (entity != null && entity != this && ais.onAttack != 3 && !isAttacking()) {
