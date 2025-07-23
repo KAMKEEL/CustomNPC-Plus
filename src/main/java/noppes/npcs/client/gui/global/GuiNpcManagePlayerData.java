@@ -115,10 +115,12 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
     public void confirmClicked(boolean confirm, int id) {
         if (confirm) {
             if (id == 0) {
-                PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Players, selectedPlayer, null));
-                playerData.remove(selectedPlayer);
-                selectedPlayer = null;
-                playerScroll.setList(getSearchList());
+                if(selectedPlayer != null && !selectedPlayer.isEmpty()){
+                    PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Players, selectedPlayer));
+                    playerData.remove(selectedPlayer);
+                    selectedPlayer = null;
+                    playerScroll.setList(getSearchList());
+                }
             }
             if (id == 1) {
                 PacketClient.sendClient(new PlayerDataMapRegenPacket());

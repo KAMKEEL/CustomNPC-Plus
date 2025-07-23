@@ -544,7 +544,11 @@ public class NoppesUtilServer {
                 PlayerDataController.Instance.nameUUIDs.remove(name);
                 PlayerDataController.Instance.savePlayerDataMap();
 
+                int currentSlot = playerdata.profileSlot;
+
                 playerdata.setNBT(new NBTTagCompound());
+                playerdata.profileSlot = currentSlot;
+
                 sendPlayerData(type, player, name);
                 playerdata.save();
                 return;
