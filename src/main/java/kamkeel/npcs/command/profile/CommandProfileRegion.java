@@ -78,7 +78,7 @@ public class CommandProfileRegion extends CommandProfileBase {
         for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < region.size(); i++) {
-                if (i > 0) sb.append(" ");
+                if (i > 0) sb.append(", ");
                 sb.append(region.get(i));
             }
             regionStrings.add(sb.toString());
