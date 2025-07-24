@@ -22,10 +22,13 @@ tasks.create('updateAPI', Exec) {
 }
 
 // No Mixin Build Task
+def gradleWrapper = System.getProperty('os.name').toLowerCase().contains('windows') ? 'gradlew.bat' : './gradlew'
+
 tasks.create('buildNoMixin', Exec) {
     description 'Builds mod without embed'
     group 'CustomNPC+'
-    commandLine 'build', '-Pnomixin'
+    workingDir project.rootDir
+    commandLine gradleWrapper, 'build', '-Pnomixin'
 }
 
 sourceSets {
