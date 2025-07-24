@@ -4,7 +4,10 @@ import java.awt.image.BufferedImage;
 
 public class SkinLayerUtil {
     private static boolean hasSecondLayer(BufferedImage skin){
-        return skin.getHeight() >= skin.getWidth();
+        // Support both square(64x64+) and wide(128x64) formats
+        int w = skin.getWidth();
+        int h = skin.getHeight();
+        return h >= 64 || w >= 128;
     }
 
     private static int scale(float value,float scale){
