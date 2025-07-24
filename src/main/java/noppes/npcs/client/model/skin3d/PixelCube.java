@@ -33,12 +33,13 @@ public class PixelCube {
         PositionTextureVertex v7 = new PositionTextureVertex(px2, maxY, maxZ, (u+size)/texW, (v+size)/texH);
         PositionTextureVertex v8 = new PositionTextureVertex(px, maxY, maxZ, (u)/texW, (v+size)/texH);
 
-        quads[0] = new TexturedQuad(new PositionTextureVertex[]{v6,v5,v1,v2}); //down
-        quads[1] = new TexturedQuad(new PositionTextureVertex[]{v3,v4,v8,v7}); //up
-        quads[2] = new TexturedQuad(new PositionTextureVertex[]{v5,v6,v7,v8}); //south
-        quads[3] = new TexturedQuad(new PositionTextureVertex[]{v2,v1,v4,v3}); //north
-        quads[4] = new TexturedQuad(new PositionTextureVertex[]{v6,v2,v3,v7}); //east
-        quads[5] = new TexturedQuad(new PositionTextureVertex[]{v1,v5,v8,v4}); //west
+        // order must match FaceDirection.values()
+        quads[0] = new TexturedQuad(new PositionTextureVertex[]{v6, v5, v1, v2}); // DOWN
+        quads[1] = new TexturedQuad(new PositionTextureVertex[]{v3, v4, v8, v7}); // UP
+        quads[2] = new TexturedQuad(new PositionTextureVertex[]{v2, v1, v4, v3}); // NORTH
+        quads[3] = new TexturedQuad(new PositionTextureVertex[]{v5, v6, v7, v8}); // SOUTH
+        quads[4] = new TexturedQuad(new PositionTextureVertex[]{v1, v5, v8, v4}); // WEST
+        quads[5] = new TexturedQuad(new PositionTextureVertex[]{v6, v2, v3, v7}); // EAST
     }
 
     public void render(Tessellator tess) {
