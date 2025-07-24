@@ -21,11 +21,9 @@ public class PixelModelPart {
         GL11.glPushMatrix();
         GL11.glTranslatef(x/16f, y/16f, z/16f);
         Tessellator tess = Tessellator.instance;
-        tess.startDrawingQuads();
         for(PixelCube cube : cubes) {
             cube.render(tess);
         }
-        tess.draw();
         GL11.glPopMatrix();
     }
 }

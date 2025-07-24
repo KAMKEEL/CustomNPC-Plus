@@ -21,5 +21,5 @@ public enum FaceDirection {
     public int getStepY() { return normal.getY(); }
     public int getStepZ() { return normal.getZ(); }
 
-    public Vec3 step() { return new Vec3(getStepX(), getStepY(), getStepZ()); }
+    public Vec3 step() { return Vec3.createVectorHelper(getStepX(), getStepY(), getStepZ()); }
 }
