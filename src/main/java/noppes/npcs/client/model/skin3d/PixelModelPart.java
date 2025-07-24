@@ -3,7 +3,7 @@ package noppes.npcs.client.model.skin3d;
 import java.util.List;
 
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.GlStateManager;
+import org.lwjgl.opengl.GL11;
 
 public class PixelModelPart {
     private final List<PixelCube> cubes;
@@ -18,14 +18,14 @@ public class PixelModelPart {
 
     public void render() {
         if(!visible) return;
-        GlStateManager.pushMatrix();
-        GlStateManager.translate(x/16f, y/16f, z/16f);
+        GL11.glPushMatrix();
+        GL11.glTranslatef(x/16f, y/16f, z/16f);
         Tessellator tess = Tessellator.instance;
         tess.startDrawingQuads();
         for(PixelCube cube : cubes) {
             cube.render(tess);
         }
         tess.draw();
-        GlStateManager.popMatrix();
+        GL11.glPopMatrix();
     }
 }

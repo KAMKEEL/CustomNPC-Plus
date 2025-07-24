@@ -43,10 +43,10 @@ public class PixelCube {
     }
 
     public void render(Tessellator tess) {
-        int id=0;
+        int id = 0;
         for(FaceDirection dir : FaceDirection.values()) {
             if(!hidden.contains(dir)) {
-                quads[id].draw(tess.getWorldRenderer(), 1/16f);
+                quads[id].draw(tess, 1/16f);
             }
             id++;
         }
