@@ -219,7 +219,7 @@ public class Party implements IParty {
     @Override
     public String getPartyLeaderName() {
         if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-            return this.partyLeaderName;
+            return this.partyLeaderName == null ? "" : this.partyLeaderName;
         } else {
             EntityPlayer leader = this.getPartyLeader();
             if (leader != null)
