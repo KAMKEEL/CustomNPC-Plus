@@ -1,6 +1,7 @@
 customnpcs.defaultTextColor=404040
 
 key.categories.customnpc=CustomNPC+
+key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
 entity.customnpcs.CustomNpc.name=Custom Npc

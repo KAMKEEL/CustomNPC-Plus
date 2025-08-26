@@ -287,10 +287,9 @@ public class ClientProxy extends CommonProxy {
         }
         Minecraft mc = Minecraft.getMinecraft();
 
-        NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
+        NPCButton = new KeyBinding("key.npcInventory", Keyboard.KEY_N, "key.categories.customnpc");
 
         ClientRegistry.registerKeyBinding(NPCButton);
-        mc.gameSettings.loadOptions();
 
         new PresetController(CustomNpcs.Dir);
 
