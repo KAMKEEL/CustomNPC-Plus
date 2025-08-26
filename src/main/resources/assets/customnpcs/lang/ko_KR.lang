@@ -794,3 +794,5 @@ enchantment.damage=데미지
 enchantment.confusion=혼란
 enchantment.infinite=무한
 enchantment.poison=독
+
+key.npcInventory=NPC 인벤토리
