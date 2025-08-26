@@ -11,7 +11,6 @@ import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import noppes.npcs.blocks.tiles.TileBanner;
 import noppes.npcs.blocks.tiles.TileSign;
 import noppes.npcs.blocks.tiles.TileVariant;
 
@@ -37,7 +36,7 @@ public class BlockSign extends BlockRotated {
 
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
-        TileBanner tile = (TileBanner) world.getTileEntity(x, y, z);
+        TileSign tile = (TileSign) world.getTileEntity(x, y, z);
         return tile.canEdit();
     }
 
