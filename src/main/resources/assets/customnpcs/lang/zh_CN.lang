@@ -1238,3 +1238,5 @@ tint.hurt=伤害色彩
 hitbox.hitbox=碰撞体积
 hitbox.width=宽度比例
 hitbox.height=身高比例
+
+key.npcInventory=NPC物品栏

@@ -1015,3 +1015,5 @@ questgui.rewards=Награды:
 questgui.experience=Опыт:
 questgui.reject=Отменить
 questgui.accept=Принять
+
+key.npcInventory=Инвентарь NPC
