@@ -61,9 +61,9 @@ public class ServerTickHandler {
             playerData.onLogin();
         }
 
+        ProfileController.Instance.login(player);
         SyncController.syncPlayer(player);
         SyncController.syncEffects(player);
-        ProfileController.Instance.login(player);
     }
 
     @SubscribeEvent
@@ -72,5 +72,8 @@ public class ServerTickHandler {
         if (playerData != null) {
             playerData.onLogout();
         }
+
+        // Save and unload the player's profile data on logout
+        ProfileController.Instance.logout(event.player);
     }
 }

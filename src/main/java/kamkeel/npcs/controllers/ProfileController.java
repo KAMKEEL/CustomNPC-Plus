@@ -1,5 +1,6 @@
 package kamkeel.npcs.controllers;
 
+import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.controllers.data.profile.EnumProfileOperation;
 import kamkeel.npcs.controllers.data.profile.IProfileData;
@@ -273,8 +274,10 @@ public class ProfileController implements IProfileHandler {
     }
 
     public synchronized void logout(EntityPlayer player) {
-        if (player != null) {
-            activeProfiles.remove(player.getUniqueID());
+        if (player != null && activeProfiles.containsKey(player.getUniqueID())) {
+            saveSlotData(player);
+            Profile profile = activeProfiles.get(player.getUniqueID());
+            save(player, profile);
         }
     }
 
@@ -367,7 +370,6 @@ public class ProfileController implements IProfileHandler {
             return ProfileOperation.error(MSG_CANNOT_CLONE_CURRENT);
         }
         if (temporary) {
-            // Use a negative ID for temporary slots so they are never saved to disk.
             destinationSlotId = getNextAvailableTempSlot(profile);
         } else {
             if (destinationSlotId <= 0) {
@@ -648,9 +650,6 @@ public class ProfileController implements IProfileHandler {
         if (slot == null)
             return;
 
-        PlayerData pdata = PlayerData.get(player);
-        pdata.profileSlot = profile.getCurrentSlotId();
-
         for (IProfileData profileData : profileTypes.values()) {
             NBTTagCompound data;
             if (slot.getComponents().containsKey(profileData.getTagName()))
@@ -663,10 +662,12 @@ public class ProfileController implements IProfileHandler {
             profileData.save(player);
         }
 
+        PlayerData pdata = PlayerData.get(player);
+        pdata.profileSlot = profile.getCurrentSlotId();
+        pdata.save();
+
         if (ConfigMain.AttributesEnabled)
             AttributeController.getTracker(player).recalcAttributes(player);
-
-        // pdata.save();
     }
 
     public List<ProfileInfoEntry> getProfileInfo(EntityPlayer player, int slotId) {
