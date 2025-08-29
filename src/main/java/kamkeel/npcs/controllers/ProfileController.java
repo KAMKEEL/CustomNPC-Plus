@@ -138,9 +138,16 @@ public class ProfileController implements IProfileHandler {
             if (!profile.getSlots().containsKey(profile.currentSlotId)) {
                 profile.currentSlotId = 0;
             }
+
             profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
-            loadSlotData(player);
+
+            PlayerData pdata = PlayerData.get(player);
+            if (profile.getSlots().containsKey(pdata.profileSlot)) {
+                profile.currentSlotId = pdata.profileSlot;
+            }
+
+            saveSlotData(player);
             verifySlotQuests(profile.player);
         }
     }
