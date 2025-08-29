@@ -122,7 +122,6 @@ public class ProfileController implements IProfileHandler {
         if (player == null)
             return;
         Profile profile;
-        boolean profileModified = false;
         if (activeProfiles.containsKey(player.getUniqueID())) {
             profile = activeProfiles.get(player.getUniqueID());
             profile.player = player;
@@ -135,16 +134,14 @@ public class ProfileController implements IProfileHandler {
                 profile.getSlots().put(0, defaultSlot);
                 profile.currentSlotId = 0;
                 saveSlotData(player);
-                profileModified = true;
             }
             if (!profile.getSlots().containsKey(profile.currentSlotId)) {
                 profile.currentSlotId = 0;
             }
             profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
+            loadSlotData(player);
             verifySlotQuests(profile.player);
-            if (profileModified)
-                save(player, profile);
         }
     }
 
