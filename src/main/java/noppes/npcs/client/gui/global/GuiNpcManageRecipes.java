@@ -82,9 +82,10 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         this.addButton(new GuiButtonBiDirectional(0, guiLeft + 280, y, 130, 20, new String[]{"menu.global", "tile.npcCarpentyBench.name", "tile.anvil.name"}, tab));
 
         y += 106;
+        y += 44;
 
-        this.addButton(new GuiNpcButton(3, guiLeft + 226, y += 22, 50, 20, "gui.add"));
-        this.addButton(new GuiNpcButton(4, guiLeft + 226, y += 22, 50, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(3, guiLeft + 172, y, 50, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(4, guiLeft + 226, y, 50, 20, "gui.remove"));
         this.addButton(new GuiNpcButton(10, guiLeft + 226, y += 30, 50, 20, "gui.copy"));
 
         if (container.width != 1) {
