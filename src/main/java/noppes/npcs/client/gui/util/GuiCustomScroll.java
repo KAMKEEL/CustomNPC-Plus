@@ -7,7 +7,11 @@ import net.minecraft.util.StatCollector;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 import static noppes.npcs.client.gui.util.GuiNPCInterface.resizingActive;
 
@@ -26,10 +30,10 @@ public class GuiCustomScroll extends GuiScreen {
     protected int oldHover;
     private int hoverCount = 0;
     protected boolean hoverableText = false;
-    private int listHeight;
-    protected int scrollY;
-    protected int maxScrollY;
-    protected int scrollHeight;
+    public int listHeight;
+    public int scrollY;
+    public int maxScrollY;
+    public int scrollHeight;
     private boolean isScrolling;
     public boolean multipleSelection = false;
     private ICustomScrollListener listener;

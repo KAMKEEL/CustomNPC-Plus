@@ -24,22 +24,12 @@ public final class PlayerDataRemovePacket extends AbstractPacket {
     private EnumPlayerData playerData;
     private String name;
 
-    private int type;
-    private String selected;
-
     public PlayerDataRemovePacket() {
     }
 
-    public PlayerDataRemovePacket(EnumPlayerData playerData, String name, String selected) {
+    public PlayerDataRemovePacket(EnumPlayerData playerData, String name) {
         this.playerData = playerData;
         this.name = name;
-        this.selected = selected;
-    }
-
-    public PlayerDataRemovePacket(EnumPlayerData playerData, String name, int selectedType) {
-        this.playerData = playerData;
-        this.name = name;
-        this.type = selectedType;
     }
 
     @Override
@@ -62,11 +52,6 @@ public final class PlayerDataRemovePacket extends AbstractPacket {
     public void sendData(ByteBuf out) throws IOException {
         out.writeInt(playerData.ordinal());
         ByteBufUtils.writeString(out, this.name);
-        if (playerData == EnumPlayerData.Players) {
-            ByteBufUtils.writeString(out, this.selected);
-        } else {
-            out.writeInt(this.type);
-        }
     }
 
     @Override

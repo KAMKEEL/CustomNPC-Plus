@@ -9,7 +9,15 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.SubGuiPlayerData;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNPCInterface2;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.ISubGuiListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumPlayerData;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -115,10 +123,12 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
     public void confirmClicked(boolean confirm, int id) {
         if (confirm) {
             if (id == 0) {
-                PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Players, selectedPlayer, null));
-                playerData.remove(selectedPlayer);
-                selectedPlayer = null;
-                playerScroll.setList(getSearchList());
+                if (selectedPlayer != null && !selectedPlayer.isEmpty()) {
+                    PacketClient.sendClient(new PlayerDataRemovePacket(EnumPlayerData.Players, selectedPlayer));
+                    playerData.remove(selectedPlayer);
+                    selectedPlayer = null;
+                    playerScroll.setList(getSearchList());
+                }
             }
             if (id == 1) {
                 PacketClient.sendClient(new PlayerDataMapRegenPacket());

@@ -16,12 +16,20 @@ import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.entity.ICustomNpc;
-import noppes.npcs.api.handler.*;
+import noppes.npcs.api.handler.IPlayerBankData;
+import noppes.npcs.api.handler.IPlayerData;
+import noppes.npcs.api.handler.IPlayerDialogData;
+import noppes.npcs.api.handler.IPlayerFactionData;
+import noppes.npcs.api.handler.IPlayerItemGiverData;
+import noppes.npcs.api.handler.IPlayerMailData;
+import noppes.npcs.api.handler.IPlayerQuestData;
+import noppes.npcs.api.handler.IPlayerTransportData;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
+import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
@@ -29,7 +37,6 @@ import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScreenSize;
-import noppes.npcs.scripted.ScriptedActionManager;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
@@ -52,7 +59,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
-    public ScriptedActionManager actionManager = new ScriptedActionManager();
+    public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
     public EntityNPCInterface editingNpc;

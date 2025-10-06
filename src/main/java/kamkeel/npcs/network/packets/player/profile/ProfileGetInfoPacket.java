@@ -57,6 +57,10 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
     }
 
     public static void sendProfileInfo(EntityPlayer player) {
+        GuiDataPacket.sendGuiData((EntityPlayerMP) player, profileInfoPayload(player));
+    }
+
+    public static NBTTagCompound profileInfoPayload(EntityPlayer player) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setBoolean("PROFILE_INFO", true);
         NBTTagList slotList = new NBTTagList();
@@ -75,7 +79,7 @@ public final class ProfileGetInfoPacket extends AbstractPacket {
             }
             compound.setTag("SLOTS", slotList);
         }
-        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
+        return compound;
     }
 
     public static HashMap<Integer, List<ProfileInfoEntry>> readProfileInfo(NBTTagCompound compound) {

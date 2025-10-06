@@ -3,7 +3,12 @@ package noppes.npcs.client.gui;
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.DataDisplay;
 import noppes.npcs.client.gui.mainmenu.GuiNpcDisplay;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 public class SubGuiNpcName extends SubGuiInterface implements ITextfieldListener {
     private DataDisplay display;

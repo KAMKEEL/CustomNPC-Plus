@@ -13,16 +13,13 @@ import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.entity.IPlayer;
-import noppes.npcs.api.event.IItemEvent;
 import noppes.npcs.api.event.IPlayerEvent;
 import noppes.npcs.api.handler.data.IPlayerEffect;
 import noppes.npcs.api.handler.data.IProfile;
-import noppes.npcs.api.item.IItemCustomizable;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.CustomNPCsEvent;
-import noppes.npcs.scripted.event.ItemEvent;
 
 public class PlayerEvent extends CustomNPCsEvent implements IPlayerEvent {
     public final IPlayer player;

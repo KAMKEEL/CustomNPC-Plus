@@ -7,7 +7,9 @@ import noppes.npcs.config.ConfigMain;
 import java.util.ArrayList;
 import java.util.List;
 
-import static kamkeel.npcs.util.ColorUtil.*;
+import static kamkeel.npcs.util.ColorUtil.sendError;
+import static kamkeel.npcs.util.ColorUtil.sendMessage;
+import static kamkeel.npcs.util.ColorUtil.sendResult;
 
 public class CommandProfileRegion extends CommandProfileBase {
 
@@ -76,7 +78,7 @@ public class CommandProfileRegion extends CommandProfileBase {
         for (List<Integer> region : ConfigMain.RestrictedProfileRegions) {
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < region.size(); i++) {
-                if (i > 0) sb.append(" ");
+                if (i > 0) sb.append(", ");
                 sb.append(region.get(i));
             }
             regionStrings.add(sb.toString());

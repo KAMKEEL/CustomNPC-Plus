@@ -2,11 +2,27 @@ package noppes.npcs.util;
 
 import com.google.common.io.Files;
 import cpw.mods.fml.common.ObfuscationReflectionHelper;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompressedStreamTools;
+import net.minecraft.nbt.NBTBase;
+import net.minecraft.nbt.NBTTagByte;
+import net.minecraft.nbt.NBTTagByteArray;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagDouble;
+import net.minecraft.nbt.NBTTagFloat;
+import net.minecraft.nbt.NBTTagInt;
+import net.minecraft.nbt.NBTTagIntArray;
+import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagLong;
+import net.minecraft.nbt.NBTTagShort;
+import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.LogWriter;
 import org.apache.commons.io.Charsets;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -213,8 +229,8 @@ public class NBTJsonUtil {
     }
 
     public static NBTTagCompound loadNBTData(File file) {
-        try {
-            return CompressedStreamTools.readCompressed(new FileInputStream(file));
+        try (FileInputStream fis = new FileInputStream(file)) {
+            return CompressedStreamTools.readCompressed(fis);
         } catch (Exception e) {
             LogWriter.error("Error loading: " + file.getName(), e);
         }

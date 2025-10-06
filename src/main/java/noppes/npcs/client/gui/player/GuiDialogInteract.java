@@ -68,6 +68,13 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
 
     private HashMap<Integer, GuiDialogImage> dialogImages = new HashMap<>();
 
+    /**
+     * Tracks if a close packet has been sent to the server. This ensures that the
+     * dialog closed event always triggers even when the gui is closed through
+     * external means such as key binds that bypass {@link #keyTyped(char, int)}.
+     */
+    private boolean sentClosePacket = false;
+
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog) {
         super(npc);
         this.dialog = dialog;
@@ -647,6 +654,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
     }
 
     private void closed() {
+        sentClosePacket = true;
         grabMouse(false);
         PacketClient.sendClient(new CheckPlayerValue(CheckPlayerValue.Type.CheckQuestCompletion));
     }
@@ -657,6 +665,7 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
 
     public void appendDialog(Dialog dialog) {
         closeOnEsc = !dialog.disableEsc;
+        sentClosePacket = false;
         this.dialogImages.clear();
         this.dialog = dialog;
         this.options = new ArrayList<Integer>();
@@ -699,6 +708,17 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
         if (parent != null)
             NoppesUtil.openGUI(player, parent);
         MusicController.Instance.stopAllSounds();
+    }
+
+    @Override
+    public void onGuiClosed() {
+        if (!sentClosePacket) {
+            if (dialog != null) {
+                PacketClient.sendClient(new DialogSelectPacket(dialog.id, -1));
+            }
+            closed();
+        }
+        super.onGuiClosed();
     }
 
     @Override

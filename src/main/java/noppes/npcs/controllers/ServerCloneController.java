@@ -22,7 +22,14 @@ import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class ServerCloneController implements ICloneHandler {
     public static ServerCloneController Instance;
@@ -63,7 +70,10 @@ public class ServerCloneController implements ICloneHandler {
 
     private Map<Integer, Map<String, NBTTagCompound>> loadOldClones(File file) throws Exception {
         Map<Integer, Map<String, NBTTagCompound>> clones = new HashMap<Integer, Map<String, NBTTagCompound>>();
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);
         if (list == null) {
             return clones;

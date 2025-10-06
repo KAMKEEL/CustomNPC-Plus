@@ -5,7 +5,7 @@ plugins {
     id 'idea'
 }
 
-version = "1.10.1"
+version = "1.10.2"
 group= "kamkeel.customnpc-plus"
 archivesBaseName = "CustomNPC-Plus"
 
@@ -22,10 +22,13 @@ tasks.create('updateAPI', Exec) {
 }
 
 // No Mixin Build Task
+def gradleWrapper = System.getProperty('os.name').toLowerCase().contains('windows') ? 'gradlew.bat' : './gradlew'
+
 tasks.create('buildNoMixin', Exec) {
     description 'Builds mod without embed'
     group 'CustomNPC+'
-    commandLine 'build', '-Pnomixin'
+    workingDir project.rootDir
+    commandLine gradleWrapper, 'build', '-Pnomixin'
 }
 
 sourceSets {

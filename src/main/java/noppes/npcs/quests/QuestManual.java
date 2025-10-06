@@ -14,8 +14,12 @@ import noppes.npcs.controllers.data.PlayerQuestData;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.scripted.CustomNPCsException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
+import java.util.TreeMap;
+import java.util.Vector;
 
 public class QuestManual extends QuestInterface {
     public TreeMap<String, Integer> manuals = new TreeMap<String, Integer>();

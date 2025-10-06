@@ -1,6 +1,7 @@
 package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import kamkeel.npcs.network.packets.data.AchievementPacket;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -15,11 +16,16 @@ import net.minecraft.world.WorldServer;
 import net.minecraftforge.event.entity.EntityEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.api.IWorld;
-import noppes.npcs.api.entity.*;
+import noppes.npcs.api.entity.IAnimatable;
+import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.api.entity.IProjectile;
 import noppes.npcs.api.event.IAnimationEvent;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.gui.IItemSlot;
 import noppes.npcs.api.handler.data.IAnimation;
+import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IPlayerEffect;
 import noppes.npcs.api.handler.data.IProfile;
@@ -30,13 +36,45 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.controllers.data.ForgeDataScript;
+import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptBlockHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.RecipeScript;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.event.*;
-import noppes.npcs.scripted.event.player.*;
-import noppes.npcs.scripted.event.player.PlayerEvent.*;
+import noppes.npcs.scripted.event.AnimationEvent;
+import noppes.npcs.scripted.event.BlockEvent;
+import noppes.npcs.scripted.event.CustomNPCsEvent;
+import noppes.npcs.scripted.event.ForgeEvent;
+import noppes.npcs.scripted.event.ItemEvent;
+import noppes.npcs.scripted.event.LinkedItemEvent;
+import noppes.npcs.scripted.event.NpcEvent;
+import noppes.npcs.scripted.event.PartyEvent;
+import noppes.npcs.scripted.event.ProjectileEvent;
+import noppes.npcs.scripted.event.RecipeScriptEvent;
+import noppes.npcs.scripted.event.player.CustomGuiEvent;
+import noppes.npcs.scripted.event.player.DialogEvent;
+import noppes.npcs.scripted.event.player.FactionEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.ChatEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.ContainerOpen;
+import noppes.npcs.scripted.event.player.PlayerEvent.DamagedEntityEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.DropEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.EffectEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.KeyPressedEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.LoginEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.LogoutEvent;
+import noppes.npcs.scripted.event.player.PlayerEvent.PickUpEvent;
+import noppes.npcs.scripted.event.player.QuestEvent;
+import noppes.npcs.scripted.item.ScriptItemStack;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
@@ -167,6 +205,40 @@ public class EventHooks {
         }
         NpcAPI.EVENT_BUS.post(event);
     }
+
+
+    public static RecipeScriptEvent.Pre onRecipeScriptPre(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items) {
+        IItemStack[] iitems = new IItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
+        }
+        RecipeScriptEvent.Pre event = new RecipeScriptEvent.Pre(NoppesUtilServer.getIPlayer(player), recipe, recipe instanceof IAnvilRecipe, iitems);
+        if (script != null) {
+            script.callScript(RecipeScript.ScriptType.PRE.function, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
+        if (!player.worldObj.isRemote) {
+            String msg = event.getMessage();
+            if (msg != null && !msg.isEmpty()) {
+                AchievementPacket.sendAchievement((EntityPlayerMP) player, false, "", msg);
+            }
+        }
+        return event;
+    }
+
+    public static ItemStack onRecipeScriptPost(EntityPlayer player, RecipeScript script, Object recipe, ItemStack[] items, ItemStack result) {
+        IItemStack[] iitems = new IItemStack[items.length];
+        for (int i = 0; i < items.length; i++) {
+            iitems[i] = items[i] == null ? null : NpcAPI.Instance().getIItemStack(items[i]);
+        }
+        RecipeScriptEvent.Post event = new RecipeScriptEvent.Post(NoppesUtilServer.getIPlayer(player), recipe, recipe instanceof IAnvilRecipe, iitems, NpcAPI.Instance().getIItemStack(result));
+        if (script != null) {
+            script.callScript(RecipeScript.ScriptType.POST.function, event);
+        }
+        NpcAPI.EVENT_BUS.post(event);
+        return event.getResult() == null ? null : ((ScriptItemStack) event.getCraft()).getMCItemStack();
+    }
+
 
     public static void onLinkedItemVersionChange(IItemLinked item, int version, int prevVersion) {
         INpcScriptHandler handler = (INpcScriptHandler) item.getScriptHandler();

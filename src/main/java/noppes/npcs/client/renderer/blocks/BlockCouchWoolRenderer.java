@@ -12,8 +12,19 @@ import net.minecraft.util.ResourceLocation;
 import noppes.npcs.CustomItems;
 import noppes.npcs.blocks.BlockCouchWool;
 import noppes.npcs.blocks.tiles.TileCouchWool;
-import noppes.npcs.client.model.blocks.couch.*;
-import noppes.npcs.client.model.blocks.legacy.couch.*;
+import noppes.npcs.client.model.blocks.couch.ModelCouchCorner;
+import noppes.npcs.client.model.blocks.couch.ModelCouchLeft;
+import noppes.npcs.client.model.blocks.couch.ModelCouchMiddle;
+import noppes.npcs.client.model.blocks.couch.ModelCouchRight;
+import noppes.npcs.client.model.blocks.couch.ModelCouchSingle;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchCorner;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchCornerWool;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchLeft;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchLeftWool;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchMiddle;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchMiddleWool;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchRight;
+import noppes.npcs.client.model.blocks.legacy.couch.ModelLegacyCouchRightWool;
 import noppes.npcs.config.ConfigClient;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
@@ -119,13 +130,12 @@ public class BlockCouchWoolRenderer extends BlockRendererInterface {
             float[] color = ColorUtil.hexToRGB(tile.color);
             GL11.glColor3f(color[0], color[1], color[2]);
 
-            if (tile.hasCornerLeft){
+            if (tile.hasCornerLeft) {
                 GL11.glPushMatrix();
                 GL11.glRotatef(270, 0, 1, 0);
                 modelCouchCorner.Cussion.render(0.0625F);
                 GL11.glPopMatrix();
-            }
-            else if (tile.hasCornerRight)
+            } else if (tile.hasCornerRight)
                 modelCouchCorner.Cussion.render(0.0625F);
             else if (tile.hasLeft && tile.hasRight)
                 modelCouch.Cussion.render(0.0625F);

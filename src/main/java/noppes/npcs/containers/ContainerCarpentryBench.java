@@ -3,13 +3,21 @@ package noppes.npcs.containers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.*;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ICrafting;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryCraftResult;
+import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.Slot;
+import net.minecraft.inventory.SlotCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.S2FPacketSetSlot;
 import net.minecraft.world.World;
 import noppes.npcs.CustomItems;
+import noppes.npcs.EventHooks;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.scripted.event.RecipeScriptEvent;
 
 public class ContainerCarpentryBench extends Container {
     public InventoryCrafting craftMatrix = new InventoryCrafting(this, 4, 4);
@@ -20,13 +28,18 @@ public class ContainerCarpentryBench extends Container {
     private int posY;
     private int posZ;
 
+    private RecipeCarpentry currentRecipe;
+    private SlotCarpentryResult resultSlot;
+    private boolean resultCanPickup = true;
+
     public ContainerCarpentryBench(InventoryPlayer par1InventoryPlayer, World par2World, int par3, int par4, int par5) {
         this.worldObj = par2World;
         this.posX = par3;
         this.posY = par4;
         this.posZ = par5;
         this.player = par1InventoryPlayer.player;
-        this.addSlotToContainer(new SlotCrafting(par1InventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 133, 41));
+        this.resultSlot = new SlotCarpentryResult(this, par1InventoryPlayer.player, this.craftMatrix, this.craftResult, 0, 133, 41);
+        this.addSlotToContainer(this.resultSlot);
         int var6;
         int var7;
 
@@ -60,13 +73,28 @@ public class ContainerCarpentryBench extends Container {
     public void onCraftMatrixChanged(IInventory par1IInventory) {
         if (!this.worldObj.isRemote) {
             RecipeCarpentry recipe = RecipeController.Instance.findMatchingRecipe(this.craftMatrix);
+            this.currentRecipe = recipe;
 
             ItemStack item = null;
+            boolean canPickup = true;
             if (recipe != null && recipe.availability.isAvailable(player)) {
                 item = recipe.getCraftingResult(this.craftMatrix);
+
+                ItemStack[] items = new ItemStack[this.craftMatrix.getSizeInventory()];
+                for (int i = 0; i < items.length; i++) {
+                    items[i] = this.craftMatrix.getStackInSlot(i);
+                }
+
+                RecipeScriptEvent.Pre pre = EventHooks.onRecipeScriptPre(player, recipe.getScriptHandler(), recipe, items);
+                canPickup = !pre.isCanceled();
+                item = EventHooks.onRecipeScriptPost(player, recipe.getScriptHandler(), recipe, items, item);
             }
 
             this.craftResult.setInventorySlotContents(0, item);
+            this.resultCanPickup = canPickup;
+            if (this.resultSlot != null) {
+                this.resultSlot.setCanPickup(canPickup);
+            }
             EntityPlayerMP plmp = (EntityPlayerMP) player;
             plmp.playerNetServerHandler.sendPacket(new S2FPacketSetSlot(this.windowId, 0, item));
         }
@@ -95,6 +123,10 @@ public class ContainerCarpentryBench extends Container {
         return this.worldObj.getBlock(this.posX, this.posY, this.posZ) != CustomItems.carpentyBench ? false : par1EntityPlayer.getDistanceSq((double) this.posX + 0.5D, (double) this.posY + 0.5D, (double) this.posZ + 0.5D) <= 64.0D;
     }
 
+    public boolean canPickupResult() {
+        return this.resultCanPickup;
+    }
+
     /**
      * Called to transfer a stack from one inventory to the other eg. when shift clicking.
      */
@@ -108,6 +140,10 @@ public class ContainerCarpentryBench extends Container {
             var2 = var4.copy();
 
             if (par1 == 0) {
+                SlotCarpentryResult resultSlot = (SlotCarpentryResult) var3;
+                if (!resultSlot.canPickup()) {
+                    return null;
+                }
                 if (!this.mergeItemStack(var4, 17, 53, true)) {
                     return null;
                 }
@@ -139,8 +175,8 @@ public class ContainerCarpentryBench extends Container {
         }
 
         // Update client-side inventory
-        if (!this.worldObj.isRemote && player instanceof EntityPlayerMP) {
-            ((EntityPlayerMP) player).sendContainerToPlayer(this);
+        if (!this.worldObj.isRemote && par1EntityPlayer instanceof EntityPlayerMP) {
+            ((EntityPlayerMP) par1EntityPlayer).sendContainerToPlayer(this);
         }
 
         return var2;
@@ -149,5 +185,60 @@ public class ContainerCarpentryBench extends Container {
     @Override
     public boolean func_94530_a(ItemStack stack, Slot slotIn) {
         return slotIn.inventory != this.craftResult && super.func_94530_a(stack, slotIn);
+    }
+
+    // --- Sync Methods ---
+    @Override
+    public void addCraftingToCrafters(ICrafting listener) {
+        super.addCraftingToCrafters(listener);
+        listener.sendProgressBarUpdate(this, 0, this.resultCanPickup ? 1 : 0);
+    }
+
+    @Override
+    public void detectAndSendChanges() {
+        super.detectAndSendChanges();
+        for (Object crafterObj : this.crafters) {
+            ((ICrafting) crafterObj).sendProgressBarUpdate(this, 0, this.resultCanPickup ? 1 : 0);
+        }
+    }
+
+    @Override
+    public void updateProgressBar(int id, int data) {
+        if (id == 0 && this.resultSlot != null) {
+            this.resultSlot.setCanPickup(data != 0);
+            resultCanPickup = data != 0;
+        }
+    }
+    // --- End Sync Methods ---
+
+    // Custom result slot to handle recipe scripts
+    private class SlotCarpentryResult extends SlotCrafting {
+        private final ContainerCarpentryBench container;
+        private boolean canPickup = true;
+
+        public SlotCarpentryResult(ContainerCarpentryBench container, EntityPlayer player, InventoryCrafting matrix, IInventory result, int index, int x, int y) {
+            super(player, matrix, result, index, x, y);
+            this.container = container;
+        }
+
+        public void setCanPickup(boolean value) {
+            this.canPickup = value;
+        }
+
+        public boolean canPickup() {
+            return this.canPickup;
+        }
+
+        @Override
+        public boolean canTakeStack(EntityPlayer player) {
+            return canPickup && super.canTakeStack(player);
+        }
+
+        @Override
+        public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
+            if (!canPickup)
+                return;
+            super.onPickupFromSlot(player, stack);
+        }
     }
 }

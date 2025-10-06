@@ -55,10 +55,16 @@ public class ConfigScript {
     public static Property EnableBannedClassesProperty;
     public static boolean EnableBannedClasses = false;
 
+    public static Property RunLoadedScriptsFirstProperty;
+    public static boolean RunLoadedScriptsFirst = true;
+
     public static Property BannedClassesProperty;
     public final static HashSet<String> BannedClasses = new HashSet<>();
 
     public static int ActionManagerTickDefault = 5;
+
+    public static Property ClearActionsOnDeathProperty;
+    public static boolean ClearActionsOnDeath = true;
 
     public static boolean IndividualPlayerScripts = false;
 
@@ -108,6 +114,12 @@ public class ConfigScript {
             EnableBannedClassesProperty = config.get(CUSTOMIZATION, "Enable Banned Classes", false, "Enables the Banned Classes Functionality");
             EnableBannedClasses = EnableBannedClassesProperty.getBoolean(false);
 
+            RunLoadedScriptsFirstProperty = config.get(CUSTOMIZATION, "Run Loaded Scripts First", true,
+                "If scripts have been loaded from the scripting GUI, the script engine will evaluates them by\n" +
+                    "merging your loaded scripts with your main script, then running the combined script.\n" +
+                    "This config determines the order in while the loaded scripts are merged with your main scripts: before (true), or after (false).");
+            RunLoadedScriptsFirst = RunLoadedScriptsFirstProperty.getBoolean(true);
+
             BannedClassesProperty = config.get(CUSTOMIZATION, "Banned Classes", "java.net.URL,java.net.URI",
                 "Comma separated list of classes that cannot be used in scripts through Java.for().\n" +
                     "Classes must be fully written out with library names preceding them.\n" +
@@ -116,6 +128,8 @@ public class ConfigScript {
 
             IndividualPlayerScripts = config.get(CUSTOMIZATION, "Individual Player Scripts", false, "Acts similar to CNPC 1.12 where Player Scripts like Init are run PER Player").getBoolean(false);
             ActionManagerTickDefault = config.get(CUSTOMIZATION, "Action Manager Tick Default", ActionManagerTickDefault, "How frequent to update the action manager ticking tasks").getInt(ActionManagerTickDefault);
+            ClearActionsOnDeathProperty = config.get(CUSTOMIZATION, "Clear Actions On Death", true, "If true, clears the Action Manager for players and NPCs when they die");
+            ClearActionsOnDeath = ClearActionsOnDeathProperty.getBoolean(true);
 
             // Convert to Legacy
             if (CustomNpcs.legacyExist) {
@@ -147,7 +161,7 @@ public class ConfigScript {
             if (ExpandedScriptLimit < 0)
                 ExpandedScriptLimit = 0;
 
-            if(ActionManagerTickDefault < 0){
+            if (ActionManagerTickDefault < 0) {
                 ActionManagerTickDefault = 1;
             }
 

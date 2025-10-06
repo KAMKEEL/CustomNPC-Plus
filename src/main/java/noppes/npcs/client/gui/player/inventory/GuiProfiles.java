@@ -4,7 +4,12 @@ import kamkeel.npcs.controllers.data.profile.Profile;
 import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
 import kamkeel.npcs.controllers.data.profile.Slot;
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.player.profile.*;
+import kamkeel.npcs.network.packets.player.profile.ProfileChangePacket;
+import kamkeel.npcs.network.packets.player.profile.ProfileCreatePacket;
+import kamkeel.npcs.network.packets.player.profile.ProfileGetInfoPacket;
+import kamkeel.npcs.network.packets.player.profile.ProfileGetPacket;
+import kamkeel.npcs.network.packets.player.profile.ProfileRemovePacket;
+import kamkeel.npcs.network.packets.player.profile.ProfileRenamePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
@@ -16,7 +21,12 @@ import noppes.npcs.api.handler.data.ISlot;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiEditText;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.ISubGuiListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 import tconstruct.client.tabs.AbstractTab;
@@ -335,27 +345,36 @@ public class GuiProfiles extends GuiCNPCInventory implements ISubGuiListener, IC
 
     public void setGuiData(NBTTagCompound compound) {
         this.slot = null;
-        if (compound.hasKey("PROFILE")) {
-            // Load Profile
-            this.profile = new Profile(mc.thePlayer, compound);
-            this.data = new HashMap<>();
-            String currentSlot = "\u00A7e";
-            String otherSlot = "\u00A7f";
-            for (ISlot slot1 : profile.getSlots().values()) {
-                String name = slot1.getId() + " - " + slot1.getName();
-                if (profile.currentSlotId == slot1.getId())
-                    name = currentSlot + name;
-                else
-                    name = otherSlot + name;
-                this.data.put(name, slot1.getId());
-            }
+        if (compound.hasKey("CHANGE_PACKET")) {
+            this.readProfileCompound(
+                compound.getCompoundTag("PROFILE"));
+            this.slotInfoMap = ProfileGetInfoPacket.readProfileInfo(
+                compound.getCompoundTag("PROFILE_INFO"));
+        } else if (compound.hasKey("PROFILE")) {
+            this.readProfileCompound(compound);
         } else if (compound.hasKey("PROFILE_INFO")) {
-            slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
+            this.slotInfoMap = ProfileGetInfoPacket.readProfileInfo(compound);
         }
         if (scroll != null) {
             scroll.setSelected("");
         }
         initGui();
+    }
+
+    private void readProfileCompound(NBTTagCompound compound) {
+        // Load Profile
+        this.profile = new Profile(mc.thePlayer, compound);
+        this.data = new HashMap<>();
+        String currentSlot = "\u00A7e";
+        String otherSlot = "\u00A7f";
+        for (ISlot slot1 : profile.getSlots().values()) {
+            String name = slot1.getId() + " - " + slot1.getName();
+            if (profile.currentSlotId == slot1.getId())
+                name = currentSlot + name;
+            else
+                name = otherSlot + name;
+            this.data.put(name, slot1.getId());
+        }
     }
 
     /**

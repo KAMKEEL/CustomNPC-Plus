@@ -48,7 +48,15 @@ import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.ServerCloneController;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.AnimationData;
+import noppes.npcs.controllers.data.Line;
+import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
 import noppes.npcs.items.ItemShield;
@@ -283,6 +291,16 @@ public class ServerEventsHandler {
         if (!storedData.hasNoTags()) {
             event.entityPlayer.getEntityData().setTag("CNPCStoredData", storedData);
         }
+    }
+
+    @SubscribeEvent
+    public void onPlayerRespawn(cpw.mods.fml.common.gameevent.PlayerEvent.PlayerRespawnEvent event) {
+        if (event.player == null || event.player.worldObj == null || event.player.worldObj.isRemote)
+            return;
+
+        PlayerData data = PlayerData.get(event.player);
+        data.setGUIOpen(false);
+        data.editingNpc = null;
     }
 
     private void doExcalibur(EntityPlayer player, EntityLivingBase entity) {

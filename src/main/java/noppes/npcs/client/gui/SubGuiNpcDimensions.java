@@ -3,11 +3,19 @@ package noppes.npcs.client.gui;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.DimensionsGetPacket;
 import net.minecraft.client.gui.GuiButton;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.SpawnData;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 
 public class SubGuiNpcDimensions extends SubGuiInterface implements IScrollData {
     private final SpawnData data;

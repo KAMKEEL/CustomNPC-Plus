@@ -16,6 +16,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -122,10 +123,14 @@ public class ImageDownloadAlt extends SimpleTexture {
                     BufferedImage bufferedimage;
 
                     if (ImageDownloadAlt.this.cacheFile != null) {
-                        FileUtils.copyInputStreamToFile(connection.getInputStream(), ImageDownloadAlt.this.cacheFile);
+                        try (InputStream in = connection.getInputStream()) {
+                            FileUtils.copyInputStreamToFile(in, ImageDownloadAlt.this.cacheFile);
+                        }
                         bufferedimage = ImageIO.read(ImageDownloadAlt.this.cacheFile);
                     } else {
-                        bufferedimage = ImageIO.read(connection.getInputStream());
+                        try (InputStream in = connection.getInputStream()) {
+                            bufferedimage = ImageIO.read(in);
+                        }
                     }
 
                     if (ImageDownloadAlt.this.imageBuffer != null) {

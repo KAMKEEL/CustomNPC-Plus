@@ -11,8 +11,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Items;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemArmor.ArmorMaterial;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemBow;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.model.ModelPony;
 import noppes.npcs.client.model.ModelPonyArmor;
@@ -24,6 +28,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 
 public class RenderNPCPony extends RenderNPCInterface {
 
@@ -93,29 +98,30 @@ public class RenderNPCPony extends RenderNPCInterface {
         if (check) {
             try {
                 IResource resource = Minecraft.getMinecraft().getResourceManager().getResource(loc);
-                BufferedImage bufferedimage = ImageIO.read(resource.getInputStream());
+                try (InputStream stream = resource.getInputStream()) {
+                    BufferedImage bufferedimage = ImageIO.read(stream);
 
-                pony.isPegasus = false;
-                pony.isUnicorn = false;
-                Color color = new Color(bufferedimage.getRGB(0, 0), true);
-                Color color1 = new Color(249, 177, 49, 255);
-                Color color2 = new Color(136, 202, 240, 255);
-                Color color3 = new Color(209, 159, 228, 255);
-                Color color4 = new Color(254, 249, 252, 255);
-                if (color.equals(color1)) {
+                    pony.isPegasus = false;
+                    pony.isUnicorn = false;
+                    Color color = new Color(bufferedimage.getRGB(0, 0), true);
+                    Color color1 = new Color(249, 177, 49, 255);
+                    Color color2 = new Color(136, 202, 240, 255);
+                    Color color3 = new Color(209, 159, 228, 255);
+                    Color color4 = new Color(254, 249, 252, 255);
+                    if (color.equals(color1)) {
+                    }
+                    if (color.equals(color2)) {
+                        pony.isPegasus = true;
+                    }
+                    if (color.equals(color3)) {
+                        pony.isUnicorn = true;
+                    }
+                    if (color.equals(color4)) {
+                        pony.isPegasus = true;
+                        pony.isUnicorn = true;
+                    }
+                    pony.checked = loc;
                 }
-                if (color.equals(color2)) {
-                    pony.isPegasus = true;
-                }
-                if (color.equals(color3)) {
-                    pony.isUnicorn = true;
-                }
-                if (color.equals(color4)) {
-                    pony.isPegasus = true;
-                    pony.isUnicorn = true;
-                }
-                pony.checked = loc;
-
             } catch (IOException e) {
 
             }

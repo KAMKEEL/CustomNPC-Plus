@@ -1,14 +1,26 @@
 package noppes.npcs.client.gui;
 
 import kamkeel.npcs.network.PacketClient;
-import kamkeel.npcs.network.packets.request.npc.*;
+import kamkeel.npcs.network.packets.request.npc.RemoteDeletePacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteFreezeGetPacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteFreezePacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteGlobalMenuPacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteMainMenuPacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteNpcsGetPacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteResetPacket;
+import kamkeel.npcs.network.packets.request.npc.RemoteTpToNpcPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.IScrollData;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.entity.EntityNPCInterface;
 

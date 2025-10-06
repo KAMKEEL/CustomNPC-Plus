@@ -4,7 +4,12 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.CustomItems;
-import noppes.npcs.client.gui.player.inventory.*;
+import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
+import noppes.npcs.client.gui.player.inventory.GuiFaction;
+import noppes.npcs.client.gui.player.inventory.GuiParty;
+import noppes.npcs.client.gui.player.inventory.GuiProfiles;
+import noppes.npcs.client.gui.player.inventory.GuiQuestLog;
+import noppes.npcs.client.gui.player.inventory.GuiSettings;
 
 public class InventoryTabCustomNpc extends AbstractTab {
     public InventoryTabCustomNpc() {

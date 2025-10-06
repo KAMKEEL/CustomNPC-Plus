@@ -12,7 +12,20 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.SubGuiNpcAvailability;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.script.GuiScriptRecipe;
+import noppes.npcs.client.gui.util.GuiButtonBiDirectional;
+import noppes.npcs.client.gui.util.GuiContainerNPCInterface2;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcButtonYesNo;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.ISubGuiListener;
+import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.containers.ContainerManageRecipes;
@@ -69,9 +82,10 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
         this.addButton(new GuiButtonBiDirectional(0, guiLeft + 280, y, 130, 20, new String[]{"menu.global", "tile.npcCarpentyBench.name", "tile.anvil.name"}, tab));
 
         y += 106;
+        y += 44;
 
-        this.addButton(new GuiNpcButton(3, guiLeft + 226, y += 22, 50, 20, "gui.add"));
-        this.addButton(new GuiNpcButton(4, guiLeft + 226, y += 22, 50, 20, "gui.remove"));
+        this.addButton(new GuiNpcButton(3, guiLeft + 172, y, 50, 20, "gui.add"));
+        this.addButton(new GuiNpcButton(4, guiLeft + 226, y, 50, 20, "gui.remove"));
         this.addButton(new GuiNpcButton(10, guiLeft + 226, y += 30, 50, 20, "gui.copy"));
 
         if (container.width != 1) {
@@ -83,10 +97,12 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
             buttonPos += 22;
             this.addButton(new GuiNpcButton(15, guiLeft + 172, buttonPos - 5, 103, 20, "availability.options"));
+            this.addButton(new GuiNpcButton(16, guiLeft + 172, buttonPos + 17, 103, 20, "script.scripts"));
 
             this.getButton(5).setEnabled(false);
             this.getButton(6).setEnabled(false);
             this.getButton(15).setEnabled(false);
+            this.getButton(16).setEnabled(false);
 
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipe.name));
             this.getTextField(0).enabled = false;
@@ -116,11 +132,13 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
 
             buttonPos += 22;
             this.addButton(new GuiNpcButton(15, guiLeft + 172, buttonPos - 5, 103, 20, "availability.options"));
+            this.addButton(new GuiNpcButton(16, guiLeft + 172, buttonPos + 17, 103, 20, "script.scripts"));
 
             this.getButton(7).setEnabled(false);
             this.getButton(8).setEnabled(false);
             this.getButton(9).setEnabled(false);
             this.getButton(15).setEnabled(false);
+            this.getButton(16).setEnabled(false);
 
             this.addTextField(new GuiNpcTextField(0, this, fontRendererObj, guiLeft + 8, guiTop + 8, 160, 20, container.recipeAnvil.name));
             this.getTextField(0).enabled = false;
@@ -200,6 +218,21 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
                 setSubGui(new SubGuiNpcAvailability(container.recipe.availability));
             }
         }
+
+        if (button.id == 16) {
+            save();
+            if (container.width == 1) {
+                GuiScriptRecipe gui = new GuiScriptRecipe(this, container.recipeAnvil);
+                gui.setWorldAndResolution(mc, width, height);
+                gui.initGui();
+                mc.currentScreen = gui;
+            } else if (!container.recipe.isGlobal) {
+                GuiScriptRecipe gui = new GuiScriptRecipe(this, container.recipe);
+                gui.setWorldAndResolution(mc, width, height);
+                gui.initGui();
+                mc.currentScreen = gui;
+            }
+        }
     }
 
     @Override
@@ -231,13 +264,15 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
     @Override
     public void setGuiData(NBTTagCompound compound) {
         if (compound.hasKey("IsAnvil")) {
-            RecipeAnvil recipe = RecipeAnvil.read(compound);
+            RecipeAnvil recipe = new RecipeAnvil();
+            recipe.readNBT(compound);
             container.setRecipe(recipe);
             container.width = 1;
             tab = 2;
             fixButtons();
         } else {
-            RecipeCarpentry recipe = RecipeCarpentry.read(compound);
+            RecipeCarpentry recipe = RecipeCarpentry.create(compound);
+            recipe.readNBT(compound);
             container.setRecipe(recipe);
             fixButtons();
         }
@@ -273,6 +308,10 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
             GuiNpcButton avail = this.getButton(15);
             if (avail != null)
                 avail.setEnabled(true);
+
+            GuiNpcButton script = this.getButton(16);
+            if (script != null)
+                script.setEnabled(true);
         } else {
             getTextField(0).setText(container.recipe.name);
 
@@ -287,6 +326,10 @@ public class GuiNpcManageRecipes extends GuiContainerNPCInterface2 implements IS
                 GuiNpcButton avail = this.getButton(15);
                 if (avail != null)
                     avail.setEnabled(true);
+
+                GuiNpcButton script = this.getButton(16);
+                if (script != null)
+                    script.setEnabled(true);
             }
         }
     }

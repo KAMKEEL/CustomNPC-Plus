@@ -1,6 +1,10 @@
 package noppes.npcs.scripted.scoreboard;
 
-import net.minecraft.scoreboard.*;
+import net.minecraft.scoreboard.IScoreObjectiveCriteria;
+import net.minecraft.scoreboard.Score;
+import net.minecraft.scoreboard.ScoreObjective;
+import net.minecraft.scoreboard.ScorePlayerTeam;
+import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.scoreboard.IScoreboard;

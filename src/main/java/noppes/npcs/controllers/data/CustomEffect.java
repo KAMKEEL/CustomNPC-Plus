@@ -254,7 +254,6 @@ public class CustomEffect implements ICustomEffect {
         compound.setString("icon", icon);
         compound.setBoolean("lossOnDeath", lossOnDeath);
 
-//        if (saveScripts && scriptContainer != null) {
         if (saveScripts) {
             NBTTagCompound scriptData = new NBTTagCompound();
             EffectScript handler = getScriptHandler();

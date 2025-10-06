@@ -3,7 +3,11 @@ package noppes.npcs;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
-import noppes.npcs.constants.*;
+import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.constants.EnumCombatPolicy;
+import noppes.npcs.constants.EnumMovingType;
+import noppes.npcs.constants.EnumNavType;
+import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;

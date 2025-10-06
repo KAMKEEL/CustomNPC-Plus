@@ -1,6 +1,7 @@
 package noppes.npcs.controllers;
 
 import cpw.mods.fml.common.eventhandler.Event;
+import jdk.nashorn.api.scripting.ScriptObjectMirror;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
@@ -10,12 +11,18 @@ import noppes.npcs.scripted.NpcAPI;
 
 import javax.script.Compilable;
 import javax.script.CompiledScript;
-import javax.script.Invocable;
+import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
 
 public class ScriptContainer {
     private static final String lock = "lock";
@@ -35,6 +42,7 @@ public class ScriptContainer {
     private static Method luaCoerce;
     private static Method luaCall;
     private CompiledScript compScript = null;
+    private final HashMap<String, ScriptObjectMirror> cachedFunctions = new HashMap<>();
 
     public ScriptContainer(IScriptHandler handler) {
         this.handler = handler;
@@ -92,22 +100,34 @@ public class ScriptContainer {
 
     private String getFullCode() {
         if (!this.evaluated) {
-            // build includes first
+            // build includes first depending on config setting
             StringBuilder sb = new StringBuilder();
-            for (String loc : this.scripts) {
-                String code = ScriptController.Instance.scripts.get(loc);
-                if (code != null && !code.isEmpty()) {
-                    sb.append(code).append("\n");
-                }
+            if (ConfigScript.RunLoadedScriptsFirst) {
+                this.appendExternalScripts(sb);
             }
-            // then your per‐hook script
+
+            // then your per‐hook main script
             if (this.script != null && !this.script.isEmpty()) {
                 sb.append(this.script).append("\n");
+            }
+
+            // build includes last if not built first
+            if (!ConfigScript.RunLoadedScriptsFirst) {
+                this.appendExternalScripts(sb);
             }
             this.fullscript = sb.toString();
             this.unknownFunctions = new HashSet<>();
         }
         return this.fullscript;
+    }
+
+    private void appendExternalScripts(StringBuilder sb) {
+        for (String loc : this.scripts) {
+            String code = ScriptController.Instance.scripts.get(loc);
+            if (code != null && !code.isEmpty()) {
+                sb.append(code).append("\n");
+            }
+        }
     }
 
     public void run(ScriptEngine engine) {
@@ -173,6 +193,7 @@ public class ScriptContainer {
 
             try {
                 if (!evaluated) {
+                    this.cachedFunctions.clear();
                     engine.eval(getFullCode());
                     evaluated = true;
                 }
@@ -188,7 +209,15 @@ public class ScriptContainer {
                         unknownFunctions.add(type);
                     }
                 } else {
-                    ((Invocable) engine).invokeFunction(type, event);
+                    if (!this.cachedFunctions.containsKey(type)) {
+                        ScriptObjectMirror global = (ScriptObjectMirror) engine.getBindings(ScriptContext.ENGINE_SCOPE);
+                        ScriptObjectMirror func = (ScriptObjectMirror) global.get(type);
+                        this.cachedFunctions.put(type, func);
+                    }
+                    ScriptObjectMirror func = this.cachedFunctions.get(type);
+                    if (func != null) {
+                        func.call(null, event);
+                    }
                 }
             } catch (NoSuchMethodException e) {
                 unknownFunctions.add(type);

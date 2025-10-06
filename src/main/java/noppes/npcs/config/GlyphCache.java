@@ -14,8 +14,11 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.*;
 
 /**
  * @author https://github.com/secretdataz/BetterFonts
@@ -253,19 +256,19 @@ public class GlyphCache {
     }
 
     void setCustomFont(ResourceLocation location, int size, boolean antiAlias) throws Exception {
-        InputStream stream = Minecraft.getMinecraft().getResourceManager().getResource(location).getInputStream();
+        try (InputStream stream = Minecraft.getMinecraft().getResourceManager().getResource(location).getInputStream()) {
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            Font font = Font.createFont(Font.TRUETYPE_FONT, stream);
+            ge.registerFont(font);
+            font = font.deriveFont(Font.PLAIN, 72);
 
-        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        Font font = Font.createFont(Font.TRUETYPE_FONT, stream);
-        ge.registerFont(font);
-        font = font.deriveFont(Font.PLAIN, 72);
+            usedFonts.clear();
+            usedFonts.add(font);
 
-        usedFonts.clear();
-        usedFonts.add(font);
-
-        fontSize = size;
-        antiAliasEnabled = antiAlias;
-        setRenderingHints();
+            fontSize = size;
+            antiAliasEnabled = antiAlias;
+            setRenderingHints();
+        }
     }
 
     int fontHeight(String s) {

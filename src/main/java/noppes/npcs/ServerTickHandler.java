@@ -11,13 +11,22 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.action.ActionManager;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class ServerTickHandler {
+
     @SubscribeEvent
-    public void onServerTick(TickEvent.WorldTickEvent event) {
+    public void onServerTick(TickEvent.ServerTickEvent event) {
+        if (event.phase == Phase.END) {
+            ActionManager.GLOBAL.tick();
+        }
+    }
+
+    @SubscribeEvent
+    public void onWorldTick(TickEvent.WorldTickEvent event) {
         if (event.phase == Phase.START) {
             NPCSpawning.findChunksForSpawning((WorldServer) event.world);
         }
@@ -28,32 +37,33 @@ public class ServerTickHandler {
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         EntityPlayerMP player = (EntityPlayerMP) event.player;
-        if (serverName == null) {
-            String e = "local";
-            MinecraftServer server = MinecraftServer.getServer();
-            if (server.isDedicatedServer()) {
-                try {
-                    e = InetAddress.getByName(server.getServerHostname()).getCanonicalHostName();
-                } catch (UnknownHostException e1) {
-                    e = MinecraftServer.getServer().getServerHostname();
-                }
-                if (server.getPort() != 25565)
-                    e += ":" + server.getPort();
-            }
-            if (e == null || e.startsWith("192.168") || e.contains("127.0.0.1") || e.startsWith("localhost"))
-                e = "local";
-            serverName = e;
-        }
-        AnalyticsTracking.sendData(event.player, "join", serverName);
+        // Temporary Disabled
+//        if (serverName == null) {
+//            String e = "local";
+//            MinecraftServer server = MinecraftServer.getServer();
+//            if (server.isDedicatedServer()) {
+//                try {
+//                    e = InetAddress.getByName(server.getServerHostname()).getCanonicalHostName();
+//                } catch (UnknownHostException e1) {
+//                    e = MinecraftServer.getServer().getServerHostname();
+//                }
+//                if (server.getPort() != 25565)
+//                    e += ":" + server.getPort();
+//            }
+//            if (e == null || e.startsWith("192.168") || e.contains("127.0.0.1") || e.startsWith("localhost"))
+//                e = "local";
+//            serverName = e;
+//        }
+//        AnalyticsTracking.sendData(event.player, "join", serverName);
 
         PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogin();
         }
 
+        ProfileController.Instance.login(player);
         SyncController.syncPlayer(player);
         SyncController.syncEffects(player);
-        ProfileController.Instance.login(player);
     }
 
     @SubscribeEvent
@@ -62,5 +72,8 @@ public class ServerTickHandler {
         if (playerData != null) {
             playerData.onLogout();
         }
+
+        // Save and unload the player's profile data on logout
+        ProfileController.Instance.logout(event.player);
     }
 }

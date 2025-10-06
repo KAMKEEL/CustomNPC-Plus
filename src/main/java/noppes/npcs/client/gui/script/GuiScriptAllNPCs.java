@@ -35,7 +35,7 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
     }
 
     public void setGuiData(NBTTagCompound compound) {
-        if(compound.hasKey("LoadComplete")){
+        if (compound.hasKey("LoadComplete")) {
             loaded = true;
             return;
         }
@@ -59,7 +59,7 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
     }
 
     public void save() {
-        if(loaded){
+        if (loaded) {
             super.save();
             List<ScriptContainer> containers = this.script.getScripts();
             for (int i = 0; i < containers.size(); i++) {

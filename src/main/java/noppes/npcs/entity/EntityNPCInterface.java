@@ -21,9 +21,24 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.command.IEntitySelector;
-import net.minecraft.entity.*;
-import net.minecraft.entity.ai.*;
+import net.minecraft.entity.DataWatcher;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityCreature;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.EnumCreatureAttribute;
+import net.minecraft.entity.IRangedAttackMob;
+import net.minecraft.entity.NPCEntityHelper;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAIAttackOnCollide;
+import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.ai.EntityAIHurtByTarget;
+import net.minecraft.entity.ai.EntityAILeapAtTarget;
+import net.minecraft.entity.ai.EntityAIOpenDoor;
+import net.minecraft.entity.ai.EntityAIRestrictSun;
+import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAITasks;
 import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
+import net.minecraft.entity.ai.EntityMoveHelper;
 import net.minecraft.entity.boss.IBossDisplayData;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntityMob;
@@ -42,18 +57,60 @@ import net.minecraft.network.play.server.S0BPacketAnimation;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.*;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ChatComponentTranslation;
+import net.minecraft.util.ChunkCoordinates;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.IChatComponent;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
-import noppes.npcs.*;
+import noppes.npcs.CustomItems;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.DataAI;
+import noppes.npcs.DataAdvanced;
+import noppes.npcs.DataDisplay;
+import noppes.npcs.DataInventory;
+import noppes.npcs.DataStats;
+import noppes.npcs.EventHooks;
+import noppes.npcs.IChatMessages;
+import noppes.npcs.NBTTags;
+import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.NoppesUtilServer;
+import noppes.npcs.NpcDamageSource;
+import noppes.npcs.VersionCompatibility;
+import noppes.npcs.ai.CombatHandler;
+import noppes.npcs.ai.EntityAIAmbushTarget;
+import noppes.npcs.ai.EntityAIAnimation;
+import noppes.npcs.ai.EntityAIAttackTarget;
+import noppes.npcs.ai.EntityAIAvoidTarget;
+import noppes.npcs.ai.EntityAIBustDoor;
+import noppes.npcs.ai.EntityAIDodgeShoot;
+import noppes.npcs.ai.EntityAIFindShade;
+import noppes.npcs.ai.EntityAIFollow;
+import noppes.npcs.ai.EntityAIJob;
+import noppes.npcs.ai.EntityAILook;
 import noppes.npcs.ai.EntityAIMoveIndoors;
+import noppes.npcs.ai.EntityAIMovingPath;
+import noppes.npcs.ai.EntityAIOrbitTarget;
 import noppes.npcs.ai.EntityAIPanic;
+import noppes.npcs.ai.EntityAIPounceTarget;
+import noppes.npcs.ai.EntityAIRangedAttack;
+import noppes.npcs.ai.EntityAIReturn;
+import noppes.npcs.ai.EntityAIRole;
+import noppes.npcs.ai.EntityAISprintToTarget;
+import noppes.npcs.ai.EntityAIStalkTarget;
+import noppes.npcs.ai.EntityAITransform;
 import noppes.npcs.ai.EntityAIWander;
 import noppes.npcs.ai.EntityAIWatchClosest;
-import noppes.npcs.ai.*;
+import noppes.npcs.ai.EntityAIWaterNav;
+import noppes.npcs.ai.EntityAIWorldLines;
+import noppes.npcs.ai.EntityAIZigZagTarget;
 import noppes.npcs.ai.pathfinder.FlyingMoveHelper;
 import noppes.npcs.ai.pathfinder.PathNavigateFlying;
 import noppes.npcs.ai.selector.NPCAttackSelector;
@@ -66,21 +123,47 @@ import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.constants.*;
+import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumAnimation;
+import noppes.npcs.constants.EnumCombatPolicy;
+import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.constants.EnumMovingType;
+import noppes.npcs.constants.EnumNavType;
+import noppes.npcs.constants.EnumPotionType;
+import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.constants.EnumStandingType;
 import noppes.npcs.controllers.FactionController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.LinkedNpcController.LinkedData;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.DataScript;
+import noppes.npcs.controllers.data.DataTransform;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogOption;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.Line;
+import noppes.npcs.controllers.data.Party;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerQuestData;
+import noppes.npcs.controllers.data.QuestData;
+import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.data.DataTimers;
-import noppes.npcs.roles.*;
+import noppes.npcs.roles.JobBard;
+import noppes.npcs.roles.JobFollower;
+import noppes.npcs.roles.JobInterface;
+import noppes.npcs.roles.RoleCompanion;
+import noppes.npcs.roles.RoleFollower;
+import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.NpcAPI;
-import noppes.npcs.scripted.ScriptedActionManager;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData {
     public ICustomNpc wrappedNPC;
@@ -97,7 +180,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public DataTimers timers;
 
     public CombatHandler combatHandler = new CombatHandler(this);
-    public ScriptedActionManager actionManager = new ScriptedActionManager();
+    public ActionManager actionManager = new ActionManager();
 
     public String linkedName = "";
     public long linkedLast = 0;
@@ -366,7 +449,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             combatHandler.update();
             onCollide();
 
-            actionManager.tick(ticksExisted);
+            actionManager.tick();
         }
 
         if (wasKilled != isKilled() && wasKilled) {
@@ -643,18 +726,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (entity instanceof EntityPlayer && DBCAddon.instance.isKO(this, (EntityPlayer) entity))
             return;
         if (!isRemote()) {
-            if (getAttackTarget() != entity && entity != null) {
-                NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(wrappedNPC, entity);
-                if (EventHooks.onNPCTarget(this, event))
-                    return;
+            if (getAttackTarget() != entity) {
+                if (entity != null) {
+                    NpcEvent.TargetEvent event = new NpcEvent.TargetEvent(wrappedNPC, entity);
+                    if (EventHooks.onNPCTarget(this, event))
+                        return;
 
-                if (event.getTarget() == null)
-                    entity = null;
-                else
-                    entity = event.getTarget().getMCEntity();
-            } else {
-                if (EventHooks.onNPCTargetLost(this, getAttackTarget(), entity))
-                    return;
+                    if (event.getTarget() == null)
+                        entity = null;
+                    else
+                        entity = event.getTarget().getMCEntity();
+                }
+                if (getAttackTarget() != null) {
+                    if (EventHooks.onNPCTargetLost(this, getAttackTarget(), entity))
+                        return;
+                }
             }
             if (entity != null && entity != this && ais.onAttack != 3 && !isAttacking()) {
                 Line line = advanced.getAttackLine();
@@ -1168,7 +1254,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         setHealth(getMaxHealth());
         dataWatcher.updateObject(14, 0); // animation Normal
         dataWatcher.updateObject(15, 0);
-        actionManager.clear();
+        if (ConfigScript.ClearActionsOnDeath)
+            actionManager.clear();
         combatHandler.reset();
         this.setAttackTarget(null);
         this.setRevengeTarget(null);
@@ -1405,6 +1492,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             roleInterface.delete();
         if (advanced.job != EnumJobType.None && jobInterface != null)
             jobInterface.delete();
+        actionManager.clear();
+
         super.setDead();
     }
 

@@ -8,7 +8,12 @@ import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.scripted.event.player.PlayerEvent.EffectEvent.ExpirationType;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static kamkeel.npcs.util.ColorUtil.sendError;
 import static kamkeel.npcs.util.ColorUtil.sendResult;

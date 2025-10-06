@@ -26,7 +26,12 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.CustomNPCsEvent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 public class NPCSpawning {
     private static Set<ChunkCoordIntPair> eligibleChunksForSpawning = Sets.newHashSet();

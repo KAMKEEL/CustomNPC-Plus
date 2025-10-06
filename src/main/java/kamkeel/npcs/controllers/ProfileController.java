@@ -1,10 +1,21 @@
 package kamkeel.npcs.controllers;
 
-import kamkeel.npcs.controllers.data.profile.*;
+import kamkeel.npcs.controllers.AttributeController;
+import kamkeel.npcs.controllers.data.profile.CNPCData;
+import kamkeel.npcs.controllers.data.profile.EnumProfileOperation;
+import kamkeel.npcs.controllers.data.profile.IProfileData;
+import kamkeel.npcs.controllers.data.profile.Profile;
+import kamkeel.npcs.controllers.data.profile.ProfileInfoEntry;
+import kamkeel.npcs.controllers.data.profile.ProfileOperation;
+import kamkeel.npcs.controllers.data.profile.Slot;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.*;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.CustomNpcsPermissions;
+import noppes.npcs.EventHooks;
+import noppes.npcs.LogWriter;
+import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.handler.IPlayerData;
 import noppes.npcs.api.handler.IProfileHandler;
@@ -20,13 +31,27 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.util.CustomNPCsThreader;
 import noppes.npcs.util.NBTJsonUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
-import static noppes.npcs.CustomNpcsPermissions.*;
+import static noppes.npcs.CustomNpcsPermissions.PROFILE_MAX;
+import static noppes.npcs.CustomNpcsPermissions.PROFILE_REGION_BYPASS;
+import static noppes.npcs.CustomNpcsPermissions.hasCustomPermission;
 
 public class ProfileController implements IProfileHandler {
 
@@ -110,10 +135,20 @@ public class ProfileController implements IProfileHandler {
                 profile.currentSlotId = 0;
                 saveSlotData(player);
             }
+            if (!profile.getSlots().containsKey(profile.currentSlotId)) {
+                profile.currentSlotId = 0;
+            }
+
             profile.player = player;
             activeProfiles.put(player.getUniqueID(), profile);
+
+            PlayerData pdata = PlayerData.get(player);
+            if (profile.getSlots().containsKey(pdata.profileSlot)) {
+                profile.currentSlotId = pdata.profileSlot;
+            }
+
+            saveSlotData(player);
             verifySlotQuests(profile.player);
-            save(player, profile);
         }
     }
 
@@ -147,9 +182,9 @@ public class ProfileController implements IProfileHandler {
 
     public synchronized void saveOffline(Profile profile, UUID uuid) {
         profile.setLocked(true);
+        final NBTTagCompound compound = profile.writeToNBT();
+        final String filename = uuid.toString() + ".dat";
         CustomNPCsThreader.customNPCThread.execute(() -> {
-            final NBTTagCompound compound = profile.writeToNBT();
-            final String filename = uuid.toString() + ".dat";
             try {
                 File saveDir = getProfileDir();
                 File fileNew = new File(saveDir, filename + "_new");
@@ -170,9 +205,9 @@ public class ProfileController implements IProfileHandler {
 
     public synchronized void save(EntityPlayer player, Profile profile) {
         profile.setLocked(true);
+        final NBTTagCompound compound = profile.writeToNBT();
+        final String filename = player.getUniqueID() + ".dat";
         CustomNPCsThreader.customNPCThread.execute(() -> {
-            final NBTTagCompound compound = profile.writeToNBT();
-            final String filename = player.getUniqueID() + ".dat";
             try {
                 File saveDir = getProfileDir();
                 File fileNew = new File(saveDir, filename + "_new");
@@ -243,8 +278,10 @@ public class ProfileController implements IProfileHandler {
     }
 
     public synchronized void logout(EntityPlayer player) {
-        if (player != null) {
-            activeProfiles.remove(player.getUniqueID());
+        if (player != null && activeProfiles.containsKey(player.getUniqueID())) {
+            saveSlotData(player);
+            Profile profile = activeProfiles.get(player.getUniqueID());
+            save(player, profile);
         }
     }
 
@@ -616,10 +653,11 @@ public class ProfileController implements IProfileHandler {
         ISlot slot = profile.getSlots().get(profile.getCurrentSlotId());
         if (slot == null)
             return;
+
         for (IProfileData profileData : profileTypes.values()) {
             NBTTagCompound data;
             if (slot.getComponents().containsKey(profileData.getTagName()))
-                data = slot.getComponentData(profileData.getTagName());
+                data = (NBTTagCompound) slot.getComponentData(profileData.getTagName()).copy();
             else
                 data = new NBTTagCompound();
             profileData.setNBT(player, data);
@@ -656,7 +694,7 @@ public class ProfileController implements IProfileHandler {
             ISlot slot = profile.getSlots().get(slotId);
             for (IProfileData pd : dataList) {
                 if (slot.getComponents().containsKey(pd.getTagName())) {
-                    NBTTagCompound sub = slot.getComponentData(pd.getTagName());
+                    NBTTagCompound sub = (NBTTagCompound) slot.getComponentData(pd.getTagName()).copy();
                     List<ProfileInfoEntry> subInfo = pd.getInfo(player, sub);
                     infoList.addAll(subInfo);
                 }
@@ -770,6 +808,8 @@ public class ProfileController implements IProfileHandler {
         NBTTagCompound compound = slot.getComponentData(new CNPCData().getTagName());
         if (compound == null)
             compound = new NBTTagCompound();
+        else
+            compound = (NBTTagCompound) compound.copy();
         playerData.setNBT(compound);
         return playerData;
     }

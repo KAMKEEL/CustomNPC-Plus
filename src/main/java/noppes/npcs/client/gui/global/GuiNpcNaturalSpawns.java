@@ -12,12 +12,28 @@ import noppes.npcs.client.gui.GuiNpcMobSpawnerSelector;
 import noppes.npcs.client.gui.SubGuiNpcBiomes;
 import noppes.npcs.client.gui.SubGuiNpcDimensions;
 import noppes.npcs.client.gui.SubGuiSpawningOptions;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiHoverText;
+import noppes.npcs.client.gui.util.GuiNPCInterface2;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcSlider;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.IScrollData;
+import noppes.npcs.client.gui.util.ISliderListener;
+import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.constants.EnumScrollData;
 import noppes.npcs.controllers.data.SpawnData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.Vector;
 
 public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, IScrollData, ITextfieldListener, ICustomScrollListener, ISliderListener {
     private GuiCustomScroll scrollNaturalSpawns;
@@ -66,6 +82,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
         addButton(new GuiNpcButton(4, guiLeft + 90, y - 5, 50, 20, "selectServer.edit"));
 
         addSlider(new GuiNpcSlider(this, 5, guiLeft + 4, y += 17, 180, 20, (float) this.spawn.itemWeight / 100));
+        addExtra(new GuiHoverText(1, "spawning.naturalInfo", guiLeft + 188, y + 5));
 
         this.spawnEntryScroll.guiLeft = guiLeft + 4;
         this.spawnEntryScroll.guiTop = y + 40;

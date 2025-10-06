@@ -11,13 +11,30 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiCustomScroll;
+import noppes.npcs.client.gui.util.GuiMenuTopButton;
+import noppes.npcs.client.gui.util.GuiNPCInterface;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcTextArea;
+import noppes.npcs.client.gui.util.GuiNpcTextField;
+import noppes.npcs.client.gui.util.GuiScriptTextArea;
+import noppes.npcs.client.gui.util.ICustomScrollListener;
+import noppes.npcs.client.gui.util.IGuiData;
+import noppes.npcs.client.gui.util.IJTextAreaListener;
+import noppes.npcs.client.gui.util.ITextChangeListener;
+import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCallback, IGuiData, ITextChangeListener, ICustomScrollListener, IJTextAreaListener, ITextfieldListener {
 
@@ -327,7 +344,7 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
     }
 
     public void setGuiData(NBTTagCompound compound) {
-        if(compound.hasKey("LoadComplete")){
+        if (compound.hasKey("LoadComplete")) {
             loaded = true;
             return;
         }
@@ -367,7 +384,7 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
     }
 
     public void save() {
-        if(loaded) {
+        if (loaded) {
             this.setScript();
 
             List<ScriptContainer> containers = this.scriptHandler.getScripts();

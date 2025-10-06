@@ -9,8 +9,23 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
-import noppes.npcs.client.gui.advanced.*;
-import noppes.npcs.client.gui.roles.*;
+import noppes.npcs.client.gui.advanced.GuiNPCAdvancedLinkedNpc;
+import noppes.npcs.client.gui.advanced.GuiNPCDialogNpcOptions;
+import noppes.npcs.client.gui.advanced.GuiNPCFactionSetup;
+import noppes.npcs.client.gui.advanced.GuiNPCLinesMenu;
+import noppes.npcs.client.gui.advanced.GuiNPCMagic;
+import noppes.npcs.client.gui.advanced.GuiNPCMarks;
+import noppes.npcs.client.gui.advanced.GuiNPCNightSetup;
+import noppes.npcs.client.gui.advanced.GuiNPCSoundsMenu;
+import noppes.npcs.client.gui.advanced.GuiNPCTagSetup;
+import noppes.npcs.client.gui.roles.GuiNpcBard;
+import noppes.npcs.client.gui.roles.GuiNpcCompanion;
+import noppes.npcs.client.gui.roles.GuiNpcConversation;
+import noppes.npcs.client.gui.roles.GuiNpcFollowerJob;
+import noppes.npcs.client.gui.roles.GuiNpcGuard;
+import noppes.npcs.client.gui.roles.GuiNpcHealer;
+import noppes.npcs.client.gui.roles.GuiNpcSpawner;
+import noppes.npcs.client.gui.roles.GuiNpcTransporter;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.IGuiData;
@@ -119,7 +134,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
     @Override
     public void setGuiData(NBTTagCompound compound) {
         if (compound.hasKey("RoleData")) {
-            npc.advanced.setRole(compound.getByte("RoleData"));
+            npc.advanced.setRole(compound.getInteger("RoleOrdinal"));
             if (npc.roleInterface != null)
                 npc.roleInterface.readFromNBT(compound);
 

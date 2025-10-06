@@ -13,7 +13,12 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.scripted.event.player.PlayerEvent;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class EffectScript implements INpcScriptHandler {
     public ScriptContainer container;

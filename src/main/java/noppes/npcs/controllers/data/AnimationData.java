@@ -45,7 +45,7 @@ public class AnimationData implements IAnimationData {
     }
 
     public static AnimationData getData(Entity entity) {
-        if (entity == null) {
+        if (entity == null || entity.worldObj == null) {
             return null;
         }
         if (entity.worldObj.isRemote) {
@@ -88,7 +88,7 @@ public class AnimationData implements IAnimationData {
     public void updateClient(EntityPlayer... excludedPlayers) {
         EntityLivingBase sendingEntity = parent instanceof PlayerData ? ((PlayerData) parent).player : parent instanceof DataDisplay ? ((DataDisplay) parent).npc : null;
         float range = parent instanceof PlayerData ? 160 : 60;
-        if (sendingEntity != null) {
+        if (sendingEntity != null && sendingEntity.worldObj != null) {
             if (sendingEntity.dimension != sendingEntity.worldObj.provider.dimensionId)
                 sendingEntity.dimension = sendingEntity.worldObj.provider.dimensionId;
 
@@ -235,7 +235,7 @@ public class AnimationData implements IAnimationData {
 
     public void readFromNBT(NBTTagCompound compound) {
         Entity entity = this.getMCEntity();
-        boolean isServer = entity != null && !entity.worldObj.isRemote;
+        boolean isServer = entity != null && entity.worldObj != null && !entity.worldObj.isRemote;
         if (compound.hasKey("IsClientAnimating") && isServer) {
             this.isClientAnimating = compound.getBoolean("IsClientAnimating");
             if (this.isClientAnimating) {
@@ -272,14 +272,14 @@ public class AnimationData implements IAnimationData {
         }
 
 
-        if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote && newAnim != null) {
+        if (this.getMCEntity() != null && this.getMCEntity().worldObj != null && this.getMCEntity().worldObj.isRemote && newAnim != null) {
             this.animatingTime = 0;
         }
 
         Animation prevAnim = this.animation;
         this.animation = newAnim;
 
-        if (this.getMCEntity() != null && this.getMCEntity().worldObj.isRemote &&
+        if (this.getMCEntity() != null && this.getMCEntity().worldObj != null && this.getMCEntity().worldObj.isRemote &&
             this.isActive() && prevAnim != null && newAnim != null && !newAnim.frames.isEmpty()) {
             Frame frame = (Frame) prevAnim.currentFrame();
             if (frame != null) {

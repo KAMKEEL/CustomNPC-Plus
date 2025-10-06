@@ -12,7 +12,12 @@ import noppes.npcs.client.EntityUtil;
 import noppes.npcs.client.gui.util.GuiNPCInterface;
 import noppes.npcs.client.gui.util.GuiNPCStringSlot;
 import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.entity.*;
+import noppes.npcs.entity.EntityCustomNpc;
+import noppes.npcs.entity.EntityNPCGolem;
+import noppes.npcs.entity.EntityNpcCrystal;
+import noppes.npcs.entity.EntityNpcDragon;
+import noppes.npcs.entity.EntityNpcPony;
+import noppes.npcs.entity.EntityNpcSlime;
 import noppes.npcs.entity.data.ModelData;
 import org.lwjgl.opengl.GL11;
 

@@ -10,7 +10,11 @@ import noppes.npcs.controllers.data.MagicEntry;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
 
 import static kamkeel.npcs.controllers.AttributeController.getTracker;
 

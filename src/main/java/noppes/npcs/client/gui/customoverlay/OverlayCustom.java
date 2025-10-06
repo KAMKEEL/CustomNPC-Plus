@@ -10,7 +10,11 @@ import noppes.npcs.client.gui.customoverlay.components.CustomOverlayLabel;
 import noppes.npcs.client.gui.customoverlay.components.CustomOverlayLine;
 import noppes.npcs.client.gui.customoverlay.components.CustomOverlayTexturedRect;
 import noppes.npcs.client.gui.customoverlay.interfaces.IOverlayComponent;
-import noppes.npcs.scripted.overlay.*;
+import noppes.npcs.scripted.overlay.ScriptOverlay;
+import noppes.npcs.scripted.overlay.ScriptOverlayComponent;
+import noppes.npcs.scripted.overlay.ScriptOverlayLabel;
+import noppes.npcs.scripted.overlay.ScriptOverlayLine;
+import noppes.npcs.scripted.overlay.ScriptOverlayTexturedRect;
 import org.lwjgl.opengl.GL11;
 
 import java.util.HashMap;

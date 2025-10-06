@@ -17,10 +17,18 @@ import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityFishHook;
+import net.minecraft.entity.projectile.EntityThrowable;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.*;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemArmor;
+import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemEditableBook;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemWritableBook;
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
@@ -32,14 +40,39 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.BiomeDictionary;
+import net.minecraftforge.common.BiomeDictionary.Type;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NoppesUtilServer;
-import noppes.npcs.api.*;
+import noppes.npcs.api.AbstractNpcAPI;
+import noppes.npcs.api.IBlock;
+import noppes.npcs.api.ICommand;
+import noppes.npcs.api.IContainer;
+import noppes.npcs.api.IDamageSource;
+import noppes.npcs.api.INbt;
+import noppes.npcs.api.IParticle;
+import noppes.npcs.api.IPos;
+import noppes.npcs.api.ISkinOverlay;
+import noppes.npcs.api.ITileEntity;
+import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
-import noppes.npcs.api.handler.*;
+import noppes.npcs.api.handler.IActionManager;
+import noppes.npcs.api.handler.IAnimationHandler;
+import noppes.npcs.api.handler.IAttributeHandler;
+import noppes.npcs.api.handler.ICloneHandler;
+import noppes.npcs.api.handler.ICustomEffectHandler;
+import noppes.npcs.api.handler.IDialogHandler;
+import noppes.npcs.api.handler.IFactionHandler;
+import noppes.npcs.api.handler.IMagicHandler;
+import noppes.npcs.api.handler.INaturalSpawnsHandler;
+import noppes.npcs.api.handler.IPartyHandler;
+import noppes.npcs.api.handler.IProfileHandler;
+import noppes.npcs.api.handler.IQuestHandler;
+import noppes.npcs.api.handler.IRecipeHandler;
+import noppes.npcs.api.handler.ITransportHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
 import noppes.npcs.api.handler.data.IFramePart;
@@ -50,26 +83,74 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
-import noppes.npcs.controllers.*;
+import noppes.npcs.controllers.AnimationController;
+import noppes.npcs.controllers.ChunkController;
+import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.PartyController;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptEntityData;
+import noppes.npcs.controllers.ServerCloneController;
+import noppes.npcs.controllers.SpawnController;
+import noppes.npcs.controllers.TransportController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.Frame;
 import noppes.npcs.controllers.data.FramePart;
 import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.controllers.data.action.ActionManager;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.EntityProjectile;
 import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemScripted;
-import noppes.npcs.scripted.entity.*;
+import noppes.npcs.scripted.entity.ScriptAnimal;
+import noppes.npcs.scripted.entity.ScriptArrow;
+import noppes.npcs.scripted.entity.ScriptDBCPlayer;
+import noppes.npcs.scripted.entity.ScriptEntity;
+import noppes.npcs.scripted.entity.ScriptEntityItem;
+import noppes.npcs.scripted.entity.ScriptFishHook;
+import noppes.npcs.scripted.entity.ScriptLiving;
+import noppes.npcs.scripted.entity.ScriptLivingBase;
+import noppes.npcs.scripted.entity.ScriptMonster;
+import noppes.npcs.scripted.entity.ScriptPixelmon;
+import noppes.npcs.scripted.entity.ScriptPlayer;
+import noppes.npcs.scripted.entity.ScriptProjectile;
+import noppes.npcs.scripted.entity.ScriptThrowable;
+import noppes.npcs.scripted.entity.ScriptVillager;
 import noppes.npcs.scripted.gui.ScriptGui;
-import noppes.npcs.scripted.item.*;
+import noppes.npcs.scripted.item.ScriptCustomItem;
+import noppes.npcs.scripted.item.ScriptItemArmor;
+import noppes.npcs.scripted.item.ScriptItemBlock;
+import noppes.npcs.scripted.item.ScriptItemBook;
+import noppes.npcs.scripted.item.ScriptItemStack;
+import noppes.npcs.scripted.item.ScriptLinkedItem;
 import noppes.npcs.scripted.overlay.ScriptOverlay;
-import noppes.npcs.util.*;
+import noppes.npcs.util.CacheHashMap;
+import noppes.npcs.util.JsonException;
+import noppes.npcs.util.LRUHashMap;
+import noppes.npcs.util.NBTJsonUtil;
+import noppes.npcs.util.SizeOfObjectUtil;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -278,7 +359,15 @@ public class NpcAPI extends AbstractNpcAPI {
     @Override
     public String[] getAllBiomeNames() {
         List<String> biomes = new ArrayList<>();
+        Set<BiomeGenBase> allBiomes = new HashSet<BiomeGenBase>();
+        for (Type type : BiomeDictionary.Type.values()) {
+            Collections.addAll(allBiomes, BiomeDictionary.getBiomesForType(type));
+        }
         for (BiomeGenBase base : BiomeGenBase.getBiomeGenArray()) {
+            if (base != null)
+                allBiomes.add(base);
+        }
+        for (BiomeGenBase base : allBiomes) {
             if (base != null && base.biomeName != null) {
                 biomes.add(base.biomeName);
             }
@@ -319,6 +408,12 @@ public class NpcAPI extends AbstractNpcAPI {
                     data = new ScriptEntityData(new ScriptProjectile<>((EntityProjectile) entity));
                 else if (entity instanceof EntityItem)
                     data = new ScriptEntityData(new ScriptEntityItem<>((EntityItem) entity));
+                else if (entity instanceof EntityThrowable)
+                    data = new ScriptEntityData(new ScriptThrowable<>((EntityThrowable) entity));
+                else if (entity instanceof EntityArrow)
+                    data = new ScriptEntityData(new ScriptArrow<>((EntityArrow) entity));
+                else if (entity instanceof EntityFishHook)
+                    data = new ScriptEntityData(new ScriptFishHook<>((EntityFishHook) entity));
                 else
                     data = new ScriptEntityData(new ScriptEntity<>(entity));
                 entity.registerExtendedProperties("ScriptedObject", data);
@@ -557,6 +652,10 @@ public class NpcAPI extends AbstractNpcAPI {
 
     public IContainer getIContainer(Container container) {
         return container instanceof ContainerNpcInterface ? ContainerNpcInterface.getOrCreateIContainer((ContainerNpcInterface) container) : new ScriptContainer(container);
+    }
+
+    public IActionManager getActionManager() {
+        return ActionManager.GLOBAL;
     }
 
     private void checkWorld() {

@@ -9,13 +9,31 @@ import kamkeel.npcs.network.enums.EnumSyncType;
 import kamkeel.npcs.network.packets.data.LoginPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
+import kamkeel.npcs.network.packets.request.party.PartyInfoPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.client.ClientCacheHandler;
-import noppes.npcs.controllers.*;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.CustomEffectController;
+import noppes.npcs.controllers.DialogController;
+import noppes.npcs.controllers.FactionController;
+import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.QuestController;
+import noppes.npcs.controllers.RecipeController;
+import noppes.npcs.controllers.data.CustomEffect;
+import noppes.npcs.controllers.data.Dialog;
+import noppes.npcs.controllers.data.DialogCategory;
+import noppes.npcs.controllers.data.EffectKey;
+import noppes.npcs.controllers.data.Faction;
+import noppes.npcs.controllers.data.Magic;
+import noppes.npcs.controllers.data.MagicCycle;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerEffect;
+import noppes.npcs.controllers.data.Quest;
+import noppes.npcs.controllers.data.QuestCategory;
+import noppes.npcs.controllers.data.RecipeAnvil;
+import noppes.npcs.controllers.data.RecipeCarpentry;
 
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -97,6 +115,9 @@ public class SyncController {
 
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
+
+        // Send party information to the player on login
+        PartyInfoPacket.sendPartyData(player);
     }
 
     public static NBTTagCompound workbenchNBT() {
@@ -104,7 +125,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeCarpentry recipe : controller.globalRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -115,7 +136,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeCarpentry recipe : controller.carpentryRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -126,7 +147,7 @@ public class SyncController {
         NBTTagList list = new NBTTagList();
         NBTTagCompound compound = new NBTTagCompound();
         for (RecipeAnvil recipe : controller.anvilRecipes.values()) {
-            list.appendTag(recipe.writeNBT());
+            list.appendTag(recipe.writeNBT(false));
         }
         compound.setTag("recipes", list);
         return compound;
@@ -426,7 +447,9 @@ public class SyncController {
                     return;
 
                 for (int i = 0; i < list.tagCount(); i++) {
-                    RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
+                    NBTTagCompound recipeCompound = list.getCompoundTagAt(i);
+                    RecipeCarpentry recipe = RecipeCarpentry.create(recipeCompound);
+                    recipe.readNBT(recipeCompound);
                     RecipeController.syncRecipes.put(recipe.id, recipe);
                 }
 
@@ -440,7 +463,9 @@ public class SyncController {
                     return;
 
                 for (int i = 0; i < list.tagCount(); i++) {
-                    RecipeCarpentry recipe = RecipeCarpentry.read(list.getCompoundTagAt(i));
+                    NBTTagCompound recipeCompound = list.getCompoundTagAt(i);
+                    RecipeCarpentry recipe = RecipeCarpentry.create(recipeCompound);
+                    recipe.readNBT(recipeCompound);
                     RecipeController.syncRecipes.put(recipe.id, recipe);
                 }
 
@@ -454,7 +479,8 @@ public class SyncController {
                     return;
 
                 for (int i = 0; i < list.tagCount(); i++) {
-                    RecipeAnvil recipe = RecipeAnvil.read(list.getCompoundTagAt(i));
+                    RecipeAnvil recipe = new RecipeAnvil();
+                    recipe.readNBT(list.getCompoundTagAt(i));
                     RecipeController.syncAnvilRecipes.put(recipe.id, recipe);
                 }
 

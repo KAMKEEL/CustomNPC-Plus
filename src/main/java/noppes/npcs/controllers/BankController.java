@@ -79,7 +79,9 @@ public class BankController {
     }
 
     private void loadBanks(File file) throws IOException {
-        loadBanks(CompressedStreamTools.readCompressed(new FileInputStream(file)));
+        try (FileInputStream fis = new FileInputStream(file)) {
+            loadBanks(CompressedStreamTools.readCompressed(fis));
+        }
     }
 
     public void loadBanks(NBTTagCompound nbttagcompound1) throws IOException {

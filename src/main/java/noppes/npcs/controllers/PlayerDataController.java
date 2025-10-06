@@ -12,11 +12,20 @@ import net.minecraft.util.ChatComponentText;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.controllers.data.*;
+import noppes.npcs.controllers.data.Bank;
+import noppes.npcs.controllers.data.PlayerBankData;
+import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.controllers.data.PlayerDataScript;
+import noppes.npcs.controllers.data.PlayerMail;
 import noppes.npcs.util.CacheHashMap;
 import noppes.npcs.util.NBTJsonUtil;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -184,7 +193,10 @@ public class PlayerDataController {
         try {
             File file = new File(saveDir, filename);
             if (file.exists()) {
-                NBTTagCompound comp = CompressedStreamTools.readCompressed(new FileInputStream(file));
+                NBTTagCompound comp;
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    comp = CompressedStreamTools.readCompressed(fis);
+                }
                 file.delete();
                 file = new File(saveDir, filename + "_old");
                 if (file.exists())
@@ -197,7 +209,9 @@ public class PlayerDataController {
         try {
             File file = new File(saveDir, filename + "_old");
             if (file.exists()) {
-                return CompressedStreamTools.readCompressed(new FileInputStream(file));
+                try (FileInputStream fis = new FileInputStream(file)) {
+                    return CompressedStreamTools.readCompressed(fis);
+                }
             }
 
         } catch (Exception e) {

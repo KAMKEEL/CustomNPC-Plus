@@ -2,7 +2,11 @@ package noppes.npcs.client.gui;
 
 import net.minecraft.client.gui.GuiButton;
 import noppes.npcs.Resistances;
-import noppes.npcs.client.gui.util.*;
+import noppes.npcs.client.gui.util.GuiNpcButton;
+import noppes.npcs.client.gui.util.GuiNpcLabel;
+import noppes.npcs.client.gui.util.GuiNpcSlider;
+import noppes.npcs.client.gui.util.ISliderListener;
+import noppes.npcs.client.gui.util.SubGuiInterface;
 
 public class SubGuiNpcResistanceProperties extends SubGuiInterface implements ISliderListener {
     private Resistances resistances;

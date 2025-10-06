@@ -19,7 +19,11 @@ import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class DialogController implements IDialogHandler {
     public HashMap<Integer, DialogCategory> categoriesSync = new HashMap<Integer, DialogCategory>();
@@ -120,7 +124,10 @@ public class DialogController implements IDialogHandler {
         if (!dir.exists()) {
             dir.mkdir();
         }
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);
         if (list == null)
             return;

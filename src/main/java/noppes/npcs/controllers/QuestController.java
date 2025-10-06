@@ -18,7 +18,11 @@ import noppes.npcs.util.NBTJsonUtil;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class QuestController implements IQuestHandler {
     public HashMap<Integer, QuestCategory> categoriesSync = new HashMap<Integer, QuestCategory>();
@@ -112,7 +116,10 @@ public class QuestController implements IQuestHandler {
         if (!dir.exists()) {
             dir.mkdir();
         }
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         lastUsedCatID = nbttagcompound1.getInteger("lastID");
         lastUsedQuestID = nbttagcompound1.getInteger("lastQuestID");
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);

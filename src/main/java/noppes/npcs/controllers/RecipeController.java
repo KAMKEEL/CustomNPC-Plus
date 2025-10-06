@@ -13,13 +13,18 @@ import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.api.handler.data.IRecipe;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
+import noppes.npcs.controllers.data.RecipeScript;
 import noppes.npcs.controllers.data.RecipesDefault;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 public class RecipeController implements IRecipeHandler {
     private static Collection<RecipeCarpentry> prevRecipes;
@@ -27,6 +32,9 @@ public class RecipeController implements IRecipeHandler {
     public HashMap<Integer, RecipeCarpentry> globalRecipes = new HashMap<Integer, RecipeCarpentry>();
     public HashMap<Integer, RecipeCarpentry> carpentryRecipes = new HashMap<Integer, RecipeCarpentry>();
     public HashMap<Integer, RecipeAnvil> anvilRecipes = new HashMap<Integer, RecipeAnvil>();
+
+    public HashMap<Integer, RecipeScript> carpentryScripts = new HashMap<>();
+    public HashMap<Integer, RecipeScript> anvilScripts = new HashMap<>();
 
     public static RecipeController Instance;
 
@@ -93,7 +101,10 @@ public class RecipeController implements IRecipeHandler {
     }
 
     private void loadCategories(File file) throws Exception {
-        NBTTagCompound nbttagcompound1 = CompressedStreamTools.readCompressed(new FileInputStream(file));
+        NBTTagCompound nbttagcompound1;
+        try (FileInputStream fis = new FileInputStream(file)) {
+            nbttagcompound1 = CompressedStreamTools.readCompressed(fis);
+        }
         nextId = nbttagcompound1.getInteger("LastId");
         nextAnvilId = nbttagcompound1.getInteger("LastAnvilId");
         NBTTagList list = nbttagcompound1.getTagList("Data", 10);
@@ -104,12 +115,14 @@ public class RecipeController implements IRecipeHandler {
             for (int i = 0; i < list.tagCount(); i++) {
                 NBTTagCompound compound = list.getCompoundTagAt(i);
                 if (compound.hasKey("IsAnvil")) {
-                    RecipeAnvil anvil = RecipeAnvil.read(compound);
+                    RecipeAnvil anvil = new RecipeAnvil();
+                    anvil.readNBT(compound);
                     anvilRecipes.put(anvil.id, anvil);
                     if (anvil.id > nextAnvilId)
                         nextAnvilId = anvil.id;
                 } else {
-                    RecipeCarpentry recipe = RecipeCarpentry.read(compound);
+                    RecipeCarpentry recipe = RecipeCarpentry.create(compound);
+                    recipe.readNBT(compound);
                     if (recipe.isGlobal)
                         globalRecipes.put(recipe.id, recipe);
                     else
@@ -130,13 +143,13 @@ public class RecipeController implements IRecipeHandler {
             File saveDir = CustomNpcs.getWorldSaveDirectory();
             NBTTagList list = new NBTTagList();
             for (RecipeCarpentry recipe : globalRecipes.values()) {
-                list.appendTag(recipe.writeNBT());
+                list.appendTag(recipe.writeNBT(true));
             }
             for (RecipeCarpentry recipe : carpentryRecipes.values()) {
-                list.appendTag(recipe.writeNBT());
+                list.appendTag(recipe.writeNBT(true));
             }
             for (RecipeAnvil recipe : anvilRecipes.values()) {
-                list.appendTag(recipe.writeNBT());
+                list.appendTag(recipe.writeNBT(true));
             }
             NBTTagCompound nbttagcompound = new NBTTagCompound();
             nbttagcompound.setTag("Data", list);
@@ -186,7 +199,8 @@ public class RecipeController implements IRecipeHandler {
     }
 
     public RecipeCarpentry saveRecipe(NBTTagCompound compound) throws IOException {
-        RecipeCarpentry recipe = RecipeCarpentry.read(compound);
+        RecipeCarpentry recipe = RecipeCarpentry.create(compound);
+        recipe.readNBT(compound);
 
         RecipeCarpentry current = getRecipe(recipe.id);
         if (current != null && !current.name.equals(recipe.name)) {
@@ -212,7 +226,8 @@ public class RecipeController implements IRecipeHandler {
     }
 
     public RecipeAnvil saveAnvilRecipe(NBTTagCompound compound) throws IOException {
-        RecipeAnvil recipe = RecipeAnvil.read(compound);
+        RecipeAnvil recipe = new RecipeAnvil();
+        recipe.readNBT(compound);
 
         RecipeAnvil current = getAnvilRecipe(recipe.id);
         if (current != null && !current.name.equals(recipe.name)) {
@@ -270,8 +285,10 @@ public class RecipeController implements IRecipeHandler {
             SyncController.syncAllWorkbenchRecipes();
 
         RecipeCarpentry carpentry = carpentryRecipes.remove(recipe.id);
-        if (carpentry != null)
+        if (carpentry != null) {
+            carpentryScripts.remove(recipe.id);
             SyncController.syncAllCarpentryRecipes();
+        }
 
         saveCategories();
         reloadGlobalRecipes(globalRecipes);
@@ -329,7 +346,7 @@ public class RecipeController implements IRecipeHandler {
         recipe = RecipeCarpentry.saveRecipe(recipe, result, objects);
 
         try {
-            this.saveRecipe(recipe.writeNBT());
+            this.saveRecipe(recipe.writeNBT(true));
         } catch (Exception var7) {
             var7.printStackTrace();
         }
@@ -352,7 +369,7 @@ public class RecipeController implements IRecipeHandler {
         recipe.name = name;
 
         try {
-            this.saveRecipe(recipe.writeNBT());
+            this.saveRecipe(recipe.writeNBT(true));
         } catch (IOException var12) {
             var12.printStackTrace();
         }
@@ -362,7 +379,7 @@ public class RecipeController implements IRecipeHandler {
     public void addAnvilRecipe(String name, boolean global, ItemStack itemToRepair, ItemStack repairMaterial, int xpCost, float repairPercentage) {
         RecipeAnvil recipe = new RecipeAnvil(name, itemToRepair, repairMaterial, xpCost, repairPercentage);
         try {
-            this.saveAnvilRecipe(recipe.writeNBT());
+            this.saveAnvilRecipe(recipe.writeNBT(true));
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -3,12 +3,19 @@ package noppes.npcs.containers;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
-import net.minecraft.inventory.*;
+import net.minecraft.inventory.Container;
+import net.minecraft.inventory.ICrafting;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.inventory.InventoryCraftResult;
+import net.minecraft.inventory.InventoryCrafting;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import noppes.npcs.EventHooks;
 import noppes.npcs.api.handler.data.IAnvilRecipe;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.data.RecipeAnvil;
+import noppes.npcs.scripted.event.RecipeScriptEvent;
 
 public class ContainerAnvilRepair extends Container {
     // A 2-slot crafting matrix: slot 0 = damaged item, slot 1 = repair material.
@@ -25,6 +32,10 @@ public class ContainerAnvilRepair extends Container {
     public int repairCost = 0;
     public int repairMaterialConsumed = 0;
 
+    private RecipeAnvil currentRecipe;
+    private SlotAnvilOutput resultSlot;
+    private boolean resultCanPickup = true;
+
     public ContainerAnvilRepair(InventoryPlayer playerInv, World world, int x, int y, int z) {
         this.worldObj = world;
         this.posX = x;
@@ -33,7 +44,8 @@ public class ContainerAnvilRepair extends Container {
         this.player = playerInv.player;
 
         // Output slot (index 0) using our custom SlotAnvilOutput.
-        this.addSlotToContainer(new SlotAnvilOutput(this, anvilResult, 0, 133, 47));
+        this.resultSlot = new SlotAnvilOutput(this, anvilResult, 0, 133, 47);
+        this.addSlotToContainer(this.resultSlot);
 
         // Input slot 0: damaged item. We restrict its stack size to 1.
         this.addSlotToContainer(new Slot(anvilMatrix, 0, 26, 47) {
@@ -109,7 +121,11 @@ public class ContainerAnvilRepair extends Container {
                 }
             }
 
+            currentRecipe = matchingRecipe;
+
             ItemStack output = null;
+            boolean canPickup = true;
+            RecipeScriptEvent.Pre pre = null;
             if (matchingRecipe != null) {
                 if (!matchingRecipe.availability.isAvailable(player)) {
                     return;
@@ -147,16 +163,34 @@ public class ContainerAnvilRepair extends Container {
                 int xpCost = baseXpCost * materialsUsed;
 
                 calcItem.setItemDamage(currentDamage);
+
+                ItemStack[] items = new ItemStack[]{input0, input1};
+                pre = EventHooks.onRecipeScriptPre(player, matchingRecipe.getScriptHandler(), matchingRecipe, items);
+                int scriptXp = pre.getXpCost();
+                int scriptMat = pre.getMaterialUsage();
+                xpCost += scriptXp;
+                materialsUsed += scriptMat;
+                pre.setXpCost(xpCost);
+                pre.setMaterialUsage(materialsUsed);
+                canPickup = !pre.isCanceled();
+
                 if (player.experienceTotal >= xpCost) {
                     output = calcItem;
                 }
+
                 repairMaterialConsumed = materialsUsed;
                 repairCost = xpCost;
+                output = EventHooks.onRecipeScriptPost(player, matchingRecipe.getScriptHandler(), matchingRecipe, items, output);
             } else {
                 repairCost = 0;
             }
 
+
             anvilResult.setInventorySlotContents(0, output);
+            this.resultCanPickup = canPickup;
+            if (this.resultSlot != null) {
+                this.resultSlot.setCanPickup(canPickup);
+            }
         }
     }
 
@@ -166,6 +200,7 @@ public class ContainerAnvilRepair extends Container {
     public void addCraftingToCrafters(ICrafting listener) {
         super.addCraftingToCrafters(listener);
         listener.sendProgressBarUpdate(this, 0, this.repairCost);
+        listener.sendProgressBarUpdate(this, 1, this.resultCanPickup ? 1 : 0);
     }
 
     @Override
@@ -173,6 +208,7 @@ public class ContainerAnvilRepair extends Container {
         super.detectAndSendChanges();
         for (Object crafterObj : this.crafters) {
             ((ICrafting) crafterObj).sendProgressBarUpdate(this, 0, this.repairCost);
+            ((ICrafting) crafterObj).sendProgressBarUpdate(this, 1, this.resultCanPickup ? 1 : 0);
         }
     }
 
@@ -180,6 +216,8 @@ public class ContainerAnvilRepair extends Container {
     public void updateProgressBar(int id, int data) {
         if (id == 0) {
             this.repairCost = data;
+        } else if (id == 1 && this.resultSlot != null) {
+            this.resultSlot.setCanPickup(data != 0);
         }
     }
     // --- End Sync Methods ---
@@ -204,6 +242,10 @@ public class ContainerAnvilRepair extends Container {
             (double) this.posZ + 0.5D) <= 64.0D;
     }
 
+    public boolean canPickupResult() {
+        return this.resultCanPickup;
+    }
+
     @Override
     public ItemStack transferStackInSlot(EntityPlayer player, int index) {
         ItemStack copy = null;
@@ -212,6 +254,10 @@ public class ContainerAnvilRepair extends Container {
             ItemStack stack = slot.getStack();
             copy = stack.copy();
             if (index == 0) { // output slot
+                SlotAnvilOutput resultSlot = (SlotAnvilOutput) slot;
+                if (!resultSlot.canPickup()) {
+                    return null;
+                }
                 if (player.experienceTotal < this.repairCost) {
                     return null;
                 }
@@ -254,10 +300,19 @@ public class ContainerAnvilRepair extends Container {
     // subtracts one from the damaged item stack.
     public class SlotAnvilOutput extends Slot {
         private final ContainerAnvilRepair container;
+        private boolean canPickup = true;
 
         public SlotAnvilOutput(ContainerAnvilRepair container, IInventory inventory, int index, int x, int y) {
             super(inventory, index, x, y);
             this.container = container;
+        }
+
+        public void setCanPickup(boolean value) {
+            this.canPickup = value;
+        }
+
+        public boolean canPickup() {
+            return this.canPickup;
         }
 
         @Override
@@ -267,11 +322,14 @@ public class ContainerAnvilRepair extends Container {
 
         @Override
         public boolean canTakeStack(EntityPlayer player) {
-            return player.experienceTotal >= container.repairCost;
+            return canPickup && player.experienceTotal >= container.repairCost;
         }
 
         @Override
         public void onPickupFromSlot(EntityPlayer player, ItemStack stack) {
+            if (!canPickup) {
+                return;
+            }
             if (player.experienceTotal < container.repairCost) {
                 container.updateRepairResult();
                 return;
@@ -301,6 +359,7 @@ public class ContainerAnvilRepair extends Container {
             }
             container.repairCost = 0;
             container.updateRepairResult();
+            canPickup = true;
             super.onPickupFromSlot(player, stack);
         }
     }
