@@ -209,8 +209,26 @@ public class RenderNPCInterface extends RenderLiving {
         if (npc.isKilled() && npc.stats.hideKilledBody && npc.deathTime > 20) {
             return;
         }
-        if ((npc.display.showBossBar == 1 || npc.display.showBossBar == 2 && npc.isAttacking()) && !npc.isKilled() && npc.deathTime <= 20 && npc.canSee(Minecraft.getMinecraft().thePlayer))
-            BossStatus.setBossStatus(npc, true);
+        // 检查是否应该显示Boss Bar（显示模式独立于自定义血条设置）
+        boolean shouldShowBossBar = false;
+        if (!npc.isKilled() && npc.deathTime <= 20 && npc.canSee(Minecraft.getMinecraft().thePlayer)) {
+            if (npc.display.showBossBar == 1) { // 总是显示
+                shouldShowBossBar = true;
+            } else if (npc.display.showBossBar == 2 && npc.isAttacking()) { // 攻击时显示
+                shouldShowBossBar = true;
+            }
+        }
+
+        if (shouldShowBossBar) {
+            // 检查是否使用自定义血条
+            if (npc.display.bossBarData.isBossBarEnabled()) {
+                // 使用自定义血条渲染
+                CustomBossStatus.setBossStatus(npc, true);
+            } else {
+                // 使用MC原版血条
+                BossStatus.setBossStatus(npc, true);
+            }
+        }
 
         if (npc.ais.standingType == EnumStandingType.HeadRotation && !npc.isWalking() && !npc.isInteracting()) {
             npc.prevRenderYawOffset = npc.renderYawOffset = npc.ais.orientation;
