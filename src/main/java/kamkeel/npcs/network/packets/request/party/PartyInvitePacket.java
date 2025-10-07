@@ -16,6 +16,7 @@ import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -45,9 +46,8 @@ public final class PartyInvitePacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
-
 
     @SideOnly(Side.CLIENT)
     @Override
@@ -57,19 +57,31 @@ public final class PartyInvitePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
+        String invitedName = ByteBufUtils.readString(in);
+        if (!ConfigMain.PartiesEnabled) {
+            return;
+        }
+
+        PlayerData senderData = PlayerData.get(player);
+        if (senderData.partyUUID == null || invitedName == null || invitedName.isEmpty()) {
+            return;
+        }
+
+        Party party = PartyController.Instance().getParty(senderData.partyUUID);
+        if (!PartyPacketUtil.canManageParty(player, party) || party.getIsLocked()) {
+            PartyInfoPacket.sendPartyData((EntityPlayerMP) player);
+            return;
+        }
+
+        EntityPlayer invitedPlayer = NoppesUtilServer.getPlayerByName(invitedName);
         if (invitedPlayer != null) {
-            PlayerData senderData = PlayerData.get(player);
             PlayerData invitedData = PlayerData.get(invitedPlayer);
-            if (senderData.partyUUID != null && invitedData.partyUUID == null) {
-                Party party = PartyController.Instance().getParty(senderData.partyUUID);
-                if (!party.getIsLocked()) {
-                    PartyEvent.PartyInviteEvent partyEvent = new PartyEvent.PartyInviteEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(invitedPlayer));
-                    EventHooks.onPartyInvite(party, partyEvent);
-                    if (!partyEvent.isCancelled()) {
-                        invitedData.inviteToParty(party);
-                        sendInviteData((EntityPlayerMP) invitedPlayer);
-                    }
+            if (invitedData.partyUUID == null) {
+                PartyEvent.PartyInviteEvent partyEvent = new PartyEvent.PartyInviteEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(invitedPlayer));
+                EventHooks.onPartyInvite(party, partyEvent);
+                if (!partyEvent.isCancelled()) {
+                    invitedData.inviteToParty(party);
+                    sendInviteData((EntityPlayerMP) invitedPlayer);
                 }
             }
         }

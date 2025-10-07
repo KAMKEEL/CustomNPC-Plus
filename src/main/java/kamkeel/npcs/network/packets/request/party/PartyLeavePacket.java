@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -42,9 +43,8 @@ public final class PartyLeavePacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
-
 
     @SideOnly(Side.CLIENT)
     @Override
@@ -54,20 +54,37 @@ public final class PartyLeavePacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(ByteBufUtils.readString(in));
-        if (leavingPlayer != null) {
-            PlayerData playerData = PlayerData.get(player);
-            if (playerData.partyUUID != null) {
-                Party party = PartyController.Instance().getParty(playerData.partyUUID);
-                boolean successful = party.removePlayer(leavingPlayer);
-                if (successful) {
-                    PartyEvent.PartyLeaveEvent partyEvent = new PartyEvent.PartyLeaveEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(leavingPlayer));
-                    EventHooks.onPartyLeave(party, partyEvent);
-                    sendInviteData((EntityPlayerMP) leavingPlayer);
-                    PartyController.Instance().pingPartyUpdate(party);
-                    PartyController.Instance().sendLeavingMessages(party, leavingPlayer);
-                }
-            }
+        String leavingName = ByteBufUtils.readString(in);
+        if (!ConfigMain.PartiesEnabled) {
+            return;
+        }
+
+        EntityPlayer leavingPlayer = NoppesUtilServer.getPlayerByName(leavingName);
+        if (leavingPlayer == null) {
+            return;
+        }
+
+        if (!leavingPlayer.getUniqueID().equals(player.getUniqueID()) && !NoppesUtilServer.isOp(player)) {
+            return;
+        }
+
+        PlayerData playerData = PlayerData.get(player);
+        if (playerData.partyUUID == null) {
+            return;
+        }
+
+        Party party = PartyController.Instance().getParty(playerData.partyUUID);
+        if (party == null) {
+            return;
+        }
+
+        boolean successful = party.removePlayer(leavingPlayer);
+        if (successful) {
+            PartyEvent.PartyLeaveEvent partyEvent = new PartyEvent.PartyLeaveEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(leavingPlayer));
+            EventHooks.onPartyLeave(party, partyEvent);
+            sendInviteData((EntityPlayerMP) leavingPlayer);
+            PartyController.Instance().pingPartyUpdate(party);
+            PartyController.Instance().sendLeavingMessages(party, leavingPlayer);
         }
     }
 }
