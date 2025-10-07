@@ -2,6 +2,7 @@ package noppes.npcs;
 
 import cpw.mods.fml.common.eventhandler.Event;
 import kamkeel.npcs.network.packets.data.AchievementPacket;
+import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
@@ -768,8 +769,12 @@ public class EventHooks {
         return false;
     }
 
-    public static boolean onScriptedCommand(EntityPlayer player, CustomNPCsEvent.ScriptedCommandEvent event) {
-        ScriptController.Instance.getPlayerScripts(player).callScript(EnumScriptType.SCRIPT_COMMAND, event);
+    public static boolean onScriptedCommand(ICommandSender sender, CustomNPCsEvent.ScriptedCommandEvent event) {
+        if (sender instanceof EntityPlayer) {
+            ScriptController.Instance.getPlayerScripts((EntityPlayer) sender).callScript(EnumScriptType.SCRIPT_COMMAND, event);
+        } else {
+            ScriptController.Instance.playerScripts.callScript(EnumScriptType.SCRIPT_COMMAND, event);
+        }
         return NpcAPI.EVENT_BUS.post(event);
     }
 
