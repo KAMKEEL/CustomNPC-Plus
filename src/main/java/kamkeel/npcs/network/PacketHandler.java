@@ -451,18 +451,7 @@ public class PacketHandler {
         // Trader Packets
         REQUEST_PACKET.registerPacket(new TraderMarketSavePacket());
 
-        // Party Packets
-        REQUEST_PACKET.registerPacket(new PartySavePacket());
-        REQUEST_PACKET.registerPacket(new PartyInfoPacket());
-        REQUEST_PACKET.registerPacket(new PartyDisbandPacket());
-        REQUEST_PACKET.registerPacket(new PartySetLeaderPacket());
-        REQUEST_PACKET.registerPacket(new PartyKickPacket());
-        REQUEST_PACKET.registerPacket(new PartyLeavePacket());
-        REQUEST_PACKET.registerPacket(new PartySetQuestPacket());
-        REQUEST_PACKET.registerPacket(new PartyInvitePacket());
-        REQUEST_PACKET.registerPacket(new PartyAcceptInvitePacket());
-        REQUEST_PACKET.registerPacket(new PartyIgnoreInvitePacket());
-        REQUEST_PACKET.registerPacket(new PartyLogToServerPacket());
+        // Party Packets moved to player channel
 
         // Animation Packets
         REQUEST_PACKET.registerPacket(new AnimationsGetPacket());
@@ -604,6 +593,19 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new ProfileChangePacket());
         PLAYER_PACKET.registerPacket(new ProfileGetPacket());
         PLAYER_PACKET.registerPacket(new ProfileGetInfoPacket());
+
+        // Party Packets
+        PLAYER_PACKET.registerPacket(new PartySavePacket());
+        PLAYER_PACKET.registerPacket(new PartyInfoPacket());
+        PLAYER_PACKET.registerPacket(new PartyDisbandPacket());
+        PLAYER_PACKET.registerPacket(new PartySetLeaderPacket());
+        PLAYER_PACKET.registerPacket(new PartyKickPacket());
+        PLAYER_PACKET.registerPacket(new PartyLeavePacket());
+        PLAYER_PACKET.registerPacket(new PartySetQuestPacket());
+        PLAYER_PACKET.registerPacket(new PartyInvitePacket());
+        PLAYER_PACKET.registerPacket(new PartyAcceptInvitePacket());
+        PLAYER_PACKET.registerPacket(new PartyIgnoreInvitePacket());
+        PLAYER_PACKET.registerPacket(new PartyLogToServerPacket());
     }
 
     public void registerChannels() {

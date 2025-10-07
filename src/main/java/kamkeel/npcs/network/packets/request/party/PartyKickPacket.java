@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.EventHooks;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.api.entity.IPlayer;
+import noppes.npcs.config.ConfigMain;
 import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.data.Party;
@@ -44,9 +45,8 @@ public final class PartyKickPacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
-
 
     @SideOnly(Side.CLIENT)
     @Override
@@ -57,40 +57,54 @@ public final class PartyKickPacket extends AbstractPacket {
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         String kickPlayerName = ByteBufUtils.readString(in);
+        if (!ConfigMain.PartiesEnabled) {
+            return;
+        }
+
+        PlayerData senderData = PlayerData.get(player);
+        if (senderData.partyUUID == null) {
+            return;
+        }
+
+        Party party = PartyController.Instance().getParty(senderData.partyUUID);
+        if (!PartyPacketUtil.canManageParty(player, party) || party.getIsLocked()) {
+            PartyInfoPacket.sendPartyData((EntityPlayerMP) player);
+            return;
+        }
+
         EntityPlayer kickPlayer = NoppesUtilServer.getPlayerByName(kickPlayerName);
-        PlayerData playerData = null;
-        UUID playerUUID = null;
-        if (kickPlayer != null) {
-            playerData = PlayerData.get(player);
-        } else {
+        UUID targetUUID = kickPlayer != null ? kickPlayer.getUniqueID() : null;
+        if (targetUUID == null && kickPlayerName != null && !kickPlayerName.isEmpty()) {
             String uuid = PlayerDataController.Instance.getPlayerUUIDFromName(kickPlayerName);
             if (!uuid.isEmpty()) {
-                playerData = PlayerDataController.Instance.getPlayerDataCache(uuid);
-                playerUUID = UUID.fromString(uuid);
+                targetUUID = UUID.fromString(uuid);
             }
         }
 
-        if (playerData != null) {
-            if (playerData.partyUUID != null) {
-                Party party = PartyController.Instance().getParty(playerData.partyUUID);
-                if (!party.getIsLocked()) {
-                    PartyEvent.PartyKickEvent partyEvent = new PartyEvent.PartyKickEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(kickPlayer));
-                    EventHooks.onPartyKick(party, partyEvent);
-                    if (!partyEvent.isCancelled()) {
-                        boolean successful = party.removePlayer(kickPlayer);
-                        if (!successful)
-                            successful = party.removePlayer(playerUUID);
+        if (kickPlayer == null && targetUUID == null) {
+            return;
+        }
 
-                        if (successful) {
-                            if (kickPlayer != null) {
-                                sendInviteData((EntityPlayerMP) kickPlayer);
-                            }
-                            PartyController.Instance().pingPartyUpdate(party);
-                            PartyController.Instance().sendKickMessages(party, kickPlayer, kickPlayerName);
-                        }
-                    }
-                }
+        PartyEvent.PartyKickEvent partyEvent = new PartyEvent.PartyKickEvent(party, party.getQuest(), (IPlayer) NpcAPI.Instance().getIEntity(kickPlayer));
+        EventHooks.onPartyKick(party, partyEvent);
+        if (partyEvent.isCancelled()) {
+            return;
+        }
+
+        boolean successful = false;
+        if (kickPlayer != null) {
+            successful = party.removePlayer(kickPlayer);
+        }
+        if (!successful && targetUUID != null) {
+            successful = party.removePlayer(targetUUID);
+        }
+
+        if (successful) {
+            if (kickPlayer != null) {
+                sendInviteData((EntityPlayerMP) kickPlayer);
             }
+            PartyController.Instance().pingPartyUpdate(party);
+            PartyController.Instance().sendKickMessages(party, kickPlayer, kickPlayerName);
         }
     }
 }

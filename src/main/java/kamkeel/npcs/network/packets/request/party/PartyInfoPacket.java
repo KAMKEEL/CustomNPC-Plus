@@ -45,9 +45,8 @@ public final class PartyInfoPacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
-
 
     @SideOnly(Side.CLIENT)
     @Override
@@ -62,6 +61,11 @@ public final class PartyInfoPacket extends AbstractPacket {
             return;
 
         if (isNew) {
+            PlayerData playerData = PlayerData.get(player);
+            if (playerData.partyUUID != null) {
+                sendPartyData((EntityPlayerMP) player);
+                return;
+            }
             Party party = PartyController.Instance().createParty();
             party.addPlayer(player);
             party.setLeader(player);
