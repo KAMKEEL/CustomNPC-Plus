@@ -345,7 +345,7 @@ public class ActionManager implements IActionManager {
 
     @Override
     public IAction scheduleParallel(String name, int delay, Consumer<IAction> task) {
-        return parallelQueue.schedule(delay, task);
+        return parallelQueue.schedule(name, delay, task);
     }
 
     @Override
