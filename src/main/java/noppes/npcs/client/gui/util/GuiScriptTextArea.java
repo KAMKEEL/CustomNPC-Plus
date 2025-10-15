@@ -58,6 +58,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
             return;
+        clampSelectionBounds();
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
         drawRect(x, y, x + width, y + height, 0xff000000);
 
@@ -481,6 +482,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
                 this.cursorPosition = i;
             }
+
+            clampSelectionBounds();
         }
     }
 
@@ -585,6 +588,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 this.scrolledLine = Math.max(0, this.container.linesCount - this.container.visibleLines);
             }
 
+            clampSelectionBounds();
+
         }
     }
 
@@ -607,6 +612,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     public void setListener(ITextChangeListener listener) {
         this.listener = listener;
+    }
+
+    private void clampSelectionBounds() {
+        if (this.text == null || this.text.isEmpty()) {
+            this.startSelection = this.endSelection = this.cursorPosition = 0;
+            return;
+        }
+
+        int length = this.text.length();
+        this.startSelection = Math.max(0, Math.min(this.startSelection, length));
+        this.endSelection = Math.max(0, Math.min(this.endSelection, length));
+        this.cursorPosition = Math.max(0, Math.min(this.cursorPosition, length));
     }
 
     class UndoData {
