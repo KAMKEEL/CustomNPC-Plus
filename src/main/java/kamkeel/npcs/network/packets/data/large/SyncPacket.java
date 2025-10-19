@@ -32,6 +32,7 @@ public final class SyncPacket extends LargeAbstractPacket {
     private EnumSyncAction enumSyncAction;
     private NBTTagCompound syncData;
     private int operationID;
+    private int revision = -1;
     private byte[] cachedPayload;
     private byte[][] cachedChunks;
 
@@ -42,16 +43,22 @@ public final class SyncPacket extends LargeAbstractPacket {
      * Constructs a new LargeSyncPacket.
      */
     public SyncPacket(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int catId, NBTTagCompound syncData) {
+        this(enumSyncType, enumSyncAction, catId, -1, syncData);
+    }
+
+    public SyncPacket(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int catId, int revision, NBTTagCompound syncData) {
         this.enumSyncType = enumSyncType;
         this.enumSyncAction = enumSyncAction;
         this.syncData = syncData;
         this.operationID = catId;
+        this.revision = revision;
     }
 
     public SyncPacket(EnumSyncType enumSyncType, SyncController.CachedSyncPayload payload) {
         this.enumSyncType = enumSyncType;
         this.enumSyncAction = EnumSyncAction.RELOAD;
         this.operationID = -1;
+        this.revision = payload.getRevision();
         this.cachedPayload = payload.getPayload();
         this.cachedChunks = payload.getChunks();
     }
@@ -77,6 +84,7 @@ public final class SyncPacket extends LargeAbstractPacket {
             buffer.writeInt(enumSyncType.ordinal());
             buffer.writeInt(enumSyncAction.ordinal());
             buffer.writeInt(operationID);
+            buffer.writeInt(revision);
             ByteBufUtils.writeBigNBT(buffer, syncData);
 
             byte[] bytes = new byte[buffer.readableBytes()];
@@ -127,28 +135,35 @@ public final class SyncPacket extends LargeAbstractPacket {
         int syncTypeOrdinal = data.readInt();
         int syncActionOrdinal = data.readInt();
         int categoryID = data.readInt();
+        int incomingRevision = data.readInt();
 
         EnumSyncType type = EnumSyncType.values()[syncTypeOrdinal];
         EnumSyncAction action = EnumSyncAction.values()[syncActionOrdinal];
         try {
             NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
             // Now do your client-side logic (similar to your old clientSync() or clientSyncUpdate() approach)
-            handleSyncPacketClient(type, action, categoryID, tag);
+            handleSyncPacketClient(type, action, categoryID, incomingRevision, tag);
         } catch (RuntimeException e) {
             LogWriter.error(String.format("Attempted to Sync %s but it was too big", type.toString()));
         }
     }
 
-    private void handleSyncPacketClient(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int id, NBTTagCompound data) {
+    private void handleSyncPacketClient(
+        EnumSyncType enumSyncType,
+        EnumSyncAction enumSyncAction,
+        int id,
+        int incomingRevision,
+        NBTTagCompound data
+    ) {
         switch (enumSyncAction) {
             case RELOAD:
-                SyncController.clientSync(enumSyncType, data);
+                SyncController.clientSync(enumSyncType, incomingRevision, data);
                 break;
             case UPDATE:
-                SyncController.clientUpdate(enumSyncType, id, data);
+                SyncController.clientUpdate(enumSyncType, id, incomingRevision, data);
                 break;
             case REMOVE:
-                SyncController.clientSyncRemove(enumSyncType, id);
+                SyncController.clientSyncRemove(enumSyncType, id, incomingRevision);
                 break;
         }
     }

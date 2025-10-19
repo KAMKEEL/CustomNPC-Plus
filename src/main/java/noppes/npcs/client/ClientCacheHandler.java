@@ -15,9 +15,12 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
+import noppes.npcs.network.enums.EnumSyncType;
 import noppes.npcs.util.CacheHashMap;
 
+import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class ClientCacheHandler {
@@ -27,10 +30,45 @@ public class ClientCacheHandler {
     public static HashMap<UUID, HashMap<Integer, SkinOverlay>> skinOverlays = new HashMap<>();
     public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
 
+    private static String activeServerKey = "";
+    private static final Map<String, EnumMap<EnumSyncType, Integer>> clientRevisionCache = new HashMap<>();
+
     public static Party party;
 
     public static boolean allowProfiles = true;
     public static boolean allowParties = true;
+
+    public static void setActiveServer(String serverKey, EnumMap<EnumSyncType, Integer> serverRevisions) {
+        activeServerKey = serverKey == null ? "" : serverKey;
+        EnumMap<EnumSyncType, Integer> cached = clientRevisionCache.computeIfAbsent(
+            activeServerKey,
+            ignored -> new EnumMap<>(EnumSyncType.class)
+        );
+        if (serverRevisions != null && !serverRevisions.isEmpty()) {
+            cached.keySet().retainAll(serverRevisions.keySet());
+        }
+    }
+
+    public static EnumMap<EnumSyncType, Integer> getCachedRevisionsForServer(String serverKey) {
+        String key = serverKey == null ? "" : serverKey;
+        EnumMap<EnumSyncType, Integer> revisions = clientRevisionCache.get(key);
+        if (revisions == null) {
+            return new EnumMap<>(EnumSyncType.class);
+        }
+        return new EnumMap<>(revisions);
+    }
+
+    public static void updateClientRevision(EnumSyncType type, int revision) {
+        if (revision < 0) {
+            return;
+        }
+        String key = activeServerKey == null ? "" : activeServerKey;
+        EnumMap<EnumSyncType, Integer> revisions = clientRevisionCache.computeIfAbsent(
+            key,
+            ignored -> new EnumMap<>(EnumSyncType.class)
+        );
+        revisions.put(type, revision);
+    }
 
 
     public static ImageData getImageData(String directory) {

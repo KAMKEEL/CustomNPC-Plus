@@ -18,6 +18,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.DialogController;
@@ -77,10 +78,10 @@ public class SyncController {
     }
 
     public static void syncPlayer(EntityPlayerMP player) {
+        syncPlayer(player, true);
+    }
 
-        // Login Packet
-        PacketHandler.Instance.sendToPlayer(new LoginPacket(), player);
-
+    private static void syncPlayer(EntityPlayerMP player, boolean includePostPackets) {
         PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
 
         for (EnumSyncType type : LOGIN_SYNC_TYPES) {
@@ -106,11 +107,60 @@ public class SyncController {
             }
         }
 
+        if (includePostPackets) {
+            sendPostLoginPackets(player);
+        }
+    }
+
+    public static void beginLogin(EntityPlayerMP player) {
+        PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        PacketHandler.Instance.sendToPlayer(
+            new LoginPacket(getServerCacheKey(), getServerRevisionSnapshot()),
+            player
+        );
+    }
+
+    public static void handleClientRevisionReport(
+        EntityPlayerMP player,
+        String serverKey,
+        Map<EnumSyncType, Integer> clientRevisions
+    ) {
+        if (!getServerCacheKey().equals(serverKey)) {
+            syncPlayer(player);
+            return;
+        }
+
+        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        state.applyHandshake(clientRevisions);
+
+        syncPlayer(player);
+    }
+
+    private static void sendPostLoginPackets(EntityPlayerMP player) {
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
-
-        // Send party information to the player on login
         PartyInfoPacket.sendPartyData(player);
+    }
+
+    private static EnumMap<EnumSyncType, Integer> getServerRevisionSnapshot() {
+        EnumMap<EnumSyncType, Integer> snapshot = new EnumMap<>(EnumSyncType.class);
+        for (EnumSyncType type : LOGIN_SYNC_TYPES) {
+            SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+            if (entry != null) {
+                snapshot.put(type, entry.getRevisionValue());
+            }
+        }
+        return snapshot;
+    }
+
+    private static String getServerCacheKey() {
+        MinecraftServer server = MinecraftServer.getServer();
+        return server != null ? server.getFolderName() : "unknown";
+    }
+
+    public static int getCurrentRevision(EnumSyncType type) {
+        SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+        return entry == null ? -1 : entry.getRevisionValue();
     }
 
     public static NBTTagCompound workbenchNBT() {
@@ -251,10 +301,12 @@ public class SyncController {
 
     public static void syncRemove(EnumSyncType enumSyncType, int id) {
         Map<EnumSyncType, Integer> revisions = invalidateCaches(enumSyncType);
+        int revision = revisions.getOrDefault(enumSyncType, getCurrentRevision(enumSyncType));
         PacketHandler.Instance.sendToAll(new SyncPacket(
             enumSyncType,
             EnumSyncAction.REMOVE,
             id,
+            revision,
             new NBTTagCompound()
         ));
         updateAllPlayerRevisions(revisions);
@@ -297,7 +349,7 @@ public class SyncController {
     }
 
     @SideOnly(Side.CLIENT)
-    public static void clientSync(EnumSyncType enumSyncType, NBTTagCompound fullCompound) {
+    public static void clientSync(EnumSyncType enumSyncType, int revision, NBTTagCompound fullCompound) {
         switch (enumSyncType) {
             case FACTION: {
                 NBTTagList list = fullCompound.getTagList("Factions", 10);
@@ -482,13 +534,15 @@ public class SyncController {
                 break;
             }
         }
+
+        ClientCacheHandler.updateClientRevision(enumSyncType, revision);
     }
 
     /**
      * Update Related Tasks
      */
     @SideOnly(Side.CLIENT)
-    public static void clientUpdate(EnumSyncType enumSyncType, int category_id, NBTTagCompound compound) {
+    public static void clientUpdate(EnumSyncType enumSyncType, int category_id, int revision, NBTTagCompound compound) {
         switch (enumSyncType) {
             case FACTION: {
                 Faction faction = new Faction();
@@ -573,14 +627,18 @@ public class SyncController {
                 break;
             }
         }
+
+        ClientCacheHandler.updateClientRevision(enumSyncType, revision);
     }
 
     public static void syncUpdate(EnumSyncType type, int cat, NBTTagCompound compound) {
         Map<EnumSyncType, Integer> revisions = invalidateCaches(type);
+        int revision = revisions.getOrDefault(type, getCurrentRevision(type));
         PacketHandler.Instance.sendToAll(new SyncPacket(
             type,
             EnumSyncAction.UPDATE,
             cat,
+            revision,
             compound
         ));
         updateAllPlayerRevisions(revisions);
@@ -612,7 +670,7 @@ public class SyncController {
     }
 
     @SideOnly(Side.CLIENT)
-    public static void clientSyncRemove(EnumSyncType enumSyncType, int id) {
+    public static void clientSyncRemove(EnumSyncType enumSyncType, int id, int revision) {
         switch (enumSyncType) {
             case FACTION:
                 FactionController.getInstance().factions.remove(id);
@@ -654,6 +712,8 @@ public class SyncController {
                 CustomEffectController.Instance.getCustomEffects().remove(id);
                 break;
         }
+
+        ClientCacheHandler.updateClientRevision(enumSyncType, revision);
     }
 
     public static void syncEffects(EntityPlayerMP playerMP) {
@@ -784,6 +844,7 @@ public class SyncController {
                 return payload;
             }
 
+            int payloadRevision = revision;
             NBTTagCompound data = supplier.get();
             ByteBuf buffer = Unpooled.buffer();
             byte[] bytes;
@@ -791,6 +852,7 @@ public class SyncController {
                 buffer.writeInt(requestedType.ordinal());
                 buffer.writeInt(EnumSyncAction.RELOAD.ordinal());
                 buffer.writeInt(-1);
+                buffer.writeInt(payloadRevision);
                 ByteBufUtils.writeBigNBT(buffer, data);
 
                 bytes = new byte[buffer.readableBytes()];
@@ -800,7 +862,7 @@ public class SyncController {
             }
 
             byte[][] chunks = splitIntoChunks(bytes);
-            payload = new CachedSyncPayload(revision, bytes, chunks);
+            payload = new CachedSyncPayload(payloadRevision, bytes, chunks);
             dirty = false;
             return payload;
         }
@@ -848,5 +910,13 @@ public class SyncController {
         private synchronized void updateRevision(EnumSyncType type, int revision) {
             revisions.put(type, revision);
         }
+
+        private synchronized void applyHandshake(Map<EnumSyncType, Integer> incoming) {
+            if (incoming == null || incoming.isEmpty()) {
+                return;
+            }
+            revisions.putAll(incoming);
+        }
+
     }
 }

@@ -209,6 +209,7 @@ public class ServerEventsHandler {
                 EnumSyncType.WORKBENCH_RECIPES,
                 EnumSyncAction.RELOAD,
                 -1,
+                SyncController.getCurrentRevision(EnumSyncType.WORKBENCH_RECIPES),
                 SyncController.workbenchNBT()
             ), (EntityPlayerMP) player);
         }
@@ -217,6 +218,7 @@ public class ServerEventsHandler {
                 EnumSyncType.CARPENTRY_RECIPES,
                 EnumSyncAction.RELOAD,
                 -1,
+                SyncController.getCurrentRevision(EnumSyncType.CARPENTRY_RECIPES),
                 SyncController.carpentryNBT()
             ), (EntityPlayerMP) player);
         }
