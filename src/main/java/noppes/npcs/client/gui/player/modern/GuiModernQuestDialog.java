@@ -255,6 +255,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         }
         int fac1ID = quest.factionOptions.factionId;
         if (fac1ID != -1) {
+            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
             String fac1Name = FactionController.getInstance().getFaction(fac1ID).getName();
             String fac1Color = (quest.factionOptions.decreaseFactionPoints) ? "§c-" : "§a+";
             int fac1Point = quest.factionOptions.factionPoints;
@@ -263,6 +264,7 @@ public class GuiModernQuestDialog extends GuiNPCInterface implements IGuiClose {
         }
         int fac2ID = quest.factionOptions.faction2Id;
         if (fac2ID != -1) {
+            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
             String fac2Name = FactionController.getInstance().getFaction(fac2ID).getName();
             String fac2Color = (quest.factionOptions.decreaseFaction2Points) ? "§c-" : "§a+";
             int fac2Point = quest.factionOptions.faction2Points;

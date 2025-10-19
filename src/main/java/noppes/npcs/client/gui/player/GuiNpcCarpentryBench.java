@@ -36,6 +36,7 @@ public class GuiNpcCarpentryBench extends GuiContainerNPCInterface {
 
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j) {
+        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
         button.enabled = RecipeController.Instance != null && !RecipeController.Instance.carpentryRecipes.isEmpty();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);

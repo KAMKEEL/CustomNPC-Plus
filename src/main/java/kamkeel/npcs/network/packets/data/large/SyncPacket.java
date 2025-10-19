@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.data.large;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -17,6 +18,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * A large sync packet that sends chunked data to the client for a given SyncType
@@ -28,6 +32,8 @@ public final class SyncPacket extends LargeAbstractPacket {
     private EnumSyncAction enumSyncAction;
     private NBTTagCompound syncData;
     private int operationID;
+    private byte[] cachedPayload;
+    private byte[][] cachedChunks;
 
     public SyncPacket() {
     }
@@ -42,6 +48,14 @@ public final class SyncPacket extends LargeAbstractPacket {
         this.operationID = catId;
     }
 
+    public SyncPacket(EnumSyncType enumSyncType, SyncController.CachedSyncPayload payload) {
+        this.enumSyncType = enumSyncType;
+        this.enumSyncAction = EnumSyncAction.RELOAD;
+        this.operationID = -1;
+        this.cachedPayload = payload.getPayload();
+        this.cachedChunks = payload.getChunks();
+    }
+
     @Override
     public Enum getType() {
         return EnumDataPacket.SYNC;
@@ -54,20 +68,54 @@ public final class SyncPacket extends LargeAbstractPacket {
 
     @Override
     protected byte[] getData() throws IOException {
-        ByteBuf buffer = Unpooled.buffer();
-        // 1) Write SyncType
-        buffer.writeInt(enumSyncType.ordinal());
-        // 2) Write SyncAction
-        buffer.writeInt(enumSyncAction.ordinal());
-        // 3) Optional Category ID
-        buffer.writeInt(operationID);
-        // 4) Write the NBTTagCompound
-        ByteBufUtils.writeBigNBT(buffer, syncData);
+        if (cachedPayload != null) {
+            return cachedPayload;
+        }
 
-        // Copy the buffer’s readable bytes into a byte[]
-        byte[] bytes = new byte[buffer.readableBytes()];
-        buffer.readBytes(bytes);
-        return bytes;
+        ByteBuf buffer = Unpooled.buffer();
+        try {
+            buffer.writeInt(enumSyncType.ordinal());
+            buffer.writeInt(enumSyncAction.ordinal());
+            buffer.writeInt(operationID);
+            ByteBufUtils.writeBigNBT(buffer, syncData);
+
+            byte[] bytes = new byte[buffer.readableBytes()];
+            buffer.readBytes(bytes);
+            return bytes;
+        } finally {
+            buffer.release();
+        }
+    }
+
+    @Override
+    public List<FMLProxyPacket> generatePackets() {
+        if (cachedChunks == null) {
+            return super.generatePackets();
+        }
+
+        List<FMLProxyPacket> packets = new ArrayList<>(cachedChunks.length);
+        PacketChannel packetChannel = getChannel();
+        EnumDataPacket dataPacket = (EnumDataPacket) getType();
+        UUID packetId = UUID.randomUUID();
+
+        int totalSize = cachedPayload.length;
+        int offset = 0;
+
+        for (byte[] chunk : cachedChunks) {
+            ByteBuf chunkBuf = Unpooled.buffer();
+            chunkBuf.writeInt(packetChannel.getChannelType().ordinal());
+            chunkBuf.writeInt(dataPacket.ordinal());
+            chunkBuf.writeLong(packetId.getMostSignificantBits());
+            chunkBuf.writeLong(packetId.getLeastSignificantBits());
+            chunkBuf.writeInt(totalSize);
+            chunkBuf.writeInt(offset);
+            chunkBuf.writeInt(cachedChunks.length);
+            chunkBuf.writeBytes(chunk);
+            packets.add(new FMLProxyPacket(chunkBuf, packetChannel.getChannelName()));
+            offset += chunk.length;
+        }
+
+        return packets;
     }
 
     @Override

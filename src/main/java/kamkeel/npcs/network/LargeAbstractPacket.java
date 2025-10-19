@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class LargeAbstractPacket extends AbstractPacket {
 
     private static final Map<UUID, PacketStorage> packetChunks = new ConcurrentHashMap<>();
-    private static final int CHUNK_SIZE = 10000;
+    protected static final int CHUNK_SIZE = 10000;
 
     /**
      * Create multiple FMLProxyPacket objects, each containing up to CHUNK_SIZE bytes.

@@ -124,6 +124,7 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
         effect.readFromNBT(compound);
         setSelected(effect.name);
         if (effect.id != -1) {
+            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
             CustomEffectController.getInstance().getCustomEffects().replace(effect.id, effect);
         }
         initGui();

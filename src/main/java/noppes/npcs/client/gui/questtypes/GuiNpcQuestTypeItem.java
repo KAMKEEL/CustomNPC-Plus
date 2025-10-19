@@ -79,6 +79,7 @@ public class GuiNpcQuestTypeItem extends GuiContainerNPCInterface implements ITe
 //    			map.put(i, item.copy());
 //        }
 //    	((QuestItem)quest.questInterface).items = map;
+// TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
 //    	QuestController.saveQuest(quest);
     }
 

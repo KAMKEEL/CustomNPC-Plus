@@ -19,6 +19,7 @@ public class SubGuiMagicCycleViewer extends SubGuiInterface {
     }
 
     public SubGuiMagicCycleViewer(int cycleID) {
+        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
         this(MagicController.getInstance().getCycle(cycleID));
     }
 

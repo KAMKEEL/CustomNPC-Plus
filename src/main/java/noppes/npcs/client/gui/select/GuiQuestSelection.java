@@ -37,6 +37,7 @@ public class GuiQuestSelection extends SubGuiInterface implements ICustomScrollL
         setBackground("menubg.png");
         xSize = 366;
         ySize = 226;
+        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
         this.selectedQuest = QuestController.Instance.quests.get(quest);
         if (selectedQuest != null) {
             selectedCategory = selectedQuest.category;
@@ -59,6 +60,7 @@ public class GuiQuestSelection extends SubGuiInterface implements ICustomScrollL
         HashMap<String, QuestCategory> categoryData = new HashMap<String, QuestCategory>();
         HashMap<String, Quest> questData = new HashMap<String, Quest>();
 
+        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
         for (QuestCategory category : QuestController.Instance.categories.values()) {
             categoryData.put(category.title, category);
         }

@@ -307,6 +307,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 106) {
+            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
             NoppesUtil.openFolder(ScriptController.Instance.dir);
         }
 

@@ -41,6 +41,7 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
         setBackground("recipesAnvil.png");
         this.closeOnEsc = true;
 
+        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
         recipes.addAll(RecipeController.Instance.anvilRecipes.values());
     }
 
@@ -81,9 +82,11 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
     private List<RecipeAnvil> getSearchList() {
         if (search.isEmpty()) {
+            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
             return new ArrayList<RecipeAnvil>(RecipeController.Instance.anvilRecipes.values());
         }
         List<RecipeAnvil> list = new ArrayList<RecipeAnvil>();
+        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
         for (RecipeAnvil recipe : RecipeController.Instance.anvilRecipes.values()) {
             ItemStack repairItem = recipe.itemToRepair;
             if (repairItem == null)
