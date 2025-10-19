@@ -124,7 +124,8 @@ public class GuiNPCManageEffects extends GuiNPCInterface2 implements ICustomScro
         effect.readFromNBT(compound);
         setSelected(effect.name);
         if (effect.id != -1) {
-            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+            // TODO: Writes back into the CustomEffectController cache (global effect dataset); only players with the wand and
+            //       CustomNpcsPermissions.GLOBAL_EFFECT reach this admin editor.
             CustomEffectController.getInstance().getCustomEffects().replace(effect.id, effect);
         }
         initGui();

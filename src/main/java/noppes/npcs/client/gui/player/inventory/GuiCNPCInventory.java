@@ -94,7 +94,8 @@ public class GuiCNPCInventory extends GuiNPCInterface {
             PlayerData data = PlayerData.get(mc.thePlayer);
             if (data != null && data.effectData != null) {
                 for (PlayerEffect pe : data.effectData.getEffects().values()) {
-                    // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+                    // TODO: Pulls specific CustomEffect entries from the global controller; this HUD is part of the base
+                    //       player inventory so it must work without extra permissions (no CustomNpcsPermissions required).
                     CustomEffect effect = CustomEffectController.getInstance().get(pe.id, pe.index);
                     if (effect != null) {
                         effectBar.entries.add(new GuiEffectBar.EffectEntry(effect, pe));

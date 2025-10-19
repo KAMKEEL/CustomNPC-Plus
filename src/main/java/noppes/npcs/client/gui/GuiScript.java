@@ -236,7 +236,8 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
             initGui();
         }
         if (guibutton.id == 106) {
-            // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+            // TODO: Uses ScriptController.Instance.dir (shared script repository); this GUI is gated behind the scripter tool
+            //       and CustomNpcsPermissions.TOOL_SCRIPTER so only authorized editors touch the controller-backed scripts.
             NoppesUtil.openFolder(ScriptController.Instance.dir);
         }
         if (guibutton.id == 107) {

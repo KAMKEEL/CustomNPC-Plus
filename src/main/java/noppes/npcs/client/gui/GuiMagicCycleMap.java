@@ -41,7 +41,8 @@ public class GuiMagicCycleMap extends GuiDiagram {
             invalidateCache();
             return;
         }
-        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+        // TODO: Consumes MagicController's full magic registry to resolve associations; visible only through magic editing GUIs
+        //       that require the NPC wand and CustomNpcsPermissions.GLOBAL_MAGIC (or op status) to open.
         MagicController mc = MagicController.getInstance();
         // Get magics from the cycle's associations if associations are not null.
         if (cycle.associations != null) {
@@ -68,7 +69,8 @@ public class GuiMagicCycleMap extends GuiDiagram {
      * Constructor using a cycle ID.
      */
     public GuiMagicCycleMap(GuiNPCInterface parent, int x, int y, int width, int height, int cycleId) {
-        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+        // TODO: Looks up cycle data from MagicController; accessed from the same wand/CustomNpcsPermissions.GLOBAL_MAGIC gated
+        //       management screens.
         this(parent, x, y, width, height, MagicController.getInstance().getCycle(cycleId));
     }
 

@@ -39,7 +39,8 @@ public class GuiNpcAnvil extends GuiContainerNPCInterface {
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         // Enable the button if there are any anvil recipes.
-        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+        // TODO: Checks the shared RecipeController anvil list (entire dataset) before enabling; this player crafting GUI is
+        //       public, so no CustomNpcsPermissions gate applies here.
         button.enabled = RecipeController.Instance != null && !RecipeController.Instance.getAnvilList().isEmpty();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         mc.renderEngine.bindTexture(resource);

@@ -37,7 +37,8 @@ public class GuiDialogSelection extends SubGuiInterface implements ICustomScroll
         setBackground("menubg.png");
         xSize = 366;
         ySize = 226;
-        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+        // TODO: Pulls the entire DialogController dialog map (global data); players only reach this via wand-required dialog
+        //       editors that enforce PacketUtil.verifyItemPacket and CustomNpcsPermissions.GLOBAL_DIALOG/ops when editing.
         this.selectedDialog = DialogController.Instance.dialogs.get(dialog);
         if (selectedDialog != null) {
             selectedCategory = selectedDialog.category;
@@ -60,7 +61,8 @@ public class GuiDialogSelection extends SubGuiInterface implements ICustomScroll
         HashMap<String, DialogCategory> categoryData = new HashMap<String, DialogCategory>();
         HashMap<String, Dialog> dialogData = new HashMap<String, Dialog>();
 
-        // TODO: Ask for information where the client uses the controllers so we can later optimize them for ON-REQUEST.
+        // TODO: Iterates over every dialog category provided by DialogController; reachable through NPC wand workflows that
+        //       require dialog-edit permissions (CustomNpcsPermissions.GLOBAL_DIALOG or op status under OpsOnly).
         for (DialogCategory category : DialogController.Instance.categories.values()) {
             categoryData.put(category.title, category);
         }
