@@ -39,7 +39,16 @@ public class ClientCacheHandler {
     public static boolean allowParties = true;
 
     public static void setActiveServer(String serverKey, EnumMap<EnumSyncType, Integer> serverRevisions) {
-        activeServerKey = serverKey == null ? "" : serverKey;
+        String normalizedKey = serverKey == null ? "" : serverKey;
+        if (!normalizedKey.equals(activeServerKey)) {
+            clientRevisionCache.clear();
+        }
+        activeServerKey = normalizedKey;
+
+        if (activeServerKey.isEmpty()) {
+            return;
+        }
+
         EnumMap<EnumSyncType, Integer> cached = clientRevisionCache.computeIfAbsent(
             activeServerKey,
             ignored -> new EnumMap<>(EnumSyncType.class)
@@ -51,6 +60,9 @@ public class ClientCacheHandler {
 
     public static EnumMap<EnumSyncType, Integer> getCachedRevisionsForServer(String serverKey) {
         String key = serverKey == null ? "" : serverKey;
+        if (key.isEmpty()) {
+            return new EnumMap<>(EnumSyncType.class);
+        }
         EnumMap<EnumSyncType, Integer> revisions = clientRevisionCache.get(key);
         if (revisions == null) {
             return new EnumMap<>(EnumSyncType.class);
@@ -63,6 +75,9 @@ public class ClientCacheHandler {
             return;
         }
         String key = activeServerKey == null ? "" : activeServerKey;
+        if (key.isEmpty()) {
+            return;
+        }
         EnumMap<EnumSyncType, Integer> revisions = clientRevisionCache.computeIfAbsent(
             key,
             ignored -> new EnumMap<>(EnumSyncType.class)

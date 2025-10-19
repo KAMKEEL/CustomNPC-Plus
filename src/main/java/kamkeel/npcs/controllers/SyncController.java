@@ -40,6 +40,8 @@ import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
+import java.security.KeyPair;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -155,7 +157,20 @@ public class SyncController {
 
     private static String getServerCacheKey() {
         MinecraftServer server = MinecraftServer.getServer();
-        return server != null ? server.getFolderName() : "unknown";
+        if (server == null) {
+            return "unknown";
+        }
+
+        if (!server.isDedicatedServer()) {
+            return "";
+        }
+
+        String base = server.getFolderName();
+        KeyPair keyPair = server.getKeyPair();
+        if (keyPair != null && keyPair.getPublic() != null) {
+            base = base + ":" + Integer.toHexString(Arrays.hashCode(keyPair.getPublic().getEncoded()));
+        }
+        return base;
     }
 
     public static int getCurrentRevision(EnumSyncType type) {
