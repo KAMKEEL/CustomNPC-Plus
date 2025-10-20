@@ -25,14 +25,21 @@ public class EntityNPCGolem extends EntityNPCInterface {
 
     public void updateHitbox() {
         currentAnimation = EnumAnimation.values()[dataWatcher.getWatchableObjectInt(14)];
+        float newWidth;
+        float newHeight;
         if (currentAnimation == EnumAnimation.LYING) {
-            width = height = 0.5f;
+            newWidth = 0.5f;
+            newHeight = 0.5f;
         } else if (currentAnimation == EnumAnimation.SITTING) {
-            width = 1.4f;
-            height = 2f;
+            newWidth = 1.4f;
+            newHeight = 2f;
         } else {
-            width = 1.4f;
-            height = 2.5f;
+            newWidth = 1.4f;
+            newHeight = 2.5f;
+        }
+        setSize(newWidth, newHeight);
+        if (width / 2 > World.MAX_ENTITY_RADIUS) {
+            World.MAX_ENTITY_RADIUS = width / 2;
         }
     }
 
