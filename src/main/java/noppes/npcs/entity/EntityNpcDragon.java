@@ -114,8 +114,10 @@ public class EntityNpcDragon extends EntityNPCInterface {
 //    }
     @Override
     public void updateHitbox() {
-        width = 1.8f;
-        height = 1.4f;
+        setSize(1.8f, 1.4f);
+        if (width / 2 > World.MAX_ENTITY_RADIUS) {
+            World.MAX_ENTITY_RADIUS = width / 2;
+        }
     }
 
 }
