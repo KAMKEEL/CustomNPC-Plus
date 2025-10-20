@@ -22,14 +22,18 @@ public class SyncRevisionInfoPacket extends AbstractPacket {
     public static final String packetName = "Player|SyncRevisionInfo";
 
     private String serverKey = "";
+    private String previousServerKey = "";
     private final EnumMap<EnumSyncType, Integer> revisions = new EnumMap<>(EnumSyncType.class);
 
     public SyncRevisionInfoPacket() {
     }
 
-    public SyncRevisionInfoPacket(String serverKey, EnumMap<EnumSyncType, Integer> revisions) {
+    public SyncRevisionInfoPacket(String serverKey, String previousServerKey, EnumMap<EnumSyncType, Integer> revisions) {
         if (serverKey != null) {
             this.serverKey = serverKey;
+        }
+        if (previousServerKey != null) {
+            this.previousServerKey = previousServerKey;
         }
         if (revisions != null) {
             this.revisions.putAll(revisions);
@@ -50,6 +54,7 @@ public class SyncRevisionInfoPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     public void sendData(ByteBuf out) throws IOException {
         ByteBufUtils.writeString(out, serverKey);
+        ByteBufUtils.writeString(out, previousServerKey);
         out.writeShort(revisions.size());
         for (Map.Entry<EnumSyncType, Integer> entry : revisions.entrySet()) {
             out.writeInt(entry.getKey().ordinal());
@@ -64,6 +69,7 @@ public class SyncRevisionInfoPacket extends AbstractPacket {
         }
 
         String incomingServerKey = ByteBufUtils.readString(in);
+        String incomingPreviousKey = ByteBufUtils.readString(in);
         int revisionCount = in.readUnsignedShort();
         EnumMap<EnumSyncType, Integer> incomingRevisions = new EnumMap<>(EnumSyncType.class);
         for (int i = 0; i < revisionCount; i++) {
@@ -72,6 +78,6 @@ public class SyncRevisionInfoPacket extends AbstractPacket {
             incomingRevisions.put(type, revision);
         }
 
-        SyncController.handleClientRevisionReport((EntityPlayerMP) player, incomingServerKey, incomingRevisions);
+        SyncController.handleClientRevisionReport((EntityPlayerMP) player, incomingServerKey, incomingPreviousKey, incomingRevisions);
     }
 }

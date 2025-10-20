@@ -133,14 +133,26 @@ public class SyncController {
     public static void handleClientRevisionReport(
         EntityPlayerMP player,
         String serverKey,
+        String previousServerKey,
         Map<EnumSyncType, Integer> clientRevisions
     ) {
-        if (!getServerCacheKey().equals(serverKey)) {
+        String currentServerKey = getServerCacheKey();
+        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+
+        if (!currentServerKey.equals(serverKey)) {
+            state.reset();
             syncPlayer(player);
             return;
         }
 
-        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        if (!currentServerKey.isEmpty()) {
+            if (previousServerKey == null || !currentServerKey.equals(previousServerKey)) {
+                state.reset();
+                syncPlayer(player);
+                return;
+            }
+        }
+
         state.applyHandshake(clientRevisions);
 
         syncPlayer(player);
@@ -957,6 +969,10 @@ public class SyncController {
                 return;
             }
             revisions.putAll(incoming);
+        }
+
+        private synchronized void reset() {
+            revisions.clear();
         }
 
     }

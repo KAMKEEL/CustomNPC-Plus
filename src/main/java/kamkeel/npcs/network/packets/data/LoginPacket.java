@@ -78,6 +78,7 @@ public final class LoginPacket extends AbstractPacket {
 
         PacketClient.sendClient(new SyncRevisionInfoPacket(
             serverKey,
+            ClientCacheHandler.getLastServerKey(),
             ClientCacheHandler.getCachedRevisionsForServer(serverKey)
         ));
     }

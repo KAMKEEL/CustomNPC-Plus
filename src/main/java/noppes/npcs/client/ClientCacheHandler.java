@@ -31,6 +31,7 @@ public class ClientCacheHandler {
     public static HashMap<UUID, AnimationData> playerAnimations = new HashMap<>();
 
     private static String activeServerKey = "";
+    private static String lastServerKey = "";
     private static final Map<String, EnumMap<EnumSyncType, Integer>> clientRevisionCache = new HashMap<>();
 
     public static Party party;
@@ -40,9 +41,13 @@ public class ClientCacheHandler {
 
     public static void setActiveServer(String serverKey, EnumMap<EnumSyncType, Integer> serverRevisions) {
         String normalizedKey = serverKey == null ? "" : serverKey;
+        String previousKey = activeServerKey == null ? "" : activeServerKey;
+        lastServerKey = previousKey;
+
         if (!normalizedKey.equals(activeServerKey)) {
             clientRevisionCache.clear();
         }
+
         activeServerKey = normalizedKey;
 
         if (activeServerKey.isEmpty()) {
@@ -56,6 +61,10 @@ public class ClientCacheHandler {
         if (serverRevisions != null && !serverRevisions.isEmpty()) {
             cached.keySet().retainAll(serverRevisions.keySet());
         }
+    }
+
+    public static String getLastServerKey() {
+        return lastServerKey == null ? "" : lastServerKey;
     }
 
     public static EnumMap<EnumSyncType, Integer> getCachedRevisionsForServer(String serverKey) {
