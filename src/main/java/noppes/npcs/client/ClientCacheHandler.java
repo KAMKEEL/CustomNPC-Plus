@@ -15,7 +15,7 @@ import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.SkinOverlay;
-import noppes.npcs.network.enums.EnumSyncType;
+import kamkeel.npcs.network.enums.EnumSyncType;
 import noppes.npcs.util.CacheHashMap;
 
 import java.util.EnumMap;

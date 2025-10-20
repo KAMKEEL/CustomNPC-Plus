@@ -18,6 +18,10 @@ public abstract class LargeAbstractPacket extends AbstractPacket {
     private static final Map<UUID, PacketStorage> packetChunks = new ConcurrentHashMap<>();
     protected static final int CHUNK_SIZE = 10000;
 
+    public static int getChunkSize() {
+        return CHUNK_SIZE;
+    }
+
     /**
      * Create multiple FMLProxyPacket objects, each containing up to CHUNK_SIZE bytes.
      */

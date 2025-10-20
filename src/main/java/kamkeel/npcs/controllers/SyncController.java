@@ -40,6 +40,7 @@ import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
+import java.io.IOException;
 import java.security.KeyPair;
 import java.util.Arrays;
 import java.util.EnumMap;
@@ -872,6 +873,8 @@ public class SyncController {
 
                 bytes = new byte[buffer.readableBytes()];
                 buffer.readBytes(bytes);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to serialize cached payload for " + requestedType, e);
             } finally {
                 buffer.release();
             }
@@ -895,14 +898,15 @@ public class SyncController {
 
         private static byte[][] splitIntoChunks(byte[] payload) {
             int totalSize = payload.length;
-            int chunkCount = (totalSize + LargeAbstractPacket.CHUNK_SIZE - 1) / LargeAbstractPacket.CHUNK_SIZE;
+            int chunkSize = LargeAbstractPacket.getChunkSize();
+            int chunkCount = (totalSize + chunkSize - 1) / chunkSize;
             if (chunkCount <= 0) {
                 chunkCount = 1;
             }
             byte[][] chunks = new byte[chunkCount][];
             for (int i = 0; i < chunkCount; i++) {
-                int offset = i * LargeAbstractPacket.CHUNK_SIZE;
-                int length = Math.min(LargeAbstractPacket.CHUNK_SIZE, totalSize - offset);
+                int offset = i * chunkSize;
+                int length = Math.min(chunkSize, totalSize - offset);
                 byte[] chunk = new byte[length];
                 System.arraycopy(payload, offset, chunk, 0, length);
                 chunks[i] = chunk;
