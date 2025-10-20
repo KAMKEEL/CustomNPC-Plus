@@ -41,8 +41,6 @@ import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
 import java.io.IOException;
-import java.security.KeyPair;
-import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -98,40 +96,34 @@ public class SyncController {
         for (EnumSyncType type : LOGIN_SYNC_TYPES) {
             SyncCacheEntry entry = CACHE_ENTRIES.get(type);
             if (entry == null) {
-                debug("Skipping %s for %s - no cache entry", type, player.getCommandSenderName());
                 continue;
             }
 
             int currentRevision = entry.getRevisionValue();
             int lastRevision = state.getRevision(type);
-            debug("Evaluating %s for %s - server=%d client=%d", type, player.getCommandSenderName(), currentRevision, lastRevision);
             if (lastRevision == currentRevision) {
-                debug("Up to date: %s already has revision %d", player.getCommandSenderName(), currentRevision);
                 continue;
             }
 
             CachedSyncPayload payload = entry.getPayload(type);
             if (payload == null) {
-                debug("No payload available for %s during %s sync", type, player.getCommandSenderName());
                 continue;
             }
 
             if (lastRevision != payload.getRevision()) {
-                debug("Sending %s revision %d to %s", type, payload.getRevision(), player.getCommandSenderName());
+                debug("Sending %s data to %s", type, player.getCommandSenderName());
                 PacketHandler.Instance.sendToPlayer(new SyncPacket(type, payload), player);
                 state.updateRevision(type, payload.getRevision());
             }
         }
 
         if (includePostPackets) {
-            debug("Dispatching post login packets to %s", player.getCommandSenderName());
             sendPostLoginPackets(player);
         }
     }
 
     public static void beginLogin(EntityPlayerMP player) {
         PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
-        debug("Initiating login sync handshake with %s", player.getCommandSenderName());
         PacketHandler.Instance.sendToPlayer(
             new LoginPacket(getServerCacheKey(), getServerRevisionSnapshot()),
             player
@@ -144,7 +136,6 @@ public class SyncController {
         Map<EnumSyncType, Integer> clientRevisions
     ) {
         if (!getServerCacheKey().equals(serverKey)) {
-            debug("Server cache key mismatch for %s (client=%s server=%s) - forcing full sync", player.getCommandSenderName(), serverKey, getServerCacheKey());
             syncPlayer(player);
             return;
         }
@@ -152,13 +143,10 @@ public class SyncController {
         PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
         state.applyHandshake(clientRevisions);
 
-        debug("Received revision report from %s: %s", player.getCommandSenderName(), clientRevisions);
-
         syncPlayer(player);
     }
 
     private static void sendPostLoginPackets(EntityPlayerMP player) {
-        debug("Sending addon/player data packets to %s", player.getCommandSenderName());
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
         PartyInfoPacket.sendPartyData(player);
@@ -175,22 +163,19 @@ public class SyncController {
         return snapshot;
     }
 
+    private static final String SERVER_IDENTITY_KEY = UUID.randomUUID().toString();
+
     private static String getServerCacheKey() {
         MinecraftServer server = MinecraftServer.getServer();
         if (server == null) {
-            return "unknown";
+            return "";
         }
 
         if (!server.isDedicatedServer()) {
             return "";
         }
 
-        String base = server.getFolderName();
-        KeyPair keyPair = server.getKeyPair();
-        if (keyPair != null && keyPair.getPublic() != null) {
-            base = base + ":" + Integer.toHexString(Arrays.hashCode(keyPair.getPublic().getEncoded()));
-        }
-        return base;
+        return SERVER_IDENTITY_KEY;
     }
 
     public static int getCurrentRevision(EnumSyncType type) {
@@ -317,7 +302,6 @@ public class SyncController {
     public static void syncPlayerData(EntityPlayerMP player, boolean update) {
         PlayerData data = PlayerData.get(player);
         if (data != null) {
-            debug("Syncing %s data for %s", update ? "incremental" : "full", player.getCommandSenderName());
             if (update) {
                 PacketHandler.Instance.sendToPlayer(new SyncPacket(
                         EnumSyncType.PLAYERDATA,
@@ -338,7 +322,6 @@ public class SyncController {
     public static void syncRemove(EnumSyncType enumSyncType, int id) {
         Map<EnumSyncType, Integer> revisions = invalidateCaches(enumSyncType);
         int revision = revisions.getOrDefault(enumSyncType, getCurrentRevision(enumSyncType));
-        debug("Broadcasting %s removal for id=%d at revision=%d", enumSyncType, id, revision);
         PacketHandler.Instance.sendToAll(new SyncPacket(
             enumSyncType,
             EnumSyncAction.REMOVE,
@@ -351,7 +334,6 @@ public class SyncController {
 
     public static void syncAllDialogs() {
         CachedSyncPayload payload = rebuildNow(EnumSyncType.DIALOG_CATEGORY);
-        debug("Broadcasting full dialog category reload revision=%d", payload == null ? -1 : payload.getRevision());
         if (payload == null) {
             return;
         }
@@ -361,7 +343,6 @@ public class SyncController {
 
     public static void syncAllQuests() {
         CachedSyncPayload payload = rebuildNow(EnumSyncType.QUEST_CATEGORY);
-        debug("Broadcasting full quest category reload revision=%d", payload == null ? -1 : payload.getRevision());
         if (payload == null) {
             return;
         }
@@ -371,7 +352,6 @@ public class SyncController {
 
     public static void syncAllWorkbenchRecipes() {
         CachedSyncPayload payload = rebuildNow(EnumSyncType.WORKBENCH_RECIPES);
-        debug("Broadcasting full workbench recipe reload revision=%d", payload == null ? -1 : payload.getRevision());
         if (payload == null) {
             return;
         }
@@ -381,7 +361,6 @@ public class SyncController {
 
     public static void syncAllCarpentryRecipes() {
         CachedSyncPayload payload = rebuildNow(EnumSyncType.CARPENTRY_RECIPES);
-        debug("Broadcasting full carpentry recipe reload revision=%d", payload == null ? -1 : payload.getRevision());
         if (payload == null) {
             return;
         }
@@ -391,7 +370,6 @@ public class SyncController {
 
     public static void syncAllAnvilRecipes() {
         CachedSyncPayload payload = rebuildNow(EnumSyncType.ANVIL_RECIPES);
-        debug("Broadcasting full anvil recipe reload revision=%d", payload == null ? -1 : payload.getRevision());
         if (payload == null) {
             return;
         }
@@ -401,7 +379,6 @@ public class SyncController {
 
     public static void syncAllCustomEffects() {
         CachedSyncPayload payload = rebuildNow(EnumSyncType.CUSTOM_EFFECTS);
-        debug("Broadcasting full custom effect reload revision=%d", payload == null ? -1 : payload.getRevision());
         if (payload == null) {
             return;
         }
@@ -783,7 +760,6 @@ public class SyncController {
         playerData.effectData.setEffects(playerEffects);
 
         NBTTagCompound compound = playerData.getPlayerEffects();
-        debug("Sending active effect sync to %s", playerMP.getCommandSenderName());
         PacketHandler.Instance.sendToPlayer(new SyncEffectPacket(compound), playerMP);
     }
 
@@ -797,16 +773,13 @@ public class SyncController {
 
     private static void registerCache(EnumSyncType type, Supplier<NBTTagCompound> supplier) {
         CACHE_ENTRIES.put(type, new SyncCacheEntry(type, supplier));
-        debug("Registered cache entry for %s", type);
     }
 
     private static CachedSyncPayload rebuildNow(EnumSyncType type) {
         SyncCacheEntry entry = CACHE_ENTRIES.get(type);
         if (entry == null) {
-            debug("Cannot rebuild cache for %s - no entry registered", type);
             return null;
         }
-        debug("Rebuilding cache immediately for %s", type);
         entry.invalidate();
         return entry.getPayload(type);
     }
@@ -818,7 +791,6 @@ public class SyncController {
             SyncCacheEntry entry = CACHE_ENTRIES.get(target);
             if (entry != null) {
                 int newRevision = entry.invalidate();
-                debug("Invalidated cache for %s due to %s mutation - next revision=%d", target, type, newRevision);
                 revisions.put(target, newRevision);
             }
         }
@@ -856,7 +828,6 @@ public class SyncController {
         if (revision < 0) {
             return;
         }
-        debug("Updating cached revision for all players: %s -> %d", type, revision);
         for (PlayerSyncState state : PLAYER_SYNC_STATE.values()) {
             state.updateRevision(type, revision);
         }
@@ -866,7 +837,6 @@ public class SyncController {
         if (revisions.isEmpty()) {
             return;
         }
-        debug("Updating cached revisions for all players: %s", revisions);
         for (PlayerSyncState state : PLAYER_SYNC_STATE.values()) {
             for (Map.Entry<EnumSyncType, Integer> entry : revisions.entrySet()) {
                 state.updateRevision(entry.getKey(), entry.getValue());
@@ -910,13 +880,11 @@ public class SyncController {
 
         private synchronized CachedSyncPayload getPayload(EnumSyncType requestedType) {
             if (!dirty && payload != null) {
-                debug("Reusing cached payload for %s revision %d", requestedType, payload.getRevision());
                 return payload;
             }
 
             int payloadRevision = revision;
             NBTTagCompound data = supplier.get();
-            debug("Building new payload for %s revision %d", requestedType, payloadRevision);
             ByteBuf buffer = Unpooled.buffer();
             byte[] bytes;
             try {
@@ -937,7 +905,6 @@ public class SyncController {
             byte[][] chunks = splitIntoChunks(bytes);
             payload = new CachedSyncPayload(payloadRevision, bytes, chunks);
             dirty = false;
-            debug("Cached payload for %s revision %d with %d chunks", requestedType, payloadRevision, chunks.length);
             return payload;
         }
 
@@ -945,7 +912,6 @@ public class SyncController {
             dirty = true;
             payload = null;
             revision++;
-            debug("Marked cache dirty for revision %d", revision);
             return revision;
         }
 
@@ -959,7 +925,6 @@ public class SyncController {
             if (chunkCount <= 0) {
                 chunkCount = 1;
             }
-            debug("Splitting payload of %d bytes into %d chunks", totalSize, chunkCount);
             byte[][] chunks = new byte[chunkCount][];
             for (int i = 0; i < chunkCount; i++) {
                 int offset = i * LargeAbstractPacket.CHUNK_SIZE;
