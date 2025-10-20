@@ -3,6 +3,9 @@ package kamkeel.npcs.controllers;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.addon.DBCAddon;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import kamkeel.npcs.network.LargeAbstractPacket;
 import kamkeel.npcs.network.PacketHandler;
 import kamkeel.npcs.network.enums.EnumSyncAction;
 import kamkeel.npcs.network.enums.EnumSyncType;
@@ -10,10 +13,12 @@ import kamkeel.npcs.network.packets.data.LoginPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
 import kamkeel.npcs.network.packets.data.large.SyncPacket;
 import kamkeel.npcs.network.packets.request.party.PartyInfoPacket;
+import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.server.MinecraftServer;
 import noppes.npcs.client.ClientCacheHandler;
 import noppes.npcs.controllers.CustomEffectController;
 import noppes.npcs.controllers.DialogController;
@@ -35,89 +40,162 @@ import noppes.npcs.controllers.data.QuestCategory;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 
+import java.io.IOException;
+import java.security.KeyPair;
+import java.util.Arrays;
+import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
 public class SyncController {
 
+    public static boolean DEBUG_SYNC_LOGGING = false;
+
+    private static void debug(String message, Object... args) {
+        if (DEBUG_SYNC_LOGGING) {
+            System.out.println("[SyncController] " + String.format(message, args));
+        }
+    }
+
+    private static final EnumSyncType[] LOGIN_SYNC_TYPES = new EnumSyncType[]{
+        EnumSyncType.FACTION,
+        EnumSyncType.DIALOG_CATEGORY,
+        EnumSyncType.QUEST_CATEGORY,
+        EnumSyncType.WORKBENCH_RECIPES,
+        EnumSyncType.CARPENTRY_RECIPES,
+        EnumSyncType.ANVIL_RECIPES,
+        EnumSyncType.CUSTOM_EFFECTS,
+        EnumSyncType.MAGIC,
+        EnumSyncType.MAGIC_CYCLE
+    };
+
+    private static final EnumMap<EnumSyncType, SyncCacheEntry> CACHE_ENTRIES = new EnumMap<>(EnumSyncType.class);
+    private static final ConcurrentHashMap<UUID, PlayerSyncState> PLAYER_SYNC_STATE = new ConcurrentHashMap<>();
+
+    static {
+        registerCache(EnumSyncType.FACTION, SyncController::factionsNBT);
+        registerCache(EnumSyncType.DIALOG_CATEGORY, SyncController::dialogCategoriesNBT);
+        registerCache(EnumSyncType.QUEST_CATEGORY, SyncController::questCategoriesNBT);
+        registerCache(EnumSyncType.WORKBENCH_RECIPES, SyncController::workbenchNBT);
+        registerCache(EnumSyncType.CARPENTRY_RECIPES, SyncController::carpentryNBT);
+        registerCache(EnumSyncType.ANVIL_RECIPES, SyncController::anvilNBT);
+        registerCache(EnumSyncType.CUSTOM_EFFECTS, SyncController::customEffectsNBT);
+        registerCache(EnumSyncType.MAGIC, SyncController::magicsNBT);
+        registerCache(EnumSyncType.MAGIC_CYCLE, SyncController::magicCyclesNBT);
+    }
+
     public static void syncPlayer(EntityPlayerMP player) {
+        syncPlayer(player, true);
+    }
 
-        // Login Packet
-        PacketHandler.Instance.sendToPlayer(new LoginPacket(), player);
+    private static void syncPlayer(EntityPlayerMP player, boolean includePostPackets) {
+        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
 
-        // 1) Factions
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.FACTION,
-            EnumSyncAction.RELOAD,
-            -1,
-            factionsNBT()
-        ), player);
+        for (EnumSyncType type : LOGIN_SYNC_TYPES) {
+            SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+            if (entry == null) {
+                debug("Skipping %s for %s - no cache entry", type, player.getCommandSenderName());
+                continue;
+            }
 
-        // 2) Dialog Categories
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.DIALOG_CATEGORY,
-            EnumSyncAction.RELOAD,
-            -1,
-            dialogCategoriesNBT()
-        ), player);
+            int currentRevision = entry.getRevisionValue();
+            int lastRevision = state.getRevision(type);
+            debug("Evaluating %s for %s - server=%d client=%d", type, player.getCommandSenderName(), currentRevision, lastRevision);
+            if (lastRevision == currentRevision) {
+                debug("Up to date: %s already has revision %d", player.getCommandSenderName(), currentRevision);
+                continue;
+            }
 
-        // 3) Quest Categories
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.QUEST_CATEGORY,
-            EnumSyncAction.RELOAD,
-            -1,
-            questCategoriesNBT()
-        ), player);
+            CachedSyncPayload payload = entry.getPayload(type);
+            if (payload == null) {
+                debug("No payload available for %s during %s sync", type, player.getCommandSenderName());
+                continue;
+            }
 
-        // 4) Workbench Recipes
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.WORKBENCH_RECIPES,
-            EnumSyncAction.RELOAD,
-            -1,
-            workbenchNBT()
-        ), player);
+            if (lastRevision != payload.getRevision()) {
+                debug("Sending %s revision %d to %s", type, payload.getRevision(), player.getCommandSenderName());
+                PacketHandler.Instance.sendToPlayer(new SyncPacket(type, payload), player);
+                state.updateRevision(type, payload.getRevision());
+            }
+        }
 
-        // 5) Carpentry Recipes
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.CARPENTRY_RECIPES,
-            EnumSyncAction.RELOAD,
-            -1,
-            carpentryNBT()
-        ), player);
+        if (includePostPackets) {
+            debug("Dispatching post login packets to %s", player.getCommandSenderName());
+            sendPostLoginPackets(player);
+        }
+    }
 
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.ANVIL_RECIPES,
-            EnumSyncAction.RELOAD,
-            -1,
-            anvilNBT()
-        ), player);
+    public static void beginLogin(EntityPlayerMP player) {
+        PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        debug("Initiating login sync handshake with %s", player.getCommandSenderName());
+        PacketHandler.Instance.sendToPlayer(
+            new LoginPacket(getServerCacheKey(), getServerRevisionSnapshot()),
+            player
+        );
+    }
 
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.CUSTOM_EFFECTS,
-            EnumSyncAction.RELOAD,
-            -1,
-            customEffectsNBT()
-        ), player);
+    public static void handleClientRevisionReport(
+        EntityPlayerMP player,
+        String serverKey,
+        Map<EnumSyncType, Integer> clientRevisions
+    ) {
+        if (!getServerCacheKey().equals(serverKey)) {
+            debug("Server cache key mismatch for %s (client=%s server=%s) - forcing full sync", player.getCommandSenderName(), serverKey, getServerCacheKey());
+            syncPlayer(player);
+            return;
+        }
 
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.MAGIC,
-            EnumSyncAction.RELOAD,
-            -1,
-            magicsNBT()
-        ), player);
+        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        state.applyHandshake(clientRevisions);
 
-        PacketHandler.Instance.sendToPlayer(new SyncPacket(
-            EnumSyncType.MAGIC_CYCLE,
-            EnumSyncAction.RELOAD,
-            -1,
-            magicCyclesNBT()
-        ), player);
+        debug("Received revision report from %s: %s", player.getCommandSenderName(), clientRevisions);
 
+        syncPlayer(player);
+    }
+
+    private static void sendPostLoginPackets(EntityPlayerMP player) {
+        debug("Sending addon/player data packets to %s", player.getCommandSenderName());
         DBCAddon.instance.syncPlayer(player);
         syncPlayerData(player, false);
-
-        // Send party information to the player on login
         PartyInfoPacket.sendPartyData(player);
+    }
+
+    private static EnumMap<EnumSyncType, Integer> getServerRevisionSnapshot() {
+        EnumMap<EnumSyncType, Integer> snapshot = new EnumMap<>(EnumSyncType.class);
+        for (EnumSyncType type : LOGIN_SYNC_TYPES) {
+            SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+            if (entry != null) {
+                snapshot.put(type, entry.getRevisionValue());
+            }
+        }
+        return snapshot;
+    }
+
+    private static String getServerCacheKey() {
+        MinecraftServer server = MinecraftServer.getServer();
+        if (server == null) {
+            return "unknown";
+        }
+
+        if (!server.isDedicatedServer()) {
+            return "";
+        }
+
+        String base = server.getFolderName();
+        KeyPair keyPair = server.getKeyPair();
+        if (keyPair != null && keyPair.getPublic() != null) {
+            base = base + ":" + Integer.toHexString(Arrays.hashCode(keyPair.getPublic().getEncoded()));
+        }
+        return base;
+    }
+
+    public static int getCurrentRevision(EnumSyncType type) {
+        SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+        return entry == null ? -1 : entry.getRevisionValue();
     }
 
     public static NBTTagCompound workbenchNBT() {
@@ -239,6 +317,7 @@ public class SyncController {
     public static void syncPlayerData(EntityPlayerMP player, boolean update) {
         PlayerData data = PlayerData.get(player);
         if (data != null) {
+            debug("Syncing %s data for %s", update ? "incremental" : "full", player.getCommandSenderName());
             if (update) {
                 PacketHandler.Instance.sendToPlayer(new SyncPacket(
                         EnumSyncType.PLAYERDATA,
@@ -257,70 +336,81 @@ public class SyncController {
     }
 
     public static void syncRemove(EnumSyncType enumSyncType, int id) {
+        Map<EnumSyncType, Integer> revisions = invalidateCaches(enumSyncType);
+        int revision = revisions.getOrDefault(enumSyncType, getCurrentRevision(enumSyncType));
+        debug("Broadcasting %s removal for id=%d at revision=%d", enumSyncType, id, revision);
         PacketHandler.Instance.sendToAll(new SyncPacket(
             enumSyncType,
             EnumSyncAction.REMOVE,
             id,
+            revision,
             new NBTTagCompound()
         ));
+        updateAllPlayerRevisions(revisions);
     }
 
     public static void syncAllDialogs() {
-        PacketHandler.Instance.sendToAll(new SyncPacket(
-            EnumSyncType.DIALOG_CATEGORY,
-            EnumSyncAction.RELOAD,
-            -1,
-            dialogCategoriesNBT()
-        ));
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.DIALOG_CATEGORY);
+        debug("Broadcasting full dialog category reload revision=%d", payload == null ? -1 : payload.getRevision());
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.DIALOG_CATEGORY, payload));
+        updateAllPlayerRevisions(EnumSyncType.DIALOG_CATEGORY, payload.getRevision());
     }
 
     public static void syncAllQuests() {
-        PacketHandler.Instance.sendToAll(new SyncPacket(
-            EnumSyncType.QUEST_CATEGORY,
-            EnumSyncAction.RELOAD,
-            -1,
-            questCategoriesNBT()
-        ));
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.QUEST_CATEGORY);
+        debug("Broadcasting full quest category reload revision=%d", payload == null ? -1 : payload.getRevision());
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.QUEST_CATEGORY, payload));
+        updateAllPlayerRevisions(EnumSyncType.QUEST_CATEGORY, payload.getRevision());
     }
 
     public static void syncAllWorkbenchRecipes() {
-        PacketHandler.Instance.sendToAll(new SyncPacket(
-            EnumSyncType.WORKBENCH_RECIPES,
-            EnumSyncAction.RELOAD,
-            -1,
-            workbenchNBT()
-        ));
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.WORKBENCH_RECIPES);
+        debug("Broadcasting full workbench recipe reload revision=%d", payload == null ? -1 : payload.getRevision());
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.WORKBENCH_RECIPES, payload));
+        updateAllPlayerRevisions(EnumSyncType.WORKBENCH_RECIPES, payload.getRevision());
     }
 
     public static void syncAllCarpentryRecipes() {
-        PacketHandler.Instance.sendToAll(new SyncPacket(
-            EnumSyncType.CARPENTRY_RECIPES,
-            EnumSyncAction.RELOAD,
-            -1,
-            carpentryNBT()
-        ));
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.CARPENTRY_RECIPES);
+        debug("Broadcasting full carpentry recipe reload revision=%d", payload == null ? -1 : payload.getRevision());
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.CARPENTRY_RECIPES, payload));
+        updateAllPlayerRevisions(EnumSyncType.CARPENTRY_RECIPES, payload.getRevision());
     }
 
     public static void syncAllAnvilRecipes() {
-        PacketHandler.Instance.sendToAll(new SyncPacket(
-            EnumSyncType.ANVIL_RECIPES,
-            EnumSyncAction.RELOAD,
-            -1,
-            anvilNBT()
-        ));
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.ANVIL_RECIPES);
+        debug("Broadcasting full anvil recipe reload revision=%d", payload == null ? -1 : payload.getRevision());
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.ANVIL_RECIPES, payload));
+        updateAllPlayerRevisions(EnumSyncType.ANVIL_RECIPES, payload.getRevision());
     }
 
     public static void syncAllCustomEffects() {
-        PacketHandler.Instance.sendToAll(new SyncPacket(
-            EnumSyncType.CUSTOM_EFFECTS,
-            EnumSyncAction.RELOAD,
-            -1,
-            customEffectsNBT()
-        ));
+        CachedSyncPayload payload = rebuildNow(EnumSyncType.CUSTOM_EFFECTS);
+        debug("Broadcasting full custom effect reload revision=%d", payload == null ? -1 : payload.getRevision());
+        if (payload == null) {
+            return;
+        }
+        PacketHandler.Instance.sendToAll(new SyncPacket(EnumSyncType.CUSTOM_EFFECTS, payload));
+        updateAllPlayerRevisions(EnumSyncType.CUSTOM_EFFECTS, payload.getRevision());
     }
 
     @SideOnly(Side.CLIENT)
-    public static void clientSync(EnumSyncType enumSyncType, NBTTagCompound fullCompound) {
+    public static void clientSync(EnumSyncType enumSyncType, int revision, NBTTagCompound fullCompound) {
         switch (enumSyncType) {
             case FACTION: {
                 NBTTagList list = fullCompound.getTagList("Factions", 10);
@@ -505,13 +595,15 @@ public class SyncController {
                 break;
             }
         }
+
+        ClientCacheHandler.updateClientRevision(enumSyncType, revision);
     }
 
     /**
      * Update Related Tasks
      */
     @SideOnly(Side.CLIENT)
-    public static void clientUpdate(EnumSyncType enumSyncType, int category_id, NBTTagCompound compound) {
+    public static void clientUpdate(EnumSyncType enumSyncType, int category_id, int revision, NBTTagCompound compound) {
         switch (enumSyncType) {
             case FACTION: {
                 Faction faction = new Faction();
@@ -596,15 +688,21 @@ public class SyncController {
                 break;
             }
         }
+
+        ClientCacheHandler.updateClientRevision(enumSyncType, revision);
     }
 
     public static void syncUpdate(EnumSyncType type, int cat, NBTTagCompound compound) {
+        Map<EnumSyncType, Integer> revisions = invalidateCaches(type);
+        int revision = revisions.getOrDefault(type, getCurrentRevision(type));
         PacketHandler.Instance.sendToAll(new SyncPacket(
             type,
             EnumSyncAction.UPDATE,
             cat,
+            revision,
             compound
         ));
+        updateAllPlayerRevisions(revisions);
     }
 
 
@@ -633,7 +731,7 @@ public class SyncController {
     }
 
     @SideOnly(Side.CLIENT)
-    public static void clientSyncRemove(EnumSyncType enumSyncType, int id) {
+    public static void clientSyncRemove(EnumSyncType enumSyncType, int id, int revision) {
         switch (enumSyncType) {
             case FACTION:
                 FactionController.getInstance().factions.remove(id);
@@ -675,6 +773,8 @@ public class SyncController {
                 CustomEffectController.Instance.getCustomEffects().remove(id);
                 break;
         }
+
+        ClientCacheHandler.updateClientRevision(enumSyncType, revision);
     }
 
     public static void syncEffects(EntityPlayerMP playerMP) {
@@ -683,6 +783,7 @@ public class SyncController {
         playerData.effectData.setEffects(playerEffects);
 
         NBTTagCompound compound = playerData.getPlayerEffects();
+        debug("Sending active effect sync to %s", playerMP.getCommandSenderName());
         PacketHandler.Instance.sendToPlayer(new SyncEffectPacket(compound), playerMP);
     }
 
@@ -692,5 +793,206 @@ public class SyncController {
         if (playerData != null) {
             playerData.setPlayerEffects(compound);
         }
+    }
+
+    private static void registerCache(EnumSyncType type, Supplier<NBTTagCompound> supplier) {
+        CACHE_ENTRIES.put(type, new SyncCacheEntry(type, supplier));
+        debug("Registered cache entry for %s", type);
+    }
+
+    private static CachedSyncPayload rebuildNow(EnumSyncType type) {
+        SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+        if (entry == null) {
+            debug("Cannot rebuild cache for %s - no entry registered", type);
+            return null;
+        }
+        debug("Rebuilding cache immediately for %s", type);
+        entry.invalidate();
+        return entry.getPayload(type);
+    }
+
+    public static Map<EnumSyncType, Integer> invalidateCaches(EnumSyncType type) {
+        EnumSet<EnumSyncType> targets = getInvalidationTargets(type);
+        EnumMap<EnumSyncType, Integer> revisions = new EnumMap<>(EnumSyncType.class);
+        for (EnumSyncType target : targets) {
+            SyncCacheEntry entry = CACHE_ENTRIES.get(target);
+            if (entry != null) {
+                int newRevision = entry.invalidate();
+                debug("Invalidated cache for %s due to %s mutation - next revision=%d", target, type, newRevision);
+                revisions.put(target, newRevision);
+            }
+        }
+        return revisions;
+    }
+
+    private static EnumSet<EnumSyncType> getInvalidationTargets(EnumSyncType type) {
+        switch (type) {
+            case DIALOG:
+            case DIALOG_CATEGORY:
+                return EnumSet.of(EnumSyncType.DIALOG_CATEGORY);
+            case QUEST:
+            case QUEST_CATEGORY:
+                return EnumSet.of(EnumSyncType.QUEST_CATEGORY);
+            case FACTION:
+                return EnumSet.of(EnumSyncType.FACTION);
+            case MAGIC:
+                return EnumSet.of(EnumSyncType.MAGIC);
+            case MAGIC_CYCLE:
+                return EnumSet.of(EnumSyncType.MAGIC_CYCLE);
+            case WORKBENCH_RECIPES:
+                return EnumSet.of(EnumSyncType.WORKBENCH_RECIPES);
+            case CARPENTRY_RECIPES:
+                return EnumSet.of(EnumSyncType.CARPENTRY_RECIPES);
+            case ANVIL_RECIPES:
+                return EnumSet.of(EnumSyncType.ANVIL_RECIPES);
+            case CUSTOM_EFFECTS:
+                return EnumSet.of(EnumSyncType.CUSTOM_EFFECTS);
+            default:
+                return EnumSet.noneOf(EnumSyncType.class);
+        }
+    }
+
+    private static void updateAllPlayerRevisions(EnumSyncType type, int revision) {
+        if (revision < 0) {
+            return;
+        }
+        debug("Updating cached revision for all players: %s -> %d", type, revision);
+        for (PlayerSyncState state : PLAYER_SYNC_STATE.values()) {
+            state.updateRevision(type, revision);
+        }
+    }
+
+    private static void updateAllPlayerRevisions(Map<EnumSyncType, Integer> revisions) {
+        if (revisions.isEmpty()) {
+            return;
+        }
+        debug("Updating cached revisions for all players: %s", revisions);
+        for (PlayerSyncState state : PLAYER_SYNC_STATE.values()) {
+            for (Map.Entry<EnumSyncType, Integer> entry : revisions.entrySet()) {
+                state.updateRevision(entry.getKey(), entry.getValue());
+            }
+        }
+    }
+
+    public static final class CachedSyncPayload {
+        private final int revision;
+        private final byte[] payload;
+        private final byte[][] chunks;
+
+        private CachedSyncPayload(int revision, byte[] payload, byte[][] chunks) {
+            this.revision = revision;
+            this.payload = payload;
+            this.chunks = chunks;
+        }
+
+        public int getRevision() {
+            return revision;
+        }
+
+        public byte[] getPayload() {
+            return payload;
+        }
+
+        public byte[][] getChunks() {
+            return chunks;
+        }
+    }
+
+    private static final class SyncCacheEntry {
+        private final Supplier<NBTTagCompound> supplier;
+        private volatile CachedSyncPayload payload;
+        private int revision = 0;
+        private boolean dirty = true;
+
+        private SyncCacheEntry(EnumSyncType type, Supplier<NBTTagCompound> supplier) {
+            this.supplier = supplier;
+        }
+
+        private synchronized CachedSyncPayload getPayload(EnumSyncType requestedType) {
+            if (!dirty && payload != null) {
+                debug("Reusing cached payload for %s revision %d", requestedType, payload.getRevision());
+                return payload;
+            }
+
+            int payloadRevision = revision;
+            NBTTagCompound data = supplier.get();
+            debug("Building new payload for %s revision %d", requestedType, payloadRevision);
+            ByteBuf buffer = Unpooled.buffer();
+            byte[] bytes;
+            try {
+                buffer.writeInt(requestedType.ordinal());
+                buffer.writeInt(EnumSyncAction.RELOAD.ordinal());
+                buffer.writeInt(-1);
+                buffer.writeInt(payloadRevision);
+                ByteBufUtils.writeBigNBT(buffer, data);
+
+                bytes = new byte[buffer.readableBytes()];
+                buffer.readBytes(bytes);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to serialize sync payload for " + requestedType, e);
+            } finally {
+                buffer.release();
+            }
+
+            byte[][] chunks = splitIntoChunks(bytes);
+            payload = new CachedSyncPayload(payloadRevision, bytes, chunks);
+            dirty = false;
+            debug("Cached payload for %s revision %d with %d chunks", requestedType, payloadRevision, chunks.length);
+            return payload;
+        }
+
+        private synchronized int invalidate() {
+            dirty = true;
+            payload = null;
+            revision++;
+            debug("Marked cache dirty for revision %d", revision);
+            return revision;
+        }
+
+        private synchronized int getRevisionValue() {
+            return revision;
+        }
+
+        private static byte[][] splitIntoChunks(byte[] payload) {
+            int totalSize = payload.length;
+            int chunkCount = (totalSize + LargeAbstractPacket.CHUNK_SIZE - 1) / LargeAbstractPacket.CHUNK_SIZE;
+            if (chunkCount <= 0) {
+                chunkCount = 1;
+            }
+            debug("Splitting payload of %d bytes into %d chunks", totalSize, chunkCount);
+            byte[][] chunks = new byte[chunkCount][];
+            for (int i = 0; i < chunkCount; i++) {
+                int offset = i * LargeAbstractPacket.CHUNK_SIZE;
+                int length = Math.min(LargeAbstractPacket.CHUNK_SIZE, totalSize - offset);
+                byte[] chunk = new byte[length];
+                System.arraycopy(payload, offset, chunk, 0, length);
+                chunks[i] = chunk;
+            }
+            return chunks;
+        }
+    }
+
+    private static final class PlayerSyncState {
+        private final EnumMap<EnumSyncType, Integer> revisions = new EnumMap<>(EnumSyncType.class);
+
+        private PlayerSyncState(UUID ignored) {
+        }
+
+        private synchronized int getRevision(EnumSyncType type) {
+            Integer value = revisions.get(type);
+            return value == null ? -1 : value;
+        }
+
+        private synchronized void updateRevision(EnumSyncType type, int revision) {
+            revisions.put(type, revision);
+        }
+
+        private synchronized void applyHandshake(Map<EnumSyncType, Integer> incoming) {
+            if (incoming == null || incoming.isEmpty()) {
+                return;
+            }
+            revisions.putAll(incoming);
+        }
+
     }
 }

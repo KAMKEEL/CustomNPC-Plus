@@ -41,6 +41,8 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
         setBackground("recipesAnvil.png");
         this.closeOnEsc = true;
 
+        // TODO: Loads the entire anvil recipe registry from RecipeController; any player can open this reference GUI without
+        //       special permissions.
         recipes.addAll(RecipeController.Instance.anvilRecipes.values());
     }
 
@@ -81,9 +83,12 @@ public class GuiAnvilRecipes extends GuiNPCInterface {
 
     private List<RecipeAnvil> getSearchList() {
         if (search.isEmpty()) {
+            // TODO: Returns every anvil recipe from RecipeController for browsing; no CustomNpcsPermissions gate applies.
             return new ArrayList<RecipeAnvil>(RecipeController.Instance.anvilRecipes.values());
         }
         List<RecipeAnvil> list = new ArrayList<RecipeAnvil>();
+        // TODO: Filters across the RecipeController anvil collection; the bench/anvil GUIs are normal gameplay with no
+        //       permission checks.
         for (RecipeAnvil recipe : RecipeController.Instance.anvilRecipes.values()) {
             ItemStack repairItem = recipe.itemToRepair;
             if (repairItem == null)

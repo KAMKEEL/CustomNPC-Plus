@@ -307,6 +307,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == 106) {
+            // TODO: Opens the ScriptController shared directory; this screen is available only to editors with the scripter
+            //       tool and CustomNpcsPermissions.TOOL_SCRIPTER.
             NoppesUtil.openFolder(ScriptController.Instance.dir);
         }
 

@@ -79,7 +79,9 @@ public class GuiNpcQuestTypeItem extends GuiContainerNPCInterface implements ITe
 //    			map.put(i, item.copy());
 //        }
 //    	((QuestItem)quest.questInterface).items = map;
-//    	QuestController.saveQuest(quest);
+// TODO: Saving would route through the global QuestController, which should stay limited to wand users with
+//	   	CustomNpcsPermissions.GLOBAL_QUEST or operators when OpsOnly is active.
+//	   	QuestController.saveQuest(quest);
     }
 
     @Override
