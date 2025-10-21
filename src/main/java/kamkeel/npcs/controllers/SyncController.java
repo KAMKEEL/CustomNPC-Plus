@@ -153,7 +153,15 @@ public class SyncController {
             }
         }
 
-        state.applyHandshake(clientRevisions);
+        if (clientRevisions == null || clientRevisions.isEmpty()) {
+            debug(
+                "Client %s reported no cached revisions; forcing full sync",
+                player.getCommandSenderName()
+            );
+            state.reset();
+        } else {
+            state.applyHandshake(clientRevisions);
+        }
 
         syncPlayer(player);
     }
