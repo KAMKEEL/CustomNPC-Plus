@@ -79,6 +79,7 @@ import noppes.npcs.DataInventory;
 import noppes.npcs.DataStats;
 import noppes.npcs.EventHooks;
 import noppes.npcs.IChatMessages;
+import noppes.npcs.LogWriter;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
@@ -1725,7 +1726,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         try {
             ByteBufUtils.writeNBT(buffer, writeSpawnData());
         } catch (IOException e) {
-            e.printStackTrace();
+            LogWriter.error(String.format("Failed to write spawn data for NPC %s (%d) in dimension %s", display != null ? display.name : "<unknown>", getEntityId(), worldObj != null ? worldObj.provider.dimensionId : "<no world>"), e);
         }
     }
 
@@ -1764,7 +1765,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public void readSpawnData(ByteBuf buf) {
         try {
             readSpawnData(ByteBufUtils.readNBT(buf));
-        } catch (IOException e) {
+        } catch (Exception e) {
+            IOException wrapped = e instanceof IOException ? (IOException) e : new IOException(e);
+            LogWriter.error(String.format("Failed to read spawn data for NPC %s (%d) in dimension %s", display != null ? display.name : "<unknown>", getEntityId(), worldObj != null ? worldObj.provider.dimensionId : "<no world>"), wrapped);
         }
     }
 

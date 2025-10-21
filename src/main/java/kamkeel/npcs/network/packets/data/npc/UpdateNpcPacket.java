@@ -13,6 +13,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.LogWriter;
 
 import java.io.IOException;
 
@@ -40,16 +41,32 @@ public final class UpdateNpcPacket extends AbstractPacket {
 
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeNBT(out, this.npcCompound);
+        try {
+            ByteBufUtils.writeNBT(out, this.npcCompound);
+        } catch (IOException e) {
+            LogWriter.error("Failed to encode NPC update packet", e);
+            throw e;
+        }
     }
 
     @SideOnly(Side.CLIENT)
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        NBTTagCompound compound = ByteBufUtils.readNBT(in);
-        Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
-        if (entity instanceof EntityNPCInterface) {
-            ((EntityNPCInterface) entity).readSpawnData(compound);
+        try {
+            NBTTagCompound compound = ByteBufUtils.readNBT(in);
+            Entity entity = Minecraft.getMinecraft().theWorld.getEntityByID(compound.getInteger("EntityId"));
+            if (entity instanceof EntityNPCInterface) {
+                ((EntityNPCInterface) entity).readSpawnData(compound);
+            } else {
+                LogWriter.error(String.format("Received NPC update for unknown entity id %d", compound.getInteger("EntityId")));
+            }
+        } catch (IOException e) {
+            LogWriter.error("Failed to decode NPC update packet", e);
+            throw e;
+        } catch (Exception e) {
+            IOException wrapped = new IOException(e);
+            LogWriter.error("Unexpected error while handling NPC update packet", wrapped);
+            throw wrapped;
         }
     }
 }

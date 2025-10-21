@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import noppes.npcs.LogWriter;
+
 public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
 
     public static void fillBuffer(ByteBuf buffer, Object... obs) throws IOException {
@@ -76,14 +78,34 @@ public class ByteBufUtils extends cpw.mods.fml.common.network.ByteBufUtils {
 
     public static void writeNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
         byte[] bytes = CompressedStreamTools.compress(compound);
-        buffer.writeShort((short) bytes.length);
+        int length = bytes.length;
+        if (length > Short.MAX_VALUE) {
+            LogWriter.error(String.format("NPC sync payload is %d bytes; exceeds 16-bit packet limit and will overflow", length));
+        }
+        buffer.writeShort((short) length);
         buffer.writeBytes(bytes);
     }
 
     public static NBTTagCompound readNBT(ByteBuf buffer) throws IOException {
-        byte[] bytes = new byte[buffer.readShort()];
+        int marker = buffer.readShort();
+        int length = marker;
+        if (marker < 0) {
+            int unsignedLength = marker & 0xFFFF;
+            LogWriter.error(String.format("NPC sync payload reported negative length %d (unsigned %d). Remaining bytes: %d", marker, unsignedLength, buffer.readableBytes()));
+            throw new IOException("Negative NPC sync payload length");
+        }
+        if (buffer.readableBytes() < length) {
+            LogWriter.error(String.format("NPC sync payload truncated. Expected %d bytes, only %d readable", length, buffer.readableBytes()));
+            throw new IOException("NPC sync payload truncated");
+        }
+        byte[] bytes = new byte[length];
         buffer.readBytes(bytes);
-        return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
+        try {
+            return CompressedStreamTools.func_152457_a(bytes, new NBTSizeTracker(2097152L));
+        } catch (IOException io) {
+            LogWriter.error("Failed to inflate NPC sync payload", io);
+            throw io;
+        }
     }
 
     public static void writeBigNBT(ByteBuf buffer, NBTTagCompound compound) throws IOException {
