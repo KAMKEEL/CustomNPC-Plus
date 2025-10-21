@@ -53,6 +53,7 @@ public class DataStats {
     public boolean playBurstSound = true; // Internal Only
     public byte aimType = 0;
     public boolean projectilesKeepTerrain = false;
+    public boolean projectileInvincibility = true;
 
 
     public EnumCreatureAttribute creatureType = EnumCreatureAttribute.UNDEFINED;
@@ -116,6 +117,7 @@ public class DataStats {
         compound.setBoolean("FiringSoundBegin", onSoundBegin);
         compound.setByte("AimType", aimType);
         compound.setBoolean("ProjectilesKeepTerrain", projectilesKeepTerrain);
+        compound.setBoolean("ProjectileInvincibility", projectileInvincibility);
         if (pTrail == EnumParticleType.Custom)
             compound.setTag("pCustom", pCustom.writeToNBT());
         if (pEffect == EnumPotionType.Fire)
@@ -185,6 +187,10 @@ public class DataStats {
         onSoundBegin = compound.getBoolean("FiringSoundBegin");
         aimType = compound.getByte("AimType");
         projectilesKeepTerrain = compound.getBoolean("ProjectilesKeepTerrain");
+        if (compound.hasKey("ProjectileInvincibility"))
+            projectileInvincibility = compound.getBoolean("ProjectileInvincibility");
+        else
+            projectileInvincibility = true;
         if (pTrail == EnumParticleType.Custom)
             pCustom = ScriptParticle.fromNBT(compound.getCompoundTag("pCustom"));
         if (pEffect == EnumPotionType.Fire)
