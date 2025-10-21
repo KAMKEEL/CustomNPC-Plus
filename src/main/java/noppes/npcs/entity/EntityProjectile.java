@@ -66,6 +66,7 @@ public class EntityProjectile extends EntityThrowable {
 
     public boolean canBePickedUp = false;
     public boolean destroyedOnEntityHit = true;
+    private boolean ignoreInvincibility = false;
 
     /**
      * Is the entity that throws this 'thing' (snowball, ender pearl, eye of ender or potion)
@@ -464,13 +465,24 @@ public class EntityProjectile extends EntityThrowable {
                     didDBCAttack = true;
                 }
             }
-            if (movingobjectposition.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), damage)) {
+            EntityLivingBase entityliving = movingobjectposition.entityHit instanceof EntityLivingBase ? (EntityLivingBase) movingobjectposition.entityHit : null;
+            int prevHurtResistantTime = -1;
+            if (ignoreInvincibility && entityliving != null) {
+                prevHurtResistantTime = entityliving.hurtResistantTime;
+                entityliving.hurtResistantTime = 0;
+            }
+
+            boolean attacked = movingobjectposition.entityHit.attackEntityFrom(DamageSource.causeThrownDamage(this, this.getThrower()), damage);
+
+            if (!attacked && ignoreInvincibility && entityliving != null) {
+                entityliving.hurtResistantTime = prevHurtResistantTime;
+            }
+
+            if (attacked) {
                 if (didDBCAttack)
                     DBCAddon.instance.doDBCDamage(npc, this.damage, movingobjectposition.entityHit);
 
-                if (movingobjectposition.entityHit instanceof EntityLivingBase && (this.isArrow() || this.sticksToWalls())) {
-                    EntityLivingBase entityliving = (EntityLivingBase) movingobjectposition.entityHit;
-
+                if (entityliving != null && (this.isArrow() || this.sticksToWalls())) {
                     if (!this.worldObj.isRemote) {
                         entityliving.setArrowCountInEntity(entityliving.getArrowCountInEntity() + 1);
                     }
@@ -496,10 +508,10 @@ public class EntityProjectile extends EntityThrowable {
                     }
                 }
 
-                if (this.effect != EnumPotionType.None && movingobjectposition.entityHit instanceof EntityLivingBase) {
+                if (this.effect != EnumPotionType.None && entityliving != null) {
                     if (this.effect != EnumPotionType.Fire) {
                         int p = this.getPotionEffect(effect);
-                        ((EntityLivingBase) movingobjectposition.entityHit).addPotionEffect(new PotionEffect(p, this.duration * 20, this.amplify));
+                        entityliving.addPotionEffect(new PotionEffect(p, this.duration * 20, this.amplify));
                     } else {
                         movingobjectposition.entityHit.setFire(duration);
                     }
@@ -686,6 +698,7 @@ public class EntityProjectile extends EntityThrowable {
         par1NBTTagCompound.setByte("Spins", this.dataWatcher.getWatchableObjectByte(29));
         par1NBTTagCompound.setByte("Sticks", this.dataWatcher.getWatchableObjectByte(30));
         par1NBTTagCompound.setByte("trailCustom", this.dataWatcher.getWatchableObjectByte(31));
+        par1NBTTagCompound.setBoolean("IgnoreInvincibility", ignoreInvincibility);
     }
 
     /**
@@ -722,6 +735,9 @@ public class EntityProjectile extends EntityThrowable {
         if (par1NBTTagCompound.hasKey("trailCustom")) {
             byte trailCustom = par1NBTTagCompound.getByte("trailCustom");
             this.dataWatcher.updateObject(31, Byte.valueOf(trailCustom));
+        }
+        if (par1NBTTagCompound.hasKey("IgnoreInvincibility")) {
+            this.ignoreInvincibility = par1NBTTagCompound.getBoolean("IgnoreInvincibility");
         }
 
         if (this.throwerName != null && this.throwerName.length() == 0) {
@@ -818,6 +834,7 @@ public class EntityProjectile extends EntityThrowable {
         setIs3D(stats.pRender3D);
         this.setRotating(stats.pSpin);
         this.setStickInWall(stats.pStick);
+        this.ignoreInvincibility = !stats.projectileInvincibility;
     }
 
     public void setParticleEffect(EnumParticleType type) {
