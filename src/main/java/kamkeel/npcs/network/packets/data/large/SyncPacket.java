@@ -1,5 +1,6 @@
 package kamkeel.npcs.network.packets.data.large;
 
+import cpw.mods.fml.common.network.internal.FMLProxyPacket;
 import cpw.mods.fml.relauncher.Side;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -17,6 +18,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * A large sync packet that sends chunked data to the client for a given SyncType
@@ -28,6 +32,9 @@ public final class SyncPacket extends LargeAbstractPacket {
     private EnumSyncAction enumSyncAction;
     private NBTTagCompound syncData;
     private int operationID;
+    private int revision = -1;
+    private byte[] cachedPayload;
+    private byte[][] cachedChunks;
 
     public SyncPacket() {
     }
@@ -36,10 +43,24 @@ public final class SyncPacket extends LargeAbstractPacket {
      * Constructs a new LargeSyncPacket.
      */
     public SyncPacket(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int catId, NBTTagCompound syncData) {
+        this(enumSyncType, enumSyncAction, catId, -1, syncData);
+    }
+
+    public SyncPacket(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int catId, int revision, NBTTagCompound syncData) {
         this.enumSyncType = enumSyncType;
         this.enumSyncAction = enumSyncAction;
         this.syncData = syncData;
         this.operationID = catId;
+        this.revision = revision;
+    }
+
+    public SyncPacket(EnumSyncType enumSyncType, SyncController.CachedSyncPayload payload) {
+        this.enumSyncType = enumSyncType;
+        this.enumSyncAction = EnumSyncAction.RELOAD;
+        this.operationID = -1;
+        this.revision = payload.getRevision();
+        this.cachedPayload = payload.getPayload();
+        this.cachedChunks = payload.getChunks();
     }
 
     @Override
@@ -54,20 +75,55 @@ public final class SyncPacket extends LargeAbstractPacket {
 
     @Override
     protected byte[] getData() throws IOException {
-        ByteBuf buffer = Unpooled.buffer();
-        // 1) Write SyncType
-        buffer.writeInt(enumSyncType.ordinal());
-        // 2) Write SyncAction
-        buffer.writeInt(enumSyncAction.ordinal());
-        // 3) Optional Category ID
-        buffer.writeInt(operationID);
-        // 4) Write the NBTTagCompound
-        ByteBufUtils.writeBigNBT(buffer, syncData);
+        if (cachedPayload != null) {
+            return cachedPayload;
+        }
 
-        // Copy the buffer’s readable bytes into a byte[]
-        byte[] bytes = new byte[buffer.readableBytes()];
-        buffer.readBytes(bytes);
-        return bytes;
+        ByteBuf buffer = Unpooled.buffer();
+        try {
+            buffer.writeInt(enumSyncType.ordinal());
+            buffer.writeInt(enumSyncAction.ordinal());
+            buffer.writeInt(operationID);
+            buffer.writeInt(revision);
+            ByteBufUtils.writeBigNBT(buffer, syncData);
+
+            byte[] bytes = new byte[buffer.readableBytes()];
+            buffer.readBytes(bytes);
+            return bytes;
+        } finally {
+            buffer.release();
+        }
+    }
+
+    @Override
+    public List<FMLProxyPacket> generatePackets() {
+        if (cachedChunks == null) {
+            return super.generatePackets();
+        }
+
+        List<FMLProxyPacket> packets = new ArrayList<>(cachedChunks.length);
+        PacketChannel packetChannel = getChannel();
+        EnumDataPacket dataPacket = (EnumDataPacket) getType();
+        UUID packetId = UUID.randomUUID();
+
+        int totalSize = cachedPayload.length;
+        int offset = 0;
+
+        for (byte[] chunk : cachedChunks) {
+            ByteBuf chunkBuf = Unpooled.buffer();
+            chunkBuf.writeInt(packetChannel.getChannelType().ordinal());
+            chunkBuf.writeInt(dataPacket.ordinal());
+            chunkBuf.writeLong(packetId.getMostSignificantBits());
+            chunkBuf.writeLong(packetId.getLeastSignificantBits());
+            chunkBuf.writeInt(totalSize);
+            chunkBuf.writeInt(offset);
+            chunkBuf.writeInt(cachedChunks.length);
+            chunkBuf.writeBytes(chunk);
+            packets.add(new FMLProxyPacket(chunkBuf, packetChannel.getChannelName()));
+            offset += chunk.length;
+        }
+
+        return packets;
     }
 
     @Override
@@ -79,28 +135,35 @@ public final class SyncPacket extends LargeAbstractPacket {
         int syncTypeOrdinal = data.readInt();
         int syncActionOrdinal = data.readInt();
         int categoryID = data.readInt();
+        int incomingRevision = data.readInt();
 
         EnumSyncType type = EnumSyncType.values()[syncTypeOrdinal];
         EnumSyncAction action = EnumSyncAction.values()[syncActionOrdinal];
         try {
             NBTTagCompound tag = ByteBufUtils.readBigNBT(data);
             // Now do your client-side logic (similar to your old clientSync() or clientSyncUpdate() approach)
-            handleSyncPacketClient(type, action, categoryID, tag);
+            handleSyncPacketClient(type, action, categoryID, incomingRevision, tag);
         } catch (RuntimeException e) {
             LogWriter.error(String.format("Attempted to Sync %s but it was too big", type.toString()));
         }
     }
 
-    private void handleSyncPacketClient(EnumSyncType enumSyncType, EnumSyncAction enumSyncAction, int id, NBTTagCompound data) {
+    private void handleSyncPacketClient(
+        EnumSyncType enumSyncType,
+        EnumSyncAction enumSyncAction,
+        int id,
+        int incomingRevision,
+        NBTTagCompound data
+    ) {
         switch (enumSyncAction) {
             case RELOAD:
-                SyncController.clientSync(enumSyncType, data);
+                SyncController.clientSync(enumSyncType, incomingRevision, data);
                 break;
             case UPDATE:
-                SyncController.clientUpdate(enumSyncType, id, data);
+                SyncController.clientUpdate(enumSyncType, id, incomingRevision, data);
                 break;
             case REMOVE:
-                SyncController.clientSyncRemove(enumSyncType, id);
+                SyncController.clientSyncRemove(enumSyncType, id, incomingRevision);
                 break;
         }
     }
