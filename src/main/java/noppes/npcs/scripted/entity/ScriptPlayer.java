@@ -881,7 +881,7 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
     }
 
 
-
+    @Override
     public IPlayer[] getPartyMembers(){
         Party party = this.getData().getPlayerParty();
         if (party == null) {
