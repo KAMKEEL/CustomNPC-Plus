@@ -342,6 +342,14 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
         return npc.stats.projectilesKeepTerrain;
     }
 
+    public void setProjectileInvincibility(boolean allowed) {
+        npc.stats.projectileInvincibility = allowed;
+    }
+
+    public boolean getProjectileInvincibility() {
+        return npc.stats.projectileInvincibility;
+    }
+
 
     /**
      * @param message The message the npc will say

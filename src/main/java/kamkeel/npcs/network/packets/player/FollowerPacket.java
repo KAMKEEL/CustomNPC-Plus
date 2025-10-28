@@ -12,7 +12,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NoppesUtilPlayer;
-import noppes.npcs.constants.EnumJobType;
+import noppes.npcs.constants.EnumRoleType;
 
 import java.io.IOException;
 
@@ -57,7 +57,7 @@ public class FollowerPacket extends AbstractPacket {
 
         EntityPlayerMP playerMP = (EntityPlayerMP) player;
 
-        if (npc.advanced.job != EnumJobType.Follower)
+        if (npc.advanced.role != EnumRoleType.Follower)
             return;
 
         switch (requestedAction) {

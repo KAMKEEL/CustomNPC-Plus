@@ -518,10 +518,12 @@ public class ProfileController implements IProfileHandler {
             if (EventHooks.onProfileChange(handler, scriptPlayer, profile, newSlotId, prevSlot, false))
                 return ProfileOperation.error(MSG_CANCELLED);
 
-
-            saveSlotData(profile.player);
-            profile.currentSlotId = newSlotId;
-            loadSlotData(profile.player);
+            // Persist the outgoing slot using its original id. Previously we relied on
+            // profile.currentSlotId inside saveSlotData, but scripts firing during the
+            // transition could change the active slot before the save completed and
+            // overwrite the destination slot with stale data.
+            saveSlotData(profile.player, profile, prevSlot);
+            loadSlotData(profile.player, profile, newSlotId);
 
             EventHooks.onProfileChange(handler, scriptPlayer, profile, newSlotId, prevSlot, true);
         } else {
@@ -627,17 +629,16 @@ public class ProfileController implements IProfileHandler {
         return result;
     }
 
-    public void saveSlotData(EntityPlayer player) {
-        if (player == null || !activeProfiles.containsKey(player.getUniqueID()))
+    private void saveSlotData(EntityPlayer player, Profile profile, int slotId) {
+        if (player == null || profile == null)
             return;
-        Profile profile = activeProfiles.get(player.getUniqueID());
         if (profile.isLocked()) {
             return;
         }
-        ISlot slot = profile.getSlots().get(profile.getCurrentSlotId());
+        ISlot slot = profile.getSlots().get(slotId);
         if (slot == null) {
-            slot = new Slot(profile.getCurrentSlotId(), "Slot " + profile.getCurrentSlotId());
-            profile.getSlots().put(profile.getCurrentSlotId(), slot);
+            slot = new Slot(slotId, "Slot " + slotId);
+            profile.getSlots().put(slotId, slot);
         }
         for (IProfileData profileData : profileTypes.values()) {
             NBTTagCompound cloned = (NBTTagCompound) profileData.getCurrentNBT(player).copy();
@@ -646,11 +647,18 @@ public class ProfileController implements IProfileHandler {
         slot.setLastLoaded(System.currentTimeMillis());
     }
 
-    public void loadSlotData(EntityPlayer player) {
+    public void saveSlotData(EntityPlayer player) {
         if (player == null || !activeProfiles.containsKey(player.getUniqueID()))
             return;
         Profile profile = activeProfiles.get(player.getUniqueID());
-        ISlot slot = profile.getSlots().get(profile.getCurrentSlotId());
+        saveSlotData(player, profile, profile.getCurrentSlotId());
+    }
+
+    private void loadSlotData(EntityPlayer player, Profile profile, int slotId) {
+        if (player == null || profile == null)
+            return;
+
+        ISlot slot = profile.getSlots().get(slotId);
         if (slot == null)
             return;
 
@@ -666,12 +674,26 @@ public class ProfileController implements IProfileHandler {
             profileData.save(player);
         }
 
+        // Only flip the active slot after the player's live data matches the
+        // requested slot. This way, any additional saveSlotData() calls triggered by
+        // scripts during the load can't persist stale information to the new slot.
+        profile.currentSlotId = slotId;
+
         PlayerData pdata = PlayerData.get(player);
-        pdata.profileSlot = profile.getCurrentSlotId();
+        pdata.profileSlot = slotId;
         pdata.save();
 
         if (ConfigMain.AttributesEnabled)
             AttributeController.getTracker(player).recalcAttributes(player);
+    }
+
+    public void loadSlotData(EntityPlayer player) {
+        if (player == null || !activeProfiles.containsKey(player.getUniqueID()))
+            return;
+        Profile profile = activeProfiles.get(player.getUniqueID());
+        // Delay flipping profile.currentSlotId until after the data for the target slot
+        // has been restored to the player so other saves observe consistent state.
+        loadSlotData(player, profile, profile.getCurrentSlotId());
     }
 
     public List<ProfileInfoEntry> getProfileInfo(EntityPlayer player, int slotId) {

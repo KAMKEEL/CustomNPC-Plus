@@ -15,7 +15,7 @@ import noppes.npcs.scripted.CustomNPCsException;
 import noppes.npcs.util.ValueUtil;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,11 +52,16 @@ public class QuestItem extends QuestInterface implements IQuestItem {
 
     @Override
     public boolean isCompleted(PlayerData playerData) {
-        HashMap<Integer, ItemStack> map = getProcessSet(playerData.player);
-        for (ItemStack reqItem : items.items.values()) {
+        if (playerData == null || playerData.player == null)
+            return false;
+
+        List<ItemStack> requiredStacks = NoppesUtilPlayer.countStacks(this.items, this.ignoreDamage, this.ignoreNBT);
+        List<ItemStack> availableStacks = aggregateAvailableStacks(collectAvailableStacks(playerData.player, pickedUp));
+
+        for (ItemStack required : requiredStacks) {
             boolean done = false;
-            for (ItemStack item : map.values()) {
-                if (NoppesUtilPlayer.compareItems(reqItem, item, ignoreDamage, ignoreNBT) && item.stackSize >= reqItem.stackSize) {
+            for (ItemStack available : availableStacks) {
+                if (NoppesUtilPlayer.compareItems(required, available, ignoreDamage, ignoreNBT) && available.stackSize >= required.stackSize) {
                     done = true;
                     break;
                 }
@@ -65,34 +70,11 @@ public class QuestItem extends QuestInterface implements IQuestItem {
                 return false;
         }
 
-
         return true;
     }
 
     public HashMap<Integer, ItemStack> getProcessSet(EntityPlayer player) {
-        HashMap<Integer, ItemStack> map = new HashMap<Integer, ItemStack>();
-        for (int slot : items.items.keySet()) {
-            ItemStack item = items.items.get(slot);
-            if (item == null)
-                continue;
-            ItemStack is = item.copy();
-            is.stackSize = 0;
-            map.put(slot, is);
-        }
-
-        ArrayList<ItemStack> list = new ArrayList<>(Arrays.asList(player.inventory.mainInventory));
-        list.add(pickedUp);
-
-        for (ItemStack item : list) {
-            if (item == null)
-                continue;
-            for (ItemStack questItem : map.values()) {
-                if (NoppesUtilPlayer.compareItems(questItem, item, ignoreDamage, ignoreNBT)) {
-                    questItem.stackSize += item.stackSize;
-                }
-            }
-        }
-        return map;
+        return buildProgressMap(collectAvailableStacks(player, pickedUp));
     }
 
     @Override
@@ -325,12 +307,13 @@ public class QuestItem extends QuestInterface implements IQuestItem {
                     for (Map.Entry<Integer, ItemStack> entry : items.items.entrySet()) {
                         int slot = entry.getKey();
                         ItemStack reqItem = entry.getValue();
-                        for (ItemStack item : perPlayerMap.values()) {
-                            if (NoppesUtilPlayer.compareItems(reqItem, item, ignoreDamage, ignoreNBT)) {
-                                int count = totals.get(slot);
-                                count += item.stackSize;
-                                totals.put(slot, count);
-                            }
+                        if (reqItem == null)
+                            continue;
+                        ItemStack item = perPlayerMap.get(slot);
+                        if (item != null && NoppesUtilPlayer.compareItems(reqItem, item, ignoreDamage, ignoreNBT)) {
+                            int count = totals.get(slot);
+                            count += item.stackSize;
+                            totals.put(slot, count);
                         }
                     }
                 }
@@ -403,12 +386,13 @@ public class QuestItem extends QuestInterface implements IQuestItem {
                     for (Map.Entry<Integer, ItemStack> entry : items.items.entrySet()) {
                         int slot = entry.getKey();
                         ItemStack reqItem = entry.getValue();
-                        for (ItemStack item : perPlayerMap.values()) {
-                            if (NoppesUtilPlayer.compareItems(reqItem, item, ignoreDamage, ignoreNBT)) {
-                                int count = totals.get(slot);
-                                count += item.stackSize;
-                                totals.put(slot, count);
-                            }
+                        if (reqItem == null)
+                            continue;
+                        ItemStack item = perPlayerMap.get(slot);
+                        if (item != null && NoppesUtilPlayer.compareItems(reqItem, item, ignoreDamage, ignoreNBT)) {
+                            int count = totals.get(slot);
+                            count += item.stackSize;
+                            totals.put(slot, count);
                         }
                     }
                 }
@@ -427,30 +411,87 @@ public class QuestItem extends QuestInterface implements IQuestItem {
     }
 
     public HashMap<Integer, ItemStack> getProcessSetParty(EntityPlayer player) {
-        HashMap<Integer, ItemStack> map = new HashMap<Integer, ItemStack>();
-        for (int slot : items.items.keySet()) {
-            ItemStack item = items.items.get(slot);
-            if (item == null)
-                continue;
-            ItemStack is = item.copy();
-            is.stackSize = 0;
-            map.put(slot, is);
-        }
+        ItemStack extra = null;
+        if (pickedUpPlayer != null && player != null && player.getCommandSenderName().equals(pickedUpPlayer.getCommandSenderName()))
+            extra = pickedUpParty;
+        return buildProgressMap(collectAvailableStacks(player, extra));
+    }
 
-        ArrayList<ItemStack> list = new ArrayList<>(Arrays.asList(player.inventory.mainInventory));
-        if (pickedUpPlayer != null && player.getCommandSenderName().equals(pickedUpPlayer.getCommandSenderName()))
-            list.add(pickedUpParty);
+    private List<ItemStack> collectAvailableStacks(EntityPlayer player, ItemStack extra) {
+        List<ItemStack> available = new ArrayList<>();
+        if (player == null)
+            return available;
 
-        for (ItemStack item : list) {
-            if (item == null)
-                continue;
-            for (ItemStack questItem : map.values()) {
-                if (NoppesUtilPlayer.compareItems(questItem, item, ignoreDamage, ignoreNBT)) {
-                    questItem.stackSize += item.stackSize;
-                }
+        for (ItemStack stack : player.inventory.mainInventory) {
+            if (stack != null && stack.stackSize > 0) {
+                available.add(stack.copy());
             }
         }
+
+        if (extra != null && extra.stackSize > 0) {
+            available.add(extra.copy());
+        }
+
+        return available;
+    }
+
+    private HashMap<Integer, ItemStack> buildProgressMap(List<ItemStack> available) {
+        HashMap<Integer, ItemStack> map = new HashMap<Integer, ItemStack>();
+        List<Integer> slots = new ArrayList<>(items.items.keySet());
+        Collections.sort(slots);
+
+        for (int slot : slots) {
+            ItemStack requirement = items.items.get(slot);
+            if (requirement == null)
+                continue;
+
+            ItemStack progress = requirement.copy();
+            progress.stackSize = 0;
+            int remaining = requirement.stackSize;
+
+            for (ItemStack stack : available) {
+                if (stack == null || stack.stackSize <= 0)
+                    continue;
+
+                if (NoppesUtilPlayer.compareItems(requirement, stack, ignoreDamage, ignoreNBT)) {
+                    int used = Math.min(stack.stackSize, remaining);
+                    if (used > 0) {
+                        progress.stackSize += used;
+                        stack.stackSize -= used;
+                        remaining -= used;
+                    }
+
+                    if (remaining <= 0)
+                        break;
+                }
+            }
+
+            map.put(slot, progress);
+        }
+
         return map;
+    }
+
+    private List<ItemStack> aggregateAvailableStacks(List<ItemStack> available) {
+        List<ItemStack> aggregated = new ArrayList<>();
+        for (ItemStack stack : available) {
+            if (stack == null || stack.stackSize <= 0)
+                continue;
+
+            boolean found = false;
+            for (ItemStack existing : aggregated) {
+                if (NoppesUtilPlayer.compareItems(existing, stack, ignoreDamage, ignoreNBT)) {
+                    existing.stackSize += stack.stackSize;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                aggregated.add(stack.copy());
+            }
+        }
+        return aggregated;
     }
 
     public void setLeaveItems(boolean leaveItems) {

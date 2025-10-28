@@ -1,4 +1,3 @@
-
 name: Build and test
 
 on:
@@ -9,5 +8,139 @@ on:
 
 jobs:
   build-and-test:
-    uses: GTNewHorizons/GTNH-Actions-Workflows/.github/workflows/build-and-test.yml@master
-    secrets: inherit
+    runs-on: ubuntu-24.04
+    env:
+      WORKSPACE_TASK: ${{ vars.WORKSPACE_TASK || 'setupCIWorkspace' }}
+      RUN_SERVER_TIMEOUT: ${{ vars.RUN_SERVER_TIMEOUT || 90 }}
+      RUN_SERVER_ENABLED: ${{ vars.RUN_SERVER_ENABLED || 'true' }}
+    steps:
+      - name: Install Ubuntu dependencies
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y mesa-utils xvfb x11-xserver-utils
+
+      - name: Checkout mod repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CNPC+ API submodule
+        run: git submodule update --init --recursive src/api
+
+      - name: Checkout workflows repo
+        uses: actions/checkout@v4
+        with:
+          repository: GTNewHorizons/GTNH-Actions-Workflows
+          path: .gtnh-workflows
+          fetch-depth: 0
+
+      - name: Set up JDK versions
+        uses: actions/setup-java@v4
+        with:
+          java-version: |
+            8
+            17
+            21
+          distribution: 'zulu'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-scan-publish: true
+          build-scan-terms-of-use-url: "https://gradle.com/terms-of-service"
+          build-scan-terms-of-use-agree: "yes"
+          validate-wrappers: true
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Setup the workspace
+        run: ./gradlew --build-cache --info --stacktrace "${WORKSPACE_TASK}"
+
+      - name: Compile the mod
+        run: ./gradlew --build-cache --info --stacktrace assemble
+
+      - name: Attach compilation artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.repository_id }}-build-libs
+          path: build/libs/
+          retention-days: 90
+
+      - name: Run post-build checks
+        id: build_mod
+        run: xvfb-run --server-args="-screen 0 1366x768x24" ./gradlew --build-cache --info --stacktrace build
+
+      - name: Attach gradle reports
+        if: failure() && steps.build_mod.conclusion == 'failure'
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: ${{ github.repository_id }}-reports
+          path: build/reports/
+          retention-days: 31
+
+      - name: Attempt to make a PR fixing spotless errors
+        if: >-
+          ${{ failure() && steps.build_mod.conclusion == 'failure'
+            && github.event_name == 'pull_request'
+            && !github.event.pull_request.draft
+            && github.event.pull_request.head.repo.full_name == github.repository }}
+        run: |
+          git reset --hard
+          git checkout "${PR_BRANCH}"
+          ./gradlew --build-cache --info --stacktrace spotlessApply || exit 1
+          git diff --exit-code && exit 1
+          git config user.name "GitHub GTNH Actions"
+          git config user.email "<>"
+          git switch -c "${FIXED_BRANCH}"
+          git commit -am "spotlessApply"
+          git push --force-with-lease origin "${FIXED_BRANCH}"
+          gh pr create \
+            --head "${FIXED_BRANCH}" \
+            --base "${PR_BRANCH}" \
+            --title "Spotless apply for branch ${PR_BRANCH} for #${{ github.event.pull_request.number }}" \
+            --body "Automatic spotless apply to fix formatting errors, applies to PR #${{ github.event.pull_request.number }}" \
+            2>&1 | tee pr-message.log || true
+          gh pr comment "${PR_BRANCH}" -F pr-message.log || true
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_BRANCH: ${{ github.head_ref }}
+          FIXED_BRANCH: ${{ github.head_ref }}-spotless-fixes
+
+      - name: Run server for up to ${{ env.RUN_SERVER_TIMEOUT }} seconds
+        if: ${{ env.RUN_SERVER_ENABLED == 'true' }}
+        run: |
+          mkdir -p run
+          echo "eula=true" > run/eula.txt
+          echo "level-seed=-6202107849386030209\nonline-mode=true\n" > run/server.properties
+          echo "stop" > run/stop.txt
+          timeout "${RUN_SERVER_TIMEOUT}" ./gradlew --build-cache --info --stacktrace runServer 2>&1 < run/stop.txt | tee -a server.log || true
+
+      - name: Test no errors reported during server run
+        if: ${{ env.RUN_SERVER_ENABLED == 'true' }}
+        run: |
+          chmod +x .gtnh-workflows/scripts/test_no_error_reports
+          .gtnh-workflows/scripts/test_no_error_reports
+
+      - name: Test no prerelease dependencies used
+        run: |
+          ! grep -P -- "-pre(?!shadow)" dependencies.gradle*
+
+      - name: Make sure asset files are not overoptimized
+        run: |
+          echo "Checking for grayscale asset files which are not supported by the java8 image loader"
+          fail=0
+          set -o pipefail
+          while IFS= read -r -d $'\n' file; do
+            if $(file --brief -- "$file" | grep -q grayscale); then
+              printf "found grayscale image '%s'\n" "$file"
+              fail=1
+            fi
+          done < <(gh pr diff --name-only "${PR_NUMBER}" | grep 'src/main/resources/.*\\.png$')
+
+          exit $fail
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.number }}

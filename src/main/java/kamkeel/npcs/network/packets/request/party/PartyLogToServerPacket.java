@@ -11,6 +11,8 @@ import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.config.ConfigMain;
+import noppes.npcs.controllers.data.PlayerData;
 
 import java.io.IOException;
 
@@ -33,7 +35,7 @@ public final class PartyLogToServerPacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.PLAYER_PACKET;
     }
 
     @SideOnly(Side.CLIENT)
@@ -44,6 +46,15 @@ public final class PartyLogToServerPacket extends AbstractPacket {
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
+        if (!ConfigMain.PartiesEnabled) {
+            return;
+        }
+
+        PlayerData playerData = PlayerData.get(player);
+        if (playerData.partyUUID == null) {
+            return;
+        }
+
         NoppesUtilPlayer.updatePartyQuestLogData(in, (EntityPlayerMP) player);
     }
 

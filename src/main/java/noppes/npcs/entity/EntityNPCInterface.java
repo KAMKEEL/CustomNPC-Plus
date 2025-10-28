@@ -1199,30 +1199,38 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public void updateHitbox() {
 
+        float newWidth;
+        float newHeight;
         if (currentAnimation == EnumAnimation.LYING || currentAnimation == EnumAnimation.CRAWLING) {
-            width = 0.8f;
-            height = 0.4f;
+            newWidth = 0.8f;
+            newHeight = 0.4f;
         } else if (isRiding()) {
-            width = 0.6f;
-            height = baseHeight * 0.77f;
+            newWidth = 0.6f;
+            newHeight = baseHeight * 0.77f;
         } else {
-            width = 0.6f;
-            height = baseHeight;
+            newWidth = 0.6f;
+            newHeight = baseHeight;
         }
-        width = (width / 5f) * display.modelSize;
-        height = (height / 5f) * display.modelSize;
+        newWidth = (newWidth / 5f) * display.modelSize;
+        newHeight = (newHeight / 5f) * display.modelSize;
 
         if (display.hitboxData.isHitboxEnabled()) {
-            width = width * display.hitboxData.getWidthScale();
-            height = height * display.hitboxData.getHeightScale();
+            newWidth = newWidth * display.hitboxData.getWidthScale();
+            newHeight = newHeight * display.hitboxData.getHeightScale();
         }
 
         if (isKilled() && stats.hideKilledBody) {
-            width = 0.00001f;
+            newWidth = 0.00001f;
         }
-        if (width / 2 > World.MAX_ENTITY_RADIUS) {
-            World.MAX_ENTITY_RADIUS = width / 2;
+
+        newWidth = Math.max(newWidth, 0.00001f);
+        newHeight = Math.max(newHeight, 0.00001f);
+
+        if (newWidth / 2 > World.MAX_ENTITY_RADIUS) {
+            World.MAX_ENTITY_RADIUS = newWidth / 2;
         }
+
+        setSize(newWidth, newHeight);
         this.setPosition(posX, posY, posZ);
     }
 

@@ -19,6 +19,8 @@ public class SubGuiMagicCycleViewer extends SubGuiInterface {
     }
 
     public SubGuiMagicCycleViewer(int cycleID) {
+        // TODO: Fetches MagicController cycle definitions (global magic data); only staff with the wand and
+        //       CustomNpcsPermissions.GLOBAL_MAGIC reach this viewer via the magic management GUIs.
         this(MagicController.getInstance().getCycle(cycleID));
     }
 
