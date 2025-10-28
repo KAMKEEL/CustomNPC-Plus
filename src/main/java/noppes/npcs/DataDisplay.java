@@ -17,10 +17,7 @@ import net.minecraft.nbt.NBTUtil;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringUtils;
 import noppes.npcs.config.ConfigMain;
-import noppes.npcs.controllers.data.AnimationData;
-import noppes.npcs.controllers.data.HitboxData;
-import noppes.npcs.controllers.data.SkinOverlay;
-import noppes.npcs.controllers.data.TintData;
+import noppes.npcs.controllers.data.*;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.entity.data.DataSkinOverlays;
 import noppes.npcs.util.ValueUtil;
@@ -54,6 +51,7 @@ public class DataDisplay {
     public AnimationData animationData;
     public HitboxData hitboxData;
     public TintData tintData;
+    public BossBarData bossBarData;
 
     public String glowTexture = "";
 
@@ -80,6 +78,7 @@ public class DataDisplay {
         animationData = new AnimationData(this);
         hitboxData = new HitboxData();
         tintData = new TintData();
+        bossBarData = new BossBarData();
     }
 
     public String getRandomName() {
@@ -103,6 +102,7 @@ public class DataDisplay {
         nbttagcompound = animationData.writeToNBT(nbttagcompound);
         nbttagcompound = hitboxData.writeToNBT(nbttagcompound);
         nbttagcompound = tintData.writeToNBT(nbttagcompound);
+        nbttagcompound = bossBarData.writeToNBT(nbttagcompound);
 
         if (this.playerProfile != null) {
             NBTTagCompound nbttagcompound1 = new NBTTagCompound();
@@ -191,6 +191,7 @@ public class DataDisplay {
         animationData.readFromNBT(nbttagcompound);
         hitboxData.readFromNBT(nbttagcompound);
         tintData.readFromNBT(nbttagcompound);
+        bossBarData.readFromNBT(nbttagcompound);
 
         modelSize = ValueUtil.clamp(nbttagcompound.getInteger("Size"), 1, Integer.MAX_VALUE);
         if (modelSize > ConfigMain.NpcSizeLimit)
