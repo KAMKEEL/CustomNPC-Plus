@@ -547,7 +547,7 @@ public class ScriptPlayerEventHandler {
             if (event.source.getEntity() instanceof EntityPlayerMP) {
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.source.getEntity());
                 float attackAmount = event.ammount;
-                if (ConfigMain.AttributesEnabled)
+                if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable())
                     attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), attackAmount);
 
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
