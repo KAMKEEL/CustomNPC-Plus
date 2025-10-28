@@ -24,17 +24,26 @@ public class EntityNPCEnderman extends EntityNpcEnderchibi {
 
     public void updateHitbox() {
 
+        float newWidth;
+        float newHeight;
         if (currentAnimation == EnumAnimation.LYING) {
-            width = height = 0.2f;
+            newWidth = 0.2f;
+            newHeight = 0.2f;
         } else if (currentAnimation == EnumAnimation.SITTING) {
-            width = 0.6f;
-            height = 2.3f;
+            newWidth = 0.6f;
+            newHeight = 2.3f;
         } else {
-            width = 0.6f;
-            height = 2.9f;
+            newWidth = 0.6f;
+            newHeight = 2.9f;
         }
-        width = (width / 5f) * display.modelSize;
-        height = (height / 5f) * display.modelSize;
+        newWidth = (newWidth / 5f) * display.modelSize;
+        newHeight = (newHeight / 5f) * display.modelSize;
+        newWidth = Math.max(newWidth, 0.00001f);
+        newHeight = Math.max(newHeight, 0.00001f);
+        setSize(newWidth, newHeight);
+        if (width / 2 > World.MAX_ENTITY_RADIUS) {
+            World.MAX_ENTITY_RADIUS = width / 2;
+        }
     }
 
     public void onUpdate() {

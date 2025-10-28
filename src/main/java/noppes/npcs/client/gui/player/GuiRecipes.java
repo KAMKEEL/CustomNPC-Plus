@@ -39,6 +39,8 @@ public class GuiRecipes extends GuiNPCInterface {
         this.xSize = 256;
         setBackground("recipes.png");
         this.closeOnEsc = true;
+        // TODO: Preloads every carpentry recipe from RecipeController (full dataset); this book is open to any player, so no
+        //       explicit permission is checked when accessing it.
         recipes.addAll(RecipeController.Instance.carpentryRecipes.values());
     }
 
@@ -74,9 +76,13 @@ public class GuiRecipes extends GuiNPCInterface {
 
     private List<IRecipe> getSearchList() {
         if (search.isEmpty()) {
+            // TODO: Returns the entire carpentry recipe collection from RecipeController; again this is unrestricted player
+            //       content with no CustomNpcsPermissions gating.
             return new ArrayList<IRecipe>(RecipeController.Instance.carpentryRecipes.values());
         }
         List<IRecipe> list = new ArrayList<IRecipe>();
+        // TODO: Iterates over the RecipeController carpentry map to filter recipes; this viewing GUI is available to all
+        //       players without special permissions.
         for (IRecipe recipe : RecipeController.Instance.carpentryRecipes.values()) {
             if (recipe.getRecipeOutput() == null)
                 continue;

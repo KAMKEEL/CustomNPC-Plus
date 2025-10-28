@@ -271,6 +271,9 @@ stats.regenhealth=Реген. здоровья
 stats.combatregen=Реген. в бою
 stats.naturallydespawns=Естественное исчезновение
 stats.aimWhileShooting=Прицелив. при стрельбе
+stats.invincibility=Invincibility
+stats.allowed=ALLOWED
+stats.ignored=IGNORED
 stats.potionImmune=Иммунитет к зельям
 stats.attackInvisible=Атаковать невидимых
 

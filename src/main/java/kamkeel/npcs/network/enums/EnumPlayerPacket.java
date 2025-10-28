@@ -28,5 +28,8 @@ public enum EnumPlayerPacket {
     ProfileCreate,
     ProfileRemove,
     ProfileRename,
-    ProfileChange, ProfileGet, ProfileGetInfo,
+    ProfileChange,
+    ProfileGet,
+    ProfileGetInfo,
+    SyncRevisionInfo,
 }

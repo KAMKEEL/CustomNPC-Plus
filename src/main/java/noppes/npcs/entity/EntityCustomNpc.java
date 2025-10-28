@@ -68,24 +68,25 @@ public class EntityCustomNpc extends EntityNPCFlying {
         } else {
             if (entity instanceof EntityNPCInterface)
                 ((EntityNPCInterface) entity).updateHitbox();
-            width = (entity.width / 5f) * display.modelSize;
-            height = (entity.height / 5f) * display.modelSize;
+            float newWidth = (entity.width / 5f) * display.modelSize;
+            float newHeight = (entity.height / 5f) * display.modelSize;
             if (display.hitboxData.isHitboxEnabled()) {
-                width = width * display.hitboxData.getWidthScale();
-                height = height * display.hitboxData.getHeightScale();
+                newWidth = newWidth * display.hitboxData.getWidthScale();
+                newHeight = newHeight * display.hitboxData.getHeightScale();
             }
 
-            if (width < 0.1f)
-                width = 0.1f;
-            if (height < 0.1f)
-                height = 0.1f;
             if (isKilled() && stats.hideKilledBody) {
-                width = 0.00001f;
-            }
-            if (width / 2 > worldObj.MAX_ENTITY_RADIUS) {
-                worldObj.MAX_ENTITY_RADIUS = width / 2;
+                newWidth = 0.00001f;
             }
 
+            newWidth = Math.max(newWidth, 0.00001f);
+            newHeight = Math.max(newHeight, 0.00001f);
+
+            if (newWidth / 2 > worldObj.MAX_ENTITY_RADIUS) {
+                worldObj.MAX_ENTITY_RADIUS = newWidth / 2;
+            }
+
+            setSize(newWidth, newHeight);
             this.setPosition(posX, posY, posZ);
         }
     }

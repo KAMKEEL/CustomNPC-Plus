@@ -71,6 +71,7 @@ import kamkeel.npcs.network.packets.player.item.MagicCyclesPacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileChangePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileCreatePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileGetInfoPacket;
+import kamkeel.npcs.network.packets.player.SyncRevisionInfoPacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileGetPacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileRemovePacket;
 import kamkeel.npcs.network.packets.player.profile.ProfileRenamePacket;
@@ -574,6 +575,8 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
 
         PLAYER_PACKET.registerPacket(new ScreenSizePacket());
+
+        PLAYER_PACKET.registerPacket(new SyncRevisionInfoPacket());
 
         // CustomGUI Packets
         PLAYER_PACKET.registerPacket(new CustomGuiButtonPacket());

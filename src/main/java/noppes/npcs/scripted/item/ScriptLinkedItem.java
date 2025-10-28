@@ -172,6 +172,16 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
         return this.itemDisplay.translateX != null ? this.itemDisplay.translateX : this.linkedItem.display.translateX;
     }
 
+    @Override
+    public Float getTranslateY() {
+        return this.itemDisplay.translateY != null ? this.itemDisplay.translateY : this.linkedItem.display.translateY;
+    }
+
+    @Override
+    public Float getTranslateZ() {
+        return this.itemDisplay.translateZ != null ? this.itemDisplay.translateZ : this.linkedItem.display.translateZ;
+    }
+
     public NBTTagCompound getMCNbt() {
         NBTTagCompound compound = super.getMCNbt();
         compound.setTag("ItemData", this.getItemNBT(new NBTTagCompound()));
