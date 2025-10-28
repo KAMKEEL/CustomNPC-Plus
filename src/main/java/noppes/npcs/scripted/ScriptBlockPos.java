@@ -89,7 +89,7 @@ public class ScriptBlockPos implements IPos {
     }
 
     public IPos add(IPos pos) {
-        return NpcAPI.Instance().getIPos(this.blockPos.add(this.blockPos));
+        return NpcAPI.Instance().getIPos(this.blockPos.add(pos.getXD(), pos.getYD(), pos.getZD()));
     }
 
     public IPos subtract(double x, double y, double z) {
