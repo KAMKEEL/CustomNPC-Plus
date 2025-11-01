@@ -1,7 +1,5 @@
 package kamkeel.npcs.network.packets.player;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import kamkeel.npcs.network.LargeAbstractPacket;
@@ -52,7 +50,6 @@ public class SaveBookPacket extends LargeAbstractPacket {
     }
 
     @Override
-    @SideOnly(Side.CLIENT)
     protected void handleCompleteData(ByteBuf data, EntityPlayer player) throws IOException {
         int x = data.readInt(), y = data.readInt(), z = data.readInt();
 
