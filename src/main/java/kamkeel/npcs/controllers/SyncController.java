@@ -53,6 +53,23 @@ public class SyncController {
 
     public static boolean DEBUG_SYNC_LOGGING = false;
 
+    private static final SyncController SERVER = new SyncController();
+
+    private final EnumMap<EnumSyncType, SyncCacheEntry> cacheEntries = new EnumMap<>(EnumSyncType.class);
+    private final ConcurrentHashMap<UUID, PlayerSyncState> playerSyncState = new ConcurrentHashMap<>();
+
+    private SyncController() {
+        registerCache(EnumSyncType.FACTION, SyncController::factionsNBT);
+        registerCache(EnumSyncType.DIALOG_CATEGORY, SyncController::dialogCategoriesNBT);
+        registerCache(EnumSyncType.QUEST_CATEGORY, SyncController::questCategoriesNBT);
+        registerCache(EnumSyncType.WORKBENCH_RECIPES, SyncController::workbenchNBT);
+        registerCache(EnumSyncType.CARPENTRY_RECIPES, SyncController::carpentryNBT);
+        registerCache(EnumSyncType.ANVIL_RECIPES, SyncController::anvilNBT);
+        registerCache(EnumSyncType.CUSTOM_EFFECTS, SyncController::customEffectsNBT);
+        registerCache(EnumSyncType.MAGIC, SyncController::magicsNBT);
+        registerCache(EnumSyncType.MAGIC_CYCLE, SyncController::magicCyclesNBT);
+    }
+
     private static void debug(String message, Object... args) {
         if (DEBUG_SYNC_LOGGING) {
             System.out.println("[SyncController] " + String.format(message, args));
@@ -71,39 +88,51 @@ public class SyncController {
         EnumSyncType.MAGIC_CYCLE
     };
 
-    private static final EnumMap<EnumSyncType, SyncCacheEntry> CACHE_ENTRIES = new EnumMap<>(EnumSyncType.class);
-    private static final ConcurrentHashMap<UUID, PlayerSyncState> PLAYER_SYNC_STATE = new ConcurrentHashMap<>();
+    public static void load() {
+        SERVER.loadInternal();
+    }
 
-    static {
-        registerCache(EnumSyncType.FACTION, SyncController::factionsNBT);
-        registerCache(EnumSyncType.DIALOG_CATEGORY, SyncController::dialogCategoriesNBT);
-        registerCache(EnumSyncType.QUEST_CATEGORY, SyncController::questCategoriesNBT);
-        registerCache(EnumSyncType.WORKBENCH_RECIPES, SyncController::workbenchNBT);
-        registerCache(EnumSyncType.CARPENTRY_RECIPES, SyncController::carpentryNBT);
-        registerCache(EnumSyncType.ANVIL_RECIPES, SyncController::anvilNBT);
-        registerCache(EnumSyncType.CUSTOM_EFFECTS, SyncController::customEffectsNBT);
-        registerCache(EnumSyncType.MAGIC, SyncController::magicsNBT);
-        registerCache(EnumSyncType.MAGIC_CYCLE, SyncController::magicCyclesNBT);
+    @Deprecated
+    public static void rebuildAllCaches() {
+        load();
     }
 
     public static void resetServerState() {
-        for (SyncCacheEntry entry : CACHE_ENTRIES.values()) {
+        SERVER.resetState();
+    }
+
+    private void loadInternal() {
+        resetState();
+        rebuildAllCachesInternal();
+    }
+
+    private void resetState() {
+        for (SyncCacheEntry entry : cacheEntries.values()) {
             if (entry != null) {
                 entry.reset();
             }
         }
-        PLAYER_SYNC_STATE.clear();
+        playerSyncState.clear();
+    }
+
+    private void rebuildAllCachesInternal() {
+        for (EnumSyncType type : EnumSyncType.values()) {
+            SyncCacheEntry entry = cacheEntries.get(type);
+            if (entry != null) {
+                entry.getPayload(type);
+            }
+        }
     }
 
     public static void syncPlayer(EntityPlayerMP player) {
-        syncPlayer(player, true);
+        SERVER.syncPlayerInternal(player, true);
     }
 
-    private static void syncPlayer(EntityPlayerMP player, boolean includePostPackets) {
-        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+    private void syncPlayerInternal(EntityPlayerMP player, boolean includePostPackets) {
+        PlayerSyncState state = playerSyncState.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
 
         for (EnumSyncType type : LOGIN_SYNC_TYPES) {
-            SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+            SyncCacheEntry entry = cacheEntries.get(type);
             if (entry == null) {
                 continue;
             }
@@ -132,7 +161,7 @@ public class SyncController {
     }
 
     public static void beginLogin(EntityPlayerMP player) {
-        PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        SERVER.playerSyncState.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
         PacketHandler.Instance.sendToPlayer(
             new LoginPacket(getServerCacheKey(), getServerRevisionSnapshot()),
             player
@@ -146,7 +175,7 @@ public class SyncController {
         Map<EnumSyncType, Integer> clientRevisions
     ) {
         String currentServerKey = getServerCacheKey();
-        PlayerSyncState state = PLAYER_SYNC_STATE.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
+        PlayerSyncState state = SERVER.playerSyncState.computeIfAbsent(player.getUniqueID(), PlayerSyncState::new);
 
         if (!currentServerKey.equals(serverKey)) {
             state.reset();
@@ -184,7 +213,7 @@ public class SyncController {
     private static EnumMap<EnumSyncType, Integer> getServerRevisionSnapshot() {
         EnumMap<EnumSyncType, Integer> snapshot = new EnumMap<>(EnumSyncType.class);
         for (EnumSyncType type : LOGIN_SYNC_TYPES) {
-            SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+            SyncCacheEntry entry = SERVER.cacheEntries.get(type);
             if (entry != null) {
                 snapshot.put(type, entry.getRevisionValue());
             }
@@ -208,7 +237,7 @@ public class SyncController {
     }
 
     public static int getCurrentRevision(EnumSyncType type) {
-        SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+        SyncCacheEntry entry = SERVER.cacheEntries.get(type);
         return entry == null ? -1 : entry.getRevisionValue();
     }
 
@@ -800,12 +829,12 @@ public class SyncController {
         }
     }
 
-    private static void registerCache(EnumSyncType type, Supplier<NBTTagCompound> supplier) {
-        CACHE_ENTRIES.put(type, new SyncCacheEntry(type, supplier));
+    private void registerCache(EnumSyncType type, Supplier<NBTTagCompound> supplier) {
+        cacheEntries.put(type, new SyncCacheEntry(type, supplier));
     }
 
     private static CachedSyncPayload rebuildNow(EnumSyncType type) {
-        SyncCacheEntry entry = CACHE_ENTRIES.get(type);
+        SyncCacheEntry entry = SERVER.cacheEntries.get(type);
         if (entry == null) {
             return null;
         }
@@ -817,7 +846,7 @@ public class SyncController {
         EnumSet<EnumSyncType> targets = getInvalidationTargets(type);
         EnumMap<EnumSyncType, Integer> revisions = new EnumMap<>(EnumSyncType.class);
         for (EnumSyncType target : targets) {
-            SyncCacheEntry entry = CACHE_ENTRIES.get(target);
+            SyncCacheEntry entry = SERVER.cacheEntries.get(target);
             if (entry != null) {
                 int newRevision = entry.invalidate();
                 revisions.put(target, newRevision);
@@ -857,7 +886,7 @@ public class SyncController {
         if (revision < 0) {
             return;
         }
-        for (PlayerSyncState state : PLAYER_SYNC_STATE.values()) {
+        for (PlayerSyncState state : SERVER.playerSyncState.values()) {
             state.updateRevision(type, revision);
         }
     }
@@ -866,7 +895,7 @@ public class SyncController {
         if (revisions.isEmpty()) {
             return;
         }
-        for (PlayerSyncState state : PLAYER_SYNC_STATE.values()) {
+        for (PlayerSyncState state : SERVER.playerSyncState.values()) {
             for (Map.Entry<EnumSyncType, Integer> entry : revisions.entrySet()) {
                 state.updateRevision(entry.getKey(), entry.getValue());
             }
