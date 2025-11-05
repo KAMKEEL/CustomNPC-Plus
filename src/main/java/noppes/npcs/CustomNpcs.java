@@ -304,7 +304,6 @@ public class CustomNpcs {
     //Loading items in the about to start event was corrupting items with a damage value
     @EventHandler
     public void started(FMLServerStartedEvent event) {
-        SyncController.resetServerState();
         RecipeController.Instance.load();
         new BankController();
         DialogController.Instance.load();
@@ -312,6 +311,7 @@ public class CustomNpcs {
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
+        SyncController.load();
     }
 
 
