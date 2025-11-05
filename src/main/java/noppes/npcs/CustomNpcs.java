@@ -317,7 +317,6 @@ public class CustomNpcs {
 
     @EventHandler
     public void stopped(FMLServerStoppedEvent event) {
-        SyncController.resetServerState();
         ServerCloneController.Instance = null;
         GlobalDataController.Instance.saveData();
         ScriptController.Instance.saveForgeScripts();
