@@ -86,6 +86,15 @@ public class SyncController {
         registerCache(EnumSyncType.MAGIC_CYCLE, SyncController::magicCyclesNBT);
     }
 
+    public static void resetServerState() {
+        for (SyncCacheEntry entry : CACHE_ENTRIES.values()) {
+            if (entry != null) {
+                entry.reset();
+            }
+        }
+        PLAYER_SYNC_STATE.clear();
+    }
+
     public static void syncPlayer(EntityPlayerMP player) {
         syncPlayer(player, true);
     }
@@ -937,6 +946,12 @@ public class SyncController {
 
         private synchronized int getRevisionValue() {
             return revision;
+        }
+
+        private synchronized void reset() {
+            dirty = true;
+            payload = null;
+            revision = 0;
         }
 
         private static byte[][] splitIntoChunks(byte[] payload) {
