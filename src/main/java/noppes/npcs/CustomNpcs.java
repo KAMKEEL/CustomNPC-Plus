@@ -19,6 +19,7 @@ import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
@@ -303,6 +304,7 @@ public class CustomNpcs {
     //Loading items in the about to start event was corrupting items with a damage value
     @EventHandler
     public void started(FMLServerStartedEvent event) {
+        SyncController.resetServerState();
         RecipeController.Instance.load();
         new BankController();
         DialogController.Instance.load();
@@ -315,6 +317,7 @@ public class CustomNpcs {
 
     @EventHandler
     public void stopped(FMLServerStoppedEvent event) {
+        SyncController.resetServerState();
         ServerCloneController.Instance = null;
         GlobalDataController.Instance.saveData();
         ScriptController.Instance.saveForgeScripts();
