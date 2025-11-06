@@ -62,6 +62,7 @@ public class RoleMount extends RoleInterface {
     @Override
     public boolean aiShouldExecute() {
         if (npc.ais.returnToStart) {
+            storedReturnToStart = true;
             npc.ais.returnToStart = false;
         }
         return false;
@@ -89,6 +90,15 @@ public class RoleMount extends RoleInterface {
 
     public float getOffsetZ() {
         return offsetZ;
+    }
+
+    public void setReturnToStartPreference(boolean value) {
+        this.storedReturnToStart = value;
+        npc.ais.returnToStart = false;
+    }
+
+    public boolean getReturnToStartPreference() {
+        return storedReturnToStart;
     }
 
     private float clamp(float value) {

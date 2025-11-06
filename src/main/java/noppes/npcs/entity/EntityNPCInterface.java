@@ -65,6 +65,7 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.MinecraftForge;
@@ -208,6 +209,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public List<EntityLivingBase> interactingEntities = new ArrayList<EntityLivingBase>();
 
     public ResourceLocation textureLocation = null;
+
+    private Entity lastRider;
 
     public EnumAnimation currentAnimation = EnumAnimation.NONE;
 
@@ -468,6 +471,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 
         super.onLivingUpdate();
+
+        handleMountRiderState();
 
         if (worldObj.isRemote) {
             if (roleInterface != null) {
@@ -1479,10 +1484,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             this.spawnExplosionParticle();
             delete();
         } else {
-            if (this.riddenByEntity != null)
+            if (this.riddenByEntity != null) {
+                stabilizeDismountedRider(this.riddenByEntity);
                 this.riddenByEntity.mountEntity(null);
+            }
             if (this.ridingEntity != null)
                 this.mountEntity(null);
+            lastRider = null;
             setHealth(-1);
             setSprinting(false);
             getNavigator().clearPathEntity();
@@ -2158,19 +2166,58 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     @Override
     public void updateRiderPosition() {
-        super.updateRiderPosition();
         if (advanced.role == EnumRoleType.Mount && roleInterface instanceof RoleMount && riddenByEntity != null) {
             RoleMount mount = (RoleMount) roleInterface;
-            double yaw = Math.toRadians(this.renderYawOffset);
-            double offsetX = mount.getOffsetX();
-            double offsetZ = mount.getOffsetZ();
-            double rotatedX = offsetX * Math.cos(yaw) - offsetZ * Math.sin(yaw);
-            double rotatedZ = offsetX * Math.sin(yaw) + offsetZ * Math.cos(yaw);
-            double offsetY = mount.getOffsetY();
-            riddenByEntity.setPosition(this.posX + rotatedX,
-                this.posY + this.getMountedYOffset() + riddenByEntity.getYOffset() + offsetY,
-                this.posZ + rotatedZ);
+            double scale = Math.max(0.1D, this.display.modelSize / 5.0D);
+            Vec3 seat = Vec3.createVectorHelper(mount.getOffsetX(), 0.0D, mount.getOffsetZ() + (0.8D * scale));
+            seat.rotateAroundY((float) Math.toRadians(-this.renderYawOffset));
+            double px = this.posX + seat.xCoord;
+            double py = this.posY + this.getMountedYOffset() + riddenByEntity.getYOffset() + mount.getOffsetY();
+            double pz = this.posZ + seat.zCoord;
+
+            riddenByEntity.setPosition(px, py, pz);
+
+            if (riddenByEntity instanceof EntityLivingBase) {
+                EntityLivingBase rider = (EntityLivingBase) riddenByEntity;
+                rider.prevRotationPitch = rider.rotationPitch;
+                rider.prevRotationYaw = rider.rotationYaw;
+                rider.setRenderYawOffset(this.renderYawOffset);
+                rider.setRotationYawHead(this.renderYawOffset);
+            }
+        } else {
+            super.updateRiderPosition();
         }
+    }
+
+    private void handleMountRiderState() {
+        if (worldObj.isRemote) {
+            if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+                lastRider = null;
+            }
+            return;
+        }
+
+        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+            lastRider = null;
+            return;
+        }
+
+        Entity currentRider = this.riddenByEntity;
+        if (currentRider != lastRider) {
+            if (lastRider != null) {
+                stabilizeDismountedRider(lastRider);
+            }
+            lastRider = currentRider;
+        }
+    }
+
+    private void stabilizeDismountedRider(Entity rider) {
+        rider.motionX = 0.0D;
+        rider.motionY = 0.0D;
+        rider.motionZ = 0.0D;
+        rider.fallDistance = 0.0F;
+        rider.velocityChanged = true;
+        rider.onGround = true;
     }
 
     // Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64
