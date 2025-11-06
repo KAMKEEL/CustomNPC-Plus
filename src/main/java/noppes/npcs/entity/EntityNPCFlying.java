@@ -97,9 +97,9 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
     }
 
     @Override
-    protected void doMountedMovement(float strafe, float forward) {
+    protected void doMountedMovement(float strafe, float forward, float moveSpeed) {
         if (!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
-            super.doMountedMovement(strafe, forward);
+            super.doMountedMovement(strafe, forward, moveSpeed);
             return;
         }
 
@@ -120,14 +120,14 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;
             } else {
-                super.doMountedMovement(strafe, forward);
+                super.doMountedMovement(strafe, forward, moveSpeed);
                 return;
             }
         }
         this.flyLimitAllow = true;
 
         double d3 = this.motionY;
-        super.doMountedMovement(strafe, forward);
+        super.doMountedMovement(strafe, forward, moveSpeed);
         this.motionY = d3;
 
         if (this.getNavigator().noPath()) {
