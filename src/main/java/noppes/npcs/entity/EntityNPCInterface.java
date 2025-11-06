@@ -2091,10 +2091,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     protected boolean handleMountedMovement(float strafe, float forward) {
         if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount))
             return false;
-        if (!(riddenByEntity instanceof EntityLivingBase))
+        if (riddenByEntity != null && !(riddenByEntity instanceof EntityPlayer)) {
+            riddenByEntity.mountEntity(null);
+            return false;
+        }
+        if (!(riddenByEntity instanceof EntityPlayer))
             return false;
 
-        EntityLivingBase rider = (EntityLivingBase) riddenByEntity;
+        RoleMount mount = (RoleMount) roleInterface;
+        EntityPlayer rider = (EntityPlayer) riddenByEntity;
         this.prevRotationYaw = this.rotationYaw = rider.rotationYaw;
         this.rotationPitch = rider.rotationPitch * 0.5F;
         this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -2108,11 +2113,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 
         float moveSpeed = Math.max(0.1F, getSpeed());
-        if (rider.isSprinting()) {
+        boolean riderSprinting = rider.isSprinting() && mount.isSprintAllowed();
+        if (riderSprinting) {
             moveSpeed *= 1.2F;
         }
 
-        this.setSprinting(rider.isSprinting());
+        if (!mount.isSprintAllowed() && rider.isSprinting()) {
+            rider.setSprinting(false);
+        }
+
+        this.setSprinting(riderSprinting);
         this.stepHeight = 1.0F;
         this.jumpMovementFactor = moveSpeed * 0.1F;
 
@@ -2135,21 +2145,33 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (!worldObj.isRemote) {
             this.setAIMoveSpeed(moveSpeed);
             super.moveEntityWithHeading(strafe, forward);
-            this.prevLimbSwingAmount = this.limbSwingAmount;
-            double deltaX = this.posX - this.prevPosX;
-            double deltaZ = this.posZ - this.prevPosZ;
-            float limbSwingSpeed = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
-            if (limbSwingSpeed > 1.0F) {
-                limbSwingSpeed = 1.0F;
-            }
-            this.limbSwingAmount += (limbSwingSpeed - this.limbSwingAmount) * 0.4F;
-            this.limbSwing += this.limbSwingAmount;
         }
+
+        this.prevLimbSwingAmount = this.limbSwingAmount;
+        double deltaX = this.posX - this.prevPosX;
+        double deltaZ = this.posZ - this.prevPosZ;
+        if (worldObj.isRemote && deltaX * deltaX + deltaZ * deltaZ < 1.0E-6D) {
+            deltaX = this.motionX;
+            deltaZ = this.motionZ;
+        }
+        float limbSwingSpeed = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
+        if (limbSwingSpeed > 1.0F) {
+            limbSwingSpeed = 1.0F;
+        }
+        this.limbSwingAmount += (limbSwingSpeed - this.limbSwingAmount) * 0.4F;
+        this.limbSwing += this.limbSwingAmount;
     }
 
     protected void applyMountedVerticalMotion(EntityLivingBase rider, float moveSpeed, float forward) {
+        if (!(roleInterface instanceof RoleMount)) {
+            return;
+        }
+        RoleMount mount = (RoleMount) roleInterface;
+        double jumpFactor = MathHelper.clamp_double(mount.getJumpStrength(), 0.1D, 3.0D);
+
         if (canFly()) {
-            double vertical = Math.max(0.1D, moveSpeed * 0.6D);
+            double verticalBase = Math.max(0.1D, moveSpeed * 0.6D);
+            double vertical = MathHelper.clamp_double(verticalBase * jumpFactor, 0.05D, 2.0D);
             if (rider.isJumping) {
                 this.motionY = Math.min(this.motionY + vertical, vertical);
                 this.isAirBorne = true;
@@ -2165,7 +2187,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 }
             }
         } else if (rider.isJumping && this.onGround) {
-            double jumpVelocity = MathHelper.clamp_double(0.4D + moveSpeed * 1.5D, 0.4D, 0.9D);
+            double baseVelocity = MathHelper.clamp_double(0.4D + moveSpeed * 1.5D, 0.2D, 1.2D);
+            double jumpVelocity = MathHelper.clamp_double(baseVelocity * jumpFactor, 0.2D, 2.0D);
             this.motionY = jumpVelocity;
             this.isAirBorne = true;
             this.velocityChanged = true;
@@ -2230,6 +2253,13 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 
         Entity currentRider = this.riddenByEntity;
+        if (currentRider != null && !(currentRider instanceof EntityPlayer)) {
+            Entity dismount = currentRider;
+            dismount.mountEntity(null);
+            stabilizeDismountedRider(dismount);
+            haltMountedMotion();
+            currentRider = null;
+        }
         if (currentRider != lastRider) {
             if (lastRider != null) {
                 stabilizeDismountedRider(lastRider);

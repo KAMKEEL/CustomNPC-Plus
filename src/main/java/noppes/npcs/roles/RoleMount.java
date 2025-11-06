@@ -10,7 +10,12 @@ public class RoleMount extends RoleInterface {
     private float offsetX;
     private float offsetY;
     private float offsetZ;
+    private static final float MIN_JUMP_STRENGTH = 0.1F;
+    private static final float MAX_JUMP_STRENGTH = 3.0F;
+
     private boolean storedReturnToStart;
+    private float jumpStrength = 1.0F;
+    private boolean allowSprint = true;
 
     public RoleMount(EntityNPCInterface npc) {
         super(npc);
@@ -24,6 +29,8 @@ public class RoleMount extends RoleInterface {
         compound.setFloat("MountOffsetY", offsetY);
         compound.setFloat("MountOffsetZ", offsetZ);
         compound.setBoolean("MountReturnFlag", storedReturnToStart);
+        compound.setFloat("MountJumpStrength", jumpStrength);
+        compound.setBoolean("MountAllowSprint", allowSprint);
         return compound;
     }
 
@@ -37,6 +44,12 @@ public class RoleMount extends RoleInterface {
         } else {
             storedReturnToStart = npc.ais.returnToStart;
         }
+        if (compound.hasKey("MountJumpStrength")) {
+            setJumpStrength(compound.getFloat("MountJumpStrength"));
+        } else {
+            jumpStrength = 1.0F;
+        }
+        allowSprint = !compound.hasKey("MountAllowSprint") || compound.getBoolean("MountAllowSprint");
         npc.ais.returnToStart = false;
     }
 
@@ -90,6 +103,22 @@ public class RoleMount extends RoleInterface {
 
     public float getOffsetZ() {
         return offsetZ;
+    }
+
+    public void setJumpStrength(float value) {
+        this.jumpStrength = ValueUtil.clamp(value, MIN_JUMP_STRENGTH, MAX_JUMP_STRENGTH);
+    }
+
+    public float getJumpStrength() {
+        return jumpStrength;
+    }
+
+    public void setSprintAllowed(boolean allowSprint) {
+        this.allowSprint = allowSprint;
+    }
+
+    public boolean isSprintAllowed() {
+        return allowSprint;
     }
 
     public void setReturnToStartPreference(boolean value) {

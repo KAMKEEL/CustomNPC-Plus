@@ -38,10 +38,16 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
         addOffsetRow(1, "role.mount.offsety", role.getOffsetY(), y);
         y += 24;
         addOffsetRow(2, "role.mount.offsetz", role.getOffsetZ(), y);
+        y += 24;
+        addJumpRow(3, "role.mount.jumpheight", role.getJumpStrength(), y);
+        y += 24;
 
-        addButton(new GuiNpcButton(3, guiLeft + 4, y + 26, 80, 20, "role.mount.reset"));
+        addLabel(new GuiNpcLabel(5, "role.mount.sprint", guiLeft + 4, y + 5));
+        addButton(new GuiNpcButton(5, guiLeft + 140, y, 60, 20, new String[]{"gui.no", "gui.yes"}, role.isSprintAllowed() ? 1 : 0));
 
-        GuiNpcLabel speedLabel = new GuiNpcLabel(4, "", guiLeft + 4, y + 6);
+        addButton(new GuiNpcButton(4, guiLeft + 4, y + 30, 80, 20, "role.mount.reset"));
+
+        GuiNpcLabel speedLabel = new GuiNpcLabel(6, "", guiLeft + 4, y + 56);
         speedLabel.label = StatCollector.translateToLocalFormatted("role.mount.walkspeed", npc.ais.getWalkingSpeed());
         addLabel(speedLabel);
     }
@@ -54,6 +60,14 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
         addTextField(field);
     }
 
+    private void addJumpRow(int id, String translationKey, float value, int y) {
+        addLabel(new GuiNpcLabel(id, translationKey, guiLeft + 4, y + 5));
+        GuiNpcTextField field = new GuiNpcTextField(id, this, guiLeft + 140, y, 80, 20, format(value));
+        field.floatsOnly = true;
+        field.setMinMaxDefaultFloat(0.1F, 3.0F, 1.0F);
+        addTextField(field);
+    }
+
     private String format(float value) {
         return String.format(Locale.ROOT, "%.2f", value);
     }
@@ -62,9 +76,11 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
     public void buttonEvent(GuiButton guibutton) {
         if (role == null)
             return;
-        if (guibutton.id == 3) {
+        if (guibutton.id == 4) {
             role.resetOffsets();
             initGui();
+        } else if (guibutton.id == 5 && guibutton instanceof GuiNpcButton) {
+            role.setSprintAllowed(((GuiNpcButton) guibutton).getValue() == 1);
         }
     }
 
@@ -83,6 +99,9 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
             case 2:
                 role.setOffsetZ(value);
                 break;
+            case 3:
+                role.setJumpStrength(value);
+                break;
         }
         textfield.setText(format(valueForField(textfield.id)));
     }
@@ -95,6 +114,8 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
                 return role.getOffsetY();
             case 2:
                 return role.getOffsetZ();
+            case 3:
+                return role.getJumpStrength();
             default:
                 return 0.0F;
         }
