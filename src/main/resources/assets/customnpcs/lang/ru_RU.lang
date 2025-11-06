@@ -1020,3 +1020,9 @@ questgui.reject=Отменить
 questgui.accept=Принять
 
 key.npcInventory=Инвентарь NPC
+role.mount=Mount
+role.mount.offsetx=Seat Offset X
+role.mount.offsety=Seat Offset Y
+role.mount.offsetz=Seat Offset Z
+role.mount.reset=Reset Position
+role.mount.walkspeed=Walking speed: %s

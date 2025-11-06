@@ -152,6 +152,7 @@ import noppes.npcs.roles.JobFollower;
 import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
+import noppes.npcs.roles.RoleMount;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
@@ -1753,6 +1754,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             roleInterface.writeToNBT(bard);
             compound.setTag("Companion", bard);
         }
+        if (advanced.role == EnumRoleType.Mount) {
+            NBTTagCompound mount = new NBTTagCompound();
+            roleInterface.writeToNBT(mount);
+            compound.setTag("Mount", mount);
+        }
 
         if (this instanceof EntityCustomNpc) {
             compound.setTag("ModelData", ((EntityCustomNpc) this).modelData.writeToNBT());
@@ -1789,6 +1795,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (advanced.role == EnumRoleType.Companion) {
             NBTTagCompound companion = compound.getCompoundTag("Companion");
             roleInterface.readFromNBT(companion);
+        }
+        if (advanced.role == EnumRoleType.Mount) {
+            NBTTagCompound mount = compound.getCompoundTag("Mount");
+            roleInterface.readFromNBT(mount);
         }
         if (this instanceof EntityCustomNpc) {
             ((EntityCustomNpc) this).modelData.readFromNBT(compound.getCompoundTag("ModelData"));
@@ -2056,13 +2066,84 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     @Override
-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_) {
+    public void moveEntityWithHeading(float strafe, float forward) {
+        if (handleMountedMovement(strafe, forward)) {
+            return;
+        }
         double d0 = this.posX;
         double d1 = this.posY;
         double d2 = this.posZ;
-        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+        super.moveEntityWithHeading(strafe, forward);
         if (advanced.role == EnumRoleType.Companion && !isRemote())
             ((RoleCompanion) roleInterface).addMovementStat(this.posX - d0, this.posY - d1, this.posZ - d2);
+    }
+
+    protected boolean handleMountedMovement(float strafe, float forward) {
+        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount))
+            return false;
+        if (!(riddenByEntity instanceof EntityLivingBase))
+            return false;
+
+        EntityLivingBase rider = (EntityLivingBase) riddenByEntity;
+        this.prevRotationYaw = this.rotationYaw = rider.rotationYaw;
+        this.rotationPitch = rider.rotationPitch * 0.5F;
+        this.setRotation(this.rotationYaw, this.rotationPitch);
+        this.renderYawOffset = this.rotationYaw;
+        this.rotationYawHead = this.rotationYaw;
+
+        float controlledStrafe = rider.moveStrafing * 0.5F;
+        float controlledForward = rider.moveForward;
+        if (controlledForward <= 0.0F) {
+            controlledForward *= 0.25F;
+        }
+
+        float moveSpeed = getSpeed();
+        if (rider.isSprinting()) {
+            moveSpeed *= 1.2F;
+        }
+
+        this.setSprinting(rider.isSprinting());
+        this.setAIMoveSpeed(moveSpeed);
+        this.stepHeight = 1.0F;
+        this.jumpMovementFactor = this.getAIMoveSpeed() * 0.1F;
+
+        this.getNavigator().clearPathEntity();
+        this.setAttackTarget(null);
+        this.setRevengeTarget(null);
+
+        this.fallDistance = 0.0F;
+        rider.fallDistance = 0.0F;
+
+        applyMountedVerticalMotion(rider, moveSpeed);
+        doMountedMovement(controlledStrafe, controlledForward);
+
+        return true;
+    }
+
+    protected void doMountedMovement(float strafe, float forward) {
+        super.moveEntityWithHeading(strafe, forward);
+    }
+
+    protected void applyMountedVerticalMotion(EntityLivingBase rider, float moveSpeed) {
+        if (canFly()) {
+            double vertical = Math.max(0.1D, moveSpeed * 0.6D);
+            if (rider.isJumping()) {
+                this.motionY = Math.min(this.motionY + vertical, vertical);
+                this.isAirBorne = true;
+            } else {
+                float pitch = rider.rotationPitch;
+                if (pitch < -10F) {
+                    this.motionY = vertical;
+                } else if (pitch > 10F) {
+                    this.motionY = -vertical;
+                } else if (!this.onGround) {
+                    this.motionY *= 0.6D;
+                }
+            }
+        } else if (rider.isJumping() && this.onGround) {
+            this.motionY = 0.5D;
+            this.isAirBorne = true;
+        }
     }
 
     @Override
@@ -2073,6 +2154,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     public boolean shouldDismountInWater(Entity rider) {
         return false;
+    }
+
+    @Override
+    public void updateRiderPosition() {
+        super.updateRiderPosition();
+        if (advanced.role == EnumRoleType.Mount && roleInterface instanceof RoleMount && riddenByEntity != null) {
+            RoleMount mount = (RoleMount) roleInterface;
+            double yaw = Math.toRadians(this.renderYawOffset);
+            double offsetX = mount.getOffsetX();
+            double offsetZ = mount.getOffsetZ();
+            double rotatedX = offsetX * Math.cos(yaw) - offsetZ * Math.sin(yaw);
+            double rotatedZ = offsetX * Math.sin(yaw) + offsetZ * Math.cos(yaw);
+            double offsetY = mount.getOffsetY();
+            riddenByEntity.setPosition(this.posX + rotatedX,
+                this.posY + this.getMountedYOffset() + riddenByEntity.getYOffset() + offsetY,
+                this.posZ + rotatedZ);
+        }
     }
 
     // Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64
