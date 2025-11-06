@@ -15,6 +15,7 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumCombatPolicy;
 import noppes.npcs.constants.EnumNavType;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleMount;
 

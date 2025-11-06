@@ -2135,7 +2135,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     protected void applyMountedVerticalMotion(EntityLivingBase rider, float moveSpeed) {
         if (canFly()) {
             double vertical = Math.max(0.1D, moveSpeed * 0.6D);
-            if (rider.isJumping()) {
+            if (rider.isJumping) {
                 this.motionY = Math.min(this.motionY + vertical, vertical);
                 this.isAirBorne = true;
             } else {
@@ -2148,7 +2148,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                     this.motionY *= 0.6D;
                 }
             }
-        } else if (rider.isJumping() && this.onGround) {
+        } else if (rider.isJumping && this.onGround) {
             this.motionY = 0.5D;
             this.isAirBorne = true;
         }
@@ -2181,8 +2181,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
                 EntityLivingBase rider = (EntityLivingBase) riddenByEntity;
                 rider.prevRotationPitch = rider.rotationPitch;
                 rider.prevRotationYaw = rider.rotationYaw;
-                rider.setRenderYawOffset(this.renderYawOffset);
-                rider.setRotationYawHead(this.renderYawOffset);
+                rider.prevRenderYawOffset = this.renderYawOffset;
+                rider.renderYawOffset = this.renderYawOffset;
+                rider.prevRotationYawHead = this.renderYawOffset;
+                rider.rotationYawHead = this.renderYawOffset;
             }
         } else {
             super.updateRiderPosition();
