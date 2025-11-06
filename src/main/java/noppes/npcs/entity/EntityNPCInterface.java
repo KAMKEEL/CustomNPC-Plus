@@ -2270,12 +2270,26 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     private void stabilizeDismountedRider(Entity rider) {
-        rider.motionX = 0.0D;
-        rider.motionY = 0.0D;
-        rider.motionZ = 0.0D;
-        rider.fallDistance = 0.0F;
+        boolean wasOnGround = rider.onGround;
+        double previousMotionX = rider.motionX;
+        double previousMotionY = rider.motionY;
+        double previousMotionZ = rider.motionZ;
+        float previousFall = rider.fallDistance;
+
+        if (wasOnGround) {
+            rider.motionX = 0.0D;
+            rider.motionY = 0.0D;
+            rider.motionZ = 0.0D;
+            rider.fallDistance = 0.0F;
+            rider.onGround = true;
+        } else {
+            rider.motionX = previousMotionX;
+            rider.motionY = previousMotionY;
+            rider.motionZ = previousMotionZ;
+            rider.fallDistance = previousFall;
+        }
+
         rider.velocityChanged = true;
-        rider.onGround = true;
     }
 
     private void haltMountedMotion() {
