@@ -2361,6 +2361,19 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         return advanced.role == EnumRoleType.Mount && roleInterface instanceof RoleMount && ((RoleMount) roleInterface).isFlyingMountEnabled();
     }
 
+    public boolean canMountRiderDismount(Entity rider) {
+        if (rider == null || rider.isDead || !rider.isEntityAlive()) {
+            return true;
+        }
+        if (!(rider instanceof EntityPlayer)) {
+            return true;
+        }
+        if (!isFlyingMountWithFlightEnabled()) {
+            return true;
+        }
+        return !isMountInFlightMode() && this.onGround;
+    }
+
     private void applyUnriddenFlightDescent(RoleMount mount) {
         if (mount == null || !mount.isFlyingMountEnabled()) {
             return;
@@ -2420,20 +2433,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     private boolean shouldPreventDismount(Entity rider, RoleMount mount) {
-        if (!(rider instanceof EntityPlayer) || rider.isDead) {
+        if (mount == null) {
             return false;
         }
-        if (mount == null || !mount.isFlyingMountEnabled()) {
-            return false;
-        }
-        EntityPlayer player = (EntityPlayer) rider;
-        boolean groundMode = !isMountInFlightMode();
-        boolean onGround = this.onGround;
-        boolean sneaking = player.isSneaking();
-        if (groundMode && onGround && sneaking) {
-            return false;
-        }
-        return player.isEntityAlive();
+        return !canMountRiderDismount(rider);
     }
 
 
