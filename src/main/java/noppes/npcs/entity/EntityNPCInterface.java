@@ -212,6 +212,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public ResourceLocation textureLocation = null;
 
     private Entity lastRider;
+    private boolean mountFlyingMode = false;
+    private boolean mountJumpPressed = false;
+    private int mountFlightToggleTimer = 0;
+    private static final int MOUNT_FLIGHT_TOGGLE_WINDOW = 7;
 
     public EnumAnimation currentAnimation = EnumAnimation.NONE;
 
@@ -2089,17 +2093,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     protected boolean handleMountedMovement(float strafe, float forward) {
-        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount))
+        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+            resetMountedFlightState();
             return false;
+        }
         if (riddenByEntity != null && !(riddenByEntity instanceof EntityPlayer)) {
             riddenByEntity.mountEntity(null);
             return false;
         }
-        if (!(riddenByEntity instanceof EntityPlayer))
+        if (!(riddenByEntity instanceof EntityPlayer)) {
+            resetMountedFlightState();
             return false;
+        }
 
         RoleMount mount = (RoleMount) roleInterface;
         EntityPlayer rider = (EntityPlayer) riddenByEntity;
+        updateMountedFlightState(mount, rider);
         this.prevRotationYaw = this.rotationYaw = rider.rotationYaw;
         this.rotationPitch = rider.rotationPitch * 0.5F;
         this.setRotation(this.rotationYaw, this.rotationPitch);
@@ -2112,7 +2121,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             controlledForward *= 0.25F;
         }
 
-        float moveSpeed = Math.max(0.1F, getSpeed());
+        float moveSpeed = Math.max(0.0F, getSpeed());
         boolean riderSprinting = rider.isSprinting() && mount.isSprintAllowed();
         if (riderSprinting) {
             moveSpeed *= 1.2F;
@@ -2133,7 +2142,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.fallDistance = 0.0F;
         rider.fallDistance = 0.0F;
 
-        applyMountedVerticalMotion(rider, moveSpeed, controlledForward);
+        applyMountedVerticalMotion(mount, rider, moveSpeed, controlledForward);
         doMountedMovement(controlledStrafe, controlledForward, moveSpeed);
 
         return true;
@@ -2162,29 +2171,51 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.limbSwing += this.limbSwingAmount;
     }
 
-    protected void applyMountedVerticalMotion(EntityLivingBase rider, float moveSpeed, float forward) {
-        if (!(roleInterface instanceof RoleMount)) {
+    protected void applyMountedVerticalMotion(RoleMount mount, EntityLivingBase rider, float moveSpeed, float forward) {
+        if (mount == null) {
             return;
         }
-        RoleMount mount = (RoleMount) roleInterface;
         double jumpFactor = MathHelper.clamp_double(mount.getJumpStrength(), 0.1D, 3.0D);
+        boolean flyingEnabled = mount.isFlyingMountEnabled();
 
-        if (canFly()) {
-            double verticalBase = Math.max(0.1D, moveSpeed * 0.6D);
-            double vertical = MathHelper.clamp_double(verticalBase * jumpFactor, 0.05D, 2.0D);
-            if (rider.isJumping) {
-                this.motionY = Math.min(this.motionY + vertical, vertical);
+        if (flyingEnabled) {
+            double ascendSpeed = MathHelper.clamp_double(mount.getFlyingAscendSpeed(), 0.0D, 2.0D);
+            double descendSpeed = MathHelper.clamp_double(mount.getFlyingDescendSpeed(), 0.0D, 2.0D);
+            boolean flightMode = isMountInFlightMode();
+            boolean jumpPressed = rider.isJumping;
+            boolean sneakPressed = rider.isSneaking();
+
+            if (flightMode) {
+                if (jumpPressed) {
+                    this.motionY = ascendSpeed;
+                } else if (sneakPressed) {
+                    this.motionY = -descendSpeed;
+                } else if (mount.isHoverModeEnabled() && riddenByEntity != null) {
+                    this.motionY = 0.0D;
+                } else if (descendSpeed > 0.0D) {
+                    if (this.motionY > -descendSpeed) {
+                        this.motionY = Math.max(this.motionY - descendSpeed * 0.25D, -descendSpeed);
+                    } else {
+                        this.motionY = -descendSpeed;
+                    }
+                } else {
+                    this.motionY = 0.0D;
+                }
                 this.isAirBorne = true;
                 this.velocityChanged = true;
-            } else {
-                float pitch = rider.rotationPitch;
-                if (pitch < -10F) {
-                    this.motionY = vertical;
-                } else if (pitch > 10F) {
-                    this.motionY = -vertical;
-                } else if (!this.onGround) {
-                    this.motionY *= 0.6D;
+            } else if (jumpPressed && this.onGround) {
+                double baseVelocity = MathHelper.clamp_double(0.4D + moveSpeed * 1.5D, 0.2D, 1.2D);
+                double jumpVelocity = MathHelper.clamp_double(baseVelocity * jumpFactor, 0.2D, 2.0D);
+                this.motionY = jumpVelocity;
+                this.isAirBorne = true;
+                this.velocityChanged = true;
+                if (forward > 0.0F) {
+                    float yawRadians = this.rotationYaw * (float) Math.PI / 180.0F;
+                    double boost = 0.4D * forward;
+                    this.motionX += -MathHelper.sin(yawRadians) * boost;
+                    this.motionZ += MathHelper.cos(yawRadians) * boost;
                 }
+                ForgeHooks.onLivingJump(this);
             }
         } else if (rider.isJumping && this.onGround) {
             double baseVelocity = MathHelper.clamp_double(0.4D + moveSpeed * 1.5D, 0.2D, 1.2D);
@@ -2262,8 +2293,16 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
         if (currentRider != lastRider) {
             if (lastRider != null) {
-                stabilizeDismountedRider(lastRider);
-                haltMountedMotion();
+                if (shouldPreventDismount(lastRider)) {
+                    lastRider.mountEntity(this);
+                    currentRider = this.riddenByEntity;
+                } else {
+                    stabilizeDismountedRider(lastRider);
+                    haltMountedMotion();
+                }
+            }
+            if (currentRider == null) {
+                resetMountedFlightState();
             }
             lastRider = currentRider;
         }
@@ -2305,6 +2344,65 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.limbSwingAmount = 0.0F;
         this.limbSwing = 0.0F;
         this.getNavigator().clearPathEntity();
+        resetMountedFlightState();
+    }
+
+    private void updateMountedFlightState(RoleMount mount, EntityPlayer rider) {
+        if (mount == null || rider == null || !mount.isFlyingMountEnabled()) {
+            resetMountedFlightState();
+            return;
+        }
+
+        if (this.onGround) {
+            mountFlyingMode = false;
+        }
+
+        boolean jumpPressed = rider.isJumping;
+        if (jumpPressed && !mountJumpPressed) {
+            if (mountFlightToggleTimer > 0) {
+                mountFlyingMode = !mountFlyingMode;
+                mountFlightToggleTimer = 0;
+            } else {
+                mountFlightToggleTimer = MOUNT_FLIGHT_TOGGLE_WINDOW;
+            }
+        }
+
+        if (mountFlightToggleTimer > 0) {
+            mountFlightToggleTimer--;
+        }
+
+        mountJumpPressed = jumpPressed;
+    }
+
+    private boolean isMountInFlightMode() {
+        return mountFlyingMode;
+    }
+
+    private void resetMountedFlightState() {
+        mountFlyingMode = false;
+        mountJumpPressed = false;
+        mountFlightToggleTimer = 0;
+    }
+
+    private boolean shouldPreventDismount(Entity rider) {
+        if (!(rider instanceof EntityPlayer)) {
+            return false;
+        }
+        EntityPlayer player = (EntityPlayer) rider;
+        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+            return false;
+        }
+        RoleMount mount = (RoleMount) roleInterface;
+        if (!mount.isFlyingMountEnabled()) {
+            return false;
+        }
+        if (!player.isSneaking()) {
+            return false;
+        }
+        if (!isMountInFlightMode() && this.onGround) {
+            return false;
+        }
+        return true;
     }
 
     // Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64

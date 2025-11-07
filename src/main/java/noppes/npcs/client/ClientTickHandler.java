@@ -23,9 +23,11 @@ import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.HudComponent;
 import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.renderer.RenderNPCInterface;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.roles.RoleMount;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -51,6 +53,18 @@ public class ClientTickHandler {
                 ClientCacheHandler.clearCache();
             }
             this.prevWorld = mc.theWorld;
+        }
+        if (event.phase == Phase.START) {
+            EntityPlayer player = mc.thePlayer;
+            if (player != null && player.ridingEntity instanceof EntityNPCInterface) {
+                EntityNPCInterface mount = (EntityNPCInterface) player.ridingEntity;
+                if (mount.advanced.role == EnumRoleType.Mount && mount.roleInterface instanceof RoleMount) {
+                    RoleMount role = (RoleMount) mount.roleInterface;
+                    if (!role.isSprintAllowed() && player.isSprinting()) {
+                        player.setSprinting(false);
+                    }
+                }
+            }
         }
         if (event.phase == Phase.END) {
             if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {

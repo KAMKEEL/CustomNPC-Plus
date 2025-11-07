@@ -44,10 +44,27 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
 
         addLabel(new GuiNpcLabel(5, "role.mount.sprint", guiLeft + 4, y + 5));
         addButton(new GuiNpcButton(5, guiLeft + 140, y, 60, 20, new String[]{"gui.no", "gui.yes"}, role.isSprintAllowed() ? 1 : 0));
+        y += 24;
 
-        addButton(new GuiNpcButton(4, guiLeft + 4, y + 30, 80, 20, "role.mount.reset"));
+        addLabel(new GuiNpcLabel(6, "role.mount.fly", guiLeft + 4, y + 5));
+        addButton(new GuiNpcButton(6, guiLeft + 140, y, 60, 20, new String[]{"gui.no", "gui.yes"}, role.isFlyingMountEnabled() ? 1 : 0));
+        y += 24;
 
-        GuiNpcLabel speedLabel = new GuiNpcLabel(6, "", guiLeft + 4, y + 56);
+        if (role.isFlyingMountEnabled()) {
+            addLabel(new GuiNpcLabel(7, "role.mount.hover", guiLeft + 4, y + 5));
+            addButton(new GuiNpcButton(7, guiLeft + 140, y, 60, 20, new String[]{"gui.no", "gui.yes"}, role.isHoverModeEnabled() ? 1 : 0));
+            y += 24;
+
+            addSpeedRow(4, "role.mount.ascendspeed", role.getFlyingAscendSpeed(), y, 0.0F, 2.0F, 0.45F);
+            y += 24;
+
+            addSpeedRow(5, "role.mount.descendspeed", role.getFlyingDescendSpeed(), y, 0.0F, 2.0F, 0.30F);
+            y += 24;
+        }
+
+        addButton(new GuiNpcButton(4, guiLeft + 4, y + 6, 80, 20, "role.mount.reset"));
+
+        GuiNpcLabel speedLabel = new GuiNpcLabel(9, "", guiLeft + 4, y + 32);
         speedLabel.label = StatCollector.translateToLocalFormatted("role.mount.walkspeed", npc.ais.getWalkingSpeed());
         addLabel(speedLabel);
     }
@@ -68,6 +85,14 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
         addTextField(field);
     }
 
+    private void addSpeedRow(int id, String translationKey, float value, int y, float min, float max, float defaultValue) {
+        addLabel(new GuiNpcLabel(id, translationKey, guiLeft + 4, y + 5));
+        GuiNpcTextField field = new GuiNpcTextField(id, this, guiLeft + 140, y, 80, 20, format(value));
+        field.floatsOnly = true;
+        field.setMinMaxDefaultFloat(min, max, defaultValue);
+        addTextField(field);
+    }
+
     private String format(float value) {
         return String.format(Locale.ROOT, "%.2f", value);
     }
@@ -81,6 +106,11 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
             initGui();
         } else if (guibutton.id == 5 && guibutton instanceof GuiNpcButton) {
             role.setSprintAllowed(((GuiNpcButton) guibutton).getValue() == 1);
+        } else if (guibutton.id == 6 && guibutton instanceof GuiNpcButton) {
+            role.setFlyingMountEnabled(((GuiNpcButton) guibutton).getValue() == 1);
+            initGui();
+        } else if (guibutton.id == 7 && guibutton instanceof GuiNpcButton) {
+            role.setHoverModeEnabled(((GuiNpcButton) guibutton).getValue() == 1);
         }
     }
 
@@ -102,6 +132,12 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
             case 3:
                 role.setJumpStrength(value);
                 break;
+            case 4:
+                role.setFlyingAscendSpeed(value);
+                break;
+            case 5:
+                role.setFlyingDescendSpeed(value);
+                break;
         }
         textfield.setText(format(valueForField(textfield.id)));
     }
@@ -116,6 +152,10 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
                 return role.getOffsetZ();
             case 3:
                 return role.getJumpStrength();
+            case 4:
+                return role.getFlyingAscendSpeed();
+            case 5:
+                return role.getFlyingDescendSpeed();
             default:
                 return 0.0F;
         }
