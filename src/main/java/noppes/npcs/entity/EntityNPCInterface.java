@@ -1876,9 +1876,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     @Override
-    protected void fall(float par1) {
+    protected void fall(float distance) {
+        if (isFlyingMountWithFlightEnabled()) {
+            return;
+        }
         if (!this.stats.noFallDamage)
-            super.fall(par1);
+            super.fall(distance);
     }
 
     @Override
@@ -2179,8 +2182,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         boolean flyingEnabled = mount.isFlyingMountEnabled();
 
         if (flyingEnabled) {
-            double ascendSpeed = MathHelper.clamp_double(mount.getFlyingAscendSpeed(), 0.0D, 2.0D);
-            double descendSpeed = MathHelper.clamp_double(mount.getFlyingDescendSpeed(), 0.0D, 2.0D);
+            double ascendSpeed = MathHelper.clamp_double(mount.getFlyingAscendSpeed(), 0.1D, 3.0D);
+            double descendSpeed = MathHelper.clamp_double(mount.getFlyingDescendSpeed(), 0.05D, 3.0D);
             boolean flightMode = isMountInFlightMode();
             boolean jumpPressed = rider.isJumping;
             boolean sneakPressed = rider.isSneaking();
@@ -2283,28 +2286,34 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             return;
         }
 
+        RoleMount mount = (RoleMount) roleInterface;
         Entity currentRider = this.riddenByEntity;
         if (currentRider != null && !(currentRider instanceof EntityPlayer)) {
             Entity dismount = currentRider;
             dismount.mountEntity(null);
             stabilizeDismountedRider(dismount);
             haltMountedMotion();
+            applyUnriddenFlightDescent(mount);
             currentRider = null;
         }
         if (currentRider != lastRider) {
             if (lastRider != null) {
-                if (shouldPreventDismount(lastRider)) {
+                if (shouldPreventDismount(lastRider, mount)) {
                     lastRider.mountEntity(this);
                     currentRider = this.riddenByEntity;
                 } else {
                     stabilizeDismountedRider(lastRider);
                     haltMountedMotion();
+                    applyUnriddenFlightDescent(mount);
                 }
             }
             if (currentRider == null) {
+                applyUnriddenFlightDescent(mount);
                 resetMountedFlightState();
             }
             lastRider = currentRider;
+        } else if (currentRider == null) {
+            applyUnriddenFlightDescent(mount);
         }
     }
 
@@ -2344,7 +2353,33 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.limbSwingAmount = 0.0F;
         this.limbSwing = 0.0F;
         this.getNavigator().clearPathEntity();
+        this.fallDistance = 0.0F;
         resetMountedFlightState();
+    }
+
+    private boolean isFlyingMountWithFlightEnabled() {
+        return advanced.role == EnumRoleType.Mount && roleInterface instanceof RoleMount && ((RoleMount) roleInterface).isFlyingMountEnabled();
+    }
+
+    private void applyUnriddenFlightDescent(RoleMount mount) {
+        if (mount == null || !mount.isFlyingMountEnabled()) {
+            return;
+        }
+        if (this.onGround) {
+            this.motionY = 0.0D;
+            return;
+        }
+
+        double descendSpeed = MathHelper.clamp_double(mount.getFlyingDescendSpeed(), 0.05D, 3.0D);
+        if (descendSpeed <= 0.0D) {
+            return;
+        }
+
+        double desired = -descendSpeed;
+        this.motionY = desired;
+        this.isAirBorne = true;
+        this.velocityChanged = true;
+        this.fallDistance = 0.0F;
     }
 
     private void updateMountedFlightState(RoleMount mount, EntityPlayer rider) {
@@ -2384,26 +2419,23 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         mountFlightToggleTimer = 0;
     }
 
-    private boolean shouldPreventDismount(Entity rider) {
-        if (!(rider instanceof EntityPlayer)) {
+    private boolean shouldPreventDismount(Entity rider, RoleMount mount) {
+        if (!(rider instanceof EntityPlayer) || rider.isDead) {
+            return false;
+        }
+        if (mount == null || !mount.isFlyingMountEnabled()) {
             return false;
         }
         EntityPlayer player = (EntityPlayer) rider;
-        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+        boolean groundMode = !isMountInFlightMode();
+        boolean onGround = this.onGround;
+        boolean sneaking = player.isSneaking();
+        if (groundMode && onGround && sneaking) {
             return false;
         }
-        RoleMount mount = (RoleMount) roleInterface;
-        if (!mount.isFlyingMountEnabled()) {
-            return false;
-        }
-        if (!player.isSneaking()) {
-            return false;
-        }
-        if (!isMountInFlightMode() && this.onGround) {
-            return false;
-        }
-        return true;
+        return player.isEntityAlive();
     }
+
 
     // Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64
     public int getModelType() {

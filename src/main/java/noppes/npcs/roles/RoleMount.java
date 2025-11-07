@@ -10,22 +10,13 @@ public class RoleMount extends RoleInterface {
     private float offsetX;
     private float offsetY;
     private float offsetZ;
-    private static final float MIN_JUMP_STRENGTH = 0.1F;
-    private static final float MAX_JUMP_STRENGTH = 3.0F;
-    private static final float MIN_DESCEND_SPEED = 0.0F;
-    private static final float MAX_DESCEND_SPEED = 2.0F;
-    private static final float MIN_ASCEND_SPEED = 0.0F;
-    private static final float MAX_ASCEND_SPEED = 2.0F;
-    private static final float DEFAULT_ASCEND_SPEED = 0.45F;
-    private static final float DEFAULT_DESCEND_SPEED = 0.30F;
-
     private boolean storedReturnToStart;
     private float jumpStrength = 1.0F;
     private boolean allowSprint = true;
     private boolean flyingMountEnabled = false;
     private boolean hoverMode = false;
-    private float flyingAscendSpeed = DEFAULT_ASCEND_SPEED;
-    private float flyingDescendSpeed = DEFAULT_DESCEND_SPEED;
+    private float flyingAscendSpeed = 0.60F;
+    private float flyingDescendSpeed = 0.35F;
 
     public RoleMount(EntityNPCInterface npc) {
         super(npc);
@@ -69,14 +60,14 @@ public class RoleMount extends RoleInterface {
         if (compound.hasKey("MountFlyingAscendSpeed")) {
             setFlyingAscendSpeed(compound.getFloat("MountFlyingAscendSpeed"));
         } else {
-            flyingAscendSpeed = DEFAULT_ASCEND_SPEED;
+            flyingAscendSpeed = 0.60F;
         }
         if (compound.hasKey("MountFlyingDescendSpeed")) {
             setFlyingDescendSpeed(compound.getFloat("MountFlyingDescendSpeed"));
         } else if (compound.hasKey("MountFlyingFallSpeed")) {
             setFlyingDescendSpeed(compound.getFloat("MountFlyingFallSpeed"));
         } else {
-            flyingDescendSpeed = DEFAULT_DESCEND_SPEED;
+            flyingDescendSpeed = 0.35F;
         }
         npc.ais.returnToStart = false;
     }
@@ -134,7 +125,7 @@ public class RoleMount extends RoleInterface {
     }
 
     public void setJumpStrength(float value) {
-        this.jumpStrength = ValueUtil.clamp(value, MIN_JUMP_STRENGTH, MAX_JUMP_STRENGTH);
+        this.jumpStrength = ValueUtil.clamp(value, 0.1F, 3.0F);
     }
 
     public float getJumpStrength() {
@@ -166,7 +157,7 @@ public class RoleMount extends RoleInterface {
     }
 
     public void setFlyingAscendSpeed(float value) {
-        this.flyingAscendSpeed = ValueUtil.clamp(value, MIN_ASCEND_SPEED, MAX_ASCEND_SPEED);
+        this.flyingAscendSpeed = ValueUtil.clamp(value, 0.1F, 3.0F);
     }
 
     public float getFlyingAscendSpeed() {
@@ -174,7 +165,7 @@ public class RoleMount extends RoleInterface {
     }
 
     public void setFlyingDescendSpeed(float value) {
-        this.flyingDescendSpeed = ValueUtil.clamp(value, MIN_DESCEND_SPEED, MAX_DESCEND_SPEED);
+        this.flyingDescendSpeed = ValueUtil.clamp(value, 0.05F, 3.0F);
     }
 
     public float getFlyingDescendSpeed() {

@@ -427,7 +427,6 @@ role.mount.fly=Flying Mount Enabled
 role.mount.hover=Hover Mode
 role.mount.ascendspeed=Ascend Speed
 role.mount.descendspeed=Descend Speed
-role.mount.reset=Reset Position
 role.mount.walkspeed=Walking speed: %s
 
 trader.insufficient=Insufficient Currency
