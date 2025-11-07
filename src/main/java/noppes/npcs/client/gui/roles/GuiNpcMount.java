@@ -64,7 +64,7 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
         addLabel(new GuiNpcLabel(id, translationKey, guiLeft + 4, y + 5));
         GuiNpcTextField field = new GuiNpcTextField(id, this, guiLeft + 140, y, 80, 20, format(value));
         field.floatsOnly = true;
-        field.setMinMaxDefaultFloat(0.1F, 3.0F, 1.0F);
+        field.setMinMaxDefaultFloat(0.1F, 15.0F, 1.0F);
         addTextField(field);
     }
 
