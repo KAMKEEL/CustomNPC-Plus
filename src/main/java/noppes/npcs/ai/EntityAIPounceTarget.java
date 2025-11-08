@@ -30,7 +30,11 @@ public class EntityAIPounceTarget extends EntityAIBase {
 
     @Override
     public boolean continueExecuting() {
-        return !this.npc.onGround;
+        boolean airborne = !this.npc.onGround;
+        if (!airborne) {
+            this.npc.setNpcJumpingState(false);
+        }
+        return airborne;
     }
 
     @Override
@@ -47,6 +51,12 @@ public class EntityAIPounceTarget extends EntityAIBase {
         this.npc.motionX *= this.leapSpeed;
         this.npc.motionZ *= this.leapSpeed;
         this.npc.motionY *= this.leapSpeed;
+        this.npc.setNpcJumpingState(true);
+    }
+
+    @Override
+    public void resetTask() {
+        this.npc.setNpcJumpingState(false);
     }
 
     public float getAngleForXYZ(double varX, double varY, double varZ, double horiDist) {

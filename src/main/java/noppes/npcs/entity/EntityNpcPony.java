@@ -35,4 +35,10 @@ public class EntityNpcPony extends EntityNPCInterface {
         super.onUpdate();
     }
 
+    @Override
+    public void onLivingUpdate() {
+        super.onLivingUpdate();
+        this.isFlying = isNpcFlying();
+    }
+
 }
