@@ -107,6 +107,8 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             return;
         }
 
+        boolean flightModeActive = isMountFlightModeActive();
+
         boolean aboveLimit = false;
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
         if (heightOffGround < 0) {
@@ -131,6 +133,12 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         }
         this.flyLimitAllow = true;
         setNpcFlyingState(true);
+
+        if (flightModeActive) {
+            super.performMountedMovement(strafe, forward, moveSpeed);
+            this.velocityChanged = true;
+            return;
+        }
 
         double d3 = this.motionY;
         super.performMountedMovement(strafe, forward, moveSpeed);

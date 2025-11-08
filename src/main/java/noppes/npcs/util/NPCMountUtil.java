@@ -236,6 +236,9 @@ public final class NPCMountUtil {
             npc.setNpcJumpingState(false);
             return;
         }
+        if (npc.canFly()) {
+            return;
+        }
         if (npc.onGround) {
             npc.motionY = 0.0D;
             npc.setNpcFlyingState(false);

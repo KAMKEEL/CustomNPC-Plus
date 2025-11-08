@@ -4,7 +4,6 @@ import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
@@ -31,7 +30,7 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
         }
 
         int leftLabelX = guiLeft + 4;
-        int leftFieldX = guiLeft + 140;
+        int leftFieldX = guiLeft + 116;
         int leftY = guiTop + 6;
 
         leftY = addOffsetRow(0, 10, "role.mount.offsetx", role.getOffsetX(), leftLabelX, leftFieldX, leftY);
@@ -42,10 +41,6 @@ public class GuiNpcMount extends GuiNPCInterface2 implements ITextfieldListener 
         addLabel(new GuiNpcLabel(4, "role.mount.sprint", leftLabelX, leftY + 5));
         addButton(new GuiNpcButton(101, leftFieldX, leftY, 60, 20, new String[]{"gui.no", "gui.yes"}, role.isSprintAllowed() ? 1 : 0));
         leftY += 24;
-
-        GuiNpcLabel speedLabel = new GuiNpcLabel(5, "", leftLabelX, leftY + 5);
-        speedLabel.label = StatCollector.translateToLocalFormatted("role.mount.walkspeed", npc.ais.getWalkingSpeed());
-        addLabel(speedLabel);
 
         int rightLabelX = guiLeft + 214;
         int rightFieldX = guiLeft + 320;

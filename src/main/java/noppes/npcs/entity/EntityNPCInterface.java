@@ -2128,11 +2128,59 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public void performMountedMovement(float strafe, float forward, float moveSpeed) {
         this.moveStrafing = strafe;
         this.moveForward = forward;
-        if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
-            super.moveEntityWithHeading(strafe, forward);
+
+        if (isMountFlightModeActive()) {
+            performMountedFlightMovement(strafe, forward, moveSpeed);
+            return;
         }
 
+        if (!worldObj.isRemote) {
+            this.setAIMoveSpeed(moveSpeed);
+        }
+        super.moveEntityWithHeading(strafe, forward);
+        updateMountedLimbSwing();
+    }
+
+    protected boolean isMountFlightModeActive() {
+        return NPCMountUtil.isMountInFlightMode(mountState);
+    }
+
+    private void performMountedFlightMovement(float strafe, float forward, float moveSpeed) {
+        if (!worldObj.isRemote) {
+            this.setAIMoveSpeed(moveSpeed);
+        }
+
+        float inputMagnitude = MathHelper.sqrt_float(strafe * strafe + forward * forward);
+        if (inputMagnitude < 1.0E-3F) {
+            this.motionX *= 0.6D;
+            this.motionZ *= 0.6D;
+            if (Math.abs(this.motionX) < 0.003D) {
+                this.motionX = 0.0D;
+            }
+            if (Math.abs(this.motionZ) < 0.003D) {
+                this.motionZ = 0.0D;
+            }
+        } else {
+            float normStrafe = strafe / inputMagnitude;
+            float normForward = forward / inputMagnitude;
+            float yawRad = this.rotationYaw * (float) Math.PI / 180.0F;
+            double sinYaw = Math.sin(yawRad);
+            double cosYaw = Math.cos(yawRad);
+            double targetMotionX = (normStrafe * cosYaw - normForward * sinYaw) * moveSpeed;
+            double targetMotionZ = (normForward * cosYaw + normStrafe * sinYaw) * moveSpeed;
+            this.motionX = targetMotionX;
+            this.motionZ = targetMotionZ;
+        }
+
+        this.moveEntity(this.motionX, this.motionY, this.motionZ);
+        this.velocityChanged = true;
+        if (!this.onGround) {
+            this.isAirBorne = true;
+        }
+        updateMountedLimbSwing();
+    }
+
+    private void updateMountedLimbSwing() {
         this.prevLimbSwingAmount = this.limbSwingAmount;
         double deltaX = this.posX - this.prevPosX;
         double deltaZ = this.posZ - this.prevPosZ;
