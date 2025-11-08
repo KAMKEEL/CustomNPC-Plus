@@ -10,12 +10,13 @@ public class RoleMount extends RoleInterface {
     private float offsetX;
     private float offsetY;
     private float offsetZ;
-    private static final float MIN_JUMP_STRENGTH = 0.1F;
-    private static final float MAX_JUMP_STRENGTH = 3.0F;
-
     private boolean storedReturnToStart;
     private float jumpStrength = 1.0F;
     private boolean allowSprint = true;
+    private boolean flyingMountEnabled = false;
+    private boolean hoverMode = false;
+    private float flyingAscendSpeed = 0.60F;
+    private float flyingDescendSpeed = 0.35F;
 
     public RoleMount(EntityNPCInterface npc) {
         super(npc);
@@ -31,6 +32,10 @@ public class RoleMount extends RoleInterface {
         compound.setBoolean("MountReturnFlag", storedReturnToStart);
         compound.setFloat("MountJumpStrength", jumpStrength);
         compound.setBoolean("MountAllowSprint", allowSprint);
+        compound.setBoolean("MountAllowFlying", flyingMountEnabled);
+        compound.setBoolean("MountHoverMode", hoverMode);
+        compound.setFloat("MountFlyingAscendSpeed", flyingAscendSpeed);
+        compound.setFloat("MountFlyingDescendSpeed", flyingDescendSpeed);
         return compound;
     }
 
@@ -50,6 +55,20 @@ public class RoleMount extends RoleInterface {
             jumpStrength = 1.0F;
         }
         allowSprint = !compound.hasKey("MountAllowSprint") || compound.getBoolean("MountAllowSprint");
+        flyingMountEnabled = compound.hasKey("MountAllowFlying") && compound.getBoolean("MountAllowFlying");
+        hoverMode = compound.hasKey("MountHoverMode") && compound.getBoolean("MountHoverMode");
+        if (compound.hasKey("MountFlyingAscendSpeed")) {
+            setFlyingAscendSpeed(compound.getFloat("MountFlyingAscendSpeed"));
+        } else {
+            flyingAscendSpeed = 0.60F;
+        }
+        if (compound.hasKey("MountFlyingDescendSpeed")) {
+            setFlyingDescendSpeed(compound.getFloat("MountFlyingDescendSpeed"));
+        } else if (compound.hasKey("MountFlyingFallSpeed")) {
+            setFlyingDescendSpeed(compound.getFloat("MountFlyingFallSpeed"));
+        } else {
+            flyingDescendSpeed = 0.35F;
+        }
         npc.ais.returnToStart = false;
     }
 
@@ -106,7 +125,7 @@ public class RoleMount extends RoleInterface {
     }
 
     public void setJumpStrength(float value) {
-        this.jumpStrength = ValueUtil.clamp(value, MIN_JUMP_STRENGTH, MAX_JUMP_STRENGTH);
+        this.jumpStrength = ValueUtil.clamp(value, 0.1F, 3.0F);
     }
 
     public float getJumpStrength() {
@@ -119,6 +138,38 @@ public class RoleMount extends RoleInterface {
 
     public boolean isSprintAllowed() {
         return allowSprint;
+    }
+
+    public void setFlyingMountEnabled(boolean enabled) {
+        this.flyingMountEnabled = enabled;
+    }
+
+    public boolean isFlyingMountEnabled() {
+        return flyingMountEnabled;
+    }
+
+    public void setHoverModeEnabled(boolean enabled) {
+        this.hoverMode = enabled;
+    }
+
+    public boolean isHoverModeEnabled() {
+        return hoverMode;
+    }
+
+    public void setFlyingAscendSpeed(float value) {
+        this.flyingAscendSpeed = ValueUtil.clamp(value, 0.1F, 3.0F);
+    }
+
+    public float getFlyingAscendSpeed() {
+        return flyingAscendSpeed;
+    }
+
+    public void setFlyingDescendSpeed(float value) {
+        this.flyingDescendSpeed = ValueUtil.clamp(value, 0.05F, 3.0F);
+    }
+
+    public float getFlyingDescendSpeed() {
+        return flyingDescendSpeed;
     }
 
     public void setReturnToStartPreference(boolean value) {

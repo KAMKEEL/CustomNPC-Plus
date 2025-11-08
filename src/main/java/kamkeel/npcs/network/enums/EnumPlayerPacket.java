@@ -14,6 +14,7 @@ public enum EnumPlayerPacket {
     CompanionAction,
     GetRole,
     InputDevice,
+    SpecialKeyState,
     ScreenSize,
     MagicCycles,
 
