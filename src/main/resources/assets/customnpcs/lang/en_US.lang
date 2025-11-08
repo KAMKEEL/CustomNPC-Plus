@@ -1,6 +1,7 @@
 customnpcs.defaultTextColor=404040
 
 key.categories.customnpc=CustomNPC+
+key.customnpcs.special=Special Key
 key.npcInventory=NPC Inventory
 
 entity.CustomNpc.name=Custom Npc
@@ -418,16 +419,16 @@ role.mailman=Mailman
 role.marketname=Linked Marketname
 role.companion=Companion
 role.mount=Mount
-role.mount.offsetx=Seat Offset X
-role.mount.offsety=Seat Offset Y
-role.mount.offsetz=Seat Offset Z
-role.mount.jumpheight=Jump Strength
-role.mount.sprint=Allow Sprinting
-role.mount.fly=Flying Mount Enabled
-role.mount.hover=Hover Mode
+role.mount.offsetx=Seat X
+role.mount.offsety=Seat Y
+role.mount.offsetz=Seat Z
+role.mount.jumpheight=Jump
+role.mount.sprint=Sprint
+role.mount.fly=Flying
+role.mount.hover=Hover
 role.mount.ascendspeed=Ascend Speed
 role.mount.descendspeed=Descend Speed
-role.mount.walkspeed=Walking speed: %s
+role.mount.walkspeed=Walk Speed: %s
 
 trader.insufficient=Insufficient Currency
 trader.sufficient=Sufficient Currency
