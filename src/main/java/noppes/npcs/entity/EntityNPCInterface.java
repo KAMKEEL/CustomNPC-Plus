@@ -2151,6 +2151,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 
         float inputMagnitude = MathHelper.sqrt_float(strafe * strafe + forward * forward);
+        double previousMotionX = this.motionX;
+        double previousMotionZ = this.motionZ;
+        double horizontalLimit = Math.max(0.1D, moveSpeed * 2.0D);
+
         if (inputMagnitude < 1.0E-3F) {
             this.motionX *= 0.6D;
             this.motionZ *= 0.6D;
@@ -2166,14 +2170,19 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             float yawRad = this.rotationYaw * (float) Math.PI / 180.0F;
             double sinYaw = Math.sin(yawRad);
             double cosYaw = Math.cos(yawRad);
-            double targetMotionX = (normStrafe * cosYaw - normForward * sinYaw) * moveSpeed;
-            double targetMotionZ = (normForward * cosYaw + normStrafe * sinYaw) * moveSpeed;
-            this.motionX = targetMotionX;
-            this.motionZ = targetMotionZ;
+            double desiredMotionX = (normStrafe * cosYaw - normForward * sinYaw) * moveSpeed;
+            double desiredMotionZ = (normForward * cosYaw + normStrafe * sinYaw) * moveSpeed;
+            this.motionX = desiredMotionX;
+            this.motionZ = desiredMotionZ;
         }
 
+        this.motionX = MathHelper.clamp_double(this.motionX, -horizontalLimit, horizontalLimit);
+        this.motionZ = MathHelper.clamp_double(this.motionZ, -horizontalLimit, horizontalLimit);
+
         this.moveEntity(this.motionX, this.motionY, this.motionZ);
-        this.velocityChanged = true;
+        if (!worldObj.isRemote && (Math.abs(previousMotionX - this.motionX) > 1.0E-4D || Math.abs(previousMotionZ - this.motionZ) > 1.0E-4D)) {
+            this.velocityChanged = true;
+        }
         if (!this.onGround) {
             this.isAirBorne = true;
         }
