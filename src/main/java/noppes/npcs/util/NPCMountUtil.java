@@ -1,5 +1,6 @@
 package noppes.npcs.util;
 
+import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -22,6 +23,7 @@ public final class NPCMountUtil {
         public boolean flightMode;
         public boolean jumpPressed;
         public int flightToggleTimer;
+        public float surfaceFriction = 0.91F;
     }
 
     public static boolean handleMountedMovement(EntityNPCInterface npc, MountState state, float strafe, float forward) {
@@ -81,7 +83,11 @@ public final class NPCMountUtil {
         rider.fallDistance = 0.0F;
 
         applyMountedVerticalMotion(npc, state, mount, rider, moveSpeed, controlledForward);
+        state.surfaceFriction = resolveSurfaceFriction(npc);
+
         npc.performMountedMovement(controlledStrafe, controlledForward, moveSpeed);
+
+        syncRiderVelocity(npc, rider);
 
         return true;
     }
@@ -356,6 +362,47 @@ public final class NPCMountUtil {
         state.flightToggleTimer = 0;
         npc.setNpcFlyingState(false);
         npc.setNpcJumpingState(false);
+    }
+
+    private static float resolveSurfaceFriction(EntityNPCInterface npc) {
+        float baseFriction = 0.91F;
+        if (!npc.onGround) {
+            return baseFriction;
+        }
+
+        int blockX = MathHelper.floor_double(npc.posX);
+        int blockY = MathHelper.floor_double(npc.boundingBox.minY) - 1;
+        int blockZ = MathHelper.floor_double(npc.posZ);
+        Block surface = npc.worldObj.getBlock(blockX, blockY, blockZ);
+        if (surface == null) {
+            return baseFriction;
+        }
+
+        return MathHelper.clamp_float(surface.slipperiness * baseFriction, 0.4F, 0.99F);
+    }
+
+    private static void syncRiderVelocity(EntityNPCInterface npc, EntityPlayer rider) {
+        if (rider == null) {
+            return;
+        }
+
+        double deltaX = npc.motionX - rider.motionX;
+        double deltaZ = npc.motionZ - rider.motionZ;
+        rider.motionX = npc.motionX;
+        rider.motionZ = npc.motionZ;
+        rider.fallDistance = npc.fallDistance;
+
+        if (!rider.capabilities.isFlying) {
+            double deltaY = npc.motionY - rider.motionY;
+            rider.motionY = npc.motionY;
+            if (!npc.worldObj.isRemote && Math.abs(deltaY) > 1.0E-4D) {
+                rider.velocityChanged = true;
+            }
+        }
+
+        if (!npc.worldObj.isRemote && (Math.abs(deltaX) > 1.0E-4D || Math.abs(deltaZ) > 1.0E-4D)) {
+            rider.velocityChanged = true;
+        }
     }
 
     private static boolean isSpecialKeyDown(EntityPlayer rider) {

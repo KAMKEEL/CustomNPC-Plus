@@ -2129,14 +2129,15 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.moveStrafing = strafe;
         this.moveForward = forward;
 
+        if (!worldObj.isRemote) {
+            this.setAIMoveSpeed(moveSpeed);
+        }
+
         if (isMountFlightModeActive()) {
             performMountedFlightMovement(strafe, forward, moveSpeed);
             return;
         }
 
-        if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
-        }
         super.moveEntityWithHeading(strafe, forward);
         updateMountedLimbSwing();
     }
@@ -2146,40 +2147,32 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     private void performMountedFlightMovement(float strafe, float forward, float moveSpeed) {
-        if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
+        float surfaceFriction = MathHelper.clamp_float(mountState.surfaceFriction, 0.4F, 0.99F);
+        float acceleration = computeFlightAcceleration(moveSpeed, surfaceFriction);
+        float inputMagnitude = MathHelper.sqrt_float(strafe * strafe + forward * forward);
+
+        if (inputMagnitude >= 1.0E-4F) {
+            if (inputMagnitude < 1.0F) {
+                inputMagnitude = 1.0F;
+            }
+            inputMagnitude = acceleration / inputMagnitude;
+            strafe *= inputMagnitude;
+            forward *= inputMagnitude;
+            float yawRad = this.rotationYaw * (float) Math.PI / 180.0F;
+            float sinYaw = MathHelper.sin(yawRad);
+            float cosYaw = MathHelper.cos(yawRad);
+            this.motionX += (double) (strafe * cosYaw - forward * sinYaw);
+            this.motionZ += (double) (forward * cosYaw + strafe * sinYaw);
         }
 
-        float inputMagnitude = MathHelper.sqrt_float(strafe * strafe + forward * forward);
         double previousMotionX = this.motionX;
         double previousMotionZ = this.motionZ;
-        double horizontalLimit = Math.max(0.1D, moveSpeed * 2.0D);
-
-        if (inputMagnitude < 1.0E-3F) {
-            this.motionX *= 0.6D;
-            this.motionZ *= 0.6D;
-            if (Math.abs(this.motionX) < 0.003D) {
-                this.motionX = 0.0D;
-            }
-            if (Math.abs(this.motionZ) < 0.003D) {
-                this.motionZ = 0.0D;
-            }
-        } else {
-            float normStrafe = strafe / inputMagnitude;
-            float normForward = forward / inputMagnitude;
-            float yawRad = this.rotationYaw * (float) Math.PI / 180.0F;
-            double sinYaw = Math.sin(yawRad);
-            double cosYaw = Math.cos(yawRad);
-            double desiredMotionX = (normStrafe * cosYaw - normForward * sinYaw) * moveSpeed;
-            double desiredMotionZ = (normForward * cosYaw + normStrafe * sinYaw) * moveSpeed;
-            this.motionX = desiredMotionX;
-            this.motionZ = desiredMotionZ;
-        }
-
-        this.motionX = MathHelper.clamp_double(this.motionX, -horizontalLimit, horizontalLimit);
-        this.motionZ = MathHelper.clamp_double(this.motionZ, -horizontalLimit, horizontalLimit);
 
         this.moveEntity(this.motionX, this.motionY, this.motionZ);
+
+        this.motionX *= surfaceFriction;
+        this.motionZ *= surfaceFriction;
+
         if (!worldObj.isRemote && (Math.abs(previousMotionX - this.motionX) > 1.0E-4D || Math.abs(previousMotionZ - this.motionZ) > 1.0E-4D)) {
             this.velocityChanged = true;
         }
@@ -2187,6 +2180,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             this.isAirBorne = true;
         }
         updateMountedLimbSwing();
+    }
+
+    private float computeFlightAcceleration(float moveSpeed, float surfaceFriction) {
+        float denominator = surfaceFriction * surfaceFriction * surfaceFriction;
+        if (denominator < 1.0E-4F) {
+            denominator = 1.0E-4F;
+        }
+        return moveSpeed * (0.16277136F / denominator);
     }
 
     private void updateMountedLimbSwing() {
