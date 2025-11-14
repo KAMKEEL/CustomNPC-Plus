@@ -2,6 +2,8 @@ package noppes.npcs.util;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import noppes.npcs.CustomNpcs;
@@ -44,17 +46,17 @@ public final class NPCMountUtil {
 
         npc.prevRotationYaw = npc.rotationYaw = rider.rotationYaw;
         npc.rotationPitch = rider.rotationPitch * 0.5F;
-        npc.setPositionAndRotation(npc.posX, npc.posY, npc.posZ, npc.rotationYaw, npc.rotationPitch);
+        npc.setRotation(npc.rotationYaw, npc.rotationPitch);
         npc.renderYawOffset = npc.rotationYaw;
         npc.rotationYawHead = npc.rotationYaw;
 
-        float controlledStrafe = rider.moveStrafing;
+        float controlledStrafe = rider.moveStrafing * 0.5F;
         float controlledForward = rider.moveForward;
         if (controlledForward <= 0.0F) {
             controlledForward *= 0.25F;
         }
 
-        float moveSpeed = Math.max(0.0F, npc.getSpeed());
+        float moveSpeed = getMountMoveSpeed(npc);
         boolean riderSprinting = rider.isSprinting() && mount.isSprintAllowed();
         if (riderSprinting) {
             moveSpeed *= 1.2F;
@@ -82,8 +84,18 @@ public final class NPCMountUtil {
 
         applyMountedVerticalMotion(npc, state, mount, rider, moveSpeed, controlledForward);
         npc.performMountedMovement(controlledStrafe, controlledForward, moveSpeed);
+        syncRiderHorizontal(rider, npc);
+        syncRiderVertical(rider, npc);
 
         return true;
+    }
+
+    private static float getMountMoveSpeed(EntityNPCInterface npc) {
+        IAttributeInstance attribute = npc.getEntityAttribute(SharedMonsterAttributes.movementSpeed);
+        if (attribute != null) {
+            return (float) attribute.getAttributeValue();
+        }
+        return Math.max(0.0F, npc.getSpeed());
     }
 
     private static void applyMountedVerticalMotion(EntityNPCInterface npc, MountState state, RoleMount mount, EntityLivingBase rider, float moveSpeed, float forward) {
@@ -103,47 +115,57 @@ public final class NPCMountUtil {
             boolean descendPressed = rider instanceof EntityPlayer && isSpecialKeyDown((EntityPlayer) rider);
 
             if (flightMode) {
-                npc.motionY = 0.0D;
+                double previousMotionY = npc.motionY;
+                double newMotionY = 0.0D;
 
                 if (jumpPressed) {
-                    npc.motionY += ascendSpeed;
+                    newMotionY += ascendSpeed;
                 } else if (descendPressed) {
-                    npc.motionY -= descendSpeed;
+                    newMotionY -= descendSpeed;
                 }
 
-                npc.motionY = MathHelper.clamp_double(npc.motionY, -descendSpeed, ascendSpeed);
-
+                newMotionY = MathHelper.clamp_double(newMotionY, -descendSpeed, ascendSpeed);
+                npc.motionY = newMotionY;
                 npc.setNpcFlyingState(true);
                 npc.setNpcJumpingState(jumpPressed);
                 npc.isAirBorne = true;
-                npc.velocityChanged = true;
                 npc.fallDistance = 0.0F;
-
-                if (!npc.worldObj.isRemote && rider instanceof EntityPlayer) {
-                    EntityPlayer player = (EntityPlayer) rider;
-                    if (!player.capabilities.isFlying) {
-                        player.motionY = npc.motionY;
-                        player.velocityChanged = true;
-                    }
+                if (!npc.worldObj.isRemote && Math.abs(previousMotionY - newMotionY) > 1.0E-4D) {
+                    npc.velocityChanged = true;
                 }
+                syncRiderVertical(rider, npc);
                 return;
             }
 
             if (jumpPressed && npc.onGround) {
+                double previousMotionY = npc.motionY;
                 npc.motionY = jumpFactor;
                 npc.setNpcJumpingState(true);
                 npc.isAirBorne = true;
-                npc.velocityChanged = true;
                 npc.fallDistance = 0.0F;
                 if (!npc.worldObj.isRemote) {
+                    if (Math.abs(previousMotionY - npc.motionY) > 1.0E-4D) {
+                        npc.velocityChanged = true;
+                    }
                     net.minecraftforge.common.ForgeHooks.onLivingJump(npc);
                 }
+                syncRiderVertical(rider, npc);
                 return;
             }
 
             if (!npc.onGround) {
-                npc.motionY = Math.max(npc.motionY, -descendSpeed);
+                double previousMotionY = npc.motionY;
+                double limitedMotionY = Math.max(npc.motionY, -descendSpeed);
+                if (Math.abs(previousMotionY - limitedMotionY) > 1.0E-4D) {
+                    npc.motionY = limitedMotionY;
+                    if (!npc.worldObj.isRemote) {
+                        npc.velocityChanged = true;
+                    }
+                } else {
+                    npc.motionY = limitedMotionY;
+                }
                 npc.setNpcFlyingState(!npc.isInWater());
+                syncRiderVertical(rider, npc);
             } else {
                 npc.setNpcFlyingState(false);
             }
@@ -152,17 +174,22 @@ public final class NPCMountUtil {
         }
 
         if (npc.onGround) {
+            double previousMotionY = npc.motionY;
             if (rider.isJumping) {
                 npc.motionY = jumpFactor;
                 npc.setNpcJumpingState(true);
                 npc.isAirBorne = true;
-                npc.velocityChanged = true;
                 npc.fallDistance = 0.0F;
                 if (!npc.worldObj.isRemote) {
+                    if (Math.abs(previousMotionY - npc.motionY) > 1.0E-4D) {
+                        npc.velocityChanged = true;
+                    }
                     net.minecraftforge.common.ForgeHooks.onLivingJump(npc);
                 }
+                syncRiderVertical(rider, npc);
             } else {
                 npc.motionY = 0.0D;
+                syncRiderVertical(rider, npc);
             }
             return;
         }
@@ -214,10 +241,12 @@ public final class NPCMountUtil {
     }
 
     public static void haltMountedMotion(EntityNPCInterface npc, MountState state) {
+        double prevMotionX = npc.motionX;
+        double prevMotionY = npc.motionY;
+        double prevMotionZ = npc.motionZ;
         npc.motionX = 0.0D;
         npc.motionY = 0.0D;
         npc.motionZ = 0.0D;
-        npc.velocityChanged = true;
         npc.isAirBorne = false;
         npc.setSprinting(false);
         npc.moveForward = 0.0F;
@@ -227,6 +256,9 @@ public final class NPCMountUtil {
         npc.limbSwing = 0.0F;
         npc.getNavigator().clearPathEntity();
         npc.fallDistance = 0.0F;
+        if (!npc.worldObj.isRemote && (Math.abs(prevMotionX) > 1.0E-4D || Math.abs(prevMotionY) > 1.0E-4D || Math.abs(prevMotionZ) > 1.0E-4D)) {
+            npc.velocityChanged = true;
+        }
         resetMountedFlightState(npc, state);
     }
 
@@ -254,12 +286,15 @@ public final class NPCMountUtil {
         }
 
         double desired = -descendSpeed;
+        double previousMotionY = npc.motionY;
         npc.motionY = desired;
         npc.isAirBorne = true;
-        npc.velocityChanged = true;
         npc.fallDistance = 0.0F;
         npc.setNpcFlyingState(true);
         npc.setNpcJumpingState(false);
+        if (!npc.worldObj.isRemote && Math.abs(previousMotionY - desired) > 1.0E-4D) {
+            npc.velocityChanged = true;
+        }
     }
 
     public static void stabilizeDismountedRider(Entity rider) {
@@ -322,6 +357,34 @@ public final class NPCMountUtil {
         state.flightToggleTimer = 0;
         npc.setNpcFlyingState(false);
         npc.setNpcJumpingState(false);
+    }
+
+    private static void syncRiderVertical(EntityLivingBase rider, EntityNPCInterface npc) {
+        if (rider == null) {
+            return;
+        }
+        double deltaY = rider.motionY - npc.motionY;
+        if (Math.abs(deltaY) > 1.0E-4D) {
+            rider.motionY = npc.motionY;
+            if (!npc.worldObj.isRemote) {
+                rider.velocityChanged = true;
+            }
+        }
+    }
+
+    private static void syncRiderHorizontal(EntityLivingBase rider, EntityNPCInterface npc) {
+        if (rider == null) {
+            return;
+        }
+        double deltaX = rider.motionX - npc.motionX;
+        double deltaZ = rider.motionZ - npc.motionZ;
+        if (Math.abs(deltaX) > 1.0E-4D || Math.abs(deltaZ) > 1.0E-4D) {
+            rider.motionX = npc.motionX;
+            rider.motionZ = npc.motionZ;
+            if (!npc.worldObj.isRemote) {
+                rider.velocityChanged = true;
+            }
+        }
     }
 
     private static boolean isSpecialKeyDown(EntityPlayer rider) {
