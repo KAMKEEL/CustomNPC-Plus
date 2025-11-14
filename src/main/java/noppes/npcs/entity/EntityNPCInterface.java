@@ -2129,15 +2129,38 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.moveStrafing = strafe;
         this.moveForward = forward;
 
-        if (isMountFlightModeActive()) {
-            performMountedFlightMovement(strafe, forward, moveSpeed);
-            return;
-        }
+        boolean flightMode = isMountFlightModeActive();
+        double prevMotionX = this.motionX;
+        double prevMotionY = this.motionY;
+        double prevMotionZ = this.motionZ;
+        float previousJumpFactor = this.jumpMovementFactor;
+        float appliedJumpFactor = getMountedAirStrafeFactor(moveSpeed, flightMode);
+
+        this.jumpMovementFactor = appliedJumpFactor;
 
         if (!worldObj.isRemote) {
             this.setAIMoveSpeed(moveSpeed);
         }
+
         super.moveEntityWithHeading(strafe, forward);
+
+        if (flightMode) {
+            this.motionY = prevMotionY;
+            this.isAirBorne = true;
+        }
+
+        this.jumpMovementFactor = previousJumpFactor;
+
+        if (!worldObj.isRemote) {
+            double newMotionX = this.motionX;
+            double newMotionY = this.motionY;
+            double newMotionZ = this.motionZ;
+            if (Math.abs(newMotionX - prevMotionX) > 1.0E-5D || Math.abs(newMotionY - prevMotionY) > 1.0E-5D || Math.abs(newMotionZ - prevMotionZ) > 1.0E-5D) {
+                this.velocityChanged = true;
+            }
+        }
+
+        syncMountedRiderVelocity();
         updateMountedLimbSwing();
     }
 
@@ -2145,39 +2168,38 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         return NPCMountUtil.isMountInFlightMode(mountState);
     }
 
-    private void performMountedFlightMovement(float strafe, float forward, float moveSpeed) {
+    private float getMountedAirStrafeFactor(float moveSpeed, boolean flightMode) {
+        if (moveSpeed <= 0.0F) {
+            return 0.0F;
+        }
+        if (!flightMode) {
+            return moveSpeed * 0.1F;
+        }
+        final float AIR_FRICTION = 0.91F;
+        final float BASE = 0.16277136F;
+        return moveSpeed * (BASE / (AIR_FRICTION * AIR_FRICTION * AIR_FRICTION));
+    }
+
+    private void syncMountedRiderVelocity() {
+        if (!(this.riddenByEntity instanceof EntityLivingBase)) {
+            return;
+        }
+        EntityLivingBase rider = (EntityLivingBase) this.riddenByEntity;
+        double riderPrevMotionX = rider.motionX;
+        double riderPrevMotionY = rider.motionY;
+        double riderPrevMotionZ = rider.motionZ;
+
+        rider.motionX = this.motionX;
+        rider.motionY = this.motionY;
+        rider.motionZ = this.motionZ;
+        rider.fallDistance = 0.0F;
+        rider.isAirBorne = !this.onGround;
+
         if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
-        }
-
-        float inputMagnitude = MathHelper.sqrt_float(strafe * strafe + forward * forward);
-        if (inputMagnitude < 1.0E-3F) {
-            this.motionX *= 0.6D;
-            this.motionZ *= 0.6D;
-            if (Math.abs(this.motionX) < 0.003D) {
-                this.motionX = 0.0D;
+            if (Math.abs(rider.motionX - riderPrevMotionX) > 1.0E-5D || Math.abs(rider.motionY - riderPrevMotionY) > 1.0E-5D || Math.abs(rider.motionZ - riderPrevMotionZ) > 1.0E-5D) {
+                rider.velocityChanged = true;
             }
-            if (Math.abs(this.motionZ) < 0.003D) {
-                this.motionZ = 0.0D;
-            }
-        } else {
-            float normStrafe = strafe / inputMagnitude;
-            float normForward = forward / inputMagnitude;
-            float yawRad = this.rotationYaw * (float) Math.PI / 180.0F;
-            double sinYaw = Math.sin(yawRad);
-            double cosYaw = Math.cos(yawRad);
-            double targetMotionX = (normStrafe * cosYaw - normForward * sinYaw) * moveSpeed;
-            double targetMotionZ = (normForward * cosYaw + normStrafe * sinYaw) * moveSpeed;
-            this.motionX = targetMotionX;
-            this.motionZ = targetMotionZ;
         }
-
-        this.moveEntity(this.motionX, this.motionY, this.motionZ);
-        this.velocityChanged = true;
-        if (!this.onGround) {
-            this.isAirBorne = true;
-        }
-        updateMountedLimbSwing();
     }
 
     private void updateMountedLimbSwing() {
