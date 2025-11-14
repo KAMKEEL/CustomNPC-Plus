@@ -46,7 +46,7 @@ public final class NPCMountUtil {
 
         npc.prevRotationYaw = npc.rotationYaw = rider.rotationYaw;
         npc.rotationPitch = rider.rotationPitch * 0.5F;
-        npc.setRotation(npc.rotationYaw, npc.rotationPitch);
+        //npc.setRotation(npc.rotationYaw, npc.rotationPitch);
         npc.renderYawOffset = npc.rotationYaw;
         npc.rotationYawHead = npc.rotationYaw;
 
