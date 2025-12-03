@@ -115,12 +115,21 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         y += spacing;
 
         // Dig Speed field (0 to 20)
-        addLabel(new GuiNpcLabel(11, "display.digSpeed", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
+        addLabel(new GuiNpcLabel(11, "Dig & Attack Speed", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
         GuiNpcTextField digSpeedField = new GuiNpcTextField(12, this, x + 110, y, 50, 20, "" + linkedItem.digSpeed);
         digSpeedField.setIntegersOnly().setMinMaxDefault(0, 20, 1);
         addTextField(digSpeedField);
+        GuiNpcTextField attackSpeedField = new GuiNpcTextField(14, this, x +165, y, 50, 20, "" +linkedItem.attackSpeed);
+        attackSpeedField.setIntegersOnly().setMinMaxDefault(0,999999999,20);
+        addTextField(attackSpeedField);
 
         y += spacing;
+
+        // Attack Speed Field (integers only)
+        //addLabel(new GuiNpcLabel(13,"Attack Speed",x,y + 5, CustomNpcResourceListener.DefaultTextColor));
+
+
+        //y += spacing;
 
         // TEXTURE field
         addLabel(new GuiNpcLabel(3, "display.texture", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
@@ -401,6 +410,9 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
         } else if (id == 12) {
             // Dig Speed
             linkedItem.digSpeed = textField.getInteger();
+        } else if (id == 14) {
+            // attack Speed
+            linkedItem.attackSpeed = textField.getInteger();
         } else if (id == 31) {
             linkedItem.display.scaleX = textField.getFloat();
         } else if (id == 32) {
