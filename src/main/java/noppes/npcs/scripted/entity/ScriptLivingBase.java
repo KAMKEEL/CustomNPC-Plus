@@ -374,4 +374,10 @@ public class ScriptLivingBase<T extends EntityLivingBase> extends ScriptEntity<T
     public float getAbsorptionAmount() {
         return this.entity.getAbsorptionAmount();
     }
+
+
+    public void setHurtTime(int time) {
+        this.entity.hurtResistantTime = time;
+        this.entity.hurtTime = time;
+    }
 }
