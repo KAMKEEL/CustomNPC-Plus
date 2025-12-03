@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.roles.GuiNpcFollowerJob;
 import noppes.npcs.client.gui.roles.GuiNpcGuard;
 import noppes.npcs.client.gui.roles.GuiNpcHealer;
 import noppes.npcs.client.gui.roles.GuiNpcSpawner;
+import noppes.npcs.client.gui.roles.GuiNpcMount;
 import noppes.npcs.client.gui.roles.GuiNpcTransporter;
 import noppes.npcs.client.gui.util.GuiNPCInterface2;
 import noppes.npcs.client.gui.util.GuiNpcButton;
@@ -47,7 +48,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
         super.initGui();
         int y = guiTop + 10;
         this.addButton(new GuiNpcButton(3, guiLeft + 85 + 160, y, 52, 20, "selectServer.edit"));
-        this.addButton(new GuiNpcButton(8, guiLeft + 85, y, 155, 20, new String[]{"role.none", "role.trader", "role.follower", "role.bank", "role.transporter", "role.mailman", NoppesStringUtils.translate("role.companion", "(WIP)")}, npc.advanced.role.ordinal()));
+        this.addButton(new GuiNpcButton(8, guiLeft + 85, y, 155, 20, new String[]{"role.none", "role.trader", "role.follower", "role.bank", "role.transporter", "role.mailman", NoppesStringUtils.translate("role.companion", "(WIP)"), "role.mount"}, npc.advanced.role.ordinal()));
         getButton(3).setEnabled(npc.advanced.role != EnumRoleType.None && npc.advanced.role != EnumRoleType.Postman);
 
         this.addButton(new GuiNpcButton(4, guiLeft + 85 + 160, y += 22, 52, 20, "selectServer.edit"));
@@ -148,6 +149,8 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
                 displayGuiScreen(new GuiNpcTransporter(npc));
             else if (npc.advanced.role == EnumRoleType.Companion)
                 displayGuiScreen(new GuiNpcCompanion(npc));
+            else if (npc.advanced.role == EnumRoleType.Mount)
+                displayGuiScreen(new GuiNpcMount(npc));
         } else if (compound.hasKey("JobData")) {
             if (npc.jobInterface != null)
                 npc.jobInterface.readFromNBT(compound);

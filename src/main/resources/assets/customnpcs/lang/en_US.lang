@@ -417,6 +417,14 @@ role.transporter=Transporter
 role.mailman=Mailman
 role.marketname=Linked Marketname
 role.companion=Companion
+role.mount=Mount
+role.mount.offsetx=Seat Offset X
+role.mount.offsety=Seat Offset Y
+role.mount.offsetz=Seat Offset Z
+role.mount.jumpheight=Jump Strength
+role.mount.sprint=Allow Sprinting
+role.mount.reset=Reset Position
+role.mount.walkspeed=Walking speed: %s
 
 trader.insufficient=Insufficient Currency
 trader.sufficient=Sufficient Currency

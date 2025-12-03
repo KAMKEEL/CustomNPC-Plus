@@ -5,6 +5,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.PlayerEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import cpw.mods.fml.relauncher.Side;
+import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.util.AttributeAttackUtil;
@@ -546,7 +547,7 @@ public class ScriptPlayerEventHandler {
             if (event.source.getEntity() instanceof EntityPlayerMP) {
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.source.getEntity());
                 float attackAmount = event.ammount;
-                if (ConfigMain.AttributesEnabled)
+                if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable())
                     attackAmount = AttributeAttackUtil.calculateOutgoing((EntityPlayer) event.source.getEntity(), attackAmount);
 
                 noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent pevent1 = new noppes.npcs.scripted.event.player.PlayerEvent.AttackEvent((IPlayer) NpcAPI.Instance().getIEntity((EntityPlayer) event.source.getEntity()), event.entityLiving, attackAmount, event.source);
@@ -565,7 +566,7 @@ public class ScriptPlayerEventHandler {
             boolean cancel = event.isCanceled();
             Entity source = NoppesUtilServer.GetDamageSource(event.source);
             // Player to Player Interaction
-            if (ConfigMain.AttributesEnabled) {
+            if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable()) {
                 if (event.entityLiving instanceof EntityPlayerMP && source instanceof EntityPlayerMP) {
                     event.ammount = AttributeAttackUtil.calculateDamagePlayerToPlayer((EntityPlayer) source, (EntityPlayer) event.entityLiving, event.ammount);
                 } else if (!(event.entityLiving instanceof EntityNPCInterface) && source instanceof EntityPlayer) {

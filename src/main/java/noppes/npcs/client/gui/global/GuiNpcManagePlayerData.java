@@ -70,7 +70,6 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
 
     @Override
     public void mouseClicked(int i, int j, int k) {
-        ;
         super.mouseClicked(i, j, k);
         if (k == 0 && playerScroll != null)
             playerScroll.mouseClicked(i, j, k);
@@ -132,11 +131,10 @@ public class GuiNpcManagePlayerData extends GuiNPCInterface2 implements GuiYesNo
             }
             if (id == 1) {
                 PacketClient.sendClient(new PlayerDataMapRegenPacket());
-                close();
             }
-        } else {
-            displayGuiScreen(this);
         }
+
+        displayGuiScreen(this);
     }
 
     // IScrollData interface.

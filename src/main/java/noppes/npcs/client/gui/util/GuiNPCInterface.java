@@ -219,6 +219,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
     }
 
     public void close() {
+        if(GuiNpcTextField.activeTextfield != null)
+            GuiNpcTextField.unfocus();
+
         Keyboard.enableRepeatEvents(false);
         displayGuiScreen(null);
         mc.setIngameFocus();

@@ -32,6 +32,7 @@ import noppes.npcs.controllers.data.DialogOption;
 import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.roles.RoleMount;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.constants.AnimationType;
 import noppes.npcs.scripted.constants.EntityType;
@@ -269,13 +270,20 @@ public class ScriptNpc<T extends EntityNPCInterface> extends ScriptLiving<T> imp
      * @param bo Whether or not the npc will try to return to his home position
      */
     public void setReturnToHome(boolean bo) {
-        npc.ais.returnToStart = bo;
+        if (npc.advanced.role == EnumRoleType.Mount && npc.roleInterface instanceof RoleMount) {
+            ((RoleMount) npc.roleInterface).setReturnToStartPreference(bo);
+        } else {
+            npc.ais.returnToStart = bo;
+        }
     }
 
     /**
      * @return Whether or not the npc returns home
      */
     public boolean getReturnToHome() {
+        if (npc.advanced.role == EnumRoleType.Mount && npc.roleInterface instanceof RoleMount) {
+            return ((RoleMount) npc.roleInterface).getReturnToStartPreference();
+        }
         return npc.ais.returnToStart;
     }
 
