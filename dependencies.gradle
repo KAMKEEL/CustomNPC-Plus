@@ -38,6 +38,8 @@ dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.5.4-GTNH:dev")
     runtimeOnlyNonPublishable("curse.maven:Nashorn-374413:2924946")
 
+    shadowImplementation(project.files("tools/standalone-JaninoLoader-1.0.0-ALPHA.jar"))
+
     if(embedMixin){
         // Normal Jar will include built in Mixins
         shadowImplementation("org.spongepowered:mixin:0.7.11-SNAPSHOT"){
