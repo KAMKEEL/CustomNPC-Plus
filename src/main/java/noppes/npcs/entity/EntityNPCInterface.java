@@ -2138,9 +2138,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         this.jumpMovementFactor = appliedJumpFactor;
 
-        if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
-        }
+        // Update move speed on both sides so the client can accurately predict ground
+        // movement when controlling a mount. Only setting it server-side causes visible
+        // delay/desync for ground mounts while the server reconciles the slower client
+        // prediction.
+        this.setAIMoveSpeed(moveSpeed);
 
         super.moveEntityWithHeading(strafe, forward);
 
@@ -2175,9 +2177,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (!flightMode) {
             return moveSpeed * 0.1F;
         }
-        final float AIR_FRICTION = 0.91F;
-        final float BASE = 0.16277136F;
-        return moveSpeed * (BASE / (AIR_FRICTION * AIR_FRICTION * AIR_FRICTION));
+        // Keep airborne strafing consistent with on-ground acceleration. Vanilla
+        // ground movement uses the block slipperiness (default 0.6F) which effectively
+        // multiplies moveSpeed by ~1x. Matching that behavior prevents flying mounts
+        // from feeling sluggish compared to their walking speed.
+        return moveSpeed;
     }
 
     private void syncMountedRiderVelocity() {
