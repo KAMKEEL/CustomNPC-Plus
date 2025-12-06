@@ -2138,9 +2138,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
         this.jumpMovementFactor = appliedJumpFactor;
 
-        if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
-        }
+        this.setAIMoveSpeed(moveSpeed);
 
         super.moveEntityWithHeading(strafe, forward);
 
@@ -2175,9 +2173,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (!flightMode) {
             return moveSpeed * 0.1F;
         }
-        final float AIR_FRICTION = 0.91F;
-        final float BASE = 0.16277136F;
-        return moveSpeed * (BASE / (AIR_FRICTION * AIR_FRICTION * AIR_FRICTION));
+        return moveSpeed * 0.5F;
     }
 
     private void syncMountedRiderVelocity() {
