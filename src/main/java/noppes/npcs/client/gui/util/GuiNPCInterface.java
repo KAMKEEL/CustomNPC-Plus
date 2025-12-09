@@ -51,7 +51,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public float bgScaleX = 1;
     public float bgScaleY = 1;
     public float bgScaleZ = 1;
-    public long timeClosedSubGui;
 
     public GuiNPCInterface(EntityNPCInterface npc) {
         this.player = Minecraft.getMinecraft().thePlayer;
@@ -206,11 +205,18 @@ public abstract class GuiNPCInterface extends GuiScreen {
             guiScrollableComponent.keyTyped(c, i);
         }
 
-        // Fixes closing sub with escape closes all of its parents
-        boolean enoughTimeSinceSubClosed = Minecraft.getSystemTime() - timeClosedSubGui > 50;
+        /*
+         Fixes closing sub with escape closes all of its parents.
+         The outermost GUI (root of all subs) closes the deepest open sub on ESC.
+         */
+        boolean isSub = this instanceof SubGuiInterface;
 
-        if (closeOnEsc && enoughTimeSinceSubClosed && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
-            close();
+        if (closeOnEsc && !isSub && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
+            SubGuiInterface sub = getSubGui();
+            if (sub != null)
+                sub.close();
+            else
+                close();
         }
     }
 
@@ -405,7 +411,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     public void closeSubGui(SubGuiInterface gui) {
         subgui = null;
-        timeClosedSubGui = Minecraft.getSystemTime();
         initGui();
     }
 
@@ -413,10 +418,15 @@ public abstract class GuiNPCInterface extends GuiScreen {
         return subgui != null;
     }
 
+    /**
+     * @return The deepest open subgui
+     */
     public SubGuiInterface getSubGui() {
-        if (hasSubGui() && subgui.hasSubGui())
-            return subgui.getSubGui();
-        return subgui;
+        SubGuiInterface sub = subgui;
+        if (sub != null)
+            while (sub.hasSubGui())
+                sub = sub.getSubGui();
+        return sub;
     }
 
     public void drawNpc(int x, int y) {
