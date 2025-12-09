@@ -145,6 +145,10 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
             int i = selectedResource.getResourcePath().lastIndexOf('/');
             location = selectedResource.getResourcePath().substring(0, i + 1);
         }
+
+        xOffsetNpc = 307;
+        yOffsetNpc = 150;
+        zoomed = 1.5f;
     }
 
     private File decodeFile(String url) {
@@ -250,7 +254,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     public void drawScreen(int i, int j, float f) {
         super.drawScreen(i, j, f);
         npc.textureLocation = selectedResource;
-        drawNpc(npc, 307, 150, 1.5F, 0);
+        drawNpc(npc, i, j, f);
     }
 
     @Override

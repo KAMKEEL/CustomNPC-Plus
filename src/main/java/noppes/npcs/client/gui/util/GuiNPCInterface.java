@@ -93,6 +93,13 @@ public abstract class GuiNPCInterface extends GuiScreen {
         scrollWindows.clear();
         diagrams.clear();
         Keyboard.enableRepeatEvents(true);
+
+        if (drawRenderButtons) {
+            addButton(zoomIn = new GuiNpcButton(0, guiLeft + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "-"));
+            addButton(zoomOut = new GuiNpcButton(0, guiLeft + 22 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "+"));
+            addButton(rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<"));
+            addButton(rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">"));
+        }
     }
 
     @Override
@@ -429,11 +436,65 @@ public abstract class GuiNPCInterface extends GuiScreen {
         return sub;
     }
 
-    public void drawNpc(int x, int y) {
-        drawNpc(npc, x, y, 1, 0);
+    private GuiNpcButton rotateLeft, rotateRight, zoomOut, zoomIn;
+
+    public int xOffsetNpc = 0, xOffsetButton = 0, xMouseRange = 50;
+    public int yOffsetNpc = 0, yOffsetButton = 0, yMouseRange = 150;
+
+    public float zoomed = 1, rotation;
+    public float minZoom = 1, maxZoom = 2.5f;
+
+    public boolean followMouse = true, allowRotate = true, drawNPConSub = false;
+    public boolean drawRenderButtons = false;
+
+    public boolean isMouseOverRenderer(int x, int y) {
+        if (!allowRotate) {
+            return false;
+        }
+        // Center of the entity rendering
+        int centerX = guiLeft + xOffsetNpc; // Matches l in drawScreen()
+        int centerY = guiTop + yOffsetNpc; // Matches i1 in drawScreen()
+
+        // Range from the center to start considering mouse is over renderer.
+        int xRange = xMouseRange; // Horizontal range (Left and right of center)
+        int yRange = yMouseRange; // Vertical range (Up and down of center)
+
+        // Check if the mouse is within the range area
+        return mouseX >= centerX - xRange && mouseX <= centerX + xRange && mouseY >= centerY - yRange && mouseY <= centerY + yRange;
     }
 
-    public void drawNpc(EntityLivingBase entity, int x, int y, float zoomed, int rotation) {
+    public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
+        if (hasSubGui() && !drawNPConSub)
+            return;
+
+        if (Mouse.isButtonDown(0) && drawRenderButtons) {
+            if (this.rotateLeft.mousePressed(this.mc, mouseX, mouseY)) {
+                rotation += partialTicks * 1.5F;
+            } else if (this.rotateRight.mousePressed(this.mc, mouseX, mouseY)) {
+                rotation -= partialTicks * 1.5F;
+            } else if (this.zoomOut.mousePressed(this.mc, mouseX, mouseY) && zoomed < maxZoom) {
+                zoomed += partialTicks * 0.05F;
+            } else if (this.zoomIn.mousePressed(this.mc, mouseX, mouseY) && zoomed > minZoom) {
+                zoomed -= partialTicks * 0.05F;
+            }
+        }
+
+        if (isMouseOverRenderer(mouseX, mouseY)) {
+            zoomed += Mouse.getDWheel() * 0.001f;
+            if (Mouse.isButtonDown(0) || Mouse.isButtonDown(1)) {
+                rotation -= Mouse.getDX() * 0.75f;
+            }
+        }
+
+        if (zoomed > maxZoom)
+            zoomed = maxZoom;
+        if (zoomed < minZoom)
+            zoomed = minZoom;
+
+        drawNpc(entity, mouseX, mouseY, xOffsetNpc, yOffsetNpc, zoomed, rotation, partialTicks);
+    }
+
+    public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, int x, int y, float zoomed, float rotation, float partialTicks) {
         EntityNPCInterface npc = null;
         if (entity instanceof EntityNPCInterface)
             npc = (EntityNPCInterface) entity;
@@ -460,7 +521,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         int orientation = 0;
         if (npc != null) {
             orientation = npc.ais.orientation;
-            npc.ais.orientation = rotation;
+            npc.ais.orientation = (int) rotation;
         }
 
         GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
@@ -468,12 +529,16 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
         GL11.glRotatef(-(float) Math.atan(f6 / 40F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.renderYawOffset = rotation;
-        entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = -(float) Math.atan(f6 / 40F) * 20F;
+        entity.rotationYaw = followMouse ? (float) Math.atan(f5 / 80F) * 40F + rotation : 0;
+        entity.rotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
         entity.rotationYawHead = entity.rotationYaw;
         GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
         RenderManager.instance.playerViewY = 180F;
-        RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 1);
+
+        try {
+            RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 1);
+        } catch (Exception e) {
+        }
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.prevRotationPitch = entity.rotationPitch = f4;
