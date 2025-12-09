@@ -47,6 +47,7 @@ public class EntityUnloadListener implements IWorldAccess {
             EntityNPCInterface npc = (EntityNPCInterface) entity;
             if (npc.janinoHandler != null)
                 npc.janinoHandler.prepareToUnload();
+            npc.janinoHandler = null;
         }
      }
 
