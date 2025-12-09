@@ -48,6 +48,7 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     private String selectedDomain;
     public ResourceLocation selectedResource;
 
+    public boolean setNPCSkin = true;
     // Instance maps to be populated
     private final HashMap<String, List<TextureData>> domains = new HashMap<>();
     private final HashMap<String, TextureData> textures = new HashMap<>();
@@ -242,8 +243,9 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         super.actionPerformed(guibutton);
-        if (guibutton.id == 2) {
-            npc.display.setSkinTexture(selectedResource.toString());
+        if (guibutton.id == 2 && selectedResource != null) {
+            if (setNPCSkin)
+                npc.display.setSkinTexture(selectedResource.toString());
         }
         npc.textureLocation = null;
         close();
@@ -253,7 +255,6 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
     @Override
     public void drawScreen(int i, int j, float f) {
         super.drawScreen(i, j, f);
-        npc.textureLocation = selectedResource;
         drawNpc(npc, i, j, f);
     }
 
@@ -263,6 +264,8 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
             if (scroll.id == 1) {
                 TextureData data = textures.get(scroll.getSelected());
                 selectedResource = new ResourceLocation(selectedDomain, data.absoluteName);
+                if (setNPCSkin)
+                    npc.textureLocation = selectedResource;
             }
         } else {
             initGui();
@@ -292,7 +295,8 @@ public class GuiTextureSelection extends SubGuiInterface implements ICustomScrol
             scrollTextures.selected = -1;
             initGui();
         } else {
-            npc.display.setSkinTexture(selectedResource.toString());
+            if (setNPCSkin)
+                npc.display.setSkinTexture(selectedResource.toString());
             close();
             parent.initGui();
         }
