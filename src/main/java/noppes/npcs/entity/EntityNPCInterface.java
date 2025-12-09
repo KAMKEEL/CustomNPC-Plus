@@ -157,6 +157,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
+import somehussar.janino.wrapper.NPCWrapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -188,6 +189,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public float baseHeight = 1.8f;
     public float scaleX, scaleY, scaleZ;
+    public NPCWrapper janinoHandler;
     private boolean wasKilled = false;
     public RoleInterface roleInterface;
     public JobInterface jobInterface;

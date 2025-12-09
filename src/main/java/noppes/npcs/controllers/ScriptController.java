@@ -21,6 +21,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.util.JsonException;
 import noppes.npcs.util.NBTJsonUtil;
+import somehussar.janino.EntityUnloadListener;
 
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
@@ -359,6 +360,11 @@ public class ScriptController {
             }
         }
         return list;
+    }
+
+    @SubscribeEvent
+    public void addWorldAccess(WorldEvent.Load event) {
+        event.world.addWorldAccess(new EntityUnloadListener());
     }
 
     @SubscribeEvent

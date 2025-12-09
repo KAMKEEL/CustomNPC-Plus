@@ -266,6 +266,8 @@ public class EventHooks {
         noppes.npcs.scripted.event.NpcEvent.InitEvent event = new noppes.npcs.scripted.event.NpcEvent.InitEvent(npc.wrappedNPC);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.INIT, event);
         npc.script.callScript(EnumScriptType.INIT, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onInitialize(event);
         NpcAPI.EVENT_BUS.post(event);
         npc.advanced.soulStoneInit = false;
     }
@@ -277,6 +279,8 @@ public class EventHooks {
         noppes.npcs.scripted.event.NpcEvent.UpdateEvent event = new noppes.npcs.scripted.event.NpcEvent.UpdateEvent(npc.wrappedNPC);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TICK, event);
         npc.script.callScript(EnumScriptType.TICK, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onUpdate(event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -287,6 +291,8 @@ public class EventHooks {
         NpcEvent.DialogEvent event = new NpcEvent.DialogEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.DIALOG, event);
         npc.script.callScript(EnumScriptType.DIALOG, event, "player", event.getPlayer(), "dialog", event.getDialogId(), "option", event.getOptionId(), "dialogObj", event.getDialog());
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onDialog(event);
 
         return NpcAPI.EVENT_BUS.post(event);
     }
@@ -298,7 +304,8 @@ public class EventHooks {
         NpcEvent.DialogClosedEvent event = new NpcEvent.DialogClosedEvent(npc.wrappedNPC, player, dialogId, optionId, dialog);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.DIALOG_CLOSE, event);
         npc.script.callScript(EnumScriptType.DIALOG_CLOSE, event, "player", event.getPlayer(), "dialog", event.getDialogId(), "option", event.getOptionId(), "dialogObj", event.getDialog());
-
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onDialogClosed(event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -320,6 +327,8 @@ public class EventHooks {
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ATTACK_MELEE, event);
         npc.script.callScript(EnumScriptType.ATTACK_MELEE, event, "target", event.target);
         npc.script.callScript(EnumScriptType.ATTACK, event, "target", event.target);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onAttack(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -329,6 +338,8 @@ public class EventHooks {
 
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.ATTACK_SWING, event);
         npc.script.callScript(EnumScriptType.ATTACK_SWING, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onMeleeSwing(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -339,6 +350,8 @@ public class EventHooks {
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.RANGED_LAUNCHED, event);
         npc.script.callScript(EnumScriptType.RANGED_LAUNCHED, event, "target", event.target);
         npc.script.callScript(EnumScriptType.ATTACK, event, "target", event.target);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onRangedAttack(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -349,6 +362,8 @@ public class EventHooks {
         NpcEvent.KilledEntityEvent event = new NpcEvent.KilledEntityEvent(npc.wrappedNPC, entity);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.KILLS, event);
         npc.script.callScript(EnumScriptType.KILLS, event, "target", entity);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onKillEntity(event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -358,6 +373,8 @@ public class EventHooks {
 
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TARGET, event);
         npc.script.callScript(EnumScriptType.TARGET, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onTarget(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -368,6 +385,8 @@ public class EventHooks {
 
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TARGET_LOST, event);
         npc.script.callScript(EnumScriptType.TARGET_LOST, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onTargetLost(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -378,6 +397,8 @@ public class EventHooks {
         NpcEvent.CollideEvent event = new NpcEvent.CollideEvent(npc.wrappedNPC, entity);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.COLLIDE, event);
         npc.script.callScript(EnumScriptType.COLLIDE, event, "entity", entity);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onCollide(event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -387,6 +408,8 @@ public class EventHooks {
 
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.DAMAGED, event);
         npc.script.callScript(EnumScriptType.DAMAGED, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onDamaged(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -396,6 +419,8 @@ public class EventHooks {
 
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.KILLED, event);
         npc.script.callScript(EnumScriptType.KILLED, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onNPCKilled(event);
         return NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -406,6 +431,8 @@ public class EventHooks {
         NpcEvent.TimerEvent event = new NpcEvent.TimerEvent(npc.wrappedNPC, id);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.TIMER, event);
         npc.script.callScript(EnumScriptType.TIMER, event);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onTimer(event);
         NpcAPI.EVENT_BUS.post(event);
     }
 
@@ -421,7 +448,11 @@ public class EventHooks {
         EntityLivingBase thrower = projectile.getThrower();
         if (thrower != null) {
             if (thrower instanceof EntityNPCInterface) {
-                ((EntityNPCInterface) thrower).script.callScript(EnumScriptType.PROJECTILE_TICK, event);
+                EntityNPCInterface npc = (EntityNPCInterface) thrower;
+
+                npc.script.callScript(EnumScriptType.PROJECTILE_TICK, event);
+                if (npc.janinoHandler != null)
+                    npc.janinoHandler.onProjectileTick(event);
             }
         }
 
@@ -439,7 +470,11 @@ public class EventHooks {
         EntityLivingBase thrower = projectile.getThrower();
         if (thrower != null) {
             if (thrower instanceof EntityNPCInterface) {
-                ((EntityNPCInterface) thrower).script.callScript(EnumScriptType.PROJECTILE_IMPACT, event);
+                EntityNPCInterface npc = (EntityNPCInterface) thrower;
+
+                npc.script.callScript(EnumScriptType.PROJECTILE_IMPACT, event);
+                if (npc.janinoHandler != null)
+                    npc.janinoHandler.onProjectileImpact(event);
             }
         }
 
