@@ -292,7 +292,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
     public void adjustScroll(int mouseX, int mouseY, int mouseScroll) {
         mouseX -= xPos;
         mouseY -= yPos;
-        if (Mouse.isButtonDown(0)) {
+        if (Mouse.isButtonDown(0) && !parent.hasSubGui()) {
             if (mouseX >= clipWidth - 9 && mouseX < clipWidth - 4 && mouseY >= 4 && mouseY < clipHeight) {
                 isScrolling = true;
             }
