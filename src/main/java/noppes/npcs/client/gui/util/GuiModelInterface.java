@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.EntityUtil;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.data.ModelData;
@@ -159,12 +160,13 @@ public class GuiModelInterface extends GuiNPCInterface {
         entity.prevRotationYawHead = entity.rotationYawHead = followMouse ? entity.rotationYaw : rotation;
         GL11.glTranslatef(0.0F, entity.yOffset, 1F);
         RenderManager.instance.playerViewY = 180F;
-
+        ClientEventHandler.renderingEntityInGUI = true;
         try {
             RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
         } catch (Exception e) {
             playerdata.setEntityClass(null);
         }
+        ClientEventHandler.renderingEntityInGUI = false;
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.rotationPitch = f4;

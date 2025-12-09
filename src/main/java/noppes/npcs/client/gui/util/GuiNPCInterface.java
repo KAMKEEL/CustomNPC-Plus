@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -534,11 +535,14 @@ public abstract class GuiNPCInterface extends GuiScreen {
         entity.rotationYawHead = entity.rotationYaw;
         GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
         RenderManager.instance.playerViewY = 180F;
+        ClientEventHandler.renderingEntityInGUI = true;
 
         try {
             RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 1);
         } catch (Exception e) {
         }
+
+        ClientEventHandler.renderingEntityInGUI = false;
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.prevRotationPitch = entity.rotationPitch = f4;
