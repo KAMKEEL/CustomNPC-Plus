@@ -12,6 +12,7 @@ import org.lwjgl.opengl.GL12;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class GuiNpcButton extends GuiButton {
 
@@ -31,6 +32,8 @@ public class GuiNpcButton extends GuiButton {
     protected int iconPosX = 0;
     protected int iconPosY = 0;
 
+    public boolean rightClickable;
+
     public GuiNpcButton(int i, int j, int k, String s) {
         super(i, j, k, StatCollector.translateToLocal(s));
         id = i;
@@ -40,6 +43,9 @@ public class GuiNpcButton extends GuiButton {
         this(i, j, k, display[val]);
         this.display = display;
         this.displayValue = val;
+
+        if (display.length > 1)
+            rightClickable = true;
     }
 
     public GuiNpcButton(int i, int j, int k, int l, int m, String string) {
@@ -51,6 +57,9 @@ public class GuiNpcButton extends GuiButton {
         this(i, j, k, l, m, display.length == 0 ? "" : display[val % display.length]);
         this.display = display;
         this.displayValue = display.length == 0 ? 0 : val % display.length;
+
+        if (display.length > 1)
+            rightClickable = true;
     }
 
     public GuiNpcButton(int i, int j, int k, int l, int m, Enum<?>[] displayEnums, int val) {
@@ -61,6 +70,9 @@ public class GuiNpcButton extends GuiButton {
         }
         this.display = strings.toArray(new String[0]);
         this.displayValue = display.length == 0 ? 0 : val % display.length;
+
+        if (display.length > 1)
+            rightClickable = true;
     }
 
     public void setDisplayText(String text) {
@@ -113,11 +125,17 @@ public class GuiNpcButton extends GuiButton {
         return this;
     }
 
+    public AtomicBoolean rightClicked = new AtomicBoolean();
     @Override
     public boolean mousePressed(Minecraft minecraft, int i, int j) {
         boolean bo = super.mousePressed(minecraft, i, j);
         if (bo && display != null && display.length != 0) {
-            displayValue = (displayValue + 1) % display.length;
+            if (rightClicked.get()) {
+                if (displayValue <= 0)
+                    displayValue = display.length;
+                displayValue--;
+            } else
+                displayValue = (displayValue + 1) % display.length;
             this.setDisplayText(display[displayValue]);
         }
         return bo;

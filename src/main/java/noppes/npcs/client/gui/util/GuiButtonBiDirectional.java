@@ -61,6 +61,8 @@ public class GuiButtonBiDirectional extends GuiNpcButton {
         boolean bo = super.mousePressed(minecraft, mouseX, mouseY);
         if (bo && display != null && display.length != 0) {
             boolean hoverL = mouseX >= this.xPosition && mouseY >= this.yPosition && mouseX < this.xPosition + 11 && mouseY < this.yPosition + this.height;
+            if (rightClicked.get())
+                hoverL = true;
 
             boolean hoverR = !hoverL && mouseX >= this.xPosition + 11 && mouseY >= this.yPosition && mouseX < this.xPosition + this.width && mouseY < this.yPosition + this.height;
 

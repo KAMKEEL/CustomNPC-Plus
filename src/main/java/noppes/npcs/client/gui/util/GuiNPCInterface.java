@@ -11,6 +11,8 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
 import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
@@ -24,6 +26,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -165,10 +168,40 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 }
             }
             mouseEvent(i, j, k);
-            super.mouseClicked(i, j, k);
+            vanillaMouseClicked(i, j, k);
         }
     }
 
+    protected void vanillaMouseClicked(int mouseX, int mouseY, int mouseButton) {
+        if (mouseButton == 0 || mouseButton == 1) {
+            for (int l = 0; l < this.buttonList.size(); ++l) {
+                GuiButton guibutton = (GuiButton) this.buttonList.get(l);
+
+                AtomicBoolean rightClicked = null;
+                if (mouseButton == 1) {
+                    if (guibutton instanceof GuiNpcButton && ((GuiNpcButton) guibutton).rightClickable) {
+                        rightClicked = ((GuiNpcButton) guibutton).rightClicked;
+                        rightClicked.set(true);
+                    } else
+                        continue;
+                }
+
+                if (guibutton.mousePressed(this.mc, mouseX, mouseY)) {
+                    GuiScreenEvent.ActionPerformedEvent.Pre event = new GuiScreenEvent.ActionPerformedEvent.Pre(this, guibutton, this.buttonList);
+                    if (MinecraftForge.EVENT_BUS.post(event))
+                        break;
+                    this.selectedButton = event.button;
+                    event.button.func_146113_a(this.mc.getSoundHandler());
+                    this.actionPerformed(event.button);
+                    if (this.equals(this.mc.currentScreen))
+                        MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.ActionPerformedEvent.Post(this, event.button, this.buttonList));
+                }
+
+                if (rightClicked != null)
+                    rightClicked.set(false);
+            }
+        }
+    }
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (subgui != null) {
