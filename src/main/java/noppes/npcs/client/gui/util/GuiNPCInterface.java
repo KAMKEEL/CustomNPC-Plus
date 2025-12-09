@@ -96,10 +96,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
         Keyboard.enableRepeatEvents(true);
 
         if (drawRenderButtons) {
-            addButton(zoomIn = new GuiNpcButton(0, guiLeft + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "-"));
-            addButton(zoomOut = new GuiNpcButton(0, guiLeft + 22 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "+"));
-            addButton(rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<"));
-            addButton(rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">"));
+            zoomIn = new GuiNpcButton(0, guiLeft + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "-");
+            zoomOut = new GuiNpcButton(0, guiLeft + 22 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "+");
+            rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<");
+            rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">");
         }
     }
 
@@ -356,6 +356,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
         if (subgui != null) {
             subgui.drawScreen(i, j, f);
         }
+
+        if (drawNpc)
+            drawNpcWithExtras(npc, i, j, f);
     }
 
     protected void drawBackground() {
@@ -442,11 +445,11 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public int xOffsetNpc = 0, xOffsetButton = 0, xMouseRange = 50;
     public int yOffsetNpc = 0, yOffsetButton = 0, yMouseRange = 150;
 
-    public float zoomed = 1, rotation;
+    public float defaultZoom = 1, zoom = 1, rotation;
     public float minZoom = 1, maxZoom = 2.5f;
 
-    public boolean followMouse = true, allowRotate = true, drawNPConSub = false;
-    public boolean drawRenderButtons = false;
+    public boolean followMouse = true, allowRotate = true, drawNPConSub;
+    public boolean drawNpc, drawRenderButtons;
 
     public boolean isMouseOverRenderer(int x, int y) {
         if (!allowRotate) {
@@ -464,35 +467,51 @@ public abstract class GuiNPCInterface extends GuiScreen {
         return mouseX >= centerX - xRange && mouseX <= centerX + xRange && mouseY >= centerY - yRange && mouseY <= centerY + yRange;
     }
 
+
+    public void drawNpcWithExtras(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
+        drawNpc(entity, mouseX, mouseY, partialTicks);
+    }
     public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
         if (hasSubGui() && !drawNPConSub)
             return;
+
+
+        if (drawRenderButtons) {
+            rotateLeft.drawButton(mc, mouseX, mouseY);
+            rotateRight.drawButton(mc, mouseX, mouseY);
+            zoomOut.drawButton(mc, mouseX, mouseY);
+            zoomIn.drawButton(mc, mouseX, mouseY);
+        }
 
         if (Mouse.isButtonDown(0) && drawRenderButtons) {
             if (this.rotateLeft.mousePressed(this.mc, mouseX, mouseY)) {
                 rotation += partialTicks * 1.5F;
             } else if (this.rotateRight.mousePressed(this.mc, mouseX, mouseY)) {
                 rotation -= partialTicks * 1.5F;
-            } else if (this.zoomOut.mousePressed(this.mc, mouseX, mouseY) && zoomed < maxZoom) {
-                zoomed += partialTicks * 0.05F;
-            } else if (this.zoomIn.mousePressed(this.mc, mouseX, mouseY) && zoomed > minZoom) {
-                zoomed -= partialTicks * 0.05F;
+            } else if (this.zoomOut.mousePressed(this.mc, mouseX, mouseY) && zoom < maxZoom) {
+                zoom += partialTicks * 0.05F;
+            } else if (this.zoomIn.mousePressed(this.mc, mouseX, mouseY) && zoom > minZoom) {
+                zoom -= partialTicks * 0.05F;
             }
         }
+
 
         if (isMouseOverRenderer(mouseX, mouseY)) {
-            zoomed += Mouse.getDWheel() * 0.001f;
-            if (Mouse.isButtonDown(0) || Mouse.isButtonDown(1)) {
+            zoom += Mouse.getDWheel() * 0.001f;
+            if (Mouse.isButtonDown(0)) {
                 rotation -= Mouse.getDX() * 0.75f;
+            } else if (Mouse.isButtonDown(1)) {
+                rotation = 0;
+                zoom = defaultZoom;
             }
         }
 
-        if (zoomed > maxZoom)
-            zoomed = maxZoom;
-        if (zoomed < minZoom)
-            zoomed = minZoom;
+        if (zoom > maxZoom)
+            zoom = maxZoom;
+        if (zoom < minZoom)
+            zoom = minZoom;
 
-        drawNpc(entity, mouseX, mouseY, xOffsetNpc, yOffsetNpc, zoomed, rotation, partialTicks);
+        drawNpc(entity, mouseX, mouseY, xOffsetNpc, yOffsetNpc, zoom, rotation, partialTicks);
     }
 
     public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, int x, int y, float zoomed, float rotation, float partialTicks) {
@@ -505,10 +524,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             npc.isDrawn = true;
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef(guiLeft + x, guiTop + y, 50F);
+        GL11.glTranslatef(guiLeft + x, guiTop + y, 90F);
         float scale = 1;
         if (entity.height > 2.4)
-            scale = 2 / npc.height;
+            scale = 2 / entity.height;
 
         GL11.glScalef(-30 * scale * zoomed, 30 * scale * zoomed, 30 * scale * zoomed);
         GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
@@ -528,7 +547,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
         RenderHelper.enableStandardItemLighting();
         GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(-(float) Math.atan(f6 / 40F) * 20F, 1.0F, 0.0F, 0.0F);
+        GL11.glRotatef(-(float) Math.atan(f6 / 400F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.renderYawOffset = rotation;
         entity.rotationYaw = followMouse ? (float) Math.atan(f5 / 80F) * 40F + rotation : 0;
         entity.rotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
