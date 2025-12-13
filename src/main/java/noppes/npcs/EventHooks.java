@@ -316,6 +316,8 @@ public class EventHooks {
         NpcEvent.InteractEvent event = new NpcEvent.InteractEvent(npc.wrappedNPC, player);
         ScriptController.Instance.globalNpcScripts.callScript(EnumScriptType.INTERACT, event);
         boolean result = npc.script.callScript(EnumScriptType.INTERACT, event, "player", player);
+        if (npc.janinoHandler != null)
+            npc.janinoHandler.onInteract(event);
         NpcAPI.EVENT_BUS.post(event);
         return result;
     }

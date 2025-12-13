@@ -1,12 +1,13 @@
 package somehussar.janino.wrapper;
 
 import io.github.somehussar.janinoloader.api.script.IScriptClassBody;
+import noppes.npcs.scripted.event.NpcEvent;
 import org.codehaus.commons.compiler.Sandbox;
 
 public final class NPCWrapper {
 
     private final Sandbox sandbox;
-    private final IScriptClassBody<AbstractNPCJavaHandler> scriptBody;
+    public final IScriptClassBody<AbstractNPCJavaHandler> scriptBody;
 
     public NPCWrapper(Sandbox sandbox, IScriptClassBody<AbstractNPCJavaHandler> scriptBody) {
         this.sandbox = sandbox;
@@ -81,4 +82,7 @@ public final class NPCWrapper {
         sandbox.confine((java.security.PrivilegedAction<Void>) () -> { scriptBody.get().onProjectileImpact(event); return null; });
     }
 
+    public void onInteract(NpcEvent.InteractEvent event) {
+        sandbox.confine((java.security.PrivilegedAction<Void>) () -> { scriptBody.get().onInteract(event); return null; });
+    }
 }

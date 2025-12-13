@@ -14,6 +14,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
 import foxz.command.CommandNoppes;
+import io.github.somehussar.janinoloader.api.IDynamicCompiler;
+import io.github.somehussar.janinoloader.api.IDynamicCompilerBuilder;
 import kamkeel.npcs.addon.AddonManager;
 import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
@@ -138,6 +140,16 @@ public class CustomNpcs {
 
     public CustomNpcs() {
         instance = this;
+    }
+
+    private static IDynamicCompiler jls;
+
+    public static IDynamicCompiler getDynamicCompiler() {
+        if (jls == null) {
+            jls = IDynamicCompilerBuilder.createBuilder().getCompiler();
+        }
+
+        return jls;
     }
 
     @EventHandler
