@@ -209,15 +209,7 @@ import kamkeel.npcs.network.packets.request.recipe.RecipesGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleCompanionUpdatePacket;
 import kamkeel.npcs.network.packets.request.role.RoleGetPacket;
 import kamkeel.npcs.network.packets.request.role.RoleSavePacket;
-import kamkeel.npcs.network.packets.request.script.BlockScriptPacket;
-import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
-import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
-import kamkeel.npcs.network.packets.request.script.ForgeScriptPacket;
-import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
-import kamkeel.npcs.network.packets.request.script.NPCScriptPacket;
-import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
-import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
-import kamkeel.npcs.network.packets.request.script.ScriptInfoPacket;
+import kamkeel.npcs.network.packets.request.script.*;
 import kamkeel.npcs.network.packets.request.script.item.ItemScriptErrorPacket;
 import kamkeel.npcs.network.packets.request.script.item.ItemScriptPacket;
 import kamkeel.npcs.network.packets.request.script.item.LinkedItemScriptPacket;
@@ -297,6 +289,7 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new NPCScriptPacket());
         REQUEST_PACKET.registerPacket(new PlayerScriptPacket());
         REQUEST_PACKET.registerPacket(new ScriptInfoPacket());
+        REQUEST_PACKET.registerPacket(new ScriptFilesPacket());
         REQUEST_PACKET.registerPacket(new EffectScriptPacket());
 
         // Cloner Packets

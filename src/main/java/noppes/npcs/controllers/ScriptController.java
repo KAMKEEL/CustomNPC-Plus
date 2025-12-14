@@ -349,7 +349,7 @@ public class ScriptController {
         return list;
     }
 
-    private List<String> getScripts(String language) {
+    public List<String> getScripts(String language) {
         List<String> list = new ArrayList<String>();
         String ext = languages.get(language);
         if (ext == null)

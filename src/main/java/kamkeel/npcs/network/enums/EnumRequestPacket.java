@@ -172,6 +172,7 @@ public enum EnumRequestPacket {
     BlockScript,
     NPCScript,
     ScriptInfo,
+    ScriptFiles,
     EffectScript,
 
     DimensionTeleport,
