@@ -67,8 +67,10 @@ import net.minecraft.util.IChatComponent;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldServer;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
@@ -154,6 +156,7 @@ import noppes.npcs.roles.JobFollower;
 import noppes.npcs.roles.JobInterface;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
+import noppes.npcs.roles.RoleMount;
 import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
@@ -214,6 +217,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public List<EntityLivingBase> interactingEntities = new ArrayList<EntityLivingBase>();
 
     public ResourceLocation textureLocation = null;
+
+    private Entity lastRider;
 
     public EnumAnimation currentAnimation = EnumAnimation.NONE;
 
@@ -488,6 +493,8 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
 
         super.onLivingUpdate();
+
+        handleMountRiderState();
 
         if (worldObj.isRemote) {
             if (roleInterface != null) {
@@ -1499,10 +1506,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             this.spawnExplosionParticle();
             delete();
         } else {
-            if (this.riddenByEntity != null)
+            if (this.riddenByEntity != null) {
+                stabilizeDismountedRider(this.riddenByEntity);
                 this.riddenByEntity.mountEntity(null);
+                haltMountedMotion();
+            }
             if (this.ridingEntity != null)
                 this.mountEntity(null);
+            lastRider = null;
             setHealth(-1);
             setSprinting(false);
             getNavigator().clearPathEntity();
@@ -1774,6 +1785,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             roleInterface.writeToNBT(bard);
             compound.setTag("Companion", bard);
         }
+        if (advanced.role == EnumRoleType.Mount) {
+            NBTTagCompound mount = new NBTTagCompound();
+            roleInterface.writeToNBT(mount);
+            compound.setTag("Mount", mount);
+        }
 
         if (this instanceof EntityCustomNpc) {
             compound.setTag("ModelData", ((EntityCustomNpc) this).modelData.writeToNBT());
@@ -1810,6 +1826,10 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (advanced.role == EnumRoleType.Companion) {
             NBTTagCompound companion = compound.getCompoundTag("Companion");
             roleInterface.readFromNBT(companion);
+        }
+        if (advanced.role == EnumRoleType.Mount) {
+            NBTTagCompound mount = compound.getCompoundTag("Mount");
+            roleInterface.readFromNBT(mount);
         }
         if (this instanceof EntityCustomNpc) {
             ((EntityCustomNpc) this).modelData.readFromNBT(compound.getCompoundTag("ModelData"));
@@ -2077,13 +2097,130 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     @Override
-    public void moveEntityWithHeading(float p_70612_1_, float p_70612_2_) {
+    public void moveEntityWithHeading(float strafe, float forward) {
+        if (handleMountedMovement(strafe, forward)) {
+            return;
+        }
         double d0 = this.posX;
         double d1 = this.posY;
         double d2 = this.posZ;
-        super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
+        super.moveEntityWithHeading(strafe, forward);
         if (advanced.role == EnumRoleType.Companion && !isRemote())
             ((RoleCompanion) roleInterface).addMovementStat(this.posX - d0, this.posY - d1, this.posZ - d2);
+    }
+
+    protected boolean handleMountedMovement(float strafe, float forward) {
+        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount))
+            return false;
+        if (riddenByEntity != null && !(riddenByEntity instanceof EntityPlayer)) {
+            riddenByEntity.mountEntity(null);
+            return false;
+        }
+        if (!(riddenByEntity instanceof EntityPlayer))
+            return false;
+
+        RoleMount mount = (RoleMount) roleInterface;
+        EntityPlayer rider = (EntityPlayer) riddenByEntity;
+        this.prevRotationYaw = this.rotationYaw = rider.rotationYaw;
+        this.rotationPitch = rider.rotationPitch * 0.5F;
+        this.setRotation(this.rotationYaw, this.rotationPitch);
+        this.renderYawOffset = this.rotationYaw;
+        this.rotationYawHead = this.rotationYaw;
+
+        float controlledStrafe = rider.moveStrafing * 0.5F;
+        float controlledForward = rider.moveForward;
+        if (controlledForward <= 0.0F) {
+            controlledForward *= 0.25F;
+        }
+
+        float moveSpeed = Math.max(0.1F, getSpeed());
+        boolean riderSprinting = rider.isSprinting() && mount.isSprintAllowed();
+        if (riderSprinting) {
+            moveSpeed *= 1.2F;
+        }
+
+        if (!mount.isSprintAllowed() && rider.isSprinting()) {
+            rider.setSprinting(false);
+        }
+
+        this.setSprinting(riderSprinting);
+        this.stepHeight = 1.0F;
+        this.jumpMovementFactor = moveSpeed * 0.1F;
+
+        this.getNavigator().clearPathEntity();
+        this.setAttackTarget(null);
+        this.setRevengeTarget(null);
+
+        this.fallDistance = 0.0F;
+        rider.fallDistance = 0.0F;
+
+        applyMountedVerticalMotion(rider, moveSpeed, controlledForward);
+        doMountedMovement(controlledStrafe, controlledForward, moveSpeed);
+
+        return true;
+    }
+
+    protected void doMountedMovement(float strafe, float forward, float moveSpeed) {
+        this.moveStrafing = strafe;
+        this.moveForward = forward;
+        if (!worldObj.isRemote) {
+            this.setAIMoveSpeed(moveSpeed);
+            super.moveEntityWithHeading(strafe, forward);
+        }
+
+        this.prevLimbSwingAmount = this.limbSwingAmount;
+        double deltaX = this.posX - this.prevPosX;
+        double deltaZ = this.posZ - this.prevPosZ;
+        if (worldObj.isRemote && deltaX * deltaX + deltaZ * deltaZ < 1.0E-6D) {
+            deltaX = this.motionX;
+            deltaZ = this.motionZ;
+        }
+        float limbSwingSpeed = MathHelper.sqrt_double(deltaX * deltaX + deltaZ * deltaZ) * 4.0F;
+        if (limbSwingSpeed > 1.0F) {
+            limbSwingSpeed = 1.0F;
+        }
+        this.limbSwingAmount += (limbSwingSpeed - this.limbSwingAmount) * 0.4F;
+        this.limbSwing += this.limbSwingAmount;
+    }
+
+    protected void applyMountedVerticalMotion(EntityLivingBase rider, float moveSpeed, float forward) {
+        if (!(roleInterface instanceof RoleMount)) {
+            return;
+        }
+        RoleMount mount = (RoleMount) roleInterface;
+        double jumpFactor = MathHelper.clamp_double(mount.getJumpStrength(), 0.1D, 3.0D);
+
+        if (canFly()) {
+            double verticalBase = Math.max(0.1D, moveSpeed * 0.6D);
+            double vertical = MathHelper.clamp_double(verticalBase * jumpFactor, 0.05D, 2.0D);
+            if (rider.isJumping) {
+                this.motionY = Math.min(this.motionY + vertical, vertical);
+                this.isAirBorne = true;
+                this.velocityChanged = true;
+            } else {
+                float pitch = rider.rotationPitch;
+                if (pitch < -10F) {
+                    this.motionY = vertical;
+                } else if (pitch > 10F) {
+                    this.motionY = -vertical;
+                } else if (!this.onGround) {
+                    this.motionY *= 0.6D;
+                }
+            }
+        } else if (rider.isJumping && this.onGround) {
+            double baseVelocity = MathHelper.clamp_double(0.4D + moveSpeed * 1.5D, 0.2D, 1.2D);
+            double jumpVelocity = MathHelper.clamp_double(baseVelocity * jumpFactor, 0.2D, 2.0D);
+            this.motionY = jumpVelocity;
+            this.isAirBorne = true;
+            this.velocityChanged = true;
+            if (forward > 0.0F) {
+                float yawRadians = this.rotationYaw * (float) Math.PI / 180.0F;
+                double boost = 0.4D * forward;
+                this.motionX += -MathHelper.sin(yawRadians) * boost;
+                this.motionZ += MathHelper.cos(yawRadians) * boost;
+            }
+            ForgeHooks.onLivingJump(this);
+        }
     }
 
     @Override
@@ -2094,6 +2231,101 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     @Override
     public boolean shouldDismountInWater(Entity rider) {
         return false;
+    }
+
+    @Override
+    public void updateRiderPosition() {
+        if (advanced.role == EnumRoleType.Mount && roleInterface instanceof RoleMount && riddenByEntity != null) {
+            RoleMount mount = (RoleMount) roleInterface;
+            double scale = Math.max(0.1D, this.display.modelSize / 5.0D);
+            Vec3 seat = Vec3.createVectorHelper(mount.getOffsetX(), 0.0D, mount.getOffsetZ() + (0.8D * scale));
+            seat.rotateAroundY((float) Math.toRadians(-this.renderYawOffset));
+            double px = this.posX + seat.xCoord;
+            double py = this.posY + this.getMountedYOffset() + riddenByEntity.getYOffset() + mount.getOffsetY();
+            double pz = this.posZ + seat.zCoord;
+
+            riddenByEntity.setPosition(px, py, pz);
+
+            if (riddenByEntity instanceof EntityLivingBase) {
+                EntityLivingBase rider = (EntityLivingBase) riddenByEntity;
+                rider.prevRotationPitch = rider.rotationPitch;
+                rider.prevRotationYaw = rider.rotationYaw;
+                rider.prevRenderYawOffset = this.renderYawOffset;
+                rider.renderYawOffset = this.renderYawOffset;
+                rider.prevRotationYawHead = this.renderYawOffset;
+                rider.rotationYawHead = this.renderYawOffset;
+            }
+        } else {
+            super.updateRiderPosition();
+        }
+    }
+
+    private void handleMountRiderState() {
+        if (worldObj.isRemote) {
+            if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+                lastRider = null;
+            }
+            return;
+        }
+
+        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
+            lastRider = null;
+            return;
+        }
+
+        Entity currentRider = this.riddenByEntity;
+        if (currentRider != null && !(currentRider instanceof EntityPlayer)) {
+            Entity dismount = currentRider;
+            dismount.mountEntity(null);
+            stabilizeDismountedRider(dismount);
+            haltMountedMotion();
+            currentRider = null;
+        }
+        if (currentRider != lastRider) {
+            if (lastRider != null) {
+                stabilizeDismountedRider(lastRider);
+                haltMountedMotion();
+            }
+            lastRider = currentRider;
+        }
+    }
+
+    private void stabilizeDismountedRider(Entity rider) {
+        boolean wasOnGround = rider.onGround;
+        double previousMotionX = rider.motionX;
+        double previousMotionY = rider.motionY;
+        double previousMotionZ = rider.motionZ;
+        float previousFall = rider.fallDistance;
+
+        if (wasOnGround) {
+            rider.motionX = 0.0D;
+            rider.motionY = 0.0D;
+            rider.motionZ = 0.0D;
+            rider.fallDistance = 0.0F;
+            rider.onGround = true;
+        } else {
+            rider.motionX = previousMotionX;
+            rider.motionY = previousMotionY;
+            rider.motionZ = previousMotionZ;
+            rider.fallDistance = previousFall;
+        }
+
+        rider.velocityChanged = true;
+    }
+
+    private void haltMountedMotion() {
+        this.motionX = 0.0D;
+        this.motionY = 0.0D;
+        this.motionZ = 0.0D;
+        this.velocityChanged = true;
+        this.isAirBorne = false;
+        this.setSprinting(false);
+        this.moveForward = 0.0F;
+        this.moveStrafing = 0.0F;
+        this.setAIMoveSpeed(0.0F);
+        this.limbSwingAmount = 0.0F;
+        this.limbSwing = 0.0F;
+        this.getNavigator().clearPathEntity();
     }
 
     // Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64

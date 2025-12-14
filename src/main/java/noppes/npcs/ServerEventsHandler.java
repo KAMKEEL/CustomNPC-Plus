@@ -51,6 +51,7 @@ import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.data.Animation;
 import noppes.npcs.controllers.data.AnimationData;
 import noppes.npcs.controllers.data.Line;
+import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.MarkData;
 import noppes.npcs.controllers.data.Party;
 import noppes.npcs.controllers.data.PlayerData;
@@ -59,6 +60,7 @@ import noppes.npcs.controllers.data.Quest;
 import noppes.npcs.controllers.data.QuestData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemExcalibur;
+import noppes.npcs.items.ItemLinked;
 import noppes.npcs.items.ItemShield;
 import noppes.npcs.items.ItemSoulstoneEmpty;
 import noppes.npcs.quests.QuestKill;
@@ -171,6 +173,19 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void invoke(LivingHurtEvent event) {
+
+
+
+        if(event.source.getEntity() instanceof EntityPlayerMP && event.entity instanceof EntityLivingBase ){
+            EntityPlayerMP ep = (EntityPlayerMP) event.source.getEntity();
+            if(ep.getHeldItem() != null && ep.getHeldItem().getItem() instanceof ItemLinked){
+                int time = ep.getHeldItem().stackTagCompound.getCompoundTag("ItemData").getCompoundTag("LinkedData").getInteger("AttackSpeed");
+                event.entity.hurtResistantTime = time;
+                ((EntityLivingBase) event.entity).hurtTime = time;
+            }
+        }
+
+
         if (!(event.entityLiving instanceof EntityPlayer))
             return;
 

@@ -82,6 +82,7 @@ public class ModelMPM extends ModelNPCMale {
     public ModelTail tail;
     public ModelBase entityModel;
     public EntityLivingBase entity;
+    public EntityCustomNpc npc;
 
     public boolean currentlyPlayerTexture;
 
@@ -354,7 +355,7 @@ public class ModelMPM extends ModelNPCMale {
 
     @Override
     public void render(Entity par1Entity, float par2, float par3, float par4, float par5, float par6, float par7) {
-        EntityCustomNpc npc = (EntityCustomNpc) par1Entity;
+        npc = (EntityCustomNpc) par1Entity;
         EntityPlayer player = Minecraft.getMinecraft().thePlayer;
         if (npc.scriptInvisibleToPlayer(Minecraft.getMinecraft().thePlayer) && (player.getHeldItem() == null || player.getHeldItem().getItem() != CustomItems.wand))
             return;

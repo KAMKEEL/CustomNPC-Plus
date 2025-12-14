@@ -21,6 +21,7 @@ import noppes.npcs.roles.JobSpawner;
 import noppes.npcs.roles.RoleBank;
 import noppes.npcs.roles.RoleCompanion;
 import noppes.npcs.roles.RoleFollower;
+import noppes.npcs.roles.RoleMount;
 import noppes.npcs.roles.RolePostman;
 import noppes.npcs.roles.RoleTrader;
 import noppes.npcs.roles.RoleTransporter;
@@ -196,7 +197,11 @@ public class DataAdvanced {
         if (EnumRoleType.values().length <= i) {
             i -= 2;
         }
-        role = EnumRoleType.values()[i];
+        EnumRoleType newRole = EnumRoleType.values()[i];
+        if (npc.roleInterface instanceof RoleMount && newRole != EnumRoleType.Mount) {
+            ((RoleMount) npc.roleInterface).onDisable();
+        }
+        role = newRole;
         if (role == EnumRoleType.None)
             npc.roleInterface = null;
         else if (role == EnumRoleType.Bank && !(npc.roleInterface instanceof RoleBank))
@@ -211,6 +216,8 @@ public class DataAdvanced {
             npc.roleInterface = new RoleTransporter(npc);
         else if (role == EnumRoleType.Companion && !(npc.roleInterface instanceof RoleCompanion))
             npc.roleInterface = new RoleCompanion(npc);
+        else if (role == EnumRoleType.Mount && !(npc.roleInterface instanceof RoleMount))
+            npc.roleInterface = new RoleMount(npc);
     }
 
     public void setJob(int i) {

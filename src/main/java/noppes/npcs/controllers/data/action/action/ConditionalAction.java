@@ -88,7 +88,7 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
     @Override
     public boolean isTerminated() {
-        return terminateWhen != null && terminateWhen.apply(this);
+        return checkTermination();
     }
 
     public void inheritedTick() {
@@ -107,10 +107,10 @@ public class ConditionalAction extends Action implements IConditionalAction {
             checkCount++;
 
             Runnable execute = () -> {
-                if (condition != null && condition.apply(this))
+                if (evaluatePredicate(condition, "Condition"))
                     executeTask();
 
-                if (isTerminated()) {
+                if (checkTermination()) {
                     if (onTermination != null)
                         executeOnTermination();
                     markDone();
@@ -151,6 +151,32 @@ public class ConditionalAction extends Action implements IConditionalAction {
 
         if (manager.inDebugMode())
             manager.LOGGER.log("Finished executing onTermination task", this);
+    }
+
+    private boolean checkTermination() {
+        return evaluatePredicate(terminateWhen, "Termination condition");
+    }
+
+    private boolean evaluatePredicate(Function<IAction, Boolean> predicate, String name) {
+        if (predicate == null)
+            return false;
+
+        Boolean result;
+        try {
+            result = predicate.apply(this);
+        } catch (Throwable t) {
+            manager.LOGGER.error(name + " of " + this + " threw an exception:", t);
+            markDone();
+            return false;
+        }
+
+        if (result == null) {
+            if (manager.inDebugMode())
+                manager.LOGGER.log(name + " returned null; treating as false", this);
+            return false;
+        }
+
+        return result;
     }
 
 

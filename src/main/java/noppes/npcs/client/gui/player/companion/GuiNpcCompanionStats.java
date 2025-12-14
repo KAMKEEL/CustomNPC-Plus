@@ -34,6 +34,10 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
         xSize = 171;
         ySize = 166;
         PacketClient.sendClient(new GetNPCRole());
+
+        drawNpc = true;
+        xOffsetNpc = 34;
+        yOffsetNpc = 150;
     }
 
     @Override
@@ -96,7 +100,6 @@ public class GuiNpcCompanionStats extends GuiNPCInterface implements IGuiData {
         }
 
         isEating = role.isEating();
-        super.drawNpc(34, 150);
         int y = drawHealth(guiTop + 88);
     }
 

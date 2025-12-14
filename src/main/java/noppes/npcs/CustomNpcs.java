@@ -21,6 +21,7 @@ import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
@@ -322,6 +323,7 @@ public class CustomNpcs {
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
+        SyncController.load();
     }
 
 

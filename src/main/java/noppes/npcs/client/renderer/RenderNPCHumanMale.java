@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.entity.RenderBiped;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemBlock;
@@ -229,7 +230,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface {
                 GL11.glRotatef(20.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(-var6, -var6, var6);
-            } else if (itemstack2.getItem() instanceof ItemBow && (customRenderer == null || pluginMod)) {
+            } else if ((itemstack2.getItem() != null && itemstack2.getItem() == Items.bow) ||
+                (itemstack2.getItem() instanceof ItemBow && (customRenderer == null || pluginMod))) {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
                 GL11.glRotatef(-20.0F, 0.0F, 1.0F, 0.0F);
@@ -322,7 +324,8 @@ public class RenderNPCHumanMale extends RenderNPCInterface {
                 GL11.glRotatef(20.0F, 1.0F, 0.0F, 0.0F);
                 GL11.glRotatef(45.0F, 0.0F, 1.0F, 0.0F);
                 GL11.glScalef(var6, -var6, var6);
-            } else if (itemstack2.getItem() instanceof ItemBow && (customRenderer == null || pluginMod)) {
+            } else if ((itemstack2.getItem() != null && itemstack2.getItem() == Items.bow) ||
+                (itemstack2.getItem() instanceof ItemBow && (customRenderer == null || pluginMod))) {
                 var6 = 0.625F;
                 GL11.glTranslatef(0.0F, 0.125F, 0.3125F);
                 GL11.glRotatef(-20.0F, 0.0F, 1.0F, 0.0F);
