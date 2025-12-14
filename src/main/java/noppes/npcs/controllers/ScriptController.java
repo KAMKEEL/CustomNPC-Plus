@@ -98,6 +98,7 @@ public class ScriptController {
             } catch (Exception ignored) {
             }
         }
+        languages.put("Java", ".java");
     }
 
     private File forgeScriptsFile() {
