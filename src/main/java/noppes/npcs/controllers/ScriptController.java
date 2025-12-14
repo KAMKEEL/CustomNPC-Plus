@@ -46,7 +46,7 @@ public class ScriptController {
     public static boolean HasStart = false;
     private final ScriptEngineManager manager;
     private ScriptEngineFactory nashornFactory;
-    public Map<String, String> languages = new HashMap<String, String>();
+    public final Map<String, String> languages = new HashMap<String, String>();
     public Map<String, String> scripts = new HashMap<String, String>();
     public long lastLoaded = 0;
     public File dir;
