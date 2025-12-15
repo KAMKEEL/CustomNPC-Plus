@@ -207,6 +207,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
         return scrolls.get(id);
     }
 
+    public int backgroundColor = 0x66000000;
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         scrollY = (float) lerp(scrollY, nextScrollY, partialTicks);
@@ -220,7 +221,7 @@ public class GuiScrollWindow extends GuiScreen implements ITextfieldListener, IC
 
         this.drawDefaultBackground = false;
         if (drawBackground)
-            this.drawGradientRect(0, 0, this.width, this.height, 0x66000000, 0x88000000);
+            this.drawGradientRect(0, 0, this.width, this.height, backgroundColor, backgroundColor);
 
 
         if (maxScrollY > 0)
