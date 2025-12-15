@@ -45,9 +45,7 @@ public class EntityUnloadListener implements IWorldAccess {
     public void onEntityDestroy(Entity entity) {
         if (entity instanceof EntityNPCInterface) {
             EntityNPCInterface npc = (EntityNPCInterface) entity;
-            if (npc.janinoHandler != null)
-                npc.janinoHandler.prepareToUnload();
-            npc.janinoHandler = null;
+            // TODO: REMOVE SCRIPTED OBJECT AND CLASSLOADER FOR IT
         }
      }
 

@@ -4,8 +4,6 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.registry.IEntityAdditionalSpawnData;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import io.github.somehussar.janinoloader.api.script.IScriptBodyBuilder;
-import io.github.somehussar.janinoloader.api.script.IScriptClassBody;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.addon.DBCAddon;
 import kamkeel.npcs.addon.client.DBCClient;
@@ -162,12 +160,8 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
-import org.codehaus.commons.compiler.Sandbox;
-import somehussar.janino.wrapper.AbstractNPCJavaHandler;
-import somehussar.janino.wrapper.NPCWrapper;
 
 import java.io.IOException;
-import java.security.Permissions;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -197,7 +191,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public float baseHeight = 1.8f;
     public float scaleX, scaleY, scaleZ;
-    public NPCWrapper janinoHandler;
     private boolean wasKilled = false;
     public RoleInterface roleInterface;
     public JobInterface jobInterface;
@@ -256,20 +249,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
             if (!this.isRemote() && this.wrappedNPC == null) {
                 this.wrappedNPC = new ScriptNpc<>(this);
-            }
-            if (!this.isRemote()) {
-                IScriptClassBody<AbstractNPCJavaHandler> javaCompiler = IScriptBodyBuilder.getBuilder(AbstractNPCJavaHandler.class, CustomNpcs.getDynamicCompiler())
-                    .setDefaultImports("noppes.npcs.api.event.INpcEvent").build();
-                javaCompiler.setScript("" +
-                    "" +
-                    "void onInteract(INpcEvent.InteractEvent event) {" +
-                    "   event.getNpc().say(\"Lol this is from a script!\");" +
-                    "}" +
-                    "");
-
-                Permissions permissions = new Permissions();
-                Sandbox sandbox = new Sandbox(permissions);
-                this.janinoHandler = new NPCWrapper(sandbox, javaCompiler);
             }
         } catch (Exception e) {
             e.printStackTrace();
