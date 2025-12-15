@@ -64,6 +64,12 @@ public class ScriptController {
     public GlobalNPCDataScript globalNpcScripts = new GlobalNPCDataScript((EntityNPCInterface) null);
     public long lastGlobalNpcUpdate = 0L;
 
+    /**
+     * Incremented whenever external scripts loaded.
+     */
+    public int globalRevision;
+
+
     public ScriptController() {
         Instance = this;
         manager = new ScriptEngineManager();
@@ -257,6 +263,7 @@ public class ScriptController {
                 loadDir(scriptDir, "", ext);
         }
         lastLoaded = System.currentTimeMillis();
+        globalRevision++;
     }
 
     private void loadDir(File dir, String name, String ext) {

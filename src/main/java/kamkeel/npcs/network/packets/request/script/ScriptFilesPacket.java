@@ -67,8 +67,10 @@ public final class ScriptFilesPacket extends AbstractPacket {
             cont.scripts.put(script.getKey(), script.getValue());
         }
 
+        //Set client side configs
         ConfigScript.ScriptingEnabled = compound.getBoolean("ScriptingEnabled");
         ConfigScript.RunLoadedScriptsFirst = compound.getBoolean("LoadedFirst");
+        ScriptController.Instance.globalRevision = compound.getInteger("GlobalRevision");
     }
 
     public NBTTagCompound getScriptsNbt(String lang) {
@@ -88,6 +90,7 @@ public final class ScriptFilesPacket extends AbstractPacket {
         //Send server configs to client
         compound.setBoolean("ScriptingEnabled", ConfigScript.ScriptingEnabled);
         compound.setBoolean("LoadedFirst", ConfigScript.RunLoadedScriptsFirst);
+        compound.setInteger("GlobalRevision", ScriptController.Instance.globalRevision);
         compound.setTag("Scripts", NBTTags.nbtStringStringMap(scriptss));
         return compound;
     }
