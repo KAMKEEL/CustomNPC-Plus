@@ -5,22 +5,20 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 import kamkeel.npcs.network.*;
 import kamkeel.npcs.network.enums.EnumRequestPacket;
-import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.util.ByteBufUtils;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagList;
-import net.minecraft.nbt.NBTTagString;
 import noppes.npcs.CustomNpcsPermissions;
-import noppes.npcs.config.ConfigScript;
+import noppes.npcs.NBTTags;
 import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class ScriptFilesPacket extends AbstractPacket {
-    public static String packetName = "Request|ScriptLanguages";
+    public static String packetName = "Request|ScriptFiles";
 
     private String lang;
 
@@ -38,7 +36,7 @@ public final class ScriptFilesPacket extends AbstractPacket {
 
     @Override
     public PacketChannel getChannel() {
-        return PacketHandler.REQUEST_PACKET;
+        return PacketHandler.DATA_PACKET;
     }
 
     @Override
@@ -49,33 +47,49 @@ public final class ScriptFilesPacket extends AbstractPacket {
     @SideOnly(Side.CLIENT)
     @Override
     public void sendData(ByteBuf out) throws IOException {
-        ByteBufUtils.writeString(out, this.lang);
+        ByteBufUtils.writeNBT(out, getScriptsNbt(lang));
     }
 
     @Override
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
-        if (!(player instanceof EntityPlayerMP))
-            return;
+        NBTTagCompound compound = ByteBufUtils.readNBT(in);
 
-        if (!ConfigScript.canScript(player, CustomNpcsPermissions.SCRIPT))
-            return;
+        String lang = compound.getString("lang");
+        String ext = compound.getString("ext");
+        Map<String, String> scripts = NBTTags.getStringStringMap(compound.getTagList("Scripts", 10));
 
-        lang = ByteBufUtils.readString(in);
+        ScriptController cont = ScriptController.Instance;
+        if (!cont.languages.containsKey(lang) && ext != null)
+            cont.languages.put(lang, ext);
 
-        NBTTagCompound compound = new NBTTagCompound();
-        List<String> files = ScriptController.Instance.getScripts(lang);
-
-        if (!files.isEmpty()) {
-            NBTTagList scripts = new NBTTagList();
-            for (String script : files)
-                scripts.appendTag(new NBTTagString(script));
-            compound.setTag("Scripts", scripts);
+        for (Map.Entry<String, String> script : scripts.entrySet()) {
+            cont.scripts.put(script.getKey(), script.getValue());
         }
-
-        GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
     }
 
-    public static void Get(String lang) {
-        PacketClient.sendClient(new ScriptFilesPacket(lang));
+    public NBTTagCompound getScriptsNbt(String lang) {
+        NBTTagCompound compound = new NBTTagCompound();
+        compound.setString("lang", lang);
+
+        Map<String, String> scriptss = new HashMap<>();
+        String ext = ScriptController.Instance.languages.get(lang);
+        if (ext != null) {
+            for (Map.Entry<String, String> script : ScriptController.Instance.scripts.entrySet()) {
+                if (script.getKey().endsWith(ext))
+                    scriptss.put(script.getKey(), script.getValue());
+            }
+            compound.setString("ext", ext);
+        }
+
+        compound.setTag("Scripts", NBTTags.nbtStringStringMap(scriptss));
+        return compound;
+    }
+
+    public static void sendToAll(String lang) {
+        PacketHandler.Instance.sendToAll(new ScriptFilesPacket(lang));
+    }
+
+    public static void sendToPlayer(EntityPlayerMP player, String lang) {
+        PacketHandler.Instance.sendToPlayer(new ScriptFilesPacket(lang), player);
     }
 }

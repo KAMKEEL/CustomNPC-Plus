@@ -3,7 +3,9 @@ package noppes.npcs.controllers;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import jdk.nashorn.api.scripting.ClassFilter;
 import jdk.nashorn.api.scripting.NashornScriptEngineFactory;
+import kamkeel.npcs.network.packets.request.script.ScriptFilesPacket;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
@@ -228,6 +230,14 @@ public class ScriptController {
 
     public synchronized void saveGlobalScriptsSync() {
         customNPCThread.execute(this::saveGlobalNpcScripts);
+    }
+
+    public void syncClientScripts(EntityPlayerMP player) {
+        if (player != null) {
+            ScriptFilesPacket.sendToPlayer(player, "Java");
+        } else {
+            ScriptFilesPacket.sendToAll("Java");
+        }
     }
 
     public void loadCategories() {

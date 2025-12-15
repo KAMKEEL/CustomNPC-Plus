@@ -7,14 +7,10 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.controllers.ProfileController;
 import kamkeel.npcs.controllers.SyncController;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
-import noppes.npcs.client.AnalyticsTracking;
+import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.controllers.data.action.ActionManager;
-
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class ServerTickHandler {
 
@@ -64,6 +60,7 @@ public class ServerTickHandler {
         ProfileController.Instance.login(player);
         SyncController.beginLogin(player);
         SyncController.syncEffects(player);
+        ScriptController.Instance.syncClientScripts(player);
     }
 
     @SubscribeEvent
