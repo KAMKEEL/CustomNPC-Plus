@@ -2,6 +2,3 @@
 	path = src/api
 	url = https://github.com/KAMKEEL/CustomNPC-Plus-API.git
 	branch = dev
-[submodule "CustomNPC-Plus/src/api"]
-	path = CustomNPC-Plus/src/api
-	url = https://github.com/KAMKEEL/CustomNPC-Plus-API.git
