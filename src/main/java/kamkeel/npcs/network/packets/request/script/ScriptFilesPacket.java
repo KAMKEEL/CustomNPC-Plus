@@ -11,6 +11,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NBTTags;
+import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
@@ -54,8 +55,8 @@ public final class ScriptFilesPacket extends AbstractPacket {
     public void receiveData(ByteBuf in, EntityPlayer player) throws IOException {
         NBTTagCompound compound = ByteBufUtils.readNBT(in);
 
-        String lang = compound.getString("lang");
-        String ext = compound.getString("ext");
+        String lang = compound.getString("Lang");
+        String ext = compound.getString("Ext");
         Map<String, String> scripts = NBTTags.getStringStringMap(compound.getTagList("Scripts", 10));
 
         ScriptController cont = ScriptController.Instance;
@@ -65,11 +66,14 @@ public final class ScriptFilesPacket extends AbstractPacket {
         for (Map.Entry<String, String> script : scripts.entrySet()) {
             cont.scripts.put(script.getKey(), script.getValue());
         }
+
+        ConfigScript.ScriptingEnabled = compound.getBoolean("ScriptingEnabled");
+        ConfigScript.RunLoadedScriptsFirst = compound.getBoolean("LoadedFirst");
     }
 
     public NBTTagCompound getScriptsNbt(String lang) {
         NBTTagCompound compound = new NBTTagCompound();
-        compound.setString("lang", lang);
+        compound.setString("Lang", lang);
 
         Map<String, String> scriptss = new HashMap<>();
         String ext = ScriptController.Instance.languages.get(lang);
@@ -78,9 +82,12 @@ public final class ScriptFilesPacket extends AbstractPacket {
                 if (script.getKey().endsWith(ext))
                     scriptss.put(script.getKey(), script.getValue());
             }
-            compound.setString("ext", ext);
+            compound.setString("Ext", ext);
         }
 
+        //Send server configs to client
+        compound.setBoolean("ScriptingEnabled", ConfigScript.ScriptingEnabled);
+        compound.setBoolean("LoadedFirst", ConfigScript.RunLoadedScriptsFirst);
         compound.setTag("Scripts", NBTTags.nbtStringStringMap(scriptss));
         return compound;
     }
