@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
-import noppes.npcs.client.gui.util.TextContainer.LineData;
+
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
+import  noppes.npcs.client.gui.util.JavaTextContainer.LineData;
+
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
 
@@ -25,7 +27,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private int cursorCounter;
     private ITextChangeListener listener;
     public String text = null;
-    private TextContainer container = null;
+    private JavaTextContainer container = null;
     public boolean active = false;
     public boolean enabled = true;
     public boolean visible = true;
@@ -115,7 +117,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
-        List<LineData> list = new ArrayList<LineData>(container.lines);
+        List<JavaTextContainer.LineData> list = new ArrayList<>(container.lines);
 
         String wordHightLight = null;
         if (startSelection != endSelection) {
@@ -578,7 +580,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             this.text = text;
-            this.container = new TextContainer(text);
+            //this.container = new TextContainer(text);
+            this.container = new JavaTextContainer(text);
             this.container.init(this.width, this.height);
             if (this.enableCodeHighlighting) {
                 this.container.formatCodeText();

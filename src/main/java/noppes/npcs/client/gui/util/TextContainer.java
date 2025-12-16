@@ -8,7 +8,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TextContainer {
-    private final static char colorChar = '\u00A7';
+    protected final static char colorChar = '\u00A7';
 
     //public final Pattern regexString = Pattern.compile("\"(?:[^\"\\\\]|\\\\.)*?(\"|$)|'(?:[^'\\\\]|\\\\.)*?('|$)");
     //public final Pattern regexString = Pattern.compile("\"(.*?(?<![\\\\])(\\s)*?)*?\"");
@@ -73,7 +73,7 @@ public class TextContainer {
         }
     }
 
-    private MarkUp getNextMatching(int start) {
+    protected MarkUp getNextMatching(int start) {
         MarkUp markup = null;
         String s = text.substring(start);
         Matcher matcher = regexNumber.matcher(s);
@@ -128,7 +128,7 @@ public class TextContainer {
         makeup.add(new MarkUp(start, end, c, level));
     }
 
-    private boolean removeConflictingMarkUp(int start, int end, int level) {
+    protected boolean removeConflictingMarkUp(int start, int end, int level) {
         List<MarkUp> conflicting = new ArrayList<MarkUp>();
         for (MarkUp m : makeup) {
             if (start >= m.start && start <= m.end || end >= m.start && end <= m.end || start < m.start && end > m.start) {
