@@ -120,7 +120,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         List<JavaTextContainer.LineData> list = new ArrayList<>(container.lines);
 
-        // Build brace spans: depth, open line, close line (inclusive)
+        // Build brace spans: {origDepth, open line, close line, adjustedDepth}
         List<int[]> braceSpans = computeBraceSpans(text, list);
 
         String wordHightLight = null;
@@ -177,11 +177,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     int visStart = scrolledLine;
                     int visEnd = Math.min(list.size() - 1, scrolledLine + container.visibleLines - 1);
                     for (int[] span : braceSpans) {
-                        int depth = span[0];
+                        int originalDepth = span[0];
                         int openLine = span[1];
                         int closeLine = span[2];
-                        // Skip top-level (depth 1) to avoid class/global fields guides
-                        if (depth <= 1)
+                        int depth = span.length > 3 ? span[3] : originalDepth;
+                        // Skip top-level (depth 1) using the original depth to avoid hiding nested guides when adjusted
+                        if (originalDepth <= 1)
                             continue;
                         int startLine = openLine + 1; // start under the opening brace
                         int endLine = closeLine - 1;  // stop before the closing brace
@@ -193,7 +194,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int drawStart = Math.max(startLine, visStart);
                         int drawEnd = Math.min(endLine, visEnd);
                         // Compute horizontal position: 4 spaces per indent level, minus a tiny left offset
-                        int spaces = (depth - 1) * 4;
+                        int safeDepth = Math.max(1, depth);
+                        int spaces = (safeDepth - 1) * 4;
                         StringBuilder sb = new StringBuilder();
                         for (int k = 0; k < spaces; k++)
                             sb.append(' ');
@@ -264,7 +266,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return 0;
     }
 
-    // Computes brace spans as {depth, openLineIndex, closeLineIndex}, inclusive of brace lines
+    // Computes brace spans as {originalDepth, openLineIndex, closeLineIndex, adjustedDepth}, inclusive of brace lines
     private List<int[]> computeBraceSpans(String fullText, List<LineData> lines) {
         List<int[]> spans = new ArrayList<>();
         if (fullText == null || fullText.isEmpty() || lines == null || lines.isEmpty())
@@ -273,7 +275,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int lineIdx = 0;
         int lineEnd = lines.get(0).end;
         List<Integer> openStack = new ArrayList<>(); // line indices of unmatched opens
-        List<Integer> unmatchedOpenLines = new ArrayList<>();
 
         boolean inLineComment = false;
         boolean inBlockComment = false;
@@ -296,6 +297,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 } else if (c == '\\') {
                     escape = true;
                 } else if (c == stringDelimiter) {
+                    inString = false;
+                } else if (c == '\n') {
+                    // Treat unterminated strings as ending at EOL to avoid breaking later brace parsing
                     inString = false;
                 }
                 continue;
@@ -345,28 +349,20 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
+        // Normalize depths to reduce impact of unmatched opens without hiding nested guides
         if (!openStack.isEmpty()) {
-            unmatchedOpenLines.addAll(openStack);
-            unmatchedOpenLines.sort(Integer::compareTo);
-
+            int baseline = openStack.size();
             List<int[]> adjusted = new ArrayList<>(spans.size());
             for (int[] span : spans) {
-                int openLine = span[1];
-                int adjust = 0;
-                for (int unmatched : unmatchedOpenLines) {
-                    if (unmatched <= openLine) {
-                        adjust++;
-                    } else {
-                        break;
-                    }
-                }
-
-                int newDepth = span[0] - adjust;
-                if (newDepth > 0) {
-                    adjusted.add(new int[]{newDepth, openLine, span[2]});
-                }
+                int adjustedDepth = Math.max(1, span[0] - baseline);
+                adjusted.add(new int[]{span[0], span[1], span[2], adjustedDepth});
             }
             spans = adjusted;
+        } else {
+            for (int idx = 0; idx < spans.size(); idx++) {
+                int[] span = spans.get(idx);
+                spans.set(idx, new int[]{span[0], span[1], span[2], span[0]});
+            }
         }
 
         return spans;
@@ -453,7 +449,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     j = m.start();
                 }
             }
-            int newPos = Math.min(cursorPosition + j, text.length()); //-2 for the \n
+            int newPos = Math.min(cursorPosition + j, text.length());
             setCursor(newPos, GuiScreen.isShiftKeyDown());
             return true;
         }
@@ -558,6 +554,50 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             String s = getSelectionBeforeText();
             if (startSelection > 0 && startSelection == endSelection) {
+                LineData curr = null;
+                for (LineData line : container.lines) {
+                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                        curr = line;
+                        break;
+                    }
+                }
+                if (curr != null) {
+                    int col = cursorPosition - curr.start;
+                    int indent = getLineIndent(curr.text);
+                    if (col <= indent && startSelection - 1 >= 0 && text.charAt(startSelection - 1) == '\n') {
+                        // At or before indent: jump to previous line indent by removing newline
+                        LineData prev = null;
+                        int idx = container.lines.indexOf(curr);
+                        if (idx > 0)
+                            prev = container.lines.get(idx - 1);
+                        String before = text.substring(0, startSelection - 1);
+                        String after = startSelection < text.length() ? text.substring(startSelection) : "";
+                        setText(before + after);
+                        int newCursor = startSelection - 1;
+                        if (prev != null) {
+                            int prevIndent = getLineIndent(prev.text);
+                            newCursor = prev.start + Math.min(prevIndent, Math.max(0, prev.text.length()));
+                        }
+                        endSelection = cursorPosition = startSelection = Math.max(0, newCursor);
+                        return true;
+                    }
+                }
+                // If deleting an opening bracket/quote and the immediate next char is the matching closer,
+                // remove both so the auto-inserted closer doesn't remain orphaned.
+                if (startSelection > 0 && startSelection < text.length()) {
+                    char prev = text.charAt(startSelection - 1);
+                    char nextc = text.charAt(startSelection);
+                    boolean removedPair = false;
+                    if ((prev == '(' && nextc == ')') || (prev == '[' && nextc == ']') || (prev == '{' && nextc == '}') || (prev == '\'' && nextc == '\'') || (prev == '"' && nextc == '"')) {
+                        String before = text.substring(0, startSelection - 1);
+                        String after = startSelection + 1 < text.length() ? text.substring(startSelection + 1) : "";
+                        setText(before + after);
+                        startSelection -= 1;
+                        endSelection = cursorPosition = startSelection;
+                        return true;
+                    }
+                }
+
                 s = s.substring(0, s.length() - 1);
                 startSelection--;
             }
@@ -608,12 +648,93 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return true;
         }
         if (i == Keyboard.KEY_TAB) {
-            addText("    ");
+            boolean shift = isShiftKeyDown();
+            if (shift) {
+                handleShiftTab();
+            } else {
+                handleTab();
+            }
+        }
+        if (i == Keyboard.KEY_F && isCtrlKeyDown()) {
+            formatText();
+            return true;
         }
         if (i == Keyboard.KEY_RETURN) {
-            addText(Character.toString('\n') + getAutoIndentForEnter());
+            if (cursorPosition > 0 && cursorPosition <= text.length() && text.charAt(cursorPosition - 1) == '{') {
+                String indent = getIndentCurrentLine();
+                String childIndent = indent + "    ";
+                String before = getSelectionBeforeText();
+                String after = getSelectionAfterText();
+
+                // Find the next non-whitespace character and its indent to decide if this brace is already closed at the same scope.
+                int nextNonWsIndex = -1;
+                for (int idx = 0; idx < after.length(); idx++) {
+                    char ch = after.charAt(idx);
+                    if (!Character.isWhitespace(ch)) {
+                        nextNonWsIndex = idx;
+                        break;
+                    }
+                }
+
+                boolean hasMatchingCloseSameIndent = false;
+                if (nextNonWsIndex >= 0 && after.charAt(nextNonWsIndex) == '}') {
+                    // Compute indent of that closing brace
+                    int lineStart = after.lastIndexOf('\n', nextNonWsIndex);
+                    int indentLen = 0;
+                    for (int k = lineStart + 1; k < after.length(); k++) {
+                        char ch = after.charAt(k);
+                        if (ch == ' ') indentLen++; else if (ch == '\t') indentLen += 4; else break;
+                        if (k == nextNonWsIndex) break;
+                    }
+                    if (indentLen == indent.length()) {
+                        hasMatchingCloseSameIndent = true;
+                    }
+                }
+
+                if (hasMatchingCloseSameIndent) {
+                    addText("\n" + childIndent);
+                } else {
+                    String insert = "\n" + childIndent + "\n" + indent + "}";
+                    setText(before + insert + after);
+                    int newCursor = before.length() + 1 + childIndent.length();
+                    startSelection = endSelection = cursorPosition = newCursor;
+                }
+            } else {
+                addText(Character.toString('\n') + getAutoIndentForEnter());
+            }
         }
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
+            String before = getSelectionBeforeText();
+            String after = getSelectionAfterText();
+
+            // If typing a closing char and the next char is already that closer, skip over it
+            if ((c == ')' || c == ']' || c == '"' || c == '\'' ) && after.length() > 0 && after.charAt(0) == c) {
+                // move cursor forward over existing closer
+                startSelection = endSelection = cursorPosition = before.length() + 1;
+                return true;
+            }
+
+            if (c == '"') {
+                setText(before + "\"\"" + after);
+                startSelection = endSelection = cursorPosition = before.length() + 1;
+                return true;
+            }
+            if (c == '\'') {
+                setText(before + "''" + after);
+                startSelection = endSelection = cursorPosition = before.length() + 1;
+                return true;
+            }
+            if (c == '[') {
+                setText(before + "[]" + after);
+                startSelection = endSelection = cursorPosition = before.length() + 1;
+                return true;
+            }
+            if (c == '(') {
+                setText(before + "()" + after);
+                startSelection = endSelection = cursorPosition = before.length() + 1;
+                return true;
+            }
+
             addText(Character.toString(c));
         }
 
@@ -866,6 +987,219 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return baseIndent;
     }
 
+    private int getLineIndent(String lineText) {
+        int leading = 0;
+        while (leading < lineText.length() && (lineText.charAt(leading) == ' ' || lineText.charAt(
+                leading) == '\t')) {
+            leading++;
+        }
+        return leading;
+    }
+
+    private int getTabSize() {
+        return 4;
+    }
+
+    private String repeatSpace(int count) {
+        if (count <= 0)
+            return "";
+        char[] arr = new char[count];
+        java.util.Arrays.fill(arr, ' ');
+        return new String(arr);
+    }
+
+    private void formatText() {
+        String[] linesArr = text.split("\n", -1);
+        StringBuilder out = new StringBuilder(text.length() + 32);
+
+        boolean inString = false;
+        boolean escape = false;
+        boolean inBlockComment = false;
+        int depth = 0;
+        int tab = getTabSize();
+
+        for (int li = 0; li < linesArr.length; li++) {
+            String line = linesArr[li];
+            String trimmedLeading = line.replaceAll("^[ \t]+", "");
+
+            int lineIndentDec = 0;
+            int opens = 0, closes = 0;
+            boolean startsWithClose = false;
+
+            // First pass to determine startsWithClose and brace counts ignoring strings/comments
+            for (int idx = 0; idx < line.length(); idx++) {
+                char c = line.charAt(idx);
+                char next = idx + 1 < line.length() ? line.charAt(idx + 1) : 0;
+
+                if (inString) {
+                    if (escape) {
+                        escape = false;
+                    } else if (c == '\\') {
+                        escape = true;
+                    } else if (c == '"') {
+                        inString = false;
+                    }
+                    continue;
+                }
+
+                if (inBlockComment) {
+                    if (c == '*' && next == '/') {
+                        inBlockComment = false;
+                        idx++;
+                    }
+                    continue;
+                }
+
+                if (c == '/' && next == '/') {
+                    break; // rest of line is comment
+                }
+                if (c == '/' && next == '*') {
+                    inBlockComment = true;
+                    idx++;
+                    continue;
+                }
+                if (c == '"') {
+                    inString = true;
+                    escape = false;
+                    continue;
+                }
+
+                if (c == '{') {
+                    opens++;
+                } else if (c == '}') {
+                    closes++;
+                    if (!startsWithClose) {
+                        String prefix = line.substring(0, idx);
+                        if (prefix.trim().isEmpty()) {
+                            startsWithClose = true;
+                        }
+                    }
+                }
+            }
+
+            int indentLevel = depth;
+            if (startsWithClose)
+                indentLevel = Math.max(0, indentLevel - 1);
+
+            int targetIndent = indentLevel * tab;
+            out.append(repeatSpace(targetIndent)).append(trimmedLeading);
+            if (li < linesArr.length - 1)
+                out.append('\n');
+
+            depth = Math.max(0, depth + opens - closes);
+        }
+
+        setText(out.toString());
+    }
+
+    private void handleTab() {
+        LineData currentLine = null;
+        for (LineData line : this.container.lines) {
+            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+                currentLine = line;
+                break;
+            }
+        }
+        if (currentLine == null) {
+            addText("    ");
+            return;
+        }
+        int tab = getTabSize();
+        int indentLen = getLineIndent(currentLine.text);
+        int textStartPos = currentLine.start + indentLen;
+
+        if (this.cursorPosition <= textStartPos) {
+            // Cursor before any text: if cursor is exactly at text start, move forward to next tab stop.
+            // If cursor is inside leading whitespace (before text start), choose nearest tab stop (tie -> forward).
+            int targetIndent;
+            if (this.cursorPosition == textStartPos) {
+                targetIndent = ((indentLen / tab) + 1) * tab;
+            } else {
+                int remainder = indentLen % tab;
+                if (remainder == 0) {
+                    targetIndent = indentLen + tab; // already aligned -> next level
+                } else {
+                    int down = indentLen - remainder;
+                    int up = indentLen + (tab - remainder);
+                    int distDown = remainder;
+                    int distUp = tab - remainder;
+                    if (distUp < distDown) targetIndent = up;
+                    else if (distUp > distDown) targetIndent = down;
+                    else targetIndent = up; // tie -> forward
+                }
+            }
+            if (targetIndent < 0) targetIndent = 0;
+            String newIndent = repeatSpace(targetIndent);
+            String rest = currentLine.text.substring(indentLen);
+            String before = text.substring(0, currentLine.start);
+            int contentEnd = Math.min(currentLine.start + currentLine.text.length(), text.length());
+            int sepEnd = Math.min(currentLine.end, text.length());
+            String sep = contentEnd < sepEnd ? text.substring(contentEnd, sepEnd) : "";
+            String after = text.substring(sepEnd);
+            setText(before + newIndent + rest + sep + after);
+            int newCursor = currentLine.start + targetIndent;
+            startSelection = endSelection = cursorPosition = Math.min(newCursor, this.text.length());
+        } else {
+            // Cursor is after start of text: insert spaces at cursor to move following text to next tab stop
+            int column = this.cursorPosition - currentLine.start;
+            int targetColumn = ((column / tab) + 1) * tab;
+            int toInsert = Math.max(0, targetColumn - column);
+            if (toInsert > 0) {
+                String spaces = repeatSpace(toInsert);
+                addText(spaces);
+            }
+        }
+    }
+
+    private void handleShiftTab() {
+        LineData currentLine = null;
+        for (LineData line : this.container.lines) {
+            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+                currentLine = line;
+                break;
+            }
+        }
+        if (currentLine == null)
+            return;
+        int tab = getTabSize();
+        int indentLen = getLineIndent(currentLine.text);
+        int textStartPos = currentLine.start + indentLen;
+
+        if (this.cursorPosition <= textStartPos) {
+            // Cursor before any text: reduce leading indent to previous tab stop
+            int targetIndent = Math.max(0, ((indentLen - 1) / tab) * tab);
+            String newIndent = repeatSpace(targetIndent);
+            String rest = currentLine.text.substring(indentLen);
+            String before = text.substring(0, currentLine.start);
+            int contentEnd = Math.min(currentLine.start + currentLine.text.length(), text.length());
+            int sepEnd = Math.min(currentLine.end, text.length());
+            String sep = contentEnd < sepEnd ? text.substring(contentEnd, sepEnd) : "";
+            String after = text.substring(sepEnd);
+            setText(before + newIndent + rest + sep + after);
+            int newCursor = currentLine.start + targetIndent;
+            startSelection = endSelection = cursorPosition = Math.min(newCursor, this.text.length());
+        } else {
+            // Cursor after start of text: remove up to previous tab stop worth of spaces immediately before cursor
+            int column = this.cursorPosition - currentLine.start;
+            int mod = column % tab;
+            int toRemove = mod == 0 ? tab : mod;
+            int removed = 0;
+            int pos = this.cursorPosition - 1;
+            while (pos >= currentLine.start && removed < toRemove && text.charAt(pos) == ' ') {
+                pos--;
+                removed++;
+            }
+            if (removed > 0) {
+                int removeStart = pos + 1;
+                String before = text.substring(0, removeStart);
+                String after = text.substring(this.cursorPosition);
+                setText(before + after);
+                int newCursor = removeStart;
+                startSelection = endSelection = cursorPosition = Math.min(newCursor, this.text.length());
+            }
+        }
+    }
+
     private void setCursor(int i, boolean select) {
         i = Math.min(Math.max(i, 0), this.text.length());
         if (i != this.cursorPosition) {
@@ -905,8 +1239,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     return 0;
                 }
 
-                int var10000 = this.cursorPosition - data.start;
-                return this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, this.cursorPosition - data.start)), this.y + 1 + (i - 1 - this.scrolledLine) * this.container.lineHeight);
+                int column = this.cursorPosition - data.start;
+                LineData target = this.container.lines.get(i - 1);
+                int targetPos = this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i - 1 - this.scrolledLine) * this.container.lineHeight);
+                int targetIndent = getLineIndent(target.text);
+                int minPos = target.start + Math.min(targetIndent, Math.max(0, target.text.length()));
+                return Math.max(minPos, targetPos);
             }
         }
 
@@ -919,8 +1257,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         for (int i = 0; i < this.container.lines.size(); ++i) {
             LineData data = (LineData) this.container.lines.get(i);
             if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {
-                int var10000 = this.cursorPosition - data.start;
-                return this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, this.cursorPosition - data.start)), this.y + 1 + (i + 1 - this.scrolledLine) * this.container.lineHeight);
+                int column = this.cursorPosition - data.start;
+                LineData target = this.container.lines.get(Math.min(i + 1, this.container.lines.size() - 1));
+                int targetPos = this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i + 1 - this.scrolledLine) * this.container.lineHeight);
+                int targetIndent = getLineIndent(target.text);
+                int minPos = target.start + Math.min(targetIndent, Math.max(0, target.text.length()));
+                return Math.max(minPos, targetPos);
             }
         }
 
