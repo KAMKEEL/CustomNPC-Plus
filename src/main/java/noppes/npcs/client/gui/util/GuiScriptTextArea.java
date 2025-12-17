@@ -170,8 +170,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 int yPos = y + (i - scrolledLine) * container.lineHeight + 1;
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
 
-                if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && cursorPosition >= data.start && cursorPosition <= data.end) {
-                    int posX = x + ClientProxy.Font.width(line.substring(0, cursorPosition - data.start));
+                if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
+                    int posX = x + ClientProxy.Font.width(
+                            line.substring(0, Math.min(cursorPosition - data.start, line.length())));
                     drawRect(posX + 1, yPos, posX + 2, yPos + 1 + container.lineHeight, -3092272);
                 }
             }
@@ -270,6 +271,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (!isEnabled())
             return false;
 
+        LineData currentLine = null;
+        for (LineData line : this.container.lines) {
+            if (startSelection >= line.start && startSelection <= line.end) {
+                currentLine = line;
+                break;
+            }
+        }
+
         String original = text;
         if (i == Keyboard.KEY_LEFT) {
             int j = 1;
@@ -281,7 +290,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     j = cursorPosition - m.start();
                 }
             }
-            setCursor(cursorPosition - j, GuiScreen.isShiftKeyDown());
+            int newPos = Math.max(cursorPosition - j, 0);
+            setCursor(newPos, GuiScreen.isShiftKeyDown());
             return true;
         }
         if (i == Keyboard.KEY_RIGHT) {
@@ -292,7 +302,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     j = m.start();
                 }
             }
-            setCursor(cursorPosition + j, GuiScreen.isShiftKeyDown());
+            int newPos = Math.min(cursorPosition + j, text.length()); //-2 for the \n
+            setCursor(newPos, GuiScreen.isShiftKeyDown());
             return true;
         }
         if (i == Keyboard.KEY_UP) {
@@ -354,14 +365,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (i == Keyboard.KEY_BACK) {
             if (startSelection == endSelection && startSelection > 0) {
                 // Check if we should remove an empty/whitespace-only line
-                LineData currentLine = null;
-                for (LineData line : this.container.lines) {
-                    if (startSelection >= line.start && startSelection <= line.end) {
-                        currentLine = line;
-                        break;
-                    }
-                }
-                
                 if (currentLine != null) {
                     // Check if cursor is at line start or after only whitespace
                     String beforeCursor = text.substring(currentLine.start, startSelection);
@@ -373,7 +376,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     if (atLineStartOrWhitespace && lineOnlyWhitespace && currentLine.start > 0) {
                         // Remove the entire line including newline
                         String before = text.substring(0, currentLine.start - 1); // -1 to include the newline before
-                        String after = text.substring(currentLine.end);
+                        String after = currentLine.end + 1 > text.length() ? "" : text.substring(currentLine.end + 1);
                         setText(before + after);
                         endSelection = cursorPosition = startSelection = currentLine.start - 1;
                         return true;
@@ -639,6 +642,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     private int cursorDown() {
+        if (cursorPosition == text.length())
+            return cursorPosition;
         for (int i = 0; i < this.container.lines.size(); ++i) {
             LineData data = (LineData) this.container.lines.get(i);
             if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {

@@ -57,40 +57,29 @@ public class JavaTextContainer extends TextContainer {
         lineHeight = ClientProxy.Font.height();
         if (lineHeight == 0)
             lineHeight = 12;
-
-        lines.clear();
-
         String[] split = text.split("\n");
-        int charIndex = 0;
 
-        for (String rawLine : split) {
-            StringBuilder currentLine = new StringBuilder();
-            int startIndex = charIndex;
-
+        int totalChars = 0;
+        for (String l : split) {
+            StringBuilder line = new StringBuilder();
+            Matcher m = regexWord.matcher(l);
             int i = 0;
-            Matcher m = Pattern.compile(".").matcher(rawLine); // iterate each char
             while (m.find()) {
-                String c = rawLine.substring(m.start(), m.end());
-                if (ClientProxy.Font.width(currentLine.toString() + c) > width - 10) {
-                    LineData lineData = new LineData(currentLine.toString(), startIndex,
-                            startIndex + currentLine.length());
-                    startIndex += currentLine.length();
-                    lines.add(lineData);
-                    currentLine = new StringBuilder();
+                String word = l.substring(i, m.start());
+                if (ClientProxy.Font.width(line + word) > width - 10) {
+                    lines.add(new LineData(line.toString(), totalChars, totalChars + line.length()));
+                    totalChars += line.length();
+                    line = new StringBuilder();
                 }
-                currentLine.append(c);
-                i = m.end();
+                line.append(word);
+                i = m.start();
             }
+            lines.add(new LineData(line.toString(), totalChars, totalChars + line.length() + 1));
 
-            if (currentLine.length() > 0) {
-                LineData lineData = new LineData(currentLine.toString(), startIndex, startIndex + currentLine.length());
-                lines.add(lineData);
-            }
-
-            charIndex += rawLine.length() + 1; // +1 for newline
+            totalChars += line.length() + 1;
         }
-
-        totalHeight = lines.size() * lineHeight;
+        linesCount = lines.size();
+        totalHeight = linesCount * lineHeight;
         visibleLines = Math.max(height / lineHeight, 1);
     }
 
@@ -202,21 +191,28 @@ public class JavaTextContainer extends TextContainer {
                 int tokenStart = Math.max(mark.start, line.start);
                 int tokenEnd = Math.min(mark.end, line.end);
 
+                tokenStart = Math.max(0, Math.min(tokenStart, text.length()));
+                tokenEnd = Math.max(0, Math.min(tokenEnd, text.length()));
+
                 // plain text before token
                 if (cursor < tokenStart) {
+                    int end = Math.min(tokenStart, text.length());
                     line.tokens.add(
-                            new Token(text.substring(cursor, tokenStart), TokenType.DEFAULT, cursor, tokenStart));
+                            new Token(text.substring(cursor, end), TokenType.DEFAULT, cursor, end));
                 }
 
                 // token text
-                line.tokens.add(new Token(text.substring(tokenStart, tokenEnd), mark.type, tokenStart, tokenEnd));
+                if (tokenStart < tokenEnd) {
+                    line.tokens.add(new Token(text.substring(tokenStart, Math.min(tokenEnd, text.length())), mark.type, tokenStart, Math.min(tokenEnd, text.length())));
+                }
 
                 cursor = tokenEnd;
             }
 
             // trailing plain text
             if (cursor < line.end) {
-                line.tokens.add(new Token(text.substring(cursor, line.end), TokenType.DEFAULT, cursor, line.end));
+                int end = Math.min(line.end, text.length());
+                line.tokens.add(new Token(text.substring(cursor, end), TokenType.DEFAULT, cursor, end));
             }
         }
     }
@@ -301,7 +297,7 @@ public class JavaTextContainer extends TextContainer {
             int lastIndex = 0;
 
             for (Token t : tokens) {
-                int tokenStart = text.indexOf(t.text, lastIndex); // find actual index in line
+                int tokenStart = t.start - this.start; // relative position in line
                 if (tokenStart > lastIndex) {
                     // append the text before the token (spaces, punctuation)
                     builder.append(text, lastIndex, tokenStart);
