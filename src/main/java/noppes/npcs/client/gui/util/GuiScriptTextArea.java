@@ -7,6 +7,7 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
 
 import noppes.npcs.client.gui.util.script.JavaTextContainer;
+import noppes.npcs.client.gui.util.script.MethodBlock;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -120,6 +121,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         List<JavaTextContainer.LineData> list = new ArrayList<>(container.lines);
 
+        // Get cached brace spans from container
+        List<int[]> braceSpans = container.getBraceSpans();
+
         String wordHightLight = null;
         if (startSelection != endSelection) {
             Matcher m = container.regexWord.matcher(text);
@@ -168,6 +172,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 int yPos = y + (i - scrolledLine) * container.lineHeight + 1;
+                int visStart = scrolledLine;
+                int visEnd = Math.min(list.size() - 1, scrolledLine + container.visibleLines - 1);
+                if (!braceSpans.isEmpty() && i == visStart) {
+                    // compute maximum level in visible spans
+                    int maxLevel = 0;
+                    for (int[] s : braceSpans) {
+                        if (s[2] < visStart || s[1] > visEnd) continue;
+                        maxLevel = Math.max(maxLevel, s[0]);
+                    }
+                    for (int lvl = 1; lvl <= maxLevel; lvl++) {
+                        int gx = x + 6 + (lvl - 1) * 8;
+                        int spanStart = -1;
+                        for (int li = visStart; li <= visEnd + 1; li++) {
+                            boolean has = false;
+                            if (li <= visEnd && li >= 0) {
+                                for (int[] s : braceSpans) {
+                                    if (s[0] != lvl) continue;
+                                    if (li >= s[1] && li <= s[2]) { has = true; break; }
+                                }
+                            }
+                            if (has) {
+                                if (spanStart == -1) spanStart = li;
+                            } else {
+                                if (spanStart != -1) {
+                                    int topY = y + (spanStart - scrolledLine) * container.lineHeight + 3;
+                                    int bottomY = y + (li - 1 - scrolledLine) * container.lineHeight + container.lineHeight - 2;
+                                    drawRect(gx, topY, gx + 2, bottomY, 0x33FFFFFF);
+                                    spanStart = -1;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
 
                 if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
@@ -262,6 +300,19 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         return this.container.text.length();
     }
+
+    private int getLineIndex(List<LineData> lines, int pos) {
+        if (lines == null || lines.isEmpty()) return 0;
+        int length = text == null ? 0 : text.length();
+        for (int i = 0; i < lines.size(); i++) {
+            LineData d = lines.get(i);
+            int s = Math.max(0, Math.min(d.start, length));
+            int e = Math.max(0, Math.min(d.end, length));
+            if (pos >= s && pos <= e) return i;
+        }
+        return Math.max(0, lines.size() - 1);
+    }
+    
 
     @Override
     public boolean textboxKeyTyped(char c, int i) {
