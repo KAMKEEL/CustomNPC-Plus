@@ -453,54 +453,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         if (i == Keyboard.KEY_SLASH && isCtrlKeyDown()) {
             if (startSelection != endSelection) {
-                // Handle multi-line selection: toggle each line individually
-                StringBuilder newText = new StringBuilder(text.length() + 100); // Pre-size for efficiency
-                int prevEnd = 0;
-                for (LineData line : container.lines) {
-                    // Append text before this line (including previous \n)
-                    if (line.start > prevEnd) {
-                        newText.append(text, prevEnd, line.start);
-                    }
-                    // Check if line intersects selection
-                    if (line.end > startSelection && line.start < endSelection) {
-                        String lineText = text.substring(line.start, line.end);
-                        int nonWs = 0;
-                        while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs))) nonWs++;
-                        boolean hasContent = nonWs < lineText.length();
-                        boolean hasComment = hasContent && lineText.startsWith("//", nonWs);
-                        String newLineText = hasComment ? lineText.substring(0, nonWs) + lineText.substring(nonWs + 2) : (hasContent ? lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs) : lineText);
-                        newText.append(newLineText);
-                    } else {
-                        newText.append(text, line.start, line.end);
-                    }
-                    prevEnd = line.end;
-                }
-                // Append remaining text
-                if (prevEnd < text.length()) {
-                    newText.append(text, prevEnd, text.length());
-                }
-                setText(newText.toString());
-                // Keep selection
-                return true;
+                toggleCommentSelection();
             } else {
-                // Single line toggle (existing logic)
-                for (LineData line : container.lines) {
-                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
-                        int lineStart = line.start, lineEnd = line.end;
-                        String lineText = text.substring(lineStart, lineEnd);
-                        int nonWs = 0;
-                        while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs))) nonWs++;
-                        boolean hasComment = lineText.startsWith("//", nonWs);
-                        String newLineText = hasComment ? lineText.substring(0, nonWs) + lineText.substring(nonWs + 2) : lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs);
-                        setText(text.substring(0, lineStart) + newLineText + text.substring(lineEnd));
-                        int cursorDelta = hasComment ? -2 : 2;
-                        int newCursor = cursorPosition + cursorDelta;
-                        if (cursorPosition < lineStart + nonWs + (hasComment ? 2 : 0)) newCursor = cursorPosition;
-                        setCursor(Math.max(lineStart, newCursor), false);
-                        return true;
-                    }
-                }
+                toggleCommentLineAtCursor();
             }
+            return true;
         }
 
         if (i == Keyboard.KEY_D && isCtrlKeyDown()) {
@@ -554,6 +511,110 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private boolean isShiftKeyDown() {
         return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
+    }
+
+    private void toggleCommentSelection() {
+        StringBuilder newText = new StringBuilder(text.length() + 100);
+        int prevEnd = 0;
+
+        int newStart = -1; //calculates expanded startSelection
+        int newEnd = -1; //calculates expanded endSelection
+        int newIndex = 0;
+
+        for (LineData line : container.lines) {
+            int safeLineStart = Math.max(0, Math.min(line.start, text.length()));
+            int safeLineEnd = Math.max(0, Math.min(line.end, text.length()));
+
+            if (safeLineStart > prevEnd) {
+                if (newStart == -1 && startSelection >= prevEnd && startSelection <= safeLineStart) {
+                    newStart = newIndex + (startSelection - prevEnd);
+                }
+                if (newEnd == -1 && endSelection >= prevEnd && endSelection <= safeLineStart) {
+                    newEnd = newIndex + (endSelection - prevEnd);
+                }
+                newText.append(text, prevEnd, safeLineStart);
+                newIndex += safeLineStart - prevEnd;
+            }
+
+            if (safeLineEnd > startSelection && safeLineStart < endSelection) {
+                String lineText = text.substring(safeLineStart, safeLineEnd);
+                CommentToggleInfo ti = toggleLine(lineText);
+                String newLineText = ti.text;
+                int nonWs = ti.nonWs;
+                int delta = ti.delta;
+
+                if (newStart == -1 && startSelection >= safeLineStart && startSelection <= safeLineEnd) {
+                    int offsetInOldStart = startSelection - safeLineStart;
+                    int newOffsetStart = offsetInOldStart;
+                    if (offsetInOldStart >= nonWs) {
+                        newOffsetStart = offsetInOldStart + delta;
+                    }
+                    newStart = newIndex + Math.max(0, newOffsetStart);
+                }
+                if (newEnd == -1 && endSelection >= safeLineStart && endSelection <= safeLineEnd) {
+                    int offsetInOld = endSelection - safeLineStart;
+                    int newOffset = offsetInOld;
+                    if (offsetInOld >= nonWs) {
+                        newOffset = offsetInOld + delta;
+                    }
+                    newEnd = newIndex + Math.max(0, newOffset);
+                }
+
+                newText.append(newLineText);
+                newIndex += newLineText.length();
+            } else {
+                if (newStart == -1 && startSelection >= safeLineStart && startSelection <= safeLineEnd) {
+                    newStart = newIndex + (startSelection - safeLineStart);
+                }
+                if (newEnd == -1 && endSelection >= safeLineStart && endSelection <= safeLineEnd) {
+                    newEnd = newIndex + (endSelection - safeLineStart);
+                }
+                newText.append(text, safeLineStart, safeLineEnd);
+                newIndex += safeLineEnd - safeLineStart;
+            }
+            prevEnd = safeLineEnd;
+        }
+
+        if (prevEnd < text.length()) {
+            if (newStart == -1 && startSelection >= prevEnd && startSelection <= text.length()) {
+                newStart = newIndex + (startSelection - prevEnd);
+            }
+            if (newEnd == -1 && endSelection >= prevEnd && endSelection <= text.length()) {
+                newEnd = newIndex + (endSelection - prevEnd);
+            }
+            newText.append(text, prevEnd, text.length());
+            newIndex += text.length() - prevEnd;
+        }
+
+        if (newStart == -1) newStart = Math.max(0, Math.min(startSelection, newText.length()));
+        if (newEnd == -1) newEnd = Math.max(0, Math.min(endSelection, newText.length()));
+
+        setText(newText.toString());
+        startSelection = newStart;
+        endSelection = newEnd;
+        cursorPosition = endSelection;
+    }
+
+    private void toggleCommentLineAtCursor() {
+        for (LineData line : container.lines) {
+            int lineStart = Math.max(0, Math.min(line.start, text.length()));
+            int lineEnd = Math.max(0, Math.min(line.end, text.length()));
+            if (cursorPosition >= lineStart && cursorPosition <= lineEnd) {
+                String lineText = text.substring(lineStart, lineEnd);
+                CommentToggleInfo ti = toggleLine(lineText);
+                String newLineText = ti.text;
+                int nonWs = ti.nonWs;
+                boolean hasComment = ti.delta < 0;
+                String before = text.substring(0, lineStart);
+                String after = lineEnd <= text.length() ? text.substring(lineEnd) : "";
+                setText(before + newLineText + after);
+                int cursorDelta = hasComment ? -2 : 2;
+                int newCursor = cursorPosition + cursorDelta;
+                if (cursorPosition < lineStart + nonWs + (hasComment ? 2 : 0)) newCursor = cursorPosition;
+                setCursor(Math.max(lineStart, newCursor), false);
+                return;
+            }
+        }
     }
 
     private boolean isAltKeyDown() {
@@ -766,6 +827,35 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.startSelection = Math.max(0, Math.min(this.startSelection, length));
         this.endSelection = Math.max(0, Math.min(this.endSelection, length));
         this.cursorPosition = Math.max(0, Math.min(this.cursorPosition, length));
+    }
+
+    private static class CommentToggleInfo {
+        public final String text;
+        public final int delta; // newText.length() - oldText.length()
+        public final int nonWs;
+
+        public CommentToggleInfo(String text, int delta, int nonWs) {
+            this.text = text;
+            this.delta = delta;
+            this.nonWs = nonWs;
+        }
+    }
+
+    private CommentToggleInfo toggleLine(String lineText) {
+        int nonWs = 0;
+        while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs))) nonWs++;
+        boolean hasContent = nonWs < lineText.length();
+        boolean hasComment = hasContent && lineText.startsWith("//", nonWs);
+        String newLineText;
+        if (hasComment) {
+            int cut = Math.min(nonWs + 2, lineText.length());
+            newLineText = lineText.substring(0, nonWs) + (cut <= lineText.length() ? lineText.substring(cut) : "");
+        } else if (hasContent) {
+            newLineText = lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs);
+        } else {
+            newLineText = lineText;
+        }
+        return new CommentToggleInfo(newLineText, newLineText.length() - lineText.length(), nonWs);
     }
 
     class UndoData {
