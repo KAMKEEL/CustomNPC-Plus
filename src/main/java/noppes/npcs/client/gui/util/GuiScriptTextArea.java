@@ -510,120 +510,108 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return true;
         }
         if (i == Keyboard.KEY_BACK) {
-            if (startSelection == endSelection && startSelection > 0) {
-                // If the character before the cursor is a newline, remove that single newline.
-                // This handles backspacing into empty lines (joining the previous and current lines)
-                // without relying on LineData start/end calculations.
-                if (startSelection - 1 >= 0 && startSelection - 1 < text.length() && text.charAt(startSelection - 1) == '\n') {
-                    String before = text.substring(0, startSelection - 1);
-                    String after = startSelection < text.length() ? text.substring(startSelection) : "";
-                    setText(before + after);
-                    endSelection = cursorPosition = startSelection = startSelection - 1;
-                    return true;
-                    
+            // Handle selection deletion first
+            if (startSelection != endSelection) {
+                String s = getSelectionBeforeText();
+                setText(s + getSelectionAfterText());
+                endSelection = cursorPosition = startSelection;
+                return true;
+            }
+            
+            // Nothing to delete if at start
+            if (startSelection <= 0) {
+                return true;
+            }
+            
+            // Find current line for indent-aware backspace
+            LineData curr = null;
+            for (LineData line : container.lines) {
+                if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                    curr = line;
+                    break;
                 }
-                // Check if we should remove an empty/whitespace-only line
-                if (currentLine != null) {
-                    // Check if cursor is at line start or after only whitespace
-                    String beforeCursor = text.substring(currentLine.start, startSelection);
-                    boolean atLineStartOrWhitespace = beforeCursor.trim().isEmpty();
-
-                    // Check if line contains only whitespace
-                    boolean lineOnlyWhitespace = currentLine.text.trim().isEmpty();
-
-                    if (atLineStartOrWhitespace && lineOnlyWhitespace && currentLine.start > 0) {
-                        // Remove the empty/whitespace-only line by deleting the substring
-                        // from the start of this line up to and including the next newline (if any).
-                        int removeStart = currentLine.start;
-                        int removeEnd = text.indexOf('\n', removeStart);
+            }
+            
+            // Indent-aware backspace: if cursor is at or before the EXPECTED indent, merge with previous line
+            // If cursor is after expected indent (even in extra whitespace), do normal backspace
+            if (curr != null && curr.start > 0) {
+                int col = cursorPosition - curr.start;
+                int actualIndent = getLineIndent(curr.text);
+                int expectedIndent = getExpectedIndent(curr);
+                
+                // Only trigger smart merge if cursor is at or before the expected indent position
+                if (col <= expectedIndent) {
+                    boolean lineHasContent = curr.text.trim().length() > 0;
+                    int newlinePos = curr.start - 1;  // Position of newline before this line
+                    
+                    if (!lineHasContent) {
+                        // Empty/whitespace-only line: remove the entire line including its trailing newline
+                        int removeEnd = text.indexOf('\n', curr.start);
                         if (removeEnd == -1) {
                             removeEnd = text.length();
                         } else {
-                            removeEnd = removeEnd + 1; // include the newline
+                            removeEnd = removeEnd + 1;  // Include the newline
                         }
-                        String before = text.substring(0, removeStart);
-                        String after = removeEnd > text.length() ? "" : text.substring(removeEnd);
+                        String before = text.substring(0, curr.start);
+                        String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
                         setText(before + after);
-                        // Place cursor at end of previous line (just before where the removed newline was)
-                        int newCursor = Math.max(0, removeStart - 1);
+                        // Cursor goes to end of previous line (at the newline position, which is now end of prev line content)
+                        int newCursor = Math.max(0, curr.start - 1);
+                        endSelection = cursorPosition = startSelection = newCursor;
+                        return true;
+                    } else {
+                        // Line has content: merge with previous line
+                        // Remove newline + indent, keep content
+                        int contentStart = curr.start + actualIndent;
+                        
+                        String before = text.substring(0, newlinePos);
+                        String content = contentStart <= text.length() ? text.substring(contentStart) : "";
+                        
+                        // Determine if we need spacing between merged content
+                        String spacer = "";
+                        if (before.length() > 0 && content.length() > 0) {
+                            char lastChar = before.charAt(before.length() - 1);
+                            char firstChar = content.charAt(0);
+                            // Add space unless previous ends with whitespace/open bracket or current starts with close bracket/punctuation
+                            if (!Character.isWhitespace(lastChar) && 
+                                lastChar != '{' && lastChar != '(' && lastChar != '[' &&
+                                firstChar != '}' && firstChar != ')' && firstChar != ']' && 
+                                firstChar != ';' && firstChar != ',' && firstChar != '.' &&
+                                firstChar != '\n') {
+                                spacer = " ";
+                            }
+                        }
+                        
+                        setText(before + spacer + content);
+                        int newCursor = before.length() + spacer.length();
                         endSelection = cursorPosition = startSelection = newCursor;
                         return true;
                     }
                 }
             }
-
-            String s = getSelectionBeforeText();
-            if (startSelection > 0 && startSelection == endSelection) {
-                LineData curr = null;
-                for (LineData line : container.lines) {
-                    if (cursorPosition >= line.start && cursorPosition < line.end) {
-                        curr = line;
-                        break;
-                    }
+            
+            // Auto-pair deletion: if deleting an opening bracket/quote and next char is the matching closer
+            if (startSelection > 0 && startSelection < text.length()) {
+                char prev = text.charAt(startSelection - 1);
+                char nextc = text.charAt(startSelection);
+                if ((prev == '(' && nextc == ')') || 
+                    (prev == '[' && nextc == ']') || 
+                    (prev == '{' && nextc == '}') || 
+                    (prev == '\'' && nextc == '\'') || 
+                    (prev == '"' && nextc == '"')) {
+                    String before = text.substring(0, startSelection - 1);
+                    String after = startSelection + 1 < text.length() ? text.substring(startSelection + 1) : "";
+                    setText(before + after);
+                    startSelection -= 1;
+                    endSelection = cursorPosition = startSelection;
+                    return true;
                 }
-                if (curr != null) {
-                    int col = cursorPosition - curr.start;
-                    int expectedIndent = getExpectedIndent(curr);
-                    // If cursor is at or before the expected indent position, merge with previous line
-                    if (col <= expectedIndent && curr.start > 0) {
-                        // Find the newline before this line (at curr.start - 1)
-                        int newlinePos = curr.start - 1;
-                        if (newlinePos >= 0 && newlinePos < text.length() && text.charAt(newlinePos) == '\n') {
-                            // Get previous line info
-                            int idx = container.lines.indexOf(curr);
-                            LineData prev = idx > 0 ? container.lines.get(idx - 1) : null;
-                            
-                            // Get current line text and strip leading whitespace
-                            int actualIndent = getLineIndent(curr.text);
-                            String currLineContent = curr.text.substring(actualIndent);
-                            
-                            // Determine if we need a space between previous line and current line content
-                            String before = text.substring(0, newlinePos);
-                            boolean needSpace = false;
-                            if (prev != null && prev.text.trim().length() > 0 && currLineContent.length() > 0) {
-                                char lastChar = before.charAt(before.length() - 1);
-                                char firstChar = currLineContent.charAt(0);
-                                // Add space unless previous ends with whitespace/bracket or current starts with bracket/semicolon/comma
-                                if (!Character.isWhitespace(lastChar) && lastChar != '{' && lastChar != '(' && lastChar != '[' &&
-                                    firstChar != '}' && firstChar != ')' && firstChar != ']' && firstChar != ';' && firstChar != ',') {
-                                    needSpace = true;
-                                }
-                            }
-                            
-                            // Build new text
-                            int currLineEnd = Math.min(curr.end, text.length());
-                            String after = currLineEnd < text.length() ? text.substring(currLineEnd) : "";
-                            String spacer = needSpace ? " " : "";
-                            
-                            setText(before + spacer + currLineContent + after);
-                            
-                            // Position cursor at the merge point (where the newline was)
-                            // After removing newline and indent, cursor should be at previous line's end
-                            int newCursor = newlinePos + spacer.length();
-                            endSelection = cursorPosition = startSelection = Math.max(0, newCursor);
-                            return true;
-                        }
-                    }
-                }
-                // If deleting an opening bracket/quote and the immediate next char is the matching closer,
-                // remove both so the auto-inserted closer doesn't remain orphaned.
-                if (startSelection > 0 && startSelection < text.length()) {
-                    char prev = text.charAt(startSelection - 1);
-                    char nextc = text.charAt(startSelection);
-                    boolean removedPair = false;
-                    if ((prev == '(' && nextc == ')') || (prev == '[' && nextc == ']') || (prev == '{' && nextc == '}') || (prev == '\'' && nextc == '\'') || (prev == '"' && nextc == '"')) {
-                        String before = text.substring(0, startSelection - 1);
-                        String after = startSelection + 1 < text.length() ? text.substring(startSelection + 1) : "";
-                        setText(before + after);
-                        startSelection -= 1;
-                        endSelection = cursorPosition = startSelection;
-                        return true;
-                    }
-                }
-
-                s = s.substring(0, s.length() - 1);
-                startSelection--;
             }
+
+            // Normal backspace: delete one character
+            String s = getSelectionBeforeText();
+            s = s.substring(0, s.length() - 1);
+            startSelection--;
             setText(s + getSelectionAfterText());
             endSelection = cursorPosition = startSelection;
             return true;
