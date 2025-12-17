@@ -1184,7 +1184,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void handleTab() {
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
                 currentLine = line;
                 break;
             }
@@ -1243,7 +1243,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void handleShiftTab() {
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
                 currentLine = line;
                 break;
             }
