@@ -1409,12 +1409,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 this.clickScrolling = true;
             } else if (time - this.lastClicked < 500L) {
                 this.doubleClicked = true;
-                Matcher m = this.container.regexWord.matcher(this.text);
-
-                while (m.find()) {
-                    if (this.cursorPosition > m.start() && this.cursorPosition < m.end()) {
-                        this.startSelection = m.start();
-                        this.endSelection = m.end();
+                // On double-click select the entire line under the cursor
+                for (LineData line : container.lines) {
+                    if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+                        this.startSelection = line.start;
+                        this.endSelection = line.end;
                         break;
                     }
                 }
