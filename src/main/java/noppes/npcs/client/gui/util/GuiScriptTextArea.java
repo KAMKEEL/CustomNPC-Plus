@@ -440,7 +440,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (startSelection >= line.start && startSelection <= line.end) {
+            if (startSelection >= line.start && startSelection < line.end) {
                 currentLine = line;
                 break;
             }
@@ -577,7 +577,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (startSelection > 0 && startSelection == endSelection) {
                 LineData curr = null;
                 for (LineData line : container.lines) {
-                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                    if (cursorPosition >= line.start && cursorPosition < line.end) {
                         curr = line;
                         break;
                     }
@@ -687,29 +687,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String before = getSelectionBeforeText();
                 String after = getSelectionAfterText();
 
-                // Find the next non-whitespace character and its indent to decide if this brace is already closed at the same scope.
-                int nextNonWsIndex = -1;
-                for (int idx = 0; idx < after.length(); idx++) {
-                    char ch = after.charAt(idx);
-                    if (!Character.isWhitespace(ch)) {
-                        nextNonWsIndex = idx;
-                        break;
-                    }
-                }
-
+                // Determine whether this opening brace already has a matching closing
+                // brace at the same scope (and indent). Prefer using the brace-span
+                // computation which skips strings/comments and handles nesting.
                 boolean hasMatchingCloseSameIndent = false;
-                if (nextNonWsIndex >= 0 && after.charAt(nextNonWsIndex) == '}') {
-                    // Compute indent of that closing brace
-                    int lineStart = after.lastIndexOf('\n', nextNonWsIndex);
-                    int indentLen = 0;
-                    for (int k = lineStart + 1; k < after.length(); k++) {
-                        char ch = after.charAt(k);
-                        if (ch == ' ') indentLen++; else if (ch == '\t') indentLen += 4; else break;
-                        if (k == nextNonWsIndex) break;
+                try {
+                    // Find the line index containing the opening brace (cursorPosition-1)
+                    int openLineIdx = -1;
+                    int bracePos = cursorPosition - 1;
+                    for (int li = 0; li < this.container.lines.size(); li++) {
+                        LineData ld = this.container.lines.get(li);
+                        if (bracePos >= ld.start && bracePos < ld.end) {
+                            openLineIdx = li;
+                            break;
+                        }
                     }
-                    if (indentLen == indent.length()) {
-                        hasMatchingCloseSameIndent = true;
+
+                    if (openLineIdx >= 0) {
+                        List<int[]> spans = computeBraceSpans(text, this.container.lines);
+                        for (int[] span : spans) {
+                            int spanOpen = span[1];
+                            int spanClose = span[2];
+                            if (spanOpen == openLineIdx) {
+                                // Found a matching close; check its indent equals current indent
+                                int closeIndent = getLineIndent(this.container.lines.get(spanClose).text);
+                                if (closeIndent == indent.length()) {
+                                    hasMatchingCloseSameIndent = true;
+                                }
+                                break;
+                            }
+                        }
                     }
+                } catch (Exception ex) {
+                    // Fallback: if anything goes wrong, conservatively behave as before
+                    hasMatchingCloseSameIndent = false;
                 }
 
                 if (hasMatchingCloseSameIndent) {
@@ -795,7 +806,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             } else {
                 // Single line duplication (existing logic)
                 for (LineData line : container.lines) {
-                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                    if (cursorPosition >= line.start && cursorPosition < line.end) {
                         int lineStart = line.start, lineEnd = line.end;
                         String lineText = text.substring(lineStart, lineEnd);
                         String insertText = "\n" + lineText;
@@ -972,7 +983,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private String getAutoIndentForEnter() {
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
                 currentLine = line;
                 break;
             }
@@ -1116,7 +1127,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void handleTab() {
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
                 currentLine = line;
                 break;
             }
@@ -1175,7 +1186,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void handleShiftTab() {
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
                 currentLine = line;
                 break;
             }
