@@ -6,6 +6,7 @@ import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
 
+import noppes.npcs.client.gui.util.script.JavaTextContainer;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -13,8 +14,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
-import  noppes.npcs.client.gui.util.JavaTextContainer.LineData;
 
+import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
 
@@ -410,6 +411,43 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
             addText(Character.toString(c));
+        }
+
+        if (i == Keyboard.KEY_SLASH && isCtrlKeyDown()) {
+            // Use LineData to find the line the cursor is on
+            for (LineData line : container.lines) {
+                if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                    int lineStart = line.start;
+                    int lineEnd = line.end;
+                    String lineText = text.substring(lineStart, lineEnd);
+                    int nonWs = 0;
+                    while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs)))
+                        nonWs++;
+                    boolean hasComment = lineText.startsWith("//", nonWs);
+                    String newLineText = hasComment ? lineText.substring(0, nonWs) + lineText.substring(nonWs + 2) : lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs);
+                    setText(text.substring(0, lineStart) + newLineText + text.substring(lineEnd));
+                    int cursorDelta = hasComment ? -2 : 2;
+                    int newCursor = cursorPosition + cursorDelta;
+                    if (cursorPosition < lineStart + nonWs + (hasComment ? 2 : 0))
+                        newCursor = cursorPosition;
+                    setCursor(Math.max(lineStart, newCursor), false);
+                    return true;
+                }
+            }
+        }
+
+        if (i == Keyboard.KEY_D && isCtrlKeyDown()) {
+            // Use LineData to find the line the cursor is on
+            for (LineData line : container.lines) {
+                if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                    int lineStart = line.start, lineEnd = line.end;
+                    String lineText = text.substring(lineStart, lineEnd);
+                    String insertText = "\n" + lineText;
+                    setText(text.substring(0, lineEnd) + insertText + text.substring(lineEnd));
+                    setCursor(lineEnd + 1, false);
+                    return true;
+                }
+            }
         }
 
         return true;
