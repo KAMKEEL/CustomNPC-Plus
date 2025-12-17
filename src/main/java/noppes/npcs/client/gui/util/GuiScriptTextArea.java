@@ -556,30 +556,45 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (startSelection > 0 && startSelection == endSelection) {
                 LineData curr = null;
                 for (LineData line : container.lines) {
-                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                    if (cursorPosition >= line.start && cursorPosition < line.end) {
                         curr = line;
                         break;
                     }
                 }
                 if (curr != null) {
                     int col = cursorPosition - curr.start;
-                    int indent = getLineIndent(curr.text);
-                    if (col <= indent && startSelection - 1 >= 0 && text.charAt(startSelection - 1) == '\n') {
-                        // At or before indent: jump to previous line indent by removing newline
-                        LineData prev = null;
-                        int idx = container.lines.indexOf(curr);
-                        if (idx > 0)
-                            prev = container.lines.get(idx - 1);
-                        String before = text.substring(0, startSelection - 1);
-                        String after = startSelection < text.length() ? text.substring(startSelection) : "";
-                        setText(before + after);
-                        int newCursor = startSelection - 1;
-                        if (prev != null) {
-                            int prevIndent = getLineIndent(prev.text);
-                            newCursor = prev.start + Math.min(prevIndent, Math.max(0, prev.text.length()));
+                    int expectedIndent = getExpectedIndent(curr);
+                    // If cursor is at or before the expected indent position, merge with previous line
+                    if (col <= expectedIndent && curr.start > 0) {
+                        // Find the newline before this line (at curr.start - 1)
+                        int newlinePos = curr.start - 1;
+                        if (newlinePos >= 0 && newlinePos < text.length() && text.charAt(newlinePos) == '\n') {
+                            // Get previous line for cursor positioning
+                            LineData prev = null;
+                            int idx = container.lines.indexOf(curr);
+                            if (idx > 0)
+                                prev = container.lines.get(idx - 1);
+                            
+                            // Get current line text and strip leading whitespace
+                            int actualIndent = getLineIndent(curr.text);
+                            String currLineContent = curr.text.substring(actualIndent);
+                            
+                            // Build new text: everything before newline + stripped current line + everything after current line
+                            String before = text.substring(0, newlinePos);
+                            int currLineEnd = Math.min(curr.end, text.length());
+                            String after = currLineEnd < text.length() ? text.substring(currLineEnd) : "";
+                            
+                            setText(before + currLineContent + after);
+                            
+                            // Position cursor at previous line's indent
+                            int newCursor = newlinePos;
+                            if (prev != null) {
+                                int prevIndent = getLineIndent(prev.text);
+                                newCursor = prev.start + Math.min(prevIndent, Math.max(0, prev.text.length()));
+                            }
+                            endSelection = cursorPosition = startSelection = Math.max(0, newCursor);
+                            return true;
                         }
-                        endSelection = cursorPosition = startSelection = Math.max(0, newCursor);
-                        return true;
                     }
                 }
                 // If deleting an opening bracket/quote and the immediate next char is the matching closer,
@@ -994,6 +1009,49 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             leading++;
         }
         return leading;
+    }
+
+    // Calculate the expected/proper indent for the current line based on surrounding context
+    private int getExpectedIndent(LineData currentLine) {
+        if (currentLine == null) {
+            return 0;
+        }
+
+        int idx = container.lines.indexOf(currentLine);
+        if (idx <= 0) {
+            return 0; // First line has no expected indent
+        }
+
+        // Find the previous non-empty line
+        LineData prevLine = null;
+        for (int i = idx - 1; i >= 0; i--) {
+            LineData line = container.lines.get(i);
+            if (line.text.trim().length() > 0) {
+                prevLine = line;
+                break;
+            }
+        }
+
+        if (prevLine == null) {
+            return 0;
+        }
+
+        int prevIndent = getLineIndent(prevLine.text);
+        String prevTrimmed = prevLine.text.trim();
+        String currTrimmed = currentLine.text.trim();
+
+        // If current line starts with }, expected indent is one level back
+        if (currTrimmed.startsWith("}")) {
+            return Math.max(0, prevIndent - getTabSize());
+        }
+
+        // If previous line ends with {, expected indent is one level forward
+        if (prevTrimmed.endsWith("{")) {
+            return prevIndent + getTabSize();
+        }
+
+        // Otherwise, expected indent matches previous line
+        return prevIndent;
     }
 
     private int getTabSize() {
