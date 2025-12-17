@@ -78,27 +78,45 @@ public class MethodBlock {
         return methods;
     }
 
-    // Find ranges of text to skip (strings and comments)
-    private static List<int[]> findExcludedRanges(String text) {
+    // Find ranges of text to skip (strings and comments). Returns merged, sorted ranges.
+    public static List<int[]> getExcludedRanges(String text) {
         List<int[]> ranges = new ArrayList<>();
 
-        // Find all strings using the pattern from JavaTextContainer
+        // Find all strings and char literals (simple heuristic)
         Pattern stringPattern = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
         Matcher stringMatcher = stringPattern.matcher(text);
         while (stringMatcher.find()) {
             ranges.add(new int[] { stringMatcher.start(), stringMatcher.end() });
         }
 
-        // Find all comments
-        Pattern commentPattern = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*|#.*");
+        // Find all comments (block and line comments)
+        Pattern commentPattern = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*");
         Matcher commentMatcher = commentPattern.matcher(text);
         while (commentMatcher.find()) {
             ranges.add(new int[] { commentMatcher.start(), commentMatcher.end() });
         }
 
+        if (ranges.isEmpty())
+            return ranges;
+
         // Sort ranges by start position
         ranges.sort((a, b) -> Integer.compare(a[0], b[0]));
-        return ranges;
+
+        // Merge overlapping/adjacent ranges for faster scanning
+        List<int[]> merged = new ArrayList<>();
+        int[] current = ranges.get(0);
+        for (int i = 1; i < ranges.size(); i++) {
+            int[] next = ranges.get(i);
+            if (next[0] <= current[1]) {
+                // overlap or adjacent
+                current[1] = Math.max(current[1], next[1]);
+            } else {
+                merged.add(current);
+                current = next;
+            }
+        }
+        merged.add(current);
+        return merged;
     }
 
     // Check if a position is within an excluded range
@@ -114,7 +132,7 @@ public class MethodBlock {
     // Utility to find the matching closing brace, ignoring braces in strings and
     // comments
     public static int findMatchingBrace(String text, int openBraceIndex) {
-        List<int[]> excludedRanges = findExcludedRanges(text);
+        List<int[]> excludedRanges = getExcludedRanges(text);
 
         int depth = 0;
         for (int i = openBraceIndex; i < text.length(); i++) {
