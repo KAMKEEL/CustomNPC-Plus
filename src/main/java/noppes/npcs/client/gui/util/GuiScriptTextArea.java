@@ -170,7 +170,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 int yPos = y + (i - scrolledLine) * container.lineHeight + 1;
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
 
-                if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && cursorPosition >= data.start && cursorPosition < data.end) {
+                if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && cursorPosition >= data.start && cursorPosition <= data.end) {
                     int posX = x + ClientProxy.Font.width(line.substring(0, cursorPosition - data.start));
                     drawRect(posX + 1, yPos, posX + 2, yPos + 1 + container.lineHeight, -3092272);
                 }
