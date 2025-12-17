@@ -352,6 +352,35 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return true;
         }
         if (i == Keyboard.KEY_BACK) {
+            if (startSelection == endSelection && startSelection > 0) {
+                // Check if we should remove an empty/whitespace-only line
+                LineData currentLine = null;
+                for (LineData line : this.container.lines) {
+                    if (startSelection >= line.start && startSelection <= line.end) {
+                        currentLine = line;
+                        break;
+                    }
+                }
+                
+                if (currentLine != null) {
+                    // Check if cursor is at line start or after only whitespace
+                    String beforeCursor = text.substring(currentLine.start, startSelection);
+                    boolean atLineStartOrWhitespace = beforeCursor.trim().isEmpty();
+
+                    // Check if line contains only whitespace
+                    boolean lineOnlyWhitespace = currentLine.text.trim().isEmpty();
+
+                    if (atLineStartOrWhitespace && lineOnlyWhitespace && currentLine.start > 0) {
+                        // Remove the entire line including newline
+                        String before = text.substring(0, currentLine.start - 1); // -1 to include the newline before
+                        String after = text.substring(currentLine.end);
+                        setText(before + after);
+                        endSelection = cursorPosition = startSelection = currentLine.start - 1;
+                        return true;
+                    }
+                }
+            }
+
             String s = getSelectionBeforeText();
             if (startSelection > 0 && startSelection == endSelection) {
                 s = s.substring(0, s.length() - 1);
