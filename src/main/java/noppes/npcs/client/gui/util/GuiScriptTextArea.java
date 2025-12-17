@@ -1408,7 +1408,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (this.clicked && this.container.linesCount * this.container.lineHeight > this.height && xMouse > this.x + this.width - 8) {
                 this.clicked = false;
                 this.clickScrolling = true;
-            } else if (time - this.lastClicked < 500L) {
+            } else if (time - this.lastClicked < 300L) {
                 this.doubleClicked = true;
                 // On double-click select the entire line under the cursor
                 for (LineData line : container.lines) {
