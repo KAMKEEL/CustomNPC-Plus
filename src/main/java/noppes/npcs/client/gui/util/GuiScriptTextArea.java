@@ -799,16 +799,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
                 if (firstLine != null && lastLine != null) {
                     String selectedText = text.substring(firstLine.start, lastLine.end);
-                    String insertText = "\n" + selectedText;
+                    // Insert the selected block immediately after the last line without adding an extra newline
+                    String insertText = selectedText;
                     // Save selection before setText
                     int savedStart = startSelection;
                     int savedEnd = endSelection;
-                    setText(text.substring(0, lastLine.end) + insertText + text.substring(lastLine.end));
-                    // Move cursor to start of duplicated block
-                    setCursor(lastLine.end + 1, false);
-                    // Restore selection
+                    int insertAt = lastLine.end;
+                    setText(text.substring(0, insertAt) + insertText + text.substring(insertAt));
+                    // Restore cursor and selection
                     startSelection = savedStart;
-                    endSelection = savedEnd;
+                    endSelection = this.cursorPosition =  savedEnd;
                     return true;
                 }
             } else {
@@ -817,16 +817,19 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     if (cursorPosition >= line.start && cursorPosition <= line.end) {
                         int lineStart = line.start, lineEnd = line.end;
                         String lineText = text.substring(lineStart, lineEnd);
-                        String insertText = "\n" + lineText;
-                        // Save selection before setText
-                        int savedStart = startSelection;
-                        int savedEnd = endSelection;
-                        setText(text.substring(0, lineEnd) + insertText + text.substring(lineEnd));
-                        // Move cursor to start of duplicated line
-                        setCursor(lineEnd + 1, false);
-                        // Restore selection
-                        startSelection = savedStart;
-                        endSelection = savedEnd;
+                        // Avoid inserting an extra blank line: if lineText already ends with a newline,
+                        // reuse it; otherwise prepend a newline so the duplicate appears immediately after.
+                        String insertText;
+                        if (lineText.endsWith("\n")) {
+                            insertText = lineText;
+                        } else {
+                            insertText = "\n" + lineText;
+                        }
+                        int insertionPoint = lineEnd;
+                        setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
+                        // Place cursor at end of duplicated line (just before any trailing newline)
+                        int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
+                        startSelection = endSelection = cursorPosition = Math.max(0, Math.min(newCursor, this.text.length()));
                         return true;
                     }
                 }
