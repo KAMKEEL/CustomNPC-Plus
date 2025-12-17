@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
+import org.lwjgl.opengl.GL11;
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
 
@@ -153,7 +154,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int s = ClientProxy.Font.width(line.substring(0, Math.max(startSelection - data.start, 0)));
                         int e = ClientProxy.Font.width(line.substring(0, Math.min(endSelection - data.start, w))) + 1;
                         int posY = y + 1 + (i - scrolledLine) * container.lineHeight;
-                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x990000ff);
+                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
                 int yPos = y + (i - scrolledLine) * container.lineHeight + 1;
