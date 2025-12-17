@@ -1,6 +1,7 @@
-package noppes.npcs.client.gui.util;
+package noppes.npcs.client.gui.util.script;
 
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.util.TextContainer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,19 +16,25 @@ public class JavaTextContainer extends TextContainer {
     public static final Pattern KEYWORD = Pattern.compile(
             "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof)\\b");
 
-    public static final Pattern TYPE_DECL = Pattern.compile(
-            "\\b([A-Z][a-zA-Z0-9_]*)" +   // Group 1 → main type
-                    "\\s*(<([^>]+)>)?" +          // Group 2 → <…>, Group 3 → inner type
+    public static final Pattern TYPE_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_]*)" + // Group 1 → main type
+            "\\s*(<([^>]+)>)?" + // Group 2 → <…>, Group 3 → inner type
                     "\\s+[a-zA-Z_][a-zA-Z0-9_]*" // variable name
     );
 
-    public static final Pattern NEW_TYPE = Pattern.compile("\\bnew\\s+([A-Z][a-zA-Z0-9_]*)");
+    public static final Pattern NEW_TYPE = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
-    public static final Pattern METHOD_DECL = Pattern.compile(
-            "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
-                    "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
+    public static final Pattern METHOD_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
+            "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
     );
     public static final Pattern METHOD_CALL = Pattern.compile("([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
+
+    // Class-level global fields
+    public static final Pattern GLOBAL_FIELD_DECL = Pattern.compile(
+            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+
+    // Local fields inside methods (simplified)
+    public static final Pattern LOCAL_FIELD_DECL = Pattern.compile(
+            "\\b([A-Z][a-zA-Z0-9_<>\\[\\]]*|[a-z][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
 
     public static final Pattern STRING = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
     public static final Pattern COMMENT = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*|#.*");
@@ -36,6 +43,7 @@ public class JavaTextContainer extends TextContainer {
 
     public String text;
     public List<LineData> lines = new ArrayList<>();
+    public List<MethodBlock> methodBlocks = new ArrayList<>();
     public int lineHeight;
     public int totalHeight;
     public int visibleLines = 1;
@@ -86,10 +94,81 @@ public class JavaTextContainer extends TextContainer {
         visibleLines = Math.max(height / lineHeight, 1);
     }
 
+    private List<String> globalFields = new ArrayList<>();
+    private List<String> localFields = new ArrayList<>();
+
+    private void collectFields() {
+        globalFields.clear();
+        localFields.clear();
+        methodBlocks.clear();
+
+        // Extract method blocks first
+        methodBlocks = MethodBlock.collectMethodBlocks(text);
+
+        // Global fields (excluding those inside methods)
+        Matcher mGlobal = GLOBAL_FIELD_DECL.matcher(text);
+        while (mGlobal.find()) {
+            String varName = mGlobal.group(2);
+            int varPosition = mGlobal.start(2);
+
+            // Check if this variable is inside a method
+            boolean isInsideMethod = false;
+            for (MethodBlock block : methodBlocks) {
+                if (block.containsPosition(varPosition)) {
+                    isInsideMethod = true;
+                    break;
+                }
+            }
+
+            // Only add as global if it's not inside any method
+            if (!isInsideMethod) {
+                globalFields.add(varName);
+            }
+        }
+
+        // Extract local variables from each method block
+        for (MethodBlock block : methodBlocks) {
+            // localVariables are already extracted in MethodBlock constructor
+            for (String var : block.localVariables) {
+                if (!globalFields.contains(var) && !localFields.contains(var)) {
+                    localFields.add(var);
+                }
+            }
+        }
+    }
+
+    // Find which method block contains a given position
+    private MethodBlock findMethodBlockAtPosition(int position) {
+        for (MethodBlock block : methodBlocks) {
+            if (block.containsPosition(position)) {
+                return block;
+            }
+        }
+        return null;
+    }
+
+    private void highlightVariableReferences(List<Mark> marks) {
+        Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
+        Matcher m = identifier.matcher(text);
+        while (m.find()) {
+            String name = m.group(1);
+            int position = m.start(1);
+
+            // Check if this variable is local to the method it's in
+            MethodBlock methodBlock = findMethodBlockAtPosition(position);
+            if (methodBlock != null && methodBlock.localVariables.contains(name)) {
+                marks.add(new Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD));
+            } else if (globalFields.contains(name)) {
+                marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+            }
+        }
+    }
+
     public void formatCodeText() {
         // Step 1: Tokenize the full text
         List<Mark> marks = new ArrayList<>();
 
+        collectFields(); // Extract global and local fields with method scoping
         collectPatternMatches(marks, COMMENT, TokenType.COMMENT);
         collectPatternMatches(marks, STRING, TokenType.STRING);
         collectPatternMatches(marks, KEYWORD, TokenType.KEYWORD);
@@ -102,6 +181,8 @@ public class JavaTextContainer extends TextContainer {
         collectPatternMatches(marks, METHOD_CALL, TokenType.METHOD_CALL);
 
         collectPatternMatches(marks, NUMBER, TokenType.NUMBER);
+
+        highlightVariableReferences(marks);
 
         marks = resolveConflicts(marks);
 
@@ -145,13 +226,13 @@ public class JavaTextContainer extends TextContainer {
         while (m.find()) { // method name
             marks.add(new Mark(m.start(2), m.end(2), TokenType.METHOD_DECARE));
             // return type
-            marks.add(new Mark(m.start() + m.group(1).length(), m.start(2) - 1, TokenType.TYPE_DECL));
+            marks.add(new Mark(m.start(1), m.end(1), TokenType.TYPE_DECL));
         }
     }
 
     private void collectTypeDeclarations(List<Mark> marks) {
         Matcher m = TYPE_DECL.matcher(text);
-        while (m.find()) { // method name
+        while (m.find()) {
             // main type
             marks.add(new Mark(m.start(1), m.end(1), TokenType.TYPE_DECL));
 
@@ -160,11 +241,11 @@ public class JavaTextContainer extends TextContainer {
                 int end = m.end(2);
                 // Color < and > as white
                 marks.add(new Mark(start, start + 1, TokenType.DEFAULT)); // <
-                marks.add(new Mark(end - 1, end, TokenType.DEFAULT));       // >
+                marks.add(new Mark(end - 1, end, TokenType.DEFAULT)); // >
 
                 // Inner type (String)
                 if (m.group(3) != null) {
-                    marks.add(new Mark(m.start(3), m.end(3), TokenType.NEW_TYPE)); // or another color
+                    marks.add(new Mark(m.start(3), m.end(3), TokenType.NEW_TYPE));
                 }
             }
         }
@@ -203,7 +284,7 @@ public class JavaTextContainer extends TextContainer {
         }
         return result;
     }
-    
+
     public class LineData {
         public String text;
         public int start, end;
@@ -265,7 +346,11 @@ public class JavaTextContainer extends TextContainer {
             this.end = end;
             this.type = type;
         }
-        
+
+        @Override
+        public String toString() {
+            return "Mark{" + type + ", (start=" + start + ", end=" + end + ")" + '}';
+        }
     }
 
     public enum TokenType {
@@ -279,6 +364,8 @@ public class JavaTextContainer extends TextContainer {
         METHOD_CALL('a', 50),
         NUMBER('7', 40),
         VARIABLE('f', 30),
+        GLOBAL_FIELD('b', 35), // new
+        LOCAL_FIELD('e', 25), // new
         DEFAULT('f', 0);
 
         public final char color;
