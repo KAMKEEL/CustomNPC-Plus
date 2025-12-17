@@ -370,6 +370,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         if (i == Keyboard.KEY_BACK) {
             if (startSelection == endSelection && startSelection > 0) {
+                // If the character before the cursor is a newline, remove that single newline.
+                // This handles backspacing into empty lines (joining the previous and current lines)
+                // without relying on LineData start/end calculations.
+                if (startSelection - 1 >= 0 && startSelection - 1 < text.length() && text.charAt(startSelection - 1) == '\n') {
+                    String before = text.substring(0, startSelection - 1);
+                    String after = startSelection < text.length() ? text.substring(startSelection) : "";
+                    setText(before + after);
+                    endSelection = cursorPosition = startSelection = startSelection - 1;
+                    return true;
+                }
                 // Check if we should remove an empty/whitespace-only line
                 if (currentLine != null) {
                     // Check if cursor is at line start or after only whitespace
@@ -380,11 +390,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     boolean lineOnlyWhitespace = currentLine.text.trim().isEmpty();
 
                     if (atLineStartOrWhitespace && lineOnlyWhitespace && currentLine.start > 0) {
-                        // Remove the entire line including newline
-                        String before = text.substring(0, currentLine.start - 1); // -1 to include the newline before
-                        String after = currentLine.end + 1 > text.length() ? "" : text.substring(currentLine.end + 1);
+                        // Remove the empty/whitespace-only line by deleting the substring
+                        // from the start of this line up to and including the next newline (if any).
+                        int removeStart = currentLine.start;
+                        int removeEnd = text.indexOf('\n', removeStart);
+                        if (removeEnd == -1) {
+                            removeEnd = text.length();
+                        } else {
+                            removeEnd = removeEnd + 1; // include the newline
+                        }
+                        String before = text.substring(0, removeStart);
+                        String after = removeEnd > text.length() ? "" : text.substring(removeEnd);
                         setText(before + after);
-                        endSelection = cursorPosition = startSelection = currentLine.start - 1;
+                        // Place cursor at end of previous line (just before where the removed newline was)
+                        int newCursor = Math.max(0, removeStart - 1);
+                        endSelection = cursorPosition = startSelection = newCursor;
                         return true;
                     }
                 }
