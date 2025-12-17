@@ -95,26 +95,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrolledLine = Math.min(Math.max((int) (1f * diff * (yMouse - y) / height), 0), diff);
         }
         int startBracket = 0, endBracket = 0;
-        if (startSelection >= 0 && startSelection < text.length() &&
+        if (startSelection >= 0 && text != null && text.length() > 0 &&
             (endSelection - startSelection == 1 || startSelection == endSelection)) {
-            char c = text.charAt(startSelection);
-            int found = 0;
-            if (c == '{') {
-                found = findClosingBracket(text.substring(startSelection), '{', '}');
-            } else if (c == '[') {
-                found = findClosingBracket(text.substring(startSelection), '[', ']');
-            } else if (c == '(') {
-                found = findClosingBracket(text.substring(startSelection), '(', ')');
-            } else if (c == '}') {
-                found = findOpeningBracket(text.substring(0, startSelection + 1), '{', '}');
-            } else if (c == ']') {
-                found = findOpeningBracket(text.substring(0, startSelection + 1), '[', ']');
-            } else if (c == ')') {
-                found = findOpeningBracket(text.substring(0, startSelection + 1), '(', ')');
-            }
-            if (found != 0) {
-                startBracket = startSelection;
-                endBracket = startSelection + found;
+            int[] span = findBracketSpanAt(startSelection);
+            if (span != null) {
+                startBracket = span[0];
+                endBracket = span[1];
             }
         }
 
@@ -368,7 +354,41 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return spans;
     }
 
+    // Find a bracket span for a given cursor position. Returns {start, end} or null.
+    private int[] findBracketSpanAt(int pos) {
+        if (text == null || text.isEmpty()) return null;
+        // First try at pos (caret before the char)
+        if (pos >= 0 && pos < text.length()) {
+            char c = text.charAt(pos);
+            int found = 0;
+            if (c == '{') found = findClosingBracket(text.substring(pos), '{', '}');
+            else if (c == '[') found = findClosingBracket(text.substring(pos), '[', ']');
+            else if (c == '(') found = findClosingBracket(text.substring(pos), '(', ')');
+            else if (c == '}') found = findOpeningBracket(text.substring(0, pos + 1), '{', '}');
+            else if (c == ']') found = findOpeningBracket(text.substring(0, pos + 1), '[', ']');
+            else if (c == ')') found = findOpeningBracket(text.substring(0, pos + 1), '(', ')');
+            if (found != 0) return new int[]{pos, pos + found};
+        }
+
+        // Then try immediately before pos (caret right after a char)
+        if (pos > 0 && pos - 1 < text.length()) {
+            int probe = pos - 1;
+            char c2 = text.charAt(probe);
+            int found2 = 0;
+            if (c2 == '{') found2 = findClosingBracket(text.substring(probe), '{', '}');
+            else if (c2 == '[') found2 = findClosingBracket(text.substring(probe), '[', ']');
+            else if (c2 == '(') found2 = findClosingBracket(text.substring(probe), '(', ')');
+            else if (c2 == '}') found2 = findOpeningBracket(text.substring(0, probe + 1), '{', '}');
+            else if (c2 == ']') found2 = findOpeningBracket(text.substring(0, probe + 1), '[', ']');
+            else if (c2 == ')') found2 = findOpeningBracket(text.substring(0, probe + 1), '(', ')');
+            if (found2 != 0) return new int[]{probe, probe + found2};
+        }
+
+        return null;
+    }
     private int getSelectionPos(int xMouse, int yMouse) {
+
+
         xMouse -= this.x + 1;
         yMouse -= this.y + 1;
         ArrayList list = new ArrayList(this.container.lines);
@@ -441,6 +461,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             setCursor(newPos, GuiScreen.isShiftKeyDown());
             return true;
         }
+
         if (i == Keyboard.KEY_RIGHT) {
             int j = 1;
             if (isCtrlKeyDown()) {
