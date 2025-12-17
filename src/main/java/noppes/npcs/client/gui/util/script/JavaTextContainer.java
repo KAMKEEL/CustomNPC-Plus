@@ -57,8 +57,8 @@ public class JavaTextContainer extends TextContainer {
         lineHeight = ClientProxy.Font.height();
         if (lineHeight == 0)
             lineHeight = 12;
-        String[] split = text.split("\n");
-
+        
+        String[] split = text.split("\\n", -1); // -1 preserves empty lines ""
         int totalChars = 0;
         for (String l : split) {
             StringBuilder line = new StringBuilder();

@@ -249,7 +249,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         lineWidth = w;
                     }
 
-                    return data.end - 1;
+                    // Place cursor after the last visible character of the line.
+                    // `data.end - 1` previously pointed at the newline for non-last lines
+                    // which made clicks land on the newline rather than after the text.
+                    // Use data.start + chars.length to return the position directly
+                    // after the line's characters, clamped to the total text length.
+                    int posAfterChars = data.start + chars.length;
+                    return Math.min(posAfterChars, text.length());
                 }
             }
         }
