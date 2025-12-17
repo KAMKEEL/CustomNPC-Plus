@@ -270,32 +270,105 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (fullText == null || fullText.isEmpty() || lines == null || lines.isEmpty())
             return spans;
 
-        int depth = 0;
         int lineIdx = 0;
         int lineEnd = lines.get(0).end;
-        java.util.ArrayList<Integer> openStack = new java.util.ArrayList<>(); // store open line indices
+        List<Integer> openStack = new ArrayList<>(); // line indices of unmatched opens
+        List<Integer> unmatchedOpenLines = new ArrayList<>();
+
+        boolean inLineComment = false;
+        boolean inBlockComment = false;
+        boolean inString = false;
+        boolean escape = false;
+        char stringDelimiter = 0;
 
         for (int pos = 0; pos < fullText.length(); pos++) {
-            // advance line index
             while (lineIdx < lines.size() - 1 && pos >= lineEnd) {
                 lineIdx++;
                 lineEnd = lines.get(lineIdx).end;
             }
 
             char c = fullText.charAt(pos);
+            char next = pos + 1 < fullText.length() ? fullText.charAt(pos + 1) : 0;
+
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                } else if (c == '\\') {
+                    escape = true;
+                } else if (c == stringDelimiter) {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (inBlockComment) {
+                if (c == '*' && next == '/') {
+                    inBlockComment = false;
+                    pos++;
+                }
+                continue;
+            }
+
+            if (inLineComment) {
+                if (c == '\n') {
+                    inLineComment = false;
+                }
+                continue;
+            }
+
+            if (c == '/' && next == '/') {
+                inLineComment = true;
+                pos++;
+                continue;
+            }
+            if (c == '/' && next == '*') {
+                inBlockComment = true;
+                pos++;
+                continue;
+            }
+            if (c == '"' || c == '\'') {
+                inString = true;
+                stringDelimiter = c;
+                escape = false;
+                continue;
+            }
+
             if (c == '{') {
                 openStack.add(lineIdx);
-                depth++;
             } else if (c == '}') {
                 if (!openStack.isEmpty()) {
                     int openLine = openStack.remove(openStack.size() - 1);
-                    int spanDepth = depth; // depth before decrement
+                    int spanDepth = openStack.size() + 1;
                     int closeLine = lineIdx;
                     spans.add(new int[]{spanDepth, openLine, closeLine});
                 }
-                depth = Math.max(0, depth - 1);
             }
         }
+
+        if (!openStack.isEmpty()) {
+            unmatchedOpenLines.addAll(openStack);
+            unmatchedOpenLines.sort(Integer::compareTo);
+
+            List<int[]> adjusted = new ArrayList<>(spans.size());
+            for (int[] span : spans) {
+                int openLine = span[1];
+                int adjust = 0;
+                for (int unmatched : unmatchedOpenLines) {
+                    if (unmatched <= openLine) {
+                        adjust++;
+                    } else {
+                        break;
+                    }
+                }
+
+                int newDepth = span[0] - adjust;
+                if (newDepth > 0) {
+                    adjusted.add(new int[]{newDepth, openLine, span[2]});
+                }
+            }
+            spans = adjusted;
+        }
+
         return spans;
     }
 
@@ -451,6 +524,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     setText(before + after);
                     endSelection = cursorPosition = startSelection = startSelection - 1;
                     return true;
+                    
                 }
                 // Check if we should remove an empty/whitespace-only line
                 if (currentLine != null) {
@@ -537,7 +611,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             addText("    ");
         }
         if (i == Keyboard.KEY_RETURN) {
-            addText(Character.toString('\n') + getIndentCurrentLine());
+            addText(Character.toString('\n') + getAutoIndentForEnter());
         }
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
             addText(Character.toString(c));
@@ -751,6 +825,45 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         return data.text.substring(0, i);
+    }
+
+    private String getAutoIndentForEnter() {
+        LineData currentLine = null;
+        for (LineData line : this.container.lines) {
+            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+                currentLine = line;
+                break;
+            }
+        }
+
+        if (currentLine == null) {
+            return "";
+        }
+
+        String lineText = currentLine.text;
+        int leading = 0;
+        while (leading < lineText.length() && (lineText.charAt(leading) == ' ' || lineText.charAt(leading) == '\t')) {
+            leading++;
+        }
+
+        String baseIndent = lineText.substring(0, leading);
+        int relativeCursor = Math.max(0, Math.min(this.cursorPosition - currentLine.start, lineText.length()));
+        String beforeCursor = lineText.substring(0, relativeCursor);
+
+        int lastNonWs = -1;
+        for (int idx = beforeCursor.length() - 1; idx >= 0; idx--) {
+            if (!Character.isWhitespace(beforeCursor.charAt(idx))) {
+                lastNonWs = idx;
+                break;
+            }
+        }
+
+        boolean opensBlock = lastNonWs >= 0 && beforeCursor.charAt(lastNonWs) == '{';
+        if (opensBlock) {
+            return baseIndent + "    ";
+        }
+
+        return baseIndent;
     }
 
     private void setCursor(int i, boolean select) {
