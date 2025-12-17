@@ -532,49 +532,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         if (i == Keyboard.KEY_BACK) {
             if (startSelection == endSelection && startSelection > 0) {
-                // If the character before the cursor is a newline, remove that single newline.
-                // This handles backspacing into empty lines (joining the previous and current lines)
-                // without relying on LineData start/end calculations.
-                if (startSelection - 1 >= 0 && startSelection - 1 < text.length() && text.charAt(startSelection - 1) == '\n') {
-                    String before = text.substring(0, startSelection - 1);
-                    String after = startSelection < text.length() ? text.substring(startSelection) : "";
-                    setText(before + after);
-                    endSelection = cursorPosition = startSelection = startSelection - 1;
-                    return true;
-                    
-                }
-                // Check if we should remove an empty/whitespace-only line
-                if (currentLine != null) {
-                    // Check if cursor is at line start or after only whitespace
-                    String beforeCursor = text.substring(currentLine.start, startSelection);
-                    boolean atLineStartOrWhitespace = beforeCursor.trim().isEmpty();
-
-                    // Check if line contains only whitespace
-                    boolean lineOnlyWhitespace = currentLine.text.trim().isEmpty();
-
-                    if (atLineStartOrWhitespace && lineOnlyWhitespace && currentLine.start > 0) {
-                        // Remove the empty/whitespace-only line by deleting the substring
-                        // from the start of this line up to and including the next newline (if any).
-                        int removeStart = currentLine.start;
-                        int removeEnd = text.indexOf('\n', removeStart);
-                        if (removeEnd == -1) {
-                            removeEnd = text.length();
-                        } else {
-                            removeEnd = removeEnd + 1; // include the newline
-                        }
-                        String before = text.substring(0, removeStart);
-                        String after = removeEnd > text.length() ? "" : text.substring(removeEnd);
-                        setText(before + after);
-                        // Place cursor at end of previous line (just before where the removed newline was)
-                        int newCursor = Math.max(0, removeStart - 1);
-                        endSelection = cursorPosition = startSelection = newCursor;
-                        return true;
-                    }
-                }
-            }
-
-            String s = getSelectionBeforeText();
-            if (startSelection > 0 && startSelection == endSelection) {
                 LineData curr = null;
                 for (LineData line : container.lines) {
                     if (cursorPosition >= line.start && cursorPosition < line.end) {
@@ -585,24 +542,56 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 if (curr != null) {
                     int col = cursorPosition - curr.start;
                     int indent = getLineIndent(curr.text);
-                    if (col <= indent && startSelection - 1 >= 0 && text.charAt(startSelection - 1) == '\n') {
-                        // At or before indent: jump to previous line indent by removing newline
-                        LineData prev = null;
-                        int idx = container.lines.indexOf(curr);
-                        if (idx > 0)
-                            prev = container.lines.get(idx - 1);
-                        String before = text.substring(0, startSelection - 1);
-                        String after = startSelection < text.length() ? text.substring(startSelection) : "";
-                        setText(before + after);
-                        int newCursor = startSelection - 1;
-                        if (prev != null) {
-                            int prevIndent = getLineIndent(prev.text);
-                            newCursor = prev.start + Math.min(prevIndent, Math.max(0, prev.text.length()));
+                    int expectedIndent = computeExpectedIndent(curr);
+                    // If caret is at or before the indent, merge with previous line and place
+                    // caret at that line's indent.
+                    if (col <= expectedIndent) {
+                        int prevNewlineIdx = text.lastIndexOf('\n', curr.start - 1);
+                        if (prevNewlineIdx >= 0) {
+                            // Determine previous line bounds/text
+                            int prevLineStart = text.lastIndexOf('\n', Math.max(0, prevNewlineIdx - 1));
+                            if (prevLineStart == -1)
+                                prevLineStart = 0;
+                            else
+                                prevLineStart += 1;
+
+                            String prevLineText = text.substring(prevLineStart, prevNewlineIdx);
+                            int prevIndent = getLineIndent(prevLineText);
+
+                            // Current line text without leading whitespace
+                            int currLineEnd = text.indexOf('\n', curr.start);
+                            if (currLineEnd == -1)
+                                currLineEnd = text.length();
+                            String currLineText = text.substring(curr.start, currLineEnd);
+                            String currTrimmed = currLineText.replaceFirst("^[ \\t]+", "");
+
+                            // Build merged text: drop the newline and the current line's leading indent.
+                            String before = text.substring(0, prevNewlineIdx);
+                            boolean needSpace = !prevLineText.isEmpty() && !currTrimmed.isEmpty() && !Character.isWhitespace(
+                                    prevLineText.charAt(prevLineText.length() - 1));
+                            String after = text.substring(currLineEnd);
+                            setText(before + (needSpace ? " " : "") + currTrimmed + after);
+
+                            int newCursor = prevLineStart + Math.min(prevIndent, Math.max(0, prevLineText.length()));
+                            endSelection = cursorPosition = startSelection = prevLineStart + prevLineText.length();// Math.max(0, newCursor);
+                            return true;
                         }
-                        endSelection = cursorPosition = startSelection = Math.max(0, newCursor);
-                        return true;
+                    } else { //BREAKS SINGLE CHARACTER BACK
+//                        // Delete backwards until we reach the expected indent for this line
+//                        int targetPos = Math.max(0, curr.start + expectedIndent);
+//                        if (targetPos < cursorPosition) {
+//                            String before = text.substring(0, targetPos);
+//                            String after = text.substring(cursorPosition);
+//                            setText(before + after);
+//                            startSelection = endSelection = cursorPosition = Math.min(targetPos, text.length());
+//                        }
+//                        return true;
                     }
                 }
+            }
+
+            String s = getSelectionBeforeText();
+            if (startSelection > 0 && startSelection == endSelection) {
                 // If deleting an opening bracket/quote and the immediate next char is the matching closer,
                 // remove both so the auto-inserted closer doesn't remain orphaned.
                 if (startSelection > 0 && startSelection < text.length()) {
@@ -1026,6 +1015,38 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             leading++;
         }
         return leading;
+    }
+
+    // Estimate the logical indent for a line based on surrounding lines and braces,
+    // rather than its current raw whitespace (which may be over-indented).
+    private int computeExpectedIndent(LineData line) {
+        int tab = getTabSize();
+        int idx = container.lines.indexOf(line);
+        if (idx < 0)
+            return getLineIndent(line.text);
+
+        // Find previous non-empty line
+        int prevIdx = idx - 1;
+        while (prevIdx >= 0 && container.lines.get(prevIdx).text.trim().isEmpty()) {
+            prevIdx--;
+        }
+
+        int baseIndent = 0;
+        if (prevIdx >= 0) {
+            LineData prev = container.lines.get(prevIdx);
+            String prevTrim = prev.text.trim();
+            baseIndent = getLineIndent(prev.text);
+            if (!prevTrim.isEmpty() && prevTrim.endsWith("{")) {
+                baseIndent += tab;
+            }
+        }
+
+        String currTrim = line.text.trim();
+        if (!currTrim.isEmpty() && currTrim.startsWith("}")) {
+            baseIndent = Math.max(0, baseIndent - tab);
+        }
+
+        return Math.max(0, baseIndent);
     }
 
     private int getTabSize() {
