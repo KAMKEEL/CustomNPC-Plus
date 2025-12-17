@@ -437,7 +437,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (startSelection >= line.start && startSelection <= line.end) {
+            if (startSelection >= line.start && startSelection < line.end) {
                 currentLine = line;
                 break;
             }
@@ -543,7 +543,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // Find current line for indent-aware backspace
             LineData curr = null;
             for (LineData line : container.lines) {
-                if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                if (cursorPosition >= line.start && cursorPosition < line.end) {
                     curr = line;
                     break;
                 }
@@ -982,7 +982,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         int i;
         for (i = 0; i < data.text.length() && data.text.charAt(i) == 32; ++i) {
-            ;
         }
 
         return data.text.substring(0, i);
@@ -991,7 +990,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private String getAutoIndentForEnter() {
         LineData currentLine = null;
         for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
                 currentLine = line;
                 break;
             }
