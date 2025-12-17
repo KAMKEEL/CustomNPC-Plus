@@ -120,6 +120,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         List<JavaTextContainer.LineData> list = new ArrayList<>(container.lines);
 
+        // Build brace spans: depth, open line, close line (inclusive)
+        List<int[]> braceSpans = computeBraceSpans(text, list);
+
         String wordHightLight = null;
         if (startSelection != endSelection) {
             Matcher m = container.regexWord.matcher(text);
@@ -168,6 +171,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 int yPos = y + (i - scrolledLine) * container.lineHeight + 1;
+
+                // Draw indent guides once per visible block based on brace spans
+                if (i == scrolledLine && !braceSpans.isEmpty()) {
+                    int visStart = scrolledLine;
+                    int visEnd = Math.min(list.size() - 1, scrolledLine + container.visibleLines - 1);
+                    for (int[] span : braceSpans) {
+                        int depth = span[0];
+                        int openLine = span[1];
+                        int closeLine = span[2];
+                        // Skip top-level (depth 1) to avoid class/global fields guides
+                        if (depth <= 1)
+                            continue;
+                        int startLine = openLine + 1; // start under the opening brace
+                        int endLine = closeLine - 1;  // stop before the closing brace
+                        if (startLine > endLine)
+                            continue;
+                        if (endLine < visStart || startLine > visEnd)
+                            continue;
+
+                        int drawStart = Math.max(startLine, visStart);
+                        int drawEnd = Math.min(endLine, visEnd);
+                        // Compute horizontal position: 4 spaces per indent level, minus a tiny left offset
+                        int spaces = (depth - 1) * 4;
+                        StringBuilder sb = new StringBuilder();
+                        for (int k = 0; k < spaces; k++)
+                            sb.append(' ');
+                        int px = ClientProxy.Font.width(sb.toString());
+                        int gx = x + 4 + px - 2; // shift left ~2px for the IntelliJ feel
+
+                        int topY = y + (drawStart - scrolledLine) * container.lineHeight;
+                        int bottomY = y + (drawEnd - scrolledLine + 1) * container.lineHeight - 2;
+                        drawRect(gx, topY, gx + 1, bottomY, 0x33FFFFFF);
+                    }
+                }
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
 
                 if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
@@ -225,6 +262,41 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         return 0;
+    }
+
+    // Computes brace spans as {depth, openLineIndex, closeLineIndex}, inclusive of brace lines
+    private List<int[]> computeBraceSpans(String fullText, List<LineData> lines) {
+        List<int[]> spans = new ArrayList<>();
+        if (fullText == null || fullText.isEmpty() || lines == null || lines.isEmpty())
+            return spans;
+
+        int depth = 0;
+        int lineIdx = 0;
+        int lineEnd = lines.get(0).end;
+        java.util.ArrayList<Integer> openStack = new java.util.ArrayList<>(); // store open line indices
+
+        for (int pos = 0; pos < fullText.length(); pos++) {
+            // advance line index
+            while (lineIdx < lines.size() - 1 && pos >= lineEnd) {
+                lineIdx++;
+                lineEnd = lines.get(lineIdx).end;
+            }
+
+            char c = fullText.charAt(pos);
+            if (c == '{') {
+                openStack.add(lineIdx);
+                depth++;
+            } else if (c == '}') {
+                if (!openStack.isEmpty()) {
+                    int openLine = openStack.remove(openStack.size() - 1);
+                    int spanDepth = depth; // depth before decrement
+                    int closeLine = lineIdx;
+                    spans.add(new int[]{spanDepth, openLine, closeLine});
+                }
+                depth = Math.max(0, depth - 1);
+            }
+        }
+        return spans;
     }
 
     private int getSelectionPos(int xMouse, int yMouse) {
