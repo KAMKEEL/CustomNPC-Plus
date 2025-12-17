@@ -1066,7 +1066,25 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     private void formatText() {
+        // Find which line the cursor is on and calculate position within that line (after stripping indent)
+        int cursorLine = -1;
+        int cursorColInContent = 0;  // position in line after removing leading whitespace
+        int lineStartPos = 0;
         String[] linesArr = text.split("\n", -1);
+        
+        for (int li = 0; li < linesArr.length; li++) {
+            String line = linesArr[li];
+            int lineEndPos = lineStartPos + line.length();
+            
+            if (cursorPosition >= lineStartPos && cursorPosition <= lineEndPos) {
+                cursorLine = li;
+                int leadingSpaces = line.length() - line.replaceAll("^[ \t]+", "").length();
+                cursorColInContent = Math.max(0, cursorPosition - lineStartPos - leadingSpaces);
+                break;
+            }
+            lineStartPos = lineEndPos + 1; // +1 for newline
+        }
+        
         StringBuilder out = new StringBuilder(text.length() + 32);
 
         boolean inString = false;
@@ -1074,6 +1092,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         boolean inBlockComment = false;
         int depth = 0;
         int tab = getTabSize();
+        
+        int newCursorPos = 0;
 
         for (int li = 0; li < linesArr.length; li++) {
             String line = linesArr[li];
@@ -1139,6 +1159,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 indentLevel = Math.max(0, indentLevel - 1);
 
             int targetIndent = indentLevel * tab;
+            
+            // Track cursor position in the formatted output
+            if (li == cursorLine) {
+                newCursorPos = out.length() + targetIndent + Math.min(cursorColInContent, trimmedLeading.length());
+            }
+            
             out.append(repeatSpace(targetIndent)).append(trimmedLeading);
             if (li < linesArr.length - 1)
                 out.append('\n');
@@ -1147,6 +1173,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         setText(out.toString());
+        
+        // Restore cursor position
+        if (cursorLine >= 0) {
+            newCursorPos = Math.max(0, Math.min(newCursorPos, this.text.length()));
+            startSelection = endSelection = cursorPosition = newCursorPos;
+        }
     }
 
     private void handleTab() {
