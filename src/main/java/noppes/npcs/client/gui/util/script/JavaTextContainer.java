@@ -17,7 +17,7 @@ public class JavaTextContainer extends TextContainer {
             "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof)\\b");
 
     public static final Pattern TYPE_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_]*)" + // Group 1 → main type
-            "\\s*(<([^>]+)>)?" + // Group 2 → <…>, Group 3 → inner type
+            "\\s*(<([^>]+)>)?" + // Group c2 → <…>, Group 3 → inner type
                     "\\s+[a-zA-Z_][a-zA-Z0-9_]*" // variable name
     );
 
@@ -47,10 +47,100 @@ public class JavaTextContainer extends TextContainer {
     public int lineHeight;
     public int totalHeight;
     public int visibleLines = 1;
+    // Cached brace spans: list of {level, startLine, endLine}
+    private List<int[]> braceSpansCache = null;
 
     public JavaTextContainer(String text) {
         super(text);
         this.text = text.replaceAll("\\r?\\n|\\r", "\n");
+    }
+
+    public synchronized List<int[]> getBraceSpans() {
+        if (braceSpansCache != null)
+            return braceSpansCache;
+        List<int[]> spans = new ArrayList<>();
+        if (text == null || text.isEmpty() || lines == null || lines.isEmpty()) {
+            braceSpansCache = spans;
+            return spans;
+        }
+
+        // Heuristics limits to avoid runaway spans when braces are unbalanced.
+        final int MAX_SPAN_LINES = 200; // cap span length to this many lines
+        final int MAX_STACK_DEPTH = 512; // avoid excessive stack growth
+
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        int exIdx = 0;
+        java.util.ArrayList<Integer> openStack = new java.util.ArrayList<>();
+        int len = text.length();
+        for (int p = 0; p < len; p++) {
+            while (exIdx < excluded.size() && p >= excluded.get(exIdx)[1])
+                exIdx++;
+            if (exIdx < excluded.size()) {
+                int[] r = excluded.get(exIdx);
+                if (p >= r[0] && p < r[1]) {
+                    p = r[1] - 1;
+                    continue;
+                }
+            }
+            char c = text.charAt(p);
+            if (c == '{') {
+                if (openStack.size() < MAX_STACK_DEPTH) {
+                    // Look ahead to see if this open has a plausible closing brace within limits.
+                    int openLine = getLineIndex(p);
+                    int lookaheadChars = Math.max(1000, MAX_SPAN_LINES * 120);
+                    int searchEnd = Math.min(len, p + lookaheadChars);
+                    boolean foundClose = false;
+                    int exIdx2 = exIdx; // local index for scanning ahead
+                    for (int q = p + 1; q < searchEnd; q++) {
+                        while (exIdx2 < excluded.size() && q >= excluded.get(exIdx2)[1]) exIdx2++;
+                        if (exIdx2 < excluded.size()) {
+                            int[] r2 = excluded.get(exIdx2);
+                            if (q >= r2[0] && q < r2[1]) { q = r2[1] - 1; continue; }
+                        }
+                        if (text.charAt(q) == '}') {
+                            int closeLineCandidate = getLineIndex(q);
+                            if (closeLineCandidate - openLine <= MAX_SPAN_LINES) {
+                                foundClose = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (foundClose) openStack.add(p);
+                }
+            } else if (c == '}') {
+                if (!openStack.isEmpty()) {
+                    int openPos = openStack.remove(openStack.size() - 1);
+                    int level = openStack.size() + 1;
+                    int openLine = getLineIndex(openPos);
+                    int closeLine = getLineIndex(p);
+                    // Cap spans to avoid drawing across the whole document when syntax is broken
+                    if (closeLine - openLine > MAX_SPAN_LINES) {
+                        closeLine = Math.min(openLine + MAX_SPAN_LINES, lines.size() - 1);
+                    }
+                    // Only add spans where closeLine > openLine (multi-line blocks)
+                    if (closeLine > openLine) {
+                        spans.add(new int[]{level, openLine, closeLine});
+                    }
+                }
+            }
+        }
+
+        braceSpansCache = spans;
+        return spans;
+    }
+
+    private int getLineIndex(int pos) {
+        if (lines == null || lines.isEmpty())
+            return 0;
+        int length = text == null ? 0 : text.length();
+        for (int i = 0; i < lines.size(); i++) {
+            LineData d = lines.get(i);
+            int s = Math.max(0, Math.min(d.start, length));
+            int e = Math.max(0, Math.min(d.end, length));
+            if (pos >= s && pos <= e)
+                return i;
+        }
+        return Math.max(0, lines.size() - 1);
     }
 
     public void init(int width, int height) {
@@ -81,6 +171,9 @@ public class JavaTextContainer extends TextContainer {
         linesCount = lines.size();
         totalHeight = linesCount * lineHeight;
         visibleLines = Math.max(height / lineHeight, 1);
+
+        // Invalidate caches that depend on line layout
+        invalidateCaches();
     }
 
     private List<String> globalFields = new ArrayList<>();
@@ -153,6 +246,9 @@ public class JavaTextContainer extends TextContainer {
         }
     }
 
+    public synchronized void invalidateCaches() {
+        this.braceSpansCache = null;
+    }
     public void formatCodeText() {
         // Step 1: Tokenize the full text
         List<Mark> marks = new ArrayList<>();
@@ -174,6 +270,14 @@ public class JavaTextContainer extends TextContainer {
         highlightVariableReferences(marks);
 
         marks = resolveConflicts(marks);
+
+        // Compute indent guides based on matched braces, ignoring strings/comments
+        computeIndentGuides(marks);
+
+        // Invalidate cached brace spans; will be recomputed on demand
+        invalidateCaches();
+
+
 
         // Step 2: Clear existing tokens
         for (LineData line : lines) {
@@ -285,6 +389,7 @@ public class JavaTextContainer extends TextContainer {
         public String text;
         public int start, end;
         public List<Token> tokens = new ArrayList<>();
+        public List<Integer> indentCols = new ArrayList<>();
 
         public LineData(String text, int startIndex, int end) {
             this.text = text;
@@ -370,6 +475,81 @@ public class JavaTextContainer extends TextContainer {
         TokenType(char color, int priority) {
             this.color = color;
             this.priority = priority;
+        }
+    }
+
+    // Compute indent guide columns per line based on brace matching.
+    private void computeIndentGuides(List<Mark> marks) {
+        // Clear existing guides
+        for (LineData ld : lines) {
+            ld.indentCols.clear();
+        }
+
+        // Build ignored ranges from STRING and COMMENT tokens
+        List<int[]> ignored = new ArrayList<>();
+        for (Mark m : marks) {
+            if (m.type == TokenType.STRING || m.type == TokenType.COMMENT) {
+                ignored.add(new int[]{m.start, m.end});
+            }
+        }
+
+        java.util.function.Predicate<Integer> isIgnored = (pos) -> {
+            for (int[] r : ignored) {
+                if (pos >= r[0] && pos < r[1])
+                    return true;
+            }
+            return false;
+        };
+
+        class OpenBrace {
+            int line, col;
+
+            OpenBrace(int l, int c) {
+                line = l;
+                col = c;
+            }
+        }
+        java.util.Deque<OpenBrace> stack = new java.util.ArrayDeque<>();
+
+        final int tabSize = 4;
+
+        for (int li = 0; li < lines.size(); li++) {
+            LineData ld = lines.get(li);
+            String s = ld.text;
+            for (int i = 0; i < s.length(); i++) {
+                int absPos = ld.start + i;
+                if (isIgnored.test(absPos))
+                    continue;
+                char c = s.charAt(i);
+                if (c == '{') {
+                    // compute leading indentation (expanded) up to this char
+                    int leading = 0;
+                    for (int k = 0; k < i; k++) {
+                        char ch = s.charAt(k);
+                        if (ch == '\t')
+                            leading += tabSize;
+                        else
+                            leading += 1;
+                    }
+                    stack.push(new OpenBrace(li, leading));
+                } else if (c == '}') {
+                    if (!stack.isEmpty()) {
+                        OpenBrace open = stack.pop();
+                        int startLine = open.line;
+                        int col = open.col;
+                        if (startLine == li)
+                            continue; // same-line block, skip
+                        // add guide column to lines inside the block
+                        int from = Math.max(0, startLine + 1);
+                        int to = Math.min(lines.size() - 1, li);
+                        for (int l = from; l <= to; l++) {
+                            List<Integer> list = lines.get(l).indentCols;
+                            if (!list.contains(col))
+                                list.add(col);
+                        }
+                    }
+                }
+            }
         }
     }
 }
