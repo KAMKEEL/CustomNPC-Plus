@@ -569,29 +569,37 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         // Find the newline before this line (at curr.start - 1)
                         int newlinePos = curr.start - 1;
                         if (newlinePos >= 0 && newlinePos < text.length() && text.charAt(newlinePos) == '\n') {
-                            // Get previous line for cursor positioning
-                            LineData prev = null;
+                            // Get previous line info
                             int idx = container.lines.indexOf(curr);
-                            if (idx > 0)
-                                prev = container.lines.get(idx - 1);
+                            LineData prev = idx > 0 ? container.lines.get(idx - 1) : null;
                             
                             // Get current line text and strip leading whitespace
                             int actualIndent = getLineIndent(curr.text);
                             String currLineContent = curr.text.substring(actualIndent);
                             
-                            // Build new text: everything before newline + stripped current line + everything after current line
+                            // Determine if we need a space between previous line and current line content
                             String before = text.substring(0, newlinePos);
+                            boolean needSpace = false;
+                            if (prev != null && prev.text.trim().length() > 0 && currLineContent.length() > 0) {
+                                char lastChar = before.charAt(before.length() - 1);
+                                char firstChar = currLineContent.charAt(0);
+                                // Add space unless previous ends with whitespace/bracket or current starts with bracket/semicolon/comma
+                                if (!Character.isWhitespace(lastChar) && lastChar != '{' && lastChar != '(' && lastChar != '[' &&
+                                    firstChar != '}' && firstChar != ')' && firstChar != ']' && firstChar != ';' && firstChar != ',') {
+                                    needSpace = true;
+                                }
+                            }
+                            
+                            // Build new text
                             int currLineEnd = Math.min(curr.end, text.length());
                             String after = currLineEnd < text.length() ? text.substring(currLineEnd) : "";
+                            String spacer = needSpace ? " " : "";
                             
-                            setText(before + currLineContent + after);
+                            setText(before + spacer + currLineContent + after);
                             
-                            // Position cursor at previous line's indent
-                            int newCursor = newlinePos;
-                            if (prev != null) {
-                                int prevIndent = getLineIndent(prev.text);
-                                newCursor = prev.start + Math.min(prevIndent, Math.max(0, prev.text.length()));
-                            }
+                            // Position cursor at the merge point (where the newline was)
+                            // After removing newline and indent, cursor should be at previous line's end
+                            int newCursor = newlinePos + spacer.length();
                             endSelection = cursorPosition = startSelection = Math.max(0, newCursor);
                             return true;
                         }
@@ -986,6 +994,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int relativeCursor = Math.max(0, Math.min(this.cursorPosition - currentLine.start, lineText.length()));
         String beforeCursor = lineText.substring(0, relativeCursor);
 
+        // Find last non-whitespace before cursor
         int lastNonWs = -1;
         for (int idx = beforeCursor.length() - 1; idx >= 0; idx--) {
             if (!Character.isWhitespace(beforeCursor.charAt(idx))) {
@@ -994,7 +1003,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
-        boolean opensBlock = lastNonWs >= 0 && beforeCursor.charAt(lastNonWs) == '{';
+        // Only add extra indent if cursor is actually after the opening brace (not just in trailing whitespace)
+        // Check that the last non-whitespace is at or after the line's indent position
+        boolean opensBlock = lastNonWs >= 0 && lastNonWs >= leading && beforeCursor.charAt(lastNonWs) == '{';
         if (opensBlock) {
             return baseIndent + "    ";
         }
