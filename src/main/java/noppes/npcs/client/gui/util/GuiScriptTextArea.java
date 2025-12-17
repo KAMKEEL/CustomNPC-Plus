@@ -414,38 +414,99 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         if (i == Keyboard.KEY_SLASH && isCtrlKeyDown()) {
-            // Use LineData to find the line the cursor is on
-            for (LineData line : container.lines) {
-                if (cursorPosition >= line.start && cursorPosition <= line.end) {
-                    int lineStart = line.start;
-                    int lineEnd = line.end;
-                    String lineText = text.substring(lineStart, lineEnd);
-                    int nonWs = 0;
-                    while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs)))
-                        nonWs++;
-                    boolean hasComment = lineText.startsWith("//", nonWs);
-                    String newLineText = hasComment ? lineText.substring(0, nonWs) + lineText.substring(nonWs + 2) : lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs);
-                    setText(text.substring(0, lineStart) + newLineText + text.substring(lineEnd));
-                    int cursorDelta = hasComment ? -2 : 2;
-                    int newCursor = cursorPosition + cursorDelta;
-                    if (cursorPosition < lineStart + nonWs + (hasComment ? 2 : 0))
-                        newCursor = cursorPosition;
-                    setCursor(Math.max(lineStart, newCursor), false);
-                    return true;
+            if (startSelection != endSelection) {
+                // Handle multi-line selection: toggle each line individually
+                StringBuilder newText = new StringBuilder(text.length() + 100); // Pre-size for efficiency
+                int prevEnd = 0;
+                for (LineData line : container.lines) {
+                    // Append text before this line (including previous \n)
+                    if (line.start > prevEnd) {
+                        newText.append(text, prevEnd, line.start);
+                    }
+                    // Check if line intersects selection
+                    if (line.end > startSelection && line.start < endSelection) {
+                        String lineText = text.substring(line.start, line.end);
+                        int nonWs = 0;
+                        while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs))) nonWs++;
+                        boolean hasContent = nonWs < lineText.length();
+                        boolean hasComment = hasContent && lineText.startsWith("//", nonWs);
+                        String newLineText = hasComment ? lineText.substring(0, nonWs) + lineText.substring(nonWs + 2) : (hasContent ? lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs) : lineText);
+                        newText.append(newLineText);
+                    } else {
+                        newText.append(text, line.start, line.end);
+                    }
+                    prevEnd = line.end;
+                }
+                // Append remaining text
+                if (prevEnd < text.length()) {
+                    newText.append(text, prevEnd, text.length());
+                }
+                setText(newText.toString());
+                // Keep selection
+                return true;
+            } else {
+                // Single line toggle (existing logic)
+                for (LineData line : container.lines) {
+                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                        int lineStart = line.start, lineEnd = line.end;
+                        String lineText = text.substring(lineStart, lineEnd);
+                        int nonWs = 0;
+                        while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs))) nonWs++;
+                        boolean hasComment = lineText.startsWith("//", nonWs);
+                        String newLineText = hasComment ? lineText.substring(0, nonWs) + lineText.substring(nonWs + 2) : lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs);
+                        setText(text.substring(0, lineStart) + newLineText + text.substring(lineEnd));
+                        int cursorDelta = hasComment ? -2 : 2;
+                        int newCursor = cursorPosition + cursorDelta;
+                        if (cursorPosition < lineStart + nonWs + (hasComment ? 2 : 0)) newCursor = cursorPosition;
+                        setCursor(Math.max(lineStart, newCursor), false);
+                        return true;
+                    }
                 }
             }
         }
 
         if (i == Keyboard.KEY_D && isCtrlKeyDown()) {
-            // Use LineData to find the line the cursor is on
-            for (LineData line : container.lines) {
-                if (cursorPosition >= line.start && cursorPosition <= line.end) {
-                    int lineStart = line.start, lineEnd = line.end;
-                    String lineText = text.substring(lineStart, lineEnd);
-                    String insertText = "\n" + lineText;
-                    setText(text.substring(0, lineEnd) + insertText + text.substring(lineEnd));
-                    setCursor(lineEnd + 1, false);
+            if (startSelection != endSelection) {
+                // Handle multi-line selection duplication
+                LineData firstLine = null, lastLine = null;
+                for (LineData line : container.lines) {
+                    if (line.end > startSelection && line.start < endSelection) {
+                        if (firstLine == null) firstLine = line;
+                        lastLine = line;
+                    }
+                }
+                if (firstLine != null && lastLine != null) {
+                    String selectedText = text.substring(firstLine.start, lastLine.end);
+                    String insertText = "\n" + selectedText;
+                    // Save selection before setText
+                    int savedStart = startSelection;
+                    int savedEnd = endSelection;
+                    setText(text.substring(0, lastLine.end) + insertText + text.substring(lastLine.end));
+                    // Move cursor to start of duplicated block
+                    setCursor(lastLine.end + 1, false);
+                    // Restore selection
+                    startSelection = savedStart;
+                    endSelection = savedEnd;
                     return true;
+                }
+            } else {
+                // Single line duplication (existing logic)
+                for (LineData line : container.lines) {
+                    if (cursorPosition >= line.start && cursorPosition <= line.end) {
+                        int lineStart = line.start, lineEnd = line.end;
+                        String lineText = text.substring(lineStart, lineEnd);
+                        String insertText = "\n" + lineText;
+                        // Save selection before setText
+                        int savedStart = startSelection;
+                        int savedEnd = endSelection;
+                        setText(text.substring(0, lineEnd) + insertText + text.substring(lineEnd));
+                        // Move cursor to start of duplicated line
+                        setCursor(lineEnd + 1, false);
+                        // Restore selection
+                        startSelection = savedStart;
+                        endSelection = savedEnd;
+                        return true;
+                    }
                 }
             }
         }
