@@ -158,13 +158,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
                         int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
-                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
+                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                     if (endBracket >= data.start && endBracket < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
                         int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
-                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
+                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                 }
                 //Highlight words
