@@ -1195,10 +1195,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     // Double-click: select the word under the caret using the container's word regex
                     this.doubleClicked = true;
                     selection.selectWordAtCursor(this.text, this.container.regexWord);
+                    // Prevent subsequent mouse-drag handling in the render loop from
+                    // treating this double-click as a normal click-drag which would
+                    // immediately reset and extend the selection. Clearing `clicked`
+                    // keeps the double-click selection stable.
+                    this.clicked = false;
                 } else if (this.clickCount >= 3) {
                     // Triple-click: select the entire logical line that contains the caret
                     this.tripleClicked = true;
                     selection.selectLineAtCursor(container.lines);
+                    // Same as double-click: clear `clicked` to avoid accidental drag-extension
+                    this.clicked = false;
                     this.clickCount = 0;
                 }
             }
