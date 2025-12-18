@@ -56,6 +56,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
     public boolean undoing = false;
     private long lastClicked = 0L;
+    // Line number gutter width (left margin for line numbers)
+    private static  int LINE_NUMBER_GUTTER_WIDTH = 25;
     // private static TrueTypeFont font = new TrueTypeFont(new Font("Arial Unicode MS", Font.PLAIN, ConfigClient.FontSize), 1);
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
@@ -74,17 +76,23 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (!visible)
             return;
         clampSelectionBounds();
+        // Draw outer border around entire area
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
-        drawRect(x, y, x + width, y + height, 0xff000000); //THIS IS THE VIEWPORT
+        // Draw line number gutter background
+        drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
+        // Draw text viewport background (starts after gutter)
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, 0xff000000);
+        // Draw separator line between gutter and text area
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + LINE_NUMBER_GUTTER_WIDTH + 1, y + height, 0xff3c3f41);
 
-        // Enable scissor test to clip drawing to the viewport rectangle
+        // Enable scissor test to clip drawing to the TEXT viewport rectangle (excludes gutter)
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         Minecraft mc = Minecraft.getMinecraft();
         ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
         int scaleFactor = sr.getScaleFactor();
-        int scissorX = this.x * scaleFactor;
+        int scissorX = (this.x ) * scaleFactor;
         int scissorY = (sr.getScaledHeight() - (this.y + this.height)) * scaleFactor;
-        int scissorW = this.width * scaleFactor;
+        int scissorW = (this.width ) * scaleFactor;
         int scissorH = this.height * scaleFactor;
         GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
         
@@ -245,6 +253,38 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
 
+        // Render line numbers in the gutter (outside scissor region, so pop first)
+        GL11.glPopMatrix();
+       // GL11.glDisable(GL11.GL_SCISSOR_TEST);
+        GL11.glPushMatrix();
+        GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
+        for (int i = renderStart; i <= renderEnd; i++) {
+            int posY = y + (i - scrolledLine) * container.lineHeight;
+            String lineNum = String.valueOf(i + 1);
+            int lineNumWidth = ClientProxy.Font.width(lineNum);
+            int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5; // right-align with 5px padding
+            int lineNumY = posY + 1;
+            // Highlight current line number
+            int lineNumColor = 0xFF606366;
+            if (active && isEnabled()) {
+                for (int li = 0; li < list.size(); li++) {
+                    LineData ld = list.get(li);
+                    if (cursorPosition >= ld.start && cursorPosition < ld.end || (li == list.size() - 1 && cursorPosition == text.length())) {
+                        if (li == i) {
+                            lineNumColor = 0xFFa9b7c6;
+                            break;
+                        }
+                    }
+                }
+            }
+            ClientProxy.Font.drawString(lineNum, lineNumX, lineNumY, lineNumColor);
+        }
+        GL11.glPopMatrix();
+        // Re-enable scissor for text area and push matrix again
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GL11.glPushMatrix();
+        GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
+
         for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
             String line = data.text;
@@ -257,12 +297,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     if (startBracket >= data.start && startBracket < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
-                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
+                        drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                     if (endBracket >= data.start && endBracket < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
-                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
+                        drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                 }
                 //Highlight words
@@ -272,20 +312,20 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         if (line.substring(m.start(), m.end()).equals(wordHightLight)) {
                             int s = ClientProxy.Font.width(line.substring(0, m.start()));
                             int e = ClientProxy.Font.width(line.substring(0, m.end())) + 1;
-                            drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x99004c00);
+                            drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x99004c00);
                         }
                     }
                 }
                 // Highlight the current line (light gray) under any selection
                 if (active && isEnabled() && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
-                    drawRect(x + 0, posY, x + width - 1, posY + container.lineHeight, 0x22e0e0e0);
+                    drawRect(x , posY, x + width - 1, posY + container.lineHeight, 0x22e0e0e0);
                 }
                 // Highlight selection
                 if (startSelection != endSelection && endSelection > data.start && startSelection <= data.end) {
                     if (startSelection < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, Math.max(startSelection - data.start, 0)));
                         int e = ClientProxy.Font.width(line.substring(0, Math.min(endSelection - data.start, w))) + 1;
-                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x992172ff);
+                        drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
                 int yPos = posY + 1;
@@ -318,7 +358,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         for (int k = 0; k < spaces; k++)
                             sb.append(' ');
                         int px = ClientProxy.Font.width(sb.toString());
-                        int gx = x + 4 + px - 2; // shift left ~2px for the IntelliJ feel
+                        int gx = x + LINE_NUMBER_GUTTER_WIDTH + 4 + px - 2; // shift left ~2px for the IntelliJ feel
 
                         int topY = y + (drawStart - scrolledLine) * container.lineHeight;
                         int bottomY = y + (endLine - scrolledLine + 1) * container.lineHeight;
@@ -326,12 +366,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
                 }
-                data.drawString(x + 1, yPos, 0xFFe0e0e0);
+                data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
 
                 // Draw cursor: pause blinking while user is active recently
                 boolean recentInput = System.currentTimeMillis() - this.lastInputTime < 500;
                 if (active && isEnabled() && (recentInput || (cursorCounter / 10) % 2 == 0) && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
-                    int posX = x + ClientProxy.Font.width(
+                    int posX = x + LINE_NUMBER_GUTTER_WIDTH + ClientProxy.Font.width(
                             line.substring(0, Math.min(cursorPosition - data.start, line.length())));
                     drawRect(posX + 1, yPos -1, posX + 2, yPos - 1 + container.lineHeight, 0xffffffff);
                 }
@@ -536,7 +576,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     private int getSelectionPos(int xMouse, int yMouse) {
-        xMouse -= this.x + 1;
+        xMouse -= (this.x + LINE_NUMBER_GUTTER_WIDTH + 1);
         yMouse -= this.y + 1;
         // Adjust yMouse to account for fractional GL translation (negative offset applied in rendering)
         double fracOffset = scrollPos - scrolledLine;
@@ -1529,7 +1569,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
                 int column = this.cursorPosition - data.start;
                 LineData target = this.container.lines.get(i - 1);
-                int targetPos = this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i - 1 - this.scrolledLine) * this.container.lineHeight);
+                int targetPos = this.getSelectionPos(this.x + LINE_NUMBER_GUTTER_WIDTH + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i - 1 - this.scrolledLine) * this.container.lineHeight);
                 int targetIndent = getLineIndent(target.text);
                 int minPos = target.start + Math.min(targetIndent, Math.max(0, target.text.length()));
                 return Math.max(minPos, targetPos);
@@ -1547,7 +1587,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {
                 int column = this.cursorPosition - data.start;
                 LineData target = this.container.lines.get(Math.min(i + 1, this.container.lines.size() - 1));
-                int targetPos = this.getSelectionPos(this.x + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i + 1 - this.scrolledLine) * this.container.lineHeight);
+                int targetPos = this.getSelectionPos(this.x + LINE_NUMBER_GUTTER_WIDTH + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i + 1 - this.scrolledLine) * this.container.lineHeight);
                 int targetIndent = getLineIndent(target.text);
                 int minPos = target.start + Math.min(targetIndent, Math.max(0, target.text.length()));
                 return Math.max(minPos, targetPos);
