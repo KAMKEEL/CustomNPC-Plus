@@ -238,7 +238,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 if (active && isEnabled() && (recentInput || (cursorCounter / 10) % 2 == 0) && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
                     int posX = x + ClientProxy.Font.width(
                             line.substring(0, Math.min(cursorPosition - data.start, line.length())));
-                    drawRect(posX + 1, yPos, posX + 2, yPos - 2 + container.lineHeight, 0xffffffff);
+                    drawRect(posX + 1, yPos -1, posX + 2, yPos - 1 + container.lineHeight, 0xffffffff);
                 }
             }
         }
