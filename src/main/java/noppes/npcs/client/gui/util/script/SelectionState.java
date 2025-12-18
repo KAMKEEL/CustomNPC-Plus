@@ -69,7 +69,6 @@ public class SelectionState {
     public void setSelection(int start, int end) {
         startSelection = Math.min(start, end);
         endSelection = Math.max(start, end);
-        cursorPosition = endSelection;
     }
     
     /**
