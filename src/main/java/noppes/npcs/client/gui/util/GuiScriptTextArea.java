@@ -295,7 +295,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Draw indent guides once per visible block based on brace spans
                 if (i == Math.max(0, scrolledLine) && !braceSpans.isEmpty()) {
                     int visStart = Math.max(0, scrolledLine);
-                    int visEnd = Math.min(list.size() - 1, visStart + container.visibleLines - 1);
+                    int visEnd = Math.min(list.size() - 1, visStart + container.visibleLines - 0);
                     for (int[] span : braceSpans) {
                         int originalDepth = span[0];
                         int openLine = span[1];
@@ -323,7 +323,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int gx = x + 4 + px - 2; // shift left ~2px for the IntelliJ feel
 
                         int topY = y + (drawStart - scrolledLine) * container.lineHeight;
-                        int bottomY = y + (drawEnd - scrolledLine + 1) * container.lineHeight - 2;
+                        int bottomY = y + (endLine - scrolledLine + 1) * container.lineHeight;
                             int guideColor = (openLine == highlightedOpenLine && closeLine == highlightedCloseLine) ? 0x9933cc00 : 0x33FFFFFF;
                             drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
