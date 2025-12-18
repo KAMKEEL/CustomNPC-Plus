@@ -131,13 +131,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 if (startBracket >= data.start && startBracket < data.end) {
                     int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
                     int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
-                    int posY = y + 1 + (i - scrolledLine) * container.lineHeight;
+                    int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                     drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
                 }
                 if (endBracket >= data.start && endBracket < data.end) {
                     int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
                     int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
-                    int posY = y + 1 + (i - scrolledLine) * container.lineHeight;
+                    int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                     drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
                 }
             }
@@ -148,21 +148,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         if (line.substring(m.start(), m.end()).equals(wordHightLight)) {
                             int s = ClientProxy.Font.width(line.substring(0, m.start()));
                             int e = ClientProxy.Font.width(line.substring(0, m.end())) + 1;
-                            int posY = y + 1 + (i - scrolledLine) * container.lineHeight;
-                            drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x99004c00);
+                            int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
+                            drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x99004c00);
                         }
                     }
                 }
                 // Highlight the current line (light gray) under any selection
                 if (active && isEnabled() && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
-                    int lineY = y + 1 + (i - scrolledLine) * container.lineHeight;
-                    drawRect(x + 1, lineY, x + width - 1, lineY + container.lineHeight, 0x22e0e0e0);
+                    int lineY = y + 0 + (i - scrolledLine) * container.lineHeight;
+                    drawRect(x + 0, lineY, x + width - 1, lineY + container.lineHeight, 0x22e0e0e0);
                 }
                 if (startSelection != endSelection && endSelection > data.start && startSelection <= data.end) {
                     if (startSelection < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, Math.max(startSelection - data.start, 0)));
                         int e = ClientProxy.Font.width(line.substring(0, Math.min(endSelection - data.start, w))) + 1;
-                        int posY = y + 1 + (i - scrolledLine) * container.lineHeight;
+                        int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                         drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
