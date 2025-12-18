@@ -340,8 +340,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int closeLine = span[2];
                         int depth = span.length > 3 ? span[3] : originalDepth;
                         // Skip top-level (depth 1) using the original depth to avoid hiding nested guides when adjusted
-                        //if (originalDepth <= 1)
-                        //continue;
+                        if (originalDepth <= 1)
+                            continue;
                         int startLine = openLine + 1; // start under the opening brace
                         int endLine = closeLine - 1;  // stop before the closing brace
                         if (startLine > endLine)
