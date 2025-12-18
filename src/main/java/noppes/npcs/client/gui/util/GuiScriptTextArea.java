@@ -1162,22 +1162,29 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
+        // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
         if (this.active) {
+            // Compute logical click position in text and reset selection/caret
             int clickPos = this.getSelectionPos(xMouse, yMouse);
             selection.reset(clickPos);
             selection.markActivity();
+
+            // Prepare click state (left button starts most interactions)
             this.clicked = mouseButton == 0;
             this.doubleClicked = false;
             this.tripleClicked = false;
             long time = System.currentTimeMillis();
+
+            // Prefer delegating scrollbar-start logic to ScrollState. If the click
+            // is on the scrollbar area and the scrollbar can be dragged, we start
+            // click-scrolling mode and cancel the normal text click-drag behavior.
             if (this.clicked && this.container.linesCount * this.container.lineHeight > this.height && xMouse > this.x + this.width - 8) {
+                // We consumed the mouse-down as a scrollbar drag start
                 this.clicked = false;
-                scroll.setClickScrolling(true);
-                double linesCountD = Math.max(1, (double) this.container.linesCount);
-                int thumbTop = (int) (this.y + 1f * scroll.getScrollPos() / linesCountD * (this.height - 4)) + 1;
-                scroll.setScrollbarDragOffset(yMouse - thumbTop);
+                scroll.startScrollbarDrag(yMouse,this.y,this.height,container.linesCount);
             } else {
+                // Handle double/triple click selection counting
                 if (time - this.lastClicked < 300L) {
                     this.clickCount++;
                 } else {
@@ -1185,24 +1192,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
 
                 if (this.clickCount == 2) {
-                    // Double-click: select word under cursor (restore prior behavior)
+                    // Double-click: select the word under the caret using the container's word regex
                     this.doubleClicked = true;
-                    Matcher m = this.container.regexWord.matcher(this.text);
-                    while (m.find()) {
-                        if (selection.getCursorPosition() >= m.start() && selection.getCursorPosition() <= m.end()) {
-                            selection.setSelection(m.start(), m.end());
-                            break;
-                        }
-                    }
+                    selection.selectWordAtCursor(this.text, this.container.regexWord);
                 } else if (this.clickCount >= 3) {
-                    // Triple-click: select entire line
+                    // Triple-click: select the entire logical line that contains the caret
                     this.tripleClicked = true;
-                    for (LineData line : container.lines) {
-                        if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
-                            selection.setSelection(line.start, line.end);
-                            break;
-                        }
-                    }
+                    selection.selectLineAtCursor(container.lines);
                     this.clickCount = 0;
                 }
             }

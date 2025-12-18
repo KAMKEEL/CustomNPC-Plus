@@ -193,4 +193,17 @@ public class ScrollState {
             setScrollbarDragOffset(0);
         }
     }
+
+    /**
+     * Attempt to start a scrollbar drag if the mouse down occurred on the scrollbar thumb area.
+     * Returns true if drag was initiated (caller should cancel normal text-click drag behavior).
+     */
+    public void startScrollbarDrag(int yMouse, int areaY, int areaHeight, int linesCount) {
+        // Thumb width in GuiScriptTextArea is 6px (posX..posX+5), so check clicks near the right edge
+        // Start click-scrolling mode and set initial drag offset relative to thumb top.
+        setClickScrolling(true);
+        double linesCountD = Math.max(1, (double) linesCount);
+        int thumbTop = (int) (areaY + 1f * getScrollPos() / linesCountD * (areaHeight - 4)) + 1;
+        setScrollbarDragOffset(yMouse - thumbTop);
+    }
 }

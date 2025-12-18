@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script;
 
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Manages cursor position, text selection, and related operations.
@@ -188,5 +189,35 @@ public class SelectionState {
     public void afterTextInsert(int newPosition) {
         endSelection = startSelection = cursorPosition = newPosition;
         markActivity();
+    }
+
+    /**
+     * Select the word surrounding the current cursor position using the provided regex.
+     * The regex should match word tokens; the implementation finds the token which
+     * contains the cursor and selects its start..end.
+     */
+    public void selectWordAtCursor(String text, Pattern wordPattern) {
+        if (text == null || wordPattern == null) return;
+        java.util.regex.Matcher m = wordPattern.matcher(text);
+        while (m.find()) {
+            if (cursorPosition >= m.start() && cursorPosition <= m.end()) {
+                setSelection(m.start(), m.end());
+                return;
+            }
+        }
+    }
+
+    /**
+     * Select the entire line containing the cursor. `lines` is the parsed
+     * line data from `JavaTextContainer` where each LineData has start/end indices.
+     */
+    public void selectLineAtCursor(List<LineData> lines) {
+        if (lines == null) return;
+        for (LineData line : lines) {
+            if (isCursorOnLine(lines.indexOf(line), line, lines.size())) {
+                setSelection(line.start, line.end);
+                return;
+            }
+        }
     }
 }
