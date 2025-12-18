@@ -695,6 +695,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String before = getSelectionBeforeText();
                 String after = getSelectionAfterText();
 
+                // If there is non-empty code on the same line after the brace (before the next newline),
+                // treat it as code that should be moved into the newly created inner line. In that case
+                // just insert the child indent and return — do not insert the closing brace before that code.
+                int firstNewline = after.indexOf('\n');
+                String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
+                if (leadingSegment.trim().length() > 0) {
+                    addText("\n" + childIndent);
+                    return true;
+                }
+
                 // Determine whether this opening brace already has a matching closing
                 // brace at the same scope (and indent). Prefer using the brace-span
                 // computation which skips strings/comments and handles nesting.
