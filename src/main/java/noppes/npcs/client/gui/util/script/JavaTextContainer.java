@@ -144,13 +144,14 @@ public class JavaTextContainer extends TextContainer {
     }
 
     public void init(int width, int height) {
-        lineHeight = ClientProxy.Font.height();
-        if (lineHeight == 0)
-            lineHeight = 12;
+       // lineHeight = ClientProxy.Font.height();
+       // if (lineHeight == 0)
+            lineHeight = 13;
         
         String[] split = text.split("\\n", -1); // -1 preserves empty lines ""
         int totalChars = 0;
-        for (String l : split) {
+        for (int lineIndex = 0; lineIndex < split.length; lineIndex++) {
+            String l = split[lineIndex];
             StringBuilder line = new StringBuilder();
             Matcher m = regexWord.matcher(l);
             int i = 0;
@@ -164,13 +165,17 @@ public class JavaTextContainer extends TextContainer {
                 line.append(word);
                 i = m.start();
             }
-            lines.add(new LineData(line.toString(), totalChars, totalChars + line.length() + 1));
+            // Only add +1 for the newline if this is NOT the last line
+            // The last line has no newline after it
+            boolean isLastLine = (lineIndex == split.length - 1);
+            int endOffset = isLastLine ? 0 : 1;
+            lines.add(new LineData(line.toString(), totalChars, totalChars + line.length() + endOffset));
 
-            totalChars += line.length() + 1;
+            totalChars += line.length() + endOffset;
         }
         linesCount = lines.size();
         totalHeight = linesCount * lineHeight;
-        visibleLines = Math.max(height / lineHeight, 1);
+        visibleLines = Math.max(height / lineHeight-1, 1);
 
         // Invalidate caches that depend on line layout
         invalidateCaches();
