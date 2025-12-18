@@ -15,7 +15,8 @@ public class TextContainer {
     public final Pattern regexString = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1", Pattern.MULTILINE);
     public final Pattern regexFunction = Pattern.compile("\\b(if|else|switch|with|for|while|in|var|const|let|throw|then|function|continue|break|foreach|return|try|catch|finally|do|this|typeof|instanceof|new)(?=[^\\w])");
     public final Pattern regexType = Pattern.compile("\\b(Array|Date|eval|hasOwnProperty|Infinity|isFinite|isNaN|isPrototypeOf|Math|NaN|Number|Object|prototype|String|toString|undefined|valueOf|parseInt|parseFloat|print)(?=[^\\w])");
-    public final Pattern regexWord = Pattern.compile("[\\p{L}-]+|\\n|$");
+    // Include letters, numbers and underscore so single chars like "x" and numeric tokens match
+    public final Pattern regexWord = Pattern.compile("[\\p{L}\\p{N}_-]+|\\n|$");
     public final Pattern regexNumber = Pattern.compile("\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|unidentified|true|false)\\b");
     public final Pattern regexComment = Pattern.compile("\\/\\*[\\s\\S]*?(?:\\*\\/|$)|\\/\\/.*|#.*");
 

@@ -5,8 +5,8 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
-
 import noppes.npcs.client.gui.util.script.JavaTextContainer;
+import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
@@ -14,9 +14,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
-
-import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
-import org.lwjgl.opengl.GL11;
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
 
@@ -1471,7 +1468,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     this.doubleClicked = true;
                     Matcher m = this.container.regexWord.matcher(this.text);
                     while (m.find()) {
-                        if (this.cursorPosition > m.start() && this.cursorPosition < m.end()) {
+                        if (this.cursorPosition >= m.start() && this.cursorPosition <= m.end()) {     
                             this.startSelection = m.start();
                             this.endSelection = m.end();
                             break;
