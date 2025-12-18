@@ -412,6 +412,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     
     // ==================== KEYBOARD INPUT HANDLING ====================
 
+    /**
+     * Handles keyboard input for the text area, delegating to specialized handlers
+     * for different types of input: navigation, deletion, shortcuts, and character input.
+     */
     @Override
     public boolean textboxKeyTyped(char c, int i) {
         if (!active)
@@ -425,25 +429,51 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (!isEnabled())
             return false;
 
+        if (handleNavigationKeys(i)) return true;
+        if (handleDeletionKeys(i)) return true;
+        if (handleShortcutKeys(i)) return true;
+        if (handleCharacterInput(c)) return true;
+
+        return true;
+    }
+
+    /**
+     * Handles cursor navigation keys (arrows) with support for word-jumping (Ctrl)
+     * and selection (Shift). Updates cursor position and scrolls viewport if needed.
+     */
+    private boolean handleNavigationKeys(int i) {
+        // LEFT ARROW: move cursor left; with Ctrl -> jump by word
         if (i == Keyboard.KEY_LEFT) {
-            int j = 1;
+            int j = 1; // default: move one character
             if (isCtrlKeyDown()) {
+                // When Ctrl is down, compute distance to previous word boundary.
+                // We match words in the text slice before the cursor and pick
+                // the last match start as the new boundary.
                 Matcher m = container.regexWord.matcher(text.substring(0, selection.getCursorPosition()));
                 while (m.find()) {
                     if (m.start() == m.end())
-                        continue;
+                        continue; // skip empty matches
+                    // j becomes the number of chars to move left to reach word start
                     j = selection.getCursorPosition() - m.start();
                 }
             }
             int newPos = Math.max(selection.getCursorPosition() - j, 0);
+            // If Shift is held, extend selection; otherwise place caret.
             setCursor(newPos, GuiScreen.isShiftKeyDown());
             return true;
         }
+
+        // RIGHT ARROW: move cursor right; with Ctrl -> jump to next word start
         if (i == Keyboard.KEY_RIGHT) {
-            int j = 1;
+            int j = 1; // default: move one character
             if (isCtrlKeyDown()) {
+                // With Ctrl, search for the next word boundary starting at the cursor.
+                // We look at the substring after the cursor and use the matcher to find
+                // the first match; its start offset indicates how many chars to skip.
                 Matcher m = container.regexWord.matcher(text.substring(selection.getCursorPosition()));
-                if (m.find() && m.start() > 0 || m.find()) {
+                // m.find() called once is sufficient; the previous code attempted
+                // a redundant second find in some cases. Keep first positive find.
+                if (m.find()) {
                     j = m.start();
                 }
             }
@@ -451,6 +481,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             setCursor(newPos, GuiScreen.isShiftKeyDown());
             return true;
         }
+
+        // UP/DOWN: logical cursor movement across lines while preserving
+        // column where possible. After moving, ensure the caret remains visible
+        // by adjusting the scroll if necessary.
         if (i == Keyboard.KEY_UP) {
             setCursor(cursorUp(), GuiScreen.isShiftKeyDown());
             scrollToCursor();
@@ -461,22 +495,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrollToCursor();
             return true;
         }
+
+        return false; // not a navigation key
+    }
+
+    /**
+     * Handles deletion keys: Delete, Backspace, and Ctrl+Backspace.
+     * Includes smart backspace behavior for indentation-aware line merging,
+     * auto-pair deletion for brackets/quotes, and word-level deletion.
+     */
+    private boolean handleDeletionKeys(int i) {
+        // DELETE key: remove the character under the cursor if no selection,
+        // otherwise remove the selected region's tail.
         if (i == Keyboard.KEY_DELETE) {
             String s = getSelectionAfterText();
             if (!s.isEmpty() && !selection.hasSelection())
+                // remove single character after caret when nothing is selected
                 s = s.substring(1);
             setText(getSelectionBeforeText() + s);
+            // Keep caret at same start selection
             selection.reset(selection.getStartSelection());
             return true;
         }
+
+        // CTRL+BACKSPACE: delete to previous word or whitespace boundary.
         if (isKeyComboCtrlBackspace(i)) {
             String s = getSelectionBeforeText();
             if (selection.getStartSelection() > 0 && !selection.hasSelection()) {
                 int nearestCondition = selection.getCursorPosition();
                 int g;
+                // If the char left of caret is whitespace, find the first non-space to the left;
+                // otherwise find first whitespace/newline to the left (word boundary).
                 boolean cursorInWhitespace = Character.isWhitespace(s.charAt(selection.getCursorPosition() - 1));
                 if (cursorInWhitespace) {
-                    // Find the nearest word if we are starting in whitespace
+                    // Scan left until non-whitespace (start of previous word)
                     for (g = selection.getCursorPosition() - 1; g >= 0; g--) {
                         char currentChar = s.charAt(g);
                         if (!Character.isWhitespace(currentChar)) {
@@ -488,7 +540,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                     }
                 } else {
-                    // Find the nearest blank space or new line
+                    // Scan left until whitespace/newline is found (word boundary)
                     for (g = selection.getCursorPosition() - 1; g >= 0; g--) {
                         char currentChar = s.charAt(g);
                         if (Character.isWhitespace(currentChar) || currentChar == '\n') {
@@ -501,8 +553,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
 
-                // Remove all text to the left up to the nearest boundary
+                // Trim the prefix up to the discovered boundary
                 s = s.substring(0, nearestCondition);
+                // Adjust selection start to match removed characters
                 selection.setStartSelection(
                         selection.getStartSelection() - (selection.getCursorPosition() - nearestCondition));
             }
@@ -510,8 +563,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             selection.reset(selection.getStartSelection());
             return true;
         }
+
+        // BACKSPACE: complex handling with a few cases:
+        // 1) If a selection exists, delete it
+        // 2) If at start, nothing to do
+        // 3) Smart indent-aware merge with previous line when caret is at/near expected indent
+        // 4) Auto-pair deletion (remove both opening and closing chars when deleting an opener)
+        // 5) Fallback: delete a single char to the left
         if (i == Keyboard.KEY_BACK) {
-            // Handle selection deletion first
+            // 1) selection deletion
             if (selection.hasSelection()) {
                 String s = getSelectionBeforeText();
                 setText(s + getSelectionAfterText());
@@ -519,57 +579,52 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 scrollToCursor();
                 return true;
             }
-            
-            // Nothing to delete if at start
+
+            // 2) nothing to delete
             if (selection.getStartSelection() <= 0) {
                 return true;
             }
-            
-            // Find current line for indent-aware backspace
+
+            // 3) indent-aware merge: find current line and compute expected indent
             LineData curr = selection.findCurrentLine(container.lines);
-            
-            // Indent-aware backspace: if cursor is at or before the EXPECTED indent, merge with previous line
-            // If cursor is after expected indent (even in extra whitespace), do normal backspace
             if (curr != null && curr.start > 0) {
                 int col = selection.getCursorPosition() - curr.start;
                 int actualIndent = IndentHelper.getLineIndent(curr.text);
                 int expectedIndent = IndentHelper.getExpectedIndent(curr, container.lines);
-                
-                // Only trigger smart merge if cursor is at or before the expected indent position
+
+                // Trigger smart merge only when caret is at or before the expected indent.
                 if (col <= expectedIndent) {
                     boolean lineHasContent = curr.text.trim().length() > 0;
-                    int newlinePos = curr.start - 1;  // Position of newline before this line
-                    
+                    int newlinePos = curr.start - 1;  // index of newline before this line
+
                     if (!lineHasContent) {
-                        // Empty/whitespace-only line: remove the entire line including its trailing newline
+                        // Empty or whitespace-only line: remove it including its trailing newline
                         int removeEnd = text.indexOf('\n', curr.start);
                         if (removeEnd == -1) {
                             removeEnd = text.length();
                         } else {
-                            removeEnd = removeEnd + 1;  // Include the newline
+                            removeEnd = removeEnd + 1;  // include the newline in removal
                         }
                         String before = text.substring(0, curr.start);
                         String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
                         setText(before + after);
-                        // Cursor goes to end of previous line (at the newline position, which is now end of prev line content)
+                        // Place caret at end of previous line
                         int newCursor = Math.max(0, curr.start - 1);
                         selection.reset(newCursor);
                         scrollToCursor();
                         return true;
                     } else {
-                        // Line has content: merge with previous line
-                        // Remove newline + indent, keep content
+                        // Merge current line content with the previous line preserving spacing
                         int contentStart = curr.start + actualIndent;
-                        
                         String before = text.substring(0, newlinePos);
                         String content = contentStart <= text.length() ? text.substring(contentStart) : "";
-                        
-                        // Determine if we need spacing between merged content
+
+                        // Decide whether a space is needed between concatenated fragments.
                         String spacer = "";
                         if (before.length() > 0 && content.length() > 0) {
                             char lastChar = before.charAt(before.length() - 1);
                             char firstChar = content.charAt(0);
-                            // Add space unless previous ends with whitespace/open bracket or current starts with close bracket/punctuation
+                            // Avoid adding space when punctuation/brackets are adjacent
                             if (!Character.isWhitespace(lastChar) && 
                                 lastChar != '{' && lastChar != '(' && lastChar != '[' &&
                                 firstChar != '}' && firstChar != ')' && firstChar != ']' && 
@@ -578,7 +633,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                                 spacer = " ";
                             }
                         }
-                        
+
                         setText(before + spacer + content);
                         int newCursor = before.length() + spacer.length();
                         selection.reset(newCursor);
@@ -587,8 +642,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
             }
-            
-            // Auto-pair deletion: if deleting an opening bracket/quote and next char is the matching closer
+
+            // 4) Auto-pair deletion: when deleting an opener and a matching closer follows,
+            // remove both so the pair is cleaned up in one backspace.
             if (selection.getStartSelection() > 0 && selection.getStartSelection() < text.length()) {
                 char prev = text.charAt(selection.getStartSelection() - 1);
                 char nextc = text.charAt(selection.getStartSelection());
@@ -608,7 +664,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
 
-            // Normal backspace: delete one character
+            // 5) Normal single-character backspace
             String s = getSelectionBeforeText();
             s = s.substring(0, s.length() - 1);
             selection.setStartSelection(selection.getStartSelection() - 1);
@@ -617,8 +673,20 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrollToCursor();
             return true;
         }
+
+        return false;
+    }
+
+    /**
+     * Handles keyboard shortcuts: clipboard operations (cut/copy/paste),
+     * undo/redo, tab indentation, code formatting, enter with brace handling,
+     * comment toggling, and line duplication.
+     */
+    private boolean handleShortcutKeys(int i) {
+        // CTRL+X: Cut
         if (this.isKeyComboCtrlX(i)) {
             if (selection.hasSelection()) {
+                // Copy selected text into clipboard, then remove the selection
                 NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
                 String s = getSelectionBeforeText();
                 setText(s + getSelectionAfterText());
@@ -627,20 +695,26 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
             return true;
         }
+
+        // CTRL+C: Copy
         if (this.isKeyComboCtrlC(i)) {
             if (selection.hasSelection()) {
                 NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
             }
             return true;
         }
+
+        // CTRL+V: Paste (insert clipboard contents at caret)
         if (this.isKeyComboCtrlV(i)) {
             addText(NoppesStringUtils.getClipboardContents());
             scrollToCursor();
             return true;
         }
+
+        // UNDO (Ctrl+Z): restore last entry from undoList and push current state to redoList
         if (i == Keyboard.KEY_Z && isCtrlKeyDown()) {
             if (undoList.isEmpty())
-                return false;
+                return false; // nothing to undo
             undoing = true;
             redoList.add(new UndoData(this.text, selection.getCursorPosition()));
             UndoData data = undoList.remove(undoList.size() - 1);
@@ -650,6 +724,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrollToCursor();
             return true;
         }
+
+        // REDO (Ctrl+Y): opposite of undo
         if (i == Keyboard.KEY_Y && isCtrlKeyDown()) {
             if (redoList.isEmpty())
                 return false;
@@ -662,6 +738,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrollToCursor();
             return true;
         }
+
+        // TAB: indent or unindent depending on Shift
         if (i == Keyboard.KEY_TAB) {
             boolean shift = isShiftKeyDown();
             if (shift) {
@@ -672,21 +750,25 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrollToCursor();
             return true;
         }
+
+        // CTRL+F: format the text according to IndentHelper rules
         if (i == Keyboard.KEY_F && isCtrlKeyDown()) {
             formatText();
             return true;
         }
+
+        // RETURN/ENTER: special handling when preceding char is an opening brace '{'
         if (i == Keyboard.KEY_RETURN) {
             if (selection.getCursorPosition() > 0 && selection.getCursorPosition() <= text.length() && text.charAt(
                     selection.getCursorPosition() - 1) == '{') {
+                // Compute current and child indent strings
                 String indent = getIndentCurrentLine();
                 String childIndent = indent + "    ";
                 String before = getSelectionBeforeText();
                 String after = getSelectionAfterText();
 
-                // If there is non-empty code on the same line after the brace (before the next newline),
-                // treat it as code that should be moved into the newly created inner line. In that case
-                // just insert the child indent and return — do not insert the closing brace before that code.
+                // If there's code after the brace on the same line, assume it should be
+                // moved inside the new inner line: insert child indent only.
                 int firstNewline = after.indexOf('\n');
                 String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
                 if (leadingSegment.trim().length() > 0) {
@@ -695,12 +777,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     return true;
                 }
 
-                // Determine whether this opening brace already has a matching closing
-                // brace at the same scope (and indent). Prefer using the brace-span
-                // computation which skips strings/comments and handles nesting.
+                // Otherwise, determine whether a matching closing brace already exists at same indent.
                 boolean hasMatchingCloseSameIndent = false;
                 try {
-                    // Find the line index containing the opening brace (cursorPosition-1)
                     int openLineIdx = -1;
                     int bracePos = selection.getCursorPosition() - 1;
                     for (int li = 0; li < this.container.lines.size(); li++) {
@@ -717,7 +796,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             int spanOpen = span[1];
                             int spanClose = span[2];
                             if (spanOpen == openLineIdx) {
-                                // Found a matching close; check its indent equals current indent
+                                // If the matching close has the same indent as current line,
+                                // we only insert the child indent (do not auto-insert a closing brace).
                                 int closeIndent = IndentHelper.getLineIndent(this.container.lines.get(spanClose).text);
                                 if (closeIndent == indent.length()) {
                                     hasMatchingCloseSameIndent = true;
@@ -727,15 +807,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                     }
                 } catch (Exception ex) {
-                    // Fallback: if anything goes wrong, conservatively behave as before
+                    // On any error, default to conservative behavior (insert closing brace)
                     hasMatchingCloseSameIndent = false;
                 }
-
 
                 if (hasMatchingCloseSameIndent) {
                     addText("\n" + childIndent);
                     scrollToCursor();
                 } else {
+                    // Insert child line and a closing brace aligned with current indent
                     String insert = "\n" + childIndent + "\n" + indent + "}";
                     setText(before + insert + after);
                     int newCursor = before.length() + 1 + childIndent.length();
@@ -743,22 +823,98 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     scrollToCursor();
                 }
             } else {
+                // Normal enter: insert newline + auto indent for caret position
                 addText(Character.toString('\n') + getAutoIndentForEnter());
                 scrollToCursor();
             }
+            return true;
         }
+
+        // CTRL+/ : toggle comment for selection or current line
+        if (i == Keyboard.KEY_SLASH && isCtrlKeyDown()) {
+            if (selection.hasSelection()) {
+                toggleCommentSelection();
+            } else {
+                toggleCommentLineAtCursor();
+            }
+            return true;
+        }
+
+        // CTRL+D : duplicate selection or current line
+        if (i == Keyboard.KEY_D && isCtrlKeyDown()) {
+            if (selection.hasSelection()) {
+                // Multi-line selection duplication: find first and last covered lines,
+                // then insert the whole block after the last line without adding extra newline.
+                LineData firstLine = null, lastLine = null;
+                for (LineData line : container.lines) {
+                    if (line.end > selection.getStartSelection() && line.start < selection.getEndSelection()) {
+                        if (firstLine == null) firstLine = line;
+                        lastLine = line;
+                    }
+                }
+                if (firstLine != null && lastLine != null) {
+                    String selectedText = text.substring(firstLine.start, lastLine.end);
+                    String insertText = selectedText;
+                    int savedStart = selection.getStartSelection();
+                    int savedEnd = selection.getEndSelection();
+                    int insertAt = lastLine.end;
+                    setText(text.substring(0, insertAt) + insertText + text.substring(insertAt));
+                    // Restore prior selection / cursor positions
+                    selection.setStartSelection(savedStart);
+                    selection.setEndSelection(savedEnd);
+                    selection.setCursorPositionDirect(savedEnd);
+                    return true;
+                }
+            } else {
+                // Duplicate current line when nothing is selected
+                for (LineData line : container.lines) {
+                    if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
+                        int lineStart = line.start, lineEnd = line.end;
+                        String lineText = text.substring(lineStart, lineEnd);
+                        // If the line already ends with a newline, reuse it; otherwise
+                        // prefix a newline so duplicate appears after current line.
+                        String insertText;
+                        if (lineText.endsWith("\n")) {
+                            insertText = lineText;
+                        } else {
+                            insertText = "\n" + lineText;
+                        }
+                        int insertionPoint = lineEnd;
+                        setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
+                        int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
+                        selection.reset(Math.max(0, Math.min(newCursor, this.text.length())));
+                        return true;
+                    }
+                }
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Handles printable character input with auto-pairing for quotes and brackets,
+     * and smart skipping over existing closing characters.
+     */
+    private boolean handleCharacterInput(char c) {
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
             String before = getSelectionBeforeText();
             String after = getSelectionAfterText();
 
-            // If typing a closing char and the next char is already that closer, skip over it
+            // If the user types a closing character and that same closer is
+            // already immediately after the caret, move caret past it instead
+            // of inserting another closer. This prevents duplicate closers
+            // when the editor auto-inserts pairs.
             if ((c == ')' || c == ']' || c == '"' || c == '\'' ) && after.length() > 0 && after.charAt(0) == c) {
-                // move cursor forward over existing closer
+                // Move caret forward by one (skip over existing closer)
                 selection.reset(before.length() + 1);
                 scrollToCursor();
                 return true;
             }
 
+            // Auto-pair insertion: when opening a quote/brace/bracket is typed,
+            // insert a matching closer and place caret between the pair.
             if (c == '"') {
                 setText(before + "\"\"" + after);
                 selection.reset(before.length() + 1);
@@ -784,70 +940,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
 
+            // Default insertion for printable characters: insert at caret (replacing selection)
             addText(Character.toString(c));
             scrollToCursor();
-        }
-
-        if (i == Keyboard.KEY_SLASH && isCtrlKeyDown()) {
-            if (selection.hasSelection()) {
-                toggleCommentSelection();
-            } else {
-                toggleCommentLineAtCursor();
-            }
             return true;
         }
-
-        if (i == Keyboard.KEY_D && isCtrlKeyDown()) {
-            if (selection.hasSelection()) {
-                // Handle multi-line selection duplication
-                LineData firstLine = null, lastLine = null;
-                for (LineData line : container.lines) {
-                    if (line.end > selection.getStartSelection() && line.start < selection.getEndSelection()) {
-                        if (firstLine == null) firstLine = line;
-                        lastLine = line;
-                    }
-                }
-                if (firstLine != null && lastLine != null) {
-                    String selectedText = text.substring(firstLine.start, lastLine.end);
-                    // Insert the selected block immediately after the last line without adding an extra newline
-                    String insertText = selectedText;
-                    // Save selection before setText
-                    int savedStart = selection.getStartSelection();
-                    int savedEnd = selection.getEndSelection();
-                    int insertAt = lastLine.end;
-                    setText(text.substring(0, insertAt) + insertText + text.substring(insertAt));
-                    // Restore cursor and selection
-                    selection.setStartSelection(savedStart);
-                    selection.setEndSelection(savedEnd);
-                    selection.setCursorPositionDirect(savedEnd);
-                    return true;
-                }
-            } else {
-                // Single line duplication (existing logic)
-                for (LineData line : container.lines) {
-                    if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
-                        int lineStart = line.start, lineEnd = line.end;
-                        String lineText = text.substring(lineStart, lineEnd);
-                        // Avoid inserting an extra blank line: if lineText already ends with a newline,
-                        // reuse it; otherwise prepend a newline so the duplicate appears immediately after.
-                        String insertText;
-                        if (lineText.endsWith("\n")) {
-                            insertText = lineText;
-                        } else {
-                            insertText = "\n" + lineText;
-                        }
-                        int insertionPoint = lineEnd;
-                        setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
-                        // Place cursor at end of duplicated line (just before any trailing newline)
-                        int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
-                        selection.reset(Math.max(0, Math.min(newCursor, this.text.length())));
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return true;
+        return false;
     }
 
     private boolean isShiftKeyDown() {

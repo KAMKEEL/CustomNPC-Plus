@@ -13,7 +13,7 @@ public class SelectionState {
     private long lastInputTime = 0L;
     
     /**
-     * Reset selection to a single point
+     * Reset all cursor selections to a single position
      */
     public void reset(int position) {
         startSelection = endSelection = cursorPosition = position;
