@@ -42,6 +42,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private int endSelection;
     private int cursorPosition;
     private int scrolledLine = 0;
+    // Smooth scrolling state: fractional line position and target position
+    private double scrollPos = 0.0;
+    private double targetScroll = 0.0;
     private boolean enableCodeHighlighting = false;
     public List<GuiScriptTextArea.UndoData> undoList = new ArrayList();
     public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
@@ -81,13 +84,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         container.visibleLines = height / container.lineHeight;
 
+        int maxScroll = Math.max(0, this.container.linesCount - container.visibleLines);
         if (listener instanceof GuiNPCInterface) {
             int k2 = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
             if (k2 != 0) {
-                //this.scrolledLine -= k2 / 80;
-                this.scrolledLine -= (int) Math.copySign(1, k2);
-                this.scrolledLine = Math.max(Math.min(this.scrolledLine,
-                        this.container.linesCount - this.height / this.container.lineHeight), 0);
+                // update target scroll smoothly instead of jumping
+                double sign = Math.copySign(1.0, k2);
+                targetScroll -= sign * 3.0; // one line per wheel tick
+                if (targetScroll < 0) targetScroll = 0;
+                if (targetScroll > maxScroll) targetScroll = maxScroll;
             }
         }
 
@@ -110,8 +115,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (clickScrolling) {
             clickScrolling = Mouse.isButtonDown(0);
             int diff = container.linesCount - container.visibleLines;
-            scrolledLine = Math.min(Math.max((int) (1f * diff * (yMouse - y) / height), 0), diff);
+            double target = Math.min(Math.max(1f * diff * (yMouse - y) / height, 0f), (float) diff);
+            targetScroll = target;
         }
+
+        // Animate scrollPos towards targetScroll
+        if (scrollPos < 0) scrollPos = scrolledLine; // initialize
+        double d = targetScroll - scrollPos;
+        if (Math.abs(d) > 0.001) {
+            scrollPos += d * 0.25; // easing factor
+        } else {
+            scrollPos = targetScroll;
+        }
+        // Update integer scrolledLine for compatibility
+        scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
+        double fracOffset = scrollPos - scrolledLine;
         int startBracket = 0, endBracket = 0;
         if (startSelection >= 0 && text != null && text.length() > 0 &&
                 (endSelection - startSelection == 1 || startSelection == endSelection)) {
@@ -161,24 +179,26 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
         }
-        for (int i = 0; i < list.size(); i++) {
+        // Expand render range by one line above/below so partially-visible lines are drawn
+        int renderStart = Math.max(0, (int) Math.floor(scrollPos) - 1);
+        int renderEnd = Math.min(list.size() - 1, (int) Math.ceil(scrollPos + container.visibleLines) + 1);
+        for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
             String line = data.text;
             int w = line.length();
-
-            if (i >= scrolledLine && i <= scrolledLine + container.visibleLines) {
+            // compute Y using fractional scrollPos so animation is smooth
+            int posY = y + (int) Math.round((i - scrollPos) * container.lineHeight);
+            if (i >= renderStart && i <= renderEnd) {
                 //Highlight braces the cursor position is on
                 if (startBracket != endBracket) {
                     if (startBracket >= data.start && startBracket < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
-                        int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                         drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                     if (endBracket >= data.start && endBracket < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
-                        int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                         drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
                     }
                 }
@@ -189,31 +209,28 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         if (line.substring(m.start(), m.end()).equals(wordHightLight)) {
                             int s = ClientProxy.Font.width(line.substring(0, m.start()));
                             int e = ClientProxy.Font.width(line.substring(0, m.end())) + 1;
-                            int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                             drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x99004c00);
                         }
                     }
                 }
                 // Highlight the current line (light gray) under any selection
                 if (active && isEnabled() && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
-                    int lineY = y + 0 + (i - scrolledLine) * container.lineHeight;
-                    drawRect(x + 0, lineY, x + width - 1, lineY + container.lineHeight, 0x22e0e0e0);
+                    drawRect(x + 0, posY, x + width - 1, posY + container.lineHeight, 0x22e0e0e0);
                 }
                 // Highlight selection
                 if (startSelection != endSelection && endSelection > data.start && startSelection <= data.end) {
                     if (startSelection < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, Math.max(startSelection - data.start, 0)));
                         int e = ClientProxy.Font.width(line.substring(0, Math.min(endSelection - data.start, w))) + 1;
-                        int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
                         drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
-                int yPos = y + (i - scrolledLine) * container.lineHeight + 1;
+                int yPos = posY + 1;
 
                 // Draw indent guides once per visible block based on brace spans
-                if (i == scrolledLine && !braceSpans.isEmpty()) {
-                    int visStart = scrolledLine;
-                    int visEnd = Math.min(list.size() - 1, scrolledLine + container.visibleLines - 1);
+                if (i == Math.max(0, (int) Math.floor(scrollPos)) && !braceSpans.isEmpty()) {
+                    int visStart = Math.max(0, (int) Math.floor(scrollPos));
+                    int visEnd = Math.min(list.size() - 1, visStart + container.visibleLines - 1);
                     for (int[] span : braceSpans) {
                         int originalDepth = span[0];
                         int openLine = span[1];
@@ -263,7 +280,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int sbSize = Math.max((int) (1f * container.visibleLines / container.linesCount * height), 2);
 
             int posX = x + width - 6;
-            int posY = (int) (y + 1f * scrolledLine / container.linesCount * (height - 4)) + 1;
+            double linesCount = Math.max(1, (double) container.linesCount);
+            int posY = (int) (y + 1f * scrollPos / linesCount * (height - 4)) + 1;
 
             drawRect(posX, posY, posX + 5, posY + sbSize, 0xFFe0e0e0);
         }
@@ -1556,9 +1574,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 this.container.formatCodeText();
             }
 
-            if (this.scrolledLine > this.container.linesCount - this.container.visibleLines) {
-                this.scrolledLine = Math.max(0, this.container.linesCount - this.container.visibleLines);
+            // Ensure scrolledLine stays in bounds and snap smooth scroll to avoid perceived lag
+            int maxScroll = Math.max(0, this.container.linesCount - this.container.visibleLines);
+            if (this.scrolledLine > maxScroll) {
+                this.scrolledLine = maxScroll;
             }
+            // Immediately update fractional scroll targets so new content appears without delay
+            this.targetScroll = this.scrolledLine;
+            this.scrollPos = this.scrolledLine;
 
             clampSelectionBounds();
 
