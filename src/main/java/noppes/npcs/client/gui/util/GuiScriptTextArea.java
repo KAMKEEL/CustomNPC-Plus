@@ -56,8 +56,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
     public boolean undoing = false;
     private long lastClicked = 0L;
-    // Line number gutter width (left margin for line numbers)
-    private static  int LINE_NUMBER_GUTTER_WIDTH = 25;
+    // Line number gutter width (left margin for line numbers) - dynamically calculated
+    private static int LINE_NUMBER_GUTTER_WIDTH = 25;
     // private static TrueTypeFont font = new TrueTypeFont(new Font("Arial Unicode MS", Font.PLAIN, ConfigClient.FontSize), 1);
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
@@ -181,6 +181,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 scrollVelocity = 0.0;
             }
         }
+        // Ensure scrollPos stays in valid bounds
+        if (scrollPos < 0) scrollPos = 0;
+        if (scrollPos > maxScroll) scrollPos = maxScroll;
+        
         // Update integer scrolledLine for compatibility
         scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
 
@@ -266,8 +270,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
        // GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
+        
+        int stringYOffset = 2;
+        container.lineHeight=13;
+
+        // Render LINE GUTTER numbers
         for (int i = renderStart; i <= renderEnd; i++) {
-            int posY = y + (i - scrolledLine) * container.lineHeight;
+            int posY = y + (i - scrolledLine) * container.lineHeight + stringYOffset;
             String lineNum = String.valueOf(i + 1);
             int lineNumWidth = ClientProxy.Font.width(lineNum);
             int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5; // right-align with 5px padding
@@ -279,7 +288,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     LineData ld = list.get(li);
                     if (cursorPosition >= ld.start && cursorPosition < ld.end || (li == list.size() - 1 && cursorPosition == text.length())) {
                         if (li == i) {
-                            lineNumColor = 0xFFa9b7c6;
+                            lineNumColor = 0xFFb9c7d6;
                             break;
                         }
                     }
@@ -337,7 +346,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
-                int yPos = posY + 1;
 
                 // Draw indent guides once per visible block based on brace spans
                 if (i == Math.max(0, scrolledLine) && !braceSpans.isEmpty()) {
@@ -375,6 +383,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
                 }
+                int yPos = posY + stringYOffset;
                 data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
 
                 // Draw cursor: pause blinking while user is active recently
@@ -625,55 +634,58 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return this.container.text.length();
     }
 
-    // Ensure the cursor's line is visible by updating the smooth scroll target
-    // Mimics IntelliJ IDEA behavior: when pressing Enter, maintain the cursor's relative Y position
-    // in the viewport by scrolling forward to compensate for the newly added line.
-    private void ensureCursorVisible() {
-        if (container == null || container.lines == null || container.lines.isEmpty()) return;
-        
-        // Find the cursor's current line index
-        int lineIdx = 0;
+    // Find which line the cursor is on (0-indexed)
+    private int getCursorLineIndex() {
+        if (container == null || container.lines == null || container.lines.isEmpty()) return 0;
         for (int i = 0; i < container.lines.size(); i++) {
             LineData ld = container.lines.get(i);
-            if (cursorPosition >= ld.start && cursorPosition <= ld.end) {
-                lineIdx = i;
-                break;
+            // For last line, use <= since end doesn't include +1 for newline
+            // For other lines, use < since end includes the newline position
+            boolean isLastLine = (i == container.lines.size() - 1);
+            boolean isOnLine = isLastLine 
+                    ? (cursorPosition >= ld.start && cursorPosition <= ld.end)
+                    : (cursorPosition >= ld.start && cursorPosition < ld.end);
+            if (isOnLine) {
+                return i;
             }
         }
+        return container.lines.size() - 1;
+    }
+    
+    // Check if cursor is on a specific line, handling the last line specially
+    // (last line doesn't have trailing newline, so use <= for end boundary)
+    private boolean isCursorOnLine(int lineIndex, LineData line) {
+        boolean isLastLine = (lineIndex == container.lines.size() - 1);
+        return isLastLine 
+                ? (cursorPosition >= line.start && cursorPosition <= line.end)
+                : (cursorPosition >= line.start && cursorPosition < line.end);
+    }
+    
+    // Scroll viewport to keep cursor visible (minimal adjustment, like IntelliJ)
+    // Only scrolls if cursor is outside the visible area
+    private void scrollToCursor() {
+        if (container == null || container.lines == null || container.lines.isEmpty()) return;
         
+        int lineIdx = getCursorLineIndex();
         int visible = Math.max(1, container.visibleLines);
         int maxScroll = Math.max(0, container.linesCount - visible);
         
-        // Calculate the cursor line's relative position in the current viewport (0 = top, visible-1 = bottom)
-        double relativePos = lineIdx - scrollPos;
+        int firstVisible = scrolledLine;
+        int lastFullyVisible = scrolledLine + visible - 1;
         
-        // If cursor is already visible in the viewport
-        if (relativePos >= 0 && relativePos < visible) {
-            // When Enter is pressed, a new line is inserted and cursor advances by 1.
-            // To maintain the same visual Y position, scroll forward by 1 line.
-            // This keeps the cursor at the same relative position while content scrolls up.
-            double newScroll = scrollPos + 1.0;
-            newScroll = Math.max(0, Math.min(newScroll, maxScroll));
-            
-            targetScroll = newScroll;
-            scrollPos = newScroll;
-            scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
-            scrollVelocity = 0.0;
-        } else if (relativePos < 0) {
-            // Cursor moved above the viewport; scroll up to show it near the top
-            double newScroll = Math.max(0, lineIdx - 2); // keep 2 lines above for context
-            targetScroll = newScroll;
-            scrollPos = newScroll;
-            scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
-            scrollVelocity = 0.0;
-        } else {
-            // Cursor is below viewport; scroll down to show it
-            double newScroll = Math.max(0, Math.min(lineIdx - visible + 3, maxScroll));
-            targetScroll = newScroll;
-            scrollPos = newScroll;
-            scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
-            scrollVelocity = 0.0;
+        if (lineIdx < firstVisible) {
+            // Cursor is above viewport - scroll up just enough to show it
+            targetScroll = lineIdx;
+        } else if (lineIdx > lastFullyVisible) {
+            // Cursor is below viewport - scroll down just enough to show it
+            targetScroll = Math.min(lineIdx - visible + 1, maxScroll);
         }
+        // If cursor is visible, don't change scroll
+    }
+    
+    // Legacy method name for compatibility
+    private void ensureCursorVisible() {
+        scrollToCursor();
     }
 
     @Override
@@ -727,10 +739,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         if (i == Keyboard.KEY_UP) {
             setCursor(cursorUp(), GuiScreen.isShiftKeyDown());
+            scrollToCursor();
             return true;
         }
         if (i == Keyboard.KEY_DOWN) {
             setCursor(cursorDown(), GuiScreen.isShiftKeyDown());
+            scrollToCursor();
             return true;
         }
         if (i == Keyboard.KEY_DELETE) {
@@ -797,8 +811,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             
             // Find current line for indent-aware backspace
             LineData curr = null;
-            for (LineData line : container.lines) {
-                if (cursorPosition >= line.start && cursorPosition < line.end) {
+            for (int idx = 0; idx < container.lines.size(); idx++) {
+                LineData line = container.lines.get(idx);
+                boolean isLastLine = (idx == container.lines.size() - 1);
+                boolean isOnLine = isLastLine 
+                        ? (cursorPosition >= line.start && cursorPosition <= line.end)
+                        : (cursorPosition >= line.start && cursorPosition < line.end);
+                if (isOnLine) {
                     curr = line;
                     break;
                 }
@@ -956,7 +975,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
                 if (leadingSegment.trim().length() > 0) {
                     addText("\n" + childIndent);
-                    ensureCursorVisible();
+                    scrollToCursor();
                     return true;
                 }
 
@@ -999,17 +1018,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
                 if (hasMatchingCloseSameIndent) {
                     addText("\n" + childIndent);
-                    ensureCursorVisible();
+                    scrollToCursor();
                 } else {
                     String insert = "\n" + childIndent + "\n" + indent + "}";
                     setText(before + insert + after);
                     int newCursor = before.length() + 1 + childIndent.length();
                     startSelection = endSelection = cursorPosition = newCursor;
-                    ensureCursorVisible();
+                    scrollToCursor();
                 }
             } else {
                 addText(Character.toString('\n') + getAutoIndentForEnter());
-                ensureCursorVisible();
+                scrollToCursor();
             }
         }
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
@@ -1261,8 +1280,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private String getAutoIndentForEnter() {
         LineData currentLine = null;
-        for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
+        for (int idx = 0; idx < this.container.lines.size(); idx++) {
+            LineData line = this.container.lines.get(idx);
+            boolean isLastLine = (idx == this.container.lines.size() - 1);
+            boolean isOnLine = isLastLine 
+                    ? (this.cursorPosition >= line.start && this.cursorPosition <= line.end)
+                    : (this.cursorPosition >= line.start && this.cursorPosition < line.end);
+            if (isOnLine) {
                 currentLine = line;
                 break;
             }
@@ -1483,8 +1507,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private void handleTab() {
         LineData currentLine = null;
-        for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
+        for (int i = 0; i < this.container.lines.size(); i++) {
+            LineData line = this.container.lines.get(i);
+            boolean isLastLine = (i == this.container.lines.size() - 1);
+            boolean isOnLine = isLastLine 
+                    ? (this.cursorPosition >= line.start && this.cursorPosition <= line.end)
+                    : (this.cursorPosition >= line.start && this.cursorPosition < line.end);
+            if (isOnLine) {
                 currentLine = line;
                 break;
             }
@@ -1542,8 +1571,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private void handleShiftTab() {
         LineData currentLine = null;
-        for (LineData line : this.container.lines) {
-            if (this.cursorPosition >= line.start && this.cursorPosition < line.end) {
+        for (int i = 0; i < this.container.lines.size(); i++) {
+            LineData line = this.container.lines.get(i);
+            boolean isLastLine = (i == this.container.lines.size() - 1);
+            boolean isOnLine = isLastLine 
+                    ? (this.cursorPosition >= line.start && this.cursorPosition <= line.end)
+                    : (this.cursorPosition >= line.start && this.cursorPosition < line.end);
+            if (isOnLine) {
                 currentLine = line;
                 break;
             }
@@ -1626,16 +1660,24 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private int cursorUp() {
         for (int i = 0; i < this.container.lines.size(); ++i) {
             LineData data = (LineData) this.container.lines.get(i);
-            if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {
+            // For last line, use <= since end doesn't include +1 for newline
+            // For other lines, use < since end includes the newline position
+            boolean isLastLine = (i == this.container.lines.size() - 1);
+            boolean isOnLine = isLastLine 
+                    ? (this.cursorPosition >= data.start && this.cursorPosition <= data.end)
+                    : (this.cursorPosition >= data.start && this.cursorPosition < data.end);
+            if (isOnLine) {
                 if (i == 0) {
                     return 0;
                 }
 
-                int column = this.cursorPosition - data.start;
+                int column = Math.min(this.cursorPosition - data.start, data.text.length());
                 LineData target = this.container.lines.get(i - 1);
-                int targetPos = this.getSelectionPos(this.x + LINE_NUMBER_GUTTER_WIDTH + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i - 1 - this.scrolledLine) * this.container.lineHeight);
+                // Calculate target position on the line above, maintaining column if possible
+                int targetColumn = Math.min(column, target.text.length());
                 int targetIndent = getLineIndent(target.text);
-                int minPos = target.start + Math.min(targetIndent, Math.max(0, target.text.length()));
+                int minPos = target.start + Math.min(targetIndent, target.text.length());
+                int targetPos = target.start + targetColumn;
                 return Math.max(minPos, targetPos);
             }
         }
@@ -1648,12 +1690,25 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return cursorPosition;
         for (int i = 0; i < this.container.lines.size(); ++i) {
             LineData data = (LineData) this.container.lines.get(i);
-            if (this.cursorPosition >= data.start && this.cursorPosition < data.end) {
-                int column = this.cursorPosition - data.start;
-                LineData target = this.container.lines.get(Math.min(i + 1, this.container.lines.size() - 1));
-                int targetPos = this.getSelectionPos(this.x + LINE_NUMBER_GUTTER_WIDTH + 1 + ClientProxy.Font.width(data.text.substring(0, column)), this.y + 1 + (i + 1 - this.scrolledLine) * this.container.lineHeight);
+            // For last line, use <= since end doesn't include +1 for newline
+            // For other lines, use < since end includes the newline position
+            boolean isLastLine = (i == this.container.lines.size() - 1);
+            boolean isOnLine = isLastLine 
+                    ? (this.cursorPosition >= data.start && this.cursorPosition <= data.end)
+                    : (this.cursorPosition >= data.start && this.cursorPosition < data.end);
+            if (isOnLine) {
+                // If already on last line, stay at current position
+                if (i >= this.container.lines.size() - 1) {
+                    return cursorPosition;
+                }
+
+                int column = Math.min(this.cursorPosition - data.start, data.text.length());
+                LineData target = this.container.lines.get(i + 1);
+                // Calculate target position on the line below, maintaining column if possible
+                int targetColumn = Math.min(column, target.text.length());
                 int targetIndent = getLineIndent(target.text);
-                int minPos = target.start + Math.min(targetIndent, Math.max(0, target.text.length()));
+                int minPos = target.start + Math.min(targetIndent, target.text.length());
+                int targetPos = target.start + targetColumn;
                 return Math.max(minPos, targetPos);
             }
         }
@@ -1750,14 +1805,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 this.container.formatCodeText();
             }
 
-            // Ensure scrolledLine stays in bounds and snap smooth scroll to avoid perceived lag
+            // Ensure scroll state stays in bounds after text change
             int maxScroll = Math.max(0, this.container.linesCount - this.container.visibleLines);
             if (this.scrolledLine > maxScroll) {
                 this.scrolledLine = maxScroll;
             }
-            // Immediately update fractional scroll targets so new content appears without delay
-            this.targetScroll = this.scrolledLine;
-            this.scrollPos = this.scrolledLine;
+            if (this.targetScroll > maxScroll) {
+                this.targetScroll = maxScroll;
+            }
+            if (this.scrollPos > maxScroll) {
+                this.scrollPos = maxScroll;
+            }
 
             clampSelectionBounds();
 
