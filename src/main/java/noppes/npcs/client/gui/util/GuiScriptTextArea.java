@@ -267,18 +267,30 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (found != 0) return new int[]{pos, pos + found};
         }
 
-        // Then try immediately before pos (caret right after a char)
-        if (pos > 0 && pos - 1 < text.length()) {
-            int probe = pos - 1;
-            char c2 = text.charAt(probe);
-            int found2 = 0;
-            if (c2 == '{') found2 = findClosingBracket(text.substring(probe), '{', '}');
-            else if (c2 == '[') found2 = findClosingBracket(text.substring(probe), '[', ']');
-            else if (c2 == '(') found2 = findClosingBracket(text.substring(probe), '(', ')');
-            else if (c2 == '}') found2 = findOpeningBracket(text.substring(0, probe + 1), '{', '}');
-            else if (c2 == ']') found2 = findOpeningBracket(text.substring(0, probe + 1), '[', ']');
-            else if (c2 == ')') found2 = findOpeningBracket(text.substring(0, probe + 1), '(', ')');
-            if (found2 != 0) return new int[]{probe, probe + found2};
+        // Scan backwards from just before the caret, skipping spaces/tabs on the same line,
+        // to find a nearby bracket that should be treated as "immediately before" the caret.
+        if (pos > 0) {
+            int scan = pos - 1;
+            // Move left over spaces/tabs but do not cross a newline
+            while (scan >= 0) {
+                char sc = text.charAt(scan);
+                if (sc == ' ' || sc == '\t') {scan--;continue;}
+                if (sc == '\n') {scan = -1; // stop, do not cross line boundary
+                     break;
+                }
+
+                int found2 = 0;
+                if (sc == '{') found2 = findClosingBracket(text.substring(scan), '{', '}');
+                else if (sc == '[') found2 = findClosingBracket(text.substring(scan), '[', ']');
+                else if (sc == '(') found2 = findClosingBracket(text.substring(scan), '(', ')');
+                else if (sc == '}') found2 = findOpeningBracket(text.substring(0, scan + 1), '{', '}');
+                else if (sc == ']') found2 = findOpeningBracket(text.substring(0, scan + 1), '[', ']');
+                else if (sc == ')') found2 = findOpeningBracket(text.substring(0, scan + 1), '(', ')');
+
+                if (found2 != 0) return new int[]{scan, scan + found2};
+                // Not a bracket; stop scanning further
+                break;
+            }
         }
 
         return null;
