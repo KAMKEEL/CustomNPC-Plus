@@ -114,6 +114,31 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Build brace spans: {origDepth, open line, close line, adjustedDepth}
         List<int[]> braceSpans = computeBraceSpans(text, list);
 
+        // Determine which exact brace span (openLine/closeLine) should be highlighted based on bracket under caret
+        int highlightedOpenLine = -1;
+        int highlightedCloseLine = -1;
+        if (startBracket != endBracket && startBracket >= 0) {
+            int bracketLineIdx = -1;
+            for (int li = 0; li < list.size(); li++) {
+                LineData ld = list.get(li);
+                if (startBracket >= ld.start && startBracket < ld.end) {
+                    bracketLineIdx = li;
+                    break;
+                }
+            }
+            if (bracketLineIdx >= 0) {
+                for (int[] span : braceSpans) {
+                    int openLine = span[1];
+                    int closeLine = span[2];
+                    if (bracketLineIdx >= openLine && bracketLineIdx <= closeLine) {
+                        highlightedOpenLine = openLine;
+                        highlightedCloseLine = closeLine;
+                        break;
+                    }
+                }
+            }
+        }
+
         String wordHightLight = null;
         if (startSelection != endSelection) {
             Matcher m = container.regexWord.matcher(text);
@@ -200,7 +225,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
                         int topY = y + (drawStart - scrolledLine) * container.lineHeight;
                         int bottomY = y + (drawEnd - scrolledLine + 1) * container.lineHeight - 2;
-                        drawRect(gx, topY, gx + 1, bottomY, 0x33FFFFFF);
+                            int guideColor = (openLine == highlightedOpenLine && closeLine == highlightedCloseLine) ? 0x9933cc00 : 0x33FFFFFF;
+                            drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
                 }
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
