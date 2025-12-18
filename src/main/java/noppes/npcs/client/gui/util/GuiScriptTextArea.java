@@ -1263,6 +1263,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         text = text.replace("\r", "");
         text = text.replace("\t", "    ");
+        // preserve trailing newlines here — JavaTextContainer.init will
+        // ignore an extra empty final split when rendering lines.
         if (this.text == null || !this.text.equals(text)) {
             if (this.listener != null) {
                 this.listener.textUpdate(text);

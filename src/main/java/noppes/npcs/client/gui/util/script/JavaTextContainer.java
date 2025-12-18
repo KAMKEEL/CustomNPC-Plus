@@ -52,7 +52,7 @@ public class JavaTextContainer extends TextContainer {
 
     public JavaTextContainer(String text) {
         super(text);
-        this.text = text.replaceAll("\\r?\\n|\\r", "\n");
+        this.text = text == null ? "" : text.replaceAll("\\r?\\n|\\r", "\n");
     }
 
     public synchronized List<int[]> getBraceSpans() {
@@ -166,8 +166,15 @@ public class JavaTextContainer extends TextContainer {
                 i = m.start();
             }
             // Only add +1 for the newline if this is NOT the last line
-            // The last line has no newline after it
+            // The last line has no newline after it. If the source text
+            // ends with a trailing '\n' split(...) produces a final empty
+            // element — skip creating a LineData for that trailing empty
+            // split so there's no phantom clickable empty line.
             boolean isLastLine = (lineIndex == split.length - 1);
+            if (isLastLine && l.isEmpty() && text.endsWith("\n") && split.length > 1) {
+                // skip trailing empty split caused by final newline
+                continue;
+            }
             int endOffset = isLastLine ? 0 : 1;
             lines.add(new LineData(line.toString(), totalChars, totalChars + line.length() + endOffset));
 
@@ -175,7 +182,10 @@ public class JavaTextContainer extends TextContainer {
         }
         linesCount = lines.size();
         totalHeight = linesCount * lineHeight;
-        visibleLines = Math.max(height / lineHeight-1, 1);
+        // Number of fully-visible lines that fit in the given height.
+        // Use floor division and ensure at least 1 line is visible.
+        // Don't forget -1, fixes enter auto-scrolling properly
+        visibleLines = Math.max(height / lineHeight - 1, 1); 
 
         // Invalidate caches that depend on line layout
         invalidateCaches();
