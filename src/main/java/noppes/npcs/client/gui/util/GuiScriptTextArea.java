@@ -49,6 +49,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private double scrollVelocity = 0.0;
     // last timestamp used for scroll integration (ms)
     private long lastScrollTime = 0L;
+    // scrollbar drag offset in pixels (mouseY - thumbTop) when dragging begins
+    private int scrollbarDragOffset = 0;
     private boolean enableCodeHighlighting = false;
     public List<GuiScriptTextArea.UndoData> undoList = new ArrayList();
     public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
@@ -94,33 +96,48 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (k2 != 0) {
                 // update target scroll smoothly instead of jumping
                 double sign = Math.copySign(1, k2);
-                targetScroll -= sign * 1.0; // one line per wheel tick
+                targetScroll -= sign * 2.0; // one line per wheel tick
                 if (targetScroll < 0) targetScroll = 0;
                 if (targetScroll > maxScroll) targetScroll = maxScroll;
             }
         }
 
-        if (clicked) {
-            clicked = Mouse.isButtonDown(0);
-            int i = getSelectionPos(xMouse, yMouse);
-            if (i != cursorPosition) {
-                if (doubleClicked || tripleClicked) {
-                    startSelection = endSelection = cursorPosition;
-                    doubleClicked = false;
-                    tripleClicked = false;
-                }
-                setCursor(i, true);
-            }
-        } else if (doubleClicked || tripleClicked) {
-            doubleClicked = false;
-            tripleClicked = false;
-        }
-
         if (clickScrolling) {
+            // keep dragging while mouse button is down
             clickScrolling = Mouse.isButtonDown(0);
-            int diff = container.linesCount - container.visibleLines;
-            double target = Math.min(Math.max(1f * diff * (yMouse - y) / height, 0f), (float) diff);
-            targetScroll = target;
+            int diff = Math.max(0, container.linesCount - container.visibleLines);
+            if (diff > 0) {
+                int sbSize = Math.max((int) (1f * container.visibleLines / container.linesCount * height), 2);
+                int trackTop = y + 1;
+                int trackHeight = Math.max(1, height - 4);
+                int thumbRange = Math.max(1, trackHeight - sbSize);
+
+                // current thumb top for hit testing
+                double linesCountD = Math.max(1, (double) container.linesCount);
+                int thumbTop = (int) (y + 1f * scrollPos / linesCountD * (height - 4)) + 1;
+
+                // If user clicked on the track (outside the thumb), jump to proportional position
+                if (yMouse < thumbTop || yMouse > thumbTop + sbSize) {
+                    double centerRatio = (double) (yMouse - trackTop) / (double) trackHeight;
+                    centerRatio = Math.max(0.0, Math.min(1.0, centerRatio));
+                    targetScroll = Math.max(0, Math.min(diff, centerRatio * diff));
+                    // prepare drag offset for subsequent drags (center grab)
+                    scrollbarDragOffset = sbSize / 2;
+                } else {
+                    // Dragging the thumb itself: preserve initial grab offset
+                    int desiredTop = yMouse - scrollbarDragOffset;
+                    desiredTop = Math.max(trackTop, Math.min(trackTop + thumbRange, desiredTop));
+                    // Speed up dragging a bit for snappier feel
+                    final double dragSpeed = 1.5;
+                    double ratio = (double) (desiredTop - trackTop) * dragSpeed / (double) thumbRange;
+                    ratio = Math.max(0.0, Math.min(1.0, ratio));
+                    targetScroll = Math.max(0, Math.min(diff, ratio * diff));
+                }
+            }
+            if (!clickScrolling) {
+                // reset drag offset when released
+                scrollbarDragOffset = 0;
+            }
         }
 
         // Animate scrollPos towards targetScroll using exponential smoothing
@@ -139,7 +156,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             scrollVelocity = 0.0;
         } else {
             // Time constant controlling speed (seconds). Smaller -> faster snap.
-            final double tau = 0.025; // ~55ms time constant feels snappy
+            final double tau = 0.1; // ~55ms time constant feels snappy
             double alpha = 1.0 - Math.exp(-dt / Math.max(1e-6, tau));
             double prev = scrollPos;
             scrollPos += dist * alpha;
@@ -152,7 +169,25 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         // Update integer scrolledLine for compatibility
         scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
-        double fracOffset = scrollPos - scrolledLine;
+
+
+        if (clicked) {
+            clicked = Mouse.isButtonDown(0);
+            int i = getSelectionPos(xMouse, yMouse);
+            if (i != cursorPosition) {
+                if (doubleClicked || tripleClicked) {
+                    startSelection = endSelection = cursorPosition;
+                    doubleClicked = false;
+                    tripleClicked = false;
+                }
+                setCursor(i, true);
+            }
+        } else if (doubleClicked || tripleClicked) {
+            doubleClicked = false;
+            tripleClicked = false;
+        }
+
+        //Calculate braces next to cursor to highlight
         int startBracket = 0, endBracket = 0;
         if (startSelection >= 0 && text != null && text.length() > 0 &&
                 (endSelection - startSelection == 1 || startSelection == endSelection)) {
@@ -203,14 +238,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
         // Expand render range by one line above/below so partially-visible lines are drawn
-        int renderStart = Math.max(0, (int) Math.floor(scrollPos) - 1);
-        int renderEnd = Math.min(list.size() - 1, (int) Math.ceil(scrollPos + container.visibleLines) + 1);
+        int renderStart = Math.max(0, scrolledLine - 1);
+        int renderEnd = Math.min(list.size() - 1, scrolledLine + container.visibleLines + 1);
+
+        // Apply fractional GL translate for sub-pixel smooth scrolling
+        double fracOffset = scrollPos - scrolledLine;
+        float fracPixels = (float) (fracOffset * container.lineHeight);
+        GL11.glPushMatrix();
+        GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
+
         for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
             String line = data.text;
             int w = line.length();
-            // compute Y using fractional scrollPos so animation is smooth
-            int posY = y + (int) Math.round((i - scrollPos) * container.lineHeight);
+            // Use integer Y relative to scrolledLine; fractional offset applied via GL translate
+            int posY = y + (i - scrolledLine) * container.lineHeight;
             if (i >= renderStart && i <= renderEnd) {
                 //Highlight braces the cursor position is on
                 if (startBracket != endBracket) {
@@ -251,8 +293,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 int yPos = posY + 1;
 
                 // Draw indent guides once per visible block based on brace spans
-                if (i == Math.max(0, (int) Math.floor(scrollPos)) && !braceSpans.isEmpty()) {
-                    int visStart = Math.max(0, (int) Math.floor(scrollPos));
+                if (i == Math.max(0, scrolledLine) && !braceSpans.isEmpty()) {
+                    int visStart = Math.max(0, scrolledLine);
                     int visEnd = Math.min(list.size() - 1, visStart + container.visibleLines - 1);
                     for (int[] span : braceSpans) {
                         int originalDepth = span[0];
@@ -280,8 +322,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int px = ClientProxy.Font.width(sb.toString());
                         int gx = x + 4 + px - 2; // shift left ~2px for the IntelliJ feel
 
-                        int topY = y + (int) Math.round((drawStart - scrollPos) * container.lineHeight);
-                        int bottomY = y + (int) Math.round((drawEnd - scrollPos + 1) * container.lineHeight) - 2;
+                        int topY = y + (drawStart - scrolledLine) * container.lineHeight;
+                        int bottomY = y + (drawEnd - scrolledLine + 1) * container.lineHeight - 2;
                             int guideColor = (openLine == highlightedOpenLine && closeLine == highlightedCloseLine) ? 0x9933cc00 : 0x33FFFFFF;
                             drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
@@ -297,16 +339,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
         }
+        GL11.glPopMatrix();
 
         if (hasVerticalScrollbar()) {
             Minecraft.getMinecraft().renderEngine.bindTexture(GuiCustomScroll.resource);
-            int sbSize = Math.max((int) (1f * container.visibleLines / container.linesCount * height), 2);
+            int sbSize = Math.max((int) (1f * (container.visibleLines) / container.linesCount * height), 2);
 
             int posX = x + width - 6;
             double linesCount = Math.max(1, (double) container.linesCount);
             int posY = (int) (y + 1f * scrollPos / linesCount * (height - 4)) + 1;
 
-            drawRect(posX, posY, posX + 5, posY + sbSize, 0xFFe0e0e0);
+            drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
         }
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
@@ -497,6 +540,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private int getSelectionPos(int xMouse, int yMouse) {
         xMouse -= this.x + 1;
         yMouse -= this.y + 1;
+        // Adjust yMouse to account for fractional GL translation (negative offset applied in rendering)
+        double fracOffset = scrollPos - scrolledLine;
+        double fracPixels = fracOffset * container.lineHeight;
+        yMouse = (int) Math.round(yMouse + fracPixels);
+        
         ArrayList list = new ArrayList(this.container.lines);
 
         for (int i = 0; i < list.size(); ++i) {
