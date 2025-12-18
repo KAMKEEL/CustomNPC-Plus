@@ -83,7 +83,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw text viewport background (starts after gutter)
         drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, 0xff000000);
         // Draw separator line between gutter and text area
-        drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + LINE_NUMBER_GUTTER_WIDTH + 1, y + height, 0xff3c3f41);
+        drawRect(x + LINE_NUMBER_GUTTER_WIDTH-1, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff3c3f41);
 
         // Enable scissor test to clip drawing to the TEXT viewport rectangle (excludes gutter)
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
