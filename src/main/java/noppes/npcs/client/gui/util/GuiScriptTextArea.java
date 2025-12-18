@@ -76,6 +76,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (!visible)
             return;
         clampSelectionBounds();
+        
+        // Dynamically calculate gutter width based on line count digits
+        if (container != null && container.linesCount > 0) {
+            int maxLineNum = container.linesCount;
+            String maxLineStr = String.valueOf(maxLineNum);
+            int digitWidth = ClientProxy.Font.width(maxLineStr);
+            LINE_NUMBER_GUTTER_WIDTH = digitWidth + 10; // 10px total padding (5px left + 5px right)
+        }
         // Draw outer border around entire area
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
         // Draw line number gutter background
