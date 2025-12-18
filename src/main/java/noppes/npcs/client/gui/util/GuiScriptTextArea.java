@@ -759,16 +759,33 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // RETURN/ENTER: special handling when preceding char is an opening brace '{'
         if (i == Keyboard.KEY_RETURN) {
-            if (selection.getCursorPosition() > 0 && selection.getCursorPosition() <= text.length() && text.charAt(
-                    selection.getCursorPosition() - 1) == '{') {
-                // Compute current and child indent strings
-                String indent = getIndentCurrentLine();
+            // If there is an opening brace `{` before the caret (ignoring any
+            // intervening whitespace), treat Enter as creating an indented child
+            // block. This allows the user to type `{   <cursor>` and still
+            // receive the scaffold.
+            int cursorPos = selection.getCursorPosition();
+            int prevNonWs = cursorPos - 1;
+            while (prevNonWs >= 0 && prevNonWs < (text != null ? text.length() : 0) && Character.isWhitespace(text.charAt(prevNonWs))) {
+                prevNonWs--;
+            }
+
+            if (prevNonWs >= 0 && cursorPos <= (text != null ? text.length() : 0) && text.charAt(prevNonWs) == '{') {
+                // Compute indent using the line that contains the brace so trailing
+                // spaces after the brace do not affect the computed base indent.
+                String indent = "";
+                for (LineData ld : this.container.lines) {
+                    if (prevNonWs >= ld.start && prevNonWs < ld.end) {
+                        indent = ld.text.substring(0, IndentHelper.getLineIndent(ld.text));
+                        break;
+                    }
+                }
+                if (indent == null) indent = "";
                 String childIndent = indent + "    ";
                 String before = getSelectionBeforeText();
                 String after = getSelectionAfterText();
 
-                // If there's code after the brace on the same line, assume it should be
-                // moved inside the new inner line: insert child indent only.
+                // If there's non-empty code after the brace on the same line,
+                // it should be moved into the newly created inner line.
                 int firstNewline = after.indexOf('\n');
                 String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
                 if (leadingSegment.trim().length() > 0) {
@@ -777,11 +794,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     return true;
                 }
 
-                // Otherwise, determine whether a matching closing brace already exists at same indent.
+                // Determine whether this opening brace already has a matching closing
+                // brace at the same scope (and indent). Use the brace position found
+                // above (prevNonWs) when computing spans.
                 boolean hasMatchingCloseSameIndent = false;
                 try {
                     int openLineIdx = -1;
-                    int bracePos = selection.getCursorPosition() - 1;
+                    int bracePos = prevNonWs;
                     for (int li = 0; li < this.container.lines.size(); li++) {
                         LineData ld = this.container.lines.get(li);
                         if (bracePos >= ld.start && bracePos < ld.end) {
@@ -796,8 +815,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             int spanOpen = span[1];
                             int spanClose = span[2];
                             if (spanOpen == openLineIdx) {
-                                // If the matching close has the same indent as current line,
-                                // we only insert the child indent (do not auto-insert a closing brace).
                                 int closeIndent = IndentHelper.getLineIndent(this.container.lines.get(spanClose).text);
                                 if (closeIndent == indent.length()) {
                                     hasMatchingCloseSameIndent = true;
@@ -807,7 +824,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                     }
                 } catch (Exception ex) {
-                    // On any error, default to conservative behavior (insert closing brace)
                     hasMatchingCloseSameIndent = false;
                 }
 
@@ -815,7 +831,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     addText("\n" + childIndent);
                     scrollToCursor();
                 } else {
-                    // Insert child line and a closing brace aligned with current indent
                     String insert = "\n" + childIndent + "\n" + indent + "}";
                     setText(before + insert + after);
                     int newCursor = before.length() + 1 + childIndent.length();
