@@ -6,30 +6,38 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
-import noppes.npcs.client.gui.util.script.JavaTextContainer;
+import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
 
+/**
+ * Script text editor component with syntax highlighting, bracket matching,
+ * smooth scrolling, and IDE-like features.
+ * 
+ * Helper classes used:
+ * - BracketMatcher: bracket matching and brace span computation
+ * - IndentHelper: indentation utilities and text formatting
+ * - CommentHandler: line comment toggling
+ * - CursorNavigation: cursor movement logic
+ */
 public class GuiScriptTextArea extends GuiNpcTextField {
+    
+    // ==================== DIMENSIONS & POSITION ====================
     public int id;
     public int x;
     public int y;
     public int width;
     public int height;
-    private int cursorCounter;
-    private long lastInputTime = 0L;
-    private ITextChangeListener listener;
-    public String text = null;
-    private JavaTextContainer container = null;
+    
+    // ==================== STATE FLAGS ====================
     public boolean active = false;
     public boolean enabled = true;
     public boolean visible = true;
@@ -38,27 +46,43 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public boolean tripleClicked = false;
     public boolean clickScrolling = false;
     private int clickCount = 0;
+    private long lastClicked = 0L;
+    
+    // ==================== TEXT & CONTAINER ====================
+    public String text = null;
+    private JavaTextContainer container = null;
+    private boolean enableCodeHighlighting = false;
+    
+    // ==================== SELECTION STATE ====================
     private int startSelection;
     private int endSelection;
     private int cursorPosition;
+    
+    // ==================== SCROLL STATE ====================
     private int scrolledLine = 0;
-    // Smooth scrolling state: fractional line position and target position
     private double scrollPos = 0.0;
     private double targetScroll = 0.0;
-    // velocity used for spring-based easing
     private double scrollVelocity = 0.0;
-    // last timestamp used for scroll integration (ms)
     private long lastScrollTime = 0L;
-    // scrollbar drag offset in pixels (mouseY - thumbTop) when dragging begins
     private int scrollbarDragOffset = 0;
-    private boolean enableCodeHighlighting = false;
-    public List<GuiScriptTextArea.UndoData> undoList = new ArrayList();
-    public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
-    public boolean undoing = false;
-    private long lastClicked = 0L;
-    // Line number gutter width (left margin for line numbers) - dynamically calculated
+    
+    // Scroll animation constants
+    private static final double SCROLL_TAU = 0.1;        // Time constant (~55ms)
+    private static final double SCROLL_SNAP = 0.01;       // Snap threshold
+    private static final double SCROLL_MAX_DT = 0.05;     // Max delta time
+    
+    // ==================== UI COMPONENTS ====================
+    private int cursorCounter;
+    private long lastInputTime = 0L;
+    private ITextChangeListener listener;
     private static int LINE_NUMBER_GUTTER_WIDTH = 25;
-    // private static TrueTypeFont font = new TrueTypeFont(new Font("Arial Unicode MS", Font.PLAIN, ConfigClient.FontSize), 1);
+    
+    // ==================== UNDO/REDO ====================
+    public List<UndoData> undoList = new ArrayList<>();
+    public List<UndoData> redoList = new ArrayList<>();
+    public boolean undoing = false;
+    
+    // ==================== CONSTRUCTOR ====================
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
         super(id, guiScreen, x, y, width, height, null);
@@ -71,6 +95,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.setText(text);
         this.undoing = false;
     }
+    
+    // ==================== RENDERING ====================
 
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
@@ -408,189 +434,26 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
-    // Find a bracket span for a given cursor position. Returns {start, end} or null.
+    // ==================== BRACKET MATCHING ====================
+    // Uses BracketMatcher helper for bracket span detection
+    
     private int[] findBracketSpanAt(int pos) {
-        if (text == null || text.isEmpty()) return null;
-        // First try at pos (caret before the char)
-        if (pos >= 0 && pos < text.length()) {
-            char c = text.charAt(pos);
-            int found = 0;
-            if (c == '{') found = findClosingBracket(text.substring(pos), '{', '}');
-            else if (c == '[') found = findClosingBracket(text.substring(pos), '[', ']');
-            else if (c == '(') found = findClosingBracket(text.substring(pos), '(', ')');
-            else if (c == '}') found = findOpeningBracket(text.substring(0, pos + 1), '{', '}');
-            else if (c == ']') found = findOpeningBracket(text.substring(0, pos + 1), '[', ']');
-            else if (c == ')') found = findOpeningBracket(text.substring(0, pos + 1), '(', ')');
-            if (found != 0) return new int[]{pos, pos + found};
-        }
-
-        // Scan backwards from just before the caret, skipping spaces/tabs on the same line,
-        // to find a nearby bracket that should be treated as "immediately before" the caret.
-        if (pos > 0) {
-            int scan = pos - 1;
-            // Move left over spaces/tabs but do not cross a newline
-            while (scan >= 0) {
-                char sc = text.charAt(scan);
-                if (sc == ' ' || sc == '\t') {scan--;continue;}
-                if (sc == '\n') {scan = -1; // stop, do not cross line boundary
-                     break;
-                }
-
-                int found2 = 0;
-                if (sc == '{') found2 = findClosingBracket(text.substring(scan), '{', '}');
-                else if (sc == '[') found2 = findClosingBracket(text.substring(scan), '[', ']');
-                else if (sc == '(') found2 = findClosingBracket(text.substring(scan), '(', ')');
-                else if (sc == '}') found2 = findOpeningBracket(text.substring(0, scan + 1), '{', '}');
-                else if (sc == ']') found2 = findOpeningBracket(text.substring(0, scan + 1), '[', ']');
-                else if (sc == ')') found2 = findOpeningBracket(text.substring(0, scan + 1), '(', ')');
-
-                if (found2 != 0) return new int[]{scan, scan + found2};
-                // Not a bracket; stop scanning further
-                break;
-            }
-        }
-
-        return null;
+        return BracketMatcher.findBracketSpanAt(text, pos);
     }
+    
     private int findClosingBracket(String str, char s, char e) {
-        int found = 0;
-        char[] chars = str.toCharArray();
-
-        for (int i = 0; i < chars.length; ++i) {
-            char c = chars[i];
-            if (c == s) {
-                ++found;
-            } else if (c == e) {
-                --found;
-                if (found == 0) {
-                    return i;
-                }
-            }
-        }
-
-        return 0;
+        return BracketMatcher.findClosingBracket(str, s, e);
     }
 
     private int findOpeningBracket(String str, char s, char e) {
-        int found = 0;
-        char[] chars = str.toCharArray();
-
-        for (int i = chars.length - 1; i >= 0; --i) {
-            char c = chars[i];
-            if (c == e) {
-                ++found;
-            } else if (c == s) {
-                --found;
-                if (found == 0) {
-                    return i - chars.length + 1;
-                }
-            }
-        }
-
-        return 0;
+        return BracketMatcher.findOpeningBracket(str, s, e);
     }
 
-    // Computes brace spans as {originalDepth, openLineIndex, closeLineIndex, adjustedDepth}, inclusive of brace lines
     private List<int[]> computeBraceSpans(String fullText, List<LineData> lines) {
-        List<int[]> spans = new ArrayList<>();
-        if (fullText == null || fullText.isEmpty() || lines == null || lines.isEmpty())
-            return spans;
-
-        int lineIdx = 0;
-        int lineEnd = lines.get(0).end;
-        List<Integer> openStack = new ArrayList<>(); // line indices of unmatched opens
-
-        boolean inLineComment = false;
-        boolean inBlockComment = false;
-        boolean inString = false;
-        boolean escape = false;
-        char stringDelimiter = 0;
-
-        for (int pos = 0; pos < fullText.length(); pos++) {
-            while (lineIdx < lines.size() - 1 && pos >= lineEnd) {
-                lineIdx++;
-                lineEnd = lines.get(lineIdx).end;
-            }
-
-            char c = fullText.charAt(pos);
-            char next = pos + 1 < fullText.length() ? fullText.charAt(pos + 1) : 0;
-
-            if (inString) {
-                if (escape) {
-                    escape = false;
-                } else if (c == '\\') {
-                    escape = true;
-                } else if (c == stringDelimiter) {
-                    inString = false;
-                } else if (c == '\n') {
-                    // Treat unterminated strings as ending at EOL to avoid breaking later brace parsing
-                    inString = false;
-                }
-                continue;
-            }
-
-            if (inBlockComment) {
-                if (c == '*' && next == '/') {
-                    inBlockComment = false;
-                    pos++;
-                }
-                continue;
-            }
-
-            if (inLineComment) {
-                if (c == '\n') {
-                    inLineComment = false;
-                }
-                continue;
-            }
-
-            if (c == '/' && next == '/') {
-                inLineComment = true;
-                pos++;
-                continue;
-            }
-            if (c == '/' && next == '*') {
-                inBlockComment = true;
-                pos++;
-                continue;
-            }
-            if (c == '"' || c == '\'') {
-                inString = true;
-                stringDelimiter = c;
-                escape = false;
-                continue;
-            }
-
-            if (c == '{') {
-                openStack.add(lineIdx);
-            } else if (c == '}') {
-                if (!openStack.isEmpty()) {
-                    int openLine = openStack.remove(openStack.size() - 1);
-                    int spanDepth = openStack.size() + 1;
-                    int closeLine = lineIdx;
-                    spans.add(new int[]{spanDepth, openLine, closeLine});
-                }
-            }
-        }
-
-        // Normalize depths to reduce impact of unmatched opens without hiding nested guides
-        if (!openStack.isEmpty()) {
-            int baseline = openStack.size();
-            List<int[]> adjusted = new ArrayList<>(spans.size());
-            for (int[] span : spans) {
-                int adjustedDepth = Math.max(1, span[0] - baseline);
-                adjusted.add(new int[]{span[0], span[1], span[2], adjustedDepth});
-            }
-            spans = adjusted;
-        } else {
-            for (int idx = 0; idx < spans.size(); idx++) {
-                int[] span = spans.get(idx);
-                spans.set(idx, new int[]{span[0], span[1], span[2], span[0]});
-            }
-        }
-
-        return spans;
+        return BracketMatcher.computeBraceSpans(fullText, lines);
     }
+
+    // ==================== SELECTION & CURSOR POSITION ====================
 
     private int getSelectionPos(int xMouse, int yMouse) {
         xMouse -= (this.x + LINE_NUMBER_GUTTER_WIDTH + 1);
@@ -686,6 +549,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void ensureCursorVisible() {
         scrollToCursor();
     }
+    
+    // ==================== KEYBOARD INPUT HANDLING ====================
 
     @Override
     public boolean textboxKeyTyped(char c, int i) {
@@ -1146,109 +1011,26 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return Keyboard.isKeyDown(42) || Keyboard.isKeyDown(54);
     }
 
+    // ==================== COMMENT TOGGLING ====================
+    // Uses CommentHandler helper for comment operations
+    
     private void toggleCommentSelection() {
-        StringBuilder newText = new StringBuilder(text.length() + 100);
-        int prevEnd = 0;
-
-        int newStart = -1; //calculates expanded startSelection
-        int newEnd = -1; //calculates expanded endSelection
-        int newIndex = 0;
-
-        for (LineData line : container.lines) {
-            int safeLineStart = Math.max(0, Math.min(line.start, text.length()));
-            int safeLineEnd = Math.max(0, Math.min(line.end, text.length()));
-
-            if (safeLineStart > prevEnd) {
-                if (newStart == -1 && startSelection >= prevEnd && startSelection <= safeLineStart) {
-                    newStart = newIndex + (startSelection - prevEnd);
-                }
-                if (newEnd == -1 && endSelection >= prevEnd && endSelection <= safeLineStart) {
-                    newEnd = newIndex + (endSelection - prevEnd);
-                }
-                newText.append(text, prevEnd, safeLineStart);
-                newIndex += safeLineStart - prevEnd;
-            }
-
-            if (safeLineEnd > startSelection && safeLineStart < endSelection) {
-                String lineText = text.substring(safeLineStart, safeLineEnd);
-                CommentToggleInfo ti = toggleLine(lineText);
-                String newLineText = ti.text;
-                int nonWs = ti.nonWs;
-                int delta = ti.delta;
-
-                if (newStart == -1 && startSelection >= safeLineStart && startSelection <= safeLineEnd) {
-                    int offsetInOldStart = startSelection - safeLineStart;
-                    int newOffsetStart = offsetInOldStart;
-                    if (offsetInOldStart >= nonWs) {
-                        newOffsetStart = offsetInOldStart + delta;
-                    }
-                    newStart = newIndex + Math.max(0, newOffsetStart);
-                }
-                if (newEnd == -1 && endSelection >= safeLineStart && endSelection <= safeLineEnd) {
-                    int offsetInOld = endSelection - safeLineStart;
-                    int newOffset = offsetInOld;
-                    if (offsetInOld >= nonWs) {
-                        newOffset = offsetInOld + delta;
-                    }
-                    newEnd = newIndex + Math.max(0, newOffset);
-                }
-
-                newText.append(newLineText);
-                newIndex += newLineText.length();
-            } else {
-                if (newStart == -1 && startSelection >= safeLineStart && startSelection <= safeLineEnd) {
-                    newStart = newIndex + (startSelection - safeLineStart);
-                }
-                if (newEnd == -1 && endSelection >= safeLineStart && endSelection <= safeLineEnd) {
-                    newEnd = newIndex + (endSelection - safeLineStart);
-                }
-                newText.append(text, safeLineStart, safeLineEnd);
-                newIndex += safeLineEnd - safeLineStart;
-            }
-            prevEnd = safeLineEnd;
-        }
-
-        if (prevEnd < text.length()) {
-            if (newStart == -1 && startSelection >= prevEnd && startSelection <= text.length()) {
-                newStart = newIndex + (startSelection - prevEnd);
-            }
-            if (newEnd == -1 && endSelection >= prevEnd && endSelection <= text.length()) {
-                newEnd = newIndex + (endSelection - prevEnd);
-            }
-            newText.append(text, prevEnd, text.length());
-            newIndex += text.length() - prevEnd;
-        }
-
-        if (newStart == -1) newStart = Math.max(0, Math.min(startSelection, newText.length()));
-        if (newEnd == -1) newEnd = Math.max(0, Math.min(endSelection, newText.length()));
-
-        setText(newText.toString());
-        startSelection = newStart;
-        endSelection = newEnd;
+        CommentHandler.SelectionToggleResult result = CommentHandler.toggleCommentSelection(
+                text, container.lines, startSelection, endSelection);
+        setText(result.newText);
+        startSelection = result.newStartSelection;
+        endSelection = result.newEndSelection;
         cursorPosition = endSelection;
     }
 
     private void toggleCommentLineAtCursor() {
-        for (LineData line : container.lines) {
-            int lineStart = Math.max(0, Math.min(line.start, text.length()));
-            int lineEnd = Math.max(0, Math.min(line.end, text.length()));
-            if (cursorPosition >= lineStart && cursorPosition <= lineEnd) {
-                String lineText = text.substring(lineStart, lineEnd);
-                CommentToggleInfo ti = toggleLine(lineText);
-                String newLineText = ti.text;
-                int nonWs = ti.nonWs;
-                boolean hasComment = ti.delta < 0;
-                String before = text.substring(0, lineStart);
-                String after = lineEnd <= text.length() ? text.substring(lineEnd) : "";
-                setText(before + newLineText + after);
-                int cursorDelta = hasComment ? -2 : 2;
-                int newCursor = cursorPosition + cursorDelta;
-                if (cursorPosition < lineStart + nonWs + (hasComment ? 2 : 0)) newCursor = cursorPosition;
-                setCursor(Math.max(lineStart, newCursor), false);
-                return;
-            }
-        }
+        CommentHandler.SingleLineToggleResult result = CommentHandler.toggleCommentAtCursor(
+                text, container.lines, cursorPosition);
+        setText(result.newText);
+        setCursor(result.newCursorPosition, false);
     }
+    
+    // ==================== KEYBOARD MODIFIERS ====================
 
     private boolean isAltKeyDown() {
         return Keyboard.isKeyDown(56) || Keyboard.isKeyDown(184);
@@ -1275,22 +1057,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     private String getIndentCurrentLine() {
-        Iterator var1 = this.container.lines.iterator();
-
-        LineData data;
-        do {
-            if (!var1.hasNext()) {
-                return "";
+        for (LineData data : this.container.lines) {
+            if (this.cursorPosition > data.start && this.cursorPosition <= data.end) {
+                int i;
+                for (i = 0; i < data.text.length() && data.text.charAt(i) == ' '; ++i) {
+                }
+                return data.text.substring(0, i);
             }
-
-            data = (LineData) var1.next();
-        } while (this.cursorPosition <= data.start || this.cursorPosition > data.end);
-
-        int i;
-        for (i = 0; i < data.text.length() && data.text.charAt(i) == 32; ++i) {
         }
-
-        return data.text.substring(0, i);
+        return "";
     }
 
     private String getAutoIndentForEnter() {
@@ -1387,133 +1162,23 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return prevIndent;
     }
 
+    // ==================== TEXT FORMATTING ====================
+    
     private int getTabSize() {
-        return 4;
+        return IndentHelper.TAB_SIZE;
     }
 
     private String repeatSpace(int count) {
-        if (count <= 0)
-            return "";
-        char[] arr = new char[count];
-        java.util.Arrays.fill(arr, ' ');
-        return new String(arr);
+        return IndentHelper.spaces(count);
     }
 
     private void formatText() {
-        // Find which line the cursor is on and calculate position within that line (after stripping indent)
-        int cursorLine = -1;
-        int cursorColInContent = 0;  // position in line after removing leading whitespace
-        int lineStartPos = 0;
-        String[] linesArr = text.split("\n", -1);
-        
-        for (int li = 0; li < linesArr.length; li++) {
-            String line = linesArr[li];
-            int lineEndPos = lineStartPos + line.length();
-            
-            if (cursorPosition >= lineStartPos && cursorPosition <= lineEndPos) {
-                cursorLine = li;
-                int leadingSpaces = line.length() - line.replaceAll("^[ \t]+", "").length();
-                cursorColInContent = Math.max(0, cursorPosition - lineStartPos - leadingSpaces);
-                break;
-            }
-            lineStartPos = lineEndPos + 1; // +1 for newline
-        }
-        
-        StringBuilder out = new StringBuilder(text.length() + 32);
-
-        boolean inString = false;
-        boolean escape = false;
-        boolean inBlockComment = false;
-        int depth = 0;
-        int tab = getTabSize();
-        
-        int newCursorPos = 0;
-
-        for (int li = 0; li < linesArr.length; li++) {
-            String line = linesArr[li];
-            String trimmedLeading = line.replaceAll("^[ \t]+", "");
-
-            int lineIndentDec = 0;
-            int opens = 0, closes = 0;
-            boolean startsWithClose = false;
-
-            // First pass to determine startsWithClose and brace counts ignoring strings/comments
-            for (int idx = 0; idx < line.length(); idx++) {
-                char c = line.charAt(idx);
-                char next = idx + 1 < line.length() ? line.charAt(idx + 1) : 0;
-
-                if (inString) {
-                    if (escape) {
-                        escape = false;
-                    } else if (c == '\\') {
-                        escape = true;
-                    } else if (c == '"') {
-                        inString = false;
-                    }
-                    continue;
-                }
-
-                if (inBlockComment) {
-                    if (c == '*' && next == '/') {
-                        inBlockComment = false;
-                        idx++;
-                    }
-                    continue;
-                }
-
-                if (c == '/' && next == '/') {
-                    break; // rest of line is comment
-                }
-                if (c == '/' && next == '*') {
-                    inBlockComment = true;
-                    idx++;
-                    continue;
-                }
-                if (c == '"') {
-                    inString = true;
-                    escape = false;
-                    continue;
-                }
-
-                if (c == '{') {
-                    opens++;
-                } else if (c == '}') {
-                    closes++;
-                    if (!startsWithClose) {
-                        String prefix = line.substring(0, idx);
-                        if (prefix.trim().isEmpty()) {
-                            startsWithClose = true;
-                        }
-                    }
-                }
-            }
-
-            int indentLevel = depth;
-            if (startsWithClose)
-                indentLevel = Math.max(0, indentLevel - 1);
-
-            int targetIndent = indentLevel * tab;
-            
-            // Track cursor position in the formatted output
-            if (li == cursorLine) {
-                newCursorPos = out.length() + targetIndent + Math.min(cursorColInContent, trimmedLeading.length());
-            }
-            
-            out.append(repeatSpace(targetIndent)).append(trimmedLeading);
-            if (li < linesArr.length - 1)
-                out.append('\n');
-
-            depth = Math.max(0, depth + opens - closes);
-        }
-
-        setText(out.toString());
-        
-        // Restore cursor position
-        if (cursorLine >= 0) {
-            newCursorPos = Math.max(0, Math.min(newCursorPos, this.text.length()));
-            startSelection = endSelection = cursorPosition = newCursorPos;
-        }
+        IndentHelper.FormatResult result = IndentHelper.formatText(text, cursorPosition);
+        setText(result.text);
+        startSelection = endSelection = cursorPosition = Math.max(0, Math.min(result.cursorPosition, this.text.length()));
     }
+    
+    // ==================== TAB HANDLING ====================
 
     private void handleTab() {
         LineData currentLine = null;
@@ -1632,6 +1297,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
     }
+    
+    // ==================== CURSOR MANAGEMENT ====================
 
     private void setCursor(int i, boolean select) {
         i = Math.min(Math.max(i, 0), this.text.length());
@@ -1733,6 +1400,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public String getSelectionAfterText() {
         return this.text.substring(this.endSelection);
     }
+    
+    // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
@@ -1789,6 +1458,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void updateCursorCounter() {
         ++this.cursorCounter;
     }
+    
+    // ==================== TEXT MANAGEMENT ====================
 
     public void setText(String text) {
         if (text == null) {
@@ -1867,35 +1538,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.endSelection = Math.max(0, Math.min(this.endSelection, length));
         this.cursorPosition = Math.max(0, Math.min(this.cursorPosition, length));
     }
-
-    private static class CommentToggleInfo {
-        public final String text;
-        public final int delta; // newText.length() - oldText.length()
-        public final int nonWs;
-
-        public CommentToggleInfo(String text, int delta, int nonWs) {
-            this.text = text;
-            this.delta = delta;
-            this.nonWs = nonWs;
-        }
-    }
-
-    private CommentToggleInfo toggleLine(String lineText) {
-        int nonWs = 0;
-        while (nonWs < lineText.length() && Character.isWhitespace(lineText.charAt(nonWs))) nonWs++;
-        boolean hasContent = nonWs < lineText.length();
-        boolean hasComment = hasContent && lineText.startsWith("//", nonWs);
-        String newLineText;
-        if (hasComment) {
-            int cut = Math.min(nonWs + 2, lineText.length());
-            newLineText = lineText.substring(0, nonWs) + (cut <= lineText.length() ? lineText.substring(cut) : "");
-        } else if (hasContent) {
-            newLineText = lineText.substring(0, nonWs) + "//" + lineText.substring(nonWs);
-        } else {
-            newLineText = lineText;
-        }
-        return new CommentToggleInfo(newLineText, newLineText.length() - lineText.length(), nonWs);
-    }
+    
+    // ==================== INNER CLASSES ====================
 
     class UndoData {
         public String text;
