@@ -24,6 +24,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public int width;
     public int height;
     private int cursorCounter;
+    private long lastInputTime = 0L;
     private ITextChangeListener listener;
     public String text = null;
     private JavaTextContainer container = null;
@@ -232,8 +233,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
 
-                // Draw cursor
-                if (active && isEnabled() && (cursorCounter / 10) % 2 == 0 && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
+                // Draw cursor: pause blinking while user is active recently
+                boolean recentInput = System.currentTimeMillis() - this.lastInputTime < 500;
+                if (active && isEnabled() && (recentInput || (cursorCounter / 10) % 2 == 0) && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
                     int posX = x + ClientProxy.Font.width(
                             line.substring(0, Math.min(cursorPosition - data.start, line.length())));
                     drawRect(posX + 1, yPos, posX + 2, yPos - 2 + container.lineHeight, 0xffffffff);
@@ -1403,12 +1405,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             clampSelectionBounds();
+            // Moving the cursor is user activity — pause blinking briefly
+            this.lastInputTime = System.currentTimeMillis();
         }
     }
 
     private void addText(String s) {
         this.setText(this.getSelectionBeforeText() + s + this.getSelectionAfterText());
         this.endSelection = this.startSelection = this.cursorPosition = this.startSelection + s.length();
+        this.lastInputTime = System.currentTimeMillis();
     }
 
     private int cursorUp() {
@@ -1461,6 +1466,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
         if (this.active) {
             this.startSelection = this.endSelection = this.cursorPosition = this.getSelectionPos(xMouse, yMouse);
+            this.lastInputTime = System.currentTimeMillis();
             this.clicked = mouseButton == 0;
             this.doubleClicked = false;
             this.tripleClicked = false;
@@ -1539,6 +1545,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             clampSelectionBounds();
+
+            // Consider text changes user activity to pause caret blinking briefly
+            this.lastInputTime = System.currentTimeMillis();
 
         }
     }
