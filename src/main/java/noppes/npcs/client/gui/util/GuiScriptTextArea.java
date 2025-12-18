@@ -127,9 +127,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     // Dragging the thumb itself: preserve initial grab offset
                     int desiredTop = yMouse - scrollbarDragOffset;
                     desiredTop = Math.max(trackTop, Math.min(trackTop + thumbRange, desiredTop));
-                    // Speed up dragging a bit for snappier feel
-                    final double dragSpeed = 1.5;
-                    double ratio = (double) (desiredTop - trackTop) * dragSpeed / (double) thumbRange;
+                    double ratio = (double) (desiredTop - trackTop) / (double) thumbRange;
                     ratio = Math.max(0.0, Math.min(1.0, ratio));
                     targetScroll = Math.max(0, Math.min(diff, ratio * diff));
                 }
@@ -1579,6 +1577,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (this.clicked && this.container.linesCount * this.container.lineHeight > this.height && xMouse > this.x + this.width - 8) {
                 this.clicked = false;
                 this.clickScrolling = true;
+                double linesCountD = Math.max(1, (double) this.container.linesCount);
+                int thumbTop = (int) (this.y + 1f * this.scrollPos / linesCountD * (this.height - 4)) + 1;
+                this.scrollbarDragOffset = yMouse - thumbTop;
             } else {
                 if (time - this.lastClicked < 300L) {
                     this.clickCount++;
