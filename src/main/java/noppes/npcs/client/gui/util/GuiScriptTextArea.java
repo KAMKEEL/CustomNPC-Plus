@@ -152,21 +152,24 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             LineData data = list.get(i);
             String line = data.text;
             int w = line.length();
-            if (startBracket != endBracket) {
-                if (startBracket >= data.start && startBracket < data.end) {
-                    int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
-                    int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
-                    int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
-                    drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
-                }
-                if (endBracket >= data.start && endBracket < data.end) {
-                    int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
-                    int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
-                    int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
-                    drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
-                }
-            }
+  
             if (i >= scrolledLine && i < scrolledLine + container.visibleLines) {
+                //Highlight braces the cursor position is on
+                if (startBracket != endBracket) {
+                    if (startBracket >= data.start && startBracket < data.end) {
+                        int s = ClientProxy.Font.width(line.substring(0, startBracket - data.start));
+                        int e = ClientProxy.Font.width(line.substring(0, startBracket - data.start + 1)) + 1;
+                        int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
+                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
+                    }
+                    if (endBracket >= data.start && endBracket < data.end) {
+                        int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
+                        int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
+                        int posY = y + 0 + (i - scrolledLine) * container.lineHeight;
+                        drawRect(x + 1 + s, posY, x + 1 + e, posY + container.lineHeight + 1, 0x9900cc00);
+                    }
+                }
+                //Highlight words
                 if (wordHightLight != null) {
                     Matcher m = container.regexWord.matcher(line);
                     while (m.find()) {
@@ -183,6 +186,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     int lineY = y + 0 + (i - scrolledLine) * container.lineHeight;
                     drawRect(x + 0, lineY, x + width - 1, lineY + container.lineHeight, 0x22e0e0e0);
                 }
+                // Highlight selection
                 if (startSelection != endSelection && endSelection > data.start && startSelection <= data.end) {
                     if (startSelection < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, Math.max(startSelection - data.start, 0)));
@@ -231,6 +235,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
                 data.drawString(x + 1, yPos, 0xFFe0e0e0);
 
+                // Draw cursor
                 if (active && isEnabled() && (cursorCounter / 6) % 2 == 0 && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
                     int posX = x + ClientProxy.Font.width(
                             line.substring(0, Math.min(cursorPosition - data.start, line.length())));
