@@ -285,6 +285,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
 
+        renderStart = Math.max(0, scrolledLine - 1);
         for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
             String line = data.text;
@@ -616,6 +617,57 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         return this.container.text.length();
     }
 
+    // Ensure the cursor's line is visible by updating the smooth scroll target
+    // Mimics IntelliJ IDEA behavior: when pressing Enter, maintain the cursor's relative Y position
+    // in the viewport by scrolling forward to compensate for the newly added line.
+    private void ensureCursorVisible() {
+        if (container == null || container.lines == null || container.lines.isEmpty()) return;
+        
+        // Find the cursor's current line index
+        int lineIdx = 0;
+        for (int i = 0; i < container.lines.size(); i++) {
+            LineData ld = container.lines.get(i);
+            if (cursorPosition >= ld.start && cursorPosition <= ld.end) {
+                lineIdx = i;
+                break;
+            }
+        }
+        
+        int visible = Math.max(1, container.visibleLines);
+        int maxScroll = Math.max(0, container.linesCount - visible);
+        
+        // Calculate the cursor line's relative position in the current viewport (0 = top, visible-1 = bottom)
+        double relativePos = lineIdx - scrollPos;
+        
+        // If cursor is already visible in the viewport
+        if (relativePos >= 0 && relativePos < visible) {
+            // When Enter is pressed, a new line is inserted and cursor advances by 1.
+            // To maintain the same visual Y position, scroll forward by 1 line.
+            // This keeps the cursor at the same relative position while content scrolls up.
+            double newScroll = scrollPos + 1.0;
+            newScroll = Math.max(0, Math.min(newScroll, maxScroll));
+            
+            targetScroll = newScroll;
+            scrollPos = newScroll;
+            scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
+            scrollVelocity = 0.0;
+        } else if (relativePos < 0) {
+            // Cursor moved above the viewport; scroll up to show it near the top
+            double newScroll = Math.max(0, lineIdx - 2); // keep 2 lines above for context
+            targetScroll = newScroll;
+            scrollPos = newScroll;
+            scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
+            scrollVelocity = 0.0;
+        } else {
+            // Cursor is below viewport; scroll down to show it
+            double newScroll = Math.max(0, Math.min(lineIdx - visible + 3, maxScroll));
+            targetScroll = newScroll;
+            scrollPos = newScroll;
+            scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
+            scrollVelocity = 0.0;
+        }
+    }
+
     @Override
     public boolean textboxKeyTyped(char c, int i) {
         if (!active)
@@ -896,6 +948,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
                 if (leadingSegment.trim().length() > 0) {
                     addText("\n" + childIndent);
+                    ensureCursorVisible();
                     return true;
                 }
 
@@ -938,14 +991,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
                 if (hasMatchingCloseSameIndent) {
                     addText("\n" + childIndent);
+                    ensureCursorVisible();
                 } else {
                     String insert = "\n" + childIndent + "\n" + indent + "}";
                     setText(before + insert + after);
                     int newCursor = before.length() + 1 + childIndent.length();
                     startSelection = endSelection = cursorPosition = newCursor;
+                    ensureCursorVisible();
                 }
             } else {
                 addText(Character.toString('\n') + getAutoIndentForEnter());
+                ensureCursorVisible();
             }
         }
         if (ChatAllowedCharacters.isAllowedCharacter(c)) {
