@@ -149,6 +149,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                     }
                 }
+                // Highlight the current line (light gray) under any selection
+                if (active && isEnabled() && (cursorPosition >= data.start && cursorPosition < data.end || (i == list.size() - 1 && cursorPosition == text.length()))) {
+                    int lineY = y + 1 + (i - scrolledLine) * container.lineHeight;
+                    drawRect(x + 1, lineY, x + width - 1, lineY + container.lineHeight, 0x22e0e0e0);
+                }
                 if (startSelection != endSelection && endSelection > data.start && startSelection <= data.end) {
                     if (startSelection < data.end) {
                         int s = ClientProxy.Font.width(line.substring(0, Math.max(startSelection - data.start, 0)));
