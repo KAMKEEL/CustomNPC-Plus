@@ -35,7 +35,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public boolean visible = true;
     public boolean clicked = false;
     public boolean doubleClicked = false;
+    public boolean tripleClicked = false;
     public boolean clickScrolling = false;
+    private int clickCount = 0;
     private int startSelection;
     private int endSelection;
     private int cursorPosition;
@@ -80,14 +82,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             clicked = Mouse.isButtonDown(0);
             int i = getSelectionPos(xMouse, yMouse);
             if (i != cursorPosition) {
-                if (doubleClicked) {
+                if (doubleClicked || tripleClicked) {
                     startSelection = endSelection = cursorPosition;
                     doubleClicked = false;
+                    tripleClicked = false;
                 }
                 setCursor(i, true);
             }
-        } else if (doubleClicked) {
+        } else if (doubleClicked || tripleClicked) {
             doubleClicked = false;
+            tripleClicked = false;
         }
 
         if (clickScrolling) {
@@ -1419,19 +1423,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             this.startSelection = this.endSelection = this.cursorPosition = this.getSelectionPos(xMouse, yMouse);
             this.clicked = mouseButton == 0;
             this.doubleClicked = false;
+            this.tripleClicked = false;
             long time = System.currentTimeMillis();
             if (this.clicked && this.container.linesCount * this.container.lineHeight > this.height && xMouse > this.x + this.width - 8) {
                 this.clicked = false;
                 this.clickScrolling = true;
-            } else if (time - this.lastClicked < 300L) {
-                this.doubleClicked = true;
-                // On double-click select the entire line under the cursor
-                for (LineData line : container.lines) {
-                    if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
-                        this.startSelection = line.start;
-                        this.endSelection = line.end;
-                        break;
+            } else {
+                if (time - this.lastClicked < 300L) {
+                    this.clickCount++;
+                } else {
+                    this.clickCount = 1;
+                }
+
+                if (this.clickCount == 2) {
+                    // Double-click: select word under cursor (restore prior behavior)
+                    this.doubleClicked = true;
+                    Matcher m = this.container.regexWord.matcher(this.text);
+                    while (m.find()) {
+                        if (this.cursorPosition > m.start() && this.cursorPosition < m.end()) {
+                            this.startSelection = m.start();
+                            this.endSelection = m.end();
+                            break;
+                        }
                     }
+                } else if (this.clickCount >= 3) {
+                    // Triple-click: select entire line
+                    this.tripleClicked = true;
+                    for (LineData line : container.lines) {
+                        if (this.cursorPosition >= line.start && this.cursorPosition <= line.end) {
+                            this.startSelection = line.start;
+                            this.endSelection = line.end;
+                            break;
+                        }
+                    }
+                    this.clickCount = 0;
                 }
             }
 
