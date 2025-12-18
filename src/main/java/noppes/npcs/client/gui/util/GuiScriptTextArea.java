@@ -270,8 +270,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
        // GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
+        
+        int stringYOffset = 2;
+
+        // Render LINE GUTTER numbers
         for (int i = renderStart; i <= renderEnd; i++) {
-            int posY = y + (i - scrolledLine) * container.lineHeight;
+            int posY = y + (i - scrolledLine) * container.lineHeight + stringYOffset;
             String lineNum = String.valueOf(i + 1);
             int lineNumWidth = ClientProxy.Font.width(lineNum);
             int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5; // right-align with 5px padding
@@ -283,7 +287,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     LineData ld = list.get(li);
                     if (cursorPosition >= ld.start && cursorPosition < ld.end || (li == list.size() - 1 && cursorPosition == text.length())) {
                         if (li == i) {
-                            lineNumColor = 0xFFa9b7c6;
+                            lineNumColor = 0xFFb9c7d6;
                             break;
                         }
                     }
@@ -341,7 +345,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x992172ff);
                     }
                 }
-                int yPos = posY + 1;
 
                 // Draw indent guides once per visible block based on brace spans
                 if (i == Math.max(0, scrolledLine) && !braceSpans.isEmpty()) {
@@ -379,6 +382,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
                 }
+                int yPos = posY + stringYOffset;
                 data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
 
                 // Draw cursor: pause blinking while user is active recently
