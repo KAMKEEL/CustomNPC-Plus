@@ -585,6 +585,26 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
 
+            // If the current line is whitespace-only, delete the whole line
+            // (including the trailing newline if present). This makes Backspace
+            // intuitive on blank/indented lines outside any recognized scope.
+            LineData currCheck = selection.findCurrentLine(container.lines);
+            if (currCheck != null && currCheck.text.trim().length() == 0) {
+                int removeEnd = text.indexOf('\n', currCheck.start);
+                if (removeEnd == -1) {
+                    removeEnd = text.length();
+                } else {
+                    removeEnd = removeEnd + 1; // include the newline
+                }
+                String before = text.substring(0, currCheck.start);
+                String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
+                setText(before + after);
+                int newCursor = Math.max(0, currCheck.start - 1);
+                selection.reset(newCursor);
+                scrollToCursor();
+                return true;
+            }
+
             // 3) indent-aware merge: find current line and compute expected indent
             LineData curr = selection.findCurrentLine(container.lines);
             if (curr != null && curr.start > 0) {
