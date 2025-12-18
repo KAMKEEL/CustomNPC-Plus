@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
@@ -9,6 +10,7 @@ import noppes.npcs.client.gui.util.script.JavaTextContainer;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -64,15 +66,28 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return;
         clampSelectionBounds();
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
-        drawRect(x, y, x + width, y + height, 0xff000000);
+        drawRect(x, y, x + width, y + height, 0xff000000); //THIS IS THE VIEWPORT
 
+        // Enable scissor test to clip drawing to the viewport rectangle
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int scaleFactor = sr.getScaleFactor();
+        int scissorX = this.x * scaleFactor;
+        int scissorY = (sr.getScaledHeight() - (this.y + this.height)) * scaleFactor;
+        int scissorW = this.width * scaleFactor;
+        int scissorH = this.height * scaleFactor;
+        GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
+        
         container.visibleLines = height / container.lineHeight;
 
         if (listener instanceof GuiNPCInterface) {
             int k2 = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
             if (k2 != 0) {
-                this.scrolledLine -= k2 / 40;
-                this.scrolledLine = Math.max(Math.min(this.scrolledLine, this.container.linesCount - this.height / this.container.lineHeight), 0);
+                //this.scrolledLine -= k2 / 80;
+                this.scrolledLine -= (int) Math.copySign(1, k2);
+                this.scrolledLine = Math.max(Math.min(this.scrolledLine,
+                        this.container.linesCount - this.height / this.container.lineHeight), 0);
             }
         }
 
@@ -150,8 +165,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             LineData data = list.get(i);
             String line = data.text;
             int w = line.length();
-  
-            if (i >= scrolledLine && i < scrolledLine + container.visibleLines) {
+
+            if (i >= scrolledLine && i <= scrolledLine + container.visibleLines) {
                 //Highlight braces the cursor position is on
                 if (startBracket != endBracket) {
                     if (startBracket >= data.start && startBracket < data.end) {
@@ -252,6 +267,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             drawRect(posX, posY, posX + 5, posY + sbSize, 0xFFe0e0e0);
         }
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
     // Find a bracket span for a given cursor position. Returns {start, end} or null.
     private int[] findBracketSpanAt(int pos) {
