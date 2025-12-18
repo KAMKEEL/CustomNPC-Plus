@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script;
 
+import org.lwjgl.input.Mouse;
+
 /**
  * Manages smooth scrolling state and animation for the script text area.
  * Uses exponential smoothing for fluid scroll animations.
@@ -150,4 +152,45 @@ public class ScrollState {
     public void setClickScrolling(boolean scrolling) { this.clickScrolling = scrolling; }
     public void setScrollbarDragOffset(int offset) { this.scrollbarDragOffset = offset; }
     public void setScrolledLine(int line) { this.scrolledLine = line; }
+
+    /**
+     * Handle scrollbar dragging interaction. This encapsulates the logic that was
+     * previously in the GUI class for handling thumb clicks/drags.
+     * @param yMouse current mouse Y coordinate
+     * @param areaX GUI area X (unused but kept for parity)
+     * @param areaY GUI area Y (top of text area)
+     * @param areaHeight height of the scroll track area
+     * @param visibleLines number of visible lines in viewport
+     * @param linesCount total number of lines
+     * @param maxScroll maximum allowed scroll value
+     */
+    public void handleClickScrolling(int yMouse, int areaX, int areaY, int areaHeight, int visibleLines, int linesCount, int maxScroll) {
+        // Keep dragging while mouse button is down
+        setClickScrolling(Mouse.isButtonDown(0));
+        int diff = Math.max(0, linesCount - visibleLines);
+        if (diff > 0) {
+            int sbSize = Math.max((int) (1f * visibleLines / Math.max(1, linesCount) * areaHeight), 2);
+            int trackTop = areaY + 1;
+            int trackHeight = Math.max(1, areaHeight - 4);
+            int thumbRange = Math.max(1, trackHeight - sbSize);
+            double linesCountD = Math.max(1, (double) linesCount);
+            int thumbTop = (int) (areaY + 1f * getScrollPos() / linesCountD * (areaHeight - 4)) + 1;
+
+            if (yMouse < thumbTop || yMouse > thumbTop + sbSize) {
+                double centerRatio = (double) (yMouse - trackTop) / (double) trackHeight;
+                centerRatio = Math.max(0.0, Math.min(1.0, centerRatio));
+                setTargetScroll(centerRatio * diff, maxScroll);
+                setScrollbarDragOffset(sbSize / 2);
+            } else {
+                int desiredTop = yMouse - getScrollbarDragOffset();
+                desiredTop = Math.max(trackTop, Math.min(trackTop + thumbRange, desiredTop));
+                double ratio = (double) (desiredTop - trackTop) / (double) thumbRange;
+                ratio = Math.max(0.0, Math.min(1.0, ratio));
+                setTargetScroll(ratio * diff, maxScroll);
+            }
+        }
+        if (!isClickScrolling()) {
+            setScrollbarDragOffset(0);
+        }
+    }
 }

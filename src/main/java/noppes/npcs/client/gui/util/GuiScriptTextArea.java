@@ -83,7 +83,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
     
     // ==================== RENDERING ====================
-
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
             return;
@@ -107,14 +106,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // Enable scissor test to clip drawing to the TEXT viewport rectangle (excludes gutter)
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        Minecraft mc = Minecraft.getMinecraft();
-        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
-        int scaleFactor = sr.getScaleFactor();
-        int scissorX = (this.x ) * scaleFactor;
-        int scissorY = (sr.getScaledHeight() - (this.y + this.height)) * scaleFactor;
-        int scissorW = (this.width ) * scaleFactor;
-        int scissorH = this.height * scaleFactor;
-        GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
+        scissorViewport();
         
         container.visibleLines = height / container.lineHeight-1;
 
@@ -123,41 +115,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Handle mouse wheel scroll
         if (listener instanceof GuiNPCInterface) {
             int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
-            if (wheelDelta != 0) {
+            if (wheelDelta != 0) 
                 scroll.applyWheelScroll(wheelDelta, maxScroll);
-            }
         }
 
-        // Handle scrollbar dragging
-        if (scroll.isClickScrolling()) {
-            scroll.setClickScrolling(Mouse.isButtonDown(0));
-            int diff = Math.max(0, container.linesCount - container.visibleLines);
-            if (diff > 0) {
-                int sbSize = Math.max((int) (1f * container.visibleLines / container.linesCount * height), 2);
-                int trackTop = y + 1;
-                int trackHeight = Math.max(1, height - 4);
-                int thumbRange = Math.max(1, trackHeight - sbSize);
-                double linesCountD = Math.max(1, (double) container.linesCount);
-                int thumbTop = (int) (y + 1f * scroll.getScrollPos() / linesCountD * (height - 4)) + 1;
-
-                if (yMouse < thumbTop || yMouse > thumbTop + sbSize) {
-                    double centerRatio = (double) (yMouse - trackTop) / (double) trackHeight;
-                    centerRatio = Math.max(0.0, Math.min(1.0, centerRatio));
-                    scroll.setTargetScroll(centerRatio * diff, maxScroll);
-                    scroll.setScrollbarDragOffset(sbSize / 2);
-                } else {
-                    int desiredTop = yMouse - scroll.getScrollbarDragOffset();
-                    desiredTop = Math.max(trackTop, Math.min(trackTop + thumbRange, desiredTop));
-                    double ratio = (double) (desiredTop - trackTop) / (double) thumbRange;
-                    ratio = Math.max(0.0, Math.min(1.0, ratio));
-                    scroll.setTargetScroll(ratio * diff, maxScroll);
-                }
-            }
-            if (!scroll.isClickScrolling()) {
-                scroll.setScrollbarDragOffset(0);
-            }
-        }
-
+        // Handle scrollbar dragging (delegated to ScrollState)
+        if (scroll.isClickScrolling())
+            scroll.handleClickScrolling(yMouse, x, y, height, container.visibleLines, container.linesCount, maxScroll);
+        
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());
         scroll.update(maxScroll);
@@ -234,19 +199,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int renderEnd = Math.min(list.size() - 1, scroll.getScrolledLine() + container.visibleLines + 1);
 
         // Apply fractional GL translate for sub-pixel smooth scrolling
+        int stringYOffset = 2;
         double fracOffset = scroll.getFractionalOffset();
         float fracPixels = (float) (fracOffset * container.lineHeight);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
-
-        // Render line numbers in the gutter (outside scissor region, so pop first)
-        GL11.glPopMatrix();
-       // GL11.glDisable(GL11.GL_SCISSOR_TEST);
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
         
-        int stringYOffset = 2;
-
         // Render LINE GUTTER numbers
         for (int i = renderStart; i <= renderEnd; i++) {
             int posY = y + (i - scroll.getScrolledLine()) * container.lineHeight + stringYOffset;
@@ -269,13 +227,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
             ClientProxy.Font.drawString(lineNum, lineNumX, lineNumY, lineNumColor);
         }
-        GL11.glPopMatrix();
-        // Re-enable scissor for text area and push matrix again
-        GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
 
-        renderStart = Math.max(0, scroll.getScrolledLine() - 1);
+        // Render Viewport
         for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
             String line = data.text;
@@ -371,7 +324,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
         GL11.glPopMatrix();
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
 
+        
         if (hasVerticalScrollbar()) {
             Minecraft.getMinecraft().renderEngine.bindTexture(GuiCustomScroll.resource);
             int sbSize = Math.max((int) (1f * (container.visibleLines) / container.linesCount * height), 2);
@@ -382,11 +337,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
         }
-        GL11.glDisable(GL11.GL_SCISSOR_TEST);
     }
 
+    private void scissorViewport() {
+        Minecraft mc = Minecraft.getMinecraft();
+        ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+        int scaleFactor = sr.getScaleFactor();
+        int scissorX = (this.x) * scaleFactor;
+        int scissorY = (sr.getScaledHeight() - (this.y + this.height)) * scaleFactor;
+        int scissorW = (this.width) * scaleFactor;
+        int scissorH = this.height * scaleFactor;
+        GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
+    }
     // ==================== SELECTION & CURSOR POSITION ====================
 
+    // Get cursor position from mouse coordinates
     private int getSelectionPos(int xMouse, int yMouse) {
         xMouse -= (this.x + LINE_NUMBER_GUTTER_WIDTH + 1);
         yMouse -= this.y + 1;
@@ -460,15 +425,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (!isEnabled())
             return false;
 
-        LineData currentLine = null;
-        for (LineData line : this.container.lines) {
-            if (selection.getStartSelection() >= line.start && selection.getStartSelection() < line.end) {
-                currentLine = line;
-                break;
-            }
-        }
-
-        String original = text;
         if (i == Keyboard.KEY_LEFT) {
             int j = 1;
             if (isCtrlKeyDown()) {
