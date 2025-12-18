@@ -45,6 +45,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // Smooth scrolling state: fractional line position and target position
     private double scrollPos = 0.0;
     private double targetScroll = 0.0;
+    // velocity used for spring-based easing
+    private double scrollVelocity = 0.0;
+    // last timestamp used for scroll integration (ms)
+    private long lastScrollTime = 0L;
     private boolean enableCodeHighlighting = false;
     public List<GuiScriptTextArea.UndoData> undoList = new ArrayList();
     public List<GuiScriptTextArea.UndoData> redoList = new ArrayList();
@@ -89,8 +93,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int k2 = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
             if (k2 != 0) {
                 // update target scroll smoothly instead of jumping
-                double sign = Math.copySign(1.0, k2);
-                targetScroll -= sign * 3.0; // one line per wheel tick
+                double sign = Math.copySign(1, k2);
+                targetScroll -= sign * 1.0; // one line per wheel tick
                 if (targetScroll < 0) targetScroll = 0;
                 if (targetScroll > maxScroll) targetScroll = maxScroll;
             }
@@ -119,13 +123,32 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             targetScroll = target;
         }
 
-        // Animate scrollPos towards targetScroll
-        if (scrollPos < 0) scrollPos = scrolledLine; // initialize
-        double d = targetScroll - scrollPos;
-        if (Math.abs(d) > 0.001) {
-            scrollPos += d * 0.25; // easing factor
-        } else {
+        // Animate scrollPos towards targetScroll using exponential smoothing
+        long nowMs = System.currentTimeMillis();
+        if (scrollPos < 0) {
+            scrollPos = scrolledLine; // initialize
+            lastScrollTime = nowMs;
+        }
+        double dt = Math.min(0.05, (nowMs - lastScrollTime) / 1000.0); // clamp dt for stability
+        lastScrollTime = nowMs;
+
+        double dist = targetScroll - scrollPos;
+        // If close enough, snap to target to avoid long slow tail
+        if (Math.abs(dist) < 0.01) {
             scrollPos = targetScroll;
+            scrollVelocity = 0.0;
+        } else {
+            // Time constant controlling speed (seconds). Smaller -> faster snap.
+            final double tau = 0.025; // ~55ms time constant feels snappy
+            double alpha = 1.0 - Math.exp(-dt / Math.max(1e-6, tau));
+            double prev = scrollPos;
+            scrollPos += dist * alpha;
+            scrollVelocity = (scrollPos - prev) / (dt > 0 ? dt : 1e-6);
+            // Clamp overshoot
+            if ((dist > 0 && scrollPos > targetScroll) || (dist < 0 && scrollPos < targetScroll)) {
+                scrollPos = targetScroll;
+                scrollVelocity = 0.0;
+            }
         }
         // Update integer scrolledLine for compatibility
         scrolledLine = Math.max(0, Math.min((int) Math.floor(scrollPos), maxScroll));
@@ -257,8 +280,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int px = ClientProxy.Font.width(sb.toString());
                         int gx = x + 4 + px - 2; // shift left ~2px for the IntelliJ feel
 
-                        int topY = y + (drawStart - scrolledLine) * container.lineHeight;
-                        int bottomY = y + (drawEnd - scrolledLine + 1) * container.lineHeight - 2;
+                        int topY = y + (int) Math.round((drawStart - scrollPos) * container.lineHeight);
+                        int bottomY = y + (int) Math.round((drawEnd - scrollPos + 1) * container.lineHeight) - 2;
                             int guideColor = (openLine == highlightedOpenLine && closeLine == highlightedCloseLine) ? 0x9933cc00 : 0x33FFFFFF;
                             drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
