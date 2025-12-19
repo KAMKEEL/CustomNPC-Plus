@@ -1161,7 +1161,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         setText(result.newText);
         selection.setStartSelection(result.newStartSelection);
         selection.setEndSelection(result.newEndSelection);
-        selection.setCursorPositionDirect(result.newEndSelection);
     }
 
     private void toggleCommentLineAtCursor() {
