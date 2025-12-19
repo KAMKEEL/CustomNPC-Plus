@@ -8,12 +8,14 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
+import noppes.npcs.client.key.impl.ScriptEditorKeys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
@@ -67,7 +69,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public List<UndoData> undoList = new ArrayList<>();
     public List<UndoData> redoList = new ArrayList<>();
     public boolean undoing = false;
-    
+
+    // ==================== KEYS ====================
+    public static final ScriptEditorKeys KEYS = new ScriptEditorKeys();
+
     // ==================== CONSTRUCTOR ====================
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
@@ -80,6 +85,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.undoing = true;
         this.setText(text);
         this.undoing = false;
+        initializeKeyBindings();
     }
     
     // ==================== RENDERING ====================
@@ -420,7 +426,154 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         scroll.scrollToLine(lineIdx, visible, maxScroll);
     }
-    
+
+    // ==================== KEY BINDINGS INITIALIZATION ====================
+
+    /**
+     * Initialize key bindings for editor shortcuts using ScriptEditorKeys.
+     * Centralized active/enabled checking ensures shortcuts only fire when appropriate.
+     */
+    private void initializeKeyBindings() {
+        // Helper: execute action only if text area is active and enabled
+        Consumer<Runnable> executeIfActive = (action) -> {
+            if (active && isEnabled()) {
+                action.run();
+            }
+        };
+
+        // CUT: Copy selection to clipboard and delete it
+        KEYS.CUT.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                if (selection.hasSelection()) {
+                    NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
+                    String s = getSelectionBeforeText();
+                    setText(s + getSelectionAfterText());
+                    selection.reset(s.length());
+                    scrollToCursor();
+                }
+            });
+        });
+
+        // COPY: Copy selection to clipboard
+        KEYS.COPY.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                if (selection.hasSelection()) {
+                    NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
+                }
+            });
+        });
+
+        // PASTE: Insert clipboard contents at caret
+        KEYS.PASTE.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                addText(NoppesStringUtils.getClipboardContents());
+                scrollToCursor();
+            });
+        });
+
+        // UNDO: Restore last edit from undo list
+        KEYS.UNDO.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                if (undoList.isEmpty())
+                    return;
+                undoing = true;
+                redoList.add(new UndoData(this.text, selection.getCursorPosition()));
+                UndoData data = undoList.remove(undoList.size() - 1);
+                setText(data.text);
+                selection.reset(data.cursorPosition);
+                undoing = false;
+                scrollToCursor();
+            });
+        });
+
+        // REDO: Restore last undone edit from redo list
+        KEYS.REDO.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                if (redoList.isEmpty())
+                    return;
+                undoing = true;
+                undoList.add(new UndoData(this.text, selection.getCursorPosition()));
+                UndoData data = redoList.remove(redoList.size() - 1);
+                setText(data.text);
+                selection.reset(data.cursorPosition);
+                undoing = false;
+                scrollToCursor();
+            });
+        });
+
+        // FORMAT: Format/indent code
+        KEYS.FORMAT.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(this::formatText);
+        });
+
+        // TOGGLE_COMMENT: Toggle comment for selection or current line
+        KEYS.TOGGLE_COMMENT.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                if (selection.hasSelection()) {
+                    toggleCommentSelection();
+                } else {
+                    toggleCommentLineAtCursor();
+                }
+            });
+        });
+
+        // DUPLICATE: Duplicate selection or current line
+        KEYS.DUPLICATE.setTask(e -> {
+            if (!e.isSinglePress())
+                return;
+            executeIfActive.accept(() -> {
+                if (selection.hasSelection()) {
+                    // Multi-line selection duplication
+                    LineData firstLine = null, lastLine = null;
+                    for (LineData line : container.lines) {
+                        if (line.end > selection.getStartSelection() && line.start < selection.getEndSelection()) {
+                            if (firstLine == null)
+                                firstLine = line;
+                            lastLine = line;
+                        }
+                    }
+                    if (firstLine != null && lastLine != null) {
+                        String selectedText = text.substring(firstLine.start, lastLine.end);
+                        int savedStart = selection.getStartSelection();
+                        int savedEnd = selection.getEndSelection();
+                        int insertAt = lastLine.end;
+                        setText(text.substring(0, insertAt) + selectedText + text.substring(insertAt));
+                        selection.setStartSelection(savedStart);
+                        selection.setEndSelection(savedEnd);
+                        selection.setCursorPositionDirect(savedEnd);
+                    }
+                } else {
+                    // Duplicate current line
+                    for (LineData line : container.lines) {
+                        if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
+                            String lineText = text.substring(line.start, line.end);
+                            String insertText = lineText.endsWith("\n") ? lineText : "\n" + lineText;
+                            int insertionPoint = line.end;
+                            setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
+                            int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
+                            selection.reset(Math.max(0, Math.min(newCursor, this.text.length())));
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+    }
+
     // ==================== KEYBOARD INPUT HANDLING ====================
 
     /**
@@ -429,20 +582,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        if (!active)
-            return false;
+        if (!active) return false;
 
         if (this.isKeyComboCtrlA(i)) {
             selection.selectAll(text.length());
             return true;
         }
 
-        if (!isEnabled())
-            return false;
+        if (!isEnabled()) return false;
 
         if (handleNavigationKeys(i)) return true;
+        if (handleInsertionKeys(i)) return true;
         if (handleDeletionKeys(i)) return true;
-        if (handleShortcutKeys(i)) return true;
         if (handleCharacterInput(c)) return true;
 
         return true;
@@ -508,6 +659,103 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         return false; // not a navigation key
+    }
+
+    /**
+     * Handles insertion-related keys such as Tab indentation and Enter behavior.
+     */
+    private boolean handleInsertionKeys(int i) {
+        // TAB: indent or unindent depending on Shift
+        if (i == Keyboard.KEY_TAB) {
+            boolean shift = isShiftKeyDown();
+            if (shift) {
+                handleShiftTab();
+            } else {
+                handleTab();
+            }
+            scrollToCursor();
+            return true;
+        }
+
+        // RETURN/ENTER: special handling when preceding char is an opening brace '{'
+        if (i == Keyboard.KEY_RETURN) {
+            int cursorPos = selection.getCursorPosition();
+            int prevNonWs = cursorPos - 1;
+            while (prevNonWs >= 0 && prevNonWs < (text != null ? text.length() : 0) && Character.isWhitespace(
+                    text.charAt(prevNonWs))) {
+                prevNonWs--;
+            }
+
+            if (prevNonWs >= 0 && cursorPos <= (text != null ? text.length() : 0) && text.charAt(prevNonWs) == '{') {
+                String indent = "";
+                for (LineData ld : this.container.lines) {
+                    if (prevNonWs >= ld.start && prevNonWs < ld.end) {
+                        indent = ld.text.substring(0, IndentHelper.getLineIndent(ld.text));
+                        break;
+                    }
+                }
+                if (indent == null)
+                    indent = "";
+                String childIndent = indent + "    ";
+                String before = getSelectionBeforeText();
+                String after = getSelectionAfterText();
+
+                int firstNewline = after.indexOf('\n');
+                String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
+                if (leadingSegment.trim().length() > 0) {
+                    addText("\n" + childIndent);
+                    scrollToCursor();
+                    return true;
+                }
+
+                boolean hasMatchingCloseSameIndent = false;
+                try {
+                    int openLineIdx = -1;
+                    int bracePos = prevNonWs;
+                    for (int li = 0; li < this.container.lines.size(); li++) {
+                        LineData ld = this.container.lines.get(li);
+                        if (bracePos >= ld.start && bracePos < ld.end) {
+                            openLineIdx = li;
+                            break;
+                        }
+                    }
+
+                    if (openLineIdx >= 0) {
+                        List<int[]> spans = BracketMatcher.computeBraceSpans(text, this.container.lines);
+                        for (int[] span : spans) {
+                            int spanOpen = span[1];
+                            int spanClose = span[2];
+                            if (spanOpen == openLineIdx) {
+                                int closeIndent = IndentHelper.getLineIndent(this.container.lines.get(spanClose).text);
+                                if (closeIndent == indent.length()) {
+                                    hasMatchingCloseSameIndent = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    hasMatchingCloseSameIndent = false;
+                }
+
+                if (hasMatchingCloseSameIndent) {
+                    addText("\n" + childIndent);
+                    scrollToCursor();
+                } else {
+                    String insert = "\n" + childIndent + "\n" + indent + "}";
+                    setText(before + insert + after);
+                    int newCursor = before.length() + 1 + childIndent.length();
+                    selection.reset(newCursor);
+                    scrollToCursor();
+                }
+            } else {
+                addText(Character.toString('\n') + getAutoIndentForEnter());
+                scrollToCursor();
+            }
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -770,109 +1018,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return true;
         }
 
-        // TAB: indent or unindent depending on Shift
-        if (i == Keyboard.KEY_TAB) {
-            boolean shift = isShiftKeyDown();
-            if (shift) {
-                handleShiftTab();
-            } else {
-                handleTab();
-            }
-            scrollToCursor();
-            return true;
-        }
-
         // CTRL+F: format the text according to IndentHelper rules
         if (i == Keyboard.KEY_F && isCtrlKeyDown()) {
             formatText();
-            return true;
-        }
-
-        // RETURN/ENTER: special handling when preceding char is an opening brace '{'
-        if (i == Keyboard.KEY_RETURN) {
-            // If there is an opening brace `{` before the caret (ignoring any
-            // intervening whitespace), treat Enter as creating an indented child
-            // block. This allows the user to type `{   <cursor>` and still
-            // receive the scaffold.
-            int cursorPos = selection.getCursorPosition();
-            int prevNonWs = cursorPos - 1;
-            while (prevNonWs >= 0 && prevNonWs < (text != null ? text.length() : 0) && Character.isWhitespace(text.charAt(prevNonWs))) {
-                prevNonWs--;
-            }
-
-            if (prevNonWs >= 0 && cursorPos <= (text != null ? text.length() : 0) && text.charAt(prevNonWs) == '{') {
-                // Compute indent using the line that contains the brace so trailing
-                // spaces after the brace do not affect the computed base indent.
-                String indent = "";
-                for (LineData ld : this.container.lines) {
-                    if (prevNonWs >= ld.start && prevNonWs < ld.end) {
-                        indent = ld.text.substring(0, IndentHelper.getLineIndent(ld.text));
-                        break;
-                    }
-                }
-                if (indent == null) indent = "";
-                String childIndent = indent + "    ";
-                String before = getSelectionBeforeText();
-                String after = getSelectionAfterText();
-
-                // If there's non-empty code after the brace on the same line,
-                // it should be moved into the newly created inner line.
-                int firstNewline = after.indexOf('\n');
-                String leadingSegment = firstNewline == -1 ? after : after.substring(0, firstNewline);
-                if (leadingSegment.trim().length() > 0) {
-                    addText("\n" + childIndent);
-                    scrollToCursor();
-                    return true;
-                }
-
-                // Determine whether this opening brace already has a matching closing
-                // brace at the same scope (and indent). Use the brace position found
-                // above (prevNonWs) when computing spans.
-                boolean hasMatchingCloseSameIndent = false;
-                try {
-                    int openLineIdx = -1;
-                    int bracePos = prevNonWs;
-                    for (int li = 0; li < this.container.lines.size(); li++) {
-                        LineData ld = this.container.lines.get(li);
-                        if (bracePos >= ld.start && bracePos < ld.end) {
-                            openLineIdx = li;
-                            break;
-                        }
-                    }
-
-                    if (openLineIdx >= 0) {
-                        List<int[]> spans = BracketMatcher.computeBraceSpans(text, this.container.lines);
-                        for (int[] span : spans) {
-                            int spanOpen = span[1];
-                            int spanClose = span[2];
-                            if (spanOpen == openLineIdx) {
-                                int closeIndent = IndentHelper.getLineIndent(this.container.lines.get(spanClose).text);
-                                if (closeIndent == indent.length()) {
-                                    hasMatchingCloseSameIndent = true;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                } catch (Exception ex) {
-                    hasMatchingCloseSameIndent = false;
-                }
-
-                if (hasMatchingCloseSameIndent) {
-                    addText("\n" + childIndent);
-                    scrollToCursor();
-                } else {
-                    String insert = "\n" + childIndent + "\n" + indent + "}";
-                    setText(before + insert + after);
-                    int newCursor = before.length() + 1 + childIndent.length();
-                    selection.reset(newCursor);
-                    scrollToCursor();
-                }
-            } else {
-                // Normal enter: insert newline + auto indent for caret position
-                addText(Character.toString('\n') + getAutoIndentForEnter());
-                scrollToCursor();
-            }
             return true;
         }
 
@@ -1261,7 +1409,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
     }
 
+    // Called from GuiScreen.updateScreen()
     public void updateCursorCounter() {
+        KEYS.tick();
         ++this.cursorCounter;
     }
     
