@@ -8,7 +8,7 @@ import org.lwjgl.input.Mouse;
 
 import java.util.function.Consumer;
 
-public class KeyPreset {
+public class KeyPreset implements Comparable<KeyPreset> {
     /**
      * @field SINGLE_PRESS => on releasing before 5 ticks press time
      * @field PRESS_RELEASE => on pressing and releasing
@@ -146,6 +146,26 @@ public class KeyPreset {
         }
 
         return false;
+    }
+
+    @Override
+    public int compareTo(KeyPreset o) {
+        int mySpecialCount = getSpecialKeyCount(this);
+        int otherSpecialCount = getSpecialKeyCount(o);
+
+        return otherSpecialCount - mySpecialCount;
+    }
+
+    private static int getSpecialKeyCount(KeyPreset preset) {
+        int res = 0;
+        if (preset.hasAlt())
+            res += 1;
+        if (preset.hasCtrl())
+            res += 1;
+        if (preset.hasShift())
+            res += 1;
+
+        return res;
     }
 
 

@@ -11,7 +11,10 @@ import java.util.List;
 
 public class KeyPresetManager {
     public List<KeyPreset> keys = new ArrayList<>();
+    public List<KeyPreset> keysSorted = new ArrayList<>();
     public String fileName;
+
+    private boolean wasSorted = false;
 
     public KeyPresetManager(String fileName) {
         this.fileName = fileName;
@@ -20,12 +23,22 @@ public class KeyPresetManager {
     public KeyPreset add(String name) {
         KeyPreset preset = new KeyPreset(name);
         keys.add(preset);
+        keysSorted.add(preset);
+        wasSorted = false;
         return preset;
     }
 
     public void tick() {
-        for (KeyPreset key : keys)
+        if (!wasSorted) {
+            keysSorted.sort(KeyPreset::compareTo);
+            wasSorted = true;
+        }
+
+        for (KeyPreset key : keysSorted) {
             key.tick();
+            if (key.isDown && key.shouldConflict)
+                return;
+        }
     }
 
 
