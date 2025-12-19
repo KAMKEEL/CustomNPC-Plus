@@ -194,16 +194,24 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
         }
-        // Expand render range by one line above/below so partially-visible lines are drawn
-        int renderStart = Math.max(0, scroll.getScrolledLine() - 1);
-        int renderEnd = Math.min(list.size() - 1, scroll.getScrolledLine() + container.visibleLines + 1);
 
         // Apply fractional GL translate for sub-pixel smooth scrolling
-        int stringYOffset = 2;
         double fracOffset = scroll.getFractionalOffset();
         float fracPixels = (float) (fracOffset * container.lineHeight);
         GL11.glPushMatrix();
         GL11.glTranslatef(0.0f, -fracPixels, 0.0f);
+        
+        
+        // Expand render range by one line above/below so partially-visible lines are drawn
+        int renderStart = Math.max(0, scroll.getScrolledLine() - 1);
+        // Compute the last line index to render, including the last partially-visible line if any.
+        // Adds the fractional scroll offset (fracOffset * lineHeight) to ensure the bottom line is drawn
+        // when only part of it is visible in the viewport.
+        int renderEnd = (int) Math.min(list.size() - 1,
+                scroll.getScrolledLine() + container.visibleLines + fracPixels + 1);
+
+        // Strings start drawing vertically this much into the line.
+        int stringYOffset = 2;
         
         // Render LINE GUTTER numbers
         for (int i = renderStart; i <= renderEnd; i++) {
