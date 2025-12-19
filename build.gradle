@@ -31,12 +31,14 @@ tasks.create('buildNoMixin', Exec) {
     commandLine gradleWrapper, 'build', '-Pnomixin'
 }
 
-sourceSets {
-    named("main").configure {
-        java {
-            srcDirs += ['src/api/java']
-        }
+sourceSets.main.java {
+    def apiDir = file('src/api/java')
+    
+    if (!apiDir.exists()) {
+        throw new GradleException("Missing API sources: Run './gradlew updateAPI' or enable checkout submodules in CI.")
     }
+
+    srcDirs += apiDir
 }
 
 // Modify the existing 'build' task to depend on 'updateAPI'
