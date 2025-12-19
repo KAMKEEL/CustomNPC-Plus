@@ -154,13 +154,18 @@ public class OverlayKeyPresetViewer {
             totalHeight = 0;
             for (PresetElement element : list)
                 totalHeight += element.getHeight();
+            // contentTotal includes top spacing before first element
+            float contentTotal = totalHeight + yStartSpacing;
 
-            totalHeight -= yStartSpacing;
-            scroll.maxScroll = Math.max(0, totalHeight - height);
+            // maxScroll is how much content exceeds the visible area
+            maxScroll = Math.max(0f, contentTotal - height);
 
-            heightFactor = height / totalHeight;
+            // compute scrollbar height proportional to visible area vs content
+            heightFactor = contentTotal > 0f ? (float) height / contentTotal : 1f;
             scrollbarHeight = Math.max((int) (height * heightFactor), 20);
-            scrollFactor = (height - yStartSpacing - scrollbarHeight) / maxScroll;
+
+            // scrollFactor maps scrollY -> pixel offset for scrollbar
+            scrollFactor = maxScroll > 0f ? (height - yStartSpacing - scrollbarHeight) / maxScroll : 0f;
         }
 
         public void update(int wheel) {
@@ -216,14 +221,17 @@ public class OverlayKeyPresetViewer {
         }
 
         public void drawDescription() {
+            boolean hasDescription = key.description != null;
             String name = String.format("> %s", key.name);
-            font.drawString(name, 0, 0, 0xffffff);
+            font.drawString(name, 0, hasDescription ? 0 : 10, 0xffffff);
 
             if (!key.shouldConflict)
                 font.drawString("(Conflict-free)", font.getStringWidth(name) + 5, 0, 0xface40);
 
-            String description = String.format("- %s", key.description);
-            font.drawSplitString(description, 9, font.FONT_HEIGHT+3, getMaxStringWidth() - 9, 0x888888);
+            if (hasDescription) {
+                String description = String.format("- %s", key.description);
+                font.drawSplitString(description, 9, font.FONT_HEIGHT + 3, getMaxStringWidth() - 9, 0x888888);
+            }
         }
 
         public void drawBox(int offsetY) {
@@ -235,7 +243,13 @@ public class OverlayKeyPresetViewer {
             GL11.glColor4f(1, 1, 1, 1);
             float boxScaleX = 1.75f;
             float boxWidth = 32 * boxScaleX;
-            boxScreenX = getMaxStringWidth() * scale + 8; //remove scaling from maxStringWidth
+            // compute desired box X based on description width
+            float desiredBoxX = getMaxStringWidth() * scale + 8; //remove scaling from maxStringWidth
+            // clamp so the box + reset button always fit inside the content area
+            float resetWidth = 10f;
+            float contentAvailable = (scroll.maxScroll > 0 ? width - scroll.barWidth : width) - 4f; // small padding
+            float maxBoxX = Math.max(0f, contentAvailable - boxWidth - resetWidth - 4f);
+            boxScreenX = Math.min(desiredBoxX, maxBoxX);
             GL11.glScalef(boxScaleX, 1, 0);
 
             if (isEditing)
@@ -249,7 +263,7 @@ public class OverlayKeyPresetViewer {
 
             //Reset box
             boolean isDefault = key.isDefault();
-            float resetWidth = 10;
+            resetWidth = 10;
             float resetScreenX = boxScreenX + boxWidth + 2;
 
             if (isMouseAboveReset(mouseX, mouseY) && !isDefault)
