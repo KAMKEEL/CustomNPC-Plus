@@ -1,6 +1,15 @@
 package noppes.npcs.util;
 
 public class ValueUtil {
+
+    public static float lerp(float start, float end, float delta) {
+        return start + delta * (end - start);
+    }
+
+    public static double lerp(double start, double end, double delta) {
+        return start + delta * (end - start);
+    }
+    
     public static float clamp(float given, float min, float max) {
         if (given < min)
             return min;
@@ -47,5 +56,17 @@ public class ValueUtil {
         if (given > max)
             return max;
         return given;
+    }
+
+    public static String format(double value) {
+        return (value % 1 == 0) ? String.format("%.0f", value) : String.format("%.2f", value);
+    }
+
+    public static String format(String precision, float value) {
+        return (value % 1 == 0) ? String.format("%.0f", value) : String.format(precision, value);
+    }
+
+    public static String format(String precision, double value) {
+        return (value % 1 == 0) ? String.format("%.0f", value) : String.format(precision, value);
     }
 }
