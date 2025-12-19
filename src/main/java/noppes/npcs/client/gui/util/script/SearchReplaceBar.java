@@ -5,7 +5,6 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.ResourceLocation;
-import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import org.lwjgl.input.Keyboard;
@@ -61,6 +60,9 @@ public class SearchReplaceBar {
     private int searchSelectionEnd = 0;
     private int replaceSelectionStart = 0;
     private int replaceSelectionEnd = 0;
+    // Text scroll offsets for when text exceeds field width
+    private int searchScrollOffset = 0;
+    private int replaceScrollOffset = 0;
     
     // ==================== MATCHES ====================
     private List<int[]> matches = new ArrayList<>();
@@ -79,6 +81,12 @@ public class SearchReplaceBar {
     
     // ==================== CURSOR BLINK ====================
     private int cursorCounter = 0;
+    private long lastInputTime = 0; // For cursor blink pause on activity
+    
+    // ==================== DOUBLE/TRIPLE CLICK ====================
+    private long lastClickTime = 0;
+    private int clickCount = 0;
+    private boolean lastClickWasSearch = true;
     
     // ==================== CALLBACK ====================
     private SearchCallback callback;
@@ -94,6 +102,9 @@ public class SearchReplaceBar {
         void scrollToPosition(int position);
         void setSelection(int start, int end);
         int getGutterWidth();
+        void unfocusMainEditor();
+        void focusMainEditor();
+        void onMatchesUpdated(); // Called when matches change (for undo/redo sync)
     }
     
     public SearchReplaceBar() {
@@ -104,12 +115,14 @@ public class SearchReplaceBar {
     }
     
     /**
-     * Initialize bar position based on text area bounds
+     * Initialize bar position based on text area bounds.
+     * Preserves existing state (search text, matches, etc.) across initGui calls.
      */
     public void initGui(int textAreaX, int textAreaY, int textAreaWidth) {
         this.x = textAreaX;
         this.y = textAreaY;
         this.width = textAreaWidth;
+        // State is preserved - don't reset searchText, matches, visible, etc.
     }
     
     /**
@@ -123,6 +136,8 @@ public class SearchReplaceBar {
         searchSelectionStart = 0;
         searchSelectionEnd = searchText.length();
         searchCursor = searchText.length();
+        markActivity();
+        if (callback != null) callback.unfocusMainEditor();
         updateMatches();
     }
     
@@ -137,14 +152,27 @@ public class SearchReplaceBar {
         searchSelectionStart = 0;
         searchSelectionEnd = searchText.length();
         searchCursor = searchText.length();
+        markActivity();
+        if (callback != null) callback.unfocusMainEditor();
         updateMatches();
     }
     
     /**
-     * Close the search bar
+     * Close the search bar and restore focus to main editor
      */
     public void close() {
         visible = false;
+        searchFieldFocused = false;
+        replaceFieldFocused = false;
+        if (callback != null) callback.focusMainEditor();
+    }
+    
+    /**
+     * Unfocus the search bar (when clicking main editor)
+     */
+    public void unfocus() {
+        searchFieldFocused = false;
+        replaceFieldFocused = false;
     }
     
     /**
@@ -221,6 +249,27 @@ public class SearchReplaceBar {
         cursorCounter++;
     }
     
+    /**
+     * Mark activity to pause cursor blinking
+     */
+    private void markActivity() {
+        lastInputTime = System.currentTimeMillis();
+    }
+    
+    /**
+     * Check if there was recent input (cursor stays visible during typing)
+     */
+    private boolean hadRecentInput() {
+        return System.currentTimeMillis() - lastInputTime < 500;
+    }
+    
+    /**
+     * Check if cursor should be visible (solid during typing, blinking otherwise)
+     */
+    private boolean shouldShowCursor() {
+        return hadRecentInput() || (cursorCounter / 10) % 2 == 0;
+    }
+    
     // ==================== DRAWING ====================
     
     /**
@@ -245,16 +294,17 @@ public class SearchReplaceBar {
     private void drawSearchRow(int mouseX, int mouseY) {
         int rowY = y + padding;
         int currentX = x + padding;
-        
+        textFieldWidth=100;
         drawTextField(currentX, rowY, textFieldWidth, textFieldHeight, 
                      searchText, searchCursor, searchSelectionStart, searchSelectionEnd,
-                     searchFieldFocused, "Search...");
+                     searchFieldFocused, "Search...", searchScrollOffset, true);
         currentX += textFieldWidth + buttonSpacing + 4;
         
-        String matchInfo = matches.isEmpty() ? "No matches" : 
+        // "0 results" in red, otherwise "X/Y" in normal color
+        String matchInfo = matches.isEmpty() ? "0 results" : 
                           (currentMatchIndex + 1) + "/" + matches.size();
         int matchInfoWidth = font.getStringWidth(matchInfo);
-        font.drawString(matchInfo, currentX, rowY + 4, matches.isEmpty() ? 0xFF888888 : 0xFFcccccc);
+        font.drawString(matchInfo, currentX, rowY + 4, matches.isEmpty() ? 0xFFff6666 : 0xFFcccccc);
         currentX += matchInfoWidth + 8;
         
         drawToggleButton(currentX, rowY, "Cc", matchCase, hoverMatchCase, "Match Case");
@@ -281,7 +331,7 @@ public class SearchReplaceBar {
         
         drawTextField(currentX, rowY, textFieldWidth, textFieldHeight,
                      replaceText, replaceCursor, replaceSelectionStart, replaceSelectionEnd,
-                     replaceFieldFocused, "Replace...");
+                     replaceFieldFocused, "Replace...", replaceScrollOffset, false);
         currentX += textFieldWidth + buttonSpacing + 4;
         
         drawActionButton(currentX, rowY, "Replace", hoverReplace, !matches.isEmpty());
@@ -295,24 +345,39 @@ public class SearchReplaceBar {
     
     private void drawTextField(int fieldX, int fieldY, int fieldWidth, int fieldHeight,
                                String text, int cursor, int selStart, int selEnd,
-                               boolean focused, String placeholder) {
+                               boolean focused, String placeholder, int scrollOffset, boolean isSearchField) {
         Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE);
         GL11.glPushMatrix();
         GL11.glColor4f(1, 1, 1, 1);
-        
-        float boxScaleX = fieldWidth / 32f;
-        GL11.glScalef(boxScaleX, 1, 1);
+
+        float boxScaleX = fieldWidth / 32f, boxScaleY = 1.5f;
+        GL11.glScalef(boxScaleX, boxScaleY, 1);
         
         if (focused) {
             GL11.glColor4f(0.28f, 0.45f, 0.7f, 1f);
         } else {
             GL11.glColor4f(0.33f, 0.33f, 0.33f, 1f);
         }
-        GuiUtil.drawTexturedModalRect(fieldX / boxScaleX, fieldY - 2, 32, 20, 0, 492);
+        GuiUtil.drawTexturedModalRect(fieldX / boxScaleX, (fieldY - 16) / boxScaleY, 32, 20, 0, 492);
         GL11.glPopMatrix();
         
         int textX = fieldX + 4;
         int textY = fieldY + (fieldHeight - font.FONT_HEIGHT) / 2;
+        int visibleWidth = fieldWidth - 8;
+        
+        // Calculate scroll offset to keep cursor visible
+        int cursorPosX = font.getStringWidth(text.substring(0, Math.min(cursor, text.length())));
+        if (cursorPosX - scrollOffset > visibleWidth - 2) {
+            scrollOffset = cursorPosX - visibleWidth + 2;
+        } else if (cursorPosX - scrollOffset < 0) {
+            scrollOffset = Math.max(0, cursorPosX);
+        }
+        // Update stored scroll offset
+        if (isSearchField) {
+            searchScrollOffset = scrollOffset;
+        } else {
+            replaceScrollOffset = scrollOffset;
+        }
         
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight);
@@ -320,17 +385,20 @@ public class SearchReplaceBar {
         if (text.isEmpty() && !focused) {
             font.drawString(placeholder, textX, textY, 0xFF808080);
         } else {
+            // Draw selection highlight
             if (selStart != selEnd && focused) {
-                int startX = textX + font.getStringWidth(text.substring(0, Math.min(selStart, text.length())));
-                int endX = textX + font.getStringWidth(text.substring(0, Math.min(selEnd, text.length())));
+                int startX = textX + font.getStringWidth(text.substring(0, Math.min(selStart, text.length()))) - scrollOffset;
+                int endX = textX + font.getStringWidth(text.substring(0, Math.min(selEnd, text.length()))) - scrollOffset;
                 Gui.drawRect(startX, textY - 1, endX, textY + font.FONT_HEIGHT, 0xFF2d5ca6);
             }
             
-            font.drawString(text, textX, textY, 0xFFe0e0e0);
+            // Draw text with scroll offset
+            font.drawString(text, textX - scrollOffset, textY, 0xFFe0e0e0);
             
-            if (focused && (cursorCounter / 10) % 2 == 0) {
-                int cursorX = textX + font.getStringWidth(text.substring(0, Math.min(cursor, text.length())));
-                Gui.drawRect(cursorX, textY - 1, cursorX + 1, textY + font.FONT_HEIGHT, 0xFFffffff);
+            // Draw cursor (stays visible during typing)
+            if (focused && shouldShowCursor()) {
+                int cursorDrawX = textX + cursorPosX - scrollOffset;
+                Gui.drawRect(cursorDrawX, textY - 1, cursorDrawX + 1, textY + font.FONT_HEIGHT, 0xFFffffff);
             }
         }
         
@@ -389,7 +457,7 @@ public class SearchReplaceBar {
         int searchFieldEndX = currentX + textFieldWidth;
         currentX = searchFieldEndX + buttonSpacing + 4;
         
-        String matchInfo = matches.isEmpty() ? "No matches" : (currentMatchIndex + 1) + "/" + matches.size();
+        String matchInfo = matches.isEmpty() ? "0 results" : (currentMatchIndex + 1) + "/" + matches.size();
         currentX += font.getStringWidth(matchInfo) + 8;
         
         int matchCaseX = currentX;
@@ -436,28 +504,61 @@ public class SearchReplaceBar {
     // ==================== MOUSE INPUT ====================
     
     /**
-     * Handle mouse click
+     * Handle mouse click - supports double-click for word selection, triple-click for all
      * @return true if click was consumed
      */
     public boolean mouseClicked(int mouseX, int mouseY, int button) {
         if (!visible) return false;
+        if (button != 0) return false; // Only handle left clicks
         
         int totalHeight = getTotalHeight();
-        if (mouseY < y || mouseY > y + totalHeight) return false;
+        // If click is outside the bar, don't consume it (let main editor handle)
+        if (mouseX < x || mouseX > x + width || mouseY < y || mouseY > y + totalHeight) {
+            return false;
+        }
         
         int rowY = y + padding;
         int currentX = x + padding;
         
-        if (isMouseOver(mouseX, mouseY, currentX, rowY - 2, textFieldWidth, textFieldHeight + 4)) {
+        // Handle click timing for double/triple click
+        long now = System.currentTimeMillis();
+        boolean isSearchFieldClick = isMouseOver(mouseX, mouseY, currentX, rowY - 2, textFieldWidth, textFieldHeight + 4);
+        boolean isReplaceFieldClick = showReplace && isMouseOver(mouseX, mouseY, x + padding, y + barHeight, textFieldWidth, textFieldHeight + 4);
+        
+        if (isSearchFieldClick) {
+            boolean sameField = lastClickWasSearch;
+            if (sameField && now - lastClickTime < 300) {
+                clickCount++;
+            } else {
+                clickCount = 1;
+            }
+            lastClickTime = now;
+            lastClickWasSearch = true;
+            
             searchFieldFocused = true;
             replaceFieldFocused = false;
-            searchCursor = getTextCursorPosition(searchText, mouseX - currentX - 4);
-            searchSelectionStart = searchSelectionEnd = searchCursor;
+            markActivity();
+            
+            if (clickCount == 1) {
+                // Single click - position cursor
+                int clickX = mouseX - currentX - 4 + searchScrollOffset;
+                searchCursor = getTextCursorPosition(searchText, clickX);
+                searchSelectionStart = searchSelectionEnd = searchCursor;
+            } else if (clickCount == 2) {
+                // Double click - select word
+                selectWordAt(searchText, getTextCursorPosition(searchText, mouseX - currentX - 4 + searchScrollOffset), true);
+            } else if (clickCount >= 3) {
+                // Triple click - select all
+                searchSelectionStart = 0;
+                searchSelectionEnd = searchText.length();
+                searchCursor = searchText.length();
+                clickCount = 0;
+            }
             return true;
         }
         currentX += textFieldWidth + buttonSpacing + 4;
         
-        String matchInfo = matches.isEmpty() ? "No matches" : (currentMatchIndex + 1) + "/" + matches.size();
+        String matchInfo = matches.isEmpty() ? "0 results" : (currentMatchIndex + 1) + "/" + matches.size();
         currentX += font.getStringWidth(matchInfo) + 8;
         
         if (hoverMatchCase) {
@@ -493,11 +594,33 @@ public class SearchReplaceBar {
         if (showReplace) {
             int replaceRowY = y + barHeight + 2;
             
-            if (isMouseOver(mouseX, mouseY, x + padding, replaceRowY - 2, textFieldWidth, textFieldHeight + 4)) {
+            if (isReplaceFieldClick || isMouseOver(mouseX, mouseY, x + padding, replaceRowY - 2, textFieldWidth, textFieldHeight + 4)) {
+                // Handle click timing for replace field
+                boolean sameField = !lastClickWasSearch;
+                if (sameField && now - lastClickTime < 300) {
+                    clickCount++;
+                } else {
+                    clickCount = 1;
+                }
+                lastClickTime = now;
+                lastClickWasSearch = false;
+                
                 searchFieldFocused = false;
                 replaceFieldFocused = true;
-                replaceCursor = getTextCursorPosition(replaceText, mouseX - x - padding - 4);
-                replaceSelectionStart = replaceSelectionEnd = replaceCursor;
+                markActivity();
+                
+                if (clickCount == 1) {
+                    int clickX = mouseX - x - padding - 4 + replaceScrollOffset;
+                    replaceCursor = getTextCursorPosition(replaceText, clickX);
+                    replaceSelectionStart = replaceSelectionEnd = replaceCursor;
+                } else if (clickCount == 2) {
+                    selectWordAt(replaceText, getTextCursorPosition(replaceText, mouseX - x - padding - 4 + replaceScrollOffset), false);
+                } else if (clickCount >= 3) {
+                    replaceSelectionStart = 0;
+                    replaceSelectionEnd = replaceText.length();
+                    replaceCursor = replaceText.length();
+                    clickCount = 0;
+                }
                 return true;
             }
             
@@ -517,7 +640,8 @@ public class SearchReplaceBar {
             }
         }
         
-        return mouseY < y + totalHeight;
+        // Click was within bar bounds but not on any control - consume it to prevent MTA from getting focus
+        return true;
     }
     
     private int getTextCursorPosition(String text, int clickX) {
@@ -533,6 +657,40 @@ public class SearchReplaceBar {
         return text.length();
     }
     
+    /**
+     * Select word at cursor position (for double-click)
+     */
+    private void selectWordAt(String text, int pos, boolean isSearchField) {
+        if (text.isEmpty()) return;
+        
+        // Find word boundaries
+        int start = pos;
+        int end = pos;
+        
+        // Expand left
+        while (start > 0 && isWordChar(text.charAt(start - 1))) {
+            start--;
+        }
+        // Expand right
+        while (end < text.length() && isWordChar(text.charAt(end))) {
+            end++;
+        }
+        
+        if (isSearchField) {
+            searchSelectionStart = start;
+            searchSelectionEnd = end;
+            searchCursor = end;
+        } else {
+            replaceSelectionStart = start;
+            replaceSelectionEnd = end;
+            replaceCursor = end;
+        }
+    }
+    
+    private boolean isWordChar(char c) {
+        return Character.isLetterOrDigit(c) || c == '_';
+    }
+    
     // ==================== KEYBOARD INPUT ====================
     
     /**
@@ -542,6 +700,18 @@ public class SearchReplaceBar {
     public boolean keyTyped(char c, int keyCode) {
         if (!visible || (!searchFieldFocused && !replaceFieldFocused)) return false;
         
+        // Check modifier keys - don't let them trigger first-match issue
+        boolean ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
+        boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+        boolean alt = Keyboard.isKeyDown(Keyboard.KEY_LMENU) || Keyboard.isKeyDown(Keyboard.KEY_RMENU);
+        
+        // Ignore lone modifier key presses
+        if (keyCode == Keyboard.KEY_LCONTROL || keyCode == Keyboard.KEY_RCONTROL ||
+            keyCode == Keyboard.KEY_LSHIFT || keyCode == Keyboard.KEY_RSHIFT ||
+            keyCode == Keyboard.KEY_LMENU || keyCode == Keyboard.KEY_RMENU) {
+            return true; // Consume but don't process
+        }
+        
         if (keyCode == Keyboard.KEY_ESCAPE) {
             close();
             return true;
@@ -550,15 +720,32 @@ public class SearchReplaceBar {
         if (keyCode == Keyboard.KEY_TAB && showReplace) {
             searchFieldFocused = !searchFieldFocused;
             replaceFieldFocused = !replaceFieldFocused;
+            markActivity();
             return true;
         }
         
+        // Enter/Shift+Enter for next/previous match
         if (keyCode == Keyboard.KEY_RETURN) {
-            if (replaceFieldFocused && !matches.isEmpty()) {
+            if (shift) {
+                // Shift+Enter = previous match
+                if (!matches.isEmpty()) {
+                    goToPreviousMatch();
+                }
+            } else if (replaceFieldFocused && !matches.isEmpty()) {
                 replaceCurrent();
             } else if (!matches.isEmpty()) {
                 goToNextMatch();
             }
+            return true;
+        }
+        
+        // Up/Down arrows cycle through matches when SRB is focused
+        if (keyCode == Keyboard.KEY_UP && !matches.isEmpty()) {
+            goToPreviousMatch();
+            return true;
+        }
+        if (keyCode == Keyboard.KEY_DOWN && !matches.isEmpty()) {
+            goToNextMatch();
             return true;
         }
         
@@ -713,6 +900,9 @@ public class SearchReplaceBar {
             selEnd = temp;
         }
         
+        // Mark activity on any input to keep cursor visible
+        markActivity();
+        
         if (isSearchField) {
             searchText = text;
             searchCursor = cursor;
@@ -752,10 +942,16 @@ public class SearchReplaceBar {
         excludedMatches.clear();
         currentMatchIndex = -1;
         
-        if (callback == null || searchText.isEmpty()) return;
+        if (callback == null || searchText.isEmpty()) {
+            if (callback != null) callback.onMatchesUpdated();
+            return;
+        }
         
         String sourceText = callback.getText();
-        if (sourceText == null || sourceText.isEmpty()) return;
+        if (sourceText == null || sourceText.isEmpty()) {
+            callback.onMatchesUpdated();
+            return;
+        }
         
         String searchPattern = searchText;
         
@@ -781,6 +977,8 @@ public class SearchReplaceBar {
             currentMatchIndex = 0;
             navigateToCurrentMatch();
         }
+        
+        callback.onMatchesUpdated();
     }
     
     /**
