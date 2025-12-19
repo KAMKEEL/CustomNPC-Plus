@@ -23,7 +23,7 @@ public class KeyPreset {
     public boolean shouldConflict = true;
     public Consumer<KeyEvent> task;
 
-    public int pressTime;
+    private long pressStartMs = 0;
     public boolean isDown;
 
 
@@ -63,28 +63,29 @@ public class KeyPreset {
         setDown(isDown);
     }
 
-    private static final int SHORT_PRESS_TICKS = 5;
+    private static final long SHORT_PRESS_MS = 250L;
 
     public void setDown(boolean down) {
-        if (down && !isDown) {          // just pressed
-            pressTime = 0;
+        if (down && !isDown) { // just pressed
+            pressStartMs = System.currentTimeMillis();
             onAction(PressType.PRESS, PressType.PRESS_RELEASE);
         }
-        
-        if (!down && isDown) {          // just released
-            if (pressTime <= SHORT_PRESS_TICKS) {
+
+        if (!down && isDown) { // just released
+            if (getPressTime() <= SHORT_PRESS_MS) 
                 onAction(PressType.SINGLE_PRESS);
-            }
-            onAction(PressType.RELEASE);
-            pressTime = 0;
+            onAction(PressType.RELEASE, PressType.PRESS_RELEASE);
+            pressStartMs = 0;
         }
 
-        if (down) {   // while held
-            pressTime++;
+        if (down) // while held
             onAction(PressType.HOLD);
-        }
         
         this.isDown = down;
+    }
+    
+    public long getPressTime() {
+        return pressStartMs > 0 ? (System.currentTimeMillis() - pressStartMs) : 0L;
     }
 
     public KeyPreset onAction(PressType... pressTypes) {
