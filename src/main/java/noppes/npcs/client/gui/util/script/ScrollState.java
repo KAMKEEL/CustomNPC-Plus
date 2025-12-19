@@ -15,7 +15,7 @@ public class ScrollState {
     private double scrollVelocity = 0.0;
     // Last timestamp for delta time calculation
     private long lastScrollTime = 0L;
-    // Integer line index for compatibility with rendering
+    // First visible line
     private int scrolledLine = 0;
     // Scrollbar drag offset when dragging thumb
     private int scrollbarDragOffset = 0;
@@ -136,7 +136,11 @@ public class ScrollState {
     // Getters
     public double getScrollPos() { return scrollPos; }
     public double getTargetScroll() { return targetScroll; }
-    public int getScrolledLine() { return scrolledLine; }
+
+    /**  @return First visible line **/
+    public int getScrolledLine() {
+        return scrolledLine;
+    }
     public double getScrollVelocity() { return scrollVelocity; }
     public boolean isClickScrolling() { return clickScrolling; }
     public int getScrollbarDragOffset() { return scrollbarDragOffset; }

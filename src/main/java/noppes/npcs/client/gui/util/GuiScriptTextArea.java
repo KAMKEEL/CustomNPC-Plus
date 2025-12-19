@@ -355,17 +355,20 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private int getSelectionPos(int xMouse, int yMouse) {
         xMouse -= (this.x + LINE_NUMBER_GUTTER_WIDTH + 1);
         yMouse -= this.y + 1;
-        // Adjust yMouse to account for fractional GL translation (negative offset applied in rendering)
+        // Adjust yMouse to account for fractional GL translation (negative offset applied in rendering).
+        // Use a double here (no integer rounding) so clicks that land on partially
+        // visible lines (fractional positions) correctly hit that line.
         double fracPixels = scroll.getFractionalOffset() * container.lineHeight;
-        yMouse = (int) Math.round(yMouse + fracPixels);
+        double yMouseD = yMouse + fracPixels;
         
         ArrayList list = new ArrayList(this.container.lines);
 
         for (int i = 0; i < list.size(); ++i) {
             LineData data = (LineData) list.get(i);
-            if (i >= scroll.getScrolledLine() && i <= scroll.getScrolledLine() + this.container.visibleLines) {
-                int yPos = (i - scroll.getScrolledLine()) * this.container.lineHeight;
-                if (yMouse >= yPos && yMouse < yPos + this.container.lineHeight) {
+            //+1 to account for the fractional line
+            if (i >= scroll.getScrolledLine() && i <= scroll.getScrolledLine() + this.container.visibleLines +1) {
+                double yPos = (i - scroll.getScrolledLine()) * this.container.lineHeight;
+                if (yMouseD >= yPos && yMouseD < yPos + this.container.lineHeight) {
                     int lineWidth = 0;
                     char[] chars = data.text.toCharArray();
 
