@@ -20,4 +20,5 @@ public class KeyEvent {
     public boolean isHold() { return is(KeyPreset.PressType.HOLD); }
     public boolean isRelease() { return is(KeyPreset.PressType.RELEASE); }
     public boolean isSinglePress() { return is(KeyPreset.PressType.SINGLE_PRESS); }
+    public boolean isPressRelease() { return is(KeyPreset.PressType.PRESS_RELEASE); }
 }

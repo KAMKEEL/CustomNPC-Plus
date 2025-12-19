@@ -63,24 +63,27 @@ public class KeyPreset {
         setDown(isDown);
     }
 
+    private static final int SHORT_PRESS_TICKS = 5;
+
     public void setDown(boolean down) {
-        if (down && !isDown)
+        if (down && !isDown) {          // just pressed
+            pressTime = 0;
             onAction(PressType.PRESS, PressType.PRESS_RELEASE);
-
-        if (!down && isDown) {
-            if (pressTime <= 5)
+        }
+        
+        if (!down && isDown) {          // just released
+            if (pressTime <= SHORT_PRESS_TICKS) {
                 onAction(PressType.SINGLE_PRESS);
-
-            onAction(PressType.RELEASE, PressType.PRESS_RELEASE);
+            }
+            onAction(PressType.RELEASE);
             pressTime = 0;
         }
 
-        if (isDown || down) //to fire in both press & release
-            onAction(PressType.HOLD);
-
-        if (isDown)
+        if (down) {   // while held
             pressTime++;
-
+            onAction(PressType.HOLD);
+        }
+        
         this.isDown = down;
     }
 
