@@ -21,7 +21,7 @@ public class KeyPreset {
 
     public String name, description;
     public boolean shouldConflict = true;
-    public Consumer<PressType> task;
+    public Consumer<KeyEvent> task;
 
     public int pressTime;
     public boolean isDown;
@@ -42,7 +42,7 @@ public class KeyPreset {
         return this;
     }
 
-    public KeyPreset setTask(Consumer<PressType> task) {
+    public KeyPreset setTask(Consumer<KeyEvent> task) {
         this.task = task;
         return this;
     }
@@ -87,7 +87,7 @@ public class KeyPreset {
     public KeyPreset onAction(PressType... pressTypes) {
         if (task != null) {
             for (PressType pressType : pressTypes)
-                this.task.accept(pressType);
+                this.task.accept(new KeyEvent(pressType, this));
         }
         return this;
     }
@@ -122,12 +122,6 @@ public class KeyPreset {
 
     public void clear() {
         currentState.clear();
-    }
-
-    //call on the last key added, to load saved presets
-    public KeyPreset markDone(KeyPresetManager manager) {
-        manager.load();
-        return this;
     }
 
     public void writeToNbt(NBTTagCompound c) {
