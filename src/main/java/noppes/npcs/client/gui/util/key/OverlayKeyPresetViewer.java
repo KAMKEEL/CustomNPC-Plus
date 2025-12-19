@@ -432,7 +432,8 @@ public class OverlayKeyPresetViewer {
             double screenX = startX / scale, screenY = startY / scale;
             int oldMinFilter = GL11.glGetTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
-
+            GL11.glDisable(GL11.GL_BLEND);
+            
             GL11.glPushMatrix();
             float color = 0.75f;
             GL11.glColor4f(color, color, color, 1);
@@ -440,6 +441,7 @@ public class OverlayKeyPresetViewer {
             GuiUtil.drawTexturedModalRect(screenX, screenY, textureWidth, textureHeight, 0, 0);
             GL11.glPopMatrix();
 
+            GL11.glEnable(GL11.GL_BLEND);
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, oldMinFilter);
         }
 
