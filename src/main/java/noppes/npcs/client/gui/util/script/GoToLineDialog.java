@@ -66,6 +66,10 @@ public class GoToLineDialog {
 
         /** Called when dialog closes - should restore focus to editor */
         void onDialogClose();
+
+        void unfocusMainEditor();
+        
+        void focusMainEditor();
     }
 
     /**
@@ -101,6 +105,7 @@ public class GoToLineDialog {
         selectionEnd = 0;
         scrollOffset = 0;
         markActivity();
+        if (callback != null) callback.unfocusMainEditor();
     }
 
     public void close() {
@@ -108,6 +113,7 @@ public class GoToLineDialog {
         focused = false;
         if (callback != null) {
             callback.onDialogClose();
+            callback.focusMainEditor();
         }
     }
 
@@ -255,6 +261,7 @@ public class GoToLineDialog {
             if (mouseX >= fieldX && mouseX < fieldX + textFieldWidth &&
                     mouseY >= fieldY && mouseY < fieldY + textFieldHeight) {
                 focused = true;
+                if (callback != null) callback.unfocusMainEditor();
                 // Position cursor based on click
                 int clickX = mouseX - fieldX - 4;
                 String visibleText = scrollOffset > 0 && scrollOffset < inputText.length()

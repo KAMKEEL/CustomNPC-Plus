@@ -133,6 +133,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 int maxScroll = Math.max(0, container.linesCount - visible);
                 scroll.scrollToLine(lineIdx, visible, maxScroll);
             }
+
+            @Override
+            public void unfocusMainEditor() {
+                // Save position but unfocus
+                active = false;
+            }
+
+            @Override
+            public void focusMainEditor() {
+                active = true;
+                selection.markActivity();
+            }
             
             @Override
             public void onDialogClose() {

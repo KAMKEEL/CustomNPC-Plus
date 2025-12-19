@@ -524,7 +524,9 @@ public class SearchReplaceBar {
         long now = System.currentTimeMillis();
         boolean isSearchFieldClick = isMouseOver(mouseX, mouseY, currentX, rowY - 2, textFieldWidth, textFieldHeight + 4);
         boolean isReplaceFieldClick = showReplace && isMouseOver(mouseX, mouseY, x + padding, y + barHeight, textFieldWidth, textFieldHeight + 4);
-        
+
+        if ((isSearchFieldClick || isReplaceFieldClick) && callback != null) callback.unfocusMainEditor();
+
         if (isSearchFieldClick) {
             boolean sameField = lastClickWasSearch;
             if (sameField && now - lastClickTime < 300) {
