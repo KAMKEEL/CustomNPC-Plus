@@ -16,7 +16,7 @@ import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 
 import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
@@ -452,141 +452,129 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     private void initializeKeyBindings() {
         // Helper: execute action only if text area is active and enabled
-        Consumer<Runnable> executeIfActive = (action) -> {
-            if (active && isEnabled() && !KEYS_OVERLAY.showOverlay) 
-                action.run();
-        };
+        Supplier<Boolean> isActive = () -> active && isEnabled() && !KEYS_OVERLAY.showOverlay;
 
         // CUT: Copy selection to clipboard and delete it
         KEYS.CUT.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                if (selection.hasSelection()) {
-                    NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
-                    String s = getSelectionBeforeText();
-                    setText(s + getSelectionAfterText());
-                    selection.reset(s.length());
-                    scrollToCursor();
-                }
-            });
+
+            if (selection.hasSelection()) {
+                NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
+                String s = getSelectionBeforeText();
+                setText(s + getSelectionAfterText());
+                selection.reset(s.length());
+                scrollToCursor();
+            }
         });
 
         // COPY: Copy selection to clipboard
         KEYS.COPY.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                if (selection.hasSelection()) {
-                    NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
-                }
-            });
+
+            if (selection.hasSelection())
+                NoppesStringUtils.setClipboardContents(selection.getSelectedText(text));
         });
 
         // PASTE: Insert clipboard contents at caret
         KEYS.PASTE.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                addText(NoppesStringUtils.getClipboardContents());
-                scrollToCursor();
-            });
+
+            addText(NoppesStringUtils.getClipboardContents());
+            scrollToCursor();
         });
 
         // UNDO: Restore last edit from undo list
         KEYS.UNDO.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                if (undoList.isEmpty())
-                    return;
-                undoing = true;
-                redoList.add(new UndoData(this.text, selection.getCursorPosition()));
-                UndoData data = undoList.remove(undoList.size() - 1);
-                setText(data.text);
-                selection.reset(data.cursorPosition);
-                undoing = false;
-                scrollToCursor();
-            });
+
+            if (undoList.isEmpty())
+                return;
+            undoing = true;
+            redoList.add(new UndoData(this.text, selection.getCursorPosition()));
+            UndoData data = undoList.remove(undoList.size() - 1);
+            setText(data.text);
+            selection.reset(data.cursorPosition);
+            undoing = false;
+            scrollToCursor();
         });
 
         // REDO: Restore last undone edit from redo list
         KEYS.REDO.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                if (redoList.isEmpty())
-                    return;
-                undoing = true;
-                undoList.add(new UndoData(this.text, selection.getCursorPosition()));
-                UndoData data = redoList.remove(redoList.size() - 1);
-                setText(data.text);
-                selection.reset(data.cursorPosition);
-                undoing = false;
-                scrollToCursor();
-            });
+
+            if (redoList.isEmpty())
+                return;
+            undoing = true;
+            undoList.add(new UndoData(this.text, selection.getCursorPosition()));
+            UndoData data = redoList.remove(redoList.size() - 1);
+            setText(data.text);
+            selection.reset(data.cursorPosition);
+            undoing = false;
+            scrollToCursor();
         });
 
         // FORMAT: Format/indent code
         KEYS.FORMAT.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(this::formatText);
+            formatText();
         });
 
         // TOGGLE_COMMENT: Toggle comment for selection or current line
         KEYS.TOGGLE_COMMENT.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                if (selection.hasSelection()) {
-                    toggleCommentSelection();
-                } else {
-                    toggleCommentLineAtCursor();
-                }
-            });
+
+            if (selection.hasSelection())
+                toggleCommentSelection();
+            else
+                toggleCommentLineAtCursor();
         });
 
         // DUPLICATE: Duplicate selection or current line
         KEYS.DUPLICATE.setTask(e -> {
-            if (!e.isPress())
+            if (!e.isPress() || !isActive.get())
                 return;
-            executeIfActive.accept(() -> {
-                if (selection.hasSelection()) {
-                    // Multi-line selection duplication
-                    LineData firstLine = null, lastLine = null;
-                    for (LineData line : container.lines) {
-                        if (line.end > selection.getStartSelection() && line.start < selection.getEndSelection()) {
-                            if (firstLine == null)
-                                firstLine = line;
-                            lastLine = line;
-                        }
-                    }
-                    if (firstLine != null && lastLine != null) {
-                        String selectedText = text.substring(firstLine.start, lastLine.end);
-                        int savedStart = selection.getStartSelection();
-                        int savedEnd = selection.getEndSelection();
-                        int insertAt = lastLine.end;
-                        setText(text.substring(0, insertAt) + selectedText + text.substring(insertAt));
-                        selection.setStartSelection(savedStart);
-                        selection.setEndSelection(savedEnd);
-                        selection.setCursorPositionDirect(savedEnd);
-                    }
-                } else {
-                    // Duplicate current line
-                    for (LineData line : container.lines) {
-                        if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
-                            String lineText = text.substring(line.start, line.end);
-                            String insertText = lineText.endsWith("\n") ? lineText : "\n" + lineText;
-                            int insertionPoint = line.end;
-                            setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
-                            int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
-                            selection.reset(Math.max(0, Math.min(newCursor, this.text.length())));
-                            break;
-                        }
+
+            if (selection.hasSelection()) {
+                // Multi-line selection duplication
+                LineData firstLine = null, lastLine = null;
+                for (LineData line : container.lines) {
+                    if (line.end > selection.getStartSelection() && line.start < selection.getEndSelection()) {
+                        if (firstLine == null)
+                            firstLine = line;
+                        lastLine = line;
                     }
                 }
-            });
+                if (firstLine != null && lastLine != null) {
+                    String selectedText = text.substring(firstLine.start, lastLine.end);
+                    int savedStart = selection.getStartSelection();
+                    int savedEnd = selection.getEndSelection();
+                    int insertAt = lastLine.end;
+                    setText(text.substring(0, insertAt) + selectedText + text.substring(insertAt));
+                    selection.setStartSelection(savedStart);
+                    selection.setEndSelection(savedEnd);
+                    selection.setCursorPositionDirect(savedEnd);
+                }
+            } else {
+                // Duplicate current line
+                for (LineData line : container.lines) {
+                    if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
+                        String lineText = text.substring(line.start, line.end);
+                        String insertText = lineText.endsWith("\n") ? lineText : "\n" + lineText;
+                        int insertionPoint = line.end;
+                        setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
+                        int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
+                        selection.reset(Math.max(0, Math.min(newCursor, this.text.length())));
+                        break;
+                    }
+                }
+            }
         });
     }
 
