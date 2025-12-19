@@ -8,7 +8,7 @@ import org.lwjgl.input.Mouse;
 
 import java.util.function.Consumer;
 
-public class KeyPreset implements Comparable<KeyPreset> {
+public class KeyPreset {
     /**
      * @field SINGLE_PRESS => on releasing before 5 ticks press time
      * @field PRESS_RELEASE => on pressing and releasing
@@ -58,8 +58,7 @@ public class KeyPreset implements Comparable<KeyPreset> {
             return;
 
         boolean isDown = isMouseKey() ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode);
-        isDown = isDown && (hasCtrl() ? isCtrlKeyDown() : true) && (hasAlt() ? isAltKeyDown() : true) && (hasShift() ? isShiftKeyDown() : true);
-
+        isDown = isDown && (isCtrlKeyDown() == hasCtrl()) && (isAltKeyDown() == hasAlt()) && (isShiftKeyDown() == hasShift());
         setDown(isDown);
     }
 
@@ -147,27 +146,6 @@ public class KeyPreset implements Comparable<KeyPreset> {
 
         return false;
     }
-
-    @Override
-    public int compareTo(KeyPreset o) {
-        int mySpecialCount = getSpecialKeyCount(this);
-        int otherSpecialCount = getSpecialKeyCount(o);
-
-        return otherSpecialCount - mySpecialCount;
-    }
-
-    private static int getSpecialKeyCount(KeyPreset preset) {
-        int res = 0;
-        if (preset.hasAlt())
-            res += 1;
-        if (preset.hasCtrl())
-            res += 1;
-        if (preset.hasShift())
-            res += 1;
-
-        return res;
-    }
-
 
     public static class KeyState {
         public int keyCode = -1;
