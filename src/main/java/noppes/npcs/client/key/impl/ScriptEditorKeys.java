@@ -21,6 +21,9 @@ public class ScriptEditorKeys extends KeyPresetManager {
     // Search/Replace
     public final KeyPreset SEARCH = add("Search").setDefaultState(Keyboard.KEY_R, true, false, false);
     public final KeyPreset SEARCH_REPLACE = add("Search & Replace").setDefaultState(Keyboard.KEY_R, true, false, true);
+    
+    // Navigation
+    public final KeyPreset GO_TO_LINE = add("Go to Line").setDefaultState(Keyboard.KEY_G, true, false, false);
 
     public ScriptEditorKeys() {
         super("script_editor");

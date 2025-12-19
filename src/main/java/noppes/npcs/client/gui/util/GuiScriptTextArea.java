@@ -77,6 +77,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     // ==================== SEARCH/REPLACE ====================
     private final SearchReplaceBar searchBar = new SearchReplaceBar();
+    
+    // ==================== GO TO LINE ====================
+    private final GoToLineDialog goToLineDialog;
 
     // ==================== CONSTRUCTOR ====================
 
@@ -90,6 +93,54 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.undoing = true;
         this.setText(text);
         this.undoing = false;
+        
+        // Initialize Go To Line dialog with callback
+        this.goToLineDialog = new GoToLineDialog(new GoToLineDialog.GoToLineCallback() {
+            @Override
+            public int getLineCount() {
+                return container != null ? container.linesCount : 0;
+            }
+            
+            @Override
+            public int getColumnCount(int lineIndex) {
+                if (container == null || container.lines == null || lineIndex < 0 || lineIndex >= container.lines.size()) {
+                    return 0;
+                }
+                LineData ld = container.lines.get(lineIndex);
+                return ld.end - ld.start;
+            }
+            
+            @Override
+            public void goToLineColumn(int line, int column) {
+                if (container == null || container.lines == null) return;
+                
+                // Convert 1-indexed line to 0-indexed
+                int lineIdx = line - 1;
+                if (lineIdx < 0 || lineIdx >= container.lines.size()) return;
+                
+                LineData ld = container.lines.get(lineIdx);
+                int lineLength = ld.end - ld.start;
+                
+                // Convert 1-indexed column to 0-indexed, clamp to line length
+                int col = Math.max(0, Math.min(column - 1, lineLength));
+                int position = ld.start + col;
+                
+                // Set cursor position
+                selection.reset(position);
+                
+                // Scroll to make the line visible
+                int visible = height / (container != null ? container.lineHeight : 12);
+                int maxScroll = Math.max(0, container.linesCount - visible);
+                scroll.scrollToLine(lineIdx, visible, maxScroll);
+            }
+            
+            @Override
+            public void onDialogClose() {
+                active = true;
+                selection.markActivity();
+            }
+        });
+        
         initializeKeyBindings();
         initGui();
     }
@@ -179,6 +230,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Called when matches change - could be used for UI updates
             }
         });
+        
+        // Initialize Go To Line dialog
+        goToLineDialog.initGui(x, y, width);
     }
     
     // ==================== RENDERING ====================
@@ -481,6 +535,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw search/replace bar (overlays viewport)
         searchBar.draw(xMouse, yMouse);
         
+        // Draw go to line dialog (overlays everything)
+        goToLineDialog.draw(xMouse, yMouse);
+        
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
     }
 
@@ -752,6 +809,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return;
             searchBar.toggleReplace();
         });
+        
+        // GO_TO_LINE: Open go to line dialog (Ctrl+G)
+        KEYS.GO_TO_LINE.setTask(e -> {
+            if (!e.isPress() || !active || !isEnabled())
+                return;
+            // Close search bar if open
+            if (searchBar.isVisible()) {
+                searchBar.close();
+            }
+            goToLineDialog.toggle();
+        });
     }
 
     // ==================== KEYBOARD INPUT HANDLING ====================
@@ -763,6 +831,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     @Override
     public boolean textboxKeyTyped(char c, int i) {
         KEYS_OVERLAY.keyTyped(c, i);
+        
+        // Handle Go To Line dialog input first if it has focus
+        if (goToLineDialog.hasFocus()) {
+            if (goToLineDialog.keyTyped(c, i)) {
+                return true;
+            }
+        }
         
         // Handle search bar input first if it has focus
         if (searchBar.hasFocus()) {
@@ -1552,6 +1627,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
+        // Check go to line dialog clicks first
+        if (goToLineDialog.isVisible() && goToLineDialog.mouseClicked(xMouse, yMouse, mouseButton)) {
+            return;
+        }
+        
         // Check search bar clicks first
         if (searchBar.isVisible() && searchBar.mouseClicked(xMouse, yMouse, mouseButton)) {
             return;
@@ -1622,7 +1702,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     // Called from GuiScreen.updateScreen()
     public void updateCursorCounter() {
-        KEYS.tick();
+        // Only process KeyPresets if search bar and go-to-line dialog don't have focus
+        // This prevents COPY, PASTE, UNDO, etc. from firing when typing in dialogs
+        if (!searchBar.hasFocus() && !goToLineDialog.hasFocus()) {
+            KEYS.tick();
+        }
         searchBar.updateCursor();
         goToLineDialog.updateCursor();
         ++this.cursorCounter;
