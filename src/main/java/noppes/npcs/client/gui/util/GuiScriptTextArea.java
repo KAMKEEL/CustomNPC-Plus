@@ -459,7 +459,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // CUT: Copy selection to clipboard and delete it
         KEYS.CUT.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 if (selection.hasSelection()) {
@@ -474,7 +474,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // COPY: Copy selection to clipboard
         KEYS.COPY.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 if (selection.hasSelection()) {
@@ -485,7 +485,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // PASTE: Insert clipboard contents at caret
         KEYS.PASTE.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 addText(NoppesStringUtils.getClipboardContents());
@@ -495,7 +495,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // UNDO: Restore last edit from undo list
         KEYS.UNDO.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 if (undoList.isEmpty())
@@ -512,7 +512,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // REDO: Restore last undone edit from redo list
         KEYS.REDO.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 if (redoList.isEmpty())
@@ -529,14 +529,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // FORMAT: Format/indent code
         KEYS.FORMAT.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(this::formatText);
         });
 
         // TOGGLE_COMMENT: Toggle comment for selection or current line
         KEYS.TOGGLE_COMMENT.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 if (selection.hasSelection()) {
@@ -549,7 +549,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // DUPLICATE: Duplicate selection or current line
         KEYS.DUPLICATE.setTask(e -> {
-            if (!e.isSinglePress())
+            if (!e.isPress())
                 return;
             executeIfActive.accept(() -> {
                 if (selection.hasSelection()) {
