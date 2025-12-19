@@ -6,6 +6,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
@@ -72,6 +73,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     // ==================== KEYS ====================
     public static final ScriptEditorKeys KEYS = new ScriptEditorKeys();
+    public OverlayKeyPresetViewer KEYS_OVERLAY = new OverlayKeyPresetViewer(KEYS);
+
 
     // ==================== CONSTRUCTOR ====================
 
@@ -86,6 +89,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.setText(text);
         this.undoing = false;
         initializeKeyBindings();
+        initGui();
+    }
+
+    public void initGui() {
+        int endX = x + width, endY = y + height;
+        KEYS_OVERLAY.initGui(endX - (width / 2) - 23, y + (height / 4), endX - 9, endY - 26);
+
+        KEYS_OVERLAY.viewButton.scale = 0.4f;
+        KEYS_OVERLAY.viewButton.initGui(endX - 8, endY - 25);
     }
     
     // ==================== RENDERING ====================
@@ -119,9 +131,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int maxScroll = Math.max(0, this.container.linesCount - container.visibleLines);
 
         // Handle mouse wheel scroll
+        int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
         if (listener instanceof GuiNPCInterface) {
-            int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
-            if (wheelDelta != 0) 
+            ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
+            if (wheelDelta != 0 && !KEYS_OVERLAY.showOverlay) 
                 scroll.applyWheelScroll(wheelDelta, maxScroll);
         }
 
@@ -351,6 +364,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
         }
+
+        KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
     }
 
     private void scissorViewport() {
@@ -436,9 +451,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void initializeKeyBindings() {
         // Helper: execute action only if text area is active and enabled
         Consumer<Runnable> executeIfActive = (action) -> {
-            if (active && isEnabled()) {
+            if (active && isEnabled() && !KEYS_OVERLAY.showOverlay) 
                 action.run();
-            }
         };
 
         // CUT: Copy selection to clipboard and delete it
@@ -582,7 +596,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        if (!active) return false;
+        KEYS_OVERLAY.keyTyped(c, i);
+        
+        if (!active || KEYS_OVERLAY.showOverlay) return false;
 
         if (this.isKeyComboCtrlA(i)) {
             selection.selectAll(text.length());
@@ -1358,7 +1374,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
-        if (this.active) {
+        if (this.active && !KEYS_OVERLAY.showOverlay) {
             // Compute logical click position in text and reset selection/caret
             int clickPos = this.getSelectionPos(xMouse, yMouse);
             selection.reset(clickPos);
@@ -1407,6 +1423,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             this.lastClicked = time;
             activeTextfield = this;
         }
+
+        KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton);
     }
 
     // Called from GuiScreen.updateScreen()

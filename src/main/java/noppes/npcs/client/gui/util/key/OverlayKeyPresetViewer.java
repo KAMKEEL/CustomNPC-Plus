@@ -29,6 +29,8 @@ public class OverlayKeyPresetViewer {
     public OverlayButton viewButton = new OverlayButton();
     public LinkedList<PresetElement> list = new LinkedList<>();
 
+    // from 0-1, where 0.5 is half overlay width;
+    public float RELATIVE_MAX_DESC_WIDTH = 0.5f;
     private final FontRenderer font = Minecraft.getMinecraft().fontRenderer;
 
     public OverlayKeyPresetViewer(KeyPresetManager manager) {
@@ -65,7 +67,6 @@ public class OverlayKeyPresetViewer {
             if (!aboveOverlay && !aboveButton)
                 showOverlay = false;
         }
-
         viewButton.drawButton();
     }
 
@@ -74,8 +75,6 @@ public class OverlayKeyPresetViewer {
 
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.drawGradientRect(startX, startY, endX, endY, 0x88000000, 0x88303030);
-        if (scroll.maxScroll > 0)
-            scroll.drawBar();
 
         GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - scroll.barWidth : width, height);
         GL11.glPushMatrix();
@@ -95,6 +94,9 @@ public class OverlayKeyPresetViewer {
 
         GL11.glPopMatrix();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
+
+        if (scroll.maxScroll > 0)
+            scroll.drawBar();
     }
 
     public void keyTyped(char c, int i) {
@@ -189,7 +191,7 @@ public class OverlayKeyPresetViewer {
 
         public void drawBar() {
             GL11.glPushMatrix();
-            GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY * scrollFactor, 0);
+            GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY * scrollFactor, 1);
             GuiUtil.drawRectD(0, 0, barWidth, scrollbarHeight, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
             GL11.glPopMatrix();
         }
@@ -221,7 +223,7 @@ public class OverlayKeyPresetViewer {
                 font.drawString("(Conflict-free)", font.getStringWidth(name) + 5, 0, 0xface40);
 
             String description = String.format("- %s", key.description);
-            font.drawSplitString(description, 9, font.FONT_HEIGHT, getMaxStringWidth() - 9, 0x888888);
+            font.drawSplitString(description, 9, font.FONT_HEIGHT+3, getMaxStringWidth() - 9, 0x888888);
         }
 
         public void drawBox(int offsetY) {
@@ -376,7 +378,7 @@ public class OverlayKeyPresetViewer {
         }
 
         public int getMaxStringWidth() {
-            return (int) (getWidth() * 2.5f / 4);
+            return (int) (getWidth() * RELATIVE_MAX_DESC_WIDTH);
         }
     }
 
