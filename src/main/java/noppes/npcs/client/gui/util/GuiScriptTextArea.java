@@ -454,7 +454,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Helper: execute action only if text area is active and enabled
         Supplier<Boolean> isActive = () -> active && isEnabled() && !KEYS_OVERLAY.showOverlay;
 
-        // CUT: Copy selection to clipboard and delete it
+        // CUT: Copy selection to clipboard and delete it. If no selection, cut the current sentence.
         KEYS.CUT.setTask(e -> {
             if (!e.isPress() || !isActive.get())
                 return;
@@ -464,6 +464,52 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 String s = getSelectionBeforeText();
                 setText(s + getSelectionAfterText());
                 selection.reset(s.length());
+                scrollToCursor();
+                return;
+            }
+
+            // No selection: cut the current sentence (heuristic based on .!? or newline)
+            if (text == null || text.isEmpty())
+                return;
+            int cursor = selection.getCursorPosition();
+            int start = cursor;
+            int pos = cursor - 1;
+            while (pos >= 0) {
+                char ch = text.charAt(pos);
+                if (ch == '.' || ch == '!' || ch == '?' || ch == '\n') {
+                    start = pos + 1;
+                    break;
+                }
+                pos--;
+            }
+            while (start < cursor && Character.isWhitespace(text.charAt(start))) start++;
+
+            int end = cursor;
+            pos = cursor;
+            while (pos < text.length()) {
+                char ch = text.charAt(pos);
+                if (ch == '.' || ch == '!' || ch == '?' || ch == '\n') {
+                    end = pos + 1;
+                    break;
+                }
+                pos++;
+            }
+            if (end == cursor) end = text.length();
+            while (end > start && Character.isWhitespace(text.charAt(end - 1))) end--;
+
+            if (start >= end) {
+                // fallback: cut whole current line
+                int ls = text.lastIndexOf('\n', Math.max(0, cursor - 1));
+                start = ls == -1 ? 0 : ls + 1;
+                int le = text.indexOf('\n', cursor);
+                end = le == -1 ? text.length() : le;
+            }
+
+            if (start < end) {
+                String cut = text.substring(start, end);
+                NoppesStringUtils.setClipboardContents(cut);
+                setText(text.substring(0, start) + text.substring(end));
+                selection.reset(start);
                 scrollToCursor();
             }
         });
@@ -635,14 +681,22 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (i == Keyboard.KEY_RIGHT) {
             int j = 1; // default: move one character
             if (isCtrlKeyDown()) {
-                // With Ctrl, search for the next word boundary starting at the cursor.
-                // We look at the substring after the cursor and use the matcher to find
-                // the first match; its start offset indicates how many chars to skip.
-                Matcher m = container.regexWord.matcher(text.substring(selection.getCursorPosition()));
-                // m.find() called once is sufficient; the previous code attempted
-                // a redundant second find in some cases. Keep first positive find.
+                String after = text.substring(selection.getCursorPosition());
+                Matcher m = container.regexWord.matcher(after);
                 if (m.find()) {
-                    j = m.start();
+                    if (m.start() == 0) {
+                        // If the first match starts at 0 (cursor at word start),
+                        // try to find the next match so we advance past the current word.
+                        if (m.find())
+                            j = m.start();
+                        else
+                            j = Math.max(1, after.length());
+                    } else {
+                        j = m.start();
+                    }
+                } else {
+                    // No word match found after cursor -> jump to end
+                    j = Math.max(1, after.length());
                 }
             }
             int newPos = Math.min(selection.getCursorPosition() + j, text.length());
