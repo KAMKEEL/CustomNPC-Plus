@@ -1374,9 +1374,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
+        if (KEYS_OVERLAY.showOverlay) {
+            KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton);
+            return;
+        }
+            
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
-        if (this.active && !KEYS_OVERLAY.showOverlay) {
+        if (this.active) {
             // Compute logical click position in text and reset selection/caret
             int clickPos = this.getSelectionPos(xMouse, yMouse);
             selection.reset(clickPos);
@@ -1425,8 +1430,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             this.lastClicked = time;
             activeTextfield = this;
         }
-
-        KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton);
     }
 
     // Called from GuiScreen.updateScreen()
