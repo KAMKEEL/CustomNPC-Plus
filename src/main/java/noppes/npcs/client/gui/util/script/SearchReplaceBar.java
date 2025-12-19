@@ -304,9 +304,9 @@ public class SearchReplaceBar {
         String matchInfo = matches.isEmpty() ? "0 results" : 
                           (currentMatchIndex + 1) + "/" + matches.size();
         int matchInfoWidth = font.getStringWidth(matchInfo);
-        font.drawString(matchInfo, currentX, rowY + 4, matches.isEmpty() ? 0xFFff6666 : 0xFFcccccc);
+        font.drawString(matchInfo, currentX, rowY + 4,
+                matches.isEmpty() && !searchText.isEmpty() ? 0xFFff6666 : 0xFFcccccc);
         currentX += matchInfoWidth + 8;
-        
         drawToggleButton(currentX, rowY, "Cc", matchCase, hoverMatchCase, "Match Case");
         currentX += buttonSize + buttonSpacing;
         
@@ -381,10 +381,8 @@ public class SearchReplaceBar {
         
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight);
-        
-        if (text.isEmpty() && !focused) {
-            font.drawString(placeholder, textX, textY, 0xFF808080);
-        } else {
+
+        {
             // Draw selection highlight
             if (selStart != selEnd && focused) {
                 int startX = textX + font.getStringWidth(text.substring(0, Math.min(selStart, text.length()))) - scrollOffset;
@@ -393,7 +391,12 @@ public class SearchReplaceBar {
             }
             
             // Draw text with scroll offset
-            font.drawString(text, textX - scrollOffset, textY, 0xFFe0e0e0);
+            boolean noMatches = !text.isEmpty() && matches.isEmpty();
+            int col = text.isEmpty() ? 0xFFa0a0a0 : 0xFFe0e0e0;
+            if (isSearchField && noMatches)
+                col = 0xFFff6666; // Red
+
+            font.drawString(text.isEmpty() ? placeholder : text, textX - scrollOffset, textY, col);
             
             // Draw cursor (stays visible during typing)
             if (focused && shouldShowCursor()) {
