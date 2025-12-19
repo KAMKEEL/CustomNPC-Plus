@@ -262,6 +262,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
         // Draw outer border around entire area
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
+
+        int searchHeight = searchBar.getTotalHeight();
+        y += searchHeight;
+        height -= searchHeight;
+
         // Draw line number gutter background
         drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
         // Draw text viewport background (starts after gutter)
@@ -551,6 +556,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         goToLineDialog.draw(xMouse, yMouse);
         
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
+        y -= searchHeight;
+        height += searchHeight;
     }
 
     private void scissorViewport() {
