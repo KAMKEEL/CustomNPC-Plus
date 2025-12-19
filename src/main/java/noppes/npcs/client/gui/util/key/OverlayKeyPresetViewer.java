@@ -212,7 +212,7 @@ public class OverlayKeyPresetViewer {
         public void drawBar() {
             GL11.glPushMatrix();
             GL11.glTranslatef(endX - barWidth - 2, startY + yStartSpacing + scrollY * scrollFactor, 1);
-            GuiUtil.drawRectD(0, 0, barWidth, scrollbarHeight, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
+            GuiUtil.drawRectD(0, 1, barWidth, scrollbarHeight-1, (isMouseAboveBar(mouseX, mouseY) || isMouseDragging) ? 0xffbababa : 0xff767676);
             GL11.glPopMatrix();
         }
 
