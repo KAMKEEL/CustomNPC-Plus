@@ -38,7 +38,10 @@ public class GuiNpcTextField extends GuiTextField {
     public GuiNpcTextField(int id, GuiScreen parent, int i, int j, int k, int l, String s) {
         this(id, parent, Minecraft.getMinecraft().fontRenderer, i, j, k, l, s);
     }
-
+    
+    public void initGui() {
+    }
+    
     protected boolean charAllowed(char c, int i) {
         if (!integersOnly || Character.isDigit(c))
             return true;

@@ -104,6 +104,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<");
             rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">");
         }
+
+        //Important for GuiScriptTextArea
+        for (GuiNpcTextField tf : textfields.values()) 
+                tf.initGui();
     }
 
     @Override
