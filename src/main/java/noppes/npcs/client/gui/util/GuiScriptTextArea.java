@@ -440,31 +440,33 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
                 
                 // Highlight search matches
-                List<int[]> searchMatches = searchBar.getMatches();
-                int currentMatchIdx = searchBar.getCurrentMatchIndex();
-                for (int mi = 0; mi < searchMatches.size(); mi++) {
-                    int[] match = searchMatches.get(mi);
-                    // Check if match overlaps with this line
-                    if (match[1] > data.start && match[0] < data.end) {
-                        int matchStart = Math.max(match[0] - data.start, 0);
-                        int matchEnd = Math.min(match[1] - data.start, line.length());
-                        if (matchStart < matchEnd) {
-                            int s = ClientProxy.Font.width(line.substring(0, matchStart));
-                            int e = ClientProxy.Font.width(line.substring(0, matchEnd)) + 1;
-                            boolean isExcluded = searchBar.isMatchExcluded(mi);
-                            // Current match gets brighter highlight, others get dimmer
-                            int highlightColor = (mi == currentMatchIdx) ? 0xBB4488ff : 0x662266aa;
-                            if (isExcluded) {
-                                highlightColor = 0x33666666; // Dimmer for excluded matches
-                            }
-                            int highlightX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
-                            int highlightEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
-                            drawRect(highlightX, posY, highlightEndX, posY + container.lineHeight, highlightColor);
-                            
-                            // Draw strikethrough line for excluded matches
-                            if (isExcluded) {
-                                int strikeY = posY + container.lineHeight / 2;
-                                drawRect(highlightX, strikeY, highlightEndX, strikeY + 1, 0xFFaa4444);
+                if (searchBar.isVisible()) {
+                    List<int[]> searchMatches = searchBar.getMatches();
+                    int currentMatchIdx = searchBar.getCurrentMatchIndex();
+                    for (int mi = 0; mi < searchMatches.size(); mi++) {
+                        int[] match = searchMatches.get(mi);
+                        // Check if match overlaps with this line
+                        if (match[1] > data.start && match[0] < data.end) {
+                            int matchStart = Math.max(match[0] - data.start, 0);
+                            int matchEnd = Math.min(match[1] - data.start, line.length());
+                            if (matchStart < matchEnd) {
+                                int s = ClientProxy.Font.width(line.substring(0, matchStart));
+                                int e = ClientProxy.Font.width(line.substring(0, matchEnd)) + 1;
+                                boolean isExcluded = searchBar.isMatchExcluded(mi);
+                                // Current match gets brighter highlight, others get dimmer
+                                int highlightColor = (mi == currentMatchIdx) ? 0xBB4488ff : 0x662266aa;
+                                if (isExcluded) {
+                                    highlightColor = 0x33666666; // Dimmer for excluded matches
+                                }
+                                int highlightX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
+                                int highlightEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
+                                drawRect(highlightX, posY, highlightEndX, posY + container.lineHeight, highlightColor);
+
+                                // Draw strikethrough line for excluded matches
+                                if (isExcluded) {
+                                    int strikeY = posY + container.lineHeight / 2;
+                                    drawRect(highlightX, strikeY, highlightEndX, strikeY + 1, 0xFFaa4444);
+                                }
                             }
                         }
                     }
