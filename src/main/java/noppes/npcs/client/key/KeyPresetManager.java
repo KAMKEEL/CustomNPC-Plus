@@ -34,7 +34,7 @@ public class KeyPresetManager {
 
         for (KeyPreset key : keys) {
             key.tick();
-            if (key.isDown)
+            if (key.isDown && key.shouldConflict)
                 return;
         }
     }

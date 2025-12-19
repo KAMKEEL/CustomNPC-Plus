@@ -153,7 +153,7 @@ public class KeyPreset implements Comparable<KeyPreset> {
         int mySpecialCount = getSpecialKeyCount(this);
         int otherSpecialCount = getSpecialKeyCount(o);
 
-        return mySpecialCount - otherSpecialCount;
+        return otherSpecialCount - mySpecialCount;
     }
 
     private static int getSpecialKeyCount(KeyPreset preset) {
