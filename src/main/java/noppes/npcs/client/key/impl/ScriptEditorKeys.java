@@ -17,9 +17,14 @@ public class ScriptEditorKeys extends KeyPresetManager {
     
     public final KeyPreset FORMAT = add("Format Code").setDefaultState(Keyboard.KEY_F, true, false, false);
     public final KeyPreset TOGGLE_COMMENT = add("Toggle Comment").setDefaultState(Keyboard.KEY_SLASH, true, false, false);
+    
+    // Search/Replace
+    public final KeyPreset SEARCH = add("Search").setDefaultState(Keyboard.KEY_R, true, false, false);
+    public final KeyPreset SEARCH_REPLACE = add("Search & Replace").setDefaultState(Keyboard.KEY_R, true, false, true);
 
     public ScriptEditorKeys() {
         super("script_editor");
         load();
     }
 }
+

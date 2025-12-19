@@ -75,6 +75,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public static final ScriptEditorKeys KEYS = new ScriptEditorKeys();
     public OverlayKeyPresetViewer KEYS_OVERLAY = new OverlayKeyPresetViewer(KEYS);
 
+    // ==================== SEARCH/REPLACE ====================
+    private final SearchReplaceBar searchBar = new SearchReplaceBar();
 
     // ==================== CONSTRUCTOR ====================
 
@@ -100,6 +102,46 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         KEYS_OVERLAY.viewButton.scale = 0.45f;
         KEYS_OVERLAY.viewButton.initGui(endX + xOffset, endY - 26);
+        
+        // Initialize search bar
+        searchBar.initGui(x, y, width);
+        searchBar.setCallback(new SearchReplaceBar.SearchCallback() {
+            @Override
+            public String getText() {
+                return text;
+            }
+            
+            @Override
+            public void setText(String newText) {
+                GuiScriptTextArea.this.setText(newText);
+            }
+            
+            @Override
+            public void scrollToPosition(int position) {
+                // Find line containing position and scroll to it
+                if (container == null || container.lines == null) return;
+                for (int i = 0; i < container.lines.size(); i++) {
+                    LineData ld = container.lines.get(i);
+                    if (position >= ld.start && position < ld.end) {
+                        int visible = Math.max(1, container.visibleLines);
+                        int maxScroll = Math.max(0, container.linesCount - visible);
+                        scroll.scrollToLine(i, visible, maxScroll);
+                        break;
+                    }
+                }
+            }
+            
+            @Override
+            public void setSelection(int start, int end) {
+                selection.setSelection(start, end);
+                selection.setCursorPositionDirect(end);
+            }
+            
+            @Override
+            public int getGutterWidth() {
+                return LINE_NUMBER_GUTTER_WIDTH;
+            }
+        });
     }
     
     // ==================== RENDERING ====================
@@ -289,6 +331,29 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                     }
                 }
+                
+                // Highlight search matches
+                List<int[]> searchMatches = searchBar.getMatches();
+                int currentMatchIdx = searchBar.getCurrentMatchIndex();
+                for (int mi = 0; mi < searchMatches.size(); mi++) {
+                    int[] match = searchMatches.get(mi);
+                    // Check if match overlaps with this line
+                    if (match[1] > data.start && match[0] < data.end) {
+                        int matchStart = Math.max(match[0] - data.start, 0);
+                        int matchEnd = Math.min(match[1] - data.start, line.length());
+                        if (matchStart < matchEnd) {
+                            int s = ClientProxy.Font.width(line.substring(0, matchStart));
+                            int e = ClientProxy.Font.width(line.substring(0, matchEnd)) + 1;
+                            // Current match gets brighter highlight, others get dimmer
+                            int highlightColor = (mi == currentMatchIdx) ? 0xBB4488ff : 0x662266aa;
+                            if (searchBar.isMatchExcluded(mi)) {
+                                highlightColor = 0x33666666; // Dimmer for excluded matches
+                            }
+                            drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, highlightColor);
+                        }
+                    }
+                }
+                
                 // Highlight the current line (light gray) under any selection
                 if (active && isEnabled() && (selection.getCursorPosition() >= data.start && selection.getCursorPosition() < data.end || (i == list.size() - 1 && selection.getCursorPosition() == text.length()))) {
                     drawRect(x , posY, x + width - 1, posY + container.lineHeight, 0x22e0e0e0);
@@ -367,6 +432,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
         }
 
+        // Draw search/replace bar (overlays viewport)
+        searchBar.draw(xMouse, yMouse);
+        
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
     }
 
@@ -622,6 +690,20 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
         });
+        
+        // SEARCH: Open search bar (Ctrl+R)
+        KEYS.SEARCH.setTask(e -> {
+            if (!e.isPress() || !active || !isEnabled())
+                return;
+            searchBar.toggle();
+        });
+        
+        // SEARCH_REPLACE: Open search+replace bar (Ctrl+Shift+R)
+        KEYS.SEARCH_REPLACE.setTask(e -> {
+            if (!e.isPress() || !active || !isEnabled())
+                return;
+            searchBar.toggleReplace();
+        });
     }
 
     // ==================== KEYBOARD INPUT HANDLING ====================
@@ -633,6 +715,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     @Override
     public boolean textboxKeyTyped(char c, int i) {
         KEYS_OVERLAY.keyTyped(c, i);
+        
+        // Handle search bar input first if it has focus
+        if (searchBar.hasFocus()) {
+            if (searchBar.keyTyped(c, i)) {
+                return true;
+            }
+        }
         
         if (!active || KEYS_OVERLAY.showOverlay) return false;
 
@@ -1415,6 +1504,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
+        // Check search bar clicks first
+        if (searchBar.isVisible() && searchBar.mouseClicked(xMouse, yMouse, mouseButton)) {
+            return;
+        }
+        
         if (KEYS_OVERLAY.showOverlay) {
             KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton);
             return;
@@ -1476,6 +1570,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // Called from GuiScreen.updateScreen()
     public void updateCursorCounter() {
         KEYS.tick();
+        searchBar.updateCursor();
         ++this.cursorCounter;
     }
     
