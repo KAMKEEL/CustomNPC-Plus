@@ -816,26 +816,23 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // SEARCH: Open search bar (Ctrl+R)
         KEYS.SEARCH.setTask(e -> {
-            if (!e.isPress() || !active || !isEnabled())
+            if (!e.isPress() || !isActive.get())
                 return;
             searchBar.toggle();
         });
         
         // SEARCH_REPLACE: Open search+replace bar (Ctrl+Shift+R)
         KEYS.SEARCH_REPLACE.setTask(e -> {
-            if (!e.isPress() || !active || !isEnabled())
+            if (!e.isPress() || !isActive.get())
                 return;
             searchBar.toggleReplace();
         });
         
         // GO_TO_LINE: Open go to line dialog (Ctrl+G)
         KEYS.GO_TO_LINE.setTask(e -> {
-            if (!e.isPress() || !active || !isEnabled())
+            if (!e.isPress() || !isActive.get())
                 return;
-            // Close search bar if open
-            if (searchBar.isVisible()) {
-                searchBar.close();
-            }
+
             goToLineDialog.toggle();
         });
     }
