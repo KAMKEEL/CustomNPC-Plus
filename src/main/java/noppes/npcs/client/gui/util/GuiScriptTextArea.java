@@ -277,8 +277,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Enable scissor test to clip drawing to the TEXT viewport rectangle (excludes gutter)
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         scissorViewport();
-        
-        container.visibleLines = height / container.lineHeight-1;
+
+        container.visibleLines = (height / container.lineHeight);
 
         int maxScroll = Math.max(0, this.container.linesCount - container.visibleLines);
 
