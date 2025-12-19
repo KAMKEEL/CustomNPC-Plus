@@ -71,6 +71,7 @@ public class SearchReplaceBar {
     
     // ==================== HOVER STATE ====================
     private boolean hoverClose = false;
+    private boolean hoverSearchUnwind = false;
     private boolean hoverMatchCase = false;
     private boolean hoverWholeWord = false;
     private boolean hoverPrev = false;
@@ -323,6 +324,9 @@ public class SearchReplaceBar {
         
         int closeX = x + width - buttonSize - padding;
         drawCloseButton(closeX, rowY, hoverClose);
+
+        int replaceUnwindButton = closeX - buttonSize - buttonSpacing;
+        drawActionButton(replaceUnwindButton, rowY, showReplace ? "▼" : "◀", hoverSearchUnwind, true);
     }
     
     private void drawReplaceRow(int mouseX, int mouseY) {
@@ -477,7 +481,10 @@ public class SearchReplaceBar {
         
         int closeX = x + width - buttonSize - padding;
         hoverClose = isMouseOver(mouseX, mouseY, closeX, rowY, buttonSize, buttonSize);
-        
+
+        int replaceUnwindButton = closeX - buttonSize - buttonSpacing;
+        hoverSearchUnwind = isMouseOver(mouseX, mouseY, replaceUnwindButton, rowY, buttonSize, buttonSize);
+
         if (showReplace) {
             int replaceRowY = y + barHeight + 2;
             currentX = x + padding + textFieldWidth + buttonSpacing + 4;
@@ -592,7 +599,12 @@ public class SearchReplaceBar {
             close();
             return true;
         }
-        
+
+        if (hoverSearchUnwind) {
+            showReplace = !showReplace;
+            return true;
+        }
+
         if (showReplace) {
             int replaceRowY = y + barHeight + 2;
             
