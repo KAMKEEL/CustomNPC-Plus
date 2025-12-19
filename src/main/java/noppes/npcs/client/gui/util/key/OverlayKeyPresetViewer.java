@@ -33,6 +33,8 @@ public class OverlayKeyPresetViewer {
     public float RELATIVE_MAX_DESC_WIDTH = 0.5f;
     private final FontRenderer font = Minecraft.getMinecraft().fontRenderer;
 
+    public boolean hasBorder = true;
+
     public OverlayKeyPresetViewer(KeyPresetManager manager) {
         this.manager = manager;
 
@@ -72,10 +74,23 @@ public class OverlayKeyPresetViewer {
 
     public void drawOverlay(int wheel) {
         scroll.update(wheel);
+        
+        if (hasBorder) {
+            int fromCol = 0x22ffffff, toCol = 0xffffffff; //BORDER GRADIENT 
+            // int fromCol = 0xffff00ff,toCol = 0xff00ffff; NEON
 
+            // Top
+            GuiUtil.drawGradientRectHorizontal(startX - 1, startY - 1, endX + 1, startY, toCol, fromCol);
+            // Bottom
+            GuiUtil.drawGradientRectHorizontal(startX - 1, endY, endX + 1, endY + 1, fromCol, toCol);
+            // Left
+            GuiUtil.drawGradientRect(startX - 1, startY - 1, startX, endY, toCol, fromCol);
+            //Right
+            GuiUtil.drawGradientRect(endX, startY, endX + 1, endY, fromCol, toCol);
+        }
+
+        GuiUtil.drawGradientRect(startX + 1, startY + 1, endX - 1, endY - 1, 0x88000000, 0xcc303030);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
-        GuiUtil.drawGradientRect(startX, startY, endX, endY, 0x88000000, 0x88303030);
-
         GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - scroll.barWidth : width, height);
         GL11.glPushMatrix();
         GL11.glTranslatef((startX + 2), startY + yStartSpacing - scroll.scrollY, 0);
@@ -419,7 +434,7 @@ public class OverlayKeyPresetViewer {
             GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
 
             GL11.glPushMatrix();
-            float color = 0.55f;
+            float color = 0.75f;
             GL11.glColor4f(color, color, color, 1);
             GL11.glScalef(scale, scale, 1);
             GuiUtil.drawTexturedModalRect(screenX, screenY, textureWidth, textureHeight, 0, 0);

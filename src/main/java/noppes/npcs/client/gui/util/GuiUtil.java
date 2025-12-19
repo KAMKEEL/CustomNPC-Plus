@@ -112,6 +112,39 @@ public class GuiUtil {
         GL11.glEnable(GL11.GL_ALPHA_TEST);
         GL11.glEnable(GL11.GL_TEXTURE_2D);
     }
+    
+    public static void drawGradientRectHorizontal(int left, int top, int right, int bottom, int startColor, int endColor) {
+        double zLevel = 0;
+
+        float sA = (float) (startColor >> 24 & 255) / 255.0F;
+        float sR = (float) (startColor >> 16 & 255) / 255.0F;
+        float sG = (float) (startColor >> 8 & 255) / 255.0F;
+        float sB = (float) (startColor & 255) / 255.0F;
+
+        float eA = (float) (endColor >> 24 & 255) / 255.0F;
+        float eR = (float) (endColor >> 16 & 255) / 255.0F;
+        float eG = (float) (endColor >> 8 & 255) / 255.0F;
+        float eB = (float) (endColor & 255) / 255.0F;
+
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_ALPHA_TEST);
+        OpenGlHelper.glBlendFunc(770, 771, 1, 0);
+        GL11.glShadeModel(GL11.GL_SMOOTH);
+        Tessellator tessellator = Tessellator.instance;
+        tessellator.startDrawingQuads();
+        tessellator.setColorRGBA_F(sR, sG, sB, sA);
+        tessellator.addVertex(left, top, zLevel);
+        tessellator.addVertex(left, bottom, zLevel);
+        tessellator.setColorRGBA_F(eR, eG, eB, eA);
+        tessellator.addVertex(right, bottom, zLevel);
+        tessellator.addVertex(right, top, zLevel);
+        tessellator.draw();
+        GL11.glShadeModel(GL11.GL_FLAT);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glEnable(GL11.GL_ALPHA_TEST);
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+    }
 
     public static void drawTexturedModalRect(double x, double y, double width, double height, int textureX, int textureY) {
         double zLevel = 0;

@@ -94,11 +94,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     public void initGui() {
         int endX = x + width, endY = y + height;
-        KEYS_OVERLAY.elementSpacing = 0;
-        KEYS_OVERLAY.initGui(endX - (width / 2) , y + (height / 4), endX - 7, endY - 27);
+        int xOffset = hasVerticalScrollbar() ? -8 : -2;
+        KEYS_OVERLAY.elementSpacing = KEYS_OVERLAY.yStartSpacing = 0;
+        KEYS_OVERLAY.initGui(endX - (width / 2), y + (height / 4) - 10, endX + xOffset - 2, endY - 28);
 
         KEYS_OVERLAY.viewButton.scale = 0.45f;
-        KEYS_OVERLAY.viewButton.initGui(endX - 7, endY - 26);
+        KEYS_OVERLAY.viewButton.initGui(endX + xOffset, endY - 26);
     }
     
     // ==================== RENDERING ====================
