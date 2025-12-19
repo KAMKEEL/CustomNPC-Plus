@@ -44,6 +44,8 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
     private static int activeConsole = 0;
     boolean loaded = false;
 
+    private GuiScriptTextArea textArea;
+    
     public GuiScript(EntityNPCInterface npc) {
         super(npc);
         script = npc.script;
@@ -96,10 +98,14 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
             ScriptContainer container = script.getNPCScript(activeTab);
 
-            GuiScriptTextArea ta = new GuiScriptTextArea(this, 2, guiLeft + 74, guiTop + 4, 239, 208, container == null ? "" : container.script);
-            ta.enableCodeHighlighting();
-            ta.setListener(this);
-            this.addTextField(ta);
+            if (textArea == null)
+                textArea = new GuiScriptTextArea(this, 2, guiLeft + 74, guiTop + 4, 239, 208,
+                        container == null ? "" : container.script);
+            else
+                textArea.init(guiLeft + 74, guiTop + 4, 239, 208, container == null ? "" : container.script);
+            textArea.enableCodeHighlighting();
+            textArea.setListener(this);
+            this.addTextField(textArea);
 
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
             addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));

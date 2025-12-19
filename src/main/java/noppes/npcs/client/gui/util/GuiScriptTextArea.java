@@ -36,11 +36,8 @@ import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
 public class GuiScriptTextArea extends GuiNpcTextField {
     
     // ==================== DIMENSIONS & POSITION ====================
-    public int id;
     public int x;
     public int y;
-    public int width;
-    public int height;
     
     // ==================== STATE FLAGS ====================
     public boolean active = false;
@@ -85,15 +82,81 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
         super(id, guiScreen, x, y, width, height, null);
-        this.id = id;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.undoing = true;
-        this.setText(text);
-        this.undoing = false;
-        
+
+        searchBar.setCallback(new SearchReplaceBar.SearchCallback() {
+            @Override
+            public String getText() {
+                return text;
+            }
+
+            @Override
+            public void setText(String newText) {
+                GuiScriptTextArea.this.setText(newText);
+            }
+
+            @Override
+            public void scrollToPosition(int position) {
+                // Find line containing position and scroll to it
+                if (container == null || container.lines == null) return;
+
+                // Calculate offset to account for search bar height
+                int searchBarOffset = searchBar.getTotalHeight();
+                int effectiveHeight = height - searchBarOffset;
+                int visibleLines = effectiveHeight / container.lineHeight;
+                // Calculate how many lines the search bar covers
+                int linesHiddenBySRB = searchBarOffset > 0 ? (int) Math.ceil((double) searchBarOffset / container.lineHeight) : 0;
+
+                for (int i = 0; i < container.lines.size(); i++) {
+                    LineData ld = container.lines.get(i);
+                    if (position >= ld.start && position < ld.end) {
+                        int visible = Math.max(1, visibleLines);
+                        int maxScroll = Math.max(0, container.linesCount - visible);
+                        int targetLine = i;
+
+                        // If search bar is visible and would hide this line, scroll down so it's visible
+                        // The target line should appear below the search bar, not under it
+                        int currentScroll = scroll.getScrolledLine();
+                        int firstVisibleLine = currentScroll + linesHiddenBySRB;
+
+                        if (searchBarOffset > 0 && targetLine < firstVisibleLine) {
+                            // Force scroll so target line appears just below the search bar
+                            scroll.setTargetScroll(Math.max(0, targetLine - linesHiddenBySRB), maxScroll);
+                        } else {
+                            scroll.scrollToLine(targetLine, visible, maxScroll);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public void setSelection(int start, int end) {
+                selection.setSelection(start, end);
+                selection.setCursorPositionDirect(end);
+            }
+
+            @Override
+            public int getGutterWidth() {
+                return LINE_NUMBER_GUTTER_WIDTH;
+            }
+
+            @Override
+            public void unfocusMainEditor() {
+                // Save position but unfocus
+                active = false;
+            }
+
+            @Override
+            public void focusMainEditor() {
+                active = true;
+                selection.markActivity();
+            }
+
+            @Override
+            public void onMatchesUpdated() {
+                // Called when matches change - could be used for UI updates
+            }
+        });
         // Initialize Go To Line dialog with callback
         this.goToLineDialog = new GoToLineDialog(new GoToLineDialog.GoToLineCallback() {
             @Override
@@ -154,9 +217,19 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         });
         
         initializeKeyBindings();
-        initGui();
+        init(x, y, width, height, text);
     }
 
+    public void init(int x, int y, int width, int height, String text) {
+        this.x = xPosition = x;
+        this.y = yPosition = y;
+        this.width = width;
+        this.height = height;
+        this.undoing = true;
+        this.setText(text);
+        this.undoing = false;
+        initGui();
+    }
     public void initGui() {
         int endX = x + width, endY = y + height;
         int xOffset = hasVerticalScrollbar() ? -8 : -2;
@@ -168,80 +241,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Initialize search bar (preserves state across initGui calls)
         searchBar.initGui(x, y, width);
-        searchBar.setCallback(new SearchReplaceBar.SearchCallback() {
-            @Override
-            public String getText() {
-                return text;
-            }
-            
-            @Override
-            public void setText(String newText) {
-                GuiScriptTextArea.this.setText(newText);
-            }
-            
-            @Override
-            public void scrollToPosition(int position) {
-                // Find line containing position and scroll to it
-                if (container == null || container.lines == null) return;
-                
-                // Calculate offset to account for search bar height
-                int searchBarOffset = searchBar.getTotalHeight();
-                int effectiveHeight = height - searchBarOffset;
-                int visibleLines = effectiveHeight / container.lineHeight;
-                // Calculate how many lines the search bar covers
-                int linesHiddenBySRB = searchBarOffset > 0 ? (int) Math.ceil((double) searchBarOffset / container.lineHeight) : 0;
-                
-                for (int i = 0; i < container.lines.size(); i++) {
-                    LineData ld = container.lines.get(i);
-                    if (position >= ld.start && position < ld.end) {
-                        int visible = Math.max(1, visibleLines);
-                        int maxScroll = Math.max(0, container.linesCount - visible);
-                        int targetLine = i;
-                        
-                        // If search bar is visible and would hide this line, scroll down so it's visible
-                        // The target line should appear below the search bar, not under it
-                        int currentScroll = scroll.getScrolledLine();
-                        int firstVisibleLine = currentScroll + linesHiddenBySRB;
-                        
-                        if (searchBarOffset > 0 && targetLine < firstVisibleLine) {
-                            // Force scroll so target line appears just below the search bar
-                            scroll.setTargetScroll(Math.max(0, targetLine - linesHiddenBySRB), maxScroll);
-                        } else {
-                            scroll.scrollToLine(targetLine, visible, maxScroll);
-                        }
-                        break;
-                    }
-                }
-            }
-            
-            @Override
-            public void setSelection(int start, int end) {
-                selection.setSelection(start, end);
-                selection.setCursorPositionDirect(end);
-            }
-            
-            @Override
-            public int getGutterWidth() {
-                return LINE_NUMBER_GUTTER_WIDTH;
-            }
-            
-            @Override
-            public void unfocusMainEditor() {
-                // Save position but unfocus
-                active = false;
-            }
-            
-            @Override
-            public void focusMainEditor() {
-                active = true;
-                selection.markActivity();
-            }
-            
-            @Override
-            public void onMatchesUpdated() {
-                // Called when matches change - could be used for UI updates
-            }
-        });
         
         // Initialize Go To Line dialog
         goToLineDialog.initGui(x, y, width);
@@ -1774,7 +1773,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     public boolean hasVerticalScrollbar() {
-        return this.container.visibleLines < this.container.linesCount;
+        return this.container != null && this.container.visibleLines < this.container.linesCount;
     }
 
     public void enableCodeHighlighting() {

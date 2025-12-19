@@ -44,6 +44,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public List<String> hookList = new ArrayList<String>();
     protected boolean loaded = false;
 
+    private GuiScriptTextArea textArea;
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
@@ -108,11 +109,18 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             addLabel(hookLabel);
 
             ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
-            GuiScriptTextArea ta = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
-            ta.enableCodeHighlighting();
-            ta.setListener(this);
+            if (textArea == null)
+                textArea = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset,
+                        xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2,
+                        container == null ? "" : container.script);
+            else
+                textArea.init(guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset,
+                        (int) (ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
 
-            this.addTextField(ta);
+            textArea.enableCodeHighlighting();
+            textArea.setListener(this);
+
+            this.addTextField(textArea);
 
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
