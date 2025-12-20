@@ -53,6 +53,84 @@ public class BracketMatcher {
     }
 
     /**
+     * Find all unmatched brace positions (both opens and closes) in the text.
+     * Returns a list of character indices into the text for braces that have no matching pair.
+     */
+    public static List<Integer> findUnmatchedBracePositions(String text) {
+        List<Integer> unmatched = new ArrayList<>();
+        if (text == null || text.isEmpty()) return unmatched;
+
+        List<int[]> stack = new ArrayList<>(); // {char, pos}
+
+        boolean inLineComment = false;
+        boolean inBlockComment = false;
+        boolean inString = false;
+        boolean escape = false;
+        char stringDelimiter = 0;
+
+        for (int pos = 0; pos < text.length(); pos++) {
+            char c = text.charAt(pos);
+            char next = pos + 1 < text.length() ? text.charAt(pos + 1) : 0;
+
+            if (inString) {
+                if (escape) { escape = false; }
+                else if (c == '\\') { escape = true; }
+                else if (c == stringDelimiter) { inString = false; }
+                else if (c == '\n') { inString = false; }
+                continue;
+            }
+
+            if (inBlockComment) {
+                if (c == '*' && next == '/') { inBlockComment = false; pos++; }
+                continue;
+            }
+
+            if (inLineComment) {
+                if (c == '\n') { inLineComment = false; }
+                continue;
+            }
+
+            if (c == '/' && next == '/') { inLineComment = true; pos++; continue; }
+            if (c == '/' && next == '*') { inBlockComment = true; pos++; continue; }
+
+            if (c == '"' || c == '\'') {
+                inString = true;
+                stringDelimiter = c;
+                escape = false;
+                continue;
+            }
+
+            if (c == '{' || c == '[' || c == '(') {
+                stack.add(new int[]{c, pos});
+            } else if (c == '}' || c == ']' || c == ')') {
+                if (!stack.isEmpty()) {
+                    int[] top = stack.get(stack.size() - 1);
+                    char topc = (char) top[0];
+                    char expectOpen = (c == '}') ? '{' : (c == ']') ? '[' : '(';
+                    if (topc == expectOpen) {
+                        stack.remove(stack.size() - 1);
+                        continue;
+                    } else {
+                        // mismatched: mark this close as unmatched
+                        unmatched.add(pos);
+                        continue;
+                    }
+                } else {
+                    // closing with no opens
+                    unmatched.add(pos);
+                }
+            }
+        }
+
+        // any remaining opens on stack are unmatched
+        for (int[] open : stack) {
+            unmatched.add(open[1]);
+        }
+
+        return unmatched;
+    }
+
+    /**
      * Find closing bracket, returns offset from start or 0 if not found
      */
     public static int findClosingBracket(String str, char open, char close) {

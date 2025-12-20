@@ -331,10 +331,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         List<JavaTextContainer.LineData> list = new ArrayList<>(container.lines);
-
+  
         // Build brace spans: {origDepth, open line, close line, adjustedDepth}
         List<int[]> braceSpans = BracketMatcher.computeBraceSpans(text, list);
-
+        // Always highlight unmatched braces (positions in text)
+        List<Integer> unmatchedBraces = BracketMatcher.findUnmatchedBracePositions(text);
+        
         // Determine which exact brace span (openLine/closeLine) should be highlighted based on bracket under caret
         int highlightedOpenLine = -1;
         int highlightedCloseLine = -1;
@@ -430,6 +432,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int s = ClientProxy.Font.width(line.substring(0, endBracket - data.start));
                         int e = ClientProxy.Font.width(line.substring(0, endBracket - data.start + 1)) + 1;
                         drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight + 0, 0x9900cc00);
+                    }
+                }
+
+                // Highlight unmatched braces in this line (always red)
+                if (unmatchedBraces != null && !unmatchedBraces.isEmpty()) {
+                    for (int ubPos : unmatchedBraces) {
+                        if (ubPos >= data.start && ubPos < data.end) {
+                            int rel = ubPos - data.start;
+                            int s = ClientProxy.Font.width(line.substring(0, rel));
+                            int e = ClientProxy.Font.width(line.substring(0, rel + 1)) + 1;
+                            drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0xffcc0000);
+                        }
                     }
                 }
                 //Highlight words
