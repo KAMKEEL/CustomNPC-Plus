@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import noppes.npcs.client.gui.util.GuiScriptTextArea.UndoData;
+
 /**
  * Search and Replace bar component for the script editor.
  * Provides IntelliJ-like search functionality with:
@@ -63,6 +65,12 @@ public class SearchReplaceBar {
     // Text scroll offsets for when text exceeds field width
     private int searchScrollOffset = 0;
     private int replaceScrollOffset = 0;
+    
+    // ==================== UNDO/REDO ====================
+    private List<UndoData> searchUndoList = new ArrayList<>();
+    private List<UndoData> searchRedoList = new ArrayList<>();
+    private List<UndoData> replaceUndoList = new ArrayList<>();
+    private List<UndoData> replaceRedoList = new ArrayList<>();
     
     // ==================== MATCHES ====================
     private List<int[]> matches = new ArrayList<>();
@@ -174,6 +182,92 @@ public class SearchReplaceBar {
     public void unfocus() {
         searchFieldFocused = false;
         replaceFieldFocused = false;
+    }
+    
+    /**
+     * Save current state to undo list before making changes
+     */
+    private void saveState(boolean isSearchField) {
+        if (isSearchField) {
+            searchUndoList.add(new UndoData(searchText, searchCursor));
+            searchRedoList.clear(); // Clear redo on new change
+        } else {
+            replaceUndoList.add(new UndoData(replaceText, replaceCursor));
+            replaceRedoList.clear();
+        }
+    }
+    
+    /**
+     * Undo last change in focused field
+     */
+    public void undo() {
+        if (searchFieldFocused && !searchUndoList.isEmpty()) {
+            UndoData data = searchUndoList.remove(searchUndoList.size() - 1);
+            searchRedoList.add(new UndoData(searchText, searchCursor));
+            searchText = data.text;
+            searchCursor = data.cursorPosition;
+            searchSelectionStart = searchCursor;
+            searchSelectionEnd = searchCursor;
+            updateScrollOffset(true);
+            updateMatches();
+        } else if (replaceFieldFocused && !replaceUndoList.isEmpty()) {
+            UndoData data = replaceUndoList.remove(replaceUndoList.size() - 1);
+            replaceRedoList.add(new UndoData(replaceText, replaceCursor));
+            replaceText = data.text;
+            replaceCursor = data.cursorPosition;
+            replaceSelectionStart = replaceCursor;
+            replaceSelectionEnd = replaceCursor;
+            updateScrollOffset(false);
+        }
+    }
+    
+    /**
+     * Redo last undone change in focused field
+     */
+    public void redo() {
+        if (searchFieldFocused && !searchRedoList.isEmpty()) {
+            UndoData data = searchRedoList.remove(searchRedoList.size() - 1);
+            searchUndoList.add(new UndoData(searchText, searchCursor));
+            searchText = data.text;
+            searchCursor = data.cursorPosition;
+            searchSelectionStart = searchCursor;
+            searchSelectionEnd = searchCursor;
+            updateScrollOffset(true);
+            updateMatches();
+        } else if (replaceFieldFocused && !replaceRedoList.isEmpty()) {
+            UndoData data = replaceRedoList.remove(replaceRedoList.size() - 1);
+            replaceUndoList.add(new UndoData(replaceText, replaceCursor));
+            replaceText = data.text;
+            replaceCursor = data.cursorPosition;
+            replaceSelectionStart = replaceCursor;
+            replaceSelectionEnd = replaceCursor;
+            updateScrollOffset(false);
+        }
+    }
+    
+    /**
+     * Update scroll offset for text field to keep cursor visible
+     */
+    private void updateScrollOffset(boolean isSearchField) {
+        int fieldWidth = textFieldWidth - 8;
+        String text = isSearchField ? searchText : replaceText;
+        int cursor = isSearchField ? searchCursor : replaceCursor;
+        String beforeCursor = cursor > 0 ? text.substring(0, cursor) : "";
+        int cursorX = font.getStringWidth(beforeCursor);
+        int scrollOffset = isSearchField ? searchScrollOffset : replaceScrollOffset;
+
+        // Scroll to keep cursor visible
+        if (cursorX - scrollOffset * 6 > fieldWidth) {
+            scrollOffset = Math.max(0, cursor - fieldWidth / 6);
+        } else if (cursor < scrollOffset) {
+            scrollOffset = cursor;
+        }
+        
+        if (isSearchField) {
+            searchScrollOffset = scrollOffset;
+        } else {
+            replaceScrollOffset = scrollOffset;
+        }
     }
     
     /**
@@ -805,11 +899,6 @@ public class SearchReplaceBar {
      * @return true if input was consumed
      */
     public boolean keyTyped(char c, int keyCode) {
-        if (keyCode == Keyboard.KEY_ESCAPE && visible) {
-            close();
-            return true;
-        }
-        
         if (!visible || (!searchFieldFocused && !replaceFieldFocused)) return false;
         
         // Check modifier keys - don't let them trigger first-match issue
@@ -824,6 +913,10 @@ public class SearchReplaceBar {
             return true; // Consume but don't process
         }
         
+        if (keyCode == Keyboard.KEY_ESCAPE) {
+            close();
+            return true;
+        }
         
         if (keyCode == Keyboard.KEY_TAB && showReplace) {
             searchFieldFocused = !searchFieldFocused;
@@ -891,6 +984,7 @@ public class SearchReplaceBar {
             if (hasSelection) {
                 String selected = text.substring(Math.min(selStart, selEnd), Math.max(selStart, selEnd));
                 setClipboard(selected);
+                saveState(isSearchField);
                 text = text.substring(0, Math.min(selStart, selEnd)) + text.substring(Math.max(selStart, selEnd));
                 cursor = Math.min(selStart, selEnd);
                 selStart = selEnd = cursor;
@@ -900,6 +994,7 @@ public class SearchReplaceBar {
             String clipboard = getClipboard();
             if (clipboard != null) {
                 clipboard = clipboard.replace("\n", "").replace("\r", "");
+                saveState(isSearchField);
                 if (hasSelection) {
                     text = text.substring(0, Math.min(selStart, selEnd)) + clipboard + text.substring(Math.max(selStart, selEnd));
                     cursor = Math.min(selStart, selEnd) + clipboard.length();
@@ -911,6 +1006,7 @@ public class SearchReplaceBar {
             }
         }
         else if (keyCode == Keyboard.KEY_BACK) {
+            saveState(isSearchField);
             if (hasSelection) {
                 text = text.substring(0, Math.min(selStart, selEnd)) + text.substring(Math.max(selStart, selEnd));
                 cursor = Math.min(selStart, selEnd);
@@ -921,6 +1017,7 @@ public class SearchReplaceBar {
             selStart = selEnd = cursor;
         }
         else if (keyCode == Keyboard.KEY_DELETE) {
+            saveState(isSearchField);
             if (hasSelection) {
                 text = text.substring(0, Math.min(selStart, selEnd)) + text.substring(Math.max(selStart, selEnd));
                 cursor = Math.min(selStart, selEnd);
@@ -992,6 +1089,7 @@ public class SearchReplaceBar {
             cursor = text.length();
         }
         else if (ChatAllowedCharacters.isAllowedCharacter(c)) {
+            saveState(isSearchField);
             if (hasSelection) {
                 text = text.substring(0, Math.min(selStart, selEnd)) + c + text.substring(Math.max(selStart, selEnd));
                 cursor = Math.min(selStart, selEnd) + 1;

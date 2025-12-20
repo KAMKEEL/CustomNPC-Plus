@@ -729,37 +729,47 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         });
 
         // UNDO: Restore last edit from undo list
+        // Works in search bar.
         KEYS.UNDO.setTask(e -> {
-            if (!e.isPress() || !isActive.get())
+            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
                 return;
 
-            if (undoList.isEmpty())
-                return;
-            undoing = true;
-            redoList.add(new UndoData(this.text, selection.getCursorPosition()));
-            UndoData data = undoList.remove(undoList.size() - 1);
-            setText(data.text);
-            selection.reset(data.cursorPosition);
-            undoing = false;
-            scrollToCursor();
-            searchBar.updateMatches();
+            if (searchBar.hasFocus()) {
+                searchBar.undo();
+            } else {
+                if (undoList.isEmpty())
+                    return;
+                undoing = true;
+                redoList.add(new UndoData(this.text, selection.getCursorPosition()));
+                UndoData data = undoList.remove(undoList.size() - 1);
+                setText(data.text);
+                selection.reset(data.cursorPosition);
+                undoing = false;
+                scrollToCursor();
+                searchBar.updateMatches();
+            }
         });
 
         // REDO: Restore last undone edit from redo list
+        // Works in search bar.
         KEYS.REDO.setTask(e -> {
-            if (!e.isPress() || !isActive.get())
+            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
                 return;
 
-            if (redoList.isEmpty())
-                return;
-            undoing = true;
-            undoList.add(new UndoData(this.text, selection.getCursorPosition()));
-            UndoData data = redoList.remove(redoList.size() - 1);
-            setText(data.text);
-            selection.reset(data.cursorPosition);
-            undoing = false;
-            scrollToCursor();
-            searchBar.updateMatches();
+            if (searchBar.hasFocus()) {
+                searchBar.redo();
+            } else {
+                if (redoList.isEmpty())
+                    return;
+                undoing = true;
+                undoList.add(new UndoData(this.text, selection.getCursorPosition()));
+                UndoData data = redoList.remove(redoList.size() - 1);
+                setText(data.text);
+                selection.reset(data.cursorPosition);
+                undoing = false;
+                scrollToCursor();
+                searchBar.updateMatches();
+            }
         });
 
         // FORMAT: Format/indent code
@@ -1812,7 +1822,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     
     // ==================== INNER CLASSES ====================
 
-    class UndoData {
+    public static class UndoData {
         public String text;
         public int cursorPosition;
 
