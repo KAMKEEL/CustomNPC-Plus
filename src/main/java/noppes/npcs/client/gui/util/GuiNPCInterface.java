@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -48,6 +49,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public String title;
     private ResourceLocation background = null;
     public boolean closeOnEsc = false;
+    public Supplier<Boolean> closeOnEscSupplier = null;
     public int guiLeft, guiTop, xSize, ySize;
     private SubGuiInterface subgui;
     public int mouseX, mouseY, mouseScroll;
@@ -256,7 +258,15 @@ public abstract class GuiNPCInterface extends GuiScreen {
          */
         boolean isSub = this instanceof SubGuiInterface;
 
-        if (closeOnEsc && !isSub && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
+        boolean shouldClose = closeOnEsc;
+        if (closeOnEscSupplier != null) {
+            try {
+                shouldClose = closeOnEscSupplier.get();
+            } catch (Exception ignored) {
+            }
+        }
+
+        if (shouldClose && !isSub && (i == 1 || (!GuiNpcTextField.isFieldActive() && isInventoryKey(i)))) {
             SubGuiInterface sub = getSubGui();
             if (sub != null)
                 sub.close();
@@ -269,6 +279,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
         GuiNpcTextField.unfocus();
     }
 
+    public void closeOnEsc(Supplier<Boolean> close) {
+        this.closeOnEscSupplier = close;
+    }
+    
     public void close() {
         if(GuiNpcTextField.activeTextfield != null)
             GuiNpcTextField.unfocus();
