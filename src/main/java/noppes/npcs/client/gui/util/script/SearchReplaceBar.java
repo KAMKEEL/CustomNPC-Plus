@@ -1192,12 +1192,10 @@ public class SearchReplaceBar {
      */
     public void goToNextMatch() {
         if (matches.isEmpty()) return;
-        
-        int startIndex = currentMatchIndex;
-        do {
-            currentMatchIndex = (currentMatchIndex + 1) % matches.size();
-        } while (excludedMatches.contains(currentMatchIndex) && currentMatchIndex != startIndex);
-        
+
+        if (currentMatchIndex < 0) currentMatchIndex = 0;
+        else currentMatchIndex = (currentMatchIndex + 1) % matches.size();
+
         navigateToCurrentMatch();
     }
     
@@ -1206,12 +1204,10 @@ public class SearchReplaceBar {
      */
     public void goToPreviousMatch() {
         if (matches.isEmpty()) return;
-        
-        int startIndex = currentMatchIndex;
-        do {
-            currentMatchIndex = (currentMatchIndex - 1 + matches.size()) % matches.size();
-        } while (excludedMatches.contains(currentMatchIndex) && currentMatchIndex != startIndex);
-        
+
+        if (currentMatchIndex < 0) currentMatchIndex = matches.size() - 1;
+        else currentMatchIndex = (currentMatchIndex - 1 + matches.size()) % matches.size();
+
         navigateToCurrentMatch();
     }
     
@@ -1287,7 +1283,13 @@ public class SearchReplaceBar {
      * Exclude current match from replacement
      */
     public void excludeCurrentMatch() {
-        if (currentMatchIndex >= 0 && !excludedMatches.contains(currentMatchIndex)) {
+        if (currentMatchIndex < 0) return;
+
+        if (excludedMatches.contains(currentMatchIndex)) {
+            // If already excluded, remove the exclusion and keep selection on this match
+            excludedMatches.remove(Integer.valueOf(currentMatchIndex));
+        } else {
+            // Otherwise exclude and move to the next match
             excludedMatches.add(currentMatchIndex);
             goToNextMatch();
         }
