@@ -51,6 +51,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     
     // ==================== TEXT & CONTAINER ====================
     public String text = null;
+    public String highlightedWord;
     private JavaTextContainer container = null;
     private boolean enableCodeHighlighting = false;
 
@@ -87,6 +88,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             @Override
             public String getText() {
                 return GuiScriptTextArea.this.text;
+            }
+
+            public String getHighlightedWord() {
+                return GuiScriptTextArea.this.highlightedWord;
             }
 
             @Override
@@ -263,8 +268,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
 
         int searchHeight = searchBar.getTotalHeight();
-        y += searchHeight;
-        height -= searchHeight;
+
 
         // Draw line number gutter background
         drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
@@ -356,12 +360,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
-        String wordHightLight = null;
+        highlightedWord = null;
         if (selection.hasSelection()) {
             Matcher m = container.regexWord.matcher(text);
             while (m.find()) {
                 if (m.start() == selection.getStartSelection() && m.end() == selection.getEndSelection()) {
-                    wordHightLight = text.substring(selection.getStartSelection(), selection.getEndSelection());
+                    highlightedWord = text.substring(selection.getStartSelection(), selection.getEndSelection());
                 }
             }
         }
@@ -429,10 +433,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 //Highlight words
-                if (wordHightLight != null) {
+                if (highlightedWord != null) {
                     Matcher m = container.regexWord.matcher(line);
                     while (m.find()) {
-                        if (line.substring(m.start(), m.end()).equals(wordHightLight)) {
+                        if (line.substring(m.start(), m.end()).equals(highlightedWord)) {
                             int s = ClientProxy.Font.width(line.substring(0, m.start()));
                             int e = ClientProxy.Font.width(line.substring(0, m.end())) + 1;
                             drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x99004c00);
