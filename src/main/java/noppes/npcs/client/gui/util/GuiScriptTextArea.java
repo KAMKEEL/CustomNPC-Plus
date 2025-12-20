@@ -825,7 +825,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         KEYS.SEARCH.setTask(e -> {
             if (!e.isPress() || !isActive.get())
                 return;
-            searchBar.toggle();
+            searchBar.openSearch();
         });
         
         // SEARCH_REPLACE: Open search+replace bar (Ctrl+Shift+R)
