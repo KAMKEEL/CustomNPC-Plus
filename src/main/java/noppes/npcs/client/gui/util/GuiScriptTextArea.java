@@ -154,7 +154,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             @Override
             public void focusMainEditor() {
                 active = true;
-                selection.markActivity();
+                searchBar.resetSelection();
             }
 
             @Override

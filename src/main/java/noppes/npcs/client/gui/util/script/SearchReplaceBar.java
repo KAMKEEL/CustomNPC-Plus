@@ -596,6 +596,10 @@ public class SearchReplaceBar {
         return mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh;
     }
     
+    public void resetSelection() {
+        searchSelectionStart = searchSelectionEnd = searchCursor;
+        replaceSelectionStart = replaceSelectionEnd = replaceCursor;
+    }
     // ==================== MOUSE INPUT ====================
     
     /**
@@ -609,6 +613,7 @@ public class SearchReplaceBar {
         int totalHeight = getTotalHeight();
         // If click is outside the bar, don't consume it (let main editor handle)
         if (mouseX < x || mouseX > x + width || mouseY < y || mouseY > y + totalHeight) {
+            resetSelection();
             return false;
         }
         
