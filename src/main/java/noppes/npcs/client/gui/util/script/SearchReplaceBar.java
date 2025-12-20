@@ -98,7 +98,7 @@ public class SearchReplaceBar {
     private boolean lastClickWasSearch = true;
     
     // ==================== CALLBACK ====================
-    private SearchCallback callback;
+    public SearchCallback callback;
     
     private final FontRenderer font = Minecraft.getMinecraft().fontRenderer;
     
@@ -116,6 +116,7 @@ public class SearchReplaceBar {
         void unfocusMainEditor();
         void focusMainEditor();
         void onMatchesUpdated(); // Called when matches change (for undo/redo sync)
+        void resizeEditor(boolean open);
     }
     
     public SearchReplaceBar() {
@@ -140,16 +141,18 @@ public class SearchReplaceBar {
      * Open search bar (Ctrl+R)
      */
     public void openSearch() {
+        boolean oldVisible = this.visible;
         visible = true;
         showReplace = false;
         searchFieldFocused = true;
         replaceFieldFocused = false;
         if (callback != null) {
+            if (!oldVisible) //if wasnt open before, do it once.
+                callback.resizeEditor(true);
             callback.unfocusMainEditor();
             String highlight = callback.getHighlightedWord();
-            if (highlight != null) {
+            if (highlight != null) 
                 searchText = highlight;
-            }
         }
         searchSelectionStart = 0;
         searchSelectionEnd = searchText.length();
@@ -170,12 +173,21 @@ public class SearchReplaceBar {
      * Close the search bar and restore focus to main editor
      */
     public void close() {
+        if (callback != null) {
+            callback.resizeEditor(false);
+            callback.focusMainEditor();
+        }
         visible = false;
         searchFieldFocused = false;
         replaceFieldFocused = false;
-        if (callback != null) callback.focusMainEditor();
     }
-    
+
+    public void focus(boolean replace) {
+        if (replace)
+            replaceFieldFocused = true;
+        else
+            searchFieldFocused = true;
+    }
     /**
      * Unfocus the search bar (when clicking main editor)
      */

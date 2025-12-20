@@ -161,6 +161,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             public void onMatchesUpdated() {
                 // Called when matches change - could be used for UI updates
             }
+
+            // Shift text editor viewport up or down bar
+            public void resizeEditor(boolean open) {
+                int scrollHeight = searchBar.getTotalHeight();
+                GuiScriptTextArea.this.y += open ? scrollHeight : -scrollHeight;
+                GuiScriptTextArea.this.height += open ? -scrollHeight : scrollHeight;
+                container.visibleLines = Math.max(GuiScriptTextArea.this.height / container.lineHeight - 1, 1);
+            }
         });
         // Initialize Go To Line dialog with callback
         this.goToLineDialog = new GoToLineDialog(new GoToLineDialog.GoToLineCallback() {
@@ -247,6 +255,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Initialize search bar (preserves state across initGui calls)
         searchBar.initGui(x, y, width);
+        if (searchBar.isVisible()) { // If open
+            // Shift viewport down again 
+            searchBar.callback.resizeEditor(true);
+            if (!active) // Focus search if opening another script tab & bar is open
+                searchBar.focus(false);
+        }
         
         // Initialize Go To Line dialog
         goToLineDialog.initGui(x, y, width);
@@ -587,8 +601,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         goToLineDialog.draw(xMouse, yMouse);
         
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
-        //        y -= searchHeight;
-        //        height += searchHeight;
     }
 
     private void scissorViewport() {
@@ -855,11 +867,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
         });
-        
+
+
+        // Check if can open just for SearchReplaceBar and GoToLine
+        Supplier<Boolean> openBoxes = () -> !KEYS_OVERLAY.showOverlay;
+
         // SEARCH: Open search bar (Ctrl+R)
         // Works in search bar.
         KEYS.SEARCH.setTask(e -> {
-            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
+            if (!e.isPress() || !openBoxes.get())
                 return;
             
             unfocusAll();
@@ -869,7 +885,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // SEARCH_REPLACE: Open search+replace bar (Ctrl+Shift+R)
         // Works in search bar.
         KEYS.SEARCH_REPLACE.setTask(e -> {
-            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
+            if (!e.isPress() || !openBoxes.get())
                 return;
             
             unfocusAll();
@@ -879,7 +895,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // GO_TO_LINE: Open go to line dialog (Ctrl+G)
         // Works in search bar.
         KEYS.GO_TO_LINE.setTask(e -> {
-            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
+            if (!e.isPress() || !openBoxes.get())
                 return;
             
             unfocusAll();
