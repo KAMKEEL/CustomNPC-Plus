@@ -23,6 +23,12 @@ public class KeyPreset {
     public boolean shouldConflict = true;
     public Consumer<KeyEvent> task;
 
+    // Throttling for hold-down behavior
+    private long lastActionTime = 0;
+    private long throttleInterval = 25;
+    private long firstThrottleInterval = 500;
+    private boolean isFirstAction = true;
+
     private long pressStartMs = 0;
     public boolean isDown;
 
@@ -52,6 +58,33 @@ public class KeyPreset {
         return this;
     }
 
+    /**
+     * Fire every X ms when holding
+     */
+    public KeyPreset setThrottleInterval(long ms) {
+        this.throttleInterval = ms;
+        return this;
+    }
+
+    /**
+     * Set throttle interval for the first action (initial press)
+     */
+    public KeyPreset setFirstThrottleInterval(long ms) {
+        this.firstThrottleInterval = ms;
+        return this;
+    }
+
+    public boolean shouldThrottle() {
+        if (throttleInterval <= 0) return false;
+        long currentTime = System.currentTimeMillis();
+        long intervalToUse = isFirstAction && firstThrottleInterval > 0 ?
+                firstThrottleInterval : throttleInterval;
+        if (currentTime - lastActionTime < intervalToUse) return true;
+        lastActionTime = currentTime;
+        isFirstAction = false;
+        return false;
+    }
+
     public void tick() {
         int keyCode = keyCode();
         if (keyCode == -1 || keyCode == 0)
@@ -68,6 +101,7 @@ public class KeyPreset {
         if (down && !isDown) { // just pressed
             pressStartMs = System.currentTimeMillis();
             onAction(PressType.PRESS, PressType.PRESS_RELEASE);
+            isFirstAction = true; // Reset for new press sequence
         }
 
         if (!down && isDown) { // just released
@@ -88,7 +122,7 @@ public class KeyPreset {
     }
 
     public KeyPreset onAction(PressType... pressTypes) {
-        if (task != null) {
+        if (task != null && !shouldThrottle()) {
             for (PressType pressType : pressTypes)
                 this.task.accept(new KeyEvent(pressType, this));
         }

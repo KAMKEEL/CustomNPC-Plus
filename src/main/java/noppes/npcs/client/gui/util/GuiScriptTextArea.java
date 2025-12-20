@@ -731,7 +731,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // UNDO: Restore last edit from undo list
         // Works in search bar.
         KEYS.UNDO.setTask(e -> {
-            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
+            if ((!e.isPress() && !e.isHold()) || !isActive.get() && !searchBar.isVisible())
                 return;
 
             if (searchBar.hasFocus()) {
@@ -753,7 +753,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // REDO: Restore last undone edit from redo list
         // Works in search bar.
         KEYS.REDO.setTask(e -> {
-            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
+            if ((!e.isPress() && !e.isHold()) || !isActive.get() && !searchBar.isVisible())
                 return;
 
             if (searchBar.hasFocus()) {
