@@ -51,6 +51,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     
     // ==================== TEXT & CONTAINER ====================
     public String text = null;
+    public String highlightedWord;
     private JavaTextContainer container = null;
     private boolean enableCodeHighlighting = false;
 
@@ -86,7 +87,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         searchBar.setCallback(new SearchReplaceBar.SearchCallback() {
             @Override
             public String getText() {
-                return text;
+                return GuiScriptTextArea.this.text;
+            }
+
+            public String getHighlightedWord() {
+                return GuiScriptTextArea.this.highlightedWord;
             }
 
             @Override
@@ -263,8 +268,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
 
         int searchHeight = searchBar.getTotalHeight();
-        y += searchHeight;
-        height -= searchHeight;
+
 
         // Draw line number gutter background
         drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
@@ -313,7 +317,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             doubleClicked = false;
             tripleClicked = false;
         }
-
+        // y += searchHeight;
+        // height -= searchHeight;
         // Calculate braces next to cursor to highlight
         int startBracket = 0, endBracket = 0;
         if (selection.getStartSelection() >= 0 && text != null && text.length() > 0 &&
@@ -355,12 +360,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
-        String wordHightLight = null;
+        highlightedWord = null;
         if (selection.hasSelection()) {
             Matcher m = container.regexWord.matcher(text);
             while (m.find()) {
                 if (m.start() == selection.getStartSelection() && m.end() == selection.getEndSelection()) {
-                    wordHightLight = text.substring(selection.getStartSelection(), selection.getEndSelection());
+                    highlightedWord = text.substring(selection.getStartSelection(), selection.getEndSelection());
                 }
             }
         }
@@ -428,10 +433,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 //Highlight words
-                if (wordHightLight != null) {
+                if (highlightedWord != null) {
                     Matcher m = container.regexWord.matcher(line);
                     while (m.find()) {
-                        if (line.substring(m.start(), m.end()).equals(wordHightLight)) {
+                        if (line.substring(m.start(), m.end()).equals(highlightedWord)) {
                             int s = ClientProxy.Font.width(line.substring(0, m.start()));
                             int e = ClientProxy.Font.width(line.substring(0, m.end())) + 1;
                             drawRect(x + LINE_NUMBER_GUTTER_WIDTH + 1 + s, posY, x + LINE_NUMBER_GUTTER_WIDTH + 1 + e, posY + container.lineHeight, 0x99004c00);
@@ -440,31 +445,33 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
                 
                 // Highlight search matches
-                List<int[]> searchMatches = searchBar.getMatches();
-                int currentMatchIdx = searchBar.getCurrentMatchIndex();
-                for (int mi = 0; mi < searchMatches.size(); mi++) {
-                    int[] match = searchMatches.get(mi);
-                    // Check if match overlaps with this line
-                    if (match[1] > data.start && match[0] < data.end) {
-                        int matchStart = Math.max(match[0] - data.start, 0);
-                        int matchEnd = Math.min(match[1] - data.start, line.length());
-                        if (matchStart < matchEnd) {
-                            int s = ClientProxy.Font.width(line.substring(0, matchStart));
-                            int e = ClientProxy.Font.width(line.substring(0, matchEnd)) + 1;
-                            boolean isExcluded = searchBar.isMatchExcluded(mi);
-                            // Current match gets brighter highlight, others get dimmer
-                            int highlightColor = (mi == currentMatchIdx) ? 0xBB4488ff : 0x662266aa;
-                            if (isExcluded) {
-                                highlightColor = 0x33666666; // Dimmer for excluded matches
-                            }
-                            int highlightX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
-                            int highlightEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
-                            drawRect(highlightX, posY, highlightEndX, posY + container.lineHeight, highlightColor);
-                            
-                            // Draw strikethrough line for excluded matches
-                            if (isExcluded) {
-                                int strikeY = posY + container.lineHeight / 2;
-                                drawRect(highlightX, strikeY, highlightEndX, strikeY + 1, 0xFFaa4444);
+                if (searchBar.isVisible()) {
+                    List<int[]> searchMatches = searchBar.getMatches();
+                    int currentMatchIdx = searchBar.getCurrentMatchIndex();
+                    for (int mi = 0; mi < searchMatches.size(); mi++) {
+                        int[] match = searchMatches.get(mi);
+                        // Check if match overlaps with this line
+                        if (match[1] > data.start && match[0] < data.end) {
+                            int matchStart = Math.max(match[0] - data.start, 0);
+                            int matchEnd = Math.min(match[1] - data.start, line.length());
+                            if (matchStart < matchEnd) {
+                                int s = ClientProxy.Font.width(line.substring(0, matchStart));
+                                int e = ClientProxy.Font.width(line.substring(0, matchEnd)) + 1;
+                                boolean isExcluded = searchBar.isMatchExcluded(mi);
+                                // Current match gets brighter highlight, others get dimmer
+                                int highlightColor = (mi == currentMatchIdx) ? 0xBB4488ff : 0x662266aa;
+                                if (isExcluded) {
+                                    highlightColor = 0x33666666; // Dimmer for excluded matches
+                                }
+                                int highlightX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
+                                int highlightEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
+                                drawRect(highlightX, posY, highlightEndX, posY + container.lineHeight, highlightColor);
+
+                                // Draw strikethrough line for excluded matches
+                                if (isExcluded) {
+                                    int strikeY = posY + container.lineHeight / 2;
+                                    drawRect(highlightX, strikeY, highlightEndX, strikeY + 1, 0xFFaa4444);
+                                }
                             }
                         }
                     }
@@ -555,8 +562,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         goToLineDialog.draw(xMouse, yMouse);
         
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
-        y -= searchHeight;
-        height += searchHeight;
+        //        y -= searchHeight;
+        //        height += searchHeight;
     }
 
     private void scissorViewport() {
@@ -816,26 +823,23 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // SEARCH: Open search bar (Ctrl+R)
         KEYS.SEARCH.setTask(e -> {
-            if (!e.isPress() || !active || !isEnabled())
+            if (!e.isPress() || !isActive.get())
                 return;
-            searchBar.toggle();
+            searchBar.openSearch();
         });
         
         // SEARCH_REPLACE: Open search+replace bar (Ctrl+Shift+R)
         KEYS.SEARCH_REPLACE.setTask(e -> {
-            if (!e.isPress() || !active || !isEnabled())
+            if (!e.isPress() || !isActive.get())
                 return;
             searchBar.toggleReplace();
         });
         
         // GO_TO_LINE: Open go to line dialog (Ctrl+G)
         KEYS.GO_TO_LINE.setTask(e -> {
-            if (!e.isPress() || !active || !isEnabled())
+            if (!e.isPress() || !isActive.get())
                 return;
-            // Close search bar if open
-            if (searchBar.isVisible()) {
-                searchBar.close();
-            }
+
             goToLineDialog.toggle();
         });
     }
@@ -1767,6 +1771,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             // Consider text changes user activity to pause caret blinking briefly
             selection.markActivity();
+            searchBar.updateMatches();
 
         }
     }

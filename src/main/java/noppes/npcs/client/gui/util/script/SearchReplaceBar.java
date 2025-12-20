@@ -99,6 +99,8 @@ public class SearchReplaceBar {
      */
     public interface SearchCallback {
         String getText();
+
+        String getHighlightedWord();
         void setText(String text);
         void scrollToPosition(int position);
         void setSelection(int start, int end);
@@ -134,11 +136,17 @@ public class SearchReplaceBar {
         showReplace = false;
         searchFieldFocused = true;
         replaceFieldFocused = false;
+        if (callback != null) {
+            callback.unfocusMainEditor();
+            String highlight = callback.getHighlightedWord();
+            if (highlight != null) {
+                searchText = highlight;
+            }
+        }
         searchSelectionStart = 0;
         searchSelectionEnd = searchText.length();
         searchCursor = searchText.length();
         markActivity();
-        if (callback != null) callback.unfocusMainEditor();
         updateMatches();
     }
     
@@ -146,16 +154,8 @@ public class SearchReplaceBar {
      * Open search+replace bar (Ctrl+Shift+R)
      */
     public void openSearchReplace() {
-        visible = true;
         showReplace = true;
-        searchFieldFocused = true;
-        replaceFieldFocused = false;
-        searchSelectionStart = 0;
-        searchSelectionEnd = searchText.length();
-        searchCursor = searchText.length();
-        markActivity();
-        if (callback != null) callback.unfocusMainEditor();
-        updateMatches();
+        openSearch();
     }
     
     /**
