@@ -296,17 +296,17 @@ public class GoToLineDialog {
     }
 
     public boolean keyTyped(char c, int keyCode) {
+        // Escape - close dialog
+        if (keyCode == Keyboard.KEY_ESCAPE && visible) {
+            close();
+            return true;
+        }
+        
         if (!visible || !focused)
             return false;
 
         boolean ctrl = Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
         boolean shift = Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
-
-        // Escape - close dialog
-        if (keyCode == Keyboard.KEY_ESCAPE) {
-            close();
-            return true;
-        }
 
         // Enter - execute go to line
         if (keyCode == Keyboard.KEY_RETURN || keyCode == Keyboard.KEY_NUMPADENTER) {

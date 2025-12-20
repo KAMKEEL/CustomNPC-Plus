@@ -805,6 +805,11 @@ public class SearchReplaceBar {
      * @return true if input was consumed
      */
     public boolean keyTyped(char c, int keyCode) {
+        if (keyCode == Keyboard.KEY_ESCAPE && visible) {
+            close();
+            return true;
+        }
+        
         if (!visible || (!searchFieldFocused && !replaceFieldFocused)) return false;
         
         // Check modifier keys - don't let them trigger first-match issue
@@ -819,10 +824,6 @@ public class SearchReplaceBar {
             return true; // Consume but don't process
         }
         
-        if (keyCode == Keyboard.KEY_ESCAPE) {
-            close();
-            return true;
-        }
         
         if (keyCode == Keyboard.KEY_TAB && showReplace) {
             searchFieldFocused = !searchFieldFocused;

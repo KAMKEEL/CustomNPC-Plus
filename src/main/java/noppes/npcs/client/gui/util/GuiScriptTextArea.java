@@ -867,18 +867,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         KEYS_OVERLAY.keyTyped(c, i);
         
         // Handle Go To Line dialog input first if it has focus
-        if (goToLineDialog.hasFocus()) {
-            if (goToLineDialog.keyTyped(c, i)) {
+        if (goToLineDialog.isVisible() &&goToLineDialog.keyTyped(c, i)) 
                 return true;
-            }
-        }
         
         // Handle search bar input first if it has focus
-        if (searchBar.hasFocus()) {
-            if (searchBar.keyTyped(c, i)) {
-                return true;
-            }
-        }
+        if (searchBar.isVisible() && searchBar.keyTyped(c, i)) 
+            return true;
         
         if (!active || KEYS_OVERLAY.showOverlay) return false;
 
