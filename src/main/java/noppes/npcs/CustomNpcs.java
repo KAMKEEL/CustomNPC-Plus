@@ -17,7 +17,6 @@ import cpw.mods.fml.relauncher.SideOnly;
 import foxz.command.CommandNoppes;
 import io.github.somehussar.janinoloader.api.IDynamicCompiler;
 import io.github.somehussar.janinoloader.api.IDynamicCompilerBuilder;
-import io.github.somehussar.janinoloader.api.delegates.LoadClassCondition;
 import kamkeel.npcs.addon.AddonManager;
 import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
@@ -103,13 +102,9 @@ import noppes.npcs.scripted.NpcAPI;
 import somehussar.janino.AdvancedClassFilter;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.2")
 public class CustomNpcs {
@@ -148,7 +143,7 @@ public class CustomNpcs {
 
     public static MinecraftServer Server;
 
-    private static IDynamicCompiler jls;
+    private static IDynamicCompiler globalJaninoCompiler;
     @SideOnly(Side.CLIENT)
     private static IDynamicCompiler clientJaninoCompiler;
     @SideOnly(Side.CLIENT)
@@ -164,11 +159,11 @@ public class CustomNpcs {
     }
 
     public static IDynamicCompiler getDynamicCompiler() {
-        if (jls == null) {
-            jls = IDynamicCompilerBuilder.createBuilder().getCompiler();
+        if (globalJaninoCompiler == null) {
+            globalJaninoCompiler = IDynamicCompilerBuilder.createBuilder().getCompiler();
         }
 
-        return jls;
+        return globalJaninoCompiler;
     }
 
     @SideOnly(Side.CLIENT)
@@ -307,6 +302,10 @@ public class CustomNpcs {
 
     @EventHandler
     public void setAboutToStart(FMLServerAboutToStartEvent event) {
+        globalJaninoCompiler = null;
+        if (FMLCommonHandler.instance().getSide().isClient())
+            clientJaninoCompiler = null;
+
         Server = event.getServer();
         ChunkController.Instance.clear();
         FactionController.getInstance().load();
@@ -318,6 +317,7 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
+
 
         LinkedItemController.getInstance().load();
 
@@ -372,6 +372,9 @@ public class CustomNpcs {
         ScriptController.Instance.saveForgeScripts();
         ScriptController.Instance.savePlayerScripts();
         ScriptController.Instance.saveGlobalNpcScripts();
+        if (FMLCommonHandler.instance().getSide().isClient())
+            clientJaninoCompiler = null;
+        globalJaninoCompiler = null;
     }
 
     @EventHandler
