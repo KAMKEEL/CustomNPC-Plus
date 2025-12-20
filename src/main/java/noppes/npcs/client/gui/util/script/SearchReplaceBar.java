@@ -899,6 +899,11 @@ public class SearchReplaceBar {
      * @return true if input was consumed
      */
     public boolean keyTyped(char c, int keyCode) {
+        if (keyCode == Keyboard.KEY_ESCAPE && visible) {
+            close();
+            return true;
+        }
+
         if (!visible || (!searchFieldFocused && !replaceFieldFocused)) return false;
         
         // Check modifier keys - don't let them trigger first-match issue
@@ -911,11 +916,6 @@ public class SearchReplaceBar {
             keyCode == Keyboard.KEY_LSHIFT || keyCode == Keyboard.KEY_RSHIFT ||
             keyCode == Keyboard.KEY_LMENU || keyCode == Keyboard.KEY_RMENU) {
             return true; // Consume but don't process
-        }
-        
-        if (keyCode == Keyboard.KEY_ESCAPE) {
-            close();
-            return true;
         }
         
         if (keyCode == Keyboard.KEY_TAB && showReplace) {
