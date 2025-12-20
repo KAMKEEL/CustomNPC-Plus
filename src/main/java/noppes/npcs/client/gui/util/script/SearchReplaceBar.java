@@ -930,10 +930,15 @@ public class SearchReplaceBar {
             keyCode == Keyboard.KEY_LMENU || keyCode == Keyboard.KEY_RMENU) {
             return true; // Consume but don't process
         }
-        
-        if (keyCode == Keyboard.KEY_TAB && showReplace) {
-            searchFieldFocused = !searchFieldFocused;
-            replaceFieldFocused = !replaceFieldFocused;
+
+        if (keyCode == Keyboard.KEY_TAB) {
+            if (showReplace) {
+                searchFieldFocused = !searchFieldFocused;
+                replaceFieldFocused = !replaceFieldFocused;
+            } else if (searchFieldFocused && callback != null) {
+                searchFieldFocused = false;
+                callback.focusMainEditor();
+            }
             markActivity();
             return true;
         }
