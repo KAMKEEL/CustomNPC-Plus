@@ -832,7 +832,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         KEYS.SEARCH_REPLACE.setTask(e -> {
             if (!e.isPress() || !isActive.get())
                 return;
-            searchBar.toggleReplace();
+            searchBar.openSearchReplace();
         });
         
         // GO_TO_LINE: Open go to line dialog (Ctrl+G)
