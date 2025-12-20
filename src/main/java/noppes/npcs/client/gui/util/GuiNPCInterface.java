@@ -243,16 +243,7 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     @Override
     public void keyTyped(char c, int i) {
-        if (subgui != null)
-            subgui.keyTyped(c, i);
-        for (GuiNpcTextField tf : textfields.values())
-            tf.textboxKeyTyped(c, i);
-
-        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
-            guiScrollableComponent.keyTyped(c, i);
-        }
-
-        /*
+           /*
          Fixes closing sub with escape closes all of its parents.
          The outermost GUI (root of all subs) closes the deepest open sub on ESC.
          */
@@ -273,6 +264,17 @@ public abstract class GuiNPCInterface extends GuiScreen {
             else
                 close();
         }
+        
+        
+        if (subgui != null)
+            subgui.keyTyped(c, i);
+        for (GuiNpcTextField tf : textfields.values())
+            tf.textboxKeyTyped(c, i);
+
+        for (GuiScrollWindow guiScrollableComponent : scrollWindows.values()) {
+            guiScrollableComponent.keyTyped(c, i);
+        }
+     
     }
 
     public void onGuiClosed() {
