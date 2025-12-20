@@ -1174,13 +1174,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // intuitive on blank/indented lines outside any recognized scope.
             LineData currCheck = selection.findCurrentLine(container.lines);
             if (currCheck != null && currCheck.text.trim().length() == 0) {
-                int removeEnd = text.indexOf('\n', currCheck.start);
+                int removeEnd = text.indexOf('\n', currCheck.start-1);
                 if (removeEnd == -1) {
                     removeEnd = text.length();
                 } else {
                     removeEnd = removeEnd + 1; // include the newline
                 }
-                String before = text.substring(0, currCheck.start);
+                String before = text.substring(0, currCheck.start-1);
                 String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
                 setText(before + after);
                 int newCursor = Math.max(0, currCheck.start - 1);
