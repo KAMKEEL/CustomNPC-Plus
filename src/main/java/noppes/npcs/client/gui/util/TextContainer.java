@@ -25,7 +25,7 @@ public class TextContainer {
     public List<MarkUp> makeup = new ArrayList<MarkUp>();
     public List<LineData> lines = new ArrayList<LineData>();
 
-    public int lineHeight;
+    public int lineHeight = 13;
     public int totalHeight;
     public int visibleLines = 1;
     public int linesCount;

@@ -1791,11 +1791,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             this.text = text;
             //this.container = new TextContainer(text);
-            this.container = new JavaTextContainer(text);
-            this.container.init(this.width, this.height);
-            if (this.enableCodeHighlighting) {
+            if (this.container == null)
+                this.container = new JavaTextContainer(text);
+
+            this.container.init(text, this.width, this.height);
+
+            if (this.enableCodeHighlighting) 
                 this.container.formatCodeText();
-            }
 
             // Ensure scroll state stays in bounds after text change
             int maxScroll = Math.max(0, this.container.linesCount - this.container.visibleLines);

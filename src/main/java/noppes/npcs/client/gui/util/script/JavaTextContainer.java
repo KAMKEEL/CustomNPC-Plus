@@ -9,7 +9,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class JavaTextContainer extends TextContainer {
-    public static final char colorChar = '\u00A7';
 
     public static final Pattern MODIFIER = Pattern.compile(
             "\\b(public|protected|private|static|final|abstract|synchronized|native|default)\\b");
@@ -41,29 +40,20 @@ public class JavaTextContainer extends TextContainer {
     public static final Pattern NUMBER = Pattern.compile(
             "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
 
-    public String text;
     public List<LineData> lines = new ArrayList<>();
     public List<MethodBlock> methodBlocks = new ArrayList<>();
-    public int lineHeight;
-    public int totalHeight;
-    public int visibleLines = 1;
-    // Cached brace spans: list of {level, startLine, endLine}
-    private List<int[]> braceSpansCache = null;
 
     public JavaTextContainer(String text) {
         super(text);
-        this.text = text == null ? "" : text.replaceAll("\\r?\\n|\\r", "\n");
     }
-    
-    public void init(int width, int height) {
-       // lineHeight = ClientProxy.Font.height();
-       // if (lineHeight == 0)
-            lineHeight = 13;
-        
-        String[] split = text.split("\\n", -1); // -1 preserves empty lines ""
+
+    public void init(String text,int width, int height) {
+        this.text = text == null ? "" : text.replaceAll("\\r?\\n|\\r", "\n");
+        lines.clear();
+        String[] split = text.split("\n",-1);
+
         int totalChars = 0;
-        for (int lineIndex = 0; lineIndex < split.length; lineIndex++) {
-            String l = split[lineIndex];
+        for (String l : split) {
             StringBuilder line = new StringBuilder();
             // Break the source line `l` into layout-friendly segments using `regexWord`.
             // `regexWord` finds word tokens (letters/numbers/underscore/hyphen), newlines
@@ -79,36 +69,20 @@ public class JavaTextContainer extends TextContainer {
                     // Note: `end` is an exclusive offset into the full text (start..end).
                     // For wrapped lines we record the current `totalChars` as the start
                     // and compute the exclusive end as `start + line.length()`.
-                    lines.add(new LineData(line.toString(), totalChars, (totalChars += line.length())));
+                    lines.add(new LineData(line.toString(), totalChars, totalChars += line.length()));
                     line = new StringBuilder();
                 }
                 line.append(word);
                 i = m.start();
             }
-            // Only add +1 for the newline if this is NOT the last line
-            // The last line has no newline after it. If the source text
-            // ends with a trailing '\n' split(...) produces a final empty
-            // element — skip creating a LineData for that trailing empty
-            // split so there's no phantom clickable empty line.
-            boolean isLastLine = (lineIndex == split.length - 1);
-            if (isLastLine && l.isEmpty() && text.endsWith("\n") && split.length > 1) {
-                // skip trailing empty split caused by final newline
-                continue;
-            }
-            int endOffset = isLastLine ? 0 : 1;
-            // Note: `end` is exclusive. For non-last lines we include the trailing
-            // newline by adding `endOffset` (1), so previous line end == next line start.
-            lines.add(new LineData(line.toString(), totalChars, (totalChars += line.length() + endOffset)));
+            lines.add(new LineData(line.toString(), totalChars, totalChars += line.length() + 1));
         }
         linesCount = lines.size();
         totalHeight = linesCount * lineHeight;
-        // Number of fully-visible lines that fit in the given height.
+        // Number of fully-visible lines that fit in the given viewport height.
         // Use floor division and ensure at least 1 line is visible.
         // Don't forget -1, fixes enter auto-scrolling properly
-        visibleLines = Math.max(height / lineHeight - 1, 1); 
-
-        // Invalidate caches that depend on line layout
-        invalidateCaches();
+        visibleLines = Math.max(height / lineHeight - 1, 1);
     }
 
     private List<String> globalFields = new ArrayList<>();
@@ -180,10 +154,7 @@ public class JavaTextContainer extends TextContainer {
             }
         }
     }
-
-    public synchronized void invalidateCaches() {
-        this.braceSpansCache = null;
-    }
+    
     public void formatCodeText() {
         // Step 1: Tokenize the full text
         List<Mark> marks = new ArrayList<>();
@@ -208,12 +179,7 @@ public class JavaTextContainer extends TextContainer {
 
         // Compute indent guides based on matched braces, ignoring strings/comments
         computeIndentGuides(marks);
-
-        // Invalidate cached brace spans; will be recomputed on demand
-        invalidateCaches();
-
-
-
+        
         // Step 2: Clear existing tokens
         for (LineData line : lines) {
             line.tokens.clear();
@@ -320,7 +286,7 @@ public class JavaTextContainer extends TextContainer {
         return result;
     }
 
-    public class LineData {
+    public static class LineData {
         public String text;
         public int start, end;
         public List<Token> tokens = new ArrayList<>();
