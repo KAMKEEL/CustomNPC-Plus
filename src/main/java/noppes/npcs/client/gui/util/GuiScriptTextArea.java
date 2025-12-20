@@ -543,10 +543,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         int px = ClientProxy.Font.width(sb.toString());
                         int gx = x + LINE_NUMBER_GUTTER_WIDTH + 4 + px - 2; // shift left ~2px for the IntelliJ feel
 
+                        boolean highlighted = (openLine == highlightedOpenLine && closeLine == highlightedCloseLine);
+                        int guideColor = highlighted ? 0x9933cc00 : 0x33FFFFFF;
+                        
                         int topY = y + (drawStart - scroll.getScrolledLine()) * container.lineHeight;
                         int bottomY = y + (endLine - scroll.getScrolledLine() + 1) * container.lineHeight;
-                            int guideColor = (openLine == highlightedOpenLine && closeLine == highlightedCloseLine) ? 0x9933cc00 : 0x33FFFFFF;
-                            drawRect(gx, topY, gx + 1, bottomY, guideColor);
+                        if(highlighted)
+                            bottomY-=2;
+                        drawRect(gx, topY, gx + 1, bottomY, guideColor);
                     }
                 }
                 int yPos = posY + stringYOffset;
