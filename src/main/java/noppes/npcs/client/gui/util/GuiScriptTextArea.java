@@ -190,7 +190,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 int lineLength = ld.end - ld.start;
                 
                 // Convert 1-indexed column to 0-indexed, clamp to line length
-                int col = Math.max(0, Math.min(column - 1, lineLength));
+                // lineLength - 1 because the line's end is the start of the next line
+                int col = Math.max(0, Math.min(column - 1, lineLength - 1));
                 int position = ld.start + col;
                 
                 // Set cursor position
