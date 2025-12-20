@@ -119,7 +119,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
             textArea.enableCodeHighlighting();
             textArea.setListener(this);
-
+            this.closeOnEsc(textArea::closeOnEsc);
             this.addTextField(textArea);
 
             int left1 = this.guiLeft + this.xSize - 104;

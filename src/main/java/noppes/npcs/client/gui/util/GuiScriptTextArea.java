@@ -1470,6 +1470,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         setCursor(result.newCursorPosition, false);
     }
     
+    public boolean closeOnEsc(){
+        return !searchBar.isVisible() && !goToLineDialog.isVisible(); 
+    }
+    
     // ==================== KEYBOARD MODIFIERS ====================
 
     private boolean isAltKeyDown() {

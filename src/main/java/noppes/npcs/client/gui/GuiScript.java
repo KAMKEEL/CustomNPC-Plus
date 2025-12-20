@@ -105,6 +105,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
                 textArea.init(guiLeft + 74, guiTop + 4, 239, 208, container == null ? "" : container.script);
             textArea.enableCodeHighlighting();
             textArea.setListener(this);
+            this.closeOnEsc(textArea::closeOnEsc);
             this.addTextField(textArea);
 
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
