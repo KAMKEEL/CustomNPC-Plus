@@ -338,11 +338,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Always highlight unmatched braces (positions in text)
         List<Integer> unmatchedBraces = BracketMatcher.findUnmatchedBracePositions(text);
         
-        // Determine which exact brace span (openLine/closeLine) should be highlighted based on bracket under caret
+        // Determine which exact brace span (openLine/closeLine) to highlight indent guides for
         int highlightedOpenLine = -1;
         int highlightedCloseLine = -1;
         if (startBracket != endBracket && startBracket >= 0) {
             int bracketLineIdx = -1;
+            // Only consider curly braces for highlighting the indent guides
+            boolean isCurlyBracket = false;
+            if (text != null && startBracket >= 0 && startBracket < text.length()) {
+                char bc = text.charAt(startBracket);
+                if (bc == '{' || bc == '}') isCurlyBracket = true;
+            }
             for (int li = 0; li < list.size(); li++) {
                 LineData ld = list.get(li);
                 if (startBracket >= ld.start && startBracket < ld.end) {
@@ -350,7 +356,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     break;
                 }
             }
-            if (bracketLineIdx >= 0) {
+            if (bracketLineIdx >= 0 && isCurlyBracket) {
                 for (int[] span : braceSpans) {
                     int openLine = span[1];
                     int closeLine = span[2];
