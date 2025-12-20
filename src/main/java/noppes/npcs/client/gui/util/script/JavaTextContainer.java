@@ -139,20 +139,93 @@ public class JavaTextContainer extends TextContainer {
     }
 
     private void highlightVariableReferences(List<Mark> marks) {
+        // Known Java keywords and types that shouldn't be flagged as undefined
+        java.util.Set<String> knownIdentifiers = new java.util.HashSet<>(java.util.Arrays.asList(
+            // Primitive types
+            "boolean", "int", "float", "double", "long", "char", "byte", "short", "void",
+            // Keywords
+            "null", "true", "false", "if", "else", "switch", "case", "for", "while", "do",
+            "try", "catch", "finally", "return", "throw", "var", "let", "const", "function",
+            "continue", "break", "this", "new", "typeof", "instanceof", "class", "interface",
+            "extends", "implements", "import", "package", "public", "private", "protected",
+            "static", "final", "abstract", "synchronized", "native", "default", "enum",
+            "throws", "super", "assert", "volatile", "transient", "strictfp", "goto",
+            // Common JS/scripting keywords
+            "undefined", "NaN", "Infinity", "arguments", "prototype", "constructor",
+            // Common types (first letter uppercase pattern handles most)
+            "String", "Object", "Array", "Math", "System", "Integer", "Double", "Float",
+            "Boolean", "Long", "Byte", "Short", "Character", "List", "Map", "Set"
+        ));
+        
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
         Matcher m = identifier.matcher(text);
         while (m.find()) {
             String name = m.group(1);
             int position = m.start(1);
-
-            // Check if this variable is local to the method it's in
+            
+            // Skip known keywords and types
+            if (knownIdentifiers.contains(name)) continue;
+            
+            // Skip type names (first letter uppercase)
+            if (Character.isUpperCase(name.charAt(0))) continue;
+            
+            // Check if inside a method
             MethodBlock methodBlock = findMethodBlockAtPosition(position);
-            if (methodBlock != null && methodBlock.localVariables.contains(name)) {
-                marks.add(new Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD));
-            } else if (globalFields.contains(name)) {
-                marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+            
+            if (methodBlock != null) {
+                // Inside a method - check in order: parameter, local, global
+                if (methodBlock.parameters.contains(name)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.PARAMETER));
+                } else if (methodBlock.localVariables.contains(name)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD));
+                } else if (globalFields.contains(name)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+                } else {
+                    // Unknown variable - mark as undefined (Bug 11)
+                    // But only if it looks like a variable reference (not a method call)
+                    if (!isMethodCall(position) && !isTypeReference(name, position)) {
+                        marks.add(new Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
+                    }
+                }
+            } else {
+                // Outside any method - check global fields
+                if (globalFields.contains(name)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+                }
+                // Don't mark as undefined outside methods - could be a type name or declaration
             }
         }
+    }
+    
+    /**
+     * Check if the identifier at this position is a method call (followed by parenthesis)
+     */
+    private boolean isMethodCall(int position) {
+        // Skip whitespace after identifier
+        int i = position;
+        while (i < text.length() && Character.isLetterOrDigit(text.charAt(i)) || text.charAt(i) == '_') {
+            i++;
+        }
+        // Skip whitespace
+        while (i < text.length() && Character.isWhitespace(text.charAt(i))) {
+            i++;
+        }
+        // Check for opening paren
+        return i < text.length() && text.charAt(i) == '(';
+    }
+    
+    /**
+     * Check if this looks like a type reference (e.g., part of a declaration or generic)
+     */
+    private boolean isTypeReference(String name, int position) {
+        // Check if preceded by 'new ', '<', or ',<space>Type'
+        if (position > 4) {
+            String before = text.substring(Math.max(0, position - 5), position);
+            if (before.endsWith("new ") || before.endsWith("< ") || before.endsWith("<")) {
+                return true;
+            }
+        }
+        return false;
     }
     
     public void formatCodeText() {
@@ -366,8 +439,10 @@ public class JavaTextContainer extends TextContainer {
         METHOD_CALL('a', 50),
         NUMBER('7', 40),
         VARIABLE('f', 30),
-        GLOBAL_FIELD('b', 35), // new
-        LOCAL_FIELD('e', 25), // new
+        GLOBAL_FIELD('b', 35), // aqua - class-level fields
+        LOCAL_FIELD('e', 25),  // yellow - local variables
+        PARAMETER('9', 36),    // blue - method parameters (Bug 10)
+        UNDEFINED_VAR('4', 10), // dark red - undefined variables (Bug 11)
         DEFAULT('f', 0);
 
         public final char color;

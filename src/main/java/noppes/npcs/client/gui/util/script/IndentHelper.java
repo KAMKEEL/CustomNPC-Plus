@@ -145,36 +145,86 @@ public class IndentHelper {
     }
     
     /**
-     * Format entire text with proper indentation
+     * Format entire text with proper indentation and operator spacing
      */
     public static FormatResult formatText(String text, int cursorPosition) {
-        String[] linesArr = text.split("\n", -1);
-        StringBuilder out = new StringBuilder(text.length() + 32);
+        return formatText(text, cursorPosition, 0);
+    }
+    
+    /**
+     * Format entire text with proper indentation, operator spacing, and optional line wrapping
+     * @param text The text to format
+     * @param cursorPosition Current cursor position
+     * @param viewportWidth Viewport width for line wrapping (0 = no wrapping)
+     */
+    public static FormatResult formatText(String text, int cursorPosition, int viewportWidth) {
+        // First pass: fix indentation
+        String indented = formatIndentation(text, cursorPosition);
         
-        // Track cursor position in formatted output
-        int cursorLine = -1;
-        int cursorColInContent = 0;
+        // Second pass: apply operator spacing and whitespace normalization
+        FormatHelper helper = new FormatHelper();
+        FormatHelper.FormatSettings settings = helper.getSettings();
+        
+        // Enable wrapping if viewport width is provided
+        if (viewportWidth > 0) {
+            settings.wrapLongLines = true;
+            settings.wrapComments = true;
+            // Use 75% of viewport width as max line length for some margin
+            int charWidth = 6; // Approximate character width
+            settings.maxLineLength = Math.max(60, (int)(viewportWidth * 0.75 / charWidth));
+        }
+        
+        String formatted = helper.format(indented);
+        
+        // Apply wrapping if enabled
+        if (viewportWidth > 0 && settings.wrapLongLines) {
+            formatted = helper.wrapLines(formatted, settings.maxLineLength);
+        }
+        
+        // Recalculate cursor position (try to maintain relative position)
+        int newCursorPos = Math.min(cursorPosition, formatted.length());
+        
+        // Try to find cursor on same line with same content context
+        String[] origLines = text.split("\n", -1);
+        String[] newLines = formatted.split("\n", -1);
+        
         int lineStartPos = 0;
+        int cursorLine = -1;
+        int cursorColInLine = 0;
         
-        // Find cursor's line and column
-        for (int li = 0; li < linesArr.length; li++) {
-            String line = linesArr[li];
-            int lineEndPos = lineStartPos + line.length();
-            
+        for (int li = 0; li < origLines.length; li++) {
+            int lineEndPos = lineStartPos + origLines[li].length();
             if (cursorPosition >= lineStartPos && cursorPosition <= lineEndPos) {
                 cursorLine = li;
-                int leadingSpaces = line.length() - line.replaceAll("^[ \\t]+", "").length();
-                cursorColInContent = Math.max(0, cursorPosition - lineStartPos - leadingSpaces);
+                cursorColInLine = cursorPosition - lineStartPos;
                 break;
             }
             lineStartPos = lineEndPos + 1;
         }
         
+        if (cursorLine >= 0 && cursorLine < newLines.length) {
+            int newLineStart = 0;
+            for (int li = 0; li < cursorLine; li++) {
+                newLineStart += newLines[li].length() + 1;
+            }
+            // Clamp cursor to new line length
+            newCursorPos = newLineStart + Math.min(cursorColInLine, newLines[cursorLine].length());
+        }
+        
+        return new FormatResult(formatted, newCursorPos);
+    }
+    
+    /**
+     * Format indentation only (first pass)
+     */
+    private static String formatIndentation(String text, int cursorPosition) {
+        String[] linesArr = text.split("\n", -1);
+        StringBuilder out = new StringBuilder(text.length() + 32);
+        
         boolean inString = false;
         boolean escape = false;
         boolean inBlockComment = false;
         int depth = 0;
-        int newCursorPos = 0;
         
         for (int li = 0; li < linesArr.length; li++) {
             String line = linesArr[li];
@@ -218,17 +268,13 @@ public class IndentHelper {
             if (startsWithClose) indentLevel = Math.max(0, indentLevel - 1);
             int targetIndent = indentLevel * TAB_SIZE;
             
-            if (li == cursorLine) {
-                newCursorPos = out.length() + targetIndent + Math.min(cursorColInContent, trimmedLeading.length());
-            }
-            
             out.append(spaces(targetIndent)).append(trimmedLeading);
             if (li < linesArr.length - 1) out.append('\n');
             
             depth = Math.max(0, depth + opens - closes);
         }
         
-        return new FormatResult(out.toString(), newCursorPos);
+        return out.toString();
     }
     
     /**

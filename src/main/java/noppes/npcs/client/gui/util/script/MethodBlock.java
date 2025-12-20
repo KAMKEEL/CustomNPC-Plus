@@ -16,17 +16,48 @@ public class MethodBlock {
     // Pattern for variable declarations (same as in JavaTextContainer)
     public static final Pattern LOCAL_VAR_DECL = Pattern.compile(
             "\\b([A-Z][a-zA-Z0-9_<>\\[\\]]*|[a-z][a-zA-Z0-9_]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+    
+    // Pattern for method parameters: Type name (with optional ... for varargs)
+    public static final Pattern PARAMETER_PATTERN = Pattern.compile(
+            "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
 
     public int startOffset;
     public int endOffset;
     public String text;
     public List<String> localVariables = new ArrayList<>();
+    public List<String> parameters = new ArrayList<>();  // Method parameters
 
     public MethodBlock(int start, int end, String text) {
         this.startOffset = start;
         this.endOffset = end;
         this.text = text;
+        extractParameters();
         extractLocalVariables();
+    }
+    
+    // Extract method parameters from the method signature
+    private void extractParameters() {
+        parameters.clear();
+        
+        // Find the parameter list between ( and )
+        int parenStart = text.indexOf('(');
+        int parenEnd = text.indexOf(')');
+        
+        if (parenStart < 0 || parenEnd <= parenStart) return;
+        
+        String paramList = text.substring(parenStart + 1, parenEnd);
+        
+        // Skip if empty
+        if (paramList.trim().isEmpty()) return;
+        
+        // Split by comma (but be careful of generic types like List<A, B>)
+        Matcher m = PARAMETER_PATTERN.matcher(paramList);
+        while (m.find()) {
+            String paramName = m.group(2);
+            if (!parameters.contains(paramName)) {
+                parameters.add(paramName);
+            }
+        }
     }
 
     // Extract local variables declared within this method
