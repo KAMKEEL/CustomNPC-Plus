@@ -118,7 +118,7 @@ public class GoToLineDialog {
     }
 
     public void toggle() {
-        if (visible) {
+        if (visible && focused) {
             close();
         } else {
             show();
@@ -129,6 +129,9 @@ public class GoToLineDialog {
         return visible && focused;
     }
 
+    public void unfocus() {
+        focused = false;
+    }
     // ==================== RENDERING ====================
 
     public void draw(int mouseX, int mouseY) {
@@ -164,7 +167,7 @@ public class GoToLineDialog {
         int fieldY = y + padding + 14 + 5;
         textFieldWidth = dialogWidth - padding * 2;
         drawTextField(fieldX, fieldY, textFieldWidth, textFieldHeight, inputText, cursor,
-                selectionStart, selectionEnd, scrollOffset, true);
+                selectionStart, selectionEnd, scrollOffset, focused);
 
         if (inputText.isEmpty())
             font.drawString("[Line][:Column]", x + padding + 6, y + padding + 23, 0xFF888888);
