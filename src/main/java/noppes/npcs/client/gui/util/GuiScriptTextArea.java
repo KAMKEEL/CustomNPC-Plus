@@ -54,6 +54,19 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public String highlightedWord;
     private JavaTextContainer container = null;
     private boolean enableCodeHighlighting = false;
+    // Extra empty lines to allow padding at the bottom of the editor viewport
+    private int bottomPaddingLines = 6;
+
+    private int getPaddedLineCount() {
+        if (container == null) return 0;
+        // Only add bottom padding when the content is already scrollable. This avoids
+        // introducing a scrollbar when there's nothing to scroll for.
+        if (container.linesCount > container.visibleLines - bottomPaddingLines) {
+            return Math.max(0, container.linesCount + bottomPaddingLines);
+        } else {
+            return container.linesCount;
+        }
+    }
 
     // ==================== HELPER CLASS INSTANCES ====================
     private final ScrollState scroll = new ScrollState();
@@ -125,7 +138,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     LineData ld = container.lines.get(i);
                     if (position >= ld.start && position < ld.end) {
                         int visible = Math.max(1, visibleLines);
-                        int maxScroll = Math.max(0, container.linesCount - visible);
+                        int effectiveVisible = Math.max(1, visible - bottomPaddingLines);
+                        int maxScroll = Math.max(0, getPaddedLineCount() - visible);
                         int targetLine = i;
 
                         // If search bar is visible and would hide this line, scroll down so it's visible
@@ -137,7 +151,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                             // Force scroll so target line appears just below the search bar
                             scroll.setTargetScroll(Math.max(0, targetLine - linesHiddenBySRB), maxScroll);
                         } else {
-                            scroll.scrollToLine(targetLine, visible, maxScroll);
+                            scroll.scrollToLine(targetLine, effectiveVisible, maxScroll);
                         }
                         break;
                     }
@@ -217,8 +231,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 
                 // Scroll to make the line visible
                 int visible = GuiScriptTextArea.this.height / (container != null ? container.lineHeight : 12);
-                int maxScroll = Math.max(0, container.linesCount - visible);
-                scroll.scrollToLine(lineIdx, visible, maxScroll);
+                int effectiveVisible = Math.max(1, visible - bottomPaddingLines);
+                int maxScroll = Math.max(0, getPaddedLineCount() - visible);
+                scroll.scrollToLine(lineIdx, effectiveVisible, maxScroll);
             }
 
             @Override
@@ -308,7 +323,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         container.visibleLines = (height / container.lineHeight);
 
-        int maxScroll = Math.max(0, this.container.linesCount - container.visibleLines);
+        int maxScroll = Math.max(0, getPaddedLineCount() - container.visibleLines);
 
         // Handle mouse wheel scroll
         int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
@@ -320,7 +335,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // Handle scrollbar dragging (delegated to ScrollState)
         if (scroll.isClickScrolling())
-            scroll.handleClickScrolling(yMouse, x, y, height, container.visibleLines, container.linesCount, maxScroll);
+            scroll.handleClickScrolling(yMouse, x, y, height, container.visibleLines, getPaddedLineCount(), maxScroll);
         
         // Update scroll animation
         scroll.initializeIfNeeded(scroll.getScrolledLine());
@@ -595,10 +610,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         if (hasVerticalScrollbar()) {
             Minecraft.getMinecraft().renderEngine.bindTexture(GuiCustomScroll.resource);
-            int sbSize = Math.max((int) (1f * (container.visibleLines) / container.linesCount * height), 2);
+            int effLines = Math.max(1, getPaddedLineCount());
+            int sbSize = Math.max((int) (1f * (container.visibleLines) / effLines * height), 2);
 
             int posX = x + width - 6;
-            double linesCount = Math.max(1, (double) container.linesCount);
+            double linesCount = (double) effLines;
             int posY = (int) (y + 1f * scroll.getScrollPos() / linesCount * (height - 4)) + 1;
 
             drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
@@ -682,9 +698,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         int lineIdx = getCursorLineIndex();
         int visible = Math.max(1, container.visibleLines);
-        int maxScroll = Math.max(0, container.linesCount - visible);
+        int effectiveVisible = Math.max(1, visible - bottomPaddingLines);
+        int maxScroll = Math.max(0, getPaddedLineCount() - visible);
 
-        scroll.scrollToLine(lineIdx, visible, maxScroll);
+        scroll.scrollToLine(lineIdx, effectiveVisible, maxScroll);
     }
 
     // ==================== KEY BINDINGS INITIALIZATION ====================
@@ -1757,10 +1774,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // Prefer delegating scrollbar-start logic to ScrollState. If the click
             // is on the scrollbar area and the scrollbar can be dragged, we start
             // click-scrolling mode and cancel the normal text click-drag behavior.
-            if (this.clicked && this.container.linesCount * this.container.lineHeight > this.height && xMouse > this.x + this.width - 8) {
+            if (this.clicked && getPaddedLineCount() * this.container.lineHeight > this.height && xMouse > this.x + this.width - 8) {
                 // We consumed the mouse-down as a scrollbar drag start
                 this.clicked = false;
-                scroll.startScrollbarDrag(yMouse,this.y,this.height,container.linesCount);
+                scroll.startScrollbarDrag(yMouse,this.y,this.height, getPaddedLineCount());
             } else {
                 // Handle double/triple click selection counting
                 if (time - this.lastClicked < 300L) {
@@ -1836,7 +1853,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 this.container.formatCodeText();
 
             // Ensure scroll state stays in bounds after text change
-            int maxScroll = Math.max(0, this.container.linesCount - this.container.visibleLines);
+            int maxScroll = Math.max(0, getPaddedLineCount() - this.container.visibleLines);
             scroll.clampToBounds(maxScroll);
 
             selection.clamp(this.text.length());
@@ -1857,7 +1874,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     public boolean hasVerticalScrollbar() {
-        return this.container != null && this.container.visibleLines < this.container.linesCount;
+        return this.container != null && this.container.visibleLines < getPaddedLineCount();
     }
 
     public void enableCodeHighlighting() {
