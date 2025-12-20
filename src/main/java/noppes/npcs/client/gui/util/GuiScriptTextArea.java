@@ -313,7 +313,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             doubleClicked = false;
             tripleClicked = false;
         }
-
+        // y += searchHeight;
+        // height -= searchHeight;
         // Calculate braces next to cursor to highlight
         int startBracket = 0, endBracket = 0;
         if (selection.getStartSelection() >= 0 && text != null && text.length() > 0 &&
@@ -557,8 +558,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         goToLineDialog.draw(xMouse, yMouse);
         
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
-        y -= searchHeight;
-        height += searchHeight;
+        //        y -= searchHeight;
+        //        height += searchHeight;
     }
 
     private void scissorViewport() {
