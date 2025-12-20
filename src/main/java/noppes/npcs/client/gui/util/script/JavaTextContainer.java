@@ -65,13 +65,21 @@ public class JavaTextContainer extends TextContainer {
         for (int lineIndex = 0; lineIndex < split.length; lineIndex++) {
             String l = split[lineIndex];
             StringBuilder line = new StringBuilder();
+            // Break the source line `l` into layout-friendly segments using `regexWord`.
+            // `regexWord` finds word tokens (letters/numbers/underscore/hyphen), newlines
+            // or the end-of-line. The loop takes substrings from the previous match
+            // index `i` up to the current `m.start()` so each `word` contains the
+            // next token plus any following delimiters (spaces, punctuation).
+            // This lets us measure and wrap at token boundaries rather than mid-word.
             Matcher m = regexWord.matcher(l);
             int i = 0;
             while (m.find()) {
                 String word = l.substring(i, m.start());
                 if (ClientProxy.Font.width(line + word) > width - 10) {
-                    lines.add(new LineData(line.toString(), totalChars, totalChars + line.length()));
-                    totalChars += line.length();
+                    // Note: `end` is an exclusive offset into the full text (start..end).
+                    // For wrapped lines we record the current `totalChars` as the start
+                    // and compute the exclusive end as `start + line.length()`.
+                    lines.add(new LineData(line.toString(), totalChars, (totalChars += line.length())));
                     line = new StringBuilder();
                 }
                 line.append(word);
@@ -88,9 +96,9 @@ public class JavaTextContainer extends TextContainer {
                 continue;
             }
             int endOffset = isLastLine ? 0 : 1;
-            lines.add(new LineData(line.toString(), totalChars, totalChars + line.length() + endOffset));
-
-            totalChars += line.length() + endOffset;
+            // Note: `end` is exclusive. For non-last lines we include the trailing
+            // newline by adding `endOffset` (1), so previous line end == next line start.
+            lines.add(new LineData(line.toString(), totalChars, (totalChars += line.length() + endOffset)));
         }
         linesCount = lines.size();
         totalHeight = linesCount * lineHeight;
