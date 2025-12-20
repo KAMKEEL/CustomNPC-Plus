@@ -74,10 +74,13 @@ public class KeyPreset {
         return this;
     }
 
-    public boolean shouldThrottle() {
+    /**
+     * Determine whether the given press type should be throttled. Only HOLD events are throttled.
+     */
+    public boolean shouldThrottle(PressType pressType) {
         if (throttleInterval <= 0) return false;
         long currentTime = System.currentTimeMillis();
-        long intervalToUse = isFirstAction && firstThrottleInterval > 0 ?
+        long intervalToUse = pressType == PressType.HOLD && isFirstAction && firstThrottleInterval > 0 ?
                 firstThrottleInterval : throttleInterval;
         if (currentTime - lastActionTime < intervalToUse) return true;
         lastActionTime = currentTime;
@@ -122,10 +125,13 @@ public class KeyPreset {
     }
 
     public KeyPreset onAction(PressType... pressTypes) {
-        if (task != null && !shouldThrottle()) {
-            for (PressType pressType : pressTypes)
+        if (task == null)
+            return this;
+
+        for (PressType pressType : pressTypes)
+            if (!shouldThrottle(pressType))
                 this.task.accept(new KeyEvent(pressType, this));
-        }
+
         return this;
     }
 
