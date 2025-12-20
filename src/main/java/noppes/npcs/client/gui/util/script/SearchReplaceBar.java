@@ -154,8 +154,8 @@ public class SearchReplaceBar {
      * Open search+replace bar (Ctrl+Shift+R)
      */
     public void openSearchReplace() {
-        showReplace = true;
         openSearch();
+        showReplace = true;
     }
     
     /**
@@ -282,8 +282,8 @@ public class SearchReplaceBar {
         updateHoverStates(mouseX, mouseY);
         
         int totalHeight = getTotalHeight();
-        Gui.drawRect(x, y, x + width, y + totalHeight, 0xFF3c3f41);
-        Gui.drawRect(x, y + totalHeight - 1, x + width, y + totalHeight, 0xFF515151);
+        Gui.drawRect(x, y, x + width, y + totalHeight, 0xFF2d2d30);
+        Gui.drawRect(x, y + totalHeight - 1, x + width, y + totalHeight, 0xFF414141);
         
         drawSearchRow(mouseX, mouseY);
         
@@ -332,7 +332,7 @@ public class SearchReplaceBar {
     private void drawReplaceRow(int mouseX, int mouseY) {
         int rowY = y + barHeight + 2;
         int currentX = x + padding;
-        
+
         drawTextField(currentX, rowY, textFieldWidth, textFieldHeight,
                      replaceText, replaceCursor, replaceSelectionStart, replaceSelectionEnd,
                      replaceFieldFocused, "Replace...", replaceScrollOffset, false);
@@ -346,8 +346,91 @@ public class SearchReplaceBar {
         
         drawActionButton(currentX, rowY, "Exclude", hoverExclude, currentMatchIndex >= 0);
     }
-    
+
     private void drawTextField(int fieldX, int fieldY, int fieldWidth, int fieldHeight,
+                                String text, int cursor, int selStart, int selEnd,
+                                boolean focused, String placeholder, int scrollOffset, boolean isSearchField) {
+        // Draw text field background
+        Gui.drawRect(fieldX, fieldY, fieldX + fieldWidth, fieldY + fieldHeight, 0xFF1e1e1e);
+        Gui.drawRect(fieldX, fieldY, fieldX + fieldWidth, fieldY + 1, focused ? 0xFF007acc : 0xFF3c3c3c);
+        Gui.drawRect(fieldX, fieldY + fieldHeight - 1, fieldX + fieldWidth, fieldY + fieldHeight,
+                focused ? 0xFF007acc : 0xFF3c3c3c);
+        Gui.drawRect(fieldX, fieldY, fieldX + 1, fieldY + fieldHeight, focused ? 0xFF007acc : 0xFF3c3c3c);
+        Gui.drawRect(fieldX + fieldWidth - 1, fieldY, fieldX + fieldWidth, fieldY + fieldHeight,
+                focused ? 0xFF007acc : 0xFF3c3c3c);
+
+        // Calculate visible area
+        int textX = fieldX + 4;
+        int textY = fieldY + (fieldHeight - 8) / 2;
+        int visibleWidth = fieldWidth - 8;
+
+        // Apply scroll offset
+        String visibleText = text;
+        int adjustedSelStart = selStart;
+        int adjustedSelEnd = selEnd;
+
+        if (scrollOffset > 0 && scrollOffset < text.length()) {
+            visibleText = text.substring(scrollOffset);
+            adjustedSelStart = Math.max(0, selStart - scrollOffset);
+            adjustedSelEnd = Math.max(0, selEnd - scrollOffset);
+        }
+
+        // Draw selection highlight
+        if (adjustedSelStart != adjustedSelEnd) {
+            int minSel = Math.min(adjustedSelStart, adjustedSelEnd);
+            int maxSel = Math.max(adjustedSelStart, adjustedSelEnd);
+            String beforeSel = visibleText.substring(0, Math.min(minSel, visibleText.length()));
+            String inSel = visibleText.substring(Math.min(minSel, visibleText.length()),
+                    Math.min(maxSel, visibleText.length()));
+            int selX = textX + font.getStringWidth(beforeSel);
+            int selW = font.getStringWidth(inSel);
+            Gui.drawRect(selX, textY - 1, selX + selW, textY + 9, 0xFF264f78);
+        }
+
+        int cursorPosX = font.getStringWidth(text.substring(0, Math.min(cursor, text.length())));
+        if (cursorPosX - scrollOffset > visibleWidth - 2) {
+            scrollOffset = cursorPosX - visibleWidth + 2;
+        } else if (cursorPosX - scrollOffset < 0) {
+            scrollOffset = Math.max(0, cursorPosX);
+        }
+        // Update stored scroll offset
+        if (isSearchField) {
+            searchScrollOffset = scrollOffset;
+        } else {
+            replaceScrollOffset = scrollOffset;
+        }
+
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        GuiUtil.setScissorClip(fieldX + 2, fieldY, fieldWidth - 4, fieldHeight);
+
+
+        // Draw selection highlight
+        if (selStart != selEnd && focused) {
+            int startX = textX + font.getStringWidth(
+                    text.substring(0, Math.min(selStart, text.length()))) - scrollOffset;
+            int endX = textX + font.getStringWidth(text.substring(0, Math.min(selEnd, text.length()))) - scrollOffset;
+            Gui.drawRect(startX, textY - 1, endX, textY + font.FONT_HEIGHT, 0xFF2d5ca6);
+        }
+
+        // Draw text with scroll offset
+        boolean noMatches = !text.isEmpty() && matches.isEmpty();
+        int col = text.isEmpty() ? 0xFFa0a0a0 : 0xFFe0e0e0;
+        if (isSearchField && noMatches)
+            col = 0xFFff6666; // Red
+
+        font.drawString(text.isEmpty() ? placeholder : text, textX - scrollOffset, textY, col);
+
+        // Draw cursor (stays visible during typing)
+        if (focused && shouldShowCursor()) {
+            int cursorDrawX = textX + cursorPosX - scrollOffset;
+            Gui.drawRect(cursorDrawX, textY - 1, cursorDrawX + 1, textY + font.FONT_HEIGHT, 0xFFffffff);
+        }
+        
+
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
+    }
+    
+    private void oldDrawTextField(int fieldX, int fieldY, int fieldWidth, int fieldHeight,
                                String text, int cursor, int selStart, int selEnd,
                                boolean focused, String placeholder, int scrollOffset, boolean isSearchField) {
         Minecraft.getMinecraft().getTextureManager().bindTexture(TEXTURE);
@@ -424,9 +507,11 @@ public class SearchReplaceBar {
     }
     
     private void drawNavButton(int btnX, int btnY, String arrow, boolean enabled, boolean hovered) {
-        int bgColor = !enabled ? 0xFF2a2a2a : (hovered ? 0xFF505050 : 0xFF3c3c3c);
+        int bgColor = !enabled ? 0xFF393939 : (hovered ? 0xFF505050 : 0xFF3c3c3c);
         Gui.drawRect(btnX, btnY, btnX + buttonSize, btnY + buttonSize, bgColor);
-        
+        Gui.drawRect(btnX, btnY, btnX + buttonSize, btnY + 1, 0xFF606060);
+
+
         int textColor = !enabled ? 0xFF555555 : (hovered ? 0xFFffffff : 0xFFaaaaaa);
         int arrowWidth = font.getStringWidth(arrow);
         font.drawString(arrow, btnX + (buttonSize - arrowWidth) / 2, btnY + (buttonSize - font.FONT_HEIGHT) / 2, textColor);
@@ -446,7 +531,7 @@ public class SearchReplaceBar {
         int btnWidth = font.getStringWidth(label) + 10;
         int btnHeight = 14;
         
-        int bgColor = !enabled ? 0xFF2a2a2a : (hovered ? 0xFF505050 : 0xFF3c3c3c);
+        int bgColor = !enabled ? 0xFF393939 : (hovered ? 0xFF505050 : 0xFF3c3c3c);
         Gui.drawRect(btnX, btnY + 1, btnX + btnWidth, btnY + btnHeight + 1, bgColor);
         Gui.drawRect(btnX, btnY + 1, btnX + btnWidth, btnY + 2, 0xFF555555);
         Gui.drawRect(btnX, btnY + btnHeight, btnX + btnWidth, btnY + btnHeight + 1, 0xFF2a2a2a);
@@ -511,6 +596,10 @@ public class SearchReplaceBar {
         return mouseX >= bx && mouseX < bx + bw && mouseY >= by && mouseY < by + bh;
     }
     
+    public void resetSelection() {
+        searchSelectionStart = searchSelectionEnd = searchCursor;
+        replaceSelectionStart = replaceSelectionEnd = replaceCursor;
+    }
     // ==================== MOUSE INPUT ====================
     
     /**
@@ -524,6 +613,7 @@ public class SearchReplaceBar {
         int totalHeight = getTotalHeight();
         // If click is outside the bar, don't consume it (let main editor handle)
         if (mouseX < x || mouseX > x + width || mouseY < y || mouseY > y + totalHeight) {
+            resetSelection();
             return false;
         }
         

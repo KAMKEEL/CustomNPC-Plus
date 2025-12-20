@@ -154,7 +154,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             @Override
             public void focusMainEditor() {
                 active = true;
-                selection.markActivity();
+                searchBar.resetSelection();
             }
 
             @Override
@@ -822,28 +822,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         });
         
         // SEARCH: Open search bar (Ctrl+R)
+        // Works in search bar.
         KEYS.SEARCH.setTask(e -> {
-            if (!e.isPress() || !isActive.get())
+            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
                 return;
+            
+            unfocusAll();
             searchBar.openSearch();
         });
         
         // SEARCH_REPLACE: Open search+replace bar (Ctrl+Shift+R)
+        // Works in search bar.
         KEYS.SEARCH_REPLACE.setTask(e -> {
-            if (!e.isPress() || !isActive.get())
+            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
                 return;
-            searchBar.toggleReplace();
+            
+            unfocusAll();
+            searchBar.openSearchReplace();
         });
         
         // GO_TO_LINE: Open go to line dialog (Ctrl+G)
+        // Works in search bar.
         KEYS.GO_TO_LINE.setTask(e -> {
-            if (!e.isPress() || !isActive.get())
+            if (!e.isPress() || !isActive.get() && !searchBar.isVisible())
                 return;
-
+            
+            unfocusAll();
             goToLineDialog.toggle();
         });
     }
 
+    public void unfocusAll() {
+        if (searchBar.hasFocus()) searchBar.unfocus();
+        if (goToLineDialog.hasFocus()) goToLineDialog.unfocus();
+    }
     // ==================== KEYBOARD INPUT HANDLING ====================
 
     /**
@@ -1726,9 +1738,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void updateCursorCounter() {
         // Only process KeyPresets if search bar and go-to-line dialog don't have focus
         // This prevents COPY, PASTE, UNDO, etc. from firing when typing in dialogs
-        if (!searchBar.hasFocus() && !goToLineDialog.hasFocus()) {
-            KEYS.tick();
-        }
+        KEYS.tick();
+
         searchBar.updateCursor();
         goToLineDialog.updateCursor();
         ++this.cursorCounter;
