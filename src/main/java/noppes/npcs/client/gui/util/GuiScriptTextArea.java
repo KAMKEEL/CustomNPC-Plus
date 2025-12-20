@@ -86,7 +86,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         searchBar.setCallback(new SearchReplaceBar.SearchCallback() {
             @Override
             public String getText() {
-                return text;
+                return GuiScriptTextArea.this.text;
             }
 
             @Override
@@ -1767,6 +1767,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             // Consider text changes user activity to pause caret blinking briefly
             selection.markActivity();
+            searchBar.updateMatches();
 
         }
     }
