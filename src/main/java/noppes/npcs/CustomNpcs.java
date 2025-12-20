@@ -13,9 +13,11 @@ import cpw.mods.fml.common.event.FMLServerStoppedEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.EntityRegistry;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import foxz.command.CommandNoppes;
 import io.github.somehussar.janinoloader.api.IDynamicCompiler;
 import io.github.somehussar.janinoloader.api.IDynamicCompilerBuilder;
+import io.github.somehussar.janinoloader.api.delegates.LoadClassCondition;
 import kamkeel.npcs.addon.AddonManager;
 import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
@@ -98,9 +100,16 @@ import noppes.npcs.entity.old.EntityNpcNagaFemale;
 import noppes.npcs.entity.old.EntityNpcNagaMale;
 import noppes.npcs.entity.old.EntityNpcSkeleton;
 import noppes.npcs.scripted.NpcAPI;
+import somehussar.janino.AdvancedClassFilter;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.2")
 public class CustomNpcs {
@@ -139,11 +148,20 @@ public class CustomNpcs {
 
     public static MinecraftServer Server;
 
+    private static IDynamicCompiler jls;
+    @SideOnly(Side.CLIENT)
+    private static IDynamicCompiler clientJaninoCompiler;
+    @SideOnly(Side.CLIENT)
+    private final static Set<Consumer<AdvancedClassFilter>> clientClassFilterConsumer = new HashSet<>();
+
+    @SideOnly(Side.CLIENT)
+    public static void addClassesToClientClassFilter(Consumer<AdvancedClassFilter> consumer) {
+        clientClassFilterConsumer.add(consumer);
+    }
+
     public CustomNpcs() {
         instance = this;
     }
-
-    private static IDynamicCompiler jls;
 
     public static IDynamicCompiler getDynamicCompiler() {
         if (jls == null) {
@@ -151,6 +169,26 @@ public class CustomNpcs {
         }
 
         return jls;
+    }
+
+    @SideOnly(Side.CLIENT)
+    public static IDynamicCompiler getClientCompiler() {
+
+        if (clientJaninoCompiler == null) {
+            AdvancedClassFilter filter = new AdvancedClassFilter()
+                .addRegexes("noppes\\.npcs\\.api\\..*")
+                .banRegexes(".*ClassLoader.*",
+                    ".*File*.");
+
+            for (Consumer<AdvancedClassFilter> consumer : clientClassFilterConsumer) {
+                consumer.accept(filter);
+            }
+
+
+            clientJaninoCompiler = IDynamicCompilerBuilder.createBuilder().setClassFilter(filter).getCompiler();
+        }
+
+        return clientJaninoCompiler;
     }
 
     @EventHandler
