@@ -106,7 +106,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
                 // Calculate offset to account for search bar height
                 int searchBarOffset = searchBar.getTotalHeight();
-                int effectiveHeight = height - searchBarOffset;
+                int effectiveHeight = GuiScriptTextArea.this.height - searchBarOffset;
                 int visibleLines = effectiveHeight / container.lineHeight;
                 // Calculate how many lines the search bar covers
                 int linesHiddenBySRB = searchBarOffset > 0 ? (int) Math.ceil((double) searchBarOffset / container.lineHeight) : 0;
@@ -206,7 +206,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 selection.reset(position);
                 
                 // Scroll to make the line visible
-                int visible = height / (container != null ? container.lineHeight : 12);
+                int visible = GuiScriptTextArea.this.height / (container != null ? container.lineHeight : 12);
                 int maxScroll = Math.max(0, container.linesCount - visible);
                 scroll.scrollToLine(lineIdx, visible, maxScroll);
             }
