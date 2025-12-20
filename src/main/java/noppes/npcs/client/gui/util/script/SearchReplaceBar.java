@@ -7,6 +7,7 @@ import net.minecraft.util.ChatAllowedCharacters;
 import net.minecraft.util.ResourceLocation;
 import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
+import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
@@ -1158,7 +1159,6 @@ public class SearchReplaceBar {
     public void updateMatches() {
         matches.clear();
         excludedMatches.clear();
-        currentMatchIndex = -1;
         
         if (callback == null || searchText.isEmpty()) {
             if (callback != null) callback.onMatchesUpdated();
@@ -1191,11 +1191,13 @@ public class SearchReplaceBar {
         } catch (Exception ignored) {
         }
         
+        // No need to navigate right now
         if (!matches.isEmpty()) {
-            currentMatchIndex = 0;
-            navigateToCurrentMatch();
+            // currentMatchIndex = 0;
+            //   navigateToCurrentMatch();
         }
         
+        currentMatchIndex = ValueUtil.clamp(currentMatchIndex, 0, matches.size() - 1);
         callback.onMatchesUpdated();
     }
     
