@@ -24,6 +24,9 @@ public class ScriptEditorKeys extends KeyPresetManager {
     
     // Navigation
     public final KeyPreset GO_TO_LINE = add("Go to Line").setDefaultState(Keyboard.KEY_G, true, false, false);
+    
+    // Refactoring
+    public final KeyPreset RENAME = add("Rename/Refactor").setDefaultState(Keyboard.KEY_F6, false, true, false);
 
     public ScriptEditorKeys() {
         super("script_editor");

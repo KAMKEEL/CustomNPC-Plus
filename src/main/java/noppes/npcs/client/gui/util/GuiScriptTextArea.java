@@ -92,6 +92,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== GO TO LINE ====================
     private final GoToLineDialog goToLineDialog;
 
+    // ==================== RENAME REFACTOR ====================
+    private final RenameRefactorHandler renameHandler = new RenameRefactorHandler();
+
     // ==================== CONSTRUCTOR ====================
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
@@ -252,6 +255,113 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             public void onDialogClose() {
                 active = true;
                 selection.markActivity();
+            }
+        });
+
+        // Initialize Rename Refactor handler with callback
+        renameHandler.setCallback(new RenameRefactorHandler.RenameCallback() {
+            @Override
+            public String getText() {
+                return GuiScriptTextArea.this.text;
+            }
+
+            @Override
+            public void setText(String newText) {
+                GuiScriptTextArea.this.setText(newText);
+            }
+
+            @Override
+            public List<LineData> getLines() {
+                return container != null ? container.lines : new ArrayList<>();
+            }
+
+            @Override
+            public int getCursorPosition() {
+                return selection.getCursorPosition();
+            }
+
+            public SelectionState getSelectionState() {
+                return selection;
+            }
+
+            @Override
+            public void setCursorPosition(int pos) {
+                selection.reset(pos);
+            }
+
+            @Override
+            public void unfocusMainEditor() {
+                active = false;
+            }
+
+            @Override
+            public void focusMainEditor() {
+                active = true;
+                selection.markActivity();
+            }
+
+            @Override
+            public int getGutterWidth() {
+                return LINE_NUMBER_GUTTER_WIDTH;
+            }
+
+            @Override
+            public int getLineHeight() {
+                return container != null ? container.lineHeight : 12;
+            }
+
+            @Override
+            public int getScrolledLine() {
+                return scroll.getScrolledLine();
+            }
+
+            @Override
+            public double getFractionalOffset() {
+                return scroll.getFractionalOffset();
+            }
+
+            @Override
+            public void scrollToPosition(int pos) {
+                if (container == null || container.lines == null)
+                    return;
+                for (int i = 0; i < container.lines.size(); i++) {
+                    LineData ld = container.lines.get(i);
+                    if (pos >= ld.start && pos < ld.end) {
+                        int visible = Math.max(1, container.visibleLines);
+                        int effectiveVisible = Math.max(1, visible - bottomPaddingLines);
+                        int maxScroll = Math.max(0, getPaddedLineCount() - visible);
+                        scroll.scrollToLine(i, effectiveVisible, maxScroll);
+                        break;
+                    }
+                }
+            }
+
+            @Override
+            public JavaTextContainer getContainer() {
+                return container;
+            }
+
+            @Override
+            public void setTextWithoutUndo(String newText) {
+                // Set text without creating an undo entry (for live rename preview)
+                boolean wasUndoing = undoing;
+                undoing = true;
+                setText(newText);
+                undoing = wasUndoing;
+            }
+
+            @Override
+            public void pushUndoState(String textState) {
+                // Push a specific text state to the undo list
+                if (!undoing) {
+                    undoList.add(new UndoData(textState, selection.getCursorPosition()));
+                    redoList.clear();
+                }
+            }
+
+            @Override
+            public int getViewportWidth() {
+                return width - LINE_NUMBER_GUTTER_WIDTH - 8; // Account for gutter and scrollbar
             }
         });
         
@@ -536,6 +646,56 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                         }
                     }
                 }
+
+                // Highlight rename refactor occurrences
+                if (renameHandler.isActive()) {
+                    List<int[]> renameOccurrences = renameHandler.getOccurrences();
+                    for (int[] occ : renameOccurrences) {
+                        // Check if occurrence overlaps with this line
+                        if (occ[1] > data.start && occ[0] < data.end) {
+                            int occStart = Math.max(occ[0] - data.start, 0);
+                            int occEnd = Math.min(occ[1] - data.start, line.length());
+                            if (occStart < occEnd) {
+                                int s = ClientProxy.Font.width(line.substring(0, occStart));
+                                int e = ClientProxy.Font.width(line.substring(0, occEnd)) + 1;
+                                int occX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
+                                int occEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
+                                boolean isPrimary = renameHandler.isPrimaryOccurrence(occ[0]);
+
+                                // Draw background highlight
+                                int bgColor = isPrimary ? 0x55335577 : 0x33224466;
+                                drawRect(occX, posY, occEndX, posY + container.lineHeight, bgColor);
+
+                                // Draw white border for primary occurrence (IntelliJ-like)
+                                if (isPrimary) {
+                                    int borderColor = 0xDDFFFFFF;
+                                    // Top border
+                                    drawRect(occX, posY, occEndX, posY + 1, borderColor);
+                                    // Bottom border  
+                                    drawRect(occX, posY + container.lineHeight - 1, occEndX,
+                                            posY + container.lineHeight, borderColor);
+                                    // Left border
+                                    drawRect(occX, posY, occX + 1, posY + container.lineHeight, borderColor);
+                                    // Right border
+                                    drawRect(occEndX - 1, posY, occEndX, posY + container.lineHeight, borderColor);
+
+                                    // Draw cursor inside the primary occurrence
+                                    if (renameHandler.shouldShowCursor()) {
+                                        int cursorInWord = renameHandler.getCursorInWord();
+                                        String currentWord = renameHandler.getCurrentWord();
+                                        if (currentWord != null && cursorInWord >= 0 && cursorInWord <= currentWord.length()) {
+                                            String beforeCursor = currentWord.substring(0,
+                                                    Math.min(cursorInWord, currentWord.length()));
+                                            int cursorX = occX + ClientProxy.Font.width(beforeCursor);
+                                            drawRect(cursorX, posY + 1, cursorX + 1, posY + container.lineHeight - 1,
+                                                    0xFFFFFFFF);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
                 
                 // Highlight the current line (light gray) under any selection
                 if (active && isEnabled() && (selection.getCursorPosition() >= data.start && selection.getCursorPosition() < data.end || (i == list.size() - 1 && selection.getCursorPosition() == text.length()))) {
@@ -625,6 +785,27 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Draw go to line dialog (overlays everything)
         goToLineDialog.draw(xMouse, yMouse);
+
+        // Draw rename status indicator
+        if (renameHandler.isActive()) {
+            String status = renameHandler.getScopeDescription();
+            String hint = "Enter \u2713 | Esc \u2715"; // Enter to confirm, Esc to cancel
+            int statusWidth = Math.max(ClientProxy.Font.width(status), ClientProxy.Font.width(hint)) + 8;
+            int statusX = x + width - statusWidth - 8;
+            int statusY = y + height - 30;
+            // Semi-transparent background
+            drawRect(statusX - 2, statusY - 2, statusX + statusWidth + 2, statusY + 24, 0xDD1a1a2e);
+            // Border (purple/blue for rename mode)
+            int borderColor = 0xFF6677dd;
+            drawRect(statusX - 2, statusY - 2, statusX + statusWidth + 2, statusY - 1, borderColor);
+            drawRect(statusX - 2, statusY + 23, statusX + statusWidth + 2, statusY + 24, borderColor);
+            drawRect(statusX - 2, statusY - 2, statusX - 1, statusY + 24, borderColor);
+            drawRect(statusX + statusWidth + 1, statusY - 2, statusX + statusWidth + 2, statusY + 24, borderColor);
+            // Status text (top line)
+            ClientProxy.Font.drawString(status, statusX + 4, statusY + 2, 0xFFccddff);
+            // Hint text (bottom line - dimmer)
+            ClientProxy.Font.drawString(hint, statusX + 4, statusY + 13, 0xAA88aacc);
+        }
         
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
     }
@@ -928,11 +1109,24 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             unfocusAll();
             goToLineDialog.toggle();
         });
+
+        // RENAME: Start rename refactoring (Shift+F6)
+        KEYS.RENAME.setTask(e -> {
+            if (!e.isPress() || !openBoxes.get())
+                return;
+
+            unfocusAll();
+            if (!renameHandler.isActive()) {
+                renameHandler.startRename();
+            }
+        });
     }
 
     public void unfocusAll() {
         if (searchBar.hasFocus()) searchBar.unfocus();
         if (goToLineDialog.hasFocus()) goToLineDialog.unfocus();
+        if (renameHandler.isActive())
+            renameHandler.cancel();
     }
     // ==================== KEYBOARD INPUT HANDLING ====================
 
@@ -943,6 +1137,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     @Override
     public boolean textboxKeyTyped(char c, int i) {
         KEYS_OVERLAY.keyTyped(c, i);
+
+        // Handle rename refactor input first if active
+        if (renameHandler.isActive() && renameHandler.keyTyped(c, i))
+            return true;
         
         // Handle Go To Line dialog input first if it has focus
         if (goToLineDialog.isVisible() &&goToLineDialog.keyTyped(c, i)) 
@@ -1543,7 +1741,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
     
     public boolean closeOnEsc(){
-        return !searchBar.isVisible() && !goToLineDialog.isVisible(); 
+        return !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive(); 
     }
     
     // ==================== KEYBOARD MODIFIERS ====================
@@ -1603,7 +1801,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
 
     private void formatText() {
-        IndentHelper.FormatResult result = IndentHelper.formatText(text, selection.getCursorPosition());
+        // Calculate viewport width for line wrapping (account for gutter and scrollbar)
+        int viewportWidth = this.width - LINE_NUMBER_GUTTER_WIDTH - 10;
+        IndentHelper.FormatResult result = IndentHelper.formatText(text, selection.getCursorPosition(), viewportWidth);
         setText(result.text);
         selection.reset(Math.max(0, Math.min(result.cursorPosition, this.text.length())));
     }
@@ -1760,8 +1960,18 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;
         if (this.active) {
-            // Compute logical click position in text and reset selection/caret
+            // Compute logical click position in text
             int clickPos = this.getSelectionPos(xMouse, yMouse);
+
+            // Check if rename refactoring is active and click is in the rename box
+            if (renameHandler.isActive() && renameHandler.handleClick(clickPos)) {
+                // Click was handled by rename handler - don't reset selection or do other click handling
+                this.clicked = false;
+                activeTextfield = this;
+                return;
+            }
+
+            // Normal click handling - reset selection/caret
             selection.reset(clickPos);
             selection.markActivity();
 
@@ -1818,6 +2028,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         searchBar.updateCursor();
         goToLineDialog.updateCursor();
+        renameHandler.updateCursor();
         ++this.cursorCounter;
     }
     
