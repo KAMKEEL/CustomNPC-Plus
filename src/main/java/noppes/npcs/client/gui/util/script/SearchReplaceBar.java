@@ -110,6 +110,11 @@ public class SearchReplaceBar {
         String getText();
 
         String getHighlightedWord();
+
+        // Return current selection bounds in the main editor (start inclusive, end exclusive)
+        int getSelectionStart();
+
+        int getSelectionEnd();
         void setText(String text);
         void scrollToPosition(int position);
         void setSelection(int start, int end);
@@ -147,19 +152,28 @@ public class SearchReplaceBar {
         showReplace = false;
         searchFieldFocused = true;
         replaceFieldFocused = false;
+        boolean matchHighlight = false;
         if (callback != null) {
             if (!oldVisible) //if wasnt open before, do it once.
                 callback.resizeEditor(true);
             callback.unfocusMainEditor();
+            
             String highlight = callback.getHighlightedWord();
-            if (highlight != null) 
+            if (highlight != null) {
                 searchText = highlight;
+                matchHighlight = true;
+            }
         }
         searchSelectionStart = 0;
         searchSelectionEnd = searchText.length();
         searchCursor = searchText.length();
         markActivity();
         updateMatches();
+        if (matchHighlight) {
+            setCurrentMatchToHighlight();
+            navigateToCurrentMatch();
+        }
+
     }
     
     /**
@@ -1204,6 +1218,29 @@ public class SearchReplaceBar {
         
         currentMatchIndex = ValueUtil.clamp(currentMatchIndex, 0, matches.size() - 1);
         callback.onMatchesUpdated();
+    }
+
+    /**
+     * If the editor currently has a selection, prefer the match that contains that selection
+     * and navigate to it.
+     */
+    private void setCurrentMatchToHighlight() {
+        if (callback == null || matches.isEmpty())
+            return;
+        try {
+            int selStart = callback.getSelectionStart();
+            int selEnd = callback.getSelectionEnd();
+            if (selStart >= 0 && selEnd > selStart) {
+                for (int i = 0; i < matches.size(); i++) {
+                    int[] m = matches.get(i);
+                    if (m[0] <= selStart && m[1] >= selEnd) {
+                        currentMatchIndex = i;
+                        return;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
     }
     
     /**

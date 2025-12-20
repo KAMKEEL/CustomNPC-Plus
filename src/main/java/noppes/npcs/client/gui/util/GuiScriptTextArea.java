@@ -95,6 +95,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             @Override
+            public int getSelectionStart() {
+                return GuiScriptTextArea.this.selection.getStartSelection();
+            }
+
+            @Override
+            public int getSelectionEnd() {
+                return GuiScriptTextArea.this.selection.getEndSelection();
+            }
+
+            @Override
             public void setText(String newText) {
                 GuiScriptTextArea.this.setText(newText);
             }
