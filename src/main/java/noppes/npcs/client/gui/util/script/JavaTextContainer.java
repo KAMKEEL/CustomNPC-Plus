@@ -93,10 +93,12 @@ public class JavaTextContainer extends TextContainer {
     private List<String> localFields = new ArrayList<>();
     private java.util.Map<String, String> importedClasses = new java.util.HashMap<>(); // simpleName -> fullName
     private java.util.Set<String> importedPackages = new java.util.HashSet<>(); // wildcard imports
+    private java.util.Set<String> unresolvedClasses = new java.util.HashSet<>(); // classes that failed to resolve
 
     private void collectImports() {
         importedClasses.clear();
         importedPackages.clear();
+        unresolvedClasses.clear();
         classPathFinder.clearCache();
 
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
@@ -125,6 +127,8 @@ public class JavaTextContainer extends TextContainer {
                     } else {
                         // Store original path for unresolved imports
                         importedClasses.put(simpleName, fullPath);
+                        // Track this as an unresolved class
+                        unresolvedClasses.add(simpleName);
                     }
                 }
             }
@@ -277,6 +281,10 @@ public class JavaTextContainer extends TextContainer {
             // Skip field access (identifier preceded by a dot) - these should be gray/default
             // e.g., in "container.lines", the "lines" part should not be marked
             if (isFieldAccess(position)) continue;
+
+            // Never treat parts of import/package statements as undefined variables
+            // (otherwise the first package segment like "noppes" gets marked red and overrides import highlighting)
+            if (isInImportOrPackageStatement(position)) continue;
             
             // Check if inside a method
             MethodBlock methodBlock = findMethodBlockAtPosition(position);
@@ -301,10 +309,36 @@ public class JavaTextContainer extends TextContainer {
                 // Outside any method - check global fields
                 if (globalFields.contains(name)) {
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+                } else if (!isMethodCall(position) && !isTypeReference(name, position)) {
+                    // Mark as undefined if it's not a method call or type reference
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
                 }
-                // Don't mark as undefined outside methods - could be a type name or declaration
             }
         }
+    }
+
+    private boolean isInImportOrPackageStatement(int position) {
+        if (position < 0 || position >= text.length()) return false;
+
+        int lineStart = text.lastIndexOf('\n', position);
+        lineStart = (lineStart < 0) ? 0 : lineStart + 1;
+        int lineEnd = text.indexOf('\n', position);
+        lineEnd = (lineEnd < 0) ? text.length() : lineEnd;
+
+        // Quick scan of the line start for "import" or "package"
+        int i = lineStart;
+        while (i < lineEnd && Character.isWhitespace(text.charAt(i))) i++;
+
+        if (i + 6 <= lineEnd && text.startsWith("import", i)) {
+            // Ensure word boundary
+            int after = i + 6;
+            return after == lineEnd || Character.isWhitespace(text.charAt(after));
+        }
+        if (i + 7 <= lineEnd && text.startsWith("package", i)) {
+            int after = i + 7;
+            return after == lineEnd || Character.isWhitespace(text.charAt(after));
+        }
+        return false;
     }
     
     /**
@@ -433,7 +467,6 @@ public class JavaTextContainer extends TextContainer {
                 // Fully resolved - highlight package (blue) and class segments (typed)
                 if (hasPackage) {
                     int pkgEnd = pathStart + packagePortion.length();
-                    if (hasClass) pkgEnd++; // include dot
                     marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
                 }
                 
@@ -455,7 +488,7 @@ public class JavaTextContainer extends TextContainer {
                 // Partial resolution - some class segments are valid, rest is invalid
                 // (e.g., IOverlay.ColorType resolved but ".idk" is invalid)
                 if (hasPackage) {
-                    int pkgEnd = pathStart + packagePortion.length() + 1; // include dot
+                    int pkgEnd = pathStart + packagePortion.length();
                     marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
                 }
                 
@@ -522,6 +555,12 @@ public class JavaTextContainer extends TextContainer {
             int end = m.end(1);
             if (isInExcludedRange(start, excluded))
                 continue;
+
+            // Check if this class was imported but failed to resolve
+            if (unresolvedClasses.contains(className)) {
+                marks.add(new Mark(start, end, TokenType.UNDEFINED_VAR));
+                continue;
+            }
 
             // Check if this is an imported class, wildcard match, or java.lang class
             boolean isImported = importedClasses.containsKey(className) || ClassPathFinder.JAVA_LANG_CLASSES.contains(className);

@@ -224,27 +224,55 @@ public class ClassPathFinder {
     private int findPackageTypoIndex(String[] segments, int classStartIdx) {
         // Build the typed package path segment by segment and compare with cache
         StringBuilder sb = new StringBuilder();
+        int lastValidIndex = -1;
+        
         for (int i = 0; i < classStartIdx; i++) {
             if (i > 0) sb.append(".");
             sb.append(segments[i]);
             String currentPath = sb.toString();
 
             // Check if this exact path is in cache
-            if (!validPackages.contains(currentPath)) {
-                // Not in cache - check if a DIFFERENT path at this level IS in cache
-                // This would indicate a typo (e.g., "guui" vs "gui")
-                if (i > 0) {
-                    String parentPath = buildPackagePortion(segments, i);
-                    // Look for any cached package that starts with parent but differs at segment i
+            if (validPackages.contains(currentPath)) {
+                lastValidIndex = i + 1; // This segment is valid
+            } else if (i > 0) {
+                // Not in cache - check if parent is valid but this segment is wrong
+                String parentPath = buildPackagePortion(segments, i);
+                if (validPackages.contains(parentPath)) {
+                    // Parent is valid, but current segment isn't in any cached path
+                    // Check if there ARE cached paths extending from parent
+                    boolean hasAlternative = false;
                     for (String cached : validPackages) {
-                        if (cached.startsWith(parentPath + ".") && !cached.startsWith(currentPath)) {
-                            // Found a cached package with same parent but different segment
-                            return i; // This segment is likely a typo
+                        if (cached.startsWith(parentPath + ".") && cached.length() > parentPath.length() + 1) {
+                            hasAlternative = true;
+                            break;
                         }
+                    }
+                    if (hasAlternative) {
+                        // There are valid continuations from parent, but this segment doesn't match any
+                        return i; // This segment is likely a typo
                     }
                 }
             }
         }
+        
+        // If we found some valid prefix but not all, return where it stopped being valid
+        if (lastValidIndex > 0 && lastValidIndex < classStartIdx) {
+            // Check if segment at lastValidIndex diverges from any known path
+            String validPrefix = buildPackagePortion(segments, lastValidIndex);
+            for (String cached : validPackages) {
+                if (cached.startsWith(validPrefix + ".")) {
+                    // There's a known continuation - check if typed segment matches
+                    String nextTyped = segments[lastValidIndex];
+                    String cachedRemainder = cached.substring(validPrefix.length() + 1);
+                    String nextCached = cachedRemainder.contains(".") ? 
+                            cachedRemainder.substring(0, cachedRemainder.indexOf('.')) : cachedRemainder;
+                    if (!nextTyped.equals(nextCached)) {
+                        return lastValidIndex; // Divergence point
+                    }
+                }
+            }
+        }
+        
         return -1; // No typo detected
     }
 
