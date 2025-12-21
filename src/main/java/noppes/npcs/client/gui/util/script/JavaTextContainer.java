@@ -95,12 +95,20 @@ public class JavaTextContainer extends TextContainer {
 
         // Extract method blocks first
         methodBlocks = MethodBlock.collectMethodBlocks(text);
+        
+        // Get excluded ranges (strings and comments) for the entire text
+        List<int[]> excludedRanges = MethodBlock.getExcludedRanges(text);
 
-        // Global fields (excluding those inside methods)
+        // Global fields (excluding those inside methods, strings, and comments)
         Matcher mGlobal = GLOBAL_FIELD_DECL.matcher(text);
         while (mGlobal.find()) {
             String varName = mGlobal.group(2);
             int varPosition = mGlobal.start(2);
+            
+            // Skip if inside a string or comment
+            if (isInExcludedRange(varPosition, excludedRanges)) {
+                continue;
+            }
 
             // Check if this variable is inside a method
             boolean isInsideMethod = false;
@@ -157,6 +165,35 @@ public class JavaTextContainer extends TextContainer {
             "Boolean", "Long", "Byte", "Short", "Character", "List", "Map", "Set"
         ));
         
+        // First pass: handle field accesses (this.field and obj.field patterns)
+        Pattern thisFieldPattern = Pattern.compile("\\bthis\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+        Matcher thisFieldMatcher = thisFieldPattern.matcher(text);
+        while (thisFieldMatcher.find()) {
+            String fieldName = thisFieldMatcher.group(1);
+            int fieldPos = thisFieldMatcher.start(1);
+            // Highlight as GLOBAL_FIELD if it exists, UNDEFINED_VAR otherwise
+            if (globalFields.contains(fieldName)) {
+                marks.add(new Mark(fieldPos, thisFieldMatcher.end(1), TokenType.GLOBAL_FIELD));
+            } else {
+                marks.add(new Mark(fieldPos, thisFieldMatcher.end(1), TokenType.UNDEFINED_VAR));
+            }
+        }
+        
+        // Handle identifier.field patterns (e.g., obj.field, global.field)
+        // The field part should be highlighted as GLOBAL_FIELD (light blue)
+        Pattern objFieldPattern = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+        Matcher objFieldMatcher = objFieldPattern.matcher(text);
+        while (objFieldMatcher.find()) {
+            String fieldName = objFieldMatcher.group(2);
+            int fieldPos = objFieldMatcher.start(2);
+            // Skip if this is a "this.field" pattern (already handled above)
+            String objName = objFieldMatcher.group(1);
+            if (!objName.equals("this")) {
+                // Highlight the field part as GLOBAL_FIELD (represents another object's field)
+                marks.add(new Mark(fieldPos, objFieldMatcher.end(2), TokenType.GLOBAL_FIELD));
+            }
+        }
+        
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
         Matcher m = identifier.matcher(text);
         while (m.find()) {
@@ -177,10 +214,11 @@ public class JavaTextContainer extends TextContainer {
             MethodBlock methodBlock = findMethodBlockAtPosition(position);
             
             if (methodBlock != null) {
-                // Inside a method - check in order: parameter, local, global
+                // Inside a method - check in order: parameter, local (position-aware), global
                 if (methodBlock.parameters.contains(name)) {
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.PARAMETER));
-                } else if (methodBlock.localVariables.contains(name)) {
+                } else if (methodBlock.isLocalDeclaredAtPosition(name, position)) {
+                    // Local variable is declared at or before this position
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD));
                 } else if (globalFields.contains(name)) {
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
@@ -243,6 +281,18 @@ public class JavaTextContainer extends TextContainer {
         if (position > 4) {
             String before = text.substring(Math.max(0, position - 5), position);
             if (before.endsWith("new ") || before.endsWith("< ") || before.endsWith("<")) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Check if position is in an excluded range (string or comment)
+     */
+    private boolean isInExcludedRange(int pos, List<int[]> ranges) {
+        for (int[] range : ranges) {
+            if (pos >= range[0] && pos < range[1]) {
                 return true;
             }
         }

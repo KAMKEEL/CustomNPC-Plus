@@ -1,7 +1,9 @@
 package noppes.npcs.client.gui.util.script;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +28,7 @@ public class MethodBlock {
     public String text;
     public List<String> localVariables = new ArrayList<>();
     public List<String> parameters = new ArrayList<>();  // Method parameters
+    public Map<String, Integer> localVarPositions = new HashMap<>();  // Track declaration positions
 
     public MethodBlock(int start, int end, String text) {
         this.startOffset = start;
@@ -63,13 +66,53 @@ public class MethodBlock {
     // Extract local variables declared within this method
     private void extractLocalVariables() {
         localVariables.clear();
+        localVarPositions.clear();
+        
+        // Get excluded ranges (strings and comments) for this method's text
+        List<int[]> excludedRanges = getExcludedRanges(text);
+        
         Matcher m = LOCAL_VAR_DECL.matcher(text);
         while (m.find()) {
             String varName = m.group(2);
-            if (!localVariables.contains(varName)) {
+            int declPosition = m.start();
+            
+            // Skip if inside a string or comment
+            if (isInExcludedRange(declPosition, excludedRanges)) {
+                continue;
+            }
+            
+            // Check if this is a "this.field" assignment - if so, skip it
+            // Look backwards from the declaration position to see if preceded by "this."
+            boolean isThisFieldAssignment = false;
+            if (declPosition >= 5) {
+                int checkStart = Math.max(0, declPosition - 10);
+                String before = text.substring(checkStart, declPosition);
+                if (before.matches(".*\\bthis\\s*\\.\\s*$")) {
+                    isThisFieldAssignment = true;
+                }
+            }
+            
+            if (!isThisFieldAssignment && !localVariables.contains(varName)) {
                 localVariables.add(varName);
+                // Store the absolute position in the full text (startOffset + relative position)
+                localVarPositions.put(varName, startOffset + declPosition);
             }
         }
+    }
+    
+    // Check if a reference position comes before the local variable declaration
+    // This handles cases like: global.field on line 7, then var global = "x" on line 9
+    // At line 7, the local 'global' doesn't exist yet, so it should refer to the global 'global'
+    public boolean isLocalDeclaredAtPosition(String varName, int absolutePosition) {
+        if (!localVariables.contains(varName)) {
+            return false;
+        }
+        Integer declPos = localVarPositions.get(varName);
+        if (declPos == null) {
+            return false;
+        }
+        // The local variable is only "in scope" at or after its declaration position
+        return absolutePosition >= declPos;
     }
 
     // Check if a position (in the full text) falls within this method
