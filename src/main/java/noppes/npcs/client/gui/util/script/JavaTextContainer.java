@@ -272,45 +272,54 @@ public class JavaTextContainer extends TextContainer {
             String name = m.group(1);
             int position = m.start(1);
             
-            // Skip known keywords and types
+            // Skip known keywords
             if (knownIdentifiers.contains(name)) continue;
-            
-            // Skip type names (first letter uppercase)
-            if (Character.isUpperCase(name.charAt(0))) continue;
-            
+
             // Skip field access (identifier preceded by a dot) - these should be gray/default
-            // e.g., in "container.lines", the "lines" part should not be marked
             if (isFieldAccess(position)) continue;
 
             // Never treat parts of import/package statements as undefined variables
-            // (otherwise the first package segment like "noppes" gets marked red and overrides import highlighting)
             if (isInImportOrPackageStatement(position)) continue;
-            
+
             // Check if inside a method
             MethodBlock methodBlock = findMethodBlockAtPosition(position);
-            
+
             if (methodBlock != null) {
-                // Inside a method - check in order: parameter, local (position-aware), global
+                // Inside a method - first check parameters, locals, and globals (respecting registrations)
                 if (methodBlock.parameters.contains(name)) {
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.PARAMETER));
-                } else if (methodBlock.isLocalDeclaredAtPosition(name, position)) {
-                    // Local variable is declared at or before this position
-                    marks.add(new Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD));
-                } else if (globalFields.contains(name)) {
-                    marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
-                } else {
-                    // Unknown variable - mark as undefined (Bug 11)
-                    // But only if it looks like a variable reference (not a method call)
-                    if (!isMethodCall(position) && !isTypeReference(name, position)) {
-                        marks.add(new Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
-                    }
+                    continue;
                 }
-            } else {
-                // Outside any method - check global fields
+
+                if (methodBlock.isLocalDeclaredAtPosition(name, position) || localFields.contains(name)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD));
+                    continue;
+                }
+
                 if (globalFields.contains(name)) {
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
-                } else if (!isMethodCall(position) && !isTypeReference(name, position)) {
-                    // Mark as undefined if it's not a method call or type reference
+                    continue;
+                }
+
+                // If it's an uppercase identifier that hasn't been registered as a local/param/global,
+                // treat it as a type reference (skip) rather than an undefined variable.
+                if (Character.isUpperCase(name.charAt(0))) continue;
+
+                // Unknown variable - mark as undefined but only if it's not a method call or type reference
+                if (!isMethodCall(position) && !isTypeReference(name, position)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
+                }
+            } else {
+                // Outside any method - check global fields first
+                if (globalFields.contains(name) || localFields.contains(name)) {
+                    marks.add(new Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+                    continue;
+                }
+
+                // Uppercase unregistered identifiers are likely type names; skip them
+                if (Character.isUpperCase(name.charAt(0))) continue;
+
+                if (!isMethodCall(position) && !isTypeReference(name, position)) {
                     marks.add(new Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
                 }
             }
@@ -804,6 +813,32 @@ public class JavaTextContainer extends TextContainer {
                         // Parse and highlight all types in generic content
                         int contentStart = lineStart + genericStart + 1;
                         highlightGenericTypes(genericContent, contentStart, marks, excluded);
+                    }
+
+                    // If followed by a variable name, detect it and register uppercase-starting
+                    // variable names as locals so subsequent identifier scanning treats them
+                    // as variables (not types). This handles declarations like:
+                    //    MyType Capital = new MyType();
+                    if (followedByVarName) {
+                        int v = posAfterType;
+                        // skip whitespace
+                        while (v < s.length() && Character.isWhitespace(s.charAt(v))) v++;
+                        int varStart = v;
+                        while (v < s.length() && (Character.isLetterOrDigit(s.charAt(v)) || s.charAt(v) == '_')) v++;
+                        int varEnd = v;
+                        if (varEnd > varStart) {
+                            String varName = s.substring(varStart, varEnd);
+                            int absVarStart = lineStart + varStart;
+                            int absVarEnd = lineStart + varEnd;
+                            if (Character.isUpperCase(varName.charAt(0))) {
+                                MethodBlock mb = findMethodBlockAtPosition(absVarStart);
+                                if (mb != null) {
+                                    if (!mb.localVariables.contains(varName)) mb.localVariables.add(varName);
+                                    if (!localFields.contains(varName)) localFields.add(varName);
+                                    marks.add(new Mark(absVarStart, absVarEnd, TokenType.LOCAL_FIELD));
+                                }
+                            }
+                        }
                     }
                 }
                 
