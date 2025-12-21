@@ -95,6 +95,7 @@ public class JavaTextContainer extends TextContainer {
     private List<String> localFields = new ArrayList<>();
     private java.util.Map<String, String> importedClasses = new java.util.HashMap<>(); // simpleName -> fullName
     private java.util.Set<String> importedPackages = new java.util.HashSet<>(); // wildcard imports
+    private java.util.Map<String, TokenType> classTypeCache = new java.util.HashMap<>(); // fullClassName -> TokenType (cached reflection results)
 
     // Common java.lang classes (auto-imported)
     private static final java.util.Set<String> JAVA_LANG_CLASSES = new java.util.HashSet<>(java.util.Arrays.asList(
@@ -128,6 +129,38 @@ public class JavaTextContainer extends TextContainer {
                 importedClasses.put(simpleName, fullPath);
             }
         }
+    }
+    
+    /**
+     * Determine the token type for a class using reflection.
+     * Returns INTERFACE_DECL for interfaces, ENUM_DECL for enums, or the defaultType for classes/unknown.
+     */
+    private TokenType getClassTokenType(String fullClassName, TokenType defaultType) {
+        if (fullClassName == null || fullClassName.isEmpty()) return defaultType;
+        
+        // Check cache first
+        if (classTypeCache.containsKey(fullClassName)) {
+            return classTypeCache.get(fullClassName);
+        }
+        
+        TokenType result = defaultType;
+        try {
+            Class<?> clazz = Class.forName(fullClassName);
+            if (clazz.isInterface()) {
+                result = TokenType.INTERFACE_DECL;
+            } else if (clazz.isEnum()) {
+                result = TokenType.ENUM_DECL;
+            } else {
+                result = defaultType; // regular class
+            }
+        } catch (Exception e) {
+            // Class not found or can't be loaded - use default
+            result = defaultType;
+        }
+        
+        // Cache the result
+        classTypeCache.put(fullClassName, result);
+        return result;
     }
     
     private void collectFields() {
@@ -404,11 +437,13 @@ public class JavaTextContainer extends TextContainer {
                 int pkgEnd = pathStart + lastDot;
                 // +1 includes .
                 marks.add(new Mark(pathStart, pkgEnd + 1, TokenType.TYPE_DECL)); // dark blue
-                // class part (e.g., "ArrayList")
-                marks.add(new Mark(pkgEnd + 1, pathEnd, TokenType.IMPORTED_CLASS)); // aqua
+                // class part (e.g., "ArrayList") - determine type dynamically
+                TokenType classTokenType = getClassTokenType(fullPath, TokenType.IMPORTED_CLASS);
+                marks.add(new Mark(pkgEnd + 1, pathEnd, classTokenType));
             } else {
                 // No package, just class name
-                marks.add(new Mark(pathStart, pathEnd, TokenType.IMPORTED_CLASS));
+                TokenType classTokenType = getClassTokenType(fullPath, TokenType.IMPORTED_CLASS);
+                marks.add(new Mark(pathStart, pathEnd, classTokenType));
             }
 
             // Highlight .* if present (find '*' between match bounds)
@@ -452,7 +487,13 @@ public class JavaTextContainer extends TextContainer {
             }
 
             if (isImported && !isShadowed) {
-                marks.add(new Mark(start, end, TokenType.IMPORTED_CLASS));
+                // Determine token type dynamically using reflection
+                String fullClassName = importedClasses.get(className);
+                if (fullClassName == null && JAVA_LANG_CLASSES.contains(className)) {
+                    fullClassName = "java.lang." + className;
+                }
+                TokenType tokenType = getClassTokenType(fullClassName, TokenType.IMPORTED_CLASS);
+                marks.add(new Mark(start, end, tokenType));
             }
         }
     }
@@ -579,7 +620,14 @@ public class JavaTextContainer extends TextContainer {
                     if (g1s < r[1] && g1e > r[0]) { skip = true; break; }
                 }
                 if (skip) continue;
-                marks.add(new Mark(g1s, g1e, TokenType.TYPE_DECL));
+                // Check if this type is a known interface or enum using reflection
+                String typeName = m.group(1);
+                String fullClassName = importedClasses.get(typeName);
+                if (fullClassName == null && JAVA_LANG_CLASSES.contains(typeName)) {
+                    fullClassName = "java.lang." + typeName;
+                }
+                TokenType tokenType = getClassTokenType(fullClassName, TokenType.TYPE_DECL);
+                marks.add(new Mark(g1s, g1e, tokenType));
 
                 if (m.group(2) != null) {
                     int start = lineStart + m.start(2);
@@ -590,7 +638,7 @@ public class JavaTextContainer extends TextContainer {
 
                     // Inner type: String in <String>
                     if (m.group(3) != null) {
-                        marks.add(new Mark(lineStart + m.start(3), lineStart + m.end(3), TokenType.NEW_TYPE));
+                        marks.add(new Mark(lineStart + m.start(3), lineStart + m.end(3), TokenType.IMPORTED_CLASS));
                     }
                 }
             }
