@@ -229,6 +229,7 @@ public class IndentHelper {
         for (int li = 0; li < linesArr.length; li++) {
             String line = linesArr[li];
             String trimmedLeading = line.replaceAll("^[ \\t]+", "");
+            int originalIndent = getLineIndent(line);
             
             int opens = 0, closes = 0;
             boolean startsWithClose = false;
@@ -268,13 +269,79 @@ public class IndentHelper {
             if (startsWithClose) indentLevel = Math.max(0, indentLevel - 1);
             int targetIndent = indentLevel * TAB_SIZE;
             
-            out.append(spaces(targetIndent)).append(trimmedLeading);
+            // Check if this is a continuation line:
+            // 1. Line starts with operator/dot (explicit continuation)
+            // 2. Previous line ends with operator (implicit continuation - this line continues it)
+            // If so, preserve extra indentation beyond the base level
+            boolean isContinuation = isContinuationLine(trimmedLeading);
+            if (!isContinuation && li > 0) {
+                // Check if previous line ends with an operator (indicating this line continues it)
+                String prevLine = linesArr[li - 1].trim();
+                isContinuation = lineEndsWithContinuationOperator(prevLine);
+            }
+            
+            if (isContinuation && originalIndent > targetIndent) {
+                // This is a continuation line - preserve its extra indent
+                out.append(spaces(originalIndent)).append(trimmedLeading);
+            } else {
+                out.append(spaces(targetIndent)).append(trimmedLeading);
+            }
             if (li < linesArr.length - 1) out.append('\n');
             
             depth = Math.max(0, depth + opens - closes);
         }
         
         return out.toString();
+    }
+    
+    /**
+     * Check if a line appears to be a continuation of a previous line
+     * (i.e., starts with an operator, dot, or other continuation character)
+     */
+    private static boolean isContinuationLine(String trimmedContent) {
+        if (trimmedContent.isEmpty()) return false;
+        char firstChar = trimmedContent.charAt(0);
+        // Lines starting with these are likely continuations
+        if (firstChar == '.' || firstChar == '+' || firstChar == '-' || 
+            firstChar == '*' || firstChar == '/' || firstChar == '%' ||
+            firstChar == '&' || firstChar == '|' || firstChar == '^' ||
+            firstChar == '?' || firstChar == ':' || firstChar == ',') {
+            return true;
+        }
+        // Also check for && and ||
+        if (trimmedContent.startsWith("&&") || trimmedContent.startsWith("||")) {
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Check if a line ends with an operator that indicates the next line is a continuation
+     */
+    private static boolean lineEndsWithContinuationOperator(String trimmedLine) {
+        if (trimmedLine.isEmpty()) return false;
+        // Remove trailing comments
+        int commentIdx = trimmedLine.indexOf("//");
+        if (commentIdx >= 0) {
+            trimmedLine = trimmedLine.substring(0, commentIdx).trim();
+        }
+        if (trimmedLine.isEmpty()) return false;
+        
+        // Check if ends with operator
+        char lastChar = trimmedLine.charAt(trimmedLine.length() - 1);
+        if (lastChar == '+' || lastChar == '-' || lastChar == '*' || 
+            lastChar == '/' || lastChar == '%' || lastChar == '=' ||
+            lastChar == '&' || lastChar == '|' || lastChar == '^' ||
+            lastChar == '?' || lastChar == ':' || lastChar == ',' ||
+            lastChar == '(' || lastChar == '[') {
+            // But not if it's ; or } which end statements
+            return true;
+        }
+        // Check for && and ||
+        if (trimmedLine.endsWith("&&") || trimmedLine.endsWith("||")) {
+            return true;
+        }
+        return false;
     }
     
     /**

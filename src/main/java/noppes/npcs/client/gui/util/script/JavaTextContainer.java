@@ -16,7 +16,7 @@ public class JavaTextContainer extends TextContainer {
             "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof)\\b");
 
     public static final Pattern TYPE_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_]*)" + // Group 1 → main type
-            "\\s*(<([^>]+)>)?" + // Group c2 → <…>, Group 3 → inner type
+            "\\s*(<([^>]+)>)?" + // Group 2 → <…>, Group 3 → inner type
                     "\\s+[a-zA-Z_][a-zA-Z0-9_]*" // variable name
     );
 
@@ -275,12 +275,50 @@ public class JavaTextContainer extends TextContainer {
     
     /**
      * Check if this looks like a type reference (e.g., part of a declaration or generic)
+     * But NOT a comparison like "i < container" which uses < as less-than operator
      */
     private boolean isTypeReference(String name, int position) {
-        // Check if preceded by 'new ', '<', or ',<space>Type'
+        // Check if preceded by 'new '
         if (position > 4) {
             String before = text.substring(Math.max(0, position - 5), position);
-            if (before.endsWith("new ") || before.endsWith("< ") || before.endsWith("<")) {
+            if (before.endsWith("new ")) {
+                return true;
+            }
+        }
+        
+        // Check if preceded by < but make sure it's a generic, not a comparison
+        // Generic: Type<Name or ,Name in generics
+        // Comparison: value < name (space before < means comparison)
+        if (position > 1) {
+            int checkPos = position - 1;
+            // Skip whitespace
+            while (checkPos > 0 && Character.isWhitespace(text.charAt(checkPos))) {
+                checkPos--;
+            }
+            if (checkPos >= 0 && text.charAt(checkPos) == '<') {
+                // Check what's before the <
+                int beforeLt = checkPos - 1;
+                while (beforeLt >= 0 && Character.isWhitespace(text.charAt(beforeLt))) {
+                    beforeLt--;
+                }
+                if (beforeLt >= 0) {
+                    char beforeChar = text.charAt(beforeLt);
+                    // If it's a letter/digit/underscore (identifier) or ) followed by space + <, it's a comparison
+                    // If it's a type name directly followed by <, it's a generic
+                    // Check if there was whitespace between the identifier and <
+                    boolean hasSpaceBeforeLt = (checkPos > 0 && Character.isWhitespace(text.charAt(checkPos - 1)));
+                    if (hasSpaceBeforeLt && (Character.isLetterOrDigit(beforeChar) || beforeChar == '_' || beforeChar == ')')) {
+                        // This is a comparison like "i < container" or "(x + 1) < y"
+                        return false;
+                    }
+                    // Otherwise it's likely a generic like List<String>
+                    if (Character.isLetter(beforeChar) || beforeChar == '>') {
+                        return true;
+                    }
+                }
+            }
+            // Check for comma in generics like Map<K, V>
+            if (checkPos >= 0 && text.charAt(checkPos) == ',') {
                 return true;
             }
         }

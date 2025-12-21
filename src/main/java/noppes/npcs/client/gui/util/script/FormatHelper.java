@@ -142,6 +142,131 @@ public class FormatHelper {
         return result.toString();
     }
     
+    /**
+     * Split multiple statements on one line into separate lines with proper indentation.
+     * E.g., "    this.a = 1; this.b = 2;" becomes two lines
+     * Also handles scope: "if(x){ int y = 20; }" becomes proper multi-line structure
+     */
+    private String splitStatementsOntoSeparateLines(String text) {
+        String[] lines = text.split("\n", -1);
+        StringBuilder result = new StringBuilder();
+        
+        for (int lineIdx = 0; lineIdx < lines.length; lineIdx++) {
+            String line = lines[lineIdx];
+            
+            // Skip empty lines or comment-only lines
+            String trimmed = line.trim();
+            if (trimmed.isEmpty() || trimmed.startsWith("//") || trimmed.startsWith("/*") || trimmed.startsWith("*")) {
+                result.append(line);
+                if (lineIdx < lines.length - 1) result.append("\n");
+                continue;
+            }
+            
+            // Extract leading indentation
+            int indent = 0;
+            while (indent < line.length() && (line.charAt(indent) == ' ' || line.charAt(indent) == '\t')) {
+                indent++;
+            }
+            String indentation = line.substring(0, indent);
+            String content = line.substring(indent);
+            
+            // Split by semicolons (but preserve those in strings, for loops, etc.)
+            List<String> statements = splitBySemicolons(content);
+            
+            for (int si = 0; si < statements.size(); si++) {
+                String stmt = statements.get(si).trim();
+                if (stmt.isEmpty()) continue;
+                
+                // Check if statement opens a scope { and has code after it
+                int braceIdx = stmt.indexOf('{');
+                if (braceIdx >= 0 && braceIdx < stmt.length() - 1) {
+                    String afterBrace = stmt.substring(braceIdx + 1).trim();
+                    if (!afterBrace.isEmpty() && !afterBrace.equals("}")) {
+                        // Split: keep up to and including {, put rest on new line with extra indent
+                        result.append(indentation).append(stmt, 0, braceIdx + 1).append("\n");
+                        // Calculate new indent (add 4 spaces)
+                        String newIndent = indentation + "    ";
+                        result.append(newIndent).append(afterBrace);
+                        if (si < statements.size() - 1) result.append("\n");
+                        continue;
+                    }
+                }
+                
+                result.append(indentation).append(stmt);
+                // Add semicolon back if it was removed
+                if (si < statements.size() - 1) {
+                    result.append("\n");
+                }
+            }
+            
+            if (lineIdx < lines.length - 1) result.append("\n");
+        }
+        
+        return result.toString();
+    }
+    
+    /**
+     * Split content by semicolons, preserving those in strings and for-loops
+     */
+    private List<String> splitBySemicolons(String content) {
+        List<String> statements = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int parenDepth = 0;
+        boolean inString = false;
+        boolean inChar = false;
+        boolean escaped = false;
+        int forLoopDepth = 0; // Track for(...) depth to preserve semicolons
+        
+        for (int i = 0; i < content.length(); i++) {
+            char c = content.charAt(i);
+            char prev = i > 0 ? content.charAt(i - 1) : ' ';
+            
+            // Track strings
+            if (c == '\"' && !escaped && !inChar) {
+                inString = !inString;
+            } else if (c == '\'' && !escaped && !inString) {
+                inChar = !inChar;
+            }
+            
+            escaped = (c == '\\' && !escaped);
+            
+            if (inString || inChar) {
+                current.append(c);
+                continue;
+            }
+            
+            // Track for loops
+            if (c == '(' && i >= 3 && content.substring(Math.max(0, i - 3), i + 1).matches(".*\\bfor\\s*\\(")) {
+                forLoopDepth++;
+                parenDepth++;
+            } else if (c == '(') {
+                parenDepth++;
+            } else if (c == ')') {
+                parenDepth--;
+                if (forLoopDepth > 0 && parenDepth < forLoopDepth) {
+                    forLoopDepth = 0;
+                }
+            }
+            
+            // Semicolon: split if not in for-loop header
+            if (c == ';' && forLoopDepth == 0) {
+                current.append(c);
+                statements.add(current.toString());
+                current = new StringBuilder();
+                continue;
+            }
+            
+            current.append(c);
+        }
+        
+        // Add remaining content
+        if (current.length() > 0) {
+            statements.add(current.toString());
+        }
+        
+        return statements;
+    }
+    
     private int getLineStartOffset(String[] lines, int lineIndex) {
         int offset = 0;
         for (int i = 0; i < lineIndex; i++) {
@@ -172,10 +297,37 @@ public class FormatHelper {
             return line;
         }
         
+        // Skip formatting for continuation lines (lines that start with operators, dots, etc.)
+        // These are wrapped lines from a previous format and should be preserved as-is
+        if (isContinuationLine(trimmed)) {
+            return line;
+        }
+        
         // Format the content
         String formatted = formatContent(content, fullText, lineOffset + indent);
         
         return indentation + formatted;
+    }
+    
+    /**
+     * Check if a line appears to be a continuation of a previous line
+     * (i.e., starts with an operator, dot, or other continuation character)
+     */
+    private boolean isContinuationLine(String trimmedContent) {
+        if (trimmedContent.isEmpty()) return false;
+        char firstChar = trimmedContent.charAt(0);
+        // Lines starting with these are likely continuations
+        if (firstChar == '.' || firstChar == '+' || firstChar == '-' || 
+            firstChar == '*' || firstChar == '/' || firstChar == '%' ||
+            firstChar == '&' || firstChar == '|' || firstChar == '^' ||
+            firstChar == '?' || firstChar == ':' || firstChar == ',') {
+            return true;
+        }
+        // Also check for && and ||
+        if (trimmedContent.startsWith("&&") || trimmedContent.startsWith("||")) {
+            return true;
+        }
+        return false;
     }
     
     /**
