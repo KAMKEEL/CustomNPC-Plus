@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script;
 
+import net.minecraft.client.gui.GuiScreen;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import org.lwjgl.input.Keyboard;
 
@@ -44,6 +45,8 @@ public class RenameRefactorHandler {
 
     // Pattern for identifiers
     private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
+    // Placeholder to show when the rename box is empty
+    private static final String EMPTY_PLACEHOLDER = "|";
 
     /**
      * Callback interface for rename operations
@@ -267,7 +270,7 @@ public class RenameRefactorHandler {
 
         // Backspace
         if (keyCode == Keyboard.KEY_BACK) {
-            if (hasSelection) {
+            if (hasSelection || GuiScreen.isCtrlKeyDown()) {
                 // Delete selected text (entire word if fully selected)
                 currentWord = "";
                 applyLiveRename();
