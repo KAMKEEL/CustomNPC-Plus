@@ -351,10 +351,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
 
             @Override
-            public void pushUndoState(String textState) {
+            public void pushUndoState(String textState, int cursor) {
                 // Push a specific text state to the undo list
                 if (!undoing) {
-                    undoList.add(new UndoData(textState, selection.getCursorPosition()));
+                    undoList.add(new UndoData(textState, cursor));
                     redoList.clear();
                 }
             }

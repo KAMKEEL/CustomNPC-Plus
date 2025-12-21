@@ -55,7 +55,7 @@ public class RenameRefactorHandler {
 
         void setTextWithoutUndo(String text);  // Set text without creating undo entry
 
-        void pushUndoState(String text);       // Push an undo state
+        void pushUndoState(String text, int cursor);       // Push an undo state
 
         List<LineData> getLines();
 
@@ -198,10 +198,13 @@ public class RenameRefactorHandler {
             return;
         }
 
-        // Final text is already applied - push as single undo state
-        // The text was modified via setTextWithoutUndo, so push final state
-        String finalText = callback.getText();
-        callback.pushUndoState(finalText);
+        // Push the original text (pre-rename) so the first undo will restore the
+        // document to its state before the refactor.
+        // During live editing we used setTextWithoutUndo to avoid creating intermediate
+        // undo entries; pushing the original snapshot here gives a single predictable
+        // undo step back to the pre-rename state.
+        if (originalText != null && !originalText.isEmpty()) 
+            callback.pushUndoState(originalText, originalCursorPos);
 
         // Calculate cursor position relative to primary occurrence
         int cursorInWord = callback.getCursorPosition() - primaryOccurrenceStart;
