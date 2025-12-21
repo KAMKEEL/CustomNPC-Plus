@@ -169,6 +169,10 @@ public class JavaTextContainer extends TextContainer {
             // Skip type names (first letter uppercase)
             if (Character.isUpperCase(name.charAt(0))) continue;
             
+            // Skip field access (identifier preceded by a dot) - these should be gray/default
+            // e.g., in "container.lines", the "lines" part should not be marked
+            if (isFieldAccess(position)) continue;
+            
             // Check if inside a method
             MethodBlock methodBlock = findMethodBlockAtPosition(position);
             
@@ -195,6 +199,23 @@ public class JavaTextContainer extends TextContainer {
                 // Don't mark as undefined outside methods - could be a type name or declaration
             }
         }
+    }
+    
+    /**
+     * Check if the identifier at this position is a field access (preceded by a dot)
+     * e.g., in "obj.field", the "field" part is a field access
+     */
+    private boolean isFieldAccess(int position) {
+        if (position <= 0) return false;
+        
+        // Look backwards from position, skipping any whitespace
+        int i = position - 1;
+        while (i >= 0 && Character.isWhitespace(text.charAt(i))) {
+            i--;
+        }
+        
+        // Check if preceded by a dot
+        return i >= 0 && text.charAt(i) == '.';
     }
     
     /**

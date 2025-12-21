@@ -30,8 +30,9 @@ public class RenameRefactorHandler {
     private int primaryOccurrenceEnd = -1;
     private List<int[]> allOccurrences = new ArrayList<>();
     private ScopeInfo scope = null;
-    private int cursorInWord = 0; // Cursor position within the word being renamed
-    private boolean wordFullySelected = true; // Start with word fully selected
+    
+    // For global scope, track positions that have local shadowing (to exclude them)
+    private List<int[]> localShadowedPositions = new ArrayList<>();
 
     // For restoring original text on cancel
     private String originalText = "";
@@ -39,10 +40,6 @@ public class RenameRefactorHandler {
 
     // Callback interface
     private RenameCallback callback;
-
-    // ==================== CURSOR BLINK ====================
-    private int cursorCounter = 0;
-    private long lastInputTime = 0;
 
     // Pattern for identifiers
     private static final Pattern IDENTIFIER = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*");
@@ -139,14 +136,15 @@ public class RenameRefactorHandler {
         initialWord = text.substring(wordBounds[0], wordBounds[1]);  // Remember for undo
         originalWord = initialWord;
         currentWord = initialWord;
-        setSelection(wordBounds[0], wordBounds[1]);
-
-        // Start with FULL WORD SELECTED (cursor at end, word selected)
-        cursorInWord = currentWord.length();
-        wordFullySelected = true;
-
+        
         // Determine scope for this identifier - MUST check if local shadows global
         scope = determineScope(text, wordBounds[0], originalWord, callback.getContainer());
+        
+        // If global scope, find all positions where local variables shadow this name
+        localShadowedPositions.clear();
+        if (scope != null && scope.isGlobal) {
+            findLocalShadowedPositions(text, originalWord);
+        }
 
         // Find all occurrences within scope
         findOccurrences(text, originalWord);
@@ -155,11 +153,13 @@ public class RenameRefactorHandler {
             return false;
 
         active = true;
-        markActivity();
-        callback.unfocusMainEditor();
-
-        // Push initial undo state so we can restore to this point
-        callback.pushUndoState(text);
+        
+        // Set selection to full word (uses GuiScriptTextArea's selection)
+        primaryOccurrenceStart = wordBounds[0];
+        primaryOccurrenceEnd = wordBounds[1];
+        callback.getSelectionState().setSelection(wordBounds[0], wordBounds[1]);
+        callback.setCursorPosition(wordBounds[1]);
+        callback.getSelectionState().markActivity();
 
         return true;
     }
@@ -202,7 +202,9 @@ public class RenameRefactorHandler {
         String finalText = callback.getText();
         callback.pushUndoState(finalText);
 
-        // Changes are already applied live, just exit rename mode
+        // Calculate cursor position relative to primary occurrence
+        int cursorInWord = callback.getCursorPosition() - primaryOccurrenceStart;
+        cursorInWord = Math.max(0, Math.min(cursorInWord, currentWord.length()));
         int newCursorPos = primaryOccurrenceStart + cursorInWord;
 
         resetState();
@@ -219,10 +221,10 @@ public class RenameRefactorHandler {
         primaryOccurrenceStart = -1;
         primaryOccurrenceEnd = -1;
         allOccurrences.clear();
+        localShadowedPositions.clear();
         scope = null;
         originalText = "";
         originalCursorPos = 0;
-        wordFullySelected = false;
     }
 
     /**
@@ -230,7 +232,7 @@ public class RenameRefactorHandler {
      * @return true if input was consumed
      */
     public boolean keyTyped(char c, int keyCode) {
-        if (!active)
+        if (!active || callback == null)
             return false;
 
         // ESC - cancel
@@ -251,108 +253,114 @@ public class RenameRefactorHandler {
             return true;
         }
 
-        // Any navigation or editing key clears full selection mode
-        boolean wasFullySelected = wordFullySelected;
+        // Get selection state
+        SelectionState sel = callback.getSelectionState();
+        boolean hasSelection = sel.hasSelection();
+        
+        // Calculate cursor position within the word
+        int cursorInWord = callback.getCursorPosition() - primaryOccurrenceStart;
+        cursorInWord = Math.max(0, Math.min(cursorInWord, currentWord.length()));
 
         // Backspace
         if (keyCode == org.lwjgl.input.Keyboard.KEY_BACK) {
-            if (wasFullySelected) {
-                // Delete entire word
+            if (hasSelection) {
+                // Delete selected text (entire word if fully selected)
                 currentWord = "";
-                cursorInWord = 0;
-                wordFullySelected = false;
                 applyLiveRename();
-                markActivity();
-            } else if (cursorInWord > 0 && currentWord.length() > 0) {
+                sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart);
+                callback.setCursorPosition(primaryOccurrenceStart);
+            } else if (cursorInWord > 0) {
                 String before = currentWord.substring(0, cursorInWord - 1);
                 String after = currentWord.substring(cursorInWord);
                 currentWord = before + after;
-                cursorInWord--;
                 applyLiveRename();
-                markActivity();
+                // Update cursor after the text change
+                callback.setCursorPosition(primaryOccurrenceStart + cursorInWord - 1);
             }
+            sel.markActivity();
             return true;
         }
 
         // Delete
         if (keyCode == org.lwjgl.input.Keyboard.KEY_DELETE) {
-            if (wasFullySelected) {
-                // Delete entire word
+            if (hasSelection) {
+                // Delete selected text (entire word if fully selected)
                 currentWord = "";
-                cursorInWord = 0;
-                wordFullySelected = false;
                 applyLiveRename();
-                markActivity();
+                sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart);
+                callback.setCursorPosition(primaryOccurrenceStart);
             } else if (cursorInWord < currentWord.length()) {
                 String before = currentWord.substring(0, cursorInWord);
                 String after = currentWord.substring(cursorInWord + 1);
                 currentWord = before + after;
                 applyLiveRename();
-                markActivity();
             }
+            sel.markActivity();
             return true;
         }
 
         // Left arrow
         if (keyCode == org.lwjgl.input.Keyboard.KEY_LEFT) {
-            wordFullySelected = false;
             if (cursorInWord > 0) {
-                cursorInWord--;
-                markActivity();
+                callback.setCursorPosition(primaryOccurrenceStart + cursorInWord - 1);
+                sel.setSelection(0, 0); // Clear selection
             }
+            sel.markActivity();
             return true;
         }
 
         // Right arrow
         if (keyCode == org.lwjgl.input.Keyboard.KEY_RIGHT) {
-            wordFullySelected = false;
             if (cursorInWord < currentWord.length()) {
-                cursorInWord++;
-                markActivity();
+                callback.setCursorPosition(primaryOccurrenceStart + cursorInWord + 1);
+                sel.setSelection(0, 0); // Clear selection
             }
+            sel.markActivity();
             return true;
         }
 
         // Home
         if (keyCode == org.lwjgl.input.Keyboard.KEY_HOME) {
-            wordFullySelected = false;
-            cursorInWord = 0;
-            markActivity();
+            callback.setCursorPosition(primaryOccurrenceStart);
+            sel.setSelection(0, 0); // Clear selection
+            sel.markActivity();
             return true;
         }
 
         // End
         if (keyCode == org.lwjgl.input.Keyboard.KEY_END) {
-            wordFullySelected = false;
-            cursorInWord = currentWord.length();
-            markActivity();
+            callback.setCursorPosition(primaryOccurrenceStart + currentWord.length());
+            sel.setSelection(0, 0); // Clear selection
+            sel.markActivity();
             return true;
         }
 
-        // Ctrl+A - select all
+        // Ctrl+A - select all (select the whole word)
         if (keyCode == org.lwjgl.input.Keyboard.KEY_A &&
                 org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LCONTROL)) {
-            wordFullySelected = true;
-            cursorInWord = currentWord.length();
-            markActivity();
+            sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart + currentWord.length());
+            callback.setCursorPosition(primaryOccurrenceStart + currentWord.length());
+            sel.markActivity();
             return true;
         }
 
         // Character input - only valid identifier characters
-        if (isValidIdentifierChar(c, (wasFullySelected || currentWord.isEmpty()) && cursorInWord == 0)) {
-            if (wasFullySelected) {
-                // Replace entire word with this character
+        boolean isFirstChar = hasSelection || (currentWord.isEmpty() && cursorInWord == 0);
+        if (isValidIdentifierChar(c, isFirstChar)) {
+            if (hasSelection) {
+                // Replace entire selection with this character
                 currentWord = String.valueOf(c);
-                cursorInWord = 1;
-                wordFullySelected = false;
+                applyLiveRename();
+                callback.setCursorPosition(primaryOccurrenceStart + 1);
+                sel.setSelection(0, 0); // Clear selection
             } else {
                 String before = currentWord.substring(0, cursorInWord);
                 String after = currentWord.substring(cursorInWord);
                 currentWord = before + c + after;
-                cursorInWord++;
+                applyLiveRename();
+                callback.setCursorPosition(primaryOccurrenceStart + cursorInWord + 1);
             }
-            applyLiveRename();
-            markActivity();
+            sel.markActivity();
             return true;
         }
 
@@ -448,7 +456,7 @@ public class RenameRefactorHandler {
      * Apply rename to all occurrences in text
      */
     private String applyRename(String text, String newName) {
-        if (allOccurrences.isEmpty() || newName.isEmpty())
+        if (allOccurrences.isEmpty())
             return text;
 
         StringBuilder result = new StringBuilder();
@@ -461,7 +469,7 @@ public class RenameRefactorHandler {
         for (int[] occ : sorted) {
             if (occ[0] >= lastEnd && occ[1] <= text.length()) {
                 result.append(text, lastEnd, occ[0]);
-                result.append(newName);
+                result.append(newName);  // Append newName, even if empty (which deletes the occurrence)
                 lastEnd = occ[1];
             }
         }
@@ -494,10 +502,89 @@ public class RenameRefactorHandler {
                 continue;
 
             // Check if within scope
-            if (scope.isGlobal || scope.containsPosition(start)) {
+            if (scope.isGlobal) {
+                // For global scope, skip positions where local variables shadow the global
+                if (!isInLocalShadowedRange(start)) {
+                    allOccurrences.add(new int[]{start, end});
+                }
+            } else if (scope.containsPosition(start)) {
                 allOccurrences.add(new int[]{start, end});
             }
         }
+    }
+    
+    /**
+     * Find all positions where local variables with the same name shadow the global variable.
+     * This populates localShadowedPositions with ranges where local declarations exist.
+     */
+    private void findLocalShadowedPositions(String text, String varName) {
+        localShadowedPositions.clear();
+        
+        List<MethodBlock> methods = MethodBlock.collectMethodBlocks(text);
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        
+        for (MethodBlock method : methods) {
+            // Check if this method has a local variable or parameter with the same name
+            boolean hasLocalDecl = method.localVariables.contains(varName);
+            boolean hasParamDecl = isParameterInMethod(text, varName, method);
+            
+            if (hasLocalDecl || hasParamDecl) {
+                // Find where the local/param scope starts
+                int scopeStart;
+                if (hasParamDecl) {
+                    // Parameter scope starts at method start
+                    scopeStart = method.startOffset;
+                } else {
+                    // Local variable scope starts at declaration
+                    scopeStart = findLocalDeclarationPosition(text, varName, method);
+                    if (scopeStart < 0) scopeStart = method.startOffset;
+                }
+                
+                // Find all occurrences of varName within this method's shadowed range
+                Pattern pattern = Pattern.compile("\\b" + Pattern.quote(varName) + "\\b");
+                Matcher m = pattern.matcher(text);
+                
+                while (m.find()) {
+                    int pos = m.start();
+                    
+                    // Skip if in string or comment
+                    if (isInExcludedRange(pos, excluded))
+                        continue;
+                    
+                    // Check if within the shadowed scope of this method
+                    if (pos >= scopeStart && pos < method.endOffset) {
+                        localShadowedPositions.add(new int[]{m.start(), m.end()});
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Check if a position is within a locally shadowed range
+     */
+    private boolean isInLocalShadowedRange(int pos) {
+        for (int[] range : localShadowedPositions) {
+            if (pos >= range[0] && pos < range[1])
+                return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Check if varName is a parameter in the method
+     */
+    private boolean isParameterInMethod(String text, String varName, MethodBlock method) {
+        String methodHeader = text.substring(method.startOffset,
+                Math.min(method.startOffset + 500, method.endOffset));
+        int parenStart = methodHeader.indexOf('(');
+        int parenEnd = methodHeader.indexOf(')');
+        if (parenStart >= 0 && parenEnd > parenStart) {
+            String params = methodHeader.substring(parenStart + 1, parenEnd);
+            Pattern paramPattern = Pattern.compile("\\b" + Pattern.quote(varName) + "\\b");
+            return paramPattern.matcher(params).find();
+        }
+        return false;
     }
 
     /**
@@ -738,14 +825,20 @@ public class RenameRefactorHandler {
      * Get cursor position within the rename word for rendering
      */
     public int getCursorInWord() {
-        return cursorInWord;
+        if (callback == null) return 0;
+        int cursorPos = callback.getCursorPosition();
+        return Math.max(0, Math.min(cursorPos - primaryOccurrenceStart, currentWord.length()));
     }
 
     /**
      * Check if word is fully selected (for visual rendering)
      */
     public boolean isWordFullySelected() {
-        return wordFullySelected;
+        if (callback == null) return false;
+        SelectionState selection = callback.getSelectionState();
+        return selection.hasSelection() && 
+               selection.getStartSelection() == primaryOccurrenceStart && 
+               selection.getEndSelection() == primaryOccurrenceEnd;
     }
 
     /**
@@ -764,23 +857,17 @@ public class RenameRefactorHandler {
      * @return true if the click was within the primary occurrence box, false otherwise
      */
     public boolean handleClick(int clickPosInText) {
-        if (!active)
+        if (!active || callback == null)
             return false;
 
         // Check if click is within the primary occurrence bounds
         if (clickPosInText >= primaryOccurrenceStart &&
                 clickPosInText <= primaryOccurrenceEnd) {
 
-            // Calculate position within the word
-            int relativePos = clickPosInText - primaryOccurrenceStart;
-
-            // Clamp to valid range
-            cursorInWord = Math.max(0, Math.min(relativePos, currentWord.length()));
-
-            // Clear full selection mode on click
-            wordFullySelected = false;
-
-            markActivity();
+            // Set cursor position in the text and clear selection
+            callback.setCursorPosition(clickPosInText);
+            callback.getSelectionState().setSelection(-1, -1);  // Clear selection
+            callback.getSelectionState().markActivity();
             return true;
         }
 
@@ -802,17 +889,22 @@ public class RenameRefactorHandler {
         return active;
     }
 
+    /**
+     * @deprecated Use GuiScriptTextArea's cursor rendering instead
+     */
     public void updateCursor() {
-        cursorCounter++;
+        // No-op - cursor is now handled by GuiScriptTextArea
     }
 
-    private void markActivity() {
-        lastInputTime = System.currentTimeMillis();
-    }
-
+    /**
+     * Check if cursor should be visible based on blink timing.
+     * Uses SelectionState's recent input check.
+     */
     public boolean shouldShowCursor() {
-        boolean recentInput = System.currentTimeMillis() - lastInputTime < 500;
-        return recentInput || (cursorCounter / 10) % 2 == 0;
+        if (callback != null) {
+            return callback.getSelectionState().hadRecentInput();
+        }
+        return true;
     }
 
     /**

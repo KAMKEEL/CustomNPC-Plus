@@ -652,12 +652,17 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     List<int[]> renameOccurrences = renameHandler.getOccurrences();
                     for (int[] occ : renameOccurrences) {
                         // Check if occurrence overlaps with this line
-                        if (occ[1] > data.start && occ[0] < data.end) {
+                        if (occ[1] >= data.start && occ[0] <= data.end) {
                             int occStart = Math.max(occ[0] - data.start, 0);
                             int occEnd = Math.min(occ[1] - data.start, line.length());
-                            if (occStart < occEnd) {
+
+                            // Handle empty word case - draw 1 pixel wide box
+                            boolean isEmpty = (occ[0] == occ[1]);
+
+                            if (occStart <= occEnd) {  // Changed from < to <= to handle empty case
                                 int s = ClientProxy.Font.width(line.substring(0, occStart));
-                                int e = ClientProxy.Font.width(line.substring(0, occEnd)) + 1;
+                                int e = isEmpty ? s + 2 : ClientProxy.Font.width(
+                                        line.substring(0, occEnd)) + 1; // 2px wide for empty
                                 int occX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
                                 int occEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
                                 boolean isPrimary = renameHandler.isPrimaryOccurrence(occ[0]);
@@ -687,8 +692,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                                             String beforeCursor = currentWord.substring(0,
                                                     Math.min(cursorInWord, currentWord.length()));
                                             int cursorX = occX + ClientProxy.Font.width(beforeCursor);
-                                            drawRect(cursorX, posY + 1, cursorX + 1, posY + container.lineHeight - 1,
-                                                    0xFFFFFFFF);
+                                            // drawRect(cursorX, posY + 1, cursorX + 1, posY + container.lineHeight - 1,
+                                            //    0xFFFFFFFF);
                                         }
                                     }
                                 }
@@ -1115,8 +1120,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             if (!e.isPress() || !openBoxes.get())
                 return;
 
-            unfocusAll();
+
             if (!renameHandler.isActive()) {
+                unfocusAll();
+                active = true;
                 renameHandler.startRename();
             }
         });
