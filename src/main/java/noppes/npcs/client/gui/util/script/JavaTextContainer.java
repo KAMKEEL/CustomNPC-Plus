@@ -16,15 +16,8 @@ public class JavaTextContainer extends TextContainer {
             "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
 
     public static final Pattern CLASS_DECL = Pattern.compile("\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
-    
-    public static final Pattern TYPE_DECL = Pattern.compile(
-            "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" + // optional modifiers
-            "([A-Za-z_][a-zA-Z0-9_]*)" + // Group 1 → main type
-            "\\s*(<([^<>]*(?:<[^<>]*>)*)>)?" + // Group 2 → <…>, Group 3 → inner type (handles one level of nesting)
-            "\\s+[a-zA-Z_][a-zA-Z0-9_]*" // variable name
-    );
 
-    public static final Pattern NEW_TYPE = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+    public static final Pattern NEW_TYPE = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");;
 
     public static final Pattern METHOD_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+" + // return type
             "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(" // method name
@@ -44,9 +37,12 @@ public class JavaTextContainer extends TextContainer {
     public static final Pattern NUMBER = Pattern.compile(
             "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
 
-    // Import statement: import [static] package.path.ClassName [.*];
+    // Import statement: import [static] package.path.ClassName [.*]; (semicolon optional for live typing)
     public static final Pattern IMPORT = Pattern.compile(
-            "\\bimport\\s+(?:static\\s+)?([a-zA-Z_][a-zA-Z0-9_.]*?)(?:\\s*\\.\\s*\\*)?\\s*;");
+            "(?m)\\bimport\\s+(?:static\\s+)?([a-zA-Z_][a-zA-Z0-9_.]*?)(?:\\s*\\.\\s*\\*)?\\s*(?:;|$)");
+
+    // ClassPathFinder for resolving imports and determining class types
+    private final ClassPathFinder classPathFinder = new ClassPathFinder();
 
     public List<LineData> lines = new ArrayList<>();
     public List<MethodBlock> methodBlocks = new ArrayList<>();
@@ -97,28 +93,11 @@ public class JavaTextContainer extends TextContainer {
     private List<String> localFields = new ArrayList<>();
     private java.util.Map<String, String> importedClasses = new java.util.HashMap<>(); // simpleName -> fullName
     private java.util.Set<String> importedPackages = new java.util.HashSet<>(); // wildcard imports
-    private java.util.Map<String, TokenType> classTypeCache = new java.util.HashMap<>(); // fullClassName -> TokenType (cached reflection results)
-    private java.util.Set<String> resolvedPackages = new java.util.HashSet<>();
-    private java.util.Set<String> knownPackages = new java.util.HashSet<>();
-
-    // Common java.lang classes (auto-imported)
-    private static final java.util.Set<String> JAVA_LANG_CLASSES = new java.util.HashSet<>(java.util.Arrays.asList(
-            "Object", "String", "Class", "System", "Math", "Integer", "Double", "Float", "Long", "Short", "Byte",
-            "Character", "Boolean",
-            "Number", "Void", "Thread", "Runnable", "Exception", "RuntimeException", "Error", "Throwable",
-            "StringBuilder", "StringBuffer", "Enum", "Comparable", "Iterable", "CharSequence", "Cloneable",
-            "Process", "ProcessBuilder", "Runtime", "SecurityManager", "ClassLoader", "Package",
-            "ArithmeticException", "ArrayIndexOutOfBoundsException", "ClassCastException", "IllegalArgumentException",
-            "IllegalStateException", "IndexOutOfBoundsException", "NullPointerException", "NumberFormatException",
-            "UnsupportedOperationException", "AssertionError", "OutOfMemoryError", "StackOverflowError"
-    ));
 
     private void collectImports() {
         importedClasses.clear();
         importedPackages.clear();
-        // Clear cached import resolutions when re-parsing imports (keeps editor responsive during typing)
-        importResolveCache.clear();
-        knownPackages.clear();
+        classPathFinder.clearCache();
 
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
         Matcher m = IMPORT.matcher(text);
@@ -126,229 +105,53 @@ public class JavaTextContainer extends TextContainer {
             if (isInExcludedRange(m.start(), excluded))
                 continue;
             String fullPath = m.group(1).trim();
+            String matchText = m.group(0);
+
             // Check if wildcard import (import a.b.*;)
-            if (text.substring(m.start(), m.end()).contains("*")) {
+            if (matchText.contains("*")) {
                 importedPackages.add(fullPath);
             } else {
-                // Specific class import: extract simple name
+                // Resolve the import to get the proper class name
+                ClassPathFinder.ResolveResult result = classPathFinder.resolve(fullPath);
+                
+                // Extract simple name (last segment)
                 int lastDot = fullPath.lastIndexOf('.');
                 String simpleName = lastDot >= 0 ? fullPath.substring(lastDot + 1) : fullPath;
                 
-                // Remember the package prefix as a known package (even before resolution)
-                if (lastDot > 0) {
-                    String pkg = fullPath.substring(0, lastDot);
-                    knownPackages.add(pkg);
-                }
-                // Store with $ notation for inner classes (e.g., IOverlay.ColorType -> IOverlay$ColorType)
-                String storagePath = fullPath.replaceAll("\\.(\\p{Upper})", "\\$$1");
-                importedClasses.put(simpleName, storagePath);
-            }
-        }
-    }
-
-    // Cache for resolved import attempts: original fullPath -> resolved class name (with $ for inner classes) or null if unresolved
-    private java.util.Map<String, String> importResolveCache = new java.util.HashMap<>();
-
-    private static class ResolvedImport {
-        String resolvedClass; // full class name with $ notation if found
-        int classStartIndex; // index in segments where class starts
-        TokenType tokenType;
-        boolean found;
-    }
-
-    /**
-     * Try to resolve an import path to an actual class using Class.forName by attempting
-     * different class-start splits and inner-class ($) combinations. Caches results.
-     */
-    private ResolvedImport resolveImportPath(String fullPath) {
-        ResolvedImport ri = new ResolvedImport();
-        if (fullPath == null || fullPath.isEmpty()) {
-            ri.found = false; return ri;
-        }
-        if (importResolveCache.containsKey(fullPath)) {
-            String cached = importResolveCache.get(fullPath);
-            if (cached == null) { ri.found = false; return ri; }
-            ri.resolvedClass = cached;
-            ri.found = true;
-            ri.tokenType = getClassTokenType(cached, TokenType.IMPORTED_CLASS);
-            // derive classStartIndex by comparing segments
-            String[] segs = fullPath.split("\\.");
-            String[] rcsegs = cached.replace('$', '.').split("\\.");
-            int si = 0; while (si < segs.length && si < rcsegs.length && segs[si].equals(rcsegs[si])) si++;
-            ri.classStartIndex = si;
-            return ri;
-        }
-
-        String[] segments = fullPath.split("\\.");
-        int n = segments.length;
-
-        // Try candidate class start positions. Start from left-most uppercase-looking segment for efficiency.
-        int firstUpper = 0;
-        for (int i = 0; i < n; i++) {
-            if (segments[i].length() > 0 && Character.isUpperCase(segments[i].charAt(0))) { firstUpper = i; break; }
-        }
-
-        outer:
-        for (int k = firstUpper; k < n; k++) {
-            // number of inner parts available
-            int innerAvailable = n - (k + 1);
-            // Try the longest inner suffix first (deepest inner class)
-            for (int innerCount = innerAvailable; innerCount >= 0; innerCount--) {
-                // build top-level class and inner suffix
-                StringBuilder classBuilder = new StringBuilder();
-                // package portion
-                if (k > 0) {
-                    for (int i = 0; i < k; i++) {
-                        if (i > 0) classBuilder.append('.');
-                        classBuilder.append(segments[i]);
-                    }
-                    classBuilder.append('.');
-                }
-                // top class
-                classBuilder.append(segments[k]);
-                // inner parts
-                if (innerCount > 0) {
-                    classBuilder.append('$');
-                    for (int j = 0; j < innerCount; j++) {
-                        if (j > 0) classBuilder.append('$');
-                        classBuilder.append(segments[k + 1 + j]);
-                    }
-                }
-                String candidate = classBuilder.toString();
-                TokenType tt = getClassTokenType(candidate, TokenType.IMPORTED_CLASS);
-                if (tt != TokenType.UNDEFINED_VAR) {
-                    ri.found = true;
-                    ri.resolvedClass = candidate;
-                    ri.classStartIndex = k;
-                    ri.tokenType = tt;
-                    importResolveCache.put(fullPath, candidate);
-                    break outer;
-                }
-                // also try without package separator if k==0 (top-level without package)
-                if (k == 0 && innerCount == 0) {
-                    // candidate is segments[0] only, already tried
-                }
-            }
-        }
-
-        if (!ri.found) {
-            importResolveCache.put(fullPath, null);
-            ri.found = false;
-            // approximate classStartIndex as first uppercase or last segment
-            int classStart = 0;
-            for (int i = 0; i < segments.length; i++) {
-                if (segments[i].length() > 0 && Character.isUpperCase(segments[i].charAt(0))) { classStart = i; break; }
-            }
-            ri.classStartIndex = classStart;
-        }
-        return ri;
-    }
-    
-    /**
-     * Determine the token type for a class using reflection.
-     * Returns INTERFACE_DECL for interfaces, ENUM_DECL for enums, UNDEFINED for unfound classes, or the defaultType for classes.
-     */
-    private TokenType getClassTokenType(String fullClassName, TokenType defaultType) {
-        if (fullClassName == null || fullClassName.isEmpty()) return defaultType;
-        
-        // Check cache first
-       // if (classTypeCache.containsKey(fullClassName)) {
-          //  return classTypeCache.get(fullClassName);
-        //}
-        TokenType result = defaultType;
-        try {
-            Class<?> clazz = Class.forName(fullClassName);
-            if (clazz.isInterface()) {
-                result = TokenType.INTERFACE_DECL;
-            } else if (clazz.isEnum()) {
-                result = TokenType.ENUM_DECL;
-            } else {
-                result = defaultType; // regular class
-            }
-        } catch (ClassNotFoundException | NoClassDefFoundError e) {
-            // Try with $ notation for inner classes (e.g., IOverlay$ColorType)
-            String innerClassNotation = fullClassName.replaceAll("\\.(\\p{Upper})", "\\$$1");
-            if (!innerClassNotation.equals(fullClassName)) {
-                try {
-                    Class<?> clazz = Class.forName(innerClassNotation);
-                    if (clazz.isInterface()) {
-                        result = TokenType.INTERFACE_DECL;
-                    } else if (clazz.isEnum()) { 
-                        result = TokenType.ENUM_DECL;
+                if (!simpleName.isEmpty()) {
+                    if (result.found && result.classInfo != null) {
+                        // Store with resolved name (has $ for inner classes)
+                        importedClasses.put(simpleName, result.classInfo.resolvedName);
                     } else {
-                        result = defaultType; // regular class
+                        // Store original path for unresolved imports
+                        importedClasses.put(simpleName, fullPath);
                     }
-                    // Cache with original notation
-                    classTypeCache.put(fullClassName, result);
-                    return result;
-                } catch (Exception e2) {
-                    // Still not found
                 }
             }
-            // Class not found - mark as undefined
-            result = TokenType.UNDEFINED_VAR;
-        } catch (LinkageError e) {
-            // Linkage errors (other than NoClassDefFoundError) - treat as undefined
-            result = TokenType.UNDEFINED_VAR;
         }
-        
-        // Cache the result
-        classTypeCache.put(fullClassName, result);
-        return result;
     }
     
     /**
-     * Parse and highlight generic type parameters recursively (e.g., "List<String>" or "Map<String, List<List<Integer>>>")
-     * Handles arbitrarily nested generics by tracking bracket depth.
+     * Parse and highlight generic type parameters using ClassPathFinder.
+     * Handles arbitrarily nested generics like "Map<String, List<Map<String, String>>>".
      */
     private void highlightGenericTypes(String genericContent, int contentStart, List<Mark> marks, List<int[]> excluded) {
         if (genericContent == null || genericContent.isEmpty()) return;
         
-        int i = 0;
-        while (i < genericContent.length()) {
-            char c = genericContent.charAt(i);
+        List<ClassPathFinder.TypeOccurrence> occurrences = classPathFinder.parseGenericTypes(genericContent, importedClasses);
+        
+        for (ClassPathFinder.TypeOccurrence occ : occurrences) {
+            int absStart = contentStart + occ.startOffset;
+            int absEnd = contentStart + occ.endOffset;
             
-            // Check if we're starting a type name (uppercase letter)
-            if (Character.isJavaIdentifierStart(c) && Character.isUpperCase(c)) {
-                int start = i;
-                while (i < genericContent.length() && Character.isJavaIdentifierPart(genericContent.charAt(i))) {
-                    i++;
+            if (!isInExcludedRange(absStart, excluded)) {
+                TokenType tokenType;
+                switch (occ.type) {
+                    case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
+                    case ENUM: tokenType = TokenType.ENUM_DECL; break;
+                    default: tokenType = TokenType.IMPORTED_CLASS; break;
                 }
-                String typeName = genericContent.substring(start, i);
-                int absStart = contentStart + start;
-                int absEnd = contentStart + i;
-                
-                if (!isInExcludedRange(absStart, excluded)) {
-                    // Resolve full class name
-                    String fullClassName = importedClasses.get(typeName);
-                    if (fullClassName == null && JAVA_LANG_CLASSES.contains(typeName)) {
-                        fullClassName = "java.lang." + typeName;
-                    }
-                    
-                    TokenType tokenType = getClassTokenType(fullClassName, TokenType.IMPORTED_CLASS);
-                    marks.add(new Mark(absStart, absEnd, tokenType));
-                }
-                
-                // Check for nested generics after this type
-                while (i < genericContent.length() && Character.isWhitespace(genericContent.charAt(i))) i++;
-                if (i < genericContent.length() && genericContent.charAt(i) == '<') {
-                    // Find matching >
-                    int depth = 1;
-                    int nestedStart = i + 1;
-                    i++;
-                    while (i < genericContent.length() && depth > 0) {
-                        if (genericContent.charAt(i) == '<') depth++;
-                        else if (genericContent.charAt(i) == '>') depth--;
-                        i++;
-                    }
-                    // Recursively process nested content
-                    String nestedContent = genericContent.substring(nestedStart, i - 1);
-                    highlightGenericTypes(nestedContent, contentStart + nestedStart, marks, excluded);
-                    // Continue after the closing > to find more types
-                }
-                // Continue to next character (handles commas, spaces, etc.)
-            } else {
-                i++;
+                marks.add(new Mark(absStart, absEnd, tokenType));
             }
         }
     }
@@ -604,7 +407,6 @@ public class JavaTextContainer extends TextContainer {
 
     private void collectImportStatements(List<Mark> marks) {
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
-        // Pattern to match: import [static] package.path.ClassName [.*];
         Matcher m = IMPORT.matcher(text);
         while (m.find()) {
             if (isInExcludedRange(m.start(), excluded))
@@ -612,108 +414,95 @@ public class JavaTextContainer extends TextContainer {
             String fullPath = m.group(1).trim();
             int pathStart = m.start(1);
             int pathEnd = m.end(1);
+            String matchText = m.group(0);
 
             // Highlight the 'import' keyword itself
             int importKwStart = m.start();
-            int importKwEnd = Math.min(importKwStart + 6, text.length()); // "import"
+            int importKwEnd = Math.min(importKwStart + 6, text.length());
             marks.add(new Mark(importKwStart, importKwEnd, TokenType.IMPORT_KEYWORD));
 
-            // Resolve import path to an actual class if possible
-            ResolvedImport ri = resolveImportPath(fullPath);
-            String[] segments = fullPath.split("\\.");
+            // Use ClassPathFinder to resolve the import
+            ClassPathFinder.ResolveResult result = classPathFinder.resolve(fullPath);
 
-            // Compute package portion length
-            int pkgSegments = 0;
-            if (ri.found && ri.resolvedClass != null) {
-                pkgSegments = Math.max(0, ri.classStartIndex);
-                // register resolved package prefix
-                if (pkgSegments > 0) {
-                    StringBuilder pb = new StringBuilder();
-                    for (int i = 0; i < pkgSegments; i++) {
-                        if (i > 0) pb.append('.');
-                        pb.append(segments[i]);
-                    }
-                    resolvedPackages.add(pb.toString());
+            String packagePortion = result.packagePortion;
+            String classPortion = result.classPortion;
+            boolean hasPackage = packagePortion != null && !packagePortion.isEmpty();
+            boolean hasClass = classPortion != null && !classPortion.isEmpty();
+
+            if (result.found && result.invalidStartOffset < 0) {
+                // Fully resolved - highlight package (blue) and class segments (typed)
+                if (hasPackage) {
+                    int pkgEnd = pathStart + packagePortion.length();
+                    if (hasClass) pkgEnd++; // include dot
+                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
                 }
-            } else {
-                // Try to find the longest previously-resolved package prefix, or known package prefix
-                for (int p = segments.length - 1; p >= 1; p--) {
-                    StringBuilder test = new StringBuilder();
-                    for (int i = 0; i < p; i++) {
-                        if (i > 0) test.append('.');
-                        test.append(segments[i]);
-                    }
-                    String testStr = test.toString();
-                    if (resolvedPackages.contains(testStr)) {
-                        pkgSegments = p;
-                        break;
-                    }
-                    if (knownPackages.contains(testStr)) {
-                        pkgSegments = p;
-                        // don't break; prefer a resolved package if found later in loop
-                    }
-                }
-                // fallback to ri.classStartIndex if nothing known
-                if (pkgSegments == 0) pkgSegments = Math.max(0, ri.classStartIndex);
-            }
-            StringBuilder pkgBuilder = new StringBuilder();
-            for (int i = 0; i < pkgSegments; i++) {
-                if (i > 0) pkgBuilder.append('.');
-                pkgBuilder.append(segments[i]);
-            }
-            int pkgLen = pkgBuilder.length();
-            if (pkgLen > 0) {
-                marks.add(new Mark(pathStart, pathStart + pkgLen + 1, TokenType.TYPE_DECL)); // package + dot
-            }
-
-            // Highlight class and inner-class segments
-            int classStart = pathStart + (pkgLen > 0 ? pkgLen + 1 : 0);
-            if (ri.found && ri.resolvedClass != null) {
-                // Use resolved class (with $). Break into segments for progressive checks.
-                for (int i = ri.classStartIndex; i < segments.length; i++) {
-                    int segStart = classStart;
-                    int segEnd = classStart + segments[i].length();
-
-                    // Build candidate full name up to this segment using $ for inner separators
-                    StringBuilder testBuilder = new StringBuilder();
-                    if (ri.classStartIndex > 0) {
-                        for (int p = 0; p < ri.classStartIndex; p++) {
-                            if (p > 0) testBuilder.append('.');
-                            testBuilder.append(segments[p]);
+                
+                if (hasClass && !result.classSegments.isEmpty()) {
+                    int classStart = pathStart + (hasPackage ? packagePortion.length() + 1 : 0);
+                    for (ClassPathFinder.ClassSegment seg : result.classSegments) {
+                        int segEnd = classStart + seg.name.length();
+                        TokenType segType;
+                        switch (seg.type) {
+                            case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
+                            case ENUM: segType = TokenType.ENUM_DECL; break;
+                            default: segType = TokenType.IMPORTED_CLASS; break;
                         }
-                        testBuilder.append('.');
+                        marks.add(new Mark(classStart, segEnd, segType));
+                        classStart = segEnd + 1;
                     }
-                    testBuilder.append(segments[ri.classStartIndex]);
-                    for (int q = ri.classStartIndex + 1; q <= i; q++) {
-                        testBuilder.append('$').append(segments[q]);
+                }
+            } else if (result.classSegments != null && !result.classSegments.isEmpty()) {
+                // Partial resolution - some class segments are valid, rest is invalid
+                // (e.g., IOverlay.ColorType resolved but ".idk" is invalid)
+                if (hasPackage) {
+                    int pkgEnd = pathStart + packagePortion.length() + 1; // include dot
+                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                }
+                
+                int classStart = pathStart + (hasPackage ? packagePortion.length() + 1 : 0);
+                for (ClassPathFinder.ClassSegment seg : result.classSegments) {
+                    int segEnd = classStart + seg.name.length();
+                    TokenType segType;
+                    switch (seg.type) {
+                        case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
+                        case ENUM: segType = TokenType.ENUM_DECL; break;
+                        default: segType = TokenType.IMPORTED_CLASS; break;
                     }
-                    String testFull = testBuilder.toString();
-                    TokenType segType = getClassTokenType(testFull, TokenType.IMPORTED_CLASS);
-                    marks.add(new Mark(segStart, segEnd, segType));
-
-                    // Update importedClasses map for simple name resolution
-                    if (i == segments.length - 1) {
-                        importedClasses.put(segments[i], ri.resolvedClass);
+                    marks.add(new Mark(classStart, segEnd, segType));
+                    classStart = segEnd + 1;
+                }
+                
+                // Mark remaining invalid portion in red
+                if (result.invalidStartOffset >= 0) {
+                    int invalidStart = pathStart + result.invalidStartOffset;
+                    if (invalidStart < pathEnd) {
+                        marks.add(new Mark(invalidStart, pathEnd, TokenType.UNDEFINED_VAR));
                     }
-
-                    classStart = segEnd + 1; // +1 for dot
                 }
             } else {
-                // Unresolved import: mark the entire tail (after known package prefix) as undefined
-                int undefStart = classStart;
-                int undefEnd = pathEnd;
-                if (undefStart < undefEnd) {
-                    marks.add(new Mark(undefStart, undefEnd, TokenType.UNDEFINED_VAR));
-                }
-                // Remove any previously-added simple-name mapping to avoid treating it as imported
-                String simpleName = segments[segments.length - 1];
-                if (importedClasses.containsKey(simpleName)) {
-                    importedClasses.remove(simpleName);
+                // Not resolved at all - use invalidStartOffset to determine valid/invalid split
+                if (result.invalidStartOffset >= 0 && hasPackage) {
+                    // Valid package prefix, invalid class
+                    int pkgEnd = pathStart + packagePortion.length();
+                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                    
+                    int invalidStart = pathStart + result.invalidStartOffset;
+                    if (invalidStart < pathEnd) {
+                        marks.add(new Mark(invalidStart, pathEnd, TokenType.UNDEFINED_VAR));
+                    }
+                } else if (fullPath.endsWith(".") && hasPackage) {
+                    // Trailing dot on package - all blue
+                    marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                } else if (result.invalidStartOffset < 0 && hasPackage && !hasClass) {
+                    // All-lowercase path treated as valid package
+                    marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                } else {
+                    // Entire path is invalid
+                    marks.add(new Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR));
                 }
             }
 
-            // Highlight .* if present (find '*' between match bounds)
-            String matchText = text.substring(m.start(), m.end());
+            // Highlight .* if present
             int starIndex = matchText.indexOf('*');
             if (starIndex != -1) {
                 int absStar = m.start() + starIndex;
@@ -735,13 +524,9 @@ public class JavaTextContainer extends TextContainer {
                 continue;
 
             // Check if this is an imported class, wildcard match, or java.lang class
-            boolean isImported = importedClasses.containsKey(className) || JAVA_LANG_CLASSES.contains(className);
-            if (!isImported) {
-                // Check wildcard imports (heuristic: if any imported package exists, mark it)
-                for (String pkg : importedPackages) {
-                    isImported = true;
-                    break;
-                }
+            boolean isImported = importedClasses.containsKey(className) || ClassPathFinder.JAVA_LANG_CLASSES.contains(className);
+            if (!isImported && !importedPackages.isEmpty()) {
+                isImported = true; // Wildcard import present
             }
 
             // Also skip if it's a local/global field or parameter (avoid false positives)
@@ -753,12 +538,15 @@ public class JavaTextContainer extends TextContainer {
             }
 
             if (isImported && !isShadowed) {
-                // Determine token type dynamically using reflection
-                String fullClassName = importedClasses.get(className);
-                if (fullClassName == null && JAVA_LANG_CLASSES.contains(className)) {
-                    fullClassName = "java.lang." + className;
+                // Resolve the class to determine its type
+                ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(className, importedClasses);
+                TokenType tokenType = TokenType.IMPORTED_CLASS;
+                if (info != null) {
+                    switch (info.type) {
+                        case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
+                        case ENUM: tokenType = TokenType.ENUM_DECL; break;
+                    }
                 }
-                TokenType tokenType = getClassTokenType(fullClassName, TokenType.IMPORTED_CLASS);
                 marks.add(new Mark(start, end, tokenType));
             }
         }
@@ -869,46 +657,118 @@ public class JavaTextContainer extends TextContainer {
     }
 
     private void collectTypeDeclarations(List<Mark> marks) {
-        // Run TYPE_DECL on each line to avoid matches bleeding across newlines
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        
+        // Pattern to find type declarations: Type<...> variableName or Type variableName
+        // We'll manually parse the generic portion to handle arbitrary nesting
+        Pattern typeStart = Pattern.compile(
+            "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" +
+            "([A-Z][a-zA-Z0-9_]*)\\s*" // Group 1 → type name (must start with uppercase)
+        );
+        
         for (LineData ld : lines) {
             int lineStart = ld.start;
             int lineEnd = ld.end;
             if (lineStart >= lineEnd) continue;
             String s = ld.text;
-            Matcher m = TYPE_DECL.matcher(s);
-            while (m.find()) {
-                int g1s = lineStart + m.start(1);
-                int g1e = lineStart + m.end(1);
-                // Skip if any part of the match overlaps an excluded range (string/comment)
+            
+            Matcher m = typeStart.matcher(s);
+            int searchFrom = 0;
+            
+            while (m.find(searchFrom)) {
+                int typeNameStart = lineStart + m.start(1);
+                int typeNameEnd = lineStart + m.end(1);
+                
+                // Skip if in excluded range
                 boolean skip = false;
                 for (int[] r : excluded) {
-                    if (g1s < r[1] && g1e > r[0]) { skip = true; break; }
+                    if (typeNameStart < r[1] && typeNameEnd > r[0]) { skip = true; break; }
                 }
-                if (skip) continue;
-                // Check if this type is a known interface or enum using reflection
+                if (skip) {
+                    searchFrom = m.end();
+                    continue;
+                }
+                
                 String typeName = m.group(1);
-                String fullClassName = importedClasses.get(typeName);
-                if (fullClassName == null && JAVA_LANG_CLASSES.contains(typeName)) {
-                    fullClassName = "java.lang." + typeName;
+                int posAfterType = m.end(1);
+                
+                // Skip whitespace after type name
+                while (posAfterType < s.length() && Character.isWhitespace(s.charAt(posAfterType))) {
+                    posAfterType++;
                 }
-                TokenType tokenType = getClassTokenType(fullClassName, TokenType.TYPE_DECL);
-                marks.add(new Mark(g1s, g1e, tokenType));
-
-                if (m.group(2) != null) {
-                    int start = lineStart + m.start(2);
-                    int end = lineStart + m.end(2);
-                    // Color < and > as default
-                    marks.add(new Mark(start, start + 1, TokenType.DEFAULT)); // <
-                    marks.add(new Mark(end - 1, end, TokenType.DEFAULT)); // >
-
-                    // Parse and highlight all types in generic content (handles nested generics)
-                    if (m.group(3) != null) {
-                        String genericContent = m.group(3);
-                        int contentStart = lineStart + m.start(3);
+                
+                // Check for generic parameters
+                String genericContent = null;
+                int genericStart = -1;
+                int genericEnd = -1;
+                
+                if (posAfterType < s.length() && s.charAt(posAfterType) == '<') {
+                    genericStart = posAfterType;
+                    int depth = 1;
+                    int i = posAfterType + 1;
+                    while (i < s.length() && depth > 0) {
+                        char c = s.charAt(i);
+                        if (c == '<') depth++;
+                        else if (c == '>') depth--;
+                        i++;
+                    }
+                    if (depth == 0) {
+                        genericEnd = i;
+                        genericContent = s.substring(genericStart + 1, genericEnd - 1);
+                        posAfterType = genericEnd;
+                    }
+                }
+                
+                // Skip whitespace after generics
+                while (posAfterType < s.length() && Character.isWhitespace(s.charAt(posAfterType))) {
+                    posAfterType++;
+                }
+                
+                // Check if this looks like a type declaration:
+                // 1. Has generic content (e.g., List<String>) - always a type
+                // 2. Followed by a variable name (lowercase start or underscore)
+                // 3. At end of line with generic content (line might be wrapped)
+                boolean hasGeneric = genericContent != null && !genericContent.isEmpty();
+                boolean atEndOfLine = posAfterType >= s.length();
+                boolean followedByVarName = false;
+                
+                if (!atEndOfLine) {
+                    char nextChar = s.charAt(posAfterType);
+                    followedByVarName = Character.isLetter(nextChar) || nextChar == '_';
+                }
+                
+                // Accept as type if: has generics OR followed by variable name
+                // This handles both `List<String> myList` and wrapped lines like `List<String>`
+                if (hasGeneric || followedByVarName) {
+                    // This looks like a type declaration
+                    
+                    // Resolve the main type
+                    ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(typeName, importedClasses);
+                    TokenType tokenType = TokenType.TYPE_DECL;
+                    if (info != null) {
+                        switch (info.type) {
+                            case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
+                            case ENUM: tokenType = TokenType.ENUM_DECL; break;
+                        }
+                    }
+                    marks.add(new Mark(typeNameStart, typeNameEnd, tokenType));
+                    
+                    // Handle generic content
+                    if (hasGeneric && genericStart >= 0) {
+                        int absGenericStart = lineStart + genericStart;
+                        int absGenericEnd = lineStart + genericEnd;
+                        
+                        // Mark < and > as default
+                        marks.add(new Mark(absGenericStart, absGenericStart + 1, TokenType.DEFAULT));
+                        marks.add(new Mark(absGenericEnd - 1, absGenericEnd, TokenType.DEFAULT));
+                        
+                        // Parse and highlight all types in generic content
+                        int contentStart = lineStart + genericStart + 1;
                         highlightGenericTypes(genericContent, contentStart, marks, excluded);
                     }
                 }
+                
+                searchFrom = m.end();
             }
         }
     }
