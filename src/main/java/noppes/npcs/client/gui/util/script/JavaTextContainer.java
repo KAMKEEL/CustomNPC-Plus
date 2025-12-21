@@ -373,7 +373,8 @@ public class JavaTextContainer extends TextContainer {
     private boolean isMethodCall(int position) {
         // Skip whitespace after identifier
         int i = position;
-        while (i < text.length() && Character.isLetterOrDigit(text.charAt(i)) || text.charAt(i) == '_') {
+        // Note: parentheses needed to avoid evaluating text.charAt(i) when i >= text.length()
+        while (i < text.length() && (Character.isLetterOrDigit(text.charAt(i)) || text.charAt(i) == '_')) {
             i++;
         }
         // Skip whitespace
@@ -792,11 +793,12 @@ public class JavaTextContainer extends TextContainer {
                     
                     // Resolve the main type
                     ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(typeName, importedClasses);
-                    TokenType tokenType = TokenType.TYPE_DECL;
+                    TokenType tokenType = TokenType.UNDEFINED_VAR;
                     if (info != null) {
                         switch (info.type) {
                             case INTERFACE: tokenType = TokenType.INTERFACE_DECL; break;
                             case ENUM: tokenType = TokenType.ENUM_DECL; break;
+                            default: tokenType = TokenType.TYPE_DECL;
                         }
                     }
                     marks.add(new Mark(typeNameStart, typeNameEnd, tokenType));
