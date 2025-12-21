@@ -158,7 +158,7 @@ public class RenameRefactorHandler {
         primaryOccurrenceStart = wordBounds[0];
         primaryOccurrenceEnd = wordBounds[1];
         callback.getSelectionState().setSelection(wordBounds[0], wordBounds[1]);
-        callback.setCursorPosition(wordBounds[1]);
+       // callback.setCursorPosition(wordBounds[1]);
         callback.getSelectionState().markActivity();
 
         return true;

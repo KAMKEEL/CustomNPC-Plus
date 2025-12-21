@@ -663,8 +663,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                                 int s = ClientProxy.Font.width(line.substring(0, occStart));
                                 int e = isEmpty ? s + 2 : ClientProxy.Font.width(
                                         line.substring(0, occEnd)) + 1; // 2px wide for empty
-                                int occX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + s;
-                                int occEndX = x + LINE_NUMBER_GUTTER_WIDTH + 1 + e;
+                                int occX = x + LINE_NUMBER_GUTTER_WIDTH  + s;
+                                int occEndX = x + LINE_NUMBER_GUTTER_WIDTH + 2 + e;
                                 boolean isPrimary = renameHandler.isPrimaryOccurrence(occ[0]);
 
                                 // Draw background highlight
@@ -674,6 +674,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                                 // Draw white border for primary occurrence (IntelliJ-like)
                                 if (isPrimary) {
                                     int borderColor = 0xDDFFFFFF;
+                                    //RED BG
+                                    drawRect(occX, posY, occEndX, posY + container.lineHeight, 0x33ff0000);
+                                    
                                     // Top border
                                     drawRect(occX, posY, occEndX, posY + 1, borderColor);
                                     // Bottom border  
