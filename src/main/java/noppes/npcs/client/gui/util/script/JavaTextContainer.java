@@ -13,8 +13,10 @@ public class JavaTextContainer extends TextContainer {
     public static final Pattern MODIFIER = Pattern.compile(
             "\\b(public|protected|private|static|final|abstract|synchronized|native|default)\\b");
     public static final Pattern KEYWORD = Pattern.compile(
-            "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof)\\b");
+            "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
 
+    public static final Pattern CLASS_DECL = Pattern.compile("\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+    
     public static final Pattern TYPE_DECL = Pattern.compile("\\b([A-Za-z_][a-zA-Z0-9_]*)" + // Group 1 → main type
             "\\s*(<([^>]+)>)?" + // Group 2 → <…>, Group 3 → inner type
                     "\\s+[a-zA-Z_][a-zA-Z0-9_]*" // variable name
@@ -39,6 +41,10 @@ public class JavaTextContainer extends TextContainer {
     public static final Pattern COMMENT = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*|#.*");
     public static final Pattern NUMBER = Pattern.compile(
             "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
+
+    // Import statement: import [static] package.path.ClassName [.*];
+    public static final Pattern IMPORT = Pattern.compile(
+            "\\bimport\\s+(?:static\\s+)?([a-zA-Z_][a-zA-Z0-9_.]*?)(?:\\s*\\.\\s*\\*)?\\s*;");
 
     public List<LineData> lines = new ArrayList<>();
     public List<MethodBlock> methodBlocks = new ArrayList<>();
@@ -87,7 +93,43 @@ public class JavaTextContainer extends TextContainer {
 
     private List<String> globalFields = new ArrayList<>();
     private List<String> localFields = new ArrayList<>();
+    private java.util.Map<String, String> importedClasses = new java.util.HashMap<>(); // simpleName -> fullName
+    private java.util.Set<String> importedPackages = new java.util.HashSet<>(); // wildcard imports
 
+    // Common java.lang classes (auto-imported)
+    private static final java.util.Set<String> JAVA_LANG_CLASSES = new java.util.HashSet<>(java.util.Arrays.asList(
+            "Object", "String", "Class", "System", "Math", "Integer", "Double", "Float", "Long", "Short", "Byte",
+            "Character", "Boolean",
+            "Number", "Void", "Thread", "Runnable", "Exception", "RuntimeException", "Error", "Throwable",
+            "StringBuilder", "StringBuffer", "Enum", "Comparable", "Iterable", "CharSequence", "Cloneable",
+            "Process", "ProcessBuilder", "Runtime", "SecurityManager", "ClassLoader", "Package",
+            "ArithmeticException", "ArrayIndexOutOfBoundsException", "ClassCastException", "IllegalArgumentException",
+            "IllegalStateException", "IndexOutOfBoundsException", "NullPointerException", "NumberFormatException",
+            "UnsupportedOperationException", "AssertionError", "OutOfMemoryError", "StackOverflowError"
+    ));
+
+    private void collectImports() {
+        importedClasses.clear();
+        importedPackages.clear();
+
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        Matcher m = IMPORT.matcher(text);
+        while (m.find()) {
+            if (isInExcludedRange(m.start(), excluded))
+                continue;
+            String fullPath = m.group(1).trim();
+            // Check if wildcard import (import a.b.*;)
+            if (text.substring(m.start(), m.end()).contains("*")) {
+                importedPackages.add(fullPath);
+            } else {
+                // Specific class import: extract simple name
+                int lastDot = fullPath.lastIndexOf('.');
+                String simpleName = lastDot >= 0 ? fullPath.substring(lastDot + 1) : fullPath;
+                importedClasses.put(simpleName, fullPath);
+            }
+        }
+    }
+    
     private void collectFields() {
         globalFields.clear();
         localFields.clear();
@@ -336,14 +378,119 @@ public class JavaTextContainer extends TextContainer {
         }
         return false;
     }
+
+    private void collectImportStatements(List<Mark> marks) {
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        // Pattern to match: import [static] package.path.ClassName [.*];
+        Matcher m = IMPORT.matcher(text);
+        while (m.find()) {
+            if (isInExcludedRange(m.start(), excluded))
+                continue;
+            // "import" keyword already handled by KEYWORD pattern
+            // Highlight the package/class path
+            String fullPath = m.group(1);
+            int pathStart = m.start(1);
+            int pathEnd = m.end(1);
+
+            // Highlight the 'import' keyword itself in modifier/orange color (override KEYWORD)
+            int importKwStart = m.start();
+            int importKwEnd = Math.min(importKwStart + 6, text.length()); // "import"
+            marks.add(new Mark(importKwStart, importKwEnd, TokenType.IMPORT_KEYWORD));
+
+            // Split into package and class: last segment is class, rest is package
+            int lastDot = fullPath.lastIndexOf('.');
+            if (lastDot > 0) {
+                // package part (e.g., "java.util")
+                int pkgEnd = pathStart + lastDot;
+                // +1 includes .
+                marks.add(new Mark(pathStart, pkgEnd + 1, TokenType.TYPE_DECL)); // dark blue
+                // class part (e.g., "ArrayList")
+                marks.add(new Mark(pkgEnd + 1, pathEnd, TokenType.IMPORTED_CLASS)); // aqua
+            } else {
+                // No package, just class name
+                marks.add(new Mark(pathStart, pathEnd, TokenType.IMPORTED_CLASS));
+            }
+
+            // Highlight .* if present (find '*' between match bounds)
+            String matchText = text.substring(m.start(), m.end());
+            int starIndex = matchText.indexOf('*');
+            if (starIndex != -1) {
+                int absStar = m.start() + starIndex;
+                marks.add(new Mark(absStar, absStar + 1, TokenType.DEFAULT));
+            }
+        }
+    }
+
+    private void collectImportedClassUsages(List<Mark> marks) {
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        // Find identifiers followed by dot (e.g., Math.min, ArrayList.class)
+        Pattern classUsage = Pattern.compile("\\b([A-Z][a-zA-Z0-9_]*)\\s*\\.");
+        Matcher m = classUsage.matcher(text);
+        while (m.find()) {
+            String className = m.group(1);
+            int start = m.start(1);
+            int end = m.end(1);
+            if (isInExcludedRange(start, excluded))
+                continue;
+
+            // Check if this is an imported class, wildcard match, or java.lang class
+            boolean isImported = importedClasses.containsKey(className) || JAVA_LANG_CLASSES.contains(className);
+            if (!isImported) {
+                // Check wildcard imports (heuristic: if any imported package exists, mark it)
+                for (String pkg : importedPackages) {
+                    isImported = true;
+                    break;
+                }
+            }
+
+            // Also skip if it's a local/global field or parameter (avoid false positives)
+            MethodBlock block = findMethodBlockAtPosition(start);
+            boolean isShadowed = globalFields.contains(className) || localFields.contains(className);
+            if (block != null) {
+                isShadowed = isShadowed || block.parameters.contains(className) || block.isLocalDeclaredAtPosition(
+                        className, start);
+            }
+
+            if (isImported && !isShadowed) {
+                marks.add(new Mark(start, end, TokenType.IMPORTED_CLASS));
+            }
+        }
+    }
+
+    private void collectClassDeclarations(List<Mark> marks) {
+        Matcher m = CLASS_DECL.matcher(text);
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        while (m.find()) {
+            marks.add(new Mark(m.start(1), m.end(1), TokenType.CLASS_KEYWORD));
+
+            int nameStart = m.start(2);
+            int nameEnd = m.end(2);
+            if (isInExcludedRange(nameStart, excluded))
+                continue;
+            String kind = m.group(1);
+            if ("interface".equals(kind)) {
+                marks.add(new Mark(nameStart, nameEnd, TokenType.INTERFACE_DECL));
+            } else if ("enum".equals(kind)) {
+                marks.add(new Mark(nameStart, nameEnd, TokenType.ENUM_DECL));
+            } else {
+                marks.add(new Mark(nameStart, nameEnd, TokenType.CLASS_DECL));
+            }
+        }
+    }
     
     public void formatCodeText() {
         // Step 1: Tokenize the full text
         List<Mark> marks = new ArrayList<>();
 
+        collectImports(); // Parse import statements first
         collectFields(); // Extract global and local fields with method scoping
         collectPatternMatches(marks, COMMENT, TokenType.COMMENT);
         collectPatternMatches(marks, STRING, TokenType.STRING);
+
+        collectImportStatements(marks); // Highlight import statements
+        collectClassDeclarations(marks); // Highlight class/interface/enum declarations
+
+        // Highlight general keywords
         collectPatternMatches(marks, KEYWORD, TokenType.KEYWORD);
         collectPatternMatches(marks, MODIFIER, TokenType.MODIFIER);
 
@@ -356,6 +503,7 @@ public class JavaTextContainer extends TextContainer {
         collectPatternMatches(marks, NUMBER, TokenType.NUMBER);
 
         highlightVariableReferences(marks);
+        collectImportedClassUsages(marks); // Highlight imported class usages (e.g., Math.min)
 
         marks = resolveConflicts(marks);
 
@@ -555,9 +703,15 @@ public class JavaTextContainer extends TextContainer {
     public enum TokenType {
         COMMENT('7', 130),
         STRING('5', 120),
+        CLASS_KEYWORD('c', 115),
+        IMPORT_KEYWORD('6', 110),
         KEYWORD('c', 100),
         MODIFIER('6', 90),
         NEW_TYPE('d', 80),
+        IMPORTED_CLASS('3', 75), //imported classes used in code
+        INTERFACE_DECL('b', 85),
+        ENUM_DECL('d', 85),
+        CLASS_DECL('3', 85),
         TYPE_DECL('3', 70),
         METHOD_DECARE('2', 60),
         METHOD_CALL('a', 50),
