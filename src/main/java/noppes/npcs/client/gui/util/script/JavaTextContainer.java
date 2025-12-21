@@ -414,21 +414,36 @@ public class JavaTextContainer extends TextContainer {
     }
 
     private void collectTypeDeclarations(List<Mark> marks) {
-        Matcher m = TYPE_DECL.matcher(text);
-        while (m.find()) {
-            // main type
-            marks.add(new Mark(m.start(1), m.end(1), TokenType.TYPE_DECL));
+        // Run TYPE_DECL on each line to avoid matches bleeding across newlines
+        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
+        for (LineData ld : lines) {
+            int lineStart = ld.start;
+            int lineEnd = ld.end;
+            if (lineStart >= lineEnd) continue;
+            String s = ld.text;
+            Matcher m = TYPE_DECL.matcher(s);
+            while (m.find()) {
+                int g1s = lineStart + m.start(1);
+                int g1e = lineStart + m.end(1);
+                // Skip if any part of the match overlaps an excluded range (string/comment)
+                boolean skip = false;
+                for (int[] r : excluded) {
+                    if (g1s < r[1] && g1e > r[0]) { skip = true; break; }
+                }
+                if (skip) continue;
+                marks.add(new Mark(g1s, g1e, TokenType.TYPE_DECL));
 
-            if (m.group(2) != null) {
-                int start = m.start(2);
-                int end = m.end(2);
-                // Color < and > as white
-                marks.add(new Mark(start, start + 1, TokenType.DEFAULT)); // <
-                marks.add(new Mark(end - 1, end, TokenType.DEFAULT)); // >
+                if (m.group(2) != null) {
+                    int start = lineStart + m.start(2);
+                    int end = lineStart + m.end(2);
+                    // Color < and > as default
+                    marks.add(new Mark(start, start + 1, TokenType.DEFAULT)); // <
+                    marks.add(new Mark(end - 1, end, TokenType.DEFAULT)); // >
 
-                // Inner type (String)
-                if (m.group(3) != null) {
-                    marks.add(new Mark(m.start(3), m.end(3), TokenType.NEW_TYPE));
+                    // Inner type: String in <String>
+                    if (m.group(3) != null) {
+                        marks.add(new Mark(lineStart + m.start(3), lineStart + m.end(3), TokenType.NEW_TYPE));
+                    }
                 }
             }
         }
