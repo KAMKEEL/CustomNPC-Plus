@@ -859,18 +859,7 @@ public class RenameRefactorHandler {
     public boolean handleClick(int clickPosInText) {
         if (!active || callback == null)
             return false;
-
-        // Check if click is within the primary occurrence bounds
-        if (clickPosInText >= primaryOccurrenceStart &&
-                clickPosInText <= primaryOccurrenceEnd) {
-
-            // Set cursor position in the text and clear selection
-            callback.setCursorPosition(clickPosInText);
-            callback.getSelectionState().setSelection(-1, -1);  // Clear selection
-            callback.getSelectionState().markActivity();
-            return true;
-        }
-
+        
         return false;
     }
 
