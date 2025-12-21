@@ -494,8 +494,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int bracketLineIdx = -1;
             // Only consider curly braces for highlighting the indent guides
             boolean isCurlyBracket = false;
+            char bc = text.charAt(startBracket);
             if (text != null && startBracket >= 0 && startBracket < text.length()) {
-                char bc = text.charAt(startBracket);
                 if (bc == '{' || bc == '}') isCurlyBracket = true;
             }
             for (int li = 0; li < list.size(); li++) {
@@ -506,13 +506,35 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 }
             }
             if (bracketLineIdx >= 0 && isCurlyBracket) {
+                // Prefer a span that directly matches the bracket character's line:
+                // - if the bracket is an opening '{', prefer spans where openLine == bracketLineIdx
+                // - if the bracket is a closing '}', prefer spans where closeLine == bracketLineIdx
+                // If no exact match is found, fall back to the smallest enclosing span (innermost).
+                int bestSize = Integer.MAX_VALUE;
+                boolean foundExact = false;
+                char bracketChar = bc; // from earlier
                 for (int[] span : braceSpans) {
                     int openLine = span[1];
                     int closeLine = span[2];
                     if (bracketLineIdx >= openLine && bracketLineIdx <= closeLine) {
-                        highlightedOpenLine = openLine;
-                        highlightedCloseLine = closeLine;
-                        break;
+                        int size = closeLine - openLine;
+                        boolean exactMatch = (bracketChar == '{' && openLine == bracketLineIdx) || (bracketChar == '}' && closeLine == bracketLineIdx);
+                        if (exactMatch) {
+                            // Prefer exact matches immediately (still choose smallest exact span)
+                            if (!foundExact || size < bestSize) {
+                                foundExact = true;
+                                bestSize = size;
+                                highlightedOpenLine = openLine;
+                                highlightedCloseLine = closeLine;
+                            }
+                        } else if (!foundExact) {
+                            // keep the smallest enclosing span as a fallback
+                            if (size < bestSize) {
+                                bestSize = size;
+                                highlightedOpenLine = openLine;
+                                highlightedCloseLine = closeLine;
+                            }
+                        }
                     }
                 }
             }
