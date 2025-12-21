@@ -416,21 +416,27 @@ public class RenameRefactorHandler {
         int lengthDiff = currentWord.length() - originalWord.length();
         int newPrimaryStart = primaryOccurrenceStart + (occurrencesBefore * lengthDiff);
 
-        // Apply rename (even if currentWord is empty - we allow temporary empty state)
+        // If the current typed word is empty, do NOT modify the document's other occurrences.
+        // We treat empty as a temporary state: preserve the editor text and the previously
+        // discovered occurrences so they will re-appear when the user types again.
+        if (currentWord.isEmpty()) {
+            // Keep the text unchanged and preserve allOccurrences (do not clear).
+            callback.setTextWithoutUndo(text);
+            // Keep originalWord as the last non-empty word so length calculations remain correct
+            // and place the caret at the primary position for editing.
+            setSelection(newPrimaryStart, newPrimaryStart);
+            return;
+        }
+
+        // Apply rename for non-empty currentWord
         String newText = applyRename(text, currentWord);
         callback.setTextWithoutUndo(newText);  // Don't create undo entry for each keystroke
 
-        // Update tracking for current word
+        // Update tracking for current word (only when non-empty)
         originalWord = currentWord;
 
         // Recalculate occurrences based on the new word
-        // If empty, we still keep the positions tracked (just with empty strings)
-        if (!currentWord.isEmpty()) {
-            findOccurrences(newText, currentWord);
-        } else {
-            // For empty word, update positions based on length difference
-            updateOccurrencePositionsForEmpty(newPrimaryStart);
-        }
+        findOccurrences(newText, currentWord);
 
         // Update primary occurrence tracking
         if (!allOccurrences.isEmpty()) {
@@ -457,9 +463,11 @@ public class RenameRefactorHandler {
      * Update occurrence positions when word is empty (for visual tracking)
      */
     private void updateOccurrencePositionsForEmpty(int newPrimaryStart) {
-        // Just keep the primary occurrence position for rendering the empty box
-        allOccurrences.clear();
-        allOccurrences.add(new int[]{newPrimaryStart, newPrimaryStart});
+        // No-op: we preserve the previously discovered occurrences while the user
+        // temporarily clears the rename box. Clearing occurrences here caused them
+        // to be removed from the document during live-editing. Rendering will use
+        // primary occurrence position set by setSelection().
+        // Intentionally left blank.
     }
 
     /**
