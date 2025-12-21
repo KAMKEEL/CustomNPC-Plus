@@ -523,8 +523,8 @@ public class JavaTextContainer extends TextContainer {
                     if (invalidStart < pathEnd) {
                         marks.add(new Mark(invalidStart, pathEnd, TokenType.UNDEFINED_VAR));
                     }
-                } else if (fullPath.endsWith(".") && hasPackage) {
-                    // Trailing dot on package - all blue
+                } else if (fullPath.endsWith(".") && hasPackage && result.invalidStartOffset < 0 && !hasClass) {
+                    // Trailing dot on a fully-valid package - all blue
                     marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
                 } else if (result.invalidStartOffset < 0 && hasPackage && !hasClass) {
                     // All-lowercase path treated as valid package

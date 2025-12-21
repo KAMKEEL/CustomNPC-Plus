@@ -130,18 +130,28 @@ public class ClassPathFinder {
         // Find the first uppercase segment (likely start of class name)
         int firstUpperIndex = findFirstUppercaseSegment(segments);
 
-        // If trailing dot, check if the entire path is a valid package (either cached or all-lowercase)
-        if (trailingDot) {
-            // If entire path is lowercase, treat as valid package being typed
-            if (firstUpperIndex == n) {
-                // Check if we have it cached OR if it could be a valid package
-                if (isValidPackage(pathToResolve)) {
-                    return ResolveResult.notFound(pathToResolve, "", -1);
-                }
-                // Not cached, but all lowercase - use heuristic: assume valid package
+        // No uppercase segments at all: this is a package-like path.
+        // Validate as far as we can and mark invalid tail red.
+        if (firstUpperIndex == n) {
+            int longestValid = findLongestValidPackagePrefixIndex(segments);
+            if (longestValid == n) {
+                // Entire path is a valid package (or cached as valid)
                 return ResolveResult.notFound(pathToResolve, "", -1);
             }
+
+            if (longestValid > 0) {
+                String validPrefix = buildPackagePortion(segments, longestValid);
+                String invalidRemainder = buildClassPortion(segments, longestValid, n);
+                int invalidOffset = validPrefix.length() + 1; // after the dot
+                return ResolveResult.notFound(validPrefix, invalidRemainder, invalidOffset);
+            }
+
+            // Nothing validated
+            return ResolveResult.notFound("", pathToResolve, 0);
         }
+
+        // Trailing dot is handled above for lowercase-only paths; for mixed-case paths
+        // we continue resolving as usual.
 
         // Try different splits: package vs class boundary
         // Start from firstUpperIndex and try treating each uppercase segment as potential class start
@@ -288,7 +298,7 @@ public class ClassPathFinder {
         if (validPackages.contains(packagePath)) {
             return true;
         }
-
+        
         // Try to find any class under this package to validate it
         // Common test classes for well-known packages
         String[] testClasses = getTestClassesForPackage(packagePath);
@@ -457,7 +467,21 @@ public class ClassPathFinder {
                 return i;
             }
         }
-        return segments.length - 1; // Default to last segment
+        return segments.length; // No uppercase segment
+    }
+
+    private int findLongestValidPackagePrefixIndex(String[] segments) {
+        int longestValid = 0;
+        for (int i = 1; i <= segments.length; i++) {
+            String pkg = buildPackagePortion(segments, i);
+            if (isValidPackage(pkg)) {
+                longestValid = i;
+            } else {
+                // If a prefix isn't valid, deeper prefixes can't be valid packages either.
+                break;
+            }
+        }
+        return longestValid;
     }
 
     private void registerValidPackage(String packagePath) {
