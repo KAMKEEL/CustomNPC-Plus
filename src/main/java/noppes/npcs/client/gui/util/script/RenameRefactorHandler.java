@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script;
 
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
+import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -236,19 +237,19 @@ public class RenameRefactorHandler {
             return false;
 
         // ESC - cancel
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_ESCAPE) {
+        if (keyCode == Keyboard.KEY_ESCAPE) {
             cancel();
             return true;
         }
 
         // Enter - confirm
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_RETURN) {
+        if (keyCode == Keyboard.KEY_RETURN) {
             confirm();
             return true;
         }
 
         // Tab - confirm and move on
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_TAB) {
+        if (keyCode == Keyboard.KEY_TAB) {
             confirm();
             return true;
         }
@@ -262,7 +263,7 @@ public class RenameRefactorHandler {
         cursorInWord = Math.max(0, Math.min(cursorInWord, currentWord.length()));
 
         // Backspace
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_BACK) {
+        if (keyCode == Keyboard.KEY_BACK) {
             if (hasSelection) {
                 // Delete selected text (entire word if fully selected)
                 currentWord = "";
@@ -282,7 +283,7 @@ public class RenameRefactorHandler {
         }
 
         // Delete
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_DELETE) {
+        if (keyCode == Keyboard.KEY_DELETE) {
             if (hasSelection) {
                 // Delete selected text (entire word if fully selected)
                 currentWord = "";
@@ -299,8 +300,17 @@ public class RenameRefactorHandler {
             return true;
         }
 
+        // Backspace
+        if (keyCode == Keyboard.KEY_SPACE && hasSelection) {
+            // Delete selected text (entire word if fully selected)
+            currentWord = "";
+            applyLiveRename();
+            sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart);
+            callback.setCursorPosition(primaryOccurrenceStart);
+        }
+        
         // Left arrow
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_LEFT) {
+        if (keyCode == Keyboard.KEY_LEFT) {
             if (cursorInWord > 0) {
                 callback.setCursorPosition(primaryOccurrenceStart + cursorInWord - 1);
                 sel.setSelection(0, 0); // Clear selection
@@ -310,7 +320,7 @@ public class RenameRefactorHandler {
         }
 
         // Right arrow
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_RIGHT) {
+        if (keyCode == Keyboard.KEY_RIGHT) {
             if (cursorInWord < currentWord.length()) {
                 callback.setCursorPosition(primaryOccurrenceStart + cursorInWord + 1);
                 sel.setSelection(0, 0); // Clear selection
@@ -320,7 +330,7 @@ public class RenameRefactorHandler {
         }
 
         // Home
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_HOME) {
+        if (keyCode == Keyboard.KEY_HOME) {
             callback.setCursorPosition(primaryOccurrenceStart);
             sel.setSelection(0, 0); // Clear selection
             sel.markActivity();
@@ -328,7 +338,7 @@ public class RenameRefactorHandler {
         }
 
         // End
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_END) {
+        if (keyCode == Keyboard.KEY_END) {
             callback.setCursorPosition(primaryOccurrenceStart + currentWord.length());
             sel.setSelection(0, 0); // Clear selection
             sel.markActivity();
@@ -336,8 +346,8 @@ public class RenameRefactorHandler {
         }
 
         // Ctrl+A - select all (select the whole word)
-        if (keyCode == org.lwjgl.input.Keyboard.KEY_A &&
-                org.lwjgl.input.Keyboard.isKeyDown(org.lwjgl.input.Keyboard.KEY_LCONTROL)) {
+        if (keyCode == Keyboard.KEY_A &&
+                Keyboard.isKeyDown(Keyboard.KEY_LCONTROL)) {
             sel.setSelection(primaryOccurrenceStart, primaryOccurrenceStart + currentWord.length());
             callback.setCursorPosition(primaryOccurrenceStart + currentWord.length());
             sel.markActivity();
