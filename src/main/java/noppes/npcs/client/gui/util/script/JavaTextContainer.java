@@ -351,7 +351,7 @@ public class JavaTextContainer extends TextContainer {
         collectPatternMatches(marks, NEW_TYPE, TokenType.NEW_TYPE, 1);
 
         collectMethodDeclarations(marks);
-        collectPatternMatches(marks, METHOD_CALL, TokenType.METHOD_CALL);
+        collectPatternMatches(marks, METHOD_CALL, TokenType.METHOD_CALL, 1);
 
         collectPatternMatches(marks, NUMBER, TokenType.NUMBER);
 
