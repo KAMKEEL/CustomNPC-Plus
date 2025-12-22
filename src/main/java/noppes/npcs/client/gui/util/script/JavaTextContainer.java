@@ -41,7 +41,7 @@ public class JavaTextContainer extends TextContainer {
         // Allows optional whitespace (including newlines) around the dots so wrapped imports match.
         // Match imports while allowing optional whitespace/newlines around dots.
         public static final Pattern IMPORT = Pattern.compile(
-            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*)?\\s*(?:;|$)");
+            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*?)?\\s*(?:;|$)");
 
     // ClassPathFinder for resolving imports and determining class types
     private final ClassPathFinder classPathFinder = new ClassPathFinder();
