@@ -1,0 +1,885 @@
+package noppes.npcs.client.gui.util.script.interpreter;
+
+import noppes.npcs.client.ClientProxy;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * The main document container that manages script text, lines, and tokens.
+ * This is the clean reimplementation of JavaTextContainer.
+ *
+ * Architecture:
+ * - ScriptDocument holds the complete source text and global state
+ * - ScriptLine holds individual lines with their tokens
+ * - Token holds individual syntax elements with type-specific metadata
+ * - TypeResolver handles all class/type resolution
+ *
+ * Single-pass tokenization:
+ * 1. Parse excluded regions (comments, strings)
+ * 2. Parse imports and resolve types
+ * 3. Parse structure (methods, classes, fields)
+ * 4. Tokenize with all context available
+ */
+public class ScriptDocument {
+
+    // ==================== PATTERNS ====================
+
+    private static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}_-]+|\\n|$");
+
+    // Literals
+    private static final Pattern STRING_PATTERN = Pattern.compile("([\"'])(?:(?=(\\\\?))\\2.)*?\\1");
+    private static final Pattern COMMENT_PATTERN = Pattern.compile("/\\*[\\s\\S]*?(?:\\*/|$)|//.*|#.*");
+    private static final Pattern NUMBER_PATTERN = Pattern.compile(
+            "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
+
+    // Keywords
+    private static final Pattern MODIFIER_PATTERN = Pattern.compile(
+            "\\b(public|protected|private|static|final|abstract|synchronized|native|default)\\b");
+    private static final Pattern KEYWORD_PATTERN = Pattern.compile(
+            "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
+
+    // Declarations
+    private static final Pattern IMPORT_PATTERN = Pattern.compile(
+            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*)?\\s*(?:;|$)");
+    private static final Pattern CLASS_DECL_PATTERN = Pattern.compile(
+            "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+    private static final Pattern METHOD_DECL_PATTERN = Pattern.compile(
+            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
+    private static final Pattern METHOD_CALL_PATTERN = Pattern.compile(
+            "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
+    private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
+            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+    private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
+
+    // Function parameters (for JS-style scripts)
+    private static final Pattern FUNC_PARAMS_PATTERN = Pattern.compile(
+            "\\bfunction\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^)]*)\\)");
+
+    // ==================== STATE ====================
+
+    private String text = "";
+    private final List<ScriptLine> lines = new ArrayList<>();
+    private final List<ImportData> imports = new ArrayList<>();
+    private final List<MethodInfo> methods = new ArrayList<>();
+    private final Map<String, FieldInfo> globalFields = new HashMap<>();
+    private final Set<String> wildcardPackages = new HashSet<>();
+    private Map<String, ImportData> importsBySimpleName = new HashMap<>();
+
+    // Excluded regions (strings/comments) - positions where other patterns shouldn't match
+    private final List<int[]> excludedRanges = new ArrayList<>();
+
+    // Type resolver
+    private final TypeResolver typeResolver;
+
+    // Layout properties
+    public int lineHeight = 13;
+    public int totalHeight;
+    public int visibleLines = 1;
+    public int linesCount;
+
+    // ==================== CONSTRUCTOR ====================
+
+    public ScriptDocument(String text) {
+        this.typeResolver = TypeResolver.getInstance();
+        setText(text);
+    }
+
+    public ScriptDocument(String text, TypeResolver resolver) {
+        this.typeResolver = resolver != null ? resolver : TypeResolver.getInstance();
+        setText(text);
+    }
+
+    // ==================== TEXT MANAGEMENT ====================
+
+    public void setText(String text) {
+        this.text = text != null ? text.replaceAll("\\r?\\n|\\r", "\n") : "";
+    }
+
+    public String getText() {
+        return text;
+    }
+
+    // ==================== INITIALIZATION ====================
+
+    /**
+     * Initialize the document with layout constraints.
+     * Builds lines based on width wrapping.
+     */
+    public void init(int width, int height) {
+        lines.clear();
+        lineHeight = ClientProxy.Font.height();
+        if (lineHeight == 0)
+            lineHeight = 12;
+
+        String[] sourceLines = text.split("\n", -1);
+        int totalChars = 0;
+        int lineIndex = 0;
+
+        for (String sourceLine : sourceLines) {
+            StringBuilder currentLine = new StringBuilder();
+            Matcher m = WORD_PATTERN.matcher(sourceLine);
+            int i = 0;
+
+            while (m.find()) {
+                String word = sourceLine.substring(i, m.start());
+                if (ClientProxy.Font.width(currentLine + word) > width - 10) {
+                    // Wrap line
+                    int lineStart = totalChars;
+                    int lineEnd = totalChars + currentLine.length();
+                    lines.add(new ScriptLine(currentLine.toString(), lineStart, lineEnd, lineIndex++));
+                    totalChars = lineEnd;
+                    currentLine = new StringBuilder();
+                }
+                currentLine.append(word);
+                i = m.start();
+            }
+
+            // Add final line segment (including newline character in range)
+            int lineStart = totalChars;
+            int lineEnd = totalChars + currentLine.length() + 1;
+            lines.add(new ScriptLine(currentLine.toString(), lineStart, lineEnd, lineIndex++));
+            totalChars = lineEnd;
+        }
+
+        // Set up line navigation
+        for (int li = 0; li < lines.size(); li++) {
+            ScriptLine line = lines.get(li);
+            line.setParent(this);
+            if (li > 0) {
+                line.setPrev(lines.get(li - 1));
+                lines.get(li - 1).setNext(line);
+            }
+        }
+
+        linesCount = lines.size();
+        totalHeight = linesCount * lineHeight;
+        visibleLines = Math.max(height / lineHeight - 1, 1);
+    }
+
+    // ==================== TOKENIZATION ====================
+
+    /**
+     * Main tokenization entry point.
+     * Performs complete analysis and builds tokens for all lines.
+     */
+    public void formatCodeText() {
+        // Clear previous state
+        imports.clear();
+        methods.clear();
+        globalFields.clear();
+        wildcardPackages.clear();
+        excludedRanges.clear();
+
+        // Phase 1: Find excluded regions (strings/comments)
+        findExcludedRanges();
+
+        // Phase 2: Parse imports
+        parseImports();
+
+        // Phase 3: Parse structure (methods, fields)
+        parseStructure();
+
+        // Phase 4: Build marks and assign to lines
+        List<ScriptLine.Mark> marks = buildMarks();
+
+        // Phase 5: Resolve conflicts and sort
+        marks = resolveConflicts(marks);
+
+        // Phase 6: Build tokens for each line
+        for (ScriptLine line : lines) {
+            line.buildTokensFromMarks(marks, text);
+        }
+
+        // Phase 7: Compute indent guides
+        computeIndentGuides(marks);
+    }
+
+    // ==================== PHASE 1: EXCLUDED RANGES ====================
+
+    private void findExcludedRanges() {
+        // Find strings
+        Matcher m = STRING_PATTERN.matcher(text);
+        while (m.find()) {
+            excludedRanges.add(new int[]{m.start(), m.end()});
+        }
+
+        // Find comments
+        m = COMMENT_PATTERN.matcher(text);
+        while (m.find()) {
+            excludedRanges.add(new int[]{m.start(), m.end()});
+        }
+
+        // Sort and merge overlapping ranges
+        excludedRanges.sort(Comparator.comparingInt(a -> a[0]));
+        mergeOverlappingRanges();
+    }
+
+    private void mergeOverlappingRanges() {
+        if (excludedRanges.size() < 2)
+            return;
+
+        List<int[]> merged = new ArrayList<>();
+        int[] current = excludedRanges.get(0);
+
+        for (int i = 1; i < excludedRanges.size(); i++) {
+            int[] next = excludedRanges.get(i);
+            if (next[0] <= current[1]) {
+                current[1] = Math.max(current[1], next[1]);
+            } else {
+                merged.add(current);
+                current = next;
+            }
+        }
+        merged.add(current);
+
+        excludedRanges.clear();
+        excludedRanges.addAll(merged);
+    }
+
+    private boolean isExcluded(int position) {
+        for (int[] range : excludedRanges) {
+            if (position >= range[0] && position < range[1]) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ==================== PHASE 2: IMPORTS ====================
+
+    private void parseImports() {
+        Matcher m = IMPORT_PATTERN.matcher(text);
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+
+            String fullPath = m.group(1).replaceAll("\\s+", "").trim();
+            String matchText = m.group(0);
+            boolean isWildcard = matchText.contains("*");
+            boolean isStatic = matchText.contains("static");
+
+            int lastDot = fullPath.lastIndexOf('.');
+            String simpleName = isWildcard ? null : (lastDot >= 0 ? fullPath.substring(lastDot + 1) : fullPath);
+
+            ImportData importData = new ImportData(
+                    fullPath, simpleName, isWildcard, isStatic,
+                    m.start(), m.end(), m.start(1), m.end(1)
+            );
+            imports.add(importData);
+
+            if (isWildcard) {
+                wildcardPackages.add(fullPath);
+            }
+        }
+
+        // Resolve all imports
+        importsBySimpleName = typeResolver.resolveImports(imports);
+    }
+
+    // ==================== PHASE 3: STRUCTURE ====================
+
+    private void parseStructure() {
+        // Parse methods
+        parseMethodDeclarations();
+
+        // Parse global fields (outside methods)
+        parseGlobalFields();
+    }
+
+    private void parseMethodDeclarations() {
+        Pattern methodWithBody = Pattern.compile(
+                "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*\\{");
+
+        Matcher m = methodWithBody.matcher(text);
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+
+            String returnType = m.group(1);
+            String methodName = m.group(2);
+            String paramList = m.group(3);
+
+            int bodyStart = text.indexOf('{', m.end() - 1);
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0)
+                bodyEnd = text.length();
+
+            // Parse parameters
+            List<FieldInfo> params = parseParameters(paramList, m.start());
+
+            MethodInfo methodInfo = MethodInfo.declaration(
+                    methodName,
+                    resolveType(returnType),
+                    params,
+                    m.start(),
+                    bodyStart,
+                    bodyEnd
+            );
+            methods.add(methodInfo);
+        }
+
+        // Also parse JS-style functions
+        Matcher funcM = FUNC_PARAMS_PATTERN.matcher(text);
+        while (funcM.find()) {
+            if (isExcluded(funcM.start()))
+                continue;
+            // JS functions don't have explicit return types
+            String paramList = funcM.group(1);
+            List<FieldInfo> params = new ArrayList<>();
+            if (paramList != null && !paramList.trim().isEmpty()) {
+                for (String p : paramList.split(",")) {
+                    String pn = p.trim();
+                    if (!pn.isEmpty()) {
+                        params.add(FieldInfo.parameter(pn, null, funcM.start(), null));
+                    }
+                }
+            }
+            // We don't need to store JS functions in methods list - just extract params
+        }
+    }
+
+    private List<FieldInfo> parseParameters(String paramList, int declOffset) {
+        List<FieldInfo> params = new ArrayList<>();
+        if (paramList == null || paramList.trim().isEmpty()) {
+            return params;
+        }
+
+        Pattern paramPattern = Pattern.compile(
+                "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
+        Matcher m = paramPattern.matcher(paramList);
+        while (m.find()) {
+            String typeName = m.group(1);
+            String paramName = m.group(2);
+            TypeInfo typeInfo = resolveType(typeName);
+            params.add(FieldInfo.parameter(paramName, typeInfo, declOffset, null));
+        }
+        return params;
+    }
+
+    private void parseGlobalFields() {
+        Matcher m = FIELD_DECL_PATTERN.matcher(text);
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+
+            String typeName = m.group(1);
+            String fieldName = m.group(2);
+            int position = m.start(2);
+
+            // Check if inside a method - if so, it's a local, not global
+            boolean insideMethod = false;
+            for (MethodInfo method : methods) {
+                if (method.containsPosition(position)) {
+                    insideMethod = true;
+                    break;
+                }
+            }
+
+            if (!insideMethod) {
+                TypeInfo typeInfo = resolveType(typeName);
+                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position);
+                globalFields.put(fieldName, fieldInfo);
+            }
+        }
+    }
+
+    private TypeInfo resolveType(String typeName) {
+        if (typeName == null || typeName.isEmpty())
+            return null;
+
+        // Strip generics for resolution
+        int genericStart = typeName.indexOf('<');
+        String baseName = genericStart > 0 ? typeName.substring(0, genericStart) : typeName;
+
+        // Strip array brackets
+        baseName = baseName.replace("[]", "").trim();
+
+        // Try to resolve
+        return typeResolver.resolveSimpleName(baseName, importsBySimpleName, wildcardPackages);
+    }
+
+    // ==================== PHASE 4: BUILD MARKS ====================
+
+    private List<ScriptLine.Mark> buildMarks() {
+        List<ScriptLine.Mark> marks = new ArrayList<>();
+
+        // Comments and strings first (highest priority)
+        addPatternMarks(marks, COMMENT_PATTERN, TokenType.COMMENT);
+        addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
+
+        // Import statements
+        markImports(marks);
+
+        // Class/interface/enum declarations
+        markClassDeclarations(marks);
+
+        // Keywords and modifiers
+        addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
+        addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
+
+        // Type declarations and usages
+        markTypeDeclarations(marks);
+        addPatternMarks(marks, NEW_TYPE_PATTERN, TokenType.NEW_TYPE, 1);
+
+        // Methods
+        markMethodDeclarations(marks);
+        markMethodCalls(marks);
+
+        // Numbers
+        addPatternMarks(marks, NUMBER_PATTERN, TokenType.NUMBER);
+
+        // Variables and fields
+        markVariables(marks);
+
+        // Imported class usages
+        markImportedClassUsages(marks);
+
+        return marks;
+    }
+
+    private void addPatternMarks(List<ScriptLine.Mark> marks, Pattern pattern, TokenType type) {
+        addPatternMarks(marks, pattern, type, 0);
+    }
+
+    private void addPatternMarks(List<ScriptLine.Mark> marks, Pattern pattern, TokenType type, int group) {
+        Matcher m = pattern.matcher(text);
+        while (m.find()) {
+            marks.add(new ScriptLine.Mark(m.start(group), m.end(group), type));
+        }
+    }
+
+    private void markImports(List<ScriptLine.Mark> marks) {
+        for (ImportData imp : imports) {
+            // Mark 'import' keyword
+            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.IMPORT_KEYWORD));
+
+            // Mark the path
+            int pathStart = imp.getPathStartOffset();
+            int pathEnd = imp.getPathEndOffset();
+
+            if (imp.isResolved()) {
+                // Resolved import - mark as type declaration
+                if (imp.getResolvedType() != null) {
+                    marks.add(new ScriptLine.Mark(pathStart, pathEnd, imp.getResolvedType().getTokenType()));
+                } else {
+                    marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                }
+            } else {
+                // Unresolved import
+                marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR));
+            }
+        }
+    }
+
+    private void markClassDeclarations(List<ScriptLine.Mark> marks) {
+        Matcher m = CLASS_DECL_PATTERN.matcher(text);
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+
+            // Mark the keyword (class/interface/enum)
+            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.CLASS_KEYWORD));
+
+            // Mark the class name
+            String kind = m.group(1);
+            TokenType nameType;
+            if ("interface".equals(kind)) {
+                nameType = TokenType.INTERFACE_DECL;
+            } else if ("enum".equals(kind)) {
+                nameType = TokenType.ENUM_DECL;
+            } else {
+                nameType = TokenType.CLASS_DECL;
+            }
+            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType));
+        }
+    }
+
+    private void markTypeDeclarations(List<ScriptLine.Mark> marks) {
+        // Pattern for type followed by variable name
+        Pattern typeDecl = Pattern.compile(
+                "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" +
+                        "([A-Z][a-zA-Z0-9_]*)\\s*(?:<[^>]+>)?\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
+
+        Matcher m = typeDecl.matcher(text);
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+
+            String typeName = m.group(1);
+            TypeInfo info = resolveType(typeName);
+            TokenType tokenType = (info != null && info.isResolved()) ? info.getTokenType() : TokenType.UNDEFINED_VAR;
+            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), tokenType));
+        }
+    }
+
+    private void markMethodDeclarations(List<ScriptLine.Mark> marks) {
+        Matcher m = METHOD_DECL_PATTERN.matcher(text);
+        while (m.find()) {
+            if (isExcluded(m.start()))
+                continue;
+
+            // Return type
+            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.TYPE_DECL));
+            // Method name
+            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), TokenType.METHOD_DECL));
+        }
+    }
+
+    private void markMethodCalls(List<ScriptLine.Mark> marks) {
+        Matcher m = METHOD_CALL_PATTERN.matcher(text);
+        while (m.find()) {
+            int start = m.start(1);
+            int end = m.end(1);
+
+            if (isExcluded(start))
+                continue;
+
+            // Check if this is preceded by a dot (method call on an object)
+            boolean hasReceiver = false;
+            String receiverName = null;
+            int scanPos = start - 1;
+            while (scanPos >= 0 && Character.isWhitespace(text.charAt(scanPos)))
+                scanPos--;
+
+            if (scanPos >= 0 && text.charAt(scanPos) == '.') {
+                hasReceiver = true;
+                // Find receiver identifier
+                int recvEnd = scanPos - 1;
+                while (recvEnd >= 0 && Character.isWhitespace(text.charAt(recvEnd)))
+                    recvEnd--;
+                int recvStart = recvEnd;
+                while (recvStart >= 0 && Character.isJavaIdentifierPart(text.charAt(recvStart)))
+                    recvStart--;
+                recvStart++;
+                if (recvStart <= recvEnd && recvStart >= 0) {
+                    receiverName = text.substring(recvStart, recvEnd + 1);
+                }
+            }
+
+            // Determine if we should highlight this as a method call
+            boolean shouldHighlight = true;
+
+            if (hasReceiver && receiverName != null && !receiverName.isEmpty()) {
+                // Check if receiver is an unresolved class reference
+                if (Character.isUpperCase(receiverName.charAt(0))) {
+                    TypeInfo recvType = resolveType(receiverName);
+                    if (recvType == null || !recvType.isResolved()) {
+                        // Don't highlight method calls on unresolved types
+                        shouldHighlight = false;
+                    }
+                }
+            }
+
+            if (shouldHighlight) {
+                marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
+            }
+        }
+    }
+
+    private void markVariables(List<ScriptLine.Mark> marks) {
+        Set<String> knownKeywords = new HashSet<>(Arrays.asList(
+                "boolean", "int", "float", "double", "long", "char", "byte", "short", "void",
+                "null", "true", "false", "if", "else", "switch", "case", "for", "while", "do",
+                "try", "catch", "finally", "return", "throw", "var", "let", "const", "function",
+                "continue", "break", "this", "new", "typeof", "instanceof", "class", "interface",
+                "extends", "implements", "import", "package", "public", "private", "protected",
+                "static", "final", "abstract", "synchronized", "native", "default", "enum",
+                "throws", "super", "assert", "volatile", "transient"
+        ));
+
+        Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
+        Matcher m = identifier.matcher(text);
+
+        while (m.find()) {
+            String name = m.group(1);
+            int position = m.start(1);
+
+            if (isExcluded(position))
+                continue;
+            if (knownKeywords.contains(name))
+                continue;
+
+            // Skip if preceded by dot (field access)
+            if (isPrecededByDot(position))
+                continue;
+
+            // Skip import/package statements
+            if (isInImportOrPackage(position))
+                continue;
+
+            // Skip uppercase (type references handled elsewhere)
+            if (Character.isUpperCase(name.charAt(0)))
+                continue;
+
+            // Find containing method
+            MethodInfo containingMethod = findMethodAtPosition(position);
+
+            if (containingMethod != null) {
+                // Check parameters
+                if (containingMethod.hasParameter(name)) {
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER));
+                    continue;
+                }
+            }
+
+            // Check global fields
+            if (globalFields.containsKey(name)) {
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
+                continue;
+            }
+
+            // Check if it's a method call (followed by paren)
+            if (isFollowedByParen(m.end(1)))
+                continue;
+
+            // Unknown identifier - could mark as undefined, but be conservative
+            // Only mark as undefined if it looks like a variable usage
+        }
+    }
+
+    private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
+        // Find uppercase identifiers followed by dot (static method calls, field access)
+        Pattern classUsage = Pattern.compile("\\b([A-Z][a-zA-Z0-9_]*)\\s*\\.");
+        Matcher m = classUsage.matcher(text);
+
+        while (m.find()) {
+            String className = m.group(1);
+            int start = m.start(1);
+            int end = m.end(1);
+
+            if (isExcluded(start))
+                continue;
+
+            // Try to resolve the class
+            TypeInfo info = resolveType(className);
+            if (info != null && info.isResolved()) {
+                marks.add(new ScriptLine.Mark(start, end, info.getTokenType()));
+            } else if (!importsBySimpleName.containsKey(className) &&
+                    !TypeResolver.JAVA_LANG_CLASSES.contains(className) &&
+                    wildcardPackages.isEmpty()) {
+                marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+            }
+        }
+    }
+
+    // ==================== PHASE 5: CONFLICT RESOLUTION ====================
+
+    private List<ScriptLine.Mark> resolveConflicts(List<ScriptLine.Mark> marks) {
+        // Sort by start position, then by descending priority
+        marks.sort((a, b) -> {
+            if (a.start != b.start)
+                return Integer.compare(a.start, b.start);
+            return Integer.compare(b.type.getPriority(), a.type.getPriority());
+        });
+
+        List<ScriptLine.Mark> result = new ArrayList<>();
+        for (ScriptLine.Mark m : marks) {
+            boolean skip = false;
+
+            // Remove lower-priority overlapping marks
+            for (int i = result.size() - 1; i >= 0; i--) {
+                ScriptLine.Mark r = result.get(i);
+                if (m.start < r.end && m.end > r.start) {
+                    if (r.type.getPriority() < m.type.getPriority()) {
+                        result.remove(i);
+                    } else {
+                        skip = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!skip) {
+                result.add(m);
+            }
+        }
+
+        result.sort(Comparator.comparingInt(m -> m.start));
+        return result;
+    }
+
+    // ==================== PHASE 7: INDENT GUIDES ====================
+
+    private void computeIndentGuides(List<ScriptLine.Mark> marks) {
+        for (ScriptLine line : lines) {
+            line.clearIndentGuides();
+        }
+
+        // Build ignored ranges from STRING and COMMENT marks
+        Set<int[]> ignored = new HashSet<>();
+        for (ScriptLine.Mark m : marks) {
+            if (m.type == TokenType.STRING || m.type == TokenType.COMMENT) {
+                ignored.add(new int[]{m.start, m.end});
+            }
+        }
+
+        class OpenBrace {
+            int lineIdx, col;
+
+            OpenBrace(int l, int c) {
+                lineIdx = l;
+                col = c;
+            }
+        }
+        Deque<OpenBrace> stack = new ArrayDeque<>();
+        final int tabSize = 4;
+
+        for (int li = 0; li < lines.size(); li++) {
+            ScriptLine line = lines.get(li);
+            String s = line.getText();
+
+            for (int i = 0; i < s.length(); i++) {
+                int absPos = line.getGlobalStart() + i;
+
+                // Check if in ignored range
+                boolean isIgnored = false;
+                for (int[] range : ignored) {
+                    if (absPos >= range[0] && absPos < range[1]) {
+                        isIgnored = true;
+                        break;
+                    }
+                }
+                if (isIgnored)
+                    continue;
+
+                char c = s.charAt(i);
+                if (c == '{') {
+                    int leading = 0;
+                    for (int k = 0; k < i; k++) {
+                        char ch = s.charAt(k);
+                        leading += (ch == '\t') ? tabSize : 1;
+                    }
+                    stack.push(new OpenBrace(li, leading));
+                } else if (c == '}') {
+                    if (!stack.isEmpty()) {
+                        OpenBrace open = stack.pop();
+                        if (open.lineIdx == li)
+                            continue;
+
+                        int from = Math.max(0, open.lineIdx + 1);
+                        int to = Math.min(lines.size() - 1, li);
+                        for (int l = from; l <= to; l++) {
+                            lines.get(l).addIndentGuide(open.col);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ==================== UTILITY METHODS ====================
+
+    private boolean isPrecededByDot(int position) {
+        if (position <= 0)
+            return false;
+        int i = position - 1;
+        while (i >= 0 && Character.isWhitespace(text.charAt(i)))
+            i--;
+        return i >= 0 && text.charAt(i) == '.';
+    }
+
+    private boolean isFollowedByParen(int position) {
+        int i = position;
+        while (i < text.length() && Character.isWhitespace(text.charAt(i)))
+            i++;
+        return i < text.length() && text.charAt(i) == '(';
+    }
+
+    private boolean isInImportOrPackage(int position) {
+        if (position < 0 || position >= text.length())
+            return false;
+
+        int lineStart = text.lastIndexOf('\n', position);
+        lineStart = lineStart < 0 ? 0 : lineStart + 1;
+
+        int i = lineStart;
+        while (i < text.length() && Character.isWhitespace(text.charAt(i)))
+            i++;
+
+        if (text.startsWith("import", i) || text.startsWith("package", i)) {
+            return true;
+        }
+        return false;
+    }
+
+    private MethodInfo findMethodAtPosition(int position) {
+        for (MethodInfo method : methods) {
+            if (method.containsPosition(position)) {
+                return method;
+            }
+        }
+        return null;
+    }
+
+    private int findMatchingBrace(int openBraceIndex) {
+        if (openBraceIndex < 0 || openBraceIndex >= text.length())
+            return -1;
+
+        int depth = 0;
+        for (int i = openBraceIndex; i < text.length(); i++) {
+            if (isExcluded(i))
+                continue;
+
+            char c = text.charAt(i);
+            if (c == '{')
+                depth++;
+            else if (c == '}') {
+                depth--;
+                if (depth == 0)
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+    // ==================== ACCESSORS ====================
+
+    public List<ScriptLine> getLines() {
+        return Collections.unmodifiableList(lines);
+    }
+
+    public List<ImportData> getImports() {
+        return Collections.unmodifiableList(imports);
+    }
+
+    public List<MethodInfo> getMethods() {
+        return Collections.unmodifiableList(methods);
+    }
+
+    public Map<String, FieldInfo> getGlobalFields() {
+        return Collections.unmodifiableMap(globalFields);
+    }
+
+    public TypeResolver getTypeResolver() {
+        return typeResolver;
+    }
+
+    public ScriptLine getLine(int index) {
+        for (ScriptLine line : lines) {
+            if (line.getLineIndex() == index) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    public ScriptLine getLineAt(int globalPosition) {
+        for (ScriptLine line : lines) {
+            if (line.containsPosition(globalPosition)) {
+                return line;
+            }
+        }
+        return null;
+    }
+
+    public int getLineIndexAt(int globalPosition) {
+        for (int i = 0; i < lines.size(); i++) {
+            if (lines.get(i).containsPosition(globalPosition)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+}

@@ -10,6 +10,9 @@ import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
+// New interpreter system imports
+import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
@@ -54,7 +57,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== TEXT & CONTAINER ====================
     public String text = null;
     public String highlightedWord;
-    private JavaTextContainer container = null;
+    private ScriptTextContainer container = null;
     private boolean enableCodeHighlighting = false;
     // Extra empty lines to allow padding at the bottom of the editor viewport
     private int bottomPaddingLines = 6;
@@ -643,6 +646,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Render Viewport
         for (int i = renderStart; i <= renderEnd; i++) {
             LineData data = list.get(i);
+            ScriptLine scriptLine = container.getDocument().getLine(i);
             String line = data.text;
             int w = line.length();
             // Use integer Y relative to scrolledLine; fractional offset applied via GL translate
@@ -832,7 +836,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 int yPos = posY + stringYOffset;
-                data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
+                
+               // data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
+                scriptLine.drawString(x+LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
 
                 // Draw cursor: pause blinking while user is active recently
                 boolean recentInput = selection.hadRecentInput();
@@ -2122,7 +2128,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             this.text = text;
             //this.container = new TextContainer(text);
             if (this.container == null)
-                this.container = new JavaTextContainer(text);
+                this.container = new ScriptTextContainer(text);
 
             this.container.init(text, this.width, this.height);
 
