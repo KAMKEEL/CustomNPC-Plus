@@ -6,6 +6,7 @@ import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
@@ -94,7 +95,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public OverlayKeyPresetViewer KEYS_OVERLAY = new OverlayKeyPresetViewer(KEYS);
 
     // ==================== SEARCH/REPLACE ====================
-    private static final SearchReplaceBar searchBar = new SearchReplaceBar();
+    public static final SearchReplaceBar searchBar = new SearchReplaceBar();
     
     // ==================== GO TO LINE ====================
     private final GoToLineDialog goToLineDialog = new GoToLineDialog();
@@ -440,6 +441,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         });
     }
+
+    public boolean fullscreen() {
+        return GuiScriptInterface.isFullscreen;
+    }
     // ==================== RENDERING ====================
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
@@ -454,7 +459,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             LINE_NUMBER_GUTTER_WIDTH = digitWidth + 10; // 10px total padding (5px left + 5px right)
         }
         // Draw outer border around entire area
-        drawRect(x - 1, y - 1, x + width + 1, y + height + 1, 0xffa0a0a0);
+        int offset = fullscreen() ? 2 : 1;
+        drawRect(x - offset, y - offset - searchBar.getTotalHeight(), x + width + offset, y + height + offset,
+                0xffa0a0a0);
 
         int searchHeight = searchBar.getTotalHeight();
 
