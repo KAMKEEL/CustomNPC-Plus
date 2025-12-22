@@ -48,13 +48,13 @@ public class OverlayKeyPresetViewer {
         });
     }
 
-    public void initGui(int startX, int startY, int endX, int endY) {
+    public void initGui(int startX, int startY, int width, int height) {
         this.startX = startX;
         this.startY = startY;
-        this.endX = endX;
-        this.endY = endY;
-        this.width = endX - startX;
-        this.height = endY - startY;
+        this.width = width;
+        this.height = height;
+        this.endX = startX + width;
+        this.endY = startY + height;
         scroll.init();
     }
 
@@ -454,7 +454,7 @@ public class OverlayKeyPresetViewer {
         }
 
         public int getMaxStringWidth() {
-            return (int) (getWidth() * RELATIVE_MAX_DESC_WIDTH);
+            return (int) Math.max(getWidth() * RELATIVE_MAX_DESC_WIDTH, 0);
         }
     }
 
