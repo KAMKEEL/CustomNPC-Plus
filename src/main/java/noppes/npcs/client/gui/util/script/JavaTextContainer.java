@@ -793,6 +793,8 @@ public class JavaTextContainer extends TextContainer {
                     }
                 }
                 marks.add(new Mark(start, end, tokenType));
+            } else if (!isImported && !isShadowed) {
+                marks.add(new Mark(start, end, TokenType.UNDEFINED_VAR));
             }
         }
     }
