@@ -30,6 +30,7 @@ import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -51,7 +52,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     // ==================== FULLSCREEN MODE ====================
     /** Whether the editor viewport is currently in fullscreen mode */
-    private static boolean isFullscreen = false;
+    public static boolean isFullscreen = false;
 
     /**
      * Fullscreen Layout Configuration
@@ -60,13 +61,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      */
     public static class FullscreenConfig {
         /** Padding from the top edge of the screen */
-        public static int paddingTop = 8;
+        public static int paddingTop = 20;
         /** Padding from the bottom edge of the screen */
-        public static int paddingBottom = 8;
+        public static int paddingBottom = 20;
         /** Padding from the left edge of the screen */
-        public static int paddingLeft = 12;
+        public static int paddingLeft = 20;
         /** Padding from the right edge of the screen */
-        public static int paddingRight = 12;
+        public static int paddingRight = 20;
     }
 
     /** Fullscreen toggle button drawn at top-right of viewport */
@@ -94,7 +95,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         // ==================== TAB BUTTONS ====================
         GuiMenuTopButton top;
-        this.addTopButton(top = new GuiMenuTopButton(0, this.guiLeft + 4, this.guiTop - 17, "gui.settings"));
+        int topButtonsX = isFullscreen && activeTab != 0 ? FullscreenConfig.paddingLeft : this.guiLeft + 4;
+        int topButtonsY = isFullscreen && activeTab != 0 ? FullscreenConfig.paddingTop - 20 : this.guiTop - 17;
+        this.addTopButton(top = new GuiMenuTopButton(0, topButtonsX, topButtonsY, "gui.settings"));
 
         int topXoffset = 0;
         int topYoffset = 0;
@@ -141,6 +144,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // ==================== CALCULATE VIEWPORT BOUNDS ====================
         int editorX, editorY, editorWidth, editorHeight;
 
+        FullscreenConfig.paddingTop = 30;
+        FullscreenConfig.paddingBottom = 20;
+        FullscreenConfig.paddingLeft = 20;
+        FullscreenConfig.paddingRight = 20;
         if (isFullscreen) {
             // Fullscreen: viewport fills screen with configured padding
             editorX = FullscreenConfig.paddingLeft;
@@ -553,9 +560,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Shows expand icon when minimized, collapse icon when fullscreen.
      */
 
-    private static final ResourceLocation TEXTURE = new ResourceLocation(
-            "customnpcs:textures/gui/keypreset_highres.png");
-    public  class FullscreenButton {
+    public class FullscreenButton {
         public int x, y;
         public int size = 12;
         public boolean hovered = false;
@@ -570,6 +575,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         /** Draw the fullscreen toggle button */
         public void draw(int mouseX, int mouseY) {
             hovered = isMouseOver(mouseX, mouseY);
+            int y = this.y + getYOffset();
 
             // Button background
             int bgColor = hovered ? 0x80666666 : 0x60444444;
@@ -621,6 +627,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         /** Check if mouse is over the button */
         public boolean isMouseOver(int mouseX, int mouseY) {
+            int y = this.y + getYOffset();
             return mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size;
         }
 
@@ -631,6 +638,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 return true;
             }
             return false;
+        }
+
+        public int getYOffset() {
+            return GuiScriptTextArea.searchBar.getTotalHeight();
         }
     }
 }
