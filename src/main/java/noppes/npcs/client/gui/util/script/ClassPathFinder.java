@@ -306,9 +306,14 @@ public class ClassPathFinder {
         if (validPackages.contains(packagePath)) {
             return true;
         }
+
+        // Try to consult the global PackageFinder index if initialized (fast O(1) lookup)
+        if (PackageFinder.find(packagePath)) {
+            registerValidPackage(packagePath);
+            return true;
+        }
         
-        // Try to find any class under this package to validate it
-        // Common test classes for well-known packages
+        // Fallback: try to find any class under this package to validate it
         String[] testClasses = getTestClassesForPackage(packagePath);
         for (String testClass : testClasses) {
             try {
