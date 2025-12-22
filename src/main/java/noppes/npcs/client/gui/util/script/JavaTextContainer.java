@@ -253,15 +253,66 @@ public class JavaTextContainer extends TextContainer {
         
         // Handle identifier.field patterns (e.g., obj.field, global.field)
         // The field part should be highlighted as GLOBAL_FIELD (light blue)
+        // Also, detect chained accesses like `a.b.c` and treat subsequent segments
+        // as fields when the root `a` is a known variable (parameter/local/global/this).
+        // Collect function parameters from JS-style `function name(a, b)` declarations
+        // so script parameters (e.g., `function tick(e)`) are recognized as known roots.
+        java.util.Set<String> scriptFunctionParams = new java.util.HashSet<>();
+        Pattern funcPattern = Pattern.compile("\\bfunction\\s+[a-zA-Z_][a-zA-Z0-9_]*\\s*\\(([^)]*)\\)");
+        Matcher funcM = funcPattern.matcher(text);
+        while (funcM.find()) {
+            String inside = funcM.group(1);
+            if (inside != null && !inside.trim().isEmpty()) {
+                for (String p : inside.split(",")) {
+                    String pn = p.trim();
+                    if (!pn.isEmpty()) scriptFunctionParams.add(pn);
+                }
+            }
+        }
+
+        Pattern chainPattern = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*(?:\\s*\\.\\s*[a-zA-Z_][a-zA-Z0-9_]*)+)\\b");
+        Matcher chainMatcher = chainPattern.matcher(text);
+        while (chainMatcher.find()) {
+            if (isInExcludedRange(chainMatcher.start(), MethodBlock.getExcludedRanges(text))) continue;
+            String chain = chainMatcher.group(1);
+            int absStart = chainMatcher.start(1);
+
+            java.util.List<String> segs = new java.util.ArrayList<>();
+            java.util.List<Integer> segPos = new java.util.ArrayList<>();
+            Matcher segM = Pattern.compile("[a-zA-Z_][a-zA-Z0-9_]*").matcher(chain);
+            while (segM.find()) {
+                segs.add(segM.group());
+                segPos.add(absStart + segM.start());
+            }
+            if (segs.size() < 2) continue;
+
+            String root = segs.get(0);
+            if (Character.isUpperCase(root.charAt(0))) continue;
+
+            boolean rootIsKnown = false;
+            if (globalFields.contains(root) || localFields.contains(root)) rootIsKnown = true;
+            MethodBlock mbForRoot = findMethodBlockAtPosition(segPos.get(0));
+            if (mbForRoot != null && mbForRoot.parameters.contains(root)) rootIsKnown = true;
+            if (scriptFunctionParams.contains(root)) rootIsKnown = true;
+            if ("this".equals(root)) rootIsKnown = true;
+
+            if (rootIsKnown) {
+                for (int si = 1; si < segs.size(); si++) {
+                    int sAbs = segPos.get(si);
+                    int sEnd = sAbs + segs.get(si).length();
+                    marks.add(new Mark(sAbs, sEnd, TokenType.GLOBAL_FIELD));
+                }
+            }
+        }
+
+        // Fallback: simple two-part identifier.field patterns
         Pattern objFieldPattern = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
         Matcher objFieldMatcher = objFieldPattern.matcher(text);
         while (objFieldMatcher.find()) {
             String fieldName = objFieldMatcher.group(2);
             int fieldPos = objFieldMatcher.start(2);
-            // Skip if this is a "this.field" pattern (already handled above)
             String objName = objFieldMatcher.group(1);
             if (!objName.equals("this")) {
-                // Highlight the field part as GLOBAL_FIELD (represents another object's field)
                 marks.add(new Mark(fieldPos, objFieldMatcher.end(2), TokenType.GLOBAL_FIELD));
             }
         }
