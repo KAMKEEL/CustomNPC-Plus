@@ -326,6 +326,16 @@ public class ClassPathFinder {
      * Get the ClassInfo for a simple class name, using provided imports map
      */
     public ClassInfo resolveSimpleName(String simpleName, Map<String, String> importedClasses) {
+        return resolveSimpleName(simpleName, importedClasses, Collections.emptySet());
+    }
+
+    /**
+     * Resolve a simple class name using explicit imports, java.lang, or wildcard imports.
+     * Supports package wildcard imports (e.g., java.util.*) and class-member wildcards
+     * that have been added to `importedPackages` (e.g., kamkeel..IOverlay.* treated as
+     * attempting to resolve inner types of IOverlay).
+     */
+    public ClassInfo resolveSimpleName(String simpleName, Map<String, String> importedClasses, Set<String> importedPackages) {
         if (simpleName == null || simpleName.isEmpty()) {
             return null;
         }
@@ -333,12 +343,45 @@ public class ClassPathFinder {
         // Check imported classes first
         String fullName = importedClasses.get(simpleName);
         if (fullName != null) {
-            return tryResolveClass(fullName);
+            ClassInfo info = tryResolveClass(fullName);
+            if (info != null) return info;
         }
 
         // Check java.lang classes
         if (JAVA_LANG_CLASSES.contains(simpleName)) {
-            return tryResolveClass("java.lang." + simpleName);
+            ClassInfo info = tryResolveClass("java.lang." + simpleName);
+            if (info != null) return info;
+        }
+
+        // Check wildcard imports: these can be package wildcards (pkg.*) or
+        // class-member wildcards (Outer.*) where we want to allow resolving
+        // inner types of the Outer class. Heuristic: if the last segment of
+        // the imported path starts with uppercase, treat it as a class; otherwise
+        // treat it as a package.
+        if (importedPackages != null && !importedPackages.isEmpty()) {
+            for (String p : importedPackages) {
+                if (p == null || p.isEmpty()) continue;
+                String[] segs = p.split("\\.");
+                String last = segs[segs.length - 1];
+                boolean lastIsClass = last.length() > 0 && Character.isUpperCase(last.charAt(0));
+
+                // Try package wildcard: pkg.SimpleName
+                if (!lastIsClass) {
+                    String candidate = p + "." + simpleName;
+                    ClassInfo info = tryResolveClass(candidate);
+                    if (info != null) return info;
+                } else {
+                    // Try inner type under the class: Outer$Inner
+                    String candidateInner = p + "$" + simpleName;
+                    ClassInfo info = tryResolveClass(candidateInner);
+                    if (info != null) return info;
+
+                    // Also try package-like (in case someone imported a class-looking path but it is actually a package)
+                    String candidatePkg = p + "." + simpleName;
+                    info = tryResolveClass(candidatePkg);
+                    if (info != null) return info;
+                }
+            }
         }
 
         return null;
@@ -536,8 +579,12 @@ public class ClassPathFinder {
      * @return List of TypeOccurrence with position and type info
      */
     public List<TypeOccurrence> parseGenericTypes(String genericContent, Map<String, String> importedClasses) {
+        return parseGenericTypes(genericContent, importedClasses, Collections.emptySet());
+    }
+
+    public List<TypeOccurrence> parseGenericTypes(String genericContent, Map<String, String> importedClasses, Set<String> importedPackages) {
         List<TypeOccurrence> results = new ArrayList<>();
-        parseGenericTypesRecursive(genericContent, 0, importedClasses, results);
+        parseGenericTypesRecursive(genericContent, 0, importedClasses, importedPackages, results);
         return results;
     }
 
@@ -560,6 +607,7 @@ public class ClassPathFinder {
 
     private void parseGenericTypesRecursive(String content, int baseOffset,
                                             Map<String, String> importedClasses,
+                                            Set<String> importedPackages,
                                             List<TypeOccurrence> results) {
         if (content == null || content.isEmpty())
             return;
@@ -584,7 +632,7 @@ public class ClassPathFinder {
             // Only process if it looks like a type name (starts with uppercase)
             if (Character.isUpperCase(typeName.charAt(0))) {
                 // Resolve the type
-                ClassInfo info = resolveSimpleName(typeName, importedClasses);
+                ClassInfo info = resolveSimpleName(typeName, importedClasses, importedPackages);
                 ClassType classType = (info != null) ? info.type : ClassType.CLASS;
 
                 results.add(new TypeOccurrence(baseOffset + start, baseOffset + i, typeName, classType));
@@ -613,7 +661,7 @@ public class ClassPathFinder {
                 // Recursively parse nested content
                 if (nestedStart < i - 1) {
                     String nestedContent = content.substring(nestedStart, i - 1);
-                    parseGenericTypesRecursive(nestedContent, baseOffset + nestedStart, importedClasses, results);
+                    parseGenericTypesRecursive(nestedContent, baseOffset + nestedStart, importedClasses, importedPackages, results);
                 }
             }
         }

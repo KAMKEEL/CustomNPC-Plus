@@ -164,7 +164,7 @@ public class JavaTextContainer extends TextContainer {
     private void highlightGenericTypes(String genericContent, int contentStart, List<Mark> marks, List<int[]> excluded) {
         if (genericContent == null || genericContent.isEmpty()) return;
         
-        List<ClassPathFinder.TypeOccurrence> occurrences = classPathFinder.parseGenericTypes(genericContent, importedClasses);
+        List<ClassPathFinder.TypeOccurrence> occurrences = classPathFinder.parseGenericTypes(genericContent, importedClasses, importedPackages);
         
         for (ClassPathFinder.TypeOccurrence occ : occurrences) {
             int absStart = contentStart + occ.startOffset;
@@ -680,7 +680,7 @@ public class JavaTextContainer extends TextContainer {
 
             if (isImported && !isShadowed) {
                 // Resolve the class to determine its type
-                ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(className, importedClasses);
+                ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(className, importedClasses, importedPackages);
                 TokenType tokenType = TokenType.IMPORTED_CLASS;
                 if (info != null) {
                     switch (info.type) {
@@ -884,7 +884,7 @@ public class JavaTextContainer extends TextContainer {
                     // This looks like a type declaration
                     
                     // Resolve the main type
-                    ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(typeName, importedClasses);
+                    ClassPathFinder.ClassInfo info = classPathFinder.resolveSimpleName(typeName, importedClasses, importedPackages);
                     TokenType tokenType = TokenType.UNDEFINED_VAR;
                     if (info != null) {
                         switch (info.type) {
