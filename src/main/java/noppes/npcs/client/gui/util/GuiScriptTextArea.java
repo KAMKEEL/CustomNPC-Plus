@@ -131,8 +131,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void initGui() {
         int endX = x + width, endY = y + height;
         int xOffset = hasVerticalScrollbar() ? -8 : -2;
-        KEYS_OVERLAY.elementSpacing = KEYS_OVERLAY.yStartSpacing = 0;
-        KEYS_OVERLAY.initGui(endX - (width / 2)-3, y + (height / 4) - 10, endX + xOffset - 2, endY - 28);
+        KEYS_OVERLAY.scale = 0.75f;
+        KEYS_OVERLAY.borderCol1 = KEYS_OVERLAY.borderCol2 = 0xFF3c3c3c;
+        KEYS_OVERLAY.initGui(x + (width / 4), y + 20, endX - (width / 4) + 5, endY - 28);
 
         KEYS_OVERLAY.viewButton.scale = 0.45f;
         KEYS_OVERLAY.viewButton.initGui(endX + xOffset, endY - 26);
@@ -477,7 +478,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
         if (listener instanceof GuiNPCInterface) {
             ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
-            if (wheelDelta != 0 && !KEYS_OVERLAY.isVisible()) 
+            boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
+            if (wheelDelta != 0 && canScroll) 
                 scroll.applyWheelScroll(wheelDelta, maxScroll);
         }
 

@@ -34,7 +34,7 @@ public class OverlayKeyPresetViewer {
     public float RELATIVE_MAX_DESC_WIDTH = 0.5f;
     private final FontRenderer font = Minecraft.getMinecraft().fontRenderer;
 
-    public int bgCol1 = 0x88000000, bgCol2 = 0xcc303030;
+    public int bgCol1 = 0xdd101010, bgCol2 = 0xf8303030;
     public int borderCol1 = 0x22ffffff, borderCol2 = 0xffffffff;
     public boolean hasBorder = true;
     public boolean openOnClick;
