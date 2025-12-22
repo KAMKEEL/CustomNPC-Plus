@@ -116,10 +116,36 @@ public class JavaTextContainer extends TextContainer {
     private java.util.Map<String, String> importedClasses = new java.util.HashMap<>(); // simpleName -> fullName
     private java.util.Set<String> importedPackages = new java.util.HashSet<>(); // wildcard imports
     private java.util.Set<String> unresolvedClasses = new java.util.HashSet<>(); // classes that failed to resolve
+    private java.util.List<ImportEntry> importEntries = new java.util.ArrayList<>();
+
+    private static class ImportEntry {
+        public final String fullPath; // normalized path (no trailing . or *)
+        public final String matchText; // full matched import text
+        public final int pathStart; // start of the path group
+        public final int pathEnd;   // end of the path group
+        public final int importKwStart; // start of the 'import' keyword
+        public final int importKwEnd;   // end of the 'import' keyword
+        public final int starPos; // absolute pos of '*' in matchText, or -1
+        public final boolean isWildcard;
+        // Cached resolve result (may be null for wildcard imports or if not resolved yet)
+        public ClassPathFinder.ResolveResult resolveResult;
+
+        public ImportEntry(String fullPath, String matchText, int pathStart, int pathEnd, int importKwStart, int importKwEnd, int starPos, boolean isWildcard) {
+            this.fullPath = fullPath;
+            this.matchText = matchText;
+            this.pathStart = pathStart;
+            this.pathEnd = pathEnd;
+            this.importKwStart = importKwStart;
+            this.importKwEnd = importKwEnd;
+            this.starPos = starPos;
+            this.isWildcard = isWildcard;
+        }
+    }
 
     private void collectImports() {
         importedClasses.clear();
         importedPackages.clear();
+        importEntries.clear();
         unresolvedClasses.clear();
         classPathFinder.clearCache();
 
@@ -130,18 +156,29 @@ public class JavaTextContainer extends TextContainer {
                 continue;
             String fullPath = m.group(1).trim();
             String matchText = m.group(0);
+            int pathStart = m.start(1);
+            int pathEnd = m.end(1);
+            int importKwStart = m.start();
+            int importKwEnd = Math.min(importKwStart + 6, text.length());
 
-            // Check if wildcard import (import a.b.*;)
-            if (matchText.contains("*")) {
+            boolean isWildcard = matchText.contains("*");
+            int starIndex = matchText.indexOf('*');
+            int absStar = starIndex != -1 ? m.start() + starIndex : -1;
+
+            // Record entry for finalization later
+            importEntries.add(new ImportEntry(fullPath, matchText, pathStart, pathEnd, importKwStart, importKwEnd, absStar, isWildcard));
+
+            // For wildcard imports we register the package for resolution; final marking deferred
+            if (isWildcard) {
                 importedPackages.add(fullPath);
             } else {
-                // Resolve the import to get the proper class name
+                // Resolve the import to get the proper class name (so simple-name lookups can work now)
                 ClassPathFinder.ResolveResult result = classPathFinder.resolve(fullPath);
-                
+
                 // Extract simple name (last segment)
                 int lastDot = fullPath.lastIndexOf('.');
                 String simpleName = lastDot >= 0 ? fullPath.substring(lastDot + 1) : fullPath;
-                
+
                 if (!simpleName.isEmpty()) {
                     if (result.found && result.classInfo != null) {
                         // Store with resolved name (has $ for inner classes)
@@ -153,6 +190,9 @@ public class JavaTextContainer extends TextContainer {
                         unresolvedClasses.add(simpleName);
                     }
                 }
+                // Cache the full ResolveResult on the ImportEntry for reuse in finalizeImports
+                ImportEntry last = importEntries.get(importEntries.size() - 1);
+                last.resolveResult = result;
             }
         }
     }
@@ -522,49 +562,66 @@ public class JavaTextContainer extends TextContainer {
         return false;
     }
 
-    private void collectImportStatements(List<Mark> marks) {
-        List<int[]> excluded = MethodBlock.getExcludedRanges(text);
-        Matcher m = IMPORT.matcher(text);
-        while (m.find()) {
-            if (isInExcludedRange(m.start(), excluded))
-                continue;
-            String fullPath = m.group(1).trim();
-            int pathStart = m.start(1);
-            int pathEnd = m.end(1);
-            String matchText = m.group(0);
+    private void finalizeImports(List<Mark> marks) {
+        if (importEntries.isEmpty()) return;
 
-            // Highlight the 'import' keyword itself
-            int importKwStart = m.start();
-            int importKwEnd = Math.min(importKwStart + 6, text.length());
-            marks.add(new Mark(importKwStart, importKwEnd, TokenType.IMPORT_KEYWORD));
+        for (ImportEntry ie : importEntries) {
+            // Highlight the 'import' keyword
+            marks.add(new Mark(ie.importKwStart, ie.importKwEnd, TokenType.IMPORT_KEYWORD));
 
-            // Use ClassPathFinder to resolve the import
-            ClassPathFinder.ResolveResult result = classPathFinder.resolve(fullPath);
+            String fullPath = ie.fullPath;
+            int pathStart = ie.pathStart;
+            int pathEnd = ie.pathEnd;
+            String matchText = ie.matchText;
 
-            // Tokenize the original matched substring so we can map normalized segments
-            String orig = text.substring(pathStart, pathEnd);
-            java.util.List<String> tokens = new java.util.ArrayList<>();
-            java.util.List<Integer> tokenStarts = new java.util.ArrayList<>();
-            java.util.List<Integer> tokenEnds = new java.util.ArrayList<>();
-            Matcher idm = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher(orig);
-            while (idm.find()) {
-                tokens.add(idm.group());
-                tokenStarts.add(idm.start());
-                tokenEnds.add(idm.end());
-            }
+            if (!ie.isWildcard) {
+                // Non-wildcard: reuse cached resolve result if available, otherwise resolve now
+                ClassPathFinder.ResolveResult result = classPathFinder.resolve(fullPath);
 
-            int pkgSegments = result.packageSegmentCount;
-            boolean hasPackage = pkgSegments > 0;
-
-            // Highlight package tokens (if any)
-            if (result.found && result.invalidStartOffset < 0) {
-                if (hasPackage && pkgSegments <= tokenEnds.size()) {
-                    int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
-                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                String orig = text.substring(pathStart, pathEnd);
+                List<String> tokens = new ArrayList<>();
+                List<Integer> tokenStarts = new ArrayList<>();
+                List<Integer> tokenEnds = new ArrayList<>();
+                Matcher idm = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher(orig);
+                while (idm.find()) {
+                    tokens.add(idm.group());
+                    tokenStarts.add(idm.start());
+                    tokenEnds.add(idm.end());
                 }
 
-                // Highlight class segments
-                if (result.classSegments != null && !result.classSegments.isEmpty()) {
+                int pkgSegments = result.packageSegmentCount;
+                boolean hasPackage = pkgSegments > 0;
+
+                if (result.found && result.invalidStartOffset < 0) {
+                    if (hasPackage && pkgSegments <= tokenEnds.size()) {
+                        int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
+                        marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                    }
+
+                    if (result.classSegments != null && !result.classSegments.isEmpty()) {
+                        int classTokenStart = hasPackage ? pkgSegments : 0;
+                        for (int si = 0; si < result.classSegments.size(); si++) {
+                            int tokIdx = classTokenStart + si;
+                            if (tokIdx >= 0 && tokIdx < tokenStarts.size()) {
+                                int s = pathStart + tokenStarts.get(tokIdx);
+                                int e = pathStart + tokenEnds.get(tokIdx);
+                                ClassPathFinder.ClassSegment seg = result.classSegments.get(si);
+                                TokenType segType;
+                                switch (seg.type) {
+                                    case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
+                                    case ENUM: segType = TokenType.ENUM_DECL; break;
+                                    default: segType = TokenType.IMPORTED_CLASS; break;
+                                }
+                                marks.add(new Mark(s, e, segType));
+                            }
+                        }
+                    }
+                } else if (result.classSegments != null && !result.classSegments.isEmpty()) {
+                    if (hasPackage && pkgSegments <= tokenEnds.size()) {
+                        int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
+                        marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                    }
+
                     int classTokenStart = hasPackage ? pkgSegments : 0;
                     for (int si = 0; si < result.classSegments.size(); si++) {
                         int tokIdx = classTokenStart + si;
@@ -581,70 +638,117 @@ public class JavaTextContainer extends TextContainer {
                             marks.add(new Mark(s, e, segType));
                         }
                     }
-                }
-            } else if (result.classSegments != null && !result.classSegments.isEmpty()) {
-                // Partial resolution - mark package and valid class segments
-                if (hasPackage && pkgSegments <= tokenEnds.size()) {
-                    int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
-                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
-                }
 
-                int classTokenStart = hasPackage ? pkgSegments : 0;
-                for (int si = 0; si < result.classSegments.size(); si++) {
-                    int tokIdx = classTokenStart + si;
-                    if (tokIdx >= 0 && tokIdx < tokenStarts.size()) {
-                        int s = pathStart + tokenStarts.get(tokIdx);
-                        int e = pathStart + tokenEnds.get(tokIdx);
-                        ClassPathFinder.ClassSegment seg = result.classSegments.get(si);
-                        TokenType segType;
-                        switch (seg.type) {
-                            case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
-                            case ENUM: segType = TokenType.ENUM_DECL; break;
-                            default: segType = TokenType.IMPORTED_CLASS; break;
+                    if (result.invalidStartOffset >= 0) {
+                        int invalidAbs = mapNormalizedOffsetToOriginal(orig, result.invalidStartOffset, pathStart);
+                        if (invalidAbs < pathEnd) {
+                            marks.add(new Mark(invalidAbs, pathEnd, TokenType.UNDEFINED_VAR));
                         }
-                        marks.add(new Mark(s, e, segType));
+                    }
+                } else {
+                    if (result.invalidStartOffset >= 0 && hasPackage) {
+                        if (pkgSegments <= tokenEnds.size()) {
+                            int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
+                            marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                        }
+
+                        int invalidAbs = mapNormalizedOffsetToOriginal(orig, result.invalidStartOffset, pathStart);
+                        if (invalidAbs < pathEnd) {
+                            marks.add(new Mark(invalidAbs, pathEnd, TokenType.UNDEFINED_VAR));
+                        }
+                    } else if (fullPath.endsWith(".") && hasPackage && result.invalidStartOffset < 0) {
+                        marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                    } else if (result.invalidStartOffset < 0 && hasPackage) {
+                        marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                    } else {
+                        marks.add(new Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR));
                     }
                 }
 
-                // Mark remaining invalid portion in red (map normalized offset to original)
-                if (result.invalidStartOffset >= 0) {
-                    int invalidAbs = mapNormalizedOffsetToOriginal(orig, result.invalidStartOffset, pathStart);
-                    if (invalidAbs < pathEnd) {
-                        marks.add(new Mark(invalidAbs, pathEnd, TokenType.UNDEFINED_VAR));
-                    }
+                // Highlight .* if present (shouldn't for non-wildcard, but keep behavior)
+                int starIndex = matchText.indexOf('*');
+                if (starIndex != -1) {
+                    int absStar = ie.importKwStart + (starIndex - 0);
+                    marks.add(new Mark(absStar, absStar + 1, TokenType.DEFAULT));
                 }
             } else {
-                // Not resolved at all - use invalidStartOffset to determine valid/invalid split
-                if (result.invalidStartOffset >= 0 && hasPackage) {
-                    if (pkgSegments <= tokenEnds.size()) {
-                        int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
-                        marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
-                    }
+                // Wildcard import: try to determine whether this is a valid package or
+                // a class whose inner types are being imported (Outer.*)
+                boolean marked = false;
 
-                    int invalidAbs = mapNormalizedOffsetToOriginal(orig, result.invalidStartOffset, pathStart);
-                    if (invalidAbs < pathEnd) {
-                        marks.add(new Mark(invalidAbs, pathEnd, TokenType.UNDEFINED_VAR));
-                    }
-                } else if (fullPath.endsWith(".") && hasPackage && result.invalidStartOffset < 0) {
-                    // Trailing dot on a fully-valid package - all blue
+                // If package is known valid, mark as package
+                if (classPathFinder.isValidPackage(fullPath)) {
                     marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
-                } else if (result.invalidStartOffset < 0 && hasPackage) {
-                    // All-lowercase path treated as valid package
-                    marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                    marked = true;
                 } else {
-                    // Entire path is invalid
+                    // Probe uppercase identifiers in file to see if any inner types resolve
+                    java.util.Set<String> uppercaseIds = new java.util.HashSet<>();
+                    Matcher idm = Pattern.compile("\\b([A-Z][a-zA-Z0-9_]*)\\b").matcher(text);
+                    while (idm.find()) uppercaseIds.add(idm.group(1));
+
+                    for (String ident : uppercaseIds) {
+                        String candInner = fullPath + "$" + ident;
+                        ClassPathFinder.ClassInfo infoInner = classPathFinder.tryResolveClassName(candInner);
+                        if (infoInner != null) {
+                            // outer may be a class - try to get its info
+                            ClassPathFinder.ClassInfo outerInfo = classPathFinder.tryResolveClassName(fullPath);
+                            // mark package tokens (all but last) as TYPE_DECL and last as outer type
+                            String orig = text.substring(pathStart, pathEnd);
+                            List<String> tokens = new ArrayList<>();
+                            List<Integer> tokenStarts = new ArrayList<>();
+                            List<Integer> tokenEnds = new ArrayList<>();
+                            Matcher tokm = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher(orig);
+                            while (tokm.find()) { tokens.add(tokm.group()); tokenStarts.add(tokm.start()); tokenEnds.add(tokm.end()); }
+
+                            int tokenCount = tokenStarts.size();
+                            if (tokenCount > 0) {
+                                int pkgEnd = pathStart + (tokenEnds.get(Math.max(0, tokenCount - 2)));
+                                if (tokenCount >= 2) {
+                                    // mark package (all except last)
+                                    marks.add(new Mark(pathStart, pathStart + tokenEnds.get(tokenCount - 2), TokenType.TYPE_DECL));
+                                }
+                                // mark outer class token (last)
+                                int s = pathStart + tokenStarts.get(tokenCount - 1);
+                                int e = pathStart + tokenEnds.get(tokenCount - 1);
+                                TokenType segType = TokenType.IMPORTED_CLASS;
+                                if (outerInfo != null) {
+                                    switch (outerInfo.type) {
+                                        case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
+                                        case ENUM: segType = TokenType.ENUM_DECL; break;
+                                        default: segType = TokenType.IMPORTED_CLASS; break;
+                                    }
+                                }
+                                marks.add(new Mark(s, e, segType));
+                            }
+                            marked = true;
+                            // ensure package listed in importedPackages
+                            importedPackages.add(fullPath);
+                            break;
+                        }
+
+                        // Try package-like resolution: fullPath + "." + ident
+                        String candDot = fullPath + "." + ident;
+                        if (classPathFinder.tryResolveClassName(candDot) != null) {
+                            marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                            marked = true;
+                            importedPackages.add(fullPath);
+                            break;
+                        }
+                    }
+                }
+
+                if (!marked) {
+                    // Unknown wildcard import - mark as undefined
                     marks.add(new Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR));
                 }
-            }
 
-            // Highlight .* if present
-            int starIndex = matchText.indexOf('*');
-            if (starIndex != -1) {
-                int absStar = m.start() + starIndex;
-                marks.add(new Mark(absStar, absStar + 1, TokenType.DEFAULT));
+                // highlight star
+                if (ie.starPos >= 0) marks.add(new Mark(ie.starPos, ie.starPos + 1, TokenType.DEFAULT));
             }
         }
     }
+
+    
 
     private void collectImportedClassUsages(List<Mark> marks) {
         List<int[]> excluded = MethodBlock.getExcludedRanges(text);
@@ -723,7 +827,8 @@ public class JavaTextContainer extends TextContainer {
         collectPatternMatches(marks, COMMENT, TokenType.COMMENT);
         collectPatternMatches(marks, STRING, TokenType.STRING);
 
-        collectImportStatements(marks); // Highlight import statements
+        // Import marking is deferred until after type/usages are discovered.
+        // finalizeImports(marks) will create import marks later.
         collectClassDeclarations(marks); // Highlight class/interface/enum declarations
 
         // Highlight general keywords
@@ -741,6 +846,9 @@ public class JavaTextContainer extends TextContainer {
         highlightVariableReferences(marks);
         collectImportedClassUsages(marks); // Highlight imported class usages (e.g., Math.min)
 
+        // Finalize import markings after usages/types have been discovered
+        finalizeImports(marks);
+
         marks = resolveConflicts(marks);
 
         // Compute indent guides based on matched braces, ignoring strings/comments
@@ -754,7 +862,8 @@ public class JavaTextContainer extends TextContainer {
         // Step 3: Assign tokens to the correct lines
         for (LineData line : lines) {
             int cursor = line.start;
-
+            // collectImportStatements used to create marks here; we now defer marking until types/usages are discovered
+            // so finalizeImports will create the visual marks from recorded import entries.
             for (Mark mark : marks) {
                 if (mark.end <= line.start || mark.start >= line.end)
                     continue;

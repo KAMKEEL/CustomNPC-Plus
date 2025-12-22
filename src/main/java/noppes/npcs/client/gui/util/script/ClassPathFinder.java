@@ -406,6 +406,10 @@ public class ClassPathFinder {
             Class<?> clazz = Class.forName(className);
             result = createClassInfo(className, clazz);
             classCache.put(className, result);
+
+            int lastDot = className.lastIndexOf(".");
+            if (lastDot > 0)
+                registerValidPackage(className.substring(0, lastDot));
         } catch (ClassNotFoundException | NoClassDefFoundError e) {
             // Not found with given name, will be cached as null
         } catch (LinkageError e) {
@@ -413,6 +417,14 @@ public class ClassPathFinder {
         }
 
         return result;
+    }
+
+    /**
+     * Public wrapper to attempt resolving a fully-qualified class name.
+     * Returns null if not found.
+     */
+    public ClassInfo tryResolveClassName(String className) {
+        return tryResolveClass(className);
     }
 
     private ClassInfo createClassInfo(String resolvedName, Class<?> clazz) {
