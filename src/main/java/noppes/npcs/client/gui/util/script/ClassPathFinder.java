@@ -62,24 +62,27 @@ public class ClassPathFinder {
         public final String classPortion;      // The class part (e.g., "List" or "IOverlay.ColorType")
         public final List<ClassSegment> classSegments; // Each class/inner-class segment with its type
         public final int invalidStartOffset;   // Character offset where invalid portion starts (-1 if all valid or all invalid)
+        public final int packageSegmentCount;  // Number of dot-separated identifier tokens that belong to the package portion
 
         private ResolveResult(boolean found, ClassInfo classInfo, String packagePortion,
-                              String classPortion, List<ClassSegment> classSegments, int invalidStartOffset) {
+                              String classPortion, List<ClassSegment> classSegments, int invalidStartOffset,
+                              int packageSegmentCount) {
             this.found = found;
             this.classInfo = classInfo;
             this.packagePortion = packagePortion;
             this.classPortion = classPortion;
             this.classSegments = classSegments != null ? classSegments : Collections.emptyList();
             this.invalidStartOffset = invalidStartOffset;
+            this.packageSegmentCount = packageSegmentCount;
         }
 
-        public static ResolveResult notFound(String packagePortion, String classPortion, int invalidStartOffset) {
-            return new ResolveResult(false, null, packagePortion, classPortion, null, invalidStartOffset);
+        public static ResolveResult notFound(String packagePortion, String classPortion, int invalidStartOffset, int packageSegmentCount) {
+            return new ResolveResult(false, null, packagePortion, classPortion, null, invalidStartOffset, packageSegmentCount);
         }
 
         public static ResolveResult found(ClassInfo info, String packagePortion,
-                                          String classPortion, List<ClassSegment> segments) {
-            return new ResolveResult(true, info, packagePortion, classPortion, segments, -1);
+                                          String classPortion, List<ClassSegment> segments, int packageSegmentCount) {
+            return new ResolveResult(true, info, packagePortion, classPortion, segments, -1, packageSegmentCount);
         }
     }
 
@@ -113,15 +116,20 @@ public class ClassPathFinder {
      */
     public ResolveResult resolve(String importPath) {
         if (importPath == null || importPath.isEmpty()) {
-            return ResolveResult.notFound("", "", -1);
+            return ResolveResult.notFound("", "", -1, 0);
         }
 
+        // Normalize whitespace/newlines around dots so wrapped imports like
+        // "kamkeel.npcdbc.api.client.overlay.IOverlay.\n TextureFunction" become
+        // "kamkeel.npcdbc.api.client.overlay.IOverlay.TextureFunction" before resolving.
+        String normalizedPath = importPath.replaceAll("\\s*\\.\\s*", ".").trim();
+
         // Handle trailing dot (user is still typing a package path like "java.util.")
-        boolean trailingDot = importPath.endsWith(".");
-        String pathToResolve = trailingDot ? importPath.substring(0, importPath.length() - 1) : importPath;
+        boolean trailingDot = normalizedPath.endsWith(".");
+        String pathToResolve = trailingDot ? normalizedPath.substring(0, normalizedPath.length() - 1) : normalizedPath;
 
         if (pathToResolve.isEmpty()) {
-            return ResolveResult.notFound("", "", -1);
+            return ResolveResult.notFound("", "", -1, 0);
         }
 
         String[] segments = pathToResolve.split("\\.");
@@ -136,18 +144,18 @@ public class ClassPathFinder {
             int longestValid = findLongestValidPackagePrefixIndex(segments);
             if (longestValid == n) {
                 // Entire path is a valid package (or cached as valid)
-                return ResolveResult.notFound(pathToResolve, "", -1);
+                return ResolveResult.notFound(pathToResolve, "", -1, n);
             }
 
             if (longestValid > 0) {
                 String validPrefix = buildPackagePortion(segments, longestValid);
                 String invalidRemainder = buildClassPortion(segments, longestValid, n);
                 int invalidOffset = validPrefix.length() + 1; // after the dot
-                return ResolveResult.notFound(validPrefix, invalidRemainder, invalidOffset);
+                return ResolveResult.notFound(validPrefix, invalidRemainder, invalidOffset, longestValid);
             }
 
             // Nothing validated
-            return ResolveResult.notFound("", pathToResolve, 0);
+            return ResolveResult.notFound("", pathToResolve, 0, 0);
         }
 
         // Trailing dot is handled above for lowercase-only paths; for mixed-case paths
@@ -180,15 +188,15 @@ public class ClassPathFinder {
                         // Calculate where the invalid portion starts (after valid class + dot)
                         int validEndOffset = packagePortion.length() + (packagePortion.isEmpty() ? 0 : 1) + validClassPortion.length() + 1;
                         return new ResolveResult(false, info, packagePortion,
-                                fullClassPortion, classSegments, validEndOffset);
+                            fullClassPortion, classSegments, validEndOffset, classStartIdx);
                     }
 
                     // Full resolution successful
                     List<ClassSegment> classSegments = buildClassSegments(segments, classStartIdx, n);
-                    return ResolveResult.found(
+                        return ResolveResult.found(
                             new ClassInfo(info.resolvedName, info.type, packagePortion.length()),
-                            packagePortion, validClassPortion, classSegments
-                    );
+                            packagePortion, validClassPortion, classSegments, classStartIdx
+                        );
                 }
             }
         }
@@ -208,22 +216,22 @@ public class ClassPathFinder {
                 // Found a divergence from a known valid package
                 String validPrefix = buildPackagePortion(segments, typoIndex);
                 int invalidOffset = validPrefix.isEmpty() ? 0 : validPrefix.length() + 1;
-                return ResolveResult.notFound(validPrefix, buildClassPortion(segments, typoIndex, n), invalidOffset);
+                return ResolveResult.notFound(validPrefix, buildClassPortion(segments, typoIndex, n), invalidOffset, typoIndex);
             }
 
             // No typo detected - assume package is valid, only class portion is invalid
             int invalidOffset = packagePortion.length() + 1; // After the package dot
-            return ResolveResult.notFound(packagePortion, classPortion, invalidOffset);
+            return ResolveResult.notFound(packagePortion, classPortion, invalidOffset, firstUpperIndex);
 
         } else if (firstUpperIndex == 0) {
             // Entire path starts with uppercase (e.g., "String" or "MyClass.Inner")
             // Treat as class with no package
-            return ResolveResult.notFound("", pathToResolve, 0);
+            return ResolveResult.notFound("", pathToResolve, 0, 0);
 
         } else {
             // All lowercase, no uppercase found - entire path is package-like
             // If trailing dot was handled above, this is just a package without class
-            return ResolveResult.notFound(pathToResolve, "", -1);
+            return ResolveResult.notFound(pathToResolve, "", -1, n);
         }
     }
 

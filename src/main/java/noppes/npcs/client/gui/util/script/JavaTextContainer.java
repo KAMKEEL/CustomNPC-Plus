@@ -37,9 +37,11 @@ public class JavaTextContainer extends TextContainer {
     public static final Pattern NUMBER = Pattern.compile(
             "\\b-?(?:0[xX][\\dA-Fa-f]+|0[bB][01]+|0[oO][0-7]+|\\d*\\.?\\d+(?:[Ee][+-]?\\d+)?(?:[fFbBdDlLsS])?|NaN|null|Infinity|true|false)\\b");
 
-    // Import statement: import [static] package.path.ClassName [.*]; (semicolon optional for live typing)
-    public static final Pattern IMPORT = Pattern.compile(
-            "(?m)\\bimport\\s+(?:static\\s+)?([a-zA-Z_][a-zA-Z0-9_.]*?)(?:\\s*\\.\\s*\\*)?\\s*(?:;|$)");
+        // Import statement: import [static] package.path.ClassName [.*]; (semicolon optional for live typing)
+        // Allows optional whitespace (including newlines) around the dots so wrapped imports match.
+        // Match imports while allowing optional whitespace/newlines around dots.
+        public static final Pattern IMPORT = Pattern.compile(
+            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*)?\\s*(?:;|$)");
 
     // ClassPathFinder for resolving imports and determining class types
     private final ClassPathFinder classPathFinder = new ClassPathFinder();
@@ -49,6 +51,26 @@ public class JavaTextContainer extends TextContainer {
 
     public JavaTextContainer(String text) {
         super(text);
+    }
+
+    // Map an offset into the normalized path (tokens joined with '.') back to
+    // an absolute index in the original substring `orig` (absolute positions start at pathStart).
+    // The normalization removes whitespace/newlines around dots; this function
+    // advances a normalized counter when it encounters identifier chars or dots
+    // and returns the corresponding original index (absolute).
+    private int mapNormalizedOffsetToOriginal(String orig, int normalizedOffset, int pathStart) {
+        if (orig == null || orig.isEmpty()) return pathStart;
+        int norm = 0;
+        for (int i = 0; i < orig.length(); i++) {
+            char c = orig.charAt(i);
+            if (Character.isLetterOrDigit(c) || c == '_' || c == '.') {
+                norm++;
+            }
+            if (norm >= normalizedOffset) {
+                return pathStart + i;
+            }
+        }
+        return pathStart + orig.length();
     }
 
     public void init(String text,int width, int height) {
@@ -519,75 +541,94 @@ public class JavaTextContainer extends TextContainer {
             // Use ClassPathFinder to resolve the import
             ClassPathFinder.ResolveResult result = classPathFinder.resolve(fullPath);
 
-            String packagePortion = result.packagePortion;
-            String classPortion = result.classPortion;
-            boolean hasPackage = packagePortion != null && !packagePortion.isEmpty();
-            boolean hasClass = classPortion != null && !classPortion.isEmpty();
+            // Tokenize the original matched substring so we can map normalized segments
+            String orig = text.substring(pathStart, pathEnd);
+            java.util.List<String> tokens = new java.util.ArrayList<>();
+            java.util.List<Integer> tokenStarts = new java.util.ArrayList<>();
+            java.util.List<Integer> tokenEnds = new java.util.ArrayList<>();
+            Matcher idm = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*").matcher(orig);
+            while (idm.find()) {
+                tokens.add(idm.group());
+                tokenStarts.add(idm.start());
+                tokenEnds.add(idm.end());
+            }
 
+            int pkgSegments = result.packageSegmentCount;
+            boolean hasPackage = pkgSegments > 0;
+
+            // Highlight package tokens (if any)
             if (result.found && result.invalidStartOffset < 0) {
-                // Fully resolved - highlight package (blue) and class segments (typed)
-                if (hasPackage) {
-                    int pkgEnd = pathStart + packagePortion.length();
+                if (hasPackage && pkgSegments <= tokenEnds.size()) {
+                    int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
                     marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
                 }
-                
-                if (hasClass && !result.classSegments.isEmpty()) {
-                    int classStart = pathStart + (hasPackage ? packagePortion.length() + 1 : 0);
-                    for (ClassPathFinder.ClassSegment seg : result.classSegments) {
-                        int segEnd = classStart + seg.name.length();
+
+                // Highlight class segments
+                if (result.classSegments != null && !result.classSegments.isEmpty()) {
+                    int classTokenStart = hasPackage ? pkgSegments : 0;
+                    for (int si = 0; si < result.classSegments.size(); si++) {
+                        int tokIdx = classTokenStart + si;
+                        if (tokIdx >= 0 && tokIdx < tokenStarts.size()) {
+                            int s = pathStart + tokenStarts.get(tokIdx);
+                            int e = pathStart + tokenEnds.get(tokIdx);
+                            ClassPathFinder.ClassSegment seg = result.classSegments.get(si);
+                            TokenType segType;
+                            switch (seg.type) {
+                                case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
+                                case ENUM: segType = TokenType.ENUM_DECL; break;
+                                default: segType = TokenType.IMPORTED_CLASS; break;
+                            }
+                            marks.add(new Mark(s, e, segType));
+                        }
+                    }
+                }
+            } else if (result.classSegments != null && !result.classSegments.isEmpty()) {
+                // Partial resolution - mark package and valid class segments
+                if (hasPackage && pkgSegments <= tokenEnds.size()) {
+                    int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
+                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
+                }
+
+                int classTokenStart = hasPackage ? pkgSegments : 0;
+                for (int si = 0; si < result.classSegments.size(); si++) {
+                    int tokIdx = classTokenStart + si;
+                    if (tokIdx >= 0 && tokIdx < tokenStarts.size()) {
+                        int s = pathStart + tokenStarts.get(tokIdx);
+                        int e = pathStart + tokenEnds.get(tokIdx);
+                        ClassPathFinder.ClassSegment seg = result.classSegments.get(si);
                         TokenType segType;
                         switch (seg.type) {
                             case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
                             case ENUM: segType = TokenType.ENUM_DECL; break;
                             default: segType = TokenType.IMPORTED_CLASS; break;
                         }
-                        marks.add(new Mark(classStart, segEnd, segType));
-                        classStart = segEnd + 1;
+                        marks.add(new Mark(s, e, segType));
                     }
                 }
-            } else if (result.classSegments != null && !result.classSegments.isEmpty()) {
-                // Partial resolution - some class segments are valid, rest is invalid
-                // (e.g., IOverlay.ColorType resolved but ".idk" is invalid)
-                if (hasPackage) {
-                    int pkgEnd = pathStart + packagePortion.length();
-                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
-                }
-                
-                int classStart = pathStart + (hasPackage ? packagePortion.length() + 1 : 0);
-                for (ClassPathFinder.ClassSegment seg : result.classSegments) {
-                    int segEnd = classStart + seg.name.length();
-                    TokenType segType;
-                    switch (seg.type) {
-                        case INTERFACE: segType = TokenType.INTERFACE_DECL; break;
-                        case ENUM: segType = TokenType.ENUM_DECL; break;
-                        default: segType = TokenType.IMPORTED_CLASS; break;
-                    }
-                    marks.add(new Mark(classStart, segEnd, segType));
-                    classStart = segEnd + 1;
-                }
-                
-                // Mark remaining invalid portion in red
+
+                // Mark remaining invalid portion in red (map normalized offset to original)
                 if (result.invalidStartOffset >= 0) {
-                    int invalidStart = pathStart + result.invalidStartOffset;
-                    if (invalidStart < pathEnd) {
-                        marks.add(new Mark(invalidStart, pathEnd, TokenType.UNDEFINED_VAR));
+                    int invalidAbs = mapNormalizedOffsetToOriginal(orig, result.invalidStartOffset, pathStart);
+                    if (invalidAbs < pathEnd) {
+                        marks.add(new Mark(invalidAbs, pathEnd, TokenType.UNDEFINED_VAR));
                     }
                 }
             } else {
                 // Not resolved at all - use invalidStartOffset to determine valid/invalid split
                 if (result.invalidStartOffset >= 0 && hasPackage) {
-                    // Valid package prefix, invalid class
-                    int pkgEnd = pathStart + packagePortion.length();
-                    marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
-                    
-                    int invalidStart = pathStart + result.invalidStartOffset;
-                    if (invalidStart < pathEnd) {
-                        marks.add(new Mark(invalidStart, pathEnd, TokenType.UNDEFINED_VAR));
+                    if (pkgSegments <= tokenEnds.size()) {
+                        int pkgEnd = pathStart + tokenEnds.get(pkgSegments - 1);
+                        marks.add(new Mark(pathStart, pkgEnd, TokenType.TYPE_DECL));
                     }
-                } else if (fullPath.endsWith(".") && hasPackage && result.invalidStartOffset < 0 && !hasClass) {
+
+                    int invalidAbs = mapNormalizedOffsetToOriginal(orig, result.invalidStartOffset, pathStart);
+                    if (invalidAbs < pathEnd) {
+                        marks.add(new Mark(invalidAbs, pathEnd, TokenType.UNDEFINED_VAR));
+                    }
+                } else if (fullPath.endsWith(".") && hasPackage && result.invalidStartOffset < 0) {
                     // Trailing dot on a fully-valid package - all blue
                     marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
-                } else if (result.invalidStartOffset < 0 && hasPackage && !hasClass) {
+                } else if (result.invalidStartOffset < 0 && hasPackage) {
                     // All-lowercase path treated as valid package
                     marks.add(new Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
                 } else {

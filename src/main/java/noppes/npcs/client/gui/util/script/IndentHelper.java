@@ -171,7 +171,7 @@ public class IndentHelper {
             settings.wrapComments = true;
             // Use 75% of viewport width as max line length for some margin
             int charWidth = 6; // Approximate character width
-            settings.maxLineLength = Math.max(60, (int)(viewportWidth * 0.75 / charWidth));
+            settings.maxLineLength = Math.max(60, (int)(viewportWidth * 0.8f / charWidth));
         }
         
         String formatted = helper.format(indented);
