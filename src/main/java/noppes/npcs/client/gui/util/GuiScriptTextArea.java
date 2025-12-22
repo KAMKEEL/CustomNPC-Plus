@@ -123,6 +123,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.searchBaseHeight = 0;
         this.searchAppliedOffset = 0;
         this.searchBaseInitialized = false;
+        
+        KEYS_OVERLAY.openOnClick = true;
         initGui();
         initializeKeyBindings();
     }
@@ -1188,7 +1190,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     @Override
     public boolean textboxKeyTyped(char c, int i) {
-        KEYS_OVERLAY.keyTyped(c, i);
+        if (KEYS_OVERLAY.keyTyped(c, i))
+            return true;
 
         // Handle rename refactor input first if active
         if (renameHandler.isActive() && renameHandler.keyTyped(c, i))
@@ -1793,7 +1796,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
     
     public boolean closeOnEsc(){
-        return !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive(); 
+        return !KEYS_OVERLAY.showOverlay && !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive(); 
     }
     
     // ==================== KEYBOARD MODIFIERS ====================
@@ -2004,10 +2007,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             searchBar.unfocus();
         }
         
-        if (KEYS_OVERLAY.showOverlay) {
-            KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton);
+        // Let the overlay consume clicks (it returns true when it handled the event)
+        if (KEYS_OVERLAY.mouseClicked(xMouse, yMouse, mouseButton))
             return;
-        }
             
         // Determine whether click occurred inside the text area bounds
         this.active = xMouse >= this.x && xMouse < this.x + this.width && yMouse >= this.y && yMouse < this.y + this.height;

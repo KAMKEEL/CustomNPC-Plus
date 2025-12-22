@@ -8,6 +8,7 @@ import noppes.npcs.client.key.KeyPreset;
 import noppes.npcs.client.key.KeyPresetManager;
 import noppes.npcs.client.util.Color;
 import noppes.npcs.util.ValueUtil;
+import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
@@ -33,7 +34,10 @@ public class OverlayKeyPresetViewer {
     public float RELATIVE_MAX_DESC_WIDTH = 0.5f;
     private final FontRenderer font = Minecraft.getMinecraft().fontRenderer;
 
+    public int bgCol1 = 0x88000000, bgCol2 = 0xcc303030;
+    public int borderCol1 = 0x22ffffff, borderCol2 = 0xffffffff;
     public boolean hasBorder = true;
+    public boolean openOnClick;
 
     public OverlayKeyPresetViewer(KeyPresetManager manager) {
         this.manager = manager;
@@ -59,14 +63,15 @@ public class OverlayKeyPresetViewer {
         this.mouseY = mouseY;
         boolean aboveButton = viewButton.isMouseAbove(mouseX, mouseY);
         boolean aboveOverlay = isMouseAbove(mouseX, mouseY);
-
-        if (aboveButton)
+        // If in hover mode, hovering the button opens the overlay.
+        if (aboveButton && !openOnClick)
             showOverlay = true;
 
         if (showOverlay) {
             drawOverlay(wheel);
 
-            if (!aboveOverlay && !aboveButton)
+            // In click-to-open mode we don't auto-close on mouse-out; closure is handled by clicks.
+            if (!openOnClick && !aboveOverlay && !aboveButton)
                 showOverlay = false;
         }
         viewButton.drawButton();
@@ -76,20 +81,19 @@ public class OverlayKeyPresetViewer {
         scroll.update(wheel);
         
         if (hasBorder) {
-            int fromCol = 0x22ffffff, toCol = 0xffffffff; //BORDER GRADIENT 
-            // int fromCol = 0xffff00ff,toCol = 0xff00ffff; NEON
+            // int borderCol2 = 0xffff00ff,borderCol2 = 0xff00ffff; NEON
 
             // Top
-            GuiUtil.drawGradientRectHorizontal(startX - 1, startY - 1, endX + 1, startY, toCol, fromCol);
+            GuiUtil.drawGradientRectHorizontal(startX - 1, startY - 1, endX + 1, startY, borderCol2, borderCol1);
             // Bottom
-            GuiUtil.drawGradientRectHorizontal(startX - 1, endY, endX + 1, endY + 1, fromCol, toCol);
+            GuiUtil.drawGradientRectHorizontal(startX - 1, endY, endX + 1, endY + 1, borderCol1, borderCol2);
             // Left
-            GuiUtil.drawGradientRect(startX - 1, startY - 1, startX, endY, toCol, fromCol);
+            GuiUtil.drawGradientRect(startX - 1, startY - 1, startX, endY, borderCol2, borderCol1);
             //Right
-            GuiUtil.drawGradientRect(endX, startY, endX + 1, endY, fromCol, toCol);
+            GuiUtil.drawGradientRect(endX, startY, endX + 1, endY, borderCol1, borderCol2);
         }
 
-        GuiUtil.drawGradientRect(startX + 1, startY + 1, endX - 1, endY - 1, 0x88000000, 0xcc303030);
+        GuiUtil.drawGradientRect(startX + 1, startY + 1, endX - 1, endY - 1, bgCol1, bgCol2);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - scroll.barWidth : width, height);
         GL11.glPushMatrix();
@@ -114,33 +118,69 @@ public class OverlayKeyPresetViewer {
             scroll.drawBar();
     }
 
-    public void keyTyped(char c, int i) {
+    public boolean keyTyped(char c, int i) {
         if (!showOverlay)
-            return;
+            return false;
 
-        list.forEach((element) -> {
-            if (element.isEditing)
+        if (i == Keyboard.KEY_ESCAPE) {
+            showOverlay = false;
+            return true;
+        }
+
+        for (PresetElement element : list) {
+            if (element.isEditing) {
                 element.keyTyped(i);
-        });
+                return true;
+            }
+        }
+
+        // If overlay is visible but no element consumed the key, consider it handled
+        return true;
     }
 
-    public void mouseClicked(int mouseX, int mouseY, int button) {
-        if (!showOverlay)
-            return;
+    public boolean mouseClicked(int mouseX, int mouseY, int button) {
+        // Always allow clicking the view button to toggle when openOnClick is enabled
+        if (viewButton.isMouseAbove(mouseX, mouseY)) {
+            if (openOnClick) {
+                showOverlay = !showOverlay;
+                return true;
+            } else {
+                // If not click-to-open mode, clicking the button should still open the overlay
+                showOverlay = true;
+                return true;
+            }
+        }
 
-        list.forEach((element) -> {
+        // If overlay is not visible, no other clicks matter
+        if (!showOverlay)
+            return false;
+
+        // In click-to-open mode, clicking outside the overlay (and not the button) should close it
+        if (openOnClick && !isMouseAbove(mouseX, mouseY) && !viewButton.isMouseAbove(mouseX, mouseY)) {
+            showOverlay = false;
+            return true;
+        }
+
+        boolean consumed = false;
+        for (PresetElement element : list) {
             if (!element.isMouseAboveBox(mouseX, mouseY)) {
-                if (element.isEditing)
+                if (element.isEditing) {
                     element.cancelEdit();
-            } else
+                    consumed = true;
+                }
+            } else {
                 element.boxClicked(button);
+                consumed = true;
+            }
 
             if (element.isMouseAboveReset(mouseX, mouseY) && !element.key.isDefault()) {
                 element.key.defaultState.writeTo(element.key.currentState);
                 manager.save();
+                consumed = true;
             }
+        }
 
-        });
+        return consumed;
     }
 
     public boolean isMouseAbove(int mouseX, int mouseY) {
