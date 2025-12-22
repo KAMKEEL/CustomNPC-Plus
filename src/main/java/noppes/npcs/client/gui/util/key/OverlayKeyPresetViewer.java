@@ -140,7 +140,8 @@ public class OverlayKeyPresetViewer {
 
     public boolean mouseClicked(int mouseX, int mouseY, int button) {
         // Always allow clicking the view button to toggle when openOnClick is enabled
-        if (viewButton.isMouseAbove(mouseX, mouseY)) {
+        boolean isAboveButton = viewButton.isMouseAbove(mouseX, mouseY);
+        if (isAboveButton) {
             if (openOnClick) {
                 showOverlay = !showOverlay;
                 return true;
@@ -154,14 +155,15 @@ public class OverlayKeyPresetViewer {
         // If overlay is not visible, no other clicks matter
         if (!showOverlay)
             return false;
-
+        
+        boolean isAboveOverlay = isMouseAbove(mouseX, mouseY);
         // In click-to-open mode, clicking outside the overlay (and not the button) should close it
-        if (openOnClick && !isMouseAbove(mouseX, mouseY) && !viewButton.isMouseAbove(mouseX, mouseY)) {
+        if (openOnClick && !isAboveOverlay && !isAboveButton) {
             showOverlay = false;
             return true;
         }
 
-        boolean consumed = false;
+        boolean consumed = isAboveOverlay;
         for (PresetElement element : list) {
             if (!element.isMouseAboveBox(mouseX, mouseY)) {
                 if (element.isEditing) {
@@ -193,6 +195,11 @@ public class OverlayKeyPresetViewer {
     public int getWidth() {
         return (int) (width / scale);
     }
+
+    public boolean isVisible() {
+        return showOverlay;
+    }
+
 
     public class Scrollable {
         private float scrollY, targetScrollY, maxScroll;

@@ -477,7 +477,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
         if (listener instanceof GuiNPCInterface) {
             ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
-            if (wheelDelta != 0 && !KEYS_OVERLAY.showOverlay) 
+            if (wheelDelta != 0 && !KEYS_OVERLAY.isVisible()) 
                 scroll.applyWheelScroll(wheelDelta, maxScroll);
         }
 
@@ -939,8 +939,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     private void initializeKeyBindings() {
         // Helper: execute action only if text area is active and enabled
-        Supplier<Boolean> isActive = () -> active && isEnabled() && !KEYS_OVERLAY.showOverlay;
-        Supplier<Boolean> openBoxes = () -> !KEYS_OVERLAY.showOverlay;
+        Supplier<Boolean> isActive = () -> active && isEnabled() && !KEYS_OVERLAY.isVisible();
+        Supplier<Boolean> openBoxes = () -> !KEYS_OVERLAY.isVisible();
 
         // CUT: Copy selection to clipboard and delete it. If no selection, cut the current sentence.
         KEYS.CUT.setTask(e -> {
@@ -1204,8 +1204,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Handle search bar input first if it has focus
         if (searchBar.isVisible() && searchBar.keyTyped(c, i)) 
             return true;
-        
-        if (!active || KEYS_OVERLAY.showOverlay) return false;
+
+        if (!active)
+            return false;
 
         if (this.isKeyComboCtrlA(i)) {
             selection.selectAll(text.length());
@@ -1796,7 +1797,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
     
     public boolean closeOnEsc(){
-        return !KEYS_OVERLAY.showOverlay && !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive(); 
+        return !KEYS_OVERLAY.isVisible() && !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive(); 
     }
     
     // ==================== KEYBOARD MODIFIERS ====================
