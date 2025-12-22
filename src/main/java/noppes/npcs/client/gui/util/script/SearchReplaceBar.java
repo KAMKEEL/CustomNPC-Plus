@@ -122,7 +122,8 @@ public class SearchReplaceBar {
         void unfocusMainEditor();
         void focusMainEditor();
         void onMatchesUpdated(); // Called when matches change (for undo/redo sync)
-        void resizeEditor(boolean open);
+
+        void resizeEditor(boolean open, int barHeight);
     }
     
     public SearchReplaceBar() {
@@ -142,28 +143,23 @@ public class SearchReplaceBar {
         this.width = textAreaWidth;
         // State is preserved - don't reset searchText, matches, visible, etc.
     }
-    
-    /**
-     * Open search bar (Ctrl+R)
-     */
-    public void openSearch() {
+
+    public void open() {
         boolean oldVisible = this.visible;
-        visible = true;
-        showReplace = false;
-        searchFieldFocused = true;
-        replaceFieldFocused = false;
         boolean matchHighlight = false;
+        visible = true;
         if (callback != null) {
-            if (!oldVisible) //if wasnt open before, do it once.
-                callback.resizeEditor(true);
+                                // Always notify callback that the search UI is open and provide its current height.
+                                callback.resizeEditor(true, getTotalHeight());
             callback.unfocusMainEditor();
-            
+
             String highlight = callback.getHighlightedWord();
             if (highlight != null) {
                 searchText = highlight;
                 matchHighlight = true;
             }
         }
+
         searchSelectionStart = 0;
         searchSelectionEnd = searchText.length();
         searchCursor = searchText.length();
@@ -173,15 +169,27 @@ public class SearchReplaceBar {
             setCurrentMatchToHighlight();
             navigateToCurrentMatch();
         }
+    }
 
+    /**
+     * Open search bar (Ctrl+R)
+     */
+    public void openSearch() {
+        showReplace = false;
+        searchFieldFocused = true;
+        replaceFieldFocused = false;
+        open();
+        
     }
     
     /**
      * Open search+replace bar (Ctrl+Shift+R)
      */
     public void openSearchReplace() {
-        openSearch();
-        showReplace = true;
+        showReplace = true; //both for window resize properly
+        searchFieldFocused = false;
+        replaceFieldFocused = true;
+        open();
     }
     
     /**
@@ -189,7 +197,8 @@ public class SearchReplaceBar {
      */
     public void close() {
         if (callback != null) {
-            callback.resizeEditor(false);
+            // When closing, signal closed and height 0
+            callback.resizeEditor(false, 0);
             callback.focusMainEditor();
         }
         visible = false;

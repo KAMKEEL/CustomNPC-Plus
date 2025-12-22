@@ -58,6 +58,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // Extra empty lines to allow padding at the bottom of the editor viewport
     private int bottomPaddingLines = 6;
 
+    // Search bar layout tracking to allow idempotent/resilient resizing
+    private int searchBaseY = 0;
+    private int searchBaseHeight = 0;
+    private int searchAppliedOffset = 0;
+    private boolean searchBaseInitialized = false;
+
     private int getPaddedLineCount() {
         if (container == null) return 0;
         // Only add bottom padding when the content is already scrollable. This avoids
@@ -112,9 +118,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.setText(text);
         this.undoing = false;
         setCallbacks();
+        // Reset search-base tracking whenever the editor is (re)initialized
+        this.searchBaseY = 0;
+        this.searchBaseHeight = 0;
+        this.searchAppliedOffset = 0;
+        this.searchBaseInitialized = false;
         initGui();
         initializeKeyBindings();
-
     }
     public void initGui() {
         int endX = x + width, endY = y + height;
@@ -128,8 +138,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Initialize search bar (preserves state across initGui calls)
         searchBar.initGui(x, y, width);
         if (searchBar.isVisible()) { // If open
-            // Shift viewport down again 
-            searchBar.callback.resizeEditor(true);
+            // Shift viewport down again using the bar's current height
+            searchBar.callback.resizeEditor(true, searchBar.getTotalHeight());
             if (!active) // Focus search if opening another script tab & bar is open
                 searchBar.focus(false);
         }
@@ -230,12 +240,31 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Called when matches change - could be used for UI updates
             }
 
-            // Shift text editor viewport up or down bar
-            public void resizeEditor(boolean open) {
-                int scrollHeight = searchBar.getTotalHeight();
-                GuiScriptTextArea.this.y += open ? scrollHeight : -scrollHeight;
-                GuiScriptTextArea.this.height += open ? -scrollHeight : scrollHeight;
-                container.visibleLines = Math.max(GuiScriptTextArea.this.height / container.lineHeight - 1, 1);
+            // Robust resize: use base editor bounds and apply the requested offset
+            public void resizeEditor(boolean open, int barHeight) {
+                int desiredOffset = Math.max(0, barHeight);
+                // Initialize base values if not set
+                if (!searchBaseInitialized) {
+                    searchBaseY = GuiScriptTextArea.this.y;
+                    searchBaseHeight = GuiScriptTextArea.this.height;
+                    searchAppliedOffset = 0;
+                    searchBaseInitialized = true;
+                }
+
+                int targetOffset = open ? desiredOffset : 0;
+                if (targetOffset == searchAppliedOffset)
+                    return; // already in desired state
+
+                // Compute new bounds from base values (idempotent)
+                int newY = searchBaseY + targetOffset;
+                int newHeight = Math.max(12, searchBaseHeight - targetOffset);
+
+                GuiScriptTextArea.this.y = newY;
+                GuiScriptTextArea.this.height = newHeight;
+                searchAppliedOffset = targetOffset;
+
+                if (container != null)
+                    container.visibleLines = Math.max(GuiScriptTextArea.this.height / container.lineHeight - 1, 1);
             }
         });
         // Initialize Go To Line dialog with callback
