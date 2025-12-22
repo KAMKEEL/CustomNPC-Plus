@@ -71,14 +71,10 @@ public class GoToLineDialog {
         
         void focusMainEditor();
     }
-
-    /**
-     * Initialize the dialog with callback
-     */
-    public GoToLineDialog(GoToLineCallback callback) {
+    
+    public void setCallback(GoToLineCallback callback) {
         this.callback = callback;
     }
-
     /**
      * Initialize/update position for the dialog
      */

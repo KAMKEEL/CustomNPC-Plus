@@ -87,10 +87,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public OverlayKeyPresetViewer KEYS_OVERLAY = new OverlayKeyPresetViewer(KEYS);
 
     // ==================== SEARCH/REPLACE ====================
-    private final SearchReplaceBar searchBar = new SearchReplaceBar();
+    private static final SearchReplaceBar searchBar = new SearchReplaceBar();
     
     // ==================== GO TO LINE ====================
-    private final GoToLineDialog goToLineDialog;
+    private final GoToLineDialog goToLineDialog = new GoToLineDialog();
 
     // ==================== RENAME REFACTOR ====================
     private final RenameRefactorHandler renameHandler = new RenameRefactorHandler();
@@ -99,7 +99,44 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
         super(id, guiScreen, x, y, width, height, null);
+        init(x, y, width, height, text);
+    }
 
+    public void init(int x, int y, int width, int height, String text) {
+        this.x = xPosition = x;
+        this.y = yPosition = y;
+        this.width = width;
+        this.height = height;
+        this.undoing = true;
+        this.setText(text);
+        this.undoing = false;
+        setCallbacks();
+        initGui();
+        initializeKeyBindings();
+    }
+    public void initGui() {
+        int endX = x + width, endY = y + height;
+        int xOffset = hasVerticalScrollbar() ? -8 : -2;
+        KEYS_OVERLAY.elementSpacing = KEYS_OVERLAY.yStartSpacing = 0;
+        KEYS_OVERLAY.initGui(endX - (width / 2)-3, y + (height / 4) - 10, endX + xOffset - 2, endY - 28);
+
+        KEYS_OVERLAY.viewButton.scale = 0.45f;
+        KEYS_OVERLAY.viewButton.initGui(endX + xOffset, endY - 26);
+        
+        // Initialize search bar (preserves state across initGui calls)
+        searchBar.initGui(x, y, width);
+        if (searchBar.isVisible()) { // If open
+            // Shift viewport down again 
+            searchBar.callback.resizeEditor(true);
+            if (!active) // Focus search if opening another script tab & bar is open
+                searchBar.focus(false);
+        }
+        
+        // Initialize Go To Line dialog
+        goToLineDialog.initGui(x, y, width);
+    }
+
+    public void setCallbacks() {
         searchBar.setCallback(new SearchReplaceBar.SearchCallback() {
             @Override
             public String getText() {
@@ -128,14 +165,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             @Override
             public void scrollToPosition(int position) {
                 // Find line containing position and scroll to it
-                if (container == null || container.lines == null) return;
+                if (container == null || container.lines == null)
+                    return;
 
                 // Calculate offset to account for search bar height
                 int searchBarOffset = searchBar.getTotalHeight();
                 int effectiveHeight = GuiScriptTextArea.this.height - searchBarOffset;
                 int visibleLines = effectiveHeight / container.lineHeight;
                 // Calculate how many lines the search bar covers
-                int linesHiddenBySRB = searchBarOffset > 0 ? (int) Math.ceil((double) searchBarOffset / container.lineHeight) : 0;
+                int linesHiddenBySRB = searchBarOffset > 0 ? (int) Math.ceil(
+                        (double) searchBarOffset / container.lineHeight) : 0;
 
                 for (int i = 0; i < container.lines.size(); i++) {
                     LineData ld = container.lines.get(i);
@@ -198,12 +237,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         });
         // Initialize Go To Line dialog with callback
-        this.goToLineDialog = new GoToLineDialog(new GoToLineDialog.GoToLineCallback() {
+        goToLineDialog.setCallback(new GoToLineDialog.GoToLineCallback() {
             @Override
             public int getLineCount() {
                 return container != null ? container.linesCount : 0;
             }
-            
+
             @Override
             public int getColumnCount(int lineIndex) {
                 if (container == null || container.lines == null || lineIndex < 0 || lineIndex >= container.lines.size()) {
@@ -212,26 +251,28 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 LineData ld = container.lines.get(lineIndex);
                 return ld.end - ld.start;
             }
-            
+
             @Override
             public void goToLineColumn(int line, int column) {
-                if (container == null || container.lines == null) return;
-                
+                if (container == null || container.lines == null)
+                    return;
+
                 // Convert 1-indexed line to 0-indexed
                 int lineIdx = line - 1;
-                if (lineIdx < 0 || lineIdx >= container.lines.size()) return;
-                
+                if (lineIdx < 0 || lineIdx >= container.lines.size())
+                    return;
+
                 LineData ld = container.lines.get(lineIdx);
                 int lineLength = ld.end - ld.start;
-                
+
                 // Convert 1-indexed column to 0-indexed, clamp to line length
                 // lineLength - 1 because the line's end is the start of the next line
                 int col = Math.max(0, Math.min(column - 1, lineLength - 1));
                 int position = ld.start + col;
-                
+
                 // Set cursor position
                 selection.reset(position);
-                
+
                 // Scroll to make the line visible
                 int visible = GuiScriptTextArea.this.height / (container != null ? container.lineHeight : 12);
                 int effectiveVisible = Math.max(1, visible - bottomPaddingLines);
@@ -250,7 +291,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 active = true;
                 selection.markActivity();
             }
-            
+
             @Override
             public void onDialogClose() {
                 active = true;
@@ -364,43 +405,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return width - LINE_NUMBER_GUTTER_WIDTH - 8; // Account for gutter and scrollbar
             }
         });
-        
-        init(x, y, width, height, text);
     }
-
-    public void init(int x, int y, int width, int height, String text) {
-        this.x = xPosition = x;
-        this.y = yPosition = y;
-        this.width = width;
-        this.height = height;
-        this.undoing = true;
-        this.setText(text);
-        this.undoing = false;
-        initGui();
-        initializeKeyBindings();
-    }
-    public void initGui() {
-        int endX = x + width, endY = y + height;
-        int xOffset = hasVerticalScrollbar() ? -8 : -2;
-        KEYS_OVERLAY.elementSpacing = KEYS_OVERLAY.yStartSpacing = 0;
-        KEYS_OVERLAY.initGui(endX - (width / 2)-3, y + (height / 4) - 10, endX + xOffset - 2, endY - 28);
-
-        KEYS_OVERLAY.viewButton.scale = 0.45f;
-        KEYS_OVERLAY.viewButton.initGui(endX + xOffset, endY - 26);
-        
-        // Initialize search bar (preserves state across initGui calls)
-        searchBar.initGui(x, y, width);
-        if (searchBar.isVisible()) { // If open
-            // Shift viewport down again 
-            searchBar.callback.resizeEditor(true);
-            if (!active) // Focus search if opening another script tab & bar is open
-                searchBar.focus(false);
-        }
-        
-        // Initialize Go To Line dialog
-        goToLineDialog.initGui(x, y, width);
-    }
-    
     // ==================== RENDERING ====================
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
