@@ -27,6 +27,9 @@ public class ScriptEditorKeys extends KeyPresetManager {
     
     // Refactoring
     public final KeyPreset RENAME = add("Rename").setDefaultState(Keyboard.KEY_R, true, false, false);
+    
+    // View
+    public final KeyPreset FULLSCREEN = add("Toggle Fullscreen").setDefaultState(Keyboard.KEY_F11, false, false, false);
 
     public ScriptEditorKeys() {
         super("script_editor");

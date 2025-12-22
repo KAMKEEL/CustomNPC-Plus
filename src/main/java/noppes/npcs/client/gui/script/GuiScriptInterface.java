@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
@@ -17,6 +18,7 @@ import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextArea;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 import noppes.npcs.client.gui.util.GuiScriptTextArea;
+import noppes.npcs.client.gui.util.GuiUtil;
 import noppes.npcs.client.gui.util.ICustomScrollListener;
 import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
@@ -27,6 +29,7 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.item.ScriptCustomItem;
+import org.lwjgl.opengl.Display;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -45,6 +48,30 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected boolean loaded = false;
 
     private Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
+
+    // ==================== FULLSCREEN MODE ====================
+    /** Whether the editor viewport is currently in fullscreen mode */
+    private static boolean isFullscreen = false;
+
+    /**
+     * Fullscreen Layout Configuration
+     * Adjust these values to customize the fullscreen viewport appearance.
+     * All padding values are in scaled GUI pixels.
+     */
+    public static class FullscreenConfig {
+        /** Padding from the top edge of the screen */
+        public static int paddingTop = 8;
+        /** Padding from the bottom edge of the screen */
+        public static int paddingBottom = 8;
+        /** Padding from the left edge of the screen */
+        public static int paddingLeft = 12;
+        /** Padding from the right edge of the screen */
+        public static int paddingRight = 12;
+    }
+
+    /** Fullscreen toggle button drawn at top-right of viewport */
+    private final FullscreenButton fullscreenButton = new FullscreenButton();
+    
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
@@ -53,7 +80,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void initGui() {
-        //this.xSize = (int)((double)this.width * 0.88D);
+        // ==================== BASE LAYOUT CALCULATION ====================
         this.ySize = (int) ((double) this.xSize * 0.56D);
         if ((double) this.ySize > (double) this.height * 0.95D) {
             this.ySize = (int) ((double) this.height * 0.95D);
@@ -64,6 +91,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         super.initGui();
         this.guiTop += 10;
         int yoffset = (int) ((double) this.ySize * 0.02D);
+
+        // ==================== TAB BUTTONS ====================
         GuiMenuTopButton top;
         this.addTopButton(top = new GuiMenuTopButton(0, this.guiLeft + 4, this.guiTop - 17, "gui.settings"));
 
@@ -88,9 +117,46 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.activeTab = 0;
             top = this.getTopButton(0);
         }
-
         top.active = true;
+
+        // ==================== SCRIPT EDITOR TAB (activeTab > 0) ====================
         if (this.activeTab > 0) {
+            initScriptEditorTab(yoffset);
+        } else {
+            // ==================== SETTINGS TAB (activeTab == 0) ====================
+            initSettingsTab(yoffset);
+        }
+
+        this.xSize = 420;
+        this.ySize = 256;
+    }
+
+    /**
+     * Initialize the script editor tab layout.
+     * Handles both normal and fullscreen modes.
+     */
+    private void initScriptEditorTab(int yoffset) {
+        ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
+
+        // ==================== CALCULATE VIEWPORT BOUNDS ====================
+        int editorX, editorY, editorWidth, editorHeight;
+
+        if (isFullscreen) {
+            // Fullscreen: viewport fills screen with configured padding
+            editorX = FullscreenConfig.paddingLeft;
+            editorY = FullscreenConfig.paddingTop;
+            editorWidth = this.width - FullscreenConfig.paddingLeft - FullscreenConfig.paddingRight;
+            editorHeight = this.height - FullscreenConfig.paddingTop - FullscreenConfig.paddingBottom;
+        } else {
+            // Normal: viewport within the GUI panel, leaving space for right panel
+            editorX = guiLeft + 1 + yoffset;
+            editorY = guiTop + yoffset;
+            editorWidth = xSize - 108 - yoffset;
+            editorHeight = (int) (ySize * 0.96) - yoffset * 2;
+        }
+
+        // ==================== HOOKS SCROLL (hidden in fullscreen) ====================
+        if (!isFullscreen) {
             GuiCustomScroll hooks = new GuiCustomScroll(this, 1);
             hooks.allowUserInput = false;
             hooks.setSize(108, 198);
@@ -107,37 +173,45 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             GuiNpcLabel hookLabel = new GuiNpcLabel(0, "script.hooks", hooks.guiLeft, guiTop + 5);
             hookLabel.color = 0xaaaaaa;
             addLabel(hookLabel);
+        }
 
-            ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
+        // ==================== SCRIPT TEXT AREA ====================
+        int idx = this.activeTab - 1;
+        GuiScriptTextArea activeArea = getActiveScriptArea();
+        if (activeArea == null) {
+            activeArea = new GuiScriptTextArea(this, 2, editorX, editorY, editorWidth, editorHeight,
+                    container == null ? "" : container.script);
+            activeArea.setListener(this);
+            this.closeOnEsc(activeArea::closeOnEsc);
+            textAreas.put(idx, activeArea);
+        } else {
+            activeArea.init(editorX, editorY, editorWidth, editorHeight,
+                    container == null ? "" : container.script);
+        }
 
-            // Ensure textAreas list has at least the same size as scripts, but only
-            // create/initialize the area for the active tab to avoid creating all tabs at once.
-
-            int idx = this.activeTab - 1;
-            GuiScriptTextArea activeArea = getActiveScriptArea();
-            if (activeArea == null) {
-                // Create only the active tab's editor
-                activeArea = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset,
-                        xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2,
-                        container == null ? "" : container.script);
-                activeArea.setListener(this);
-                this.closeOnEsc(activeArea::closeOnEsc);
-                textAreas.put(idx, activeArea);
-            } else {
-                // Reinitialize existing active area (position/size/text may change)
-                activeArea.init(guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset,
-                        (int) (ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
+        // Setup fullscreen key binding
+        GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
+            if (e.isPress()) {
+                toggleFullscreen();
             }
+        });
 
-            activeArea.enableCodeHighlighting();
-            this.addTextField(activeArea);
+        activeArea.enableCodeHighlighting();
+        this.addTextField(activeArea);
 
+        // ==================== FULLSCREEN BUTTON ====================
+        int scrollbarOffset = activeArea.hasVerticalScrollbar() ? -8 : -2;
+        fullscreenButton.initGui(editorX + editorWidth, editorY, scrollbarOffset);
+
+        // ==================== RIGHT PANEL BUTTONS (hidden in fullscreen) ====================
+        if (!isFullscreen) {
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
             this.addButton(new GuiNpcButton(100, left1, this.guiTop + 21 + yoffset, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(105, left1 + 61, this.guiTop + 21 + yoffset, 60, 20, "gui.remove"));
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
+
             GuiCustomScroll scroll = (new GuiCustomScroll(this, 0)).setUnselectable();
             scroll.setSize(100, (int) ((double) this.ySize * 0.54D) - yoffset * 2);
             scroll.guiLeft = left1;
@@ -145,33 +219,64 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             if (container != null) {
                 scroll.setList(container.scripts);
             }
-
             this.addScroll(scroll);
-        } else {
-            GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset, this.xSize - 160 - yoffset, (int) ((float) this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
-            var8.canEdit = false;
-            var8.setFocused(true);
-            this.addTextField(var8);
-            int var9 = this.guiLeft + this.xSize - 150;
-            this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
-            this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));
-            this.addLabel(new GuiNpcLabel(1, "script.language", var9, this.guiTop + 15));
-            this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20, (String[]) this.languages.keySet().toArray(new String[this.languages.keySet().size()]), this.getScriptIndex()));
-            this.getButton(103).enabled = this.languages.size() > 0;
-            this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
-            this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20, new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
-            if (this.player.worldObj.isRemote) {
-                this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
-            }
+        }
+    }
 
-            this.addButton(new GuiNpcButton(109, var9, this.guiTop + 78, 80, 20, "gui.website"));
-            this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
-            this.addButton(new GuiNpcButton(110, var9, this.guiTop + 99, 80, 20, "script.apidoc"));
-            this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 99, 80, 20, "script.apisrc"));
+    /**
+     * Initialize the settings tab layout (console view).
+     */
+    private void initSettingsTab(int yoffset) {
+        GuiNpcTextArea var8 = new GuiNpcTextArea(2, this, this.guiLeft + 4 + yoffset, this.guiTop + 6 + yoffset,
+                this.xSize - 160 - yoffset, (int) ((float) this.ySize * 0.92F) - yoffset * 2, this.getConsoleText());
+        var8.canEdit = false;
+        var8.setFocused(true);
+        this.addTextField(var8);
+
+        int var9 = this.guiLeft + this.xSize - 150;
+        this.addButton(new GuiNpcButton(100, var9, this.guiTop + 125, 60, 20, "gui.copy"));
+        this.addButton(new GuiNpcButton(102, var9, this.guiTop + 146, 60, 20, "gui.clear"));
+        this.addLabel(new GuiNpcLabel(1, "script.language", var9, this.guiTop + 15));
+        this.addButton(new GuiNpcButton(103, var9 + 60, this.guiTop + 10, 80, 20,
+                (String[]) this.languages.keySet().toArray(new String[this.languages.keySet().size()]),
+                this.getScriptIndex()));
+        this.getButton(103).enabled = this.languages.size() > 0;
+        this.addLabel(new GuiNpcLabel(2, "gui.enabled", var9, this.guiTop + 36));
+        this.addButton(new GuiNpcButton(104, var9 + 60, this.guiTop + 31, 50, 20,
+                new String[]{"gui.no", "gui.yes"}, this.handler.getEnabled() ? 1 : 0));
+
+        if (this.player.worldObj.isRemote) {
+            this.addButton(new GuiNpcButton(106, var9, this.guiTop + 55, 150, 20, "script.openfolder"));
         }
 
-        this.xSize = 420;
-        this.ySize = 256;
+        this.addButton(new GuiNpcButton(109, var9, this.guiTop + 78, 80, 20, "gui.website"));
+        this.addButton(new GuiNpcButton(112, var9 + 81, this.guiTop + 78, 80, 20, "gui.forum"));
+        this.addButton(new GuiNpcButton(110, var9, this.guiTop + 99, 80, 20, "script.apidoc"));
+        this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 99, 80, 20, "script.apisrc"));
+    }
+
+    // ==================== RENDERING ====================
+
+    @Override
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+        super.drawScreen(mouseX, mouseY, partialTicks);
+
+        // Draw fullscreen button on top of everything when on script editor tab
+        if (this.activeTab > 0) {
+            fullscreenButton.draw(mouseX, mouseY);
+        }
+    }
+
+    // ==================== MOUSE HANDLING ====================
+
+    @Override
+    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+        // Check fullscreen button first when on script editor tab
+        if (this.activeTab > 0 && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+            return;
+        }
+
+        super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     public String previousHookClicked = "";
@@ -413,5 +518,119 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (container != null)
             container.script = text;
         initGui();
+    }
+
+    // ==================== FULLSCREEN METHODS ====================
+
+    /**
+     * Toggle fullscreen mode for the editor viewport.
+     * When entering fullscreen, maximizes the game window if it's not already.
+     */
+    public void toggleFullscreen() {
+        isFullscreen = !isFullscreen;
+
+        // When entering fullscreen, maximize the game window if not already fullscreen
+        if (isFullscreen && !Display.isFullscreen()) {
+            // Note: Display.setFullscreen(true) would make it truly fullscreen,
+            // but that's usually not desirable for an in-game editor.
+            // The viewport will expand to fill whatever window size exists.
+        }
+
+        initGui();
+    }
+
+    /**
+     * Check if editor is currently in fullscreen mode
+     */
+    public boolean isEditorFullscreen() {
+        return isFullscreen;
+    }
+
+    // ==================== FULLSCREEN BUTTON ====================
+
+    /**
+     * Button to toggle fullscreen mode, displayed at top-right corner of viewport.
+     * Shows expand icon when minimized, collapse icon when fullscreen.
+     */
+
+    private static final ResourceLocation TEXTURE = new ResourceLocation(
+            "customnpcs:textures/gui/keypreset_highres.png");
+    public  class FullscreenButton {
+        public int x, y;
+        public int size = 12;
+        public boolean hovered = false;
+
+        /** Initialize button position relative to viewport bounds */
+        public void initGui(int viewportEndX, int viewportY, int scrollbarOffset) {
+            // Position at top-right, accounting for scrollbar
+            this.x = viewportEndX + scrollbarOffset - size - 4;
+            this.y = viewportY + 4;
+        }
+
+        /** Draw the fullscreen toggle button */
+        public void draw(int mouseX, int mouseY) {
+            hovered = isMouseOver(mouseX, mouseY);
+
+            // Button background
+            int bgColor = hovered ? 0x80666666 : 0x60444444;
+            GuiUtil.drawRectD(x, y, x + size, y + size, bgColor);
+
+            // Draw corner brackets to indicate expand/collapse
+            int iconColor = hovered ? 0xFFFFFFFF : 0xFFAAAAAA;
+            int inset = 2;
+            int cornerLen = 3;
+
+            if (isFullscreen) {
+                // Draw collapse icon (corners pointing inward) ⌜⌝⌞⌟
+                // Top-left corner pointing inward
+                drawRect(x + inset, y + inset, x + inset + cornerLen, y + inset + 1, iconColor);
+                drawRect(x + inset, y + inset, x + inset + 1, y + inset + cornerLen, iconColor);
+                // Top-right corner pointing inward
+                drawRect(x + size - inset - cornerLen, y + inset, x + size - inset, y + inset + 1, iconColor);
+                drawRect(x + size - inset - 1, y + inset, x + size - inset, y + inset + cornerLen, iconColor);
+                // Bottom-left corner pointing inward
+                drawRect(x + inset, y + size - inset - 1, x + inset + cornerLen, y + size - inset, iconColor);
+                drawRect(x + inset, y + size - inset - cornerLen, x + inset + 1, y + size - inset, iconColor);
+                // Bottom-right corner pointing inward
+                drawRect(x + size - inset - cornerLen, y + size - inset - 1, x + size - inset, y + size - inset,
+                        iconColor);
+                drawRect(x + size - inset - 1, y + size - inset - cornerLen, x + size - inset, y + size - inset,
+                        iconColor);
+            } else {
+                // Draw expand icon (corners pointing outward) ⌐¬⌙⌞
+                // Top-left corner pointing outward
+                drawRect(x + inset, y + inset, x + inset + 1, y + inset + cornerLen, iconColor);
+                drawRect(x + inset, y + inset, x + inset + cornerLen, y + inset + 1, iconColor);
+                // Top-right corner pointing outward
+                drawRect(x + size - inset - 1, y + inset, x + size - inset, y + inset + cornerLen, iconColor);
+                drawRect(x + size - inset - cornerLen, y + inset, x + size - inset, y + inset + 1, iconColor);
+                // Bottom-left corner pointing outward
+                drawRect(x + inset, y + size - inset - cornerLen, x + inset + 1, y + size - inset, iconColor);
+                drawRect(x + inset, y + size - inset - 1, x + inset + cornerLen, y + size - inset, iconColor);
+                // Bottom-right corner pointing outward
+                drawRect(x + size - inset - 1, y + size - inset - cornerLen, x + size - inset, y + size - inset,
+                        iconColor);
+                drawRect(x + size - inset - cornerLen, y + size - inset - 1, x + size - inset, y + size - inset,
+                        iconColor);
+            }
+        }
+        
+        public void drawRect(int x1, int y1, int x2, int y2, int color) {
+            GuiUtil.drawRectD(x1, y1, x2, y2, color);
+        }
+
+        /** Check if mouse is over the button */
+        public boolean isMouseOver(int mouseX, int mouseY) {
+            return mouseX >= x && mouseX < x + size && mouseY >= y && mouseY < y + size;
+        }
+
+        /** Handle click - returns true if click was consumed */
+        public boolean mouseClicked(int mouseX, int mouseY, int button) {
+            if (button == 0 && isMouseOver(mouseX, mouseY)) {
+                toggleFullscreen();
+                return true;
+            }
+            return false;
+        }
     }
 }
