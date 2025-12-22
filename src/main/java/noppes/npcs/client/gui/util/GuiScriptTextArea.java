@@ -924,6 +924,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private void initializeKeyBindings() {
         // Helper: execute action only if text area is active and enabled
         Supplier<Boolean> isActive = () -> active && isEnabled() && !KEYS_OVERLAY.showOverlay;
+        Supplier<Boolean> openBoxes = () -> !KEYS_OVERLAY.showOverlay;
 
         // CUT: Copy selection to clipboard and delete it. If no selection, cut the current sentence.
         KEYS.CUT.setTask(e -> {
@@ -1006,7 +1007,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // UNDO: Restore last edit from undo list
         // Works in search bar.
         KEYS.UNDO.setTask(e -> {
-            if ((!e.isPress() && !e.isHold()) || !isActive.get() && !searchBar.isVisible())
+            if ((!e.isPress() && !e.isHold()) || !openBoxes.get())
                 return;
 
             if (searchBar.hasFocus()) {
@@ -1022,13 +1023,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 undoing = false;
                 scrollToCursor();
                 searchBar.updateMatches();
+                if (!active)
+                    active = true;
             }
         });
 
         // REDO: Restore last undone edit from redo list
         // Works in search bar.
         KEYS.REDO.setTask(e -> {
-            if ((!e.isPress() && !e.isHold()) || !isActive.get() && !searchBar.isVisible())
+            if ((!e.isPress() && !e.isHold()) || !openBoxes.get())
                 return;
 
             if (searchBar.hasFocus()) {
@@ -1044,6 +1047,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 undoing = false;
                 scrollToCursor();
                 searchBar.updateMatches();
+                if (!active)
+                    active = true;
             }
         });
 
@@ -1108,7 +1113,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
 
         // Check if can open just for SearchReplaceBar and GoToLine
-        Supplier<Boolean> openBoxes = () -> !KEYS_OVERLAY.showOverlay;
 
         // SEARCH: Open search bar (Ctrl+R)
         // Works in search bar.
