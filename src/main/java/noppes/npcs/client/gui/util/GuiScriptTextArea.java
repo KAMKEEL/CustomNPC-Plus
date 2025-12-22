@@ -365,7 +365,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         });
         
-        initializeKeyBindings();
         init(x, y, width, height, text);
     }
 
@@ -378,6 +377,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.setText(text);
         this.undoing = false;
         initGui();
+        initializeKeyBindings();
     }
     public void initGui() {
         int endX = x + width, endY = y + height;

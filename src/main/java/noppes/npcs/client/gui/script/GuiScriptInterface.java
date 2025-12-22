@@ -44,7 +44,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public List<String> hookList = new ArrayList<String>();
     protected boolean loaded = false;
 
-    private GuiScriptTextArea textArea;
+    private List<GuiScriptTextArea> textAreas = new ArrayList<>();
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
@@ -109,18 +109,28 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             addLabel(hookLabel);
 
             ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
-            if (textArea == null)
-                textArea = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset,
+
+            // Ensure textAreas list has at least the same size as scripts, but only
+            // create/initialize the area for the active tab to avoid creating all tabs at once.
+
+            int idx = this.activeTab - 1;
+            GuiScriptTextArea activeArea = getActiveScriptArea();
+            if (activeArea == null) {
+                // Create only the active tab's editor
+                activeArea = new GuiScriptTextArea(this, 2, guiLeft + 1 + yoffset, guiTop + yoffset,
                         xSize - 108 - yoffset, (int) (ySize * 0.96) - yoffset * 2,
                         container == null ? "" : container.script);
-            else
-                textArea.init(guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset,
+                activeArea.setListener(this);
+                this.closeOnEsc(activeArea::closeOnEsc);
+                textAreas.add(idx, activeArea);
+            } else {
+                // Reinitialize existing active area (position/size/text may change)
+                activeArea.init(guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset,
                         (int) (ySize * 0.96) - yoffset * 2, container == null ? "" : container.script);
+            }
 
-            textArea.enableCodeHighlighting();
-            textArea.setListener(this);
-            this.closeOnEsc(textArea::closeOnEsc);
-            this.addTextField(textArea);
+            activeArea.enableCodeHighlighting();
+            this.addTextField(activeArea);
 
             int left1 = this.guiLeft + this.xSize - 104;
             this.addButton(new GuiNpcButton(102, left1, this.guiTop + yoffset, 60, 20, "gui.clear"));
@@ -254,6 +264,25 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         this.displayGuiScreen(this);
+    }
+
+    private GuiScriptTextArea getActiveScriptArea() {
+        if (this.activeTab > 0) {
+            int idx = this.activeTab - 1;
+            if (idx >= 0 && idx < textAreas.size())
+                return textAreas.get(idx);
+        }
+        return null;
+    }
+
+    @Override
+    public GuiNpcTextField getTextField(int id) {
+        if (id == 2) {
+            GuiScriptTextArea area = getActiveScriptArea();
+            if (area != null)
+                return area;
+        }
+        return super.getTextField(id);
     }
 
     @Override
