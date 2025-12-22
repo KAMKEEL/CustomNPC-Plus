@@ -121,7 +121,7 @@ public class ScriptTextContainer extends JavaTextContainer {
     /**
      * Convert new interpreter TokenType to legacy JavaTextContainer.TokenType format.
      */
-    private JavaTextContainer.TokenType toLegacyTokenType(TokenType type) {
+    private JavaTextContainer.TokenType toLegacyTokenType(noppes.npcs.client.gui.util.script.interpreter.TokenType type) {
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.COMMENT) return JavaTextContainer.TokenType.COMMENT;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.STRING) return JavaTextContainer.TokenType.STRING;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.CLASS_KEYWORD) return JavaTextContainer.TokenType.CLASS_KEYWORD;
