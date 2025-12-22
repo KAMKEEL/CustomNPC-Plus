@@ -21,7 +21,7 @@ public class OverlayKeyPresetViewer {
     public int startX, startY, endX, endY, width, height;
     public int mouseX, mouseY;
     public boolean showOverlay;
-
+    public boolean aboveButton, aboveOverlay;
     public int elementSpacing = 5, yStartSpacing = 5;
     public float scale = 0.75f;
     public Scrollable scroll = new Scrollable();
@@ -61,8 +61,8 @@ public class OverlayKeyPresetViewer {
     public void draw(int mouseX, int mouseY, int wheel) {
         this.mouseX = mouseX;
         this.mouseY = mouseY;
-        boolean aboveButton = viewButton.isMouseAbove(mouseX, mouseY);
-        boolean aboveOverlay = isMouseAbove(mouseX, mouseY);
+        aboveButton = viewButton.isMouseAbove(mouseX, mouseY);
+        aboveOverlay = isMouseAbove(mouseX, mouseY);
         // If in hover mode, hovering the button opens the overlay.
         if (aboveButton && !openOnClick)
             showOverlay = true;
@@ -93,7 +93,7 @@ public class OverlayKeyPresetViewer {
             GuiUtil.drawGradientRect(endX, startY, endX + 1, endY, borderCol1, borderCol2);
         }
 
-        GuiUtil.drawGradientRect(startX + 1, startY + 1, endX - 1, endY - 1, bgCol1, bgCol2);
+        GuiUtil.drawGradientRect(startX, startY, endX, endY, bgCol1, bgCol2);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
         GuiUtil.setScissorClip(startX, startY, scroll.maxScroll > 0 ? width - scroll.barWidth : width, height);
         GL11.glPushMatrix();
@@ -122,11 +122,6 @@ public class OverlayKeyPresetViewer {
         if (!showOverlay)
             return false;
 
-        if (i == Keyboard.KEY_ESCAPE) {
-            showOverlay = false;
-            return true;
-        }
-
         for (PresetElement element : list) {
             if (element.isEditing) {
                 element.keyTyped(i);
@@ -134,6 +129,11 @@ public class OverlayKeyPresetViewer {
             }
         }
 
+        if (i == Keyboard.KEY_ESCAPE) {
+            showOverlay = false;
+            return true;
+        }
+        
         // If overlay is visible but no element consumed the key, consider it handled
         return true;
     }
@@ -426,7 +426,7 @@ public class OverlayKeyPresetViewer {
             mouseY -= startY + 5 - scroll.scrollY;
 
             float boxScaleX = 1.75f;
-            float screenY = boxScreenY + 10;
+            float screenY = boxScreenY + 5;
 
             return mouseX >= boxScreenX && mouseX < boxScreenX + 32 * boxScaleX && mouseY >= screenY && mouseY < screenY + 10;
         }
@@ -482,7 +482,7 @@ public class OverlayKeyPresetViewer {
             GL11.glDisable(GL11.GL_BLEND);
             
             GL11.glPushMatrix();
-            float color = 0.75f;
+            float color = aboveButton ? 1f : 0.4f;
             GL11.glColor4f(color, color, color, 1);
             GL11.glScalef(scale, scale, 1);
             GuiUtil.drawTexturedModalRect(screenX, screenY, textureWidth, textureHeight, 0, 0);
