@@ -12,17 +12,7 @@ import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiNPCEventScripts;
-import noppes.npcs.client.gui.util.GuiCustomScroll;
-import noppes.npcs.client.gui.util.GuiMenuTopButton;
-import noppes.npcs.client.gui.util.GuiNPCInterface;
-import noppes.npcs.client.gui.util.GuiNpcButton;
-import noppes.npcs.client.gui.util.GuiNpcLabel;
-import noppes.npcs.client.gui.util.GuiNpcTextArea;
-import noppes.npcs.client.gui.util.GuiScriptTextArea;
-import noppes.npcs.client.gui.util.ICustomScrollListener;
-import noppes.npcs.client.gui.util.IGuiData;
-import noppes.npcs.client.gui.util.IJTextAreaListener;
-import noppes.npcs.client.gui.util.ITextChangeListener;
+import noppes.npcs.client.gui.util.*;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
@@ -44,7 +34,7 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
     private static int activeConsole = 0;
     boolean loaded = false;
 
-    private GuiScriptTextArea textArea;
+    private Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     
     public GuiScript(EntityNPCInterface npc) {
         super(npc);
@@ -98,15 +88,17 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
 
             ScriptContainer container = script.getNPCScript(activeTab);
 
-            if (textArea == null)
-                textArea = new GuiScriptTextArea(this, 2, guiLeft + 74, guiTop + 4, 239, 208,
+            int idx = this.activeTab;
+            GuiScriptTextArea activeArea = getActiveScriptArea();
+            if (activeArea == null) {
+                activeArea = new GuiScriptTextArea(this, 2, guiLeft + 74, guiTop + 4, 239, 208,
                         container == null ? "" : container.script);
-            else
-                textArea.init(guiLeft + 74, guiTop + 4, 239, 208, container == null ? "" : container.script);
-            textArea.enableCodeHighlighting();
-            textArea.setListener(this);
-            this.closeOnEsc(textArea::closeOnEsc);
-            this.addTextField(textArea);
+                activeArea.setListener(this);
+                this.closeOnEsc(activeArea::closeOnEsc);
+                textAreas.put(idx, activeArea);
+            } else {
+                activeArea.init(guiLeft + 74, guiTop + 4, 239, 208, container == null ? "" : container.script);
+            }
 
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
             addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
@@ -144,6 +136,25 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
             if (MinecraftServer.getServer() != null)
                 addButton(new GuiNpcButton(106, guiLeft + 232, guiTop + 71, 150, 20, "script.openfolder"));
         }
+    }
+
+    private GuiScriptTextArea getActiveScriptArea() {
+        if (this.activeTab > 0) {
+            int idx = this.activeTab;
+            if (idx >= 0 && idx < textAreas.size())
+                return textAreas.get(idx);
+        }
+        return null;
+    }
+
+    @Override
+    public GuiNpcTextField getTextField(int id) {
+        if (id == 2) {
+            GuiScriptTextArea area = getActiveScriptArea();
+            if (area != null)
+                return area;
+        }
+        return super.getTextField(id);
     }
 
     private int getScriptIndex() {
