@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatAllowedCharacters;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
@@ -113,6 +114,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         setCallbacks();
         initGui();
         initializeKeyBindings();
+        Minecraft mc = Minecraft.getMinecraft();
+        mc.thePlayer.worldObj.setRainStrength(0);
     }
     public void initGui() {
         int endX = x + width, endY = y + height;
@@ -820,28 +823,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Draw go to line dialog (overlays everything)
         goToLineDialog.draw(xMouse, yMouse);
-
-        // Draw rename status indicator
-        if (renameHandler.isActive()) {
-            String status = renameHandler.getScopeDescription();
-            String hint = "Enter \u2713 | Esc \u2715"; // Enter to confirm, Esc to cancel
-            int statusWidth = Math.max(ClientProxy.Font.width(status), ClientProxy.Font.width(hint)) + 8;
-            int statusX = x + width - statusWidth - 8;
-            int statusY = y + height - 30;
-            // Semi-transparent background
-            drawRect(statusX - 2, statusY - 2, statusX + statusWidth + 2, statusY + 24, 0xDD1a1a2e);
-            // Border (purple/blue for rename mode)
-            int borderColor = 0xFF6677dd;
-            drawRect(statusX - 2, statusY - 2, statusX + statusWidth + 2, statusY - 1, borderColor);
-            drawRect(statusX - 2, statusY + 23, statusX + statusWidth + 2, statusY + 24, borderColor);
-            drawRect(statusX - 2, statusY - 2, statusX - 1, statusY + 24, borderColor);
-            drawRect(statusX + statusWidth + 1, statusY - 2, statusX + statusWidth + 2, statusY + 24, borderColor);
-            // Status text (top line)
-            ClientProxy.Font.drawString(status, statusX + 4, statusY + 2, 0xFFccddff);
-            // Hint text (bottom line - dimmer)
-            ClientProxy.Font.drawString(hint, statusX + 4, statusY + 13, 0xAA88aacc);
-        }
-        
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
     }
 
