@@ -44,7 +44,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public List<String> hookList = new ArrayList<String>();
     protected boolean loaded = false;
 
-    private List<GuiScriptTextArea> textAreas = new ArrayList<>();
+    private Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
         this.closeOnEsc = true;
@@ -122,7 +122,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                         container == null ? "" : container.script);
                 activeArea.setListener(this);
                 this.closeOnEsc(activeArea::closeOnEsc);
-                textAreas.add(idx, activeArea);
+                textAreas.put(idx, activeArea);
             } else {
                 // Reinitialize existing active area (position/size/text may change)
                 activeArea.init(guiLeft + 1 + yoffset, guiTop + yoffset, xSize - 108 - yoffset,
