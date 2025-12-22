@@ -1447,13 +1447,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // intuitive on blank/indented lines outside any recognized scope.
             LineData currCheck = selection.findCurrentLine(container.lines);
             if (currCheck != null && currCheck.text.trim().length() == 0) {
-                int removeEnd = text.indexOf('\n', currCheck.start-1);
+                int removeEnd = text.indexOf('\n', currCheck.start);
                 if (removeEnd == -1) {
                     removeEnd = text.length();
                 } else {
                     removeEnd = removeEnd + 1; // include the newline
                 }
-                String before = text.substring(0, currCheck.start-1);
+                String before = text.substring(0, Math.max(0, currCheck.start));
                 String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
                 setText(before + after);
                 int newCursor = Math.max(0, currCheck.start - 1);
@@ -1493,7 +1493,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     } else {
                         // Merge current line content with the previous line preserving spacing
                         int contentStart = curr.start + actualIndent;
-                        String before = text.substring(0, newlinePos);
+                        String before = newlinePos >= 0 ? text.substring(0, newlinePos) : "";
                         String content = contentStart <= text.length() ? text.substring(contentStart) : "";
 
                         // Decide whether a space is needed between concatenated fragments.
