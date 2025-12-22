@@ -1085,9 +1085,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Duplicate current line
                 for (LineData line : container.lines) {
                     if (selection.getCursorPosition() >= line.start && selection.getCursorPosition() <= line.end) {
-                        String lineText = text.substring(line.start, line.end);
+                        int safeStart = Math.max(0, Math.min(line.start, text.length()));
+                        int safeEnd = Math.max(safeStart, Math.min(line.end, text.length()));
+                        String lineText = text.substring(safeStart, safeEnd);
                         String insertText = lineText.endsWith("\n") ? lineText : "\n" + lineText;
-                        int insertionPoint = line.end;
+                        int insertionPoint = Math.min(line.end, text.length());
                         setText(text.substring(0, insertionPoint) + insertText + text.substring(insertionPoint));
                         int newCursor = insertionPoint + insertText.length() - (insertText.endsWith("\n") ? 1 : 0);
                         selection.reset(Math.max(0, Math.min(newCursor, this.text.length())));
