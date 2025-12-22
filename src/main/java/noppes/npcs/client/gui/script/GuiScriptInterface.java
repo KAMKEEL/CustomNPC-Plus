@@ -587,21 +587,24 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             int cornerLen = 3;
 
             if (isFullscreen) {
-                // Draw collapse icon (corners pointing inward) ⌜⌝⌞⌟
-                // Top-left corner pointing inward
-                drawRect(x + inset, y + inset, x + inset + cornerLen, y + inset + 1, iconColor);
-                drawRect(x + inset, y + inset, x + inset + 1, y + inset + cornerLen, iconColor);
-                // Top-right corner pointing inward
-                drawRect(x + size - inset - cornerLen, y + inset, x + size - inset, y + inset + 1, iconColor);
-                drawRect(x + size - inset - 1, y + inset, x + size - inset, y + inset + cornerLen, iconColor);
-                // Bottom-left corner pointing inward
-                drawRect(x + inset, y + size - inset - 1, x + inset + cornerLen, y + size - inset, iconColor);
-                drawRect(x + inset, y + size - inset - cornerLen, x + inset + 1, y + size - inset, iconColor);
-                // Bottom-right corner pointing inward
-                drawRect(x + size - inset - cornerLen, y + size - inset - 1, x + size - inset, y + size - inset,
-                        iconColor);
-                drawRect(x + size - inset - 1, y + size - inset - cornerLen, x + size - inset, y + size - inset,
-                        iconColor);
+                // Draw collapse icon (corners pointing inward) — inward L-shapes
+                int top = y + inset + 2;
+                int left = x + inset + 2;
+                int right = x + size - inset - 3;
+                int bottom = y + size - inset - 3;
+
+                drawRect(left, top - cornerLen + 1, left + 1, top + 1, iconColor);
+                drawRect(left - cornerLen + 1, top, left + 1, top + 1, iconColor);
+
+                drawRect(right, top, right + cornerLen, top + 1, iconColor);
+                drawRect(right, top - cornerLen + 1, right + 1, top + 1, iconColor);
+
+                drawRect(left - cornerLen + 1, bottom, left + 1, bottom + 1, iconColor);
+                drawRect(left, bottom, left + 1, bottom + cornerLen, iconColor);
+
+                drawRect(right, bottom, right + cornerLen, bottom + 1, iconColor);
+                drawRect(right, bottom, right + 1, bottom + cornerLen, iconColor);
+                  
             } else {
                 // Draw expand icon (corners pointing outward) ⌐¬⌙⌞
                 // Top-left corner pointing outward
