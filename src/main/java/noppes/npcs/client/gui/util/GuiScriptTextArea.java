@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
+import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
@@ -1449,13 +1450,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // intuitive on blank/indented lines outside any recognized scope.
             LineData currCheck = selection.findCurrentLine(container.lines);
             if (currCheck != null && currCheck.text.trim().length() == 0) {
-                int removeEnd = text.indexOf('\n', currCheck.start);
+                int removeEnd = text.indexOf('\n', currCheck.start - 1);
                 if (removeEnd == -1) {
                     removeEnd = text.length();
                 } else {
                     removeEnd = removeEnd + 1; // include the newline
                 }
-                String before = text.substring(0, Math.max(0, currCheck.start));
+                String before = text.substring(0, ValueUtil.clamp(currCheck.start - 1, 0, text.length()));
                 String after = removeEnd <= text.length() ? text.substring(removeEnd) : "";
                 setText(before + after);
                 int newCursor = Math.max(0, currCheck.start - 1);
