@@ -20,19 +20,19 @@ import java.util.jar.JarFile;
  * are O(1) HashSet lookups.
  */
 public class PackageFinder {
-    private static  PackageFinder INSTANCE = null;
+    private static volatile PackageFinder INSTANCE = null;
     private final Set<String> packages = new HashSet<>();
-
-    public static PackageFinder Instance() throws IOException {
-        if (INSTANCE == null) 
-            INSTANCE = new PackageFinder(Thread.currentThread().getContextClassLoader());
-        
-        return INSTANCE;
-    }
+    private final ClassLoader classLoader;
 
     private PackageFinder(ClassLoader cl) throws IOException {
-        if (cl == null)
-            cl = Thread.currentThread().getContextClassLoader();
+        this.classLoader = cl == null ? Thread.currentThread().getContextClassLoader() : cl;
+        buildIndex();
+    }
+
+    private void buildIndex() throws IOException {
+        packages.clear();
+
+        ClassLoader cl = this.classLoader;
 
         // Try URLClassLoader first (common on most JVM versions used here)
         if (cl instanceof URLClassLoader) {
@@ -147,15 +147,54 @@ public class PackageFinder {
         return packages.contains(pkg);
     }
 
-    // Convenience factory using the context classloader
+    public static boolean find(String pkg) {
+        PackageFinder pf = getInstance();
+        if (pf != null)
+            return pf.contains(pkg);
+        return false;
+    }
+
+    /**
+     * Initialize the global singleton with the provided ClassLoader (or context CL if null).
+     * This is idempotent; calling again will re-create the index.
+     */
+    public static synchronized void init(ClassLoader cl) throws IOException {
+        if (INSTANCE == null) {
+            INSTANCE = new PackageFinder(cl);
+        } else {
+            // rebuild index with new classloader if provided
+            if (cl != null) {
+                INSTANCE = new PackageFinder(cl);
+            } else {
+                INSTANCE.buildIndex();
+            }
+        }
+    }
+
+    /**
+     * Get the initialized singleton. Call {@link #init(ClassLoader)} first.
+     */
+    public static PackageFinder getInstance() {
+        if (INSTANCE == null) {
+            try {
+                INSTANCE = fromContext();
+            } catch (IOException e) {
+            }
+        }
+        return INSTANCE;
+    }
+
+    /**
+     * Convenience factory using the context classloader and building a standalone finder (not touching singleton).
+     */
     public static PackageFinder fromContext() throws IOException {
         return new PackageFinder(Thread.currentThread().getContextClassLoader());
     }
 
-    // Demo main that checks the given package (or 'kamkeel.npcdbc' by default)
-    public static void main(String[] args) throws Exception {
-        PackageFinder pf = PackageFinder.fromContext();
-        String pkg = (args != null && args.length > 0) ? args[0] : "kamkeel.npcdbc";
-        System.out.println(pkg + " exists? " + pf.contains(pkg));
+    /**
+     * Reload the index using the configured ClassLoader.
+     */
+    public synchronized void reload() throws IOException {
+        buildIndex();
     }
 }

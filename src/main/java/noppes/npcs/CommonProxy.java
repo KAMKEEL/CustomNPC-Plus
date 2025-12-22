@@ -200,4 +200,7 @@ public class CommonProxy implements IGuiHandler {
     public boolean isGUIOpen() {
         return false;
     }
+
+    public void buildPackageIndex() {
+    }
 }
