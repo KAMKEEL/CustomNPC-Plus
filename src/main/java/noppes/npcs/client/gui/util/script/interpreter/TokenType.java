@@ -29,7 +29,7 @@ public enum TokenType {
     METHOD_CALL(0x55FF55, 50),         // method calls (bright green)
     
     // Variables and fields
-    UNDEFINED_VAR(0xAA0000, 105),      // unresolved variables (dark red) - high priority
+    UNDEFINED_VAR(0xAA0000, 20),      // unresolved variables (dark red) - high priority
     PARAMETER(0x5555FF, 36),           // method parameters (blue)
     GLOBAL_FIELD(0x55FFFF, 35),        // class-level fields (aqua)
     LOCAL_FIELD(0xFFFF55, 25),         // local variables (yellow)

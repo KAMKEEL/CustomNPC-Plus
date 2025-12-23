@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 
 import java.util.*;
@@ -477,7 +478,6 @@ public class ScriptDocument {
 
         // Methods
         markMethodDeclarations(marks);
-        markMethodCalls(marks);
 
         // Numbers
         addPatternMarks(marks, NUMBER_PATTERN, TokenType.NUMBER);
@@ -485,6 +485,11 @@ public class ScriptDocument {
         // Variables and fields
         markVariables(marks);
 
+        // Chained field accesses (e.g., mc.player.world, this.field)
+        markChainedFieldAccesses(marks);
+
+        markMethodCalls(marks);
+        
         // Imported class usages
         markImportedClassUsages(marks);
 
@@ -594,9 +599,8 @@ public class ScriptDocument {
                         marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), tokenType, imp));
                     }
                 } else {
-                    // Try to figure out which part is invalid
-                    // Mark valid package portion in blue, invalid portion in red
-                    String fullPath = imp.getFullPath();
+                    // Try to figure out which parts are valid vs invalid
+                    // First, try to find valid package segments
                     int lastValidPkg = -1;
                     StringBuilder pkgBuilder = new StringBuilder();
                     
@@ -609,18 +613,67 @@ public class ScriptDocument {
                             lastValidPkg = i;
                         }
                     }
+
+                    // Now try to resolve outer classes that might exist after the package
+                    // For import like kamkeel.api.IOverlay.idk where IOverlay exists but idk doesn't
+                    int lastValidClass = -1;
+                    TypeInfo lastValidType = null;
+                    StringBuilder classPath = new StringBuilder();
                     
                     if (lastValidPkg >= 0) {
-                        // Mark valid package in blue
+                        classPath.append(pkgBuilder.substring(0,
+                                pkgBuilder.toString().indexOf(tokens.get(lastValidPkg)) + tokens.get(lastValidPkg)
+                                                                                                .length()));
+                    }
+
+                    for (int i = lastValidPkg + 1; i < tokens.size(); i++) {
+                        if (classPath.length() > 0)
+                            classPath.append(i == lastValidPkg + 1 ? "." : "$");
+                        classPath.append(tokens.get(i));
+
+                        TypeInfo segmentType = typeResolver.resolveFullName(classPath.toString());
+                        if (segmentType != null && segmentType.isResolved()) {
+                            lastValidClass = i;
+                            lastValidType = segmentType;
+                        } else {
+                            break; // Stop at first unresolved segment
+                        }
+                    }
+
+                    // Mark valid package portion in blue
+                    for (int i = 0; i <= lastValidPkg; i++) {
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.TYPE_DECL, imp));
+                    }
+
+                    // Mark valid class segments with their type colors
+                    StringBuilder resolvedPath = new StringBuilder();
+                    if (lastValidPkg >= 0) {
                         for (int i = 0; i <= lastValidPkg; i++) {
-                            marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.TYPE_DECL, imp));
+                            if (i > 0)
+                                resolvedPath.append(".");
+                            resolvedPath.append(tokens.get(i));
                         }
-                        // Mark rest as undefined
-                        for (int i = lastValidPkg + 1; i < tokens.size(); i++) {
-                            marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.UNDEFINED_VAR, imp));
-                        }
-                    } else {
-                        // Everything is unresolved
+                    }
+
+                    for (int i = lastValidPkg + 1; i <= lastValidClass; i++) {
+                        if (resolvedPath.length() > 0)
+                            resolvedPath.append(i == lastValidPkg + 1 ? "." : "$");
+                        resolvedPath.append(tokens.get(i));
+
+                        TypeInfo segmentType = typeResolver.resolveFullName(resolvedPath.toString());
+                        TokenType tokenType = (segmentType != null) ? segmentType.getTokenType() : TokenType.IMPORTED_CLASS;
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), tokenType, imp));
+                    }
+
+                    // Mark remaining unresolved segments as undefined (red)
+                    int firstUnresolved = Math.max(lastValidPkg + 1, lastValidClass + 1);
+                    for (int i = firstUnresolved; i < tokens.size(); i++) {
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.UNDEFINED_VAR,
+                                imp));
+                    }
+
+                    // If nothing was valid at all, mark everything as undefined
+                    if (lastValidPkg < 0 && lastValidClass < 0) {
                         marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR, imp));
                     }
                 }
@@ -652,20 +705,151 @@ public class ScriptDocument {
     }
 
     private void markTypeDeclarations(List<ScriptLine.Mark> marks) {
-        // Pattern for type followed by variable name
-        Pattern typeDecl = Pattern.compile(
+        // Pattern for type optionally followed by generics - we'll manually parse generics
+        Pattern typeStart = Pattern.compile(
                 "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" +
-                        "([A-Z][a-zA-Z0-9_]*)\\s*(?:<[^>]+>)?\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
+                        "([A-Z][a-zA-Z0-9_]*)\\s*");
 
-        Matcher m = typeDecl.matcher(text);
-        while (m.find()) {
-            if (isExcluded(m.start()))
+        Matcher m = typeStart.matcher(text);
+        int searchFrom = 0;
+
+        while (m.find(searchFrom)) {
+            int typeNameStart = m.start(1);
+            int typeNameEnd = m.end(1);
+
+            if (isExcluded(typeNameStart)) {
+                searchFrom = m.end();
                 continue;
+            }
 
             String typeName = m.group(1);
-            TypeInfo info = resolveType(typeName);
-            TokenType tokenType = (info != null && info.isResolved()) ? info.getTokenType() : TokenType.UNDEFINED_VAR;
-            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), tokenType));
+            int posAfterType = m.end(1);
+
+            // Skip whitespace after type name
+            while (posAfterType < text.length() && Character.isWhitespace(text.charAt(posAfterType))) {
+                posAfterType++;
+            }
+
+            // Check for generic parameters
+            String genericContent = null;
+            int genericStart = -1;
+            int genericEnd = -1;
+
+            if (posAfterType < text.length() && text.charAt(posAfterType) == '<') {
+                genericStart = posAfterType;
+                int depth = 1;
+                int i = posAfterType + 1;
+                while (i < text.length() && depth > 0) {
+                    char c = text.charAt(i);
+                    if (c == '<')
+                        depth++;
+                    else if (c == '>')
+                        depth--;
+                    i++;
+                }
+                if (depth == 0) {
+                    genericEnd = i;
+                    genericContent = text.substring(genericStart + 1, genericEnd - 1);
+                    posAfterType = genericEnd;
+                }
+            }
+
+            // Skip whitespace after generics
+            while (posAfterType < text.length() && Character.isWhitespace(text.charAt(posAfterType))) {
+                posAfterType++;
+            }
+
+            // Check if this looks like a type declaration:
+            boolean hasGeneric = genericContent != null && !genericContent.isEmpty();
+            boolean followedByVarName = false;
+            boolean atEndOfLine = posAfterType >= text.length() || text.charAt(posAfterType) == '\n';
+
+            if (!atEndOfLine && posAfterType < text.length()) {
+                char nextChar = text.charAt(posAfterType);
+                followedByVarName = Character.isLetter(nextChar) || nextChar == '_';
+            }
+
+            // Accept as type if: has generics OR followed by variable name
+            if (hasGeneric || followedByVarName) {
+                // Resolve the main type
+                TypeInfo info = resolveType(typeName);
+                TokenType tokenType = (info != null && info.isResolved()) ? info.getTokenType() : TokenType.UNDEFINED_VAR;
+                marks.add(new ScriptLine.Mark(typeNameStart, typeNameEnd, tokenType, info));
+
+                // Handle generic content recursively
+                if (hasGeneric && genericStart >= 0) {
+                    int contentStart = genericStart + 1;
+                    markGenericTypesRecursive(genericContent, contentStart, marks);
+                }
+            }
+
+            searchFrom = m.end();
+        }
+    }
+
+    /**
+     * Recursively parse and mark generic type parameters.
+     * Handles arbitrarily nested generics like Map<String, List<Map<String, String>>>.
+     */
+    private void markGenericTypesRecursive(String content, int baseOffset, List<ScriptLine.Mark> marks) {
+        if (content == null || content.isEmpty())
+            return;
+
+        int i = 0;
+        while (i < content.length()) {
+            char c = content.charAt(i);
+
+            // Skip whitespace and punctuation
+            if (!Character.isJavaIdentifierStart(c)) {
+                i++;
+                continue;
+            }
+
+            // Found start of identifier
+            int start = i;
+            while (i < content.length() && Character.isJavaIdentifierPart(content.charAt(i))) {
+                i++;
+            }
+            String typeName = content.substring(start, i);
+
+            // Only process if it looks like a type name (starts with uppercase)
+            if (Character.isUpperCase(typeName.charAt(0))) {
+                int absStart = baseOffset + start;
+                int absEnd = baseOffset + i;
+
+                if (!isExcluded(absStart)) {
+                    TypeInfo info = resolveType(typeName);
+                    TokenType tokenType = (info != null && info.isResolved()) ? info.getTokenType() : TokenType.UNDEFINED_VAR;
+                    marks.add(new ScriptLine.Mark(absStart, absEnd, tokenType, info));
+                }
+            }
+
+            // Skip whitespace
+            while (i < content.length() && Character.isWhitespace(content.charAt(i))) {
+                i++;
+            }
+
+            // Check for nested generic
+            if (i < content.length() && content.charAt(i) == '<') {
+                int nestedStart = i + 1;
+                int depth = 1;
+                i++;
+
+                // Find matching >
+                while (i < content.length() && depth > 0) {
+                    if (content.charAt(i) == '<')
+                        depth++;
+                    else if (content.charAt(i) == '>')
+                        depth--;
+                    i++;
+                }
+
+                // Recursively parse nested content
+                if (nestedStart < i - 1) {
+                    String nestedContent = content.substring(nestedStart, i - 1);
+                    markGenericTypesRecursive(nestedContent, baseOffset + nestedStart, marks);
+                }
+            }
         }
     }
 
@@ -734,6 +918,8 @@ public class ScriptDocument {
                 } else {
                     // Lower-case receiver - this is a method call on an instance
                     // Try to resolve the receiver's type
+
+                    //TODO IMPROVE HERE: currently only resolves global fields, not chained fields or 'this'
                     FieldInfo receiverField = resolveVariable(receiverName, start);
                     if (receiverField != null && receiverField.getTypeInfo() != null) {
                         TypeInfo recvType = receiverField.getTypeInfo();
@@ -744,6 +930,7 @@ public class ScriptDocument {
                             marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
                         }
                     } else {
+                        // TODO weatherEffects.gest() is marked valid here, despite List having no gest() method
                         // Can't resolve receiver - mark method call anyway (could be valid at runtime)
                         marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
                     }
@@ -845,6 +1032,138 @@ public class ScriptDocument {
 
                 // Unknown variable outside method - mark as undefined
                 marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
+            }
+        }
+    }
+
+    /**
+     * Mark chained field accesses like: mc.player.world, array.length, this.field, etc.
+     * This handles dot-separated access chains and colors each segment appropriately.
+     */
+    private void markChainedFieldAccesses(List<ScriptLine.Mark> marks) {
+        // Pattern to find identifier chains: identifier.identifier, this.identifier, etc.
+        // Start with an identifier or 'this' followed by at least one dot and another identifier
+        Pattern chainPattern = Pattern.compile("\\b(this|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+        Matcher m = chainPattern.matcher(text);
+
+        while (m.find()) {
+            int chainStart = m.start(1);
+
+            if (isExcluded(chainStart))
+                continue;
+
+            // Skip import/package statements
+            if (isInImportOrPackage(chainStart))
+                continue;
+
+            // Build the full chain by continuing to match subsequent .identifier patterns
+            List<String> chainSegments = new ArrayList<>();
+            List<int[]> segmentPositions = new ArrayList<>(); // [start, end] for each segment
+
+            String firstSegment = m.group(1);
+            chainSegments.add(firstSegment);
+            segmentPositions.add(new int[]{m.start(1), m.end(1)});
+
+            String secondSegment = m.group(2);
+            chainSegments.add(secondSegment);
+            segmentPositions.add(new int[]{m.start(2), m.end(2)});
+
+            // Continue reading more segments
+            int pos = m.end(2);
+            while (pos < text.length()) {
+                // Skip whitespace
+                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
+                    pos++;
+
+                if (pos >= text.length() || text.charAt(pos) != '.')
+                    break;
+                pos++; // Skip the dot
+
+                // Skip whitespace after dot
+                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
+                    pos++;
+
+                if (pos >= text.length() || !Character.isJavaIdentifierStart(text.charAt(pos)))
+                    break;
+
+                // Read next identifier
+                int identStart = pos;
+                while (pos < text.length() && Character.isJavaIdentifierPart(text.charAt(pos)))
+                    pos++;
+                int identEnd = pos;
+
+                // Check if this is followed by parentheses (method call - stop)
+                int checkPos = pos;
+                while (checkPos < text.length() && Character.isWhitespace(text.charAt(checkPos)))
+                    checkPos++;
+                if (checkPos < text.length() && text.charAt(checkPos) == '(') {
+                    break; // This is a method call, not a field
+                }
+
+                chainSegments.add(text.substring(identStart, identEnd));
+                segmentPositions.add(new int[]{identStart, identEnd});
+            }
+
+            // Now resolve the chain type by type
+            // Start with resolving the first segment
+            TypeInfo currentType = null;
+            boolean firstIsThis = firstSegment.equals("this");
+
+            if (firstIsThis) {
+                // For 'this', we don't have a class context to resolve, but we can mark subsequent fields
+                // as global fields if they exist in globalFields
+                currentType = null; // We'll use globalFields for the next segment
+            } else if (Character.isUpperCase(firstSegment.charAt(0))) {
+                // Static field access like SomeClass.field
+                currentType = resolveType(firstSegment);
+            } else {
+                // Variable field access
+                FieldInfo varInfo = resolveVariable(firstSegment, chainStart);
+                if (varInfo != null) {
+                    currentType = varInfo.getTypeInfo();
+                }
+            }
+
+            // Mark the segments - skip first segment (already marked by markVariables or markImportedClassUsages)
+            for (int i = 1; i < chainSegments.size(); i++) {
+                String segment = chainSegments.get(i);
+                int[] segPos = segmentPositions.get(i);
+
+                if (isExcluded(segPos[0]))
+                    continue;
+
+                if (i == 1 && firstIsThis) {
+                    // For "this.fiel/d", check if field exists in globalFields
+                    if (globalFields.containsKey(segment)) {
+                        FieldInfo fieldInfo = globalFields.get(segment);
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
+                        currentType = fieldInfo.getTypeInfo();
+                    } else {
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
+                        currentType = null;
+                    }
+                } else if (currentType != null && currentType.isResolved()) {
+                    // Check if this type has this field
+                    //TODO: THIS MAY NEED TO HANDLE STATIC VS INSTANCE FIELDS WITH DIFFERENT RENDERING
+                    if (currentType.hasField(segment)) {
+                        FieldInfo fieldInfo = currentType.getFieldInfo(segment);
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
+                        // Update currentType for next segment
+                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+
+                        /*TODO THIS ELSE OVERRIDES FOR CHAINED METHOD CALLS LIKE "Minecraft.getMinecraft()"
+                        Do we resolve this by increasing METHOD_CALL PRIORITY or how exactly?
+                        Think of the best fitting solution that doesnt regress other parts of the whole framework.   
+                        */
+                    } else {
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
+                        currentType = null; // Can't continue resolving
+                    }
+                } else {
+                    // Can't resolve - mark as undefined
+                    marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
+                    currentType = null;
+                }
             }
         }
     }
