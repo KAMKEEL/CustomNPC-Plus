@@ -40,9 +40,9 @@ public class ScriptDocument {
     private static final Pattern KEYWORD_PATTERN = Pattern.compile(
             "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
 
-    // Declarations
+    // Declarations - Updated to capture method parameters
     private static final Pattern IMPORT_PATTERN = Pattern.compile(
-            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*)?\\s*(?:;|$)");
+            "(?m)\\bimport\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_][A-Za-z0-9_]*)*)(?:\\s*\\.\\s*\\*?)?\\s*(?:;|$)");
     private static final Pattern CLASS_DECL_PATTERN = Pattern.compile(
             "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)");
     private static final Pattern METHOD_DECL_PATTERN = Pattern.compile(
@@ -66,6 +66,9 @@ public class ScriptDocument {
     private final Map<String, FieldInfo> globalFields = new HashMap<>();
     private final Set<String> wildcardPackages = new HashSet<>();
     private Map<String, ImportData> importsBySimpleName = new HashMap<>();
+    
+    // Local variables per method (methodStartOffset -> {varName -> FieldInfo})
+    private final Map<Integer, Map<String, FieldInfo>> methodLocals = new HashMap<>();
 
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
@@ -171,6 +174,7 @@ public class ScriptDocument {
         globalFields.clear();
         wildcardPackages.clear();
         excludedRanges.clear();
+        methodLocals.clear();
 
         // Phase 1: Find excluded regions (strings/comments)
         findExcludedRanges();
@@ -178,7 +182,7 @@ public class ScriptDocument {
         // Phase 2: Parse imports
         parseImports();
 
-        // Phase 3: Parse structure (methods, fields)
+        // Phase 3: Parse structure (methods, fields, locals)
         parseStructure();
 
         // Phase 4: Build marks and assign to lines
@@ -189,7 +193,7 @@ public class ScriptDocument {
 
         // Phase 6: Build tokens for each line
         for (ScriptLine line : lines) {
-            line.buildTokensFromMarks(marks, text);
+            line.buildTokensFromMarks(marks, text, this);
         }
 
         // Phase 7: Compute indent guides
@@ -259,6 +263,11 @@ public class ScriptDocument {
             String matchText = m.group(0);
             boolean isWildcard = matchText.contains("*");
             boolean isStatic = matchText.contains("static");
+            
+            // Skip if path ends with dot (incomplete import)
+            if (fullPath.endsWith(".")) {
+             //   continue;
+            }
 
             int lastDot = fullPath.lastIndexOf('.');
             String simpleName = isWildcard ? null : (lastDot >= 0 ? fullPath.substring(lastDot + 1) : fullPath);
@@ -284,6 +293,9 @@ public class ScriptDocument {
         // Parse methods
         parseMethodDeclarations();
 
+        // Parse local variables inside methods
+        parseLocalVariables();
+
         // Parse global fields (outside methods)
         parseGlobalFields();
     }
@@ -306,8 +318,8 @@ public class ScriptDocument {
             if (bodyEnd < 0)
                 bodyEnd = text.length();
 
-            // Parse parameters
-            List<FieldInfo> params = parseParameters(paramList, m.start());
+            // Parse parameters with their actual positions
+            List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
 
             MethodInfo methodInfo = MethodInfo.declaration(
                     methodName,
@@ -340,12 +352,13 @@ public class ScriptDocument {
         }
     }
 
-    private List<FieldInfo> parseParameters(String paramList, int declOffset) {
+    private List<FieldInfo> parseParametersWithPositions(String paramList, int paramListStart) {
         List<FieldInfo> params = new ArrayList<>();
         if (paramList == null || paramList.trim().isEmpty()) {
             return params;
         }
 
+        // Pattern: Type varName (with optional spaces)
         Pattern paramPattern = Pattern.compile(
                 "([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*(?:\\.{3})?)\\s+([a-zA-Z_][a-zA-Z0-9_]*)");
         Matcher m = paramPattern.matcher(paramList);
@@ -353,9 +366,48 @@ public class ScriptDocument {
             String typeName = m.group(1);
             String paramName = m.group(2);
             TypeInfo typeInfo = resolveType(typeName);
-            params.add(FieldInfo.parameter(paramName, typeInfo, declOffset, null));
+            // Store the absolute position of the parameter name
+            int paramNameStart = paramListStart + m.start(2);
+            params.add(FieldInfo.parameter(paramName, typeInfo, paramNameStart, null));
         }
         return params;
+    }
+
+    private void parseLocalVariables() {
+        for (MethodInfo method : methods) {
+            Map<String, FieldInfo> locals = new HashMap<>();
+            methodLocals.put(method.getDeclarationOffset(), locals);
+
+            int bodyStart = method.getBodyStart();
+            int bodyEnd = method.getBodyEnd();
+            if (bodyStart < 0 || bodyEnd <= bodyStart) continue;
+
+            String bodyText = text.substring(bodyStart, Math.min(bodyEnd, text.length()));
+            
+            // Pattern for local variable declarations: Type varName = or Type varName;
+            Pattern localDecl = Pattern.compile(
+                    "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;|,)");
+            Matcher m = localDecl.matcher(bodyText);
+            while (m.find()) {
+                int absPos = bodyStart + m.start();
+                if (isExcluded(absPos)) continue;
+
+                String typeName = m.group(1);
+                String varName = m.group(2);
+                
+                // Skip if it looks like a method call or control flow
+                if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
+                    typeName.equals("for") || typeName.equals("switch") || typeName.equals("catch") ||
+                    typeName.equals("new") || typeName.equals("throw")) {
+                    continue;
+                }
+
+                TypeInfo typeInfo = resolveType(typeName);
+                int declPos = bodyStart + m.start(2);
+                FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method);
+                locals.put(varName, fieldInfo);
+            }
+        }
     }
 
     private void parseGlobalFields() {
@@ -453,22 +505,125 @@ public class ScriptDocument {
     private void markImports(List<ScriptLine.Mark> marks) {
         for (ImportData imp : imports) {
             // Mark 'import' keyword
-            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.IMPORT_KEYWORD));
+            marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getStartOffset() + 6, TokenType.IMPORT_KEYWORD, imp));
 
-            // Mark the path
+            // Parse path tokens
             int pathStart = imp.getPathStartOffset();
             int pathEnd = imp.getPathEndOffset();
-
-            if (imp.isResolved()) {
-                // Resolved import - mark as type declaration
-                if (imp.getResolvedType() != null) {
-                    marks.add(new ScriptLine.Mark(pathStart, pathEnd, imp.getResolvedType().getTokenType()));
+            String pathText = text.substring(pathStart, Math.min(pathEnd, text.length()));
+            
+            // Skip if path ends with dot (incomplete)
+            if (pathText.trim().endsWith(".")) {
+                continue;
+            }
+            
+            // Tokenize the path
+            List<String> tokens = new ArrayList<>();
+            List<Integer> tokenStarts = new ArrayList<>();
+            List<Integer> tokenEnds = new ArrayList<>();
+            Pattern idPattern = Pattern.compile("[A-Za-z_][A-Za-z0-9_]*");
+            Matcher idm = idPattern.matcher(pathText);
+            while (idm.find()) {
+                tokens.add(idm.group());
+                tokenStarts.add(pathStart + idm.start());
+                tokenEnds.add(pathStart + idm.end());
+            }
+            
+            if (tokens.isEmpty()) continue;
+            
+            if (imp.isWildcard()) {
+                // Wildcard import: mark all tokens as package (blue) if valid
+                boolean pkgValid = typeResolver.isValidPackage(imp.getFullPath());
+                
+                // Also check if it might be a class wildcard (OuterClass.*)
+                TypeInfo outerType = typeResolver.resolveFullName(imp.getFullPath());
+                
+                if (pkgValid || outerType != null) {
+                    // Mark package portion in blue
+                    int pkgTokenCount = outerType != null ? tokens.size() - 1 : tokens.size();
+                    for (int i = 0; i < Math.min(pkgTokenCount, tokens.size()); i++) {
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.TYPE_DECL, imp));
+                    }
+                    // If it's a class wildcard, mark the class with its type
+                    if (outerType != null && tokens.size() > 0) {
+                        int lastIdx = tokens.size() - 1;
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(lastIdx), tokenEnds.get(lastIdx), 
+                                outerType.getTokenType(), imp));
+                    }
                 } else {
-                    marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.TYPE_DECL));
+                    // Unknown package/class - mark as undefined
+                    marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR, imp));
                 }
             } else {
-                // Unresolved import
-                marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR));
+                // Non-wildcard import: package is blue, class name(s) get type colors
+                TypeInfo resolvedType = imp.getResolvedType();
+                
+                if (resolvedType != null && resolvedType.isResolved()) {
+                    // Count package segments
+                    String fullPath = imp.getFullPath();
+                    String resolvedName = resolvedType.getFullName();
+                    String pkgName = resolvedType.getPackageName();
+                    
+                    int pkgSegments = pkgName != null && !pkgName.isEmpty() 
+                            ? pkgName.split("\\.").length : 0;
+                    
+                    // Mark package tokens in blue
+                    for (int i = 0; i < Math.min(pkgSegments, tokens.size()); i++) {
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.TYPE_DECL, imp));
+                    }
+                    
+                    // Mark class tokens with appropriate type colors
+                    // For inner classes, each segment might have a different type
+                    for (int i = pkgSegments; i < tokens.size(); i++) {
+                        String segmentName = tokens.get(i);
+                        // Try to resolve this specific class/inner class
+                        StringBuilder classPath = new StringBuilder();
+                        if (pkgName != null && !pkgName.isEmpty()) {
+                            classPath.append(pkgName).append(".");
+                        }
+                        for (int j = pkgSegments; j <= i; j++) {
+                            if (j > pkgSegments) classPath.append("$");
+                            classPath.append(tokens.get(j));
+                        }
+                        
+                        TypeInfo segmentType = typeResolver.resolveFullName(classPath.toString());
+                        TokenType tokenType = segmentType != null 
+                                ? segmentType.getTokenType() 
+                                : resolvedType.getTokenType();
+                        
+                        marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), tokenType, imp));
+                    }
+                } else {
+                    // Try to figure out which part is invalid
+                    // Mark valid package portion in blue, invalid portion in red
+                    String fullPath = imp.getFullPath();
+                    int lastValidPkg = -1;
+                    StringBuilder pkgBuilder = new StringBuilder();
+                    
+                    for (int i = 0; i < tokens.size(); i++) {
+                        if (i > 0) pkgBuilder.append(".");
+                        pkgBuilder.append(tokens.get(i));
+                        
+                        // Check if this is a valid package
+                        if (typeResolver.isValidPackage(pkgBuilder.toString())) {
+                            lastValidPkg = i;
+                        }
+                    }
+                    
+                    if (lastValidPkg >= 0) {
+                        // Mark valid package in blue
+                        for (int i = 0; i <= lastValidPkg; i++) {
+                            marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.TYPE_DECL, imp));
+                        }
+                        // Mark rest as undefined
+                        for (int i = lastValidPkg + 1; i < tokens.size(); i++) {
+                            marks.add(new ScriptLine.Mark(tokenStarts.get(i), tokenEnds.get(i), TokenType.UNDEFINED_VAR, imp));
+                        }
+                    } else {
+                        // Everything is unresolved
+                        marks.add(new ScriptLine.Mark(pathStart, pathEnd, TokenType.UNDEFINED_VAR, imp));
+                    }
+                }
             }
         }
     }
@@ -532,6 +687,7 @@ public class ScriptDocument {
         while (m.find()) {
             int start = m.start(1);
             int end = m.end(1);
+            String methodName = m.group(1);
 
             if (isExcluded(start))
                 continue;
@@ -558,21 +714,42 @@ public class ScriptDocument {
                 }
             }
 
-            // Determine if we should highlight this as a method call
-            boolean shouldHighlight = true;
-
             if (hasReceiver && receiverName != null && !receiverName.isEmpty()) {
-                // Check if receiver is an unresolved class reference
+                // Check if receiver is an uppercase class reference (static call)
                 if (Character.isUpperCase(receiverName.charAt(0))) {
                     TypeInfo recvType = resolveType(receiverName);
                     if (recvType == null || !recvType.isResolved()) {
-                        // Don't highlight method calls on unresolved types
-                        shouldHighlight = false;
+                        // Method call on unresolved type - mark as undefined
+                        marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+                        continue;
+                    }
+                    // Check if method exists on resolved type
+                    if (!recvType.hasMethod(methodName) ) {
+                        marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+                        continue;
+                    }
+                    // Valid method call on static type
+                    MethodInfo methodInfo = recvType.getMethodInfo(methodName);
+                    marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL, methodInfo));
+                } else {
+                    // Lower-case receiver - this is a method call on an instance
+                    // Try to resolve the receiver's type
+                    FieldInfo receiverField = resolveVariable(receiverName, start);
+                    if (receiverField != null && receiverField.getTypeInfo() != null) {
+                        TypeInfo recvType = receiverField.getTypeInfo();
+                        if (recvType.hasMethod(methodName)) {
+                            MethodInfo methodInfo = recvType.getMethodInfo(methodName);
+                            marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL, methodInfo));
+                        } else {
+                            marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+                        }
+                    } else {
+                        // Can't resolve receiver - mark method call anyway (could be valid at runtime)
+                        marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
                     }
                 }
-            }
-
-            if (shouldHighlight) {
+            } else {
+                // No receiver - standalone method call (local function or global)
                 marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
             }
         }
@@ -589,6 +766,15 @@ public class ScriptDocument {
                 "throws", "super", "assert", "volatile", "transient"
         ));
 
+        // First pass: mark method parameters in their declaration positions
+        for (MethodInfo method : methods) {
+            for (FieldInfo param : method.getParameters()) {
+                int pos = param.getDeclarationOffset();
+                String name = param.getName();
+                marks.add(new ScriptLine.Mark(pos, pos + name.length(), TokenType.PARAMETER, param));
+            }
+        }
+
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
         Matcher m = identifier.matcher(text);
 
@@ -601,7 +787,7 @@ public class ScriptDocument {
             if (knownKeywords.contains(name))
                 continue;
 
-            // Skip if preceded by dot (field access)
+            // Skip if preceded by dot (field access - handled separately)
             if (isPrecededByDot(position))
                 continue;
 
@@ -613,29 +799,53 @@ public class ScriptDocument {
             if (Character.isUpperCase(name.charAt(0)))
                 continue;
 
+            // Skip method calls (followed by paren)
+            if (isFollowedByParen(m.end(1)))
+                continue;
+
             // Find containing method
             MethodInfo containingMethod = findMethodAtPosition(position);
 
             if (containingMethod != null) {
                 // Check parameters
                 if (containingMethod.hasParameter(name)) {
-                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER));
+                    FieldInfo paramInfo = containingMethod.getParameter(name);
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER, paramInfo));
                     continue;
                 }
+
+                // Check local variables
+                Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
+                if (locals != null && locals.containsKey(name)) {
+                    FieldInfo localInfo = locals.get(name);
+                    // Only highlight if the position is after the declaration
+                    if (localInfo.isVisibleAt(position)) {
+                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, localInfo));
+                        continue;
+                    }
+                }
+
+                // Check global fields
+                if (globalFields.containsKey(name)) {
+                    FieldInfo fieldInfo = globalFields.get(name);
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, fieldInfo));
+                    continue;
+                }
+
+                // Unknown variable inside method - mark as undefined
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
+            } else {
+                // Outside any method
+                // Check global fields
+                if (globalFields.containsKey(name)) {
+                    FieldInfo fieldInfo = globalFields.get(name);
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, fieldInfo));
+                    continue;
+                }
+
+                // Unknown variable outside method - mark as undefined
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
             }
-
-            // Check global fields
-            if (globalFields.containsKey(name)) {
-                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD));
-                continue;
-            }
-
-            // Check if it's a method call (followed by paren)
-            if (isFollowedByParen(m.end(1)))
-                continue;
-
-            // Unknown identifier - could mark as undefined, but be conservative
-            // Only mark as undefined if it looks like a variable usage
         }
     }
 
@@ -652,13 +862,42 @@ public class ScriptDocument {
             if (isExcluded(start))
                 continue;
 
+            // Skip in import/package statements
+            if (isInImportOrPackage(start))
+                continue;
+
             // Try to resolve the class
             TypeInfo info = resolveType(className);
             if (info != null && info.isResolved()) {
-                marks.add(new ScriptLine.Mark(start, end, info.getTokenType()));
-            } else if (!importsBySimpleName.containsKey(className) &&
-                    !TypeResolver.JAVA_LANG_CLASSES.contains(className) &&
-                    wildcardPackages.isEmpty()) {
+                marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
+            } else {
+                // Unknown type - mark as undefined
+                marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+            }
+        }
+
+        // Also mark uppercase identifiers in type positions (new X(), X variable, etc.)
+        Pattern typeUsage = Pattern.compile("\\b(new\\s+)?([A-Z][a-zA-Z0-9_]*)(?:\\s*<[^>]*>)?\\s*(?:\\(|\\[|\\b[a-z])");
+        Matcher tm = typeUsage.matcher(text);
+
+        while (tm.find()) {
+            String className = tm.group(2);
+            int start = tm.start(2);
+            int end = tm.end(2);
+
+            if (isExcluded(start))
+                continue;
+
+            // Skip in import/package statements
+            if (isInImportOrPackage(start))
+                continue;
+
+            // Try to resolve the class
+            TypeInfo info = resolveType(className);
+            if (info != null && info.isResolved()) {
+                marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
+            } else {
+                // Unknown type - mark as undefined
                 marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
             }
         }
@@ -770,6 +1009,34 @@ public class ScriptDocument {
     }
 
     // ==================== UTILITY METHODS ====================
+
+    private FieldInfo resolveVariable(String name, int position) {
+        // Find containing method
+        MethodInfo containingMethod = findMethodAtPosition(position);
+        
+        if (containingMethod != null) {
+            // Check parameters
+            if (containingMethod.hasParameter(name)) {
+                return containingMethod.getParameter(name);
+            }
+            
+            // Check local variables
+            Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
+            if (locals != null && locals.containsKey(name)) {
+                FieldInfo localInfo = locals.get(name);
+                if (localInfo.isVisibleAt(position)) {
+                    return localInfo;
+                }
+            }
+        }
+        
+        // Check global fields
+        if (globalFields.containsKey(name)) {
+            return globalFields.get(name);
+        }
+        
+        return null;
+    }
 
     private boolean isPrecededByDot(int position) {
         if (position <= 0)

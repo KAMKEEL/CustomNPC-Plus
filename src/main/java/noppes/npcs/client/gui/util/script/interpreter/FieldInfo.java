@@ -48,10 +48,27 @@ public final class FieldInfo {
         return new FieldInfo(name, scope, null, -1, false, null);
     }
 
+    /**
+     * Create a FieldInfo from reflection data for method parameters.
+     */
+    public static FieldInfo reflectionParam(String name, TypeInfo type) {
+        return new FieldInfo(name, Scope.PARAMETER, type, -1, true, null);
+    }
+
+    /**
+     * Create a FieldInfo from reflection data for a class field.
+     */
+    public static FieldInfo fromReflection(java.lang.reflect.Field field, TypeInfo containingType) {
+        String name = field.getName();
+        TypeInfo type = TypeInfo.fromClass(field.getType());
+        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null);
+    }
+
     // Getters
     public String getName() { return name; }
     public Scope getScope() { return scope; }
     public TypeInfo getDeclaredType() { return declaredType; }
+    public TypeInfo getTypeInfo() { return declaredType; }  // Alias for getDeclaredType
     public int getDeclarationOffset() { return declarationOffset; }
     public boolean isResolved() { return resolved; }
     public MethodInfo getContainingMethod() { return containingMethod; }

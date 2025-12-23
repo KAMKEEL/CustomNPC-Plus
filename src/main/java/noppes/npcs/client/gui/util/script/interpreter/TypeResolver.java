@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import noppes.npcs.client.gui.util.script.PackageFinder;
+
 import java.util.*;
 
 /**
@@ -210,6 +212,11 @@ public class TypeResolver {
         }
 
         if (validPackages.contains(packagePath)) {
+            return true;
+        }
+
+        if (PackageFinder.find(packagePath)) {
+            registerPackage(packagePath);
             return true;
         }
 

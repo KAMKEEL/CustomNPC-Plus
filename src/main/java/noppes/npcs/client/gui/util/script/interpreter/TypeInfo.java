@@ -153,6 +153,44 @@ public final class TypeInfo {
         return false;
     }
 
+    /**
+     * Get MethodInfo for a method by name. Returns null if not found.
+     * Creates a synthetic MethodInfo based on reflection data.
+     */
+    public MethodInfo getMethodInfo(String methodName) {
+        if (javaClass == null) return null;
+        try {
+            for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                if (m.getName().equals(methodName)) {
+                    // Create a synthetic MethodInfo from reflection
+                    return MethodInfo.fromReflection(m, this);
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return null;
+    }
+
+    /**
+     * Get FieldInfo for a field by name. Returns null if not found.
+     * Creates a synthetic FieldInfo based on reflection data.
+     */
+    public FieldInfo getFieldInfo(String fieldName) {
+        if (javaClass == null) return null;
+        try {
+            for (java.lang.reflect.Field f : javaClass.getFields()) {
+                if (f.getName().equals(fieldName)) {
+                    // Create a synthetic FieldInfo from reflection
+                    return FieldInfo.fromReflection(f, this);
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         return "TypeInfo{" + fullName + ", " + kind + ", resolved=" + resolved + "}";

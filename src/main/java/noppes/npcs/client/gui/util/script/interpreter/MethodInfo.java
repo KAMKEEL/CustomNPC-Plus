@@ -58,6 +58,24 @@ public final class MethodInfo {
         return new MethodInfo(name, null, null, params, -1, -1, -1, false, false);
     }
 
+    /**
+     * Create a MethodInfo from reflection data.
+     * Used when resolving method calls on known types.
+     */
+    public static MethodInfo fromReflection(java.lang.reflect.Method method, TypeInfo containingType) {
+        String name = method.getName();
+        TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
+        
+        List<FieldInfo> params = new ArrayList<>();
+        Class<?>[] paramTypes = method.getParameterTypes();
+        for (int i = 0; i < paramTypes.length; i++) {
+            TypeInfo paramType = TypeInfo.fromClass(paramTypes[i]);
+            params.add(FieldInfo.reflectionParam("arg" + i, paramType));
+        }
+        
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false);
+    }
+
     // Getters
     public String getName() { return name; }
     public TypeInfo getReturnType() { return returnType; }

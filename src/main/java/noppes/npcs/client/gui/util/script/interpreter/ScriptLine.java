@@ -102,11 +102,13 @@ public class ScriptLine {
     /**
      * Build tokens from a list of marks (highlight regions).
      * Fills gaps between marks with DEFAULT tokens.
+     * Attaches metadata from marks to the created tokens.
      * 
      * @param marks List of highlight marks that overlap this line
      * @param fullText The complete document text
+     * @param document The parent ScriptDocument (for context lookups)
      */
-    public void buildTokensFromMarks(List<Mark> marks, String fullText) {
+    public void buildTokensFromMarks(List<Mark> marks, String fullText, ScriptDocument document) {
         clearTokens();
         int cursor = globalStart;
 
@@ -131,10 +133,24 @@ public class ScriptLine {
                 addToken(Token.defaultToken(gapText, cursor, gapEnd));
             }
 
-            // Add the marked token
+            // Add the marked token with metadata
             if (tokenStart < tokenEnd) {
                 String tokenText = fullText.substring(tokenStart, tokenEnd);
                 Token token = new Token(tokenText, tokenStart, tokenEnd, mark.type);
+                
+                // Attach metadata based on type
+                if (mark.metadata != null) {
+                    if (mark.metadata instanceof TypeInfo) {
+                        token.setTypeInfo((TypeInfo) mark.metadata);
+                    } else if (mark.metadata instanceof FieldInfo) {
+                        token.setFieldInfo((FieldInfo) mark.metadata);
+                    } else if (mark.metadata instanceof MethodInfo) {
+                        token.setMethodInfo((MethodInfo) mark.metadata);
+                    } else if (mark.metadata instanceof ImportData) {
+                        token.setImportData((ImportData) mark.metadata);
+                    }
+                }
+                
                 addToken(token);
             }
 
@@ -283,21 +299,31 @@ public class ScriptLine {
     /**
      * A simple mark representing a highlighted region.
      * Used during token building phase.
+     * Can optionally carry metadata (TypeInfo, FieldInfo, MethodInfo, ImportData).
      */
     public static class Mark {
         public final int start;
         public final int end;
         public final TokenType type;
+        public final Object metadata;
 
         public Mark(int start, int end, TokenType type) {
             this.start = start;
             this.end = end;
             this.type = type;
+            this.metadata = null;
+        }
+
+        public Mark(int start, int end, TokenType type, Object metadata) {
+            this.start = start;
+            this.end = end;
+            this.type = type;
+            this.metadata = metadata;
         }
 
         @Override
         public String toString() {
-            return "Mark{" + type + " [" + start + "-" + end + "]}";
+            return "Mark{" + type + " [" + start + "-" + end + "]" + (metadata != null ? " " + metadata.getClass().getSimpleName() : "") + "}";
         }
     }
 }
