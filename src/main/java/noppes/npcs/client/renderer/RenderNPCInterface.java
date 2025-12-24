@@ -537,19 +537,28 @@ public class RenderNPCInterface extends RenderLiving {
     @Override
     public ResourceLocation getEntityTexture(Entity entity) {
         EntityNPCInterface npc = (EntityNPCInterface) entity;
+
         if (npc.textureLocation == null) {
             if (npc.display.skinType == 0) {
                 if (npc instanceof EntityCustomNpc && ((EntityCustomNpc) npc).modelData.entityClass == null) {
-                    if (!(npc.display.texture).isEmpty()) {
+                    if (!npc.display.texture.isEmpty()) {
                         try {
                             npc.textureLocation = adjustLocalTexture(npc, new ResourceLocation(npc.display.texture));
                         } catch (IOException ignored) {
+                            return fallBackSkin(npc);
                         }
+                    } else {
+                        npc.textureLocation = fallBackSkin(npc);
                     }
                 } else {
-                    if (!(npc.display.texture).isEmpty()) {
-                        npc.textureLocation = new ResourceLocation(npc.display.texture);
-                        // TODO: Also validate if this ResourceLocation actually exists
+                    if (!npc.display.texture.isEmpty()) {
+                        ResourceLocation resLoc = new ResourceLocation(npc.display.texture);
+                        try {
+                            Minecraft.getMinecraft().getResourceManager().getResource(resLoc);
+                            npc.textureLocation = resLoc;
+                        } catch (IOException e) {
+                            return fallBackSkin(npc);
+                        }
                     } else {
                         npc.textureLocation = fallBackSkin(npc);
                     }
@@ -563,28 +572,29 @@ public class RenderNPCInterface extends RenderLiving {
                 LastTextureTick = 0;
             } else if (npc.display.skinType == 2 || npc.display.skinType == 3) {
                 ResourceLocation location = new ResourceLocation("skins/" + (npc.display.skinType + npc.display.url).hashCode());
-                // If URL Empty Steve
-                if (npc.display.url.isEmpty()) {
+                if (npc.display.url.isEmpty()) { // If URL Empty Steve
                     return fallBackSkin(npc);
-                }
-                // If URL Cached then grab it
-                else if (ClientCacheHandler.isCachedNPC(location)) {
+                } else if (ClientCacheHandler.isCachedNPC(location)) { // If URL Cached then grab it
                     try {
-                        ResourceLocation loc = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.skinType == 3, location).getLocation();
+                        ResourceLocation loc = ClientCacheHandler
+                                .getNPCTexture(npc.display.url, npc.display.skinType == 3, location)
+                                .getLocation();
                         if (loc != null) {
                             npc.textureLocation = loc;
                         } else {
                             return fallBackSkin(npc);
                         }
                     } catch (Exception ignored) {
+                        return fallBackSkin(npc);
                     }
-                }
                 // For New URL Requests do not spam it
-                else if (LastTextureTick < 5) { //fixes request flood somewhat
+                } else if (LastTextureTick < 5) { //fixes request flood somewhat
                     return fallBackSkin(npc);
                 } else {
                     try {
-                        ResourceLocation loc = ClientCacheHandler.getNPCTexture(npc.display.url, npc.display.skinType == 3, location).getLocation();
+                        ResourceLocation loc = ClientCacheHandler
+                                .getNPCTexture(npc.display.url, npc.display.skinType == 3, location)
+                                .getLocation();
                         if (loc != null) {
                             npc.textureLocation = loc;
                         } else {
@@ -592,6 +602,7 @@ public class RenderNPCInterface extends RenderLiving {
                         }
                         LastTextureTick = 0;
                     } catch (Exception ignored) {
+                        return fallBackSkin(npc);
                     }
                 }
             } else {
