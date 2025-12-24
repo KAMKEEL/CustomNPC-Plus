@@ -202,19 +202,7 @@ public class MethodCallInfo {
     public boolean hasArgTypeError() {
         return !this.argumentTypeErrors.isEmpty();
     }
-
-    public boolean hasArgTypeError(Token t) {
-        for (ArgumentTypeError ate : this.argumentTypeErrors) {
-            if (ate.getArg().equals(t)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean hasArgCountError(Token t) {
-        return hasArgCountError() && t.isMethodCall();
-    }
+    
 
     /**
      * Check if this is a static access error (underline method name).
@@ -233,6 +221,9 @@ public class MethodCallInfo {
         this.argumentTypeErrors.add(new ArgumentTypeError(arguments.get(argIndex), argIndex, message));
     }
     
+    public List<ArgumentTypeError> getArgumentTypeErrors() {
+        return argumentTypeErrors;
+    }
 
     public class ArgumentTypeError {
         private ErrorType type = ErrorType.WRONG_ARG_TYPE;
@@ -298,14 +289,11 @@ public class MethodCallInfo {
                 if (!isTypeCompatible(argType, paramType)) {
                     setArgTypeError(i, "Expected " + paramType.getSimpleName() +
                             " but got " + argType.getSimpleName());
-                    return;
                 }
             } else if (paramType == null) {
                 setArgTypeError(i, "Parameter type of '" + para.getName() + "' is unresolved");
-                return;
             } else if (argType == null) {
                 setArgTypeError(i, "Cannot resolve type of argument '" + arg.getText() + "'");
-                return;
             }
         }
     }

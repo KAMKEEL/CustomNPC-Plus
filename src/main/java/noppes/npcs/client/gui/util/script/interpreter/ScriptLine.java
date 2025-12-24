@@ -223,10 +223,8 @@ public class ScriptLine {
             }
 
             // Track underline position if token has one
-            if (t.hasUnderline()) {
-                int currentY = y + ClientProxy.Font.height() - 1;
-                drawCurlyUnderline(currentX + 1, currentY, tokenWidth + 1, t.getUnderlineColor());
-            }
+            t.drawUnderline(currentX, y + ClientProxy.Font.height() - 1);
+            
 
             // Append the colored token
             builder.append(COLOR_CHAR)
