@@ -9,6 +9,7 @@ public enum TokenType {
     // Comments and strings have highest priority - they override everything inside them
     COMMENT(0x777777, 130),
     STRING(0xCC8855, 120),
+    UNUSED_IMPORT(0x666666, 119),       // unused import statements (gray)
     
     // Keywords and modifiers
     CLASS_KEYWORD(0xFF5555, 115),      // 'class', 'interface', 'enum' keywords
@@ -23,7 +24,6 @@ public enum TokenType {
     CLASS_DECL(0x00AAAA, 85),          // class names in declarations
     IMPORTED_CLASS(0x00AAAA, 75),      // imported class usages
     TYPE_DECL(0x00AAAA, 70),           // package paths, type references
-    UNUSED_IMPORT(0x666666, 65),       // unused import statements (gray)
     
     // Methods
     METHOD_DECL(0x00AA00, 60),         // method declarations (green)
