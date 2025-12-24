@@ -255,7 +255,7 @@ public class ScriptLine {
      * @param width Width of the underline
      * @param color Color in ARGB format (e.g., 0xFFFF5555 for red)
      */
-    private void drawCurlyUnderline(int x, int y, int width, int color) {
+    protected static void drawCurlyUnderline(int x, int y, int width, int color) {
         if (width <= 0)
             return;
 
@@ -278,12 +278,12 @@ public class ScriptLine {
         GL11.glBegin(GL11.GL_LINE_STRIP);
         // Wave parameters: 2 pixels amplitude, 4 pixels wavelength
         int waveHeight = 1;
-        int waveLength = 4;
-        for (int i = 0; i <= width; i++) {
+        float waveLength = 4f;
+        for (float i = -0.5f; i <= width - 1; i += 0.125f) {
             // Create a sine-like wave pattern
             double phase = (double) i / waveLength * Math.PI * 2;
-            float yOffset = (float) (Math.sin(phase) * waveHeight) - 0.5f;
-            GL11.glVertex2f(x + i, y + yOffset);
+            float yOffset = (float) (Math.sin(phase) * waveHeight) - 0.25f;
+            GL11.glVertex2f(x + i + 3f, y + yOffset);
         }
         GL11.glEnd();
 
