@@ -26,10 +26,6 @@ public class Token {
     private MethodCallInfo methodCallInfo; // For method calls with argument info
     private ImportData importData;    // For import statements
     
-    // Rendering flags
-    private boolean hasUnderline;     // True if this token should be underlined (for errors)
-    private int underlineColor = 0xFF5555;       // Color of the underline (if any)
-
     // Navigation - set by ScriptLine
     private Token prev;
     private Token next;
@@ -122,13 +118,6 @@ public class Token {
     public ImportData getImportData() { return importData; }
     public ScriptLine getParentLine() { return parentLine; }
 
-    public boolean hasUnderline() {
-        return isMethodCall() && (methodCallInfo.hasArgTypeError() || methodCallInfo.hasArgCountError());
-    }
-
-    public int getUnderlineColor() {
-        return underlineColor;
-    }
     // ==================== SETTERS ====================
 
     public void setType(TokenType type) { this.type = type; }
@@ -138,11 +127,6 @@ public class Token {
     public void setMethodCallInfo(MethodCallInfo info) { this.methodCallInfo = info; }
     public void setImportData(ImportData data) { this.importData = data; }
     
-    public void setUnderline(boolean hasUnderline, int color) {
-        this.hasUnderline = hasUnderline;
-        this.underlineColor = color;
-    }
-
     void setParentLine(ScriptLine line) { this.parentLine = line; }
     void setPrev(Token prev) { this.prev = prev; }
     void setNext(Token next) { this.next = next; }

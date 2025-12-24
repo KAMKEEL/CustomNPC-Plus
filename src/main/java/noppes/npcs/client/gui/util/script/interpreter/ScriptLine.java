@@ -152,12 +152,7 @@ public class ScriptLine {
                     } else if (mark.metadata instanceof MethodInfo) {
                         token.setMethodInfo((MethodInfo) mark.metadata);
                     } else if (mark.metadata instanceof MethodCallInfo) {
-                        MethodCallInfo callInfo = (MethodCallInfo) mark.metadata;
-                        token.setMethodCallInfo(callInfo);
-                        if (callInfo.getErrorType() != MethodCallInfo.ErrorType.NONE) {
-                            // For other errors (arg count, static access), underline the method name
-                            token.setUnderline(true, 0xFF5555); // Red wavy underline
-                        }
+                        token.setMethodCallInfo((MethodCallInfo) mark.metadata);
                     } else if (mark.metadata instanceof ImportData) {
                         token.setImportData((ImportData) mark.metadata);
                     }
@@ -399,19 +394,19 @@ public class ScriptLine {
             // Draw any text before this token in default color
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
                 String gap = text.substring(lastIndex, tokenStart);
-                currentX = renderer.draw(gap, currentX, y, 0xFFFFFF, false, 0);
+                currentX = renderer.draw(gap, currentX, y, 0xFFFFFF);
             }
 
             // Draw the colored token (with underline if flagged)
-            currentX = renderer.draw(t.getText(), currentX, y, t.getHexColor(), t.hasUnderline(),
-                    t.getUnderlineColor());
+            currentX = renderer.draw(t.getText(), currentX, y, t.getHexColor()
+            );
 
             lastIndex = tokenStart + t.getText().length();
         }
 
         // Draw any remaining text in default color
         if (lastIndex < text.length()) {
-            renderer.draw(text.substring(lastIndex), currentX, y, 0xFFFFFF, false, 0);
+            renderer.draw(text.substring(lastIndex), currentX, y, 0xFFFFFF);
         }
     }
 
@@ -422,15 +417,14 @@ public class ScriptLine {
     public interface HexColorRenderer {
         /**
          * Draw text at the specified position with the given color.
-         * @param text The text to draw
-         * @param x X position
-         * @param y Y position
+         *
+         * @param text     The text to draw
+         * @param x        X position
+         * @param y        Y position
          * @param hexColor The text color in hex format
-         * @param underline Whether to draw an underline (wavy for errors)
-         * @param underlineColor The underline color (if underline is true)
          * @return The X position after drawing (for continuation)
          */
-        int draw(String text, int x, int y, int hexColor, boolean underline, int underlineColor);
+        int draw(String text, int x, int y, int hexColor);
     }
 
     /**
@@ -439,43 +433,12 @@ public class ScriptLine {
      * @return A HexColorRenderer that can be passed to drawStringHex
      */
     public static HexColorRenderer createDefaultHexRenderer() {
-        return (text, x, y, hexColor, underline, underlineColor) -> {
+        return (text, x, y, hexColor) -> {
             // Draw the text with hex color
             // Minecraft's font renderer uses ARGB, so add full alpha if not present
             int color = (hexColor & 0xFF000000) == 0 ? (0xFF000000 | hexColor) : hexColor;
             ClientProxy.Font.drawString(text, x, y, color);
             int textWidth = ClientProxy.Font.width(text);
-
-            // Draw curly underline if needed
-            if (underline && textWidth > 0) {
-                int ulColor = (underlineColor & 0xFF000000) == 0 ? (0xFF000000 | underlineColor) : underlineColor;
-
-                float a = ((ulColor >> 24) & 0xFF) / 255f;
-                float r = ((ulColor >> 16) & 0xFF) / 255f;
-                float g = ((ulColor >> 8) & 0xFF) / 255f;
-                float b = (ulColor & 0xFF) / 255f;
-
-                GL11.glPushMatrix();
-                GL11.glDisable(GL11.GL_TEXTURE_2D);
-                GL11.glEnable(GL11.GL_BLEND);
-                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-                GL11.glColor4f(r, g, b, a);
-                GL11.glLineWidth(1.0f);
-
-                int underlineY = y + ClientProxy.Font.height() - 1;
-                GL11.glBegin(GL11.GL_LINE_STRIP);
-                for (int i = 0; i <= textWidth; i++) {
-                    double phase = (double) i / 4 * Math.PI * 2;
-                    int yOffset = (int) (Math.sin(phase) * 2);
-                    GL11.glVertex2f(x + i, underlineY + yOffset);
-                }
-                GL11.glEnd();
-
-                GL11.glEnable(GL11.GL_TEXTURE_2D);
-                GL11.glDisable(GL11.GL_BLEND);
-                GL11.glPopMatrix();
-            }
-
             return x + textWidth;
         };
     }
