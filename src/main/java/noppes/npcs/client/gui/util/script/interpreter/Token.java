@@ -26,7 +26,7 @@ public class Token {
     
     // Rendering flags
     private boolean hasUnderline;     // True if this token should be underlined (for errors)
-    private int underlineColor;       // Color of the underline (if any)
+    private int underlineColor = 0xFF5555;       // Color of the underline (if any)
 
     // Navigation - set by ScriptLine
     private Token prev;
@@ -119,8 +119,21 @@ public class Token {
     public MethodCallInfo getMethodCallInfo() { return methodCallInfo; }
     public ImportData getImportData() { return importData; }
     public ScriptLine getParentLine() { return parentLine; }
-    public boolean hasUnderline() { return hasUnderline; }
-    public int getUnderlineColor() { return underlineColor; }
+
+    public boolean hasUnderline() {
+        if (methodCallInfo != null) {
+            if (methodCallInfo.hasArgCountError(this))
+                return true;
+            else if (methodCallInfo.hasArgTypeError(this)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public int getUnderlineColor() {
+        return underlineColor;
+    }
 
     // ==================== SETTERS ====================
 

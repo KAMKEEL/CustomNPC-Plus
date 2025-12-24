@@ -125,4 +125,18 @@ public final class FieldInfo {
     public int hashCode() {
         return name.hashCode() * 31 + scope.ordinal();
     }
+
+    /**
+     * Wrapper class that holds both FieldInfo and MethodCallInfo for a variable usage.
+     * This is used when a variable is used as an argument to a method call.
+     */
+    public static class ArgInfo {
+        public final FieldInfo fieldInfo;
+        public final MethodCallInfo methodCallInfo;
+
+        public ArgInfo(FieldInfo fieldInfo, MethodCallInfo methodCallInfo) {
+            this.fieldInfo = fieldInfo;
+            this.methodCallInfo = methodCallInfo;
+        }
+    }
 }

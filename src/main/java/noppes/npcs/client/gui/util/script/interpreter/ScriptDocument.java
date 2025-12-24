@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 
 import java.util.*;
@@ -73,6 +72,9 @@ public class ScriptDocument {
     
     // Local variables per method (methodStartOffset -> {varName -> FieldInfo})
     private final Map<Integer, Map<String, FieldInfo>> methodLocals = new HashMap<>();
+
+    // Method calls - stores all parsed method call information
+    private final List<MethodCallInfo> methodCalls = new ArrayList<>();
 
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
@@ -180,6 +182,7 @@ public class ScriptDocument {
         excludedRanges.clear();
         methodLocals.clear();
         scriptTypes.clear();
+        methodCalls.clear();
 
         // Phase 1: Find excluded regions (strings/comments)
         findExcludedRanges();
@@ -858,13 +861,14 @@ public class ScriptDocument {
         // Numbers
         addPatternMarks(marks, NUMBER_PATTERN, TokenType.NUMBER);
 
+        // Method calls (parse before variables so we can attach context)
+        markMethodCalls(marks);
+
         // Variables and fields
         markVariables(marks);
 
         // Chained field accesses (e.g., mc.player.world, this.field)
         markChainedFieldAccesses(marks);
-
-        markMethodCalls(marks);
         
         // Imported class usages
         markImportedClassUsages(marks);
@@ -1321,6 +1325,9 @@ public class ScriptDocument {
                         arguments, receiverType, resolvedMethod, isStaticAccess
                     );
                     callInfo.validate();
+
+                    // Store in collection for later lookup
+                    methodCalls.add(callInfo);
                     
                     // Always mark method call as green (METHOD_CALL), with error info attached for underline
                     // The MethodCallInfo is attached so rendering can draw curly underline if there's an error
@@ -1349,6 +1356,9 @@ public class ScriptDocument {
                             arguments, null, resolvedMethod
                         );
                         callInfo.validate();
+
+                        // Store in collection for later lookup
+                        methodCalls.add(callInfo);
                         
                         // Always mark method call as green (METHOD_CALL), with error info attached for underline
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
@@ -1420,6 +1430,25 @@ public class ScriptDocument {
         
         // It's static access if the identifier starts with uppercase
         return !ident.isEmpty() && Character.isUpperCase(ident.charAt(0));
+    }
+
+    /**
+     * Find the MethodCallInfo that contains the given position as an argument.
+     * Returns null if the position is not inside any method call's argument list.
+     */
+    private MethodCallInfo findMethodCallContainingPosition(int position) {
+        for (MethodCallInfo call : methodCalls) {
+            // Check if position is within the argument list (between open and close parens)
+            if (position >= call.getOpenParenOffset() && position <= call.getCloseParenOffset()) {
+                // Check if it's within any of the arguments
+                for (MethodCallInfo.Argument arg : call.getArguments()) {
+                    if (position >= arg.getStartOffset() && position <= arg.getEndOffset()) {
+                        return call;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -1951,6 +1980,8 @@ public class ScriptDocument {
 
             // Find containing method
             MethodInfo containingMethod = findMethodAtPosition(position);
+            // Check if this variable is an argument to a method call
+            MethodCallInfo callInfo = findMethodCallContainingPosition(position);
 
             // For uppercase identifiers, only process if it's a known field
             // Otherwise, let type handling (markImportedClassUsages) handle it
@@ -1970,15 +2001,17 @@ public class ScriptDocument {
                     FieldInfo localInfo = locals.get(name);
                     // Only highlight if the position is after the declaration
                     if (localInfo.isVisibleAt(position)) {
-                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, localInfo));
+                        Object metadata = callInfo != null ? new FieldInfo.ArgInfo(localInfo, callInfo) : localInfo;
+                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, metadata));
                         continue;
                     }
                 }
-
+            } else {
                 // Check global fields
                 if (globalFields.containsKey(name)) {
                     FieldInfo fieldInfo = globalFields.get(name);
-                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, fieldInfo));
+                    Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
                     continue;
                 }
 
@@ -1987,22 +2020,7 @@ public class ScriptDocument {
                     continue;
 
                 // Unknown variable inside method - mark as undefined
-                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
-            } else {
-                // Outside any method
-                // Check global fields
-                if (globalFields.containsKey(name)) {
-                    FieldInfo fieldInfo = globalFields.get(name);
-                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, fieldInfo));
-                    continue;
-                }
-
-                // Skip uppercase if not a known field - type handling will deal with it
-                if (isUppercase)
-                    continue;
-
-                // Unknown variable outside method - mark as undefined
-                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR, callInfo));
             }
         }
     }

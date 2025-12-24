@@ -202,6 +202,7 @@ public class MethodCallInfo {
     public boolean hasArgTypeError() {
         return !this.argumentTypeErrors.isEmpty();
     }
+
     public boolean hasArgTypeError(Token t) {
         for (ArgumentTypeError ate : this.argumentTypeErrors) {
             if (ate.getArg().equals(t)) {
@@ -209,6 +210,10 @@ public class MethodCallInfo {
             }
         }
         return false;
+    }
+
+    public boolean hasArgCountError(Token t) {
+        return hasArgCountError() && t.isMethodCall();
     }
 
     /**

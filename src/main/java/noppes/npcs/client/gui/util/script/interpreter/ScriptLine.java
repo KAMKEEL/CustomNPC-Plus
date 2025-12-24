@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import net.minecraft.client.gui.Gui;
 import noppes.npcs.client.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
@@ -144,6 +143,10 @@ public class ScriptLine {
                 if (mark.metadata != null) {
                     if (mark.metadata instanceof TypeInfo) {
                         token.setTypeInfo((TypeInfo) mark.metadata);
+                    } else if (mark.metadata instanceof FieldInfo.ArgInfo) {
+                        FieldInfo.ArgInfo ctx = (FieldInfo.ArgInfo) mark.metadata;
+                        token.setFieldInfo(ctx.fieldInfo);
+                        token.setMethodCallInfo(ctx.methodCallInfo);
                     } else if (mark.metadata instanceof FieldInfo) {
                         token.setFieldInfo((FieldInfo) mark.metadata);
                     } else if (mark.metadata instanceof MethodInfo) {
@@ -206,7 +209,6 @@ public class ScriptLine {
         int lastIndex = 0;
 
         // Track positions for underlines
-        List<int[]> underlines = new ArrayList<>(); // [startX, endX, color]
         int currentX = x;
 
         for (Token t : tokens) {
@@ -222,18 +224,10 @@ public class ScriptLine {
             // Track underline position if token has one
             if (t.hasUnderline()) {
                 int tokenWidth = ClientProxy.Font.width(t.getText());
-                underlines.add(new int[]{currentX, currentX + tokenWidth, t.getUnderlineColor()});
+                int currentY = y + ClientProxy.Font.height() - 1;
+                drawCurlyUnderline(currentX + 1, currentY, tokenWidth + 1, t.getUnderlineColor());
             }
 
-            if (t.getMethodCallInfo() != null) {
-                MethodCallInfo callInfo = t.getMethodCallInfo();
-                if (callInfo.hasArgTypeError(t)) {
-                    underlines.add(
-                            new int[]{currentX, currentX + ClientProxy.Font.width(t.getText()), t.getUnderlineColor()});
-                }
-            }
-
-        
             // Append the colored token
             builder.append(COLOR_CHAR)
                    .append(t.getColorCode())
@@ -252,11 +246,6 @@ public class ScriptLine {
 
         // Draw the text
         ClientProxy.Font.drawString(builder.toString(), x, y, defaultColor);
-
-        // Draw curly underlines for error tokens
-        for (int[] ul : underlines) {
-            drawCurlyUnderline(ul[0], y + ClientProxy.Font.height() - 1, ul[1] - ul[0], ul[2]);
-        }
     }
 
     /**
@@ -288,12 +277,12 @@ public class ScriptLine {
 
         GL11.glBegin(GL11.GL_LINE_STRIP);
         // Wave parameters: 2 pixels amplitude, 4 pixels wavelength
-        int waveHeight = 2;
+        int waveHeight = 1;
         int waveLength = 4;
         for (int i = 0; i <= width; i++) {
             // Create a sine-like wave pattern
             double phase = (double) i / waveLength * Math.PI * 2;
-            int yOffset = (int) (Math.sin(phase) * waveHeight);
+            float yOffset = (float) (Math.sin(phase) * waveHeight) - 0.5f;
             GL11.glVertex2f(x + i, y + yOffset);
         }
         GL11.glEnd();
