@@ -1310,60 +1310,39 @@ public class ScriptDocument {
             // Check if this is a static access (Class.method() style)
             boolean isStaticAccess = isStaticAccessCall(nameStart);
             
-            // Resolve the receiver chain and get the final type
+            // Resolve receiver using existing chain-based resolver and detect static access
             TypeInfo receiverType = resolveReceiverChain(nameStart);
             MethodInfo resolvedMethod = null;
+            boolean computedStaticAccess = isStaticAccessCall(nameStart);
 
             if (receiverType != null) {
-                // We have a resolved receiver type - check if method exists
                 if (receiverType.hasMethod(methodName)) {
                     resolvedMethod = receiverType.getMethodInfo(methodName);
-                    
-                    // Create MethodCallInfo for validation (with static access flag)
                     MethodCallInfo callInfo = new MethodCallInfo(
                         methodName, nameStart, nameEnd, openParen, closeParen,
-                        arguments, receiverType, resolvedMethod, isStaticAccess
+                        arguments, receiverType, resolvedMethod, computedStaticAccess
                     );
                     callInfo.validate();
-
-                    // Store in collection for later lookup
                     methodCalls.add(callInfo);
-                    
-                    // Always mark method call as green (METHOD_CALL), with error info attached for underline
-                    // The MethodCallInfo is attached so rendering can draw curly underline if there's an error
                     marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                 } else {
-                    // Method doesn't exist on this type
                     marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                 }
             } else {
-                // No receiver OR receiver couldn't be resolved
-                // Check if there's a dot before this (meaning there WAS a receiver, we just couldn't resolve it)
                 boolean hasDot = isPrecededByDot(nameStart);
-
                 if (hasDot) {
-                    // There was a receiver but we couldn't resolve it - mark as undefined
                     marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                 } else {
-                    // No receiver - standalone method call
-                    // Check if this method is defined in the script itself
                     if (isScriptMethod(methodName)) {
                         resolvedMethod = getScriptMethodInfo(methodName);
-                        
-                        // Create MethodCallInfo for validation
                         MethodCallInfo callInfo = new MethodCallInfo(
                             methodName, nameStart, nameEnd, openParen, closeParen,
                             arguments, null, resolvedMethod
                         );
                         callInfo.validate();
-
-                        // Store in collection for later lookup
                         methodCalls.add(callInfo);
-                        
-                        // Always mark method call as green (METHOD_CALL), with error info attached for underline
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                     } else {
-                        // Unknown standalone method - mark as undefined
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                     }
                 }
@@ -1532,7 +1511,7 @@ public class ScriptDocument {
                     // Try to resolve the argument type
                     TypeInfo argType = resolveExpressionType(argText, actualStart);
                     
-                    args.add(new MethodCallInfo.Argument(
+                    args.add(new MethodCallInfo.Argument( 
                         argText, actualStart, actualEnd, argType, true, null
                     ));
                 }
@@ -1564,8 +1543,17 @@ public class ScriptDocument {
     }
 
     /**
-     * Try to resolve the type of an expression (for argument type checking).
-     * This is a simplified version that handles common cases.
+     * Comprehensive expression type resolver that handles:
+     * - Literals (strings, numbers, booleans, null)
+     * - Variables (local, parameter, global)
+     * - Simple identifiers
+     * - Chained field accesses (a.b.c)
+     * - Chained method calls (a().b().c())
+     * - Mixed chains (a.b().c.d())
+     * - Static access (Class.field, Class.method())
+     * - New expressions (new Type())
+     * 
+     * This is THE method that should be used for all type resolution needs.
      */
     private TypeInfo resolveExpressionType(String expr, int position) {
         expr = expr.trim();
@@ -1611,18 +1599,9 @@ public class ScriptDocument {
             return TypeInfo.forPrimitive("double");
         }
         
-        // Simple variable reference
-        if (expr.matches("[a-zA-Z_][a-zA-Z0-9_]*")) {
-            FieldInfo varInfo = resolveVariable(expr, position);
-            if (varInfo != null) {
-                return varInfo.getTypeInfo();
-            }
-        }
-        
         // "this" keyword
         if (expr.equals("this")) {
-            // Could return the enclosing class type if we had that info
-            return null;
+            return findEnclosingScriptType(position);
         }
         
         // "new Type()" expressions
@@ -1633,11 +1612,131 @@ public class ScriptDocument {
             }
         }
         
-        // Chain expressions like "obj.field" or "obj.method()"
-        // This is complex - for now, return null to indicate unknown
-        // The type compatibility check will be lenient with null types
+        // Now handle the complex case: chains of fields and method calls
+        // Parse the expression into segments
+        List<ChainSegment> segments = parseExpressionChain(expr);
         
-        return null;
+        if (segments.isEmpty()) {
+            return null;
+        }
+        
+        // Resolve the first segment
+        ChainSegment first = segments.get(0);
+        TypeInfo currentType = null;
+        
+        if (first.name.equals("this")) {
+            currentType = findEnclosingScriptType(position);
+            // Handle this.field where we don't have a script type
+            if (currentType == null && segments.size() > 1 && !segments.get(1).isMethodCall) {
+                String fieldName = segments.get(1).name;
+                if (globalFields.containsKey(fieldName)) {
+                    currentType = globalFields.get(fieldName).getTypeInfo();
+                    // Continue from segment 2
+                    for (int i = 2; i < segments.size(); i++) {
+                        currentType = resolveChainSegment(currentType, segments.get(i));
+                        if (currentType == null) return null;
+                    }
+                    return currentType;
+                }
+            }
+        } else if (Character.isUpperCase(first.name.charAt(0))) {
+            // Uppercase first letter - could be a class name for static access
+            currentType = resolveType(first.name);
+        } else if (!first.isMethodCall) {
+            // Regular variable
+            FieldInfo varInfo = resolveVariable(first.name, position);
+            if (varInfo != null) {
+                currentType = varInfo.getTypeInfo();
+            }
+        } else {
+            // First segment is a method call - check script methods
+            if (isScriptMethod(first.name)) {
+                MethodInfo scriptMethod = getScriptMethodInfo(first.name);
+                if (scriptMethod != null) {
+                    currentType = scriptMethod.getReturnType();
+                }
+            }
+        }
+        
+        // Resolve the rest of the chain
+        for (int i = 1; i < segments.size(); i++) {
+            currentType = resolveChainSegment(currentType, segments.get(i));
+            if (currentType == null) {
+                return null;
+            }
+        }
+        
+        return currentType;
+    }
+    
+    /**
+     * Parse an expression string into chain segments.
+     * Handles dots, method calls, and nested expressions.
+     * Examples:
+     * - "a.b.c" -> [a, b, c] (all fields)
+     * - "a().b()" -> [a(), b()] (all methods)
+     * - "a.b().c" -> [a, b(), c] (mixed)
+     */
+    private List<ChainSegment> parseExpressionChain(String expr) {
+        List<ChainSegment> segments = new ArrayList<>();
+        int i = 0;
+        
+        while (i < expr.length()) {
+            // Skip whitespace
+            while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
+                i++;
+            }
+            
+            if (i >= expr.length()) break;
+            
+            // Read identifier
+            int start = i;
+            while (i < expr.length() && Character.isJavaIdentifierPart(expr.charAt(i))) {
+                i++;
+            }
+            
+            if (i == start) {
+                // Not an identifier, skip this character
+                i++;
+                continue;
+            }
+            
+            String name = expr.substring(start, i);
+            
+            // Skip whitespace
+            while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
+                i++;
+            }
+            
+            // Check if followed by parentheses (method call)
+            boolean isMethodCall = false;
+            if (i < expr.length() && expr.charAt(i) == '(') {
+                isMethodCall = true;
+                // Skip to the matching closing paren
+                int depth = 1;
+                i++;
+                while (i < expr.length() && depth > 0) {
+                    char c = expr.charAt(i);
+                    if (c == '(') depth++;
+                    else if (c == ')') depth--;
+                    i++;
+                }
+            }
+            
+            segments.add(new ChainSegment(name, start, i, isMethodCall));
+            
+            // Skip whitespace
+            while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
+                i++;
+            }
+            
+            // Check for dot (continuing chain)
+            if (i < expr.length() && expr.charAt(i) == '.') {
+                i++; // Skip the dot
+            }
+        }
+        
+        return segments;
     }
 
     /**
@@ -1662,142 +1761,15 @@ public class ScriptDocument {
             return null; // No receiver
         }
 
-        // Walk backward to collect all segments in the chain
-        // Segments can be identifiers OR method calls (identifier followed by parentheses)
-        List<ChainSegment> chainSegments = new ArrayList<>();
-
-        int pos = scanPos; // Currently at the dot
-
-        while (pos >= 0) {
-            // Skip the dot
-            pos--;
-
-            // Skip whitespace
-            while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
-                pos--;
-
-            if (pos < 0)
-                break;
-
-            char c = text.charAt(pos);
-            
-            // Check if this is the end of a method call (closing paren)
-            if (c == ')') {
-                // Find the matching opening paren
-                int closeParen = pos;
-                int openParen = findMatchingParenBackward(pos);
-                if (openParen < 0) {
-                    return null; // Malformed
-                }
-                
-                // Now find the method name before the open paren
-                int beforeParen = openParen - 1;
-                while (beforeParen >= 0 && Character.isWhitespace(text.charAt(beforeParen)))
-                    beforeParen--;
-                
-                if (beforeParen < 0 || !Character.isJavaIdentifierPart(text.charAt(beforeParen))) {
-                    return null; // No method name
-                }
-                
-                // Read the method name backward
-                int methodNameEnd = beforeParen + 1;
-                while (beforeParen >= 0 && Character.isJavaIdentifierPart(text.charAt(beforeParen)))
-                    beforeParen--;
-                int methodNameBegin = beforeParen + 1;
-                
-                String methodName = text.substring(methodNameBegin, methodNameEnd);
-                chainSegments.add(0, new ChainSegment(methodName, methodNameBegin, methodNameEnd, true));
-                
-                pos = beforeParen;
-            } else if (Character.isJavaIdentifierPart(c)) {
-                // Regular identifier (field or variable)
-                int identEnd = pos + 1;
-                while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos)))
-                    pos--;
-                int identStart = pos + 1;
-
-                String ident = text.substring(identStart, identEnd);
-                chainSegments.add(0, new ChainSegment(ident, identStart, identEnd, false));
-            } else {
-                // Unexpected character - end of chain
-                break;
-            }
-
-            // Skip whitespace
-            while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
-                pos--;
-
-            // Check if there's another dot (continuing the chain)
-            if (pos >= 0 && text.charAt(pos) == '.') {
-                // Continue the loop to get the next segment
-                continue;
-            } else {
-                // No more dots - end of chain
-                break;
-            }
-        }
-
-        if (chainSegments.isEmpty()) {
-            return null;
-        }
-
-        // Now resolve the chain from left to right
-        ChainSegment firstSeg = chainSegments.get(0);
-        String firstSegment = firstSeg.name;
-        TypeInfo currentType = null;
-
-        if (firstSegment.equals("this")) {
-            // For 'this', check if we're inside a script-defined class
-            currentType = findEnclosingScriptType(methodNameStart);
-            
-            if (currentType == null && chainSegments.size() > 1) {
-                // Fallback: this.something - check globalFields
-                ChainSegment nextSeg = chainSegments.get(1);
-                if (!nextSeg.isMethodCall && globalFields.containsKey(nextSeg.name)) {
-                    currentType = globalFields.get(nextSeg.name).getTypeInfo();
-                    // Continue resolving from index 2
-                    for (int i = 2; i < chainSegments.size(); i++) {
-                        currentType = resolveChainSegment(currentType, chainSegments.get(i));
-                        if (currentType == null) return null;
-                    }
-                    return currentType;
-                }
-            }
-            // If we have a script type, continue from index 1
-            if (currentType != null) {
-                for (int i = 1; i < chainSegments.size(); i++) {
-                    currentType = resolveChainSegment(currentType, chainSegments.get(i));
-                    if (currentType == null) return null;
-                }
-                return currentType;
-            }
-            return null;
-        } else if (Character.isUpperCase(firstSegment.charAt(0))) {
-            // Static access like Minecraft.getMinecraft() - the type is the class itself
-            currentType = resolveType(firstSegment);
-        } else if (!firstSeg.isMethodCall) {
-            // Variable like mc.thePlayer.worldObj
-            FieldInfo varInfo = resolveVariable(firstSegment, firstSeg.start);
-            if (varInfo != null) {
-                currentType = varInfo.getTypeInfo();
-            }
-        } else {
-            // First segment is a method call without a receiver - check script methods
-            if (isScriptMethod(firstSegment)) {
-                MethodInfo scriptMethod = getScriptMethodInfo(firstSegment);
-                if (scriptMethod != null) {
-                    currentType = scriptMethod.getReturnType();
-                }
-            }
-        }
-
-        // Resolve remaining segments
-        for (int i = 1; i < chainSegments.size(); i++) {
-            currentType = resolveChainSegment(currentType, chainSegments.get(i));
-            if (currentType == null) return null;
-        }
-
-        return currentType;
+        // Use the shared helper to locate the receiver expression before the dot,
+        // then delegate resolution to the comprehensive resolver.
+        int[] bounds = findReceiverBoundsBefore(scanPos);
+        if (bounds == null) return null;
+        int start = bounds[0];
+        int end = bounds[1];
+        String receiverExpr = text.substring(start, end).trim();
+        if (receiverExpr.isEmpty()) return null;
+        return resolveExpressionType(receiverExpr, start);
     }
 
     /**
@@ -1895,6 +1867,101 @@ public class ScriptDocument {
         }
         
         return -1; // No matching paren found
+    }
+
+    /**
+     * Find the matching opening bracket of a given closing bracket position.
+     * Supports any pair of open/close chars (e.g., '[' and ']').
+     */
+    private int findMatchingBracketBackward(int closePos, char openChar, char closeChar) {
+        if (closePos < 0 || closePos >= text.length() || text.charAt(closePos) != closeChar) {
+            return -1;
+        }
+
+        int depth = 1;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = closePos - 1; i >= 0; i--) {
+            char c = text.charAt(i);
+
+            // Handle string literals (backward)
+            if (!inString && (c == '"' || c == '\'')) {
+                int backslashCount = 0;
+                for (int j = i - 1; j >= 0 && text.charAt(j) == '\\'; j--) backslashCount++;
+                if (backslashCount % 2 == 0) {
+                    inString = true;
+                    stringChar = c;
+                }
+            } else if (inString && c == stringChar) {
+                int backslashCount = 0;
+                for (int j = i - 1; j >= 0 && text.charAt(j) == '\\'; j--) backslashCount++;
+                if (backslashCount % 2 == 0) {
+                    inString = false;
+                }
+            }
+
+            if (inString) continue;
+
+            if (isExcluded(i)) continue;
+
+            if (c == closeChar) depth++;
+            else if (c == openChar) {
+                depth--;
+                if (depth == 0) return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Given the position of a dot ('.') in `text`, find the bounds [start, end)
+     * of the receiver expression immediately to the left of the dot. The end
+     * returned will be the dot index (exclusive). Returns null if not found or malformed.
+     */
+    private int[] findReceiverBoundsBefore(int dotIndex) {
+        if (dotIndex < 0 || dotIndex >= text.length() || text.charAt(dotIndex) != '.') {
+            return null;
+        }
+
+        int pos = dotIndex - 1;
+        // Skip whitespace
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) pos--;
+        if (pos < 0) return null;
+
+        while (pos >= 0) {
+            char c = text.charAt(pos);
+            if (Character.isWhitespace(c)) { pos--; continue; }
+
+            if (c == ')') {
+                int open = findMatchingParenBackward(pos);
+                if (open < 0) return null;
+                pos = open - 1;
+                continue;
+            }
+
+            if (c == ']') {
+                int open = findMatchingBracketBackward(pos, '[', ']');
+                if (open < 0) return null;
+                pos = open - 1;
+                continue;
+            }
+
+            if (Character.isJavaIdentifierPart(c)) {
+                while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) pos--;
+                // If it's part of a chained identifier (preceded by a dot), continue
+                if (pos >= 0 && text.charAt(pos) == '.') { pos--; continue; }
+                break;
+            }
+
+            // Unexpected char - stop and treat as start after this
+            break;
+        }
+
+        int start = pos + 1;
+        int end = dotIndex; // exclusive
+        if (start >= end) return null;
+        return new int[]{start, end};
     }
 
     /**
@@ -2035,7 +2102,7 @@ public class ScriptDocument {
         // Start with an identifier or 'this' followed by at least one dot and another identifier
         Pattern chainPattern = Pattern.compile("\\b(this|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
         Matcher m = chainPattern.matcher(text);
-
+ 
         while (m.find()) {
             int chainStart = m.start(1);
 
@@ -2199,6 +2266,103 @@ public class ScriptDocument {
                 }
             }
         }
+
+        // Second pass: handle cases where the receiver is a method call or array access
+        // Example: getMinecraft().thePlayer -> initial chainPattern won't match because
+        // the left side isn't a simple identifier. Find ".identifier" occurrences where
+        // the char before the dot ends with ')' or ']' and resolve the receiver expression.
+        Pattern dotIdent = Pattern.compile("\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+        Matcher md = dotIdent.matcher(text);
+        while (md.find()) {
+            int identStart = md.start(1);
+            int identEnd = md.end(1);
+            int dotPos = md.start();
+
+            // Skip if excluded or in import/package
+            if (isExcluded(identStart) || isInImportOrPackage(identStart))
+                continue;
+
+            // Find non-whitespace char before the dot
+            int before = dotPos - 1;
+            while (before >= 0 && Character.isWhitespace(text.charAt(before)))
+                before--;
+            if (before < 0)
+                continue;
+
+            char bc = text.charAt(before);
+            // Only handle when left side ends with ')' or ']' (method call or array access)
+            if (bc != ')' && bc != ']')
+                continue;
+
+            // Extract receiver bounds and resolve its type
+            int[] bounds = findReceiverBoundsBefore(dotPos);
+            if (bounds == null)
+                continue;
+            int recvStart = bounds[0];
+            int recvEnd = bounds[1];
+
+            if (isExcluded(recvStart) || isInImportOrPackage(recvStart))
+                continue;
+
+            String receiverExpr = text.substring(recvStart, recvEnd).trim();
+            if (receiverExpr.isEmpty())
+                continue;
+
+            TypeInfo receiverType = resolveExpressionType(receiverExpr, recvStart);
+
+            // Now mark the first field after the dot and continue chaining
+            String firstField = md.group(1);
+            FieldInfo fInfo = null;
+            if (receiverType != null && receiverType.hasField(firstField)) {
+                fInfo = receiverType.getFieldInfo(firstField);
+                marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, fInfo));
+            } else {
+                marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.UNDEFINED_VAR));
+            }
+
+            // Attempt to continue the chain after this identifier
+            int pos = identEnd;
+            TypeInfo currentType = (fInfo != null) ? fInfo.getTypeInfo() : null;
+            while (pos < text.length()) {
+                // Skip whitespace
+                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
+                    pos++;
+                if (pos >= text.length() || text.charAt(pos) != '.')
+                    break;
+                pos++; // skip dot
+                // Skip whitespace
+                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
+                    pos++;
+                if (pos >= text.length() || !Character.isJavaIdentifierStart(text.charAt(pos)))
+                    break;
+
+                int nStart = pos;
+                while (pos < text.length() && Character.isJavaIdentifierPart(text.charAt(pos)))
+                    pos++;
+                int nEnd = pos;
+                String seg = text.substring(nStart, nEnd);
+
+                // Check if next segment is a method call (followed by '(') -> stop
+                int checkPosInner = nEnd;
+                while (checkPosInner < text.length() && Character.isWhitespace(text.charAt(checkPosInner)))
+                    checkPosInner++;
+                if (checkPosInner < text.length() && text.charAt(checkPosInner) == '(')
+                    break;
+
+                if (isExcluded(nStart))
+                    break;
+
+                if (currentType != null && currentType.isResolved() && currentType.hasField(seg)) {
+                    FieldInfo segInfo = currentType.getFieldInfo(seg);
+                    marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, segInfo));
+                    currentType = (segInfo != null) ? segInfo.getTypeInfo() : null;
+                } else {
+                    marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.UNDEFINED_VAR));
+                    currentType = null;
+                }
+            }
+        }
+
     }
 
     private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
