@@ -2109,6 +2109,11 @@ public class ScriptDocument {
             // Start with resolving the first segment
             TypeInfo currentType = null;
             boolean firstIsThis = firstSegment.equals("this");
+            boolean firstIsPrecededByDot = isPrecededByDot(chainStart);
+            
+            // Determine the starting index for marking
+            // If the first segment is preceded by a dot, it's a field access (not a variable), so we should mark it
+            int startMarkingIndex = firstIsPrecededByDot ? 0 : 1;
 
             if (firstIsThis) {
                 // For 'this', we don't have a class context to resolve, but we can mark subsequent fields
@@ -2118,23 +2123,50 @@ public class ScriptDocument {
                 // Static field access like SomeClass.field
                 currentType = resolveType(firstSegment);
             } else {
-                // Variable field access
-                FieldInfo varInfo = resolveVariable(firstSegment, chainStart);
-                if (varInfo != null) {
-                    currentType = varInfo.getTypeInfo();
+                // Variable or field access
+                if (firstIsPrecededByDot) {
+                    // This is a field access on a previous result (e.g., getMinecraft().thePlayer)
+                    // Resolve the receiver chain to get the type of what comes before the dot
+                    TypeInfo receiverType = resolveReceiverChain(chainStart);
+                    if (receiverType != null && receiverType.hasField(firstSegment)) {
+                        FieldInfo varInfo = receiverType.getFieldInfo(firstSegment);
+                        currentType = (varInfo != null) ? varInfo.getTypeInfo() : null;
+                    } else {
+                        currentType = null; // Can't resolve
+                    }
+                } else {
+                    // This is a variable starting the chain
+                    FieldInfo varInfo = resolveVariable(firstSegment, chainStart);
+                    if (varInfo != null) {
+                        currentType = varInfo.getTypeInfo();
+                    } else {
+                        currentType = null;
+                    }
                 }
             }
 
-            // Mark the segments - skip first segment (already marked by markVariables or markImportedClassUsages)
-            for (int i = 1; i < chainSegments.size(); i++) {
+            // Mark the segments - start from index determined above
+            for (int i = startMarkingIndex; i < chainSegments.size(); i++) {
                 String segment = chainSegments.get(i);
                 int[] segPos = segmentPositions.get(i);
 
                 if (isExcluded(segPos[0]))
                     continue;
 
-                if (i == 1 && firstIsThis) {
-                    // For "this.fiel/d", check if field exists in globalFields
+                // Handle the first segment if we're marking it (i.e., when preceded by dot)
+                if (i == 0 && firstIsPrecededByDot) {
+                    // This is a field access on a receiver (e.g., the "thePlayer" in "getMinecraft().thePlayer")
+                    TypeInfo receiverType = resolveReceiverChain(chainStart);
+                    if (receiverType != null && receiverType.hasField(segment)) {
+                        FieldInfo fieldInfo = receiverType.getFieldInfo(segment);
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
+                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+                    } else {
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
+                        currentType = null;
+                    }
+                } else if (i == 1 && firstIsThis) {
+                    // For "this.field", check if field exists in globalFields
                     if (globalFields.containsKey(segment)) {
                         FieldInfo fieldInfo = globalFields.get(segment);
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
