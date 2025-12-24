@@ -281,7 +281,7 @@ public class ScriptLine {
             // Create a sine-like wave pattern
             double phase = (double) i / waveLength * Math.PI * 2;
             float yOffset = (float) (Math.sin(phase) * waveHeight) - 0.25f;
-            GL11.glVertex2f(x + i + 3f, y + yOffset);
+            GL11.glVertex2f(x + i + 2f, y + yOffset);
         }
         GL11.glEnd();
 

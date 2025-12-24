@@ -136,12 +136,16 @@ public class Token {
      * @param y baseline pixel for underline
      */
     public void drawUnderline(int x, int y) {
-        if (methodCallInfo == null)
+        if (!isMethodCall() || methodCallInfo == null)
             return;
-        
+
         if (methodCallInfo.hasArgCountError()) {
-            int tokenWidth = ClientProxy.Font.width(text);
-            ScriptLine.drawCurlyUnderline(x + 1, y, tokenWidth + 1, getUnderlineColor());
+            try {
+                int tokenWidth = ClientProxy.Font.width(text);
+                ScriptLine.drawCurlyUnderline(x + 1, y, tokenWidth + 1, getUnderlineColor());
+            } catch (Exception e) {
+
+            }
             return;
         }
 
@@ -149,61 +153,22 @@ public class Token {
             // For arg type errors, underline the specific argument span(s).
             // Compute pixel X for each argument by walking tokens on the same line
             ScriptLine parent = getParentLine();
+
             if (parent == null)
                 return;
+            String line = parent.getText();
 
             for (MethodCallInfo.ArgumentTypeError error : methodCallInfo.getArgumentTypeErrors()) {
                 MethodCallInfo.Argument arg = error.getArg();
                 int argStart = arg.getStartOffset();
-                int argEnd = arg.getEndOffset();
-
-                // Skip args not on this line
-                if (!parent.containsPosition(argStart))
-                    continue;
-
-                // Compute X position by summing token widths from this token up to argStart
-                int argX = x;
-                Token cur = this;
-
-                // If this token starts after the arg (shouldn't normally happen), skip
-                if (cur.getGlobalStart() > argStart)
-                    continue;
-
-                while (cur != null && cur.getParentLine() == parent && cur.getGlobalEnd() <= argStart) {
-                    argX += ClientProxy.Font.width(cur.getText());
-                    cur = cur.nextOnLine();
-                }
-
-                if (cur == null || cur.getParentLine() != parent)
-                    continue;
-
-                // Add partial width of the token containing the arg start
-                int overlapStart = Math.max(0, argStart - cur.getGlobalStart());
-                if (overlapStart > 0) {
-                    String part = cur.getText().substring(0, Math.min(overlapStart, cur.getText().length()));
-                    argX += ClientProxy.Font.width(part);
-                }
-
-                // Compute total width of the argument (may span multiple tokens)
-                int argWidth = 0;
-                Token cur2 = cur;
-                int remainingStart = argStart;
-                while (cur2 != null && cur2.getParentLine() == parent && remainingStart < argEnd) {
-                    int segStart = Math.max(remainingStart, cur2.getGlobalStart());
-                    int segEnd = Math.min(argEnd, cur2.getGlobalEnd());
-                    if (segEnd > segStart) {
-                        int localStart = segStart - cur2.getGlobalStart();
-                        int localEnd = segEnd - cur2.getGlobalStart();
-                        String segText = cur2.getText()
-                                             .substring(localStart, Math.min(localEnd, cur2.getText().length()));
-                        argWidth += ClientProxy.Font.width(segText);
-                    }
-                    remainingStart = cur2.getGlobalEnd();
-                    cur2 = cur2.nextOnLine();
-                }
-
-                if (argWidth > 0) {
-                    ScriptLine.drawCurlyUnderline(argX, y, argWidth, getUnderlineColor());
+                try {
+                    String beforeArg = line.substring(0,
+                            argStart - parent.getGlobalStart());
+                    int beforeWidth = ClientProxy.Font.width(beforeArg);
+                    int argWidth = ClientProxy.Font.width(arg.getText());
+                    ScriptLine.drawCurlyUnderline(x + beforeWidth, y, argWidth, getUnderlineColor());
+                } catch (Exception e) {
+        
                 }
             }
         }
