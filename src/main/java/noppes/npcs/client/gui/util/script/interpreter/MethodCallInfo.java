@@ -1,0 +1,395 @@
+package noppes.npcs.client.gui.util.script.interpreter;
+
+import scala.annotation.meta.param;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Stores information about a method call for argument validation.
+ * This includes the method name, the arguments passed, and validation results.
+ */
+public class MethodCallInfo {
+
+    /**
+     * Represents a single argument in a method call.
+     */
+    public static class Argument {
+        private final String text;           // The text of the argument expression
+        private final int startOffset;       // Start position in source
+        private final int endOffset;         // End position in source
+        private final TypeInfo resolvedType; // The resolved type of the argument (null if unresolved)
+        private final boolean valid;         // Whether this arg matches the expected parameter type
+        private final String errorMessage;   // Error message if invalid
+
+        public Argument(String text, int startOffset, int endOffset, TypeInfo resolvedType,
+                        boolean valid, String errorMessage) {
+            this.text = text;
+            this.startOffset = startOffset;
+            this.endOffset = endOffset;
+            this.resolvedType = resolvedType;
+            this.valid = valid;
+            this.errorMessage = errorMessage;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public int getStartOffset() {
+            return startOffset;
+        }
+
+        public int getEndOffset() {
+            return endOffset;
+        }
+
+        public TypeInfo getResolvedType() {
+            return resolvedType;
+        }
+
+        public boolean isValid() {
+            return valid;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+
+        public boolean equals(Token t) {
+            return text.equals(t.getText()) &&
+                    startOffset == t.getGlobalStart() &&
+                    endOffset == t.getGlobalEnd();
+        }
+
+        @Override
+        public String toString() {
+            return "Arg{" + text + " [" + startOffset + "-" + endOffset + "]" +
+                    (resolvedType != null ? " :" + resolvedType.getSimpleName() : "") +
+                    (valid ? "" : " INVALID: " + errorMessage) + "}";
+        }
+    }
+
+    /**
+     * Validation error type.
+     */
+    public enum ErrorType {
+        NONE,
+        WRONG_ARG_COUNT,       // Number of args doesn't match any overload
+        WRONG_ARG_TYPE,        // Specific argument has wrong type
+        STATIC_ACCESS_ERROR,   // Trying to call instance method statically or vice versa
+        UNRESOLVED_METHOD,     // Method doesn't exist
+        UNRESOLVED_RECEIVER    // Can't resolve the receiver type
+    }
+
+    private final String methodName;
+    private final int methodNameStart;       // Position of method name
+    private final int methodNameEnd;
+    private final int openParenOffset;       // Position of '('
+    private final int closeParenOffset;      // Position of ')'
+    private final List<Argument> arguments;
+    private final TypeInfo receiverType;     // The type on which this method is called (null for standalone)
+    private final MethodInfo resolvedMethod; // The resolved method (null if unresolved)
+    private final boolean isStaticAccess;    // True if this is Class.method() style access
+
+    private ErrorType errorType = ErrorType.NONE;
+    private String errorMessage;
+    private int errorArgIndex = -1;          // Index of the problematic argument (for WRONG_ARG_TYPE)
+    private List<ArgumentTypeError> argumentTypeErrors = new ArrayList<>();
+
+    public MethodCallInfo(String methodName, int methodNameStart, int methodNameEnd,
+                          int openParenOffset, int closeParenOffset,
+                          List<Argument> arguments, TypeInfo receiverType,
+                          MethodInfo resolvedMethod) {
+        this(methodName, methodNameStart, methodNameEnd, openParenOffset, closeParenOffset,
+                arguments, receiverType, resolvedMethod, false);
+    }
+
+    public MethodCallInfo(String methodName, int methodNameStart, int methodNameEnd,
+                          int openParenOffset, int closeParenOffset,
+                          List<Argument> arguments, TypeInfo receiverType,
+                          MethodInfo resolvedMethod, boolean isStaticAccess) {
+        this.methodName = methodName;
+        this.methodNameStart = methodNameStart;
+        this.methodNameEnd = methodNameEnd;
+        this.openParenOffset = openParenOffset;
+        this.closeParenOffset = closeParenOffset;
+        this.arguments = arguments != null ? new ArrayList<>(arguments) : new ArrayList<>();
+        this.receiverType = receiverType;
+        this.resolvedMethod = resolvedMethod;
+        this.isStaticAccess = isStaticAccess;
+    }
+
+    // Getters
+    public String getMethodName() {
+        return methodName;
+    }
+
+    public int getMethodNameStart() {
+        return methodNameStart;
+    }
+
+    public int getMethodNameEnd() {
+        return methodNameEnd;
+    }
+
+    public int getOpenParenOffset() {
+        return openParenOffset;
+    }
+
+    public int getCloseParenOffset() {
+        return closeParenOffset;
+    }
+
+    public List<Argument> getArguments() {
+        return Collections.unmodifiableList(arguments);
+    }
+
+    public int getArgumentCount() {
+        return arguments.size();
+    }
+
+    public TypeInfo getReceiverType() {
+        return receiverType;
+    }
+
+    public MethodInfo getResolvedMethod() {
+        return resolvedMethod;
+    }
+
+    public boolean isStaticAccess() {
+        return isStaticAccess;
+    }
+
+    public ErrorType getErrorType() {
+        return errorType;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    /**
+     * Get the full span of the method call including parentheses.
+     * Used for underlining the entire call on arg count errors.
+     */
+    public int getFullCallStart() {
+        return methodNameStart;
+    }
+
+    public int getFullCallEnd() {
+        return closeParenOffset + 1;
+    }
+
+    /**
+     * Check if this method call has any validation errors.
+     */
+    public boolean hasError() {
+        return errorType != ErrorType.NONE;
+    }
+
+    /**
+     * Check if this is an arg count error (underline whole call).
+     */
+    public boolean hasArgCountError() {
+        return errorType == ErrorType.WRONG_ARG_COUNT;
+    }
+
+    /**
+     * Check if this is an arg type error (underline specific arg).
+     */
+    public boolean hasArgTypeError() {
+        return !this.argumentTypeErrors.isEmpty();
+    }
+    public boolean hasArgTypeError(Token t) {
+        for (ArgumentTypeError ate : this.argumentTypeErrors) {
+            if (ate.getArg().equals(t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if this is a static access error (underline method name).
+     */
+    public boolean hasStaticAccessError() {
+        return errorType == ErrorType.STATIC_ACCESS_ERROR;
+    }
+
+    // Setters for validation results
+    public void setError(ErrorType type, String message) {
+        this.errorType = type;
+        this.errorMessage = message;
+    }
+
+    public void setArgTypeError(int argIndex, String message) {
+        this.argumentTypeErrors.add(new ArgumentTypeError(arguments.get(argIndex), argIndex, message));
+    }
+    
+
+    public class ArgumentTypeError {
+        private ErrorType type = ErrorType.WRONG_ARG_TYPE;
+        private final Argument arg;
+        private final int argIndex;
+        private final String message;
+
+        public ArgumentTypeError(Argument arg, int argIndex, String message) {
+            this.arg = arg;
+            this.argIndex = argIndex;
+            this.message = message;
+        }
+
+        public int getArgIndex() {
+            return argIndex;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+
+        public Argument getArg() {
+            return arg;
+        }
+    }
+
+    /**
+     * Validate this method call against the resolved method signature.
+     * Sets error information if validation fails.
+     */
+    public void validate() {
+        if (resolvedMethod == null) {
+            setError(ErrorType.UNRESOLVED_METHOD, "Cannot resolve method '" + methodName + "'");
+            return;
+        }
+
+        // Check static/instance access
+        if (isStaticAccess && !resolvedMethod.isStatic()) {
+            setError(ErrorType.STATIC_ACCESS_ERROR,
+                    "Cannot call instance method '" + methodName + "' on a class type");
+            return;
+        }
+
+        List<FieldInfo> params = resolvedMethod.getParameters();
+        int expectedCount = params.size();
+        int actualCount = arguments.size();
+
+        // Check arg count
+        if (actualCount != expectedCount) {
+            setError(ErrorType.WRONG_ARG_COUNT,
+                    "Expected " + expectedCount + " argument(s) but got " + actualCount);
+            return;
+        }
+
+        // Check each argument type
+        for (int i = 0; i < actualCount; i++) {
+            Argument arg = arguments.get(i);
+            FieldInfo para = params.get(i);
+
+            TypeInfo argType = arg.getResolvedType();
+            TypeInfo paramType = para.getDeclaredType();
+            if (argType != null && paramType != null) {
+                if (!isTypeCompatible(argType, paramType)) {
+                    setArgTypeError(i, "Expected " + paramType.getSimpleName() +
+                            " but got " + argType.getSimpleName());
+                    return;
+                }
+            } else if (paramType == null) {
+                setArgTypeError(i, "Parameter type of '" + para.getName() + "' is unresolved");
+                return;
+            } else if (argType == null) {
+                setArgTypeError(i, "Cannot resolve type of argument '" + arg.getText() + "'");
+                return;
+            }
+        }
+    }
+
+    /**
+     * Check if sourceType can be assigned to targetType.
+     * Handles primitive widening, inheritance, etc.
+     */
+    private boolean isTypeCompatible(TypeInfo sourceType, TypeInfo targetType) {
+        if (sourceType == null || targetType == null) {
+            return true; // Can't verify, assume compatible
+        }
+
+        if (sourceType.equals(targetType)) {
+            return true;
+        }
+
+        Class<?> sourceClass = sourceType.getJavaClass();
+        Class<?> targetClass = targetType.getJavaClass();
+
+        if (sourceClass == null || targetClass == null) {
+            return true; // Can't verify, assume compatible
+        }
+
+        // Check inheritance
+        if (targetClass.isAssignableFrom(sourceClass)) {
+            return true;
+        }
+
+        // Check primitive widening conversions
+        if (isPrimitiveWidening(sourceClass, targetClass)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if widening conversion is valid between primitives.
+     */
+    private boolean isPrimitiveWidening(Class<?> source, Class<?> target) {
+        // byte -> short -> int -> long -> float -> double
+        // char -> int -> long -> float -> double
+        if (target == double.class || target == Double.class) {
+            return source == float.class || source == Float.class ||
+                    source == long.class || source == Long.class ||
+                    source == int.class || source == Integer.class ||
+                    source == short.class || source == Short.class ||
+                    source == byte.class || source == Byte.class ||
+                    source == char.class || source == Character.class;
+        }
+        if (target == float.class || target == Float.class) {
+            return source == long.class || source == Long.class ||
+                    source == int.class || source == Integer.class ||
+                    source == short.class || source == Short.class ||
+                    source == byte.class || source == Byte.class ||
+                    source == char.class || source == Character.class;
+        }
+        if (target == long.class || target == Long.class) {
+            return source == int.class || source == Integer.class ||
+                    source == short.class || source == Short.class ||
+                    source == byte.class || source == Byte.class ||
+                    source == char.class || source == Character.class;
+        }
+        if (target == int.class || target == Integer.class) {
+            return source == short.class || source == Short.class ||
+                    source == byte.class || source == Byte.class ||
+                    source == char.class || source == Character.class;
+        }
+        if (target == short.class || target == Short.class) {
+            return source == byte.class || source == Byte.class;
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder("MethodCallInfo{");
+        sb.append(methodName).append("(");
+        for (int i = 0; i < arguments.size(); i++) {
+            if (i > 0)
+                sb.append(", ");
+            sb.append(arguments.get(i).getText());
+        }
+        sb.append(")");
+        if (hasError()) {
+            sb.append(" ERROR: ").append(errorType).append(" - ").append(errorMessage);
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+}

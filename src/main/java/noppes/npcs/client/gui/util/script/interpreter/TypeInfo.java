@@ -2,9 +2,9 @@ package noppes.npcs.client.gui.util.script.interpreter;
 
 /**
  * Represents resolved type information for a class/interface/enum.
- * Immutable data class holding all type metadata.
+ * Base class for type metadata. Extended by ScriptTypeInfo for script-defined types.
  */
-public final class TypeInfo {
+public class TypeInfo {
     
     public enum Kind {
         CLASS,
@@ -23,6 +23,19 @@ public final class TypeInfo {
 
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
+        this.simpleName = simpleName;
+        this.fullName = fullName;
+        this.packageName = packageName;
+        this.kind = kind;
+        this.javaClass = javaClass;
+        this.resolved = resolved;
+        this.enclosingType = enclosingType;
+    }
+    
+    // Protected constructor for subclasses (like ScriptTypeInfo)
+    protected TypeInfo(String simpleName, String fullName, String packageName,
+                       Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
+                       @SuppressWarnings("unused") boolean subclass) {
         this.simpleName = simpleName;
         this.fullName = fullName;
         this.packageName = packageName;
@@ -72,6 +85,25 @@ public final class TypeInfo {
         }
 
         return new TypeInfo(simpleName, fullName, packageName, kind, clazz, true, enclosing);
+    }
+
+    /**
+     * Create a TypeInfo for a primitive type.
+     */
+    public static TypeInfo forPrimitive(String typeName) {
+        Class<?> primitiveClass = null;
+        switch (typeName) {
+            case "boolean": primitiveClass = boolean.class; break;
+            case "byte": primitiveClass = byte.class; break;
+            case "char": primitiveClass = char.class; break;
+            case "short": primitiveClass = short.class; break;
+            case "int": primitiveClass = int.class; break;
+            case "long": primitiveClass = long.class; break;
+            case "float": primitiveClass = float.class; break;
+            case "double": primitiveClass = double.class; break;
+            case "void": primitiveClass = void.class; break;
+        }
+        return new TypeInfo(typeName, typeName, "", Kind.CLASS, primitiveClass, true, null);
     }
 
     // Getters

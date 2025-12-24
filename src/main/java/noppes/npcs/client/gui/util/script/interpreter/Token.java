@@ -21,7 +21,12 @@ public class Token {
     private TypeInfo typeInfo;        // For class references, type declarations
     private FieldInfo fieldInfo;      // For field references
     private MethodInfo methodInfo;    // For method calls/declarations
+    private MethodCallInfo methodCallInfo; // For method calls with argument info
     private ImportData importData;    // For import statements
+    
+    // Rendering flags
+    private boolean hasUnderline;     // True if this token should be underlined (for errors)
+    private int underlineColor;       // Color of the underline (if any)
 
     // Navigation - set by ScriptLine
     private Token prev;
@@ -111,8 +116,11 @@ public class Token {
     public TypeInfo getTypeInfo() { return typeInfo; }
     public FieldInfo getFieldInfo() { return fieldInfo; }
     public MethodInfo getMethodInfo() { return methodInfo; }
+    public MethodCallInfo getMethodCallInfo() { return methodCallInfo; }
     public ImportData getImportData() { return importData; }
     public ScriptLine getParentLine() { return parentLine; }
+    public boolean hasUnderline() { return hasUnderline; }
+    public int getUnderlineColor() { return underlineColor; }
 
     // ==================== SETTERS ====================
 
@@ -120,7 +128,13 @@ public class Token {
     public void setTypeInfo(TypeInfo info) { this.typeInfo = info; }
     public void setFieldInfo(FieldInfo info) { this.fieldInfo = info; }
     public void setMethodInfo(MethodInfo info) { this.methodInfo = info; }
+    public void setMethodCallInfo(MethodCallInfo info) { this.methodCallInfo = info; }
     public void setImportData(ImportData data) { this.importData = data; }
+    
+    public void setUnderline(boolean hasUnderline, int color) {
+        this.hasUnderline = hasUnderline;
+        this.underlineColor = color;
+    }
 
     void setParentLine(ScriptLine line) { this.parentLine = line; }
     void setPrev(Token prev) { this.prev = prev; }

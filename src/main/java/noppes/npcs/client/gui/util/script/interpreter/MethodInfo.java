@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -19,10 +20,12 @@ public final class MethodInfo {
     private final int bodyEnd;                // End of method body (before })
     private final boolean resolved;
     private final boolean isDeclaration;      // true if this is a declaration, false if it's a call
+    private final boolean isStatic;           // true if this is a static method
 
     private MethodInfo(String name, TypeInfo returnType, TypeInfo containingType,
                        List<FieldInfo> parameters, int declarationOffset,
-                       int bodyStart, int bodyEnd, boolean resolved, boolean isDeclaration) {
+                       int bodyStart, int bodyEnd, boolean resolved, boolean isDeclaration,
+                       boolean isStatic) {
         this.name = name;
         this.returnType = returnType;
         this.containingType = containingType;
@@ -32,12 +35,18 @@ public final class MethodInfo {
         this.bodyEnd = bodyEnd;
         this.resolved = resolved;
         this.isDeclaration = isDeclaration;
+        this.isStatic = isStatic;
     }
 
     // Factory methods
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int declOffset, int bodyStart, int bodyEnd) {
-        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true);
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, false);
+    }
+    
+    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
+                                         int declOffset, int bodyStart, int bodyEnd, boolean isStatic) {
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, isStatic);
     }
 
     public static MethodInfo call(String name, TypeInfo containingType, int paramCount) {
@@ -47,7 +56,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, containingType, params, -1, -1, -1, resolved, false);
+        return new MethodInfo(name, null, containingType, params, -1, -1, -1, resolved, false, false);
     }
 
     public static MethodInfo unresolvedCall(String name, int paramCount) {
@@ -55,7 +64,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, null, params, -1, -1, -1, false, false);
+        return new MethodInfo(name, null, null, params, -1, -1, -1, false, false, false);
     }
 
     /**
@@ -65,6 +74,7 @@ public final class MethodInfo {
     public static MethodInfo fromReflection(java.lang.reflect.Method method, TypeInfo containingType) {
         String name = method.getName();
         TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
+        boolean isStatic = Modifier.isStatic(method.getModifiers());
         
         List<FieldInfo> params = new ArrayList<>();
         Class<?>[] paramTypes = method.getParameterTypes();
@@ -73,7 +83,7 @@ public final class MethodInfo {
             params.add(FieldInfo.reflectionParam("arg" + i, paramType));
         }
         
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false);
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false, isStatic);
     }
 
     // Getters
@@ -88,6 +98,7 @@ public final class MethodInfo {
     public boolean isResolved() { return resolved; }
     public boolean isDeclaration() { return isDeclaration; }
     public boolean isCall() { return !isDeclaration; }
+    public boolean isStatic() { return isStatic; }
 
     /**
      * Check if a position is inside this method's body.

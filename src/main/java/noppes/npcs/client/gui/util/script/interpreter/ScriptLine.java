@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import net.minecraft.client.gui.Gui;
 import noppes.npcs.client.ClientProxy;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -146,6 +148,13 @@ public class ScriptLine {
                         token.setFieldInfo((FieldInfo) mark.metadata);
                     } else if (mark.metadata instanceof MethodInfo) {
                         token.setMethodInfo((MethodInfo) mark.metadata);
+                    } else if (mark.metadata instanceof MethodCallInfo) {
+                        MethodCallInfo callInfo = (MethodCallInfo) mark.metadata;
+                        token.setMethodCallInfo(callInfo);
+                        if (callInfo.getErrorType() != MethodCallInfo.ErrorType.NONE) {
+                            // For other errors (arg count, static access), underline the method name
+                            token.setUnderline(true, 0xFF5555); // Red wavy underline
+                        }
                     } else if (mark.metadata instanceof ImportData) {
                         token.setImportData((ImportData) mark.metadata);
                     }
@@ -190,19 +199,41 @@ public class ScriptLine {
     /**
      * Draw this line with syntax highlighting using Minecraft color codes.
      * Compatible with the existing rendering system.
+     * Also draws curly underlines for tokens with errors (method call validation failures).
      */
     public void drawString(int x, int y, int defaultColor) {
         StringBuilder builder = new StringBuilder();
         int lastIndex = 0;
 
+        // Track positions for underlines
+        List<int[]> underlines = new ArrayList<>(); // [startX, endX, color]
+        int currentX = x;
+
         for (Token t : tokens) {
             int tokenStart = t.getGlobalStart() - globalStart; // relative position in line
-            
-            // Append any text before this token (spaces, punctuation, etc.)
+
+            // Calculate gap width before this token
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
-                builder.append(text, lastIndex, tokenStart);
+                String gapText = text.substring(lastIndex, tokenStart);
+                builder.append(gapText);
+                currentX += ClientProxy.Font.width(gapText);
             }
 
+            // Track underline position if token has one
+            if (t.hasUnderline()) {
+                int tokenWidth = ClientProxy.Font.width(t.getText());
+                underlines.add(new int[]{currentX, currentX + tokenWidth, t.getUnderlineColor()});
+            }
+
+            if (t.getMethodCallInfo() != null) {
+                MethodCallInfo callInfo = t.getMethodCallInfo();
+                if (callInfo.hasArgTypeError(t)) {
+                    underlines.add(
+                            new int[]{currentX, currentX + ClientProxy.Font.width(t.getText()), t.getUnderlineColor()});
+                }
+            }
+
+        
             // Append the colored token
             builder.append(COLOR_CHAR)
                    .append(t.getColorCode())
@@ -210,6 +241,7 @@ public class ScriptLine {
                    .append(COLOR_CHAR)
                    .append('f'); // Reset to white
 
+            currentX += ClientProxy.Font.width(t.getText());
             lastIndex = tokenStart + t.getText().length();
         }
 
@@ -218,16 +250,67 @@ public class ScriptLine {
             builder.append(text.substring(lastIndex));
         }
 
+        // Draw the text
         ClientProxy.Font.drawString(builder.toString(), x, y, defaultColor);
+
+        // Draw curly underlines for error tokens
+        for (int[] ul : underlines) {
+            drawCurlyUnderline(ul[0], y + ClientProxy.Font.height() - 1, ul[1] - ul[0], ul[2]);
+        }
+    }
+
+    /**
+     * Draw a curly/wavy underline (like IDE error highlighting).
+     * @param x Start X position
+     * @param y Y position (bottom of text)
+     * @param width Width of the underline
+     * @param color Color in ARGB format (e.g., 0xFFFF5555 for red)
+     */
+    private void drawCurlyUnderline(int x, int y, int width, int color) {
+        if (width <= 0)
+            return;
+
+        float a = ((color >> 24) & 0xFF) / 255f;
+        float r = ((color >> 16) & 0xFF) / 255f;
+        float g = ((color >> 8) & 0xFF) / 255f;
+        float b = (color & 0xFF) / 255f;
+
+        // If alpha is 0, assume full opacity
+        if (a == 0)
+            a = 1.0f;
+
+        GL11.glPushMatrix();
+        GL11.glDisable(GL11.GL_TEXTURE_2D);
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+        GL11.glColor4f(r, g, b, a);
+        GL11.glLineWidth(1.0f);
+
+        GL11.glBegin(GL11.GL_LINE_STRIP);
+        // Wave parameters: 2 pixels amplitude, 4 pixels wavelength
+        int waveHeight = 2;
+        int waveLength = 4;
+        for (int i = 0; i <= width; i++) {
+            // Create a sine-like wave pattern
+            double phase = (double) i / waveLength * Math.PI * 2;
+            int yOffset = (int) (Math.sin(phase) * waveHeight);
+            GL11.glVertex2f(x + i, y + yOffset);
+        }
+        GL11.glEnd();
+
+        GL11.glEnable(GL11.GL_TEXTURE_2D);
+        GL11.glDisable(GL11.GL_BLEND);
+        GL11.glPopMatrix();
     }
 
     /**
      * Draw this line with hex colors instead of Minecraft color codes.
      * More flexible but requires custom font rendering.
+     * Also draws wavy underlines for tokens with errors.
      * 
      * @param x X position
      * @param y Y position  
-     * @param renderer A functional interface for drawing colored text segments
+     * @param renderer A renderer for drawing colored text and error underlines
      */
     public void drawStringHex(int x, int y, HexColorRenderer renderer) {
         int currentX = x;
@@ -239,31 +322,85 @@ public class ScriptLine {
             // Draw any text before this token in default color
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
                 String gap = text.substring(lastIndex, tokenStart);
-                currentX = renderer.draw(gap, currentX, y, 0xFFFFFF);
+                currentX = renderer.draw(gap, currentX, y, 0xFFFFFF, false, 0);
             }
 
-            // Draw the colored token
-            currentX = renderer.draw(t.getText(), currentX, y, t.getHexColor());
+            // Draw the colored token (with underline if flagged)
+            currentX = renderer.draw(t.getText(), currentX, y, t.getHexColor(), t.hasUnderline(),
+                    t.getUnderlineColor());
 
             lastIndex = tokenStart + t.getText().length();
         }
 
         // Draw any remaining text in default color
         if (lastIndex < text.length()) {
-            renderer.draw(text.substring(lastIndex), currentX, y, 0xFFFFFF);
+            renderer.draw(text.substring(lastIndex), currentX, y, 0xFFFFFF, false, 0);
         }
     }
 
     /**
-     * Functional interface for rendering text with hex colors.
+     * Functional interface for rendering text with hex colors and optional underlines.
      */
     @FunctionalInterface
     public interface HexColorRenderer {
         /**
          * Draw text at the specified position with the given color.
+         * @param text The text to draw
+         * @param x X position
+         * @param y Y position
+         * @param hexColor The text color in hex format
+         * @param underline Whether to draw an underline (wavy for errors)
+         * @param underlineColor The underline color (if underline is true)
          * @return The X position after drawing (for continuation)
          */
-        int draw(String text, int x, int y, int hexColor);
+        int draw(String text, int x, int y, int hexColor, boolean underline, int underlineColor);
+    }
+
+    /**
+     * Creates a default HexColorRenderer implementation using ClientProxy.Font.
+     * This renderer draws text with hex colors and curly underlines for errors.
+     * @return A HexColorRenderer that can be passed to drawStringHex
+     */
+    public static HexColorRenderer createDefaultHexRenderer() {
+        return (text, x, y, hexColor, underline, underlineColor) -> {
+            // Draw the text with hex color
+            // Minecraft's font renderer uses ARGB, so add full alpha if not present
+            int color = (hexColor & 0xFF000000) == 0 ? (0xFF000000 | hexColor) : hexColor;
+            ClientProxy.Font.drawString(text, x, y, color);
+            int textWidth = ClientProxy.Font.width(text);
+
+            // Draw curly underline if needed
+            if (underline && textWidth > 0) {
+                int ulColor = (underlineColor & 0xFF000000) == 0 ? (0xFF000000 | underlineColor) : underlineColor;
+
+                float a = ((ulColor >> 24) & 0xFF) / 255f;
+                float r = ((ulColor >> 16) & 0xFF) / 255f;
+                float g = ((ulColor >> 8) & 0xFF) / 255f;
+                float b = (ulColor & 0xFF) / 255f;
+
+                GL11.glPushMatrix();
+                GL11.glDisable(GL11.GL_TEXTURE_2D);
+                GL11.glEnable(GL11.GL_BLEND);
+                GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
+                GL11.glColor4f(r, g, b, a);
+                GL11.glLineWidth(1.0f);
+
+                int underlineY = y + ClientProxy.Font.height() - 1;
+                GL11.glBegin(GL11.GL_LINE_STRIP);
+                for (int i = 0; i <= textWidth; i++) {
+                    double phase = (double) i / 4 * Math.PI * 2;
+                    int yOffset = (int) (Math.sin(phase) * 2);
+                    GL11.glVertex2f(x + i, underlineY + yOffset);
+                }
+                GL11.glEnd();
+
+                GL11.glEnable(GL11.GL_TEXTURE_2D);
+                GL11.glDisable(GL11.GL_BLEND);
+                GL11.glPopMatrix();
+            }
+
+            return x + textWidth;
+        };
     }
 
     // ==================== UTILITIES ====================

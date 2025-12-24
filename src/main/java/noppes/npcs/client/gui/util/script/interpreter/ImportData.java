@@ -1,8 +1,12 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Represents a single import statement with all its metadata.
- * Tracks the full import path, resolution status, and source positions.
+ * Tracks the full import path, resolution status, source positions, and references.
  */
 public final class ImportData {
 
@@ -17,6 +21,12 @@ public final class ImportData {
     
     private TypeInfo resolvedType;          // null if wildcard or unresolved
     private boolean resolved;               // whether resolution was attempted and succeeded
+    
+    // Track usage count (simpler than tracking individual tokens)
+    private int usageCount = 0;
+    
+    // Track all tokens that reference this import (optional, for detailed analysis)
+    private final List<Token> referencingTokens = new ArrayList<>();
 
     public ImportData(String fullPath, String simpleName, boolean isWildcard, boolean isStatic,
                       int startOffset, int endOffset, int pathStartOffset, int pathEndOffset) {
@@ -56,6 +66,62 @@ public final class ImportData {
      */
     public void markResolved(boolean resolved) {
         this.resolved = resolved;
+    }
+    
+    // ==================== REFERENCE TRACKING ====================
+    
+    /**
+     * Increment the usage count for this import.
+     * Called during type resolution when this import is used.
+     */
+    public void incrementUsage() {
+        usageCount++;
+    }
+    
+    /**
+     * Add a token that references this import.
+     * Called when a token is created that uses this import's type.
+     */
+    public void addReference(Token token) {
+        if (token != null && !referencingTokens.contains(token)) {
+            referencingTokens.add(token);
+        }
+    }
+    
+    /**
+     * Get all tokens that reference this import.
+     */
+    public List<Token> getReferencingTokens() {
+        return Collections.unmodifiableList(referencingTokens);
+    }
+    
+    /**
+     * Check if this import is used (has any references or usages).
+     */
+    public boolean isUsed() {
+        return usageCount > 0 || !referencingTokens.isEmpty();
+    }
+    
+    /**
+     * Get the usage count for this import.
+     */
+    public int getUsageCount() {
+        return usageCount;
+    }
+    
+    /**
+     * Get the number of references to this import.
+     */
+    public int getReferenceCount() {
+        return referencingTokens.size();
+    }
+    
+    /**
+     * Clear all references and reset usage count (used when re-tokenizing).
+     */
+    public void clearReferences() {
+        referencingTokens.clear();
+        usageCount = 0;
     }
 
     /**
