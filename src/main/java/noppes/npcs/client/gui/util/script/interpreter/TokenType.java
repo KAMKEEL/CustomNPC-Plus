@@ -28,7 +28,6 @@ public enum TokenType {
     // Methods
     METHOD_DECL(0x00AA00, 60),         // method declarations (green)
     METHOD_CALL(0x55FF55, 50),         // method calls (bright green)
-    METHOD_CALL_ERROR(0xFF5555, 51),   // method call with validation error (red underline)
     
     // Variables and fields
     UNDEFINED_VAR(0xAA0000, 20),      // unresolved variables (dark red) - high priority
@@ -73,7 +72,6 @@ public enum TokenType {
                 return '5'; // purple
             case CLASS_KEYWORD:
             case KEYWORD:
-            case METHOD_CALL_ERROR:
                 return 'c'; // red
             case IMPORT_KEYWORD:
             case MODIFIER:
