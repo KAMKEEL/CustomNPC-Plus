@@ -536,7 +536,6 @@ public class RenderNPCInterface extends RenderLiving {
 
     @Override
     public ResourceLocation getEntityTexture(Entity entity) {
-
         EntityNPCInterface npc = (EntityNPCInterface) entity;
         if (npc.textureLocation == null) {
             if (npc.display.skinType == 0) {
@@ -548,10 +547,15 @@ public class RenderNPCInterface extends RenderLiving {
                         }
                     }
                 } else {
-                    npc.textureLocation = new ResourceLocation(npc.display.texture);
+                    if (!(npc.display.texture).isEmpty()) {
+                        npc.textureLocation = new ResourceLocation(npc.display.texture);
+                        // TODO: Also validate if this ResourceLocation actually exists
+                    } else {
+                        npc.textureLocation = fallBackSkin(npc);
+                    }
                 }
             } else if (npc.display.skinType == 1 && npc.display.playerProfile != null) {
-                Minecraft minecraft = Minecraft.getMinecraft();
+                final Minecraft minecraft = Minecraft.getMinecraft();
                 Map map = minecraft.func_152342_ad().func_152788_a(npc.display.playerProfile);
                 if (map.containsKey(Type.SKIN)) {
                     npc.textureLocation = minecraft.func_152342_ad().func_152792_a((MinecraftProfileTexture) map.get(Type.SKIN), Type.SKIN);
@@ -594,7 +598,8 @@ public class RenderNPCInterface extends RenderLiving {
                 return fallBackSkin(npc);
             }
         }
-        return npc.textureLocation;
+
+        return npc.textureLocation == null ? fallBackSkin(npc) : npc.textureLocation;
     }
 
     private ResourceLocation adjustLocalTexture(EntityNPCInterface npc, ResourceLocation location) throws IOException {
