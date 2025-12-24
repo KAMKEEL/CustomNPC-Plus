@@ -51,7 +51,7 @@ public class ScriptDocument {
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile(
             "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+            "\\b([A-Za-z_][a-zA-Z0-9_<>,\\s\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
     private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
     // Function parameters (for JS-style scripts)
@@ -386,8 +386,9 @@ public class ScriptDocument {
             String bodyText = text.substring(bodyStart, Math.min(bodyEnd, text.length()));
             
             // Pattern for local variable declarations: Type varName = or Type varName;
+            // Allows capital var names like "Minecraft Capital = new Minecraft();"
             Pattern localDecl = Pattern.compile(
-                    "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;|,)");
+                    "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(=|;|,)");
             Matcher m = localDecl.matcher(bodyText);
             while (m.find()) {
                 int absPos = bodyStart + m.start();
@@ -876,70 +877,211 @@ public class ScriptDocument {
             if (isExcluded(start))
                 continue;
 
-            // Check if this is preceded by a dot (method call on an object)
-            boolean hasReceiver = false;
-            String receiverName = null;
-            int scanPos = start - 1;
-            while (scanPos >= 0 && Character.isWhitespace(text.charAt(scanPos)))
-                scanPos--;
+            // Skip if in import/package statement
+            if (isInImportOrPackage(start))
+                continue;
 
-            if (scanPos >= 0 && text.charAt(scanPos) == '.') {
-                hasReceiver = true;
-                // Find receiver identifier
-                int recvEnd = scanPos - 1;
-                while (recvEnd >= 0 && Character.isWhitespace(text.charAt(recvEnd)))
-                    recvEnd--;
-                int recvStart = recvEnd;
-                while (recvStart >= 0 && Character.isJavaIdentifierPart(text.charAt(recvStart)))
-                    recvStart--;
-                recvStart++;
-                if (recvStart <= recvEnd && recvStart >= 0) {
-                    receiverName = text.substring(recvStart, recvEnd + 1);
-                }
-            }
+            // Resolve the receiver chain and get the final type
+            TypeInfo receiverType = resolveReceiverChain(start);
+            Object wrongArg;
 
-            if (hasReceiver && receiverName != null && !receiverName.isEmpty()) {
-                // Check if receiver is an uppercase class reference (static call)
-                if (Character.isUpperCase(receiverName.charAt(0))) {
-                    TypeInfo recvType = resolveType(receiverName);
-                    if (recvType == null || !recvType.isResolved()) {
-                        // Method call on unresolved type - mark as undefined
-                        marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
-                        continue;
-                    }
-                    // Check if method exists on resolved type
-                    if (!recvType.hasMethod(methodName) ) {
-                        marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
-                        continue;
-                    }
-                    // Valid method call on static type
-                    MethodInfo methodInfo = recvType.getMethodInfo(methodName);
+            if (receiverType != null) {
+                // We have a resolved receiver type - check if method exists
+                if (receiverType.hasMethod(methodName)) {
+                    MethodInfo methodInfo = receiverType.getMethodInfo(methodName);
+                    // TODO: Add argument validation here in future
                     marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL, methodInfo));
                 } else {
-                    // Lower-case receiver - this is a method call on an instance
-                    // Try to resolve the receiver's type
-
-                    //TODO IMPROVE HERE: currently only resolves global fields, not chained fields or 'this'
-                    FieldInfo receiverField = resolveVariable(receiverName, start);
-                    if (receiverField != null && receiverField.getTypeInfo() != null) {
-                        TypeInfo recvType = receiverField.getTypeInfo();
-                        if (recvType.hasMethod(methodName)) {
-                            MethodInfo methodInfo = recvType.getMethodInfo(methodName);
-                            marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL, methodInfo));
-                        } else {
-                            marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
-                        }
-                    } else {
-                        // TODO weatherEffects.gest() is marked valid here, despite List having no gest() method
-                        // Can't resolve receiver - mark method call anyway (could be valid at runtime)
-                        marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
-                    }
+                    // Method doesn't exist on this type
+                    marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
                 }
             } else {
-                // No receiver - standalone method call (local function or global)
-                marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
+                // No receiver OR receiver couldn't be resolved
+                // Check if there's a dot before this (meaning there WAS a receiver, we just couldn't resolve it)
+                boolean hasDot = isPrecededByDot(start);
+
+                if (hasDot) {
+                    // There was a receiver but we couldn't resolve it - mark as undefined
+                    marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+                } else {
+                    // No receiver - standalone method call
+                    // Check if this method is defined in the script itself
+                    if (isScriptMethod(methodName)) {
+                        // TODO: Add argument validation here in future
+
+                        marks.add(new ScriptLine.Mark(start, end, TokenType.METHOD_CALL));
+                    } else {
+                        // Unknown standalone method - mark as undefined
+                        marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR));
+                    }
+                }
             }
         }
+    }
+
+    static {
+        int x = 5;
+        int y = 10;
+        Minecraft mc = null;
+
+        //Type 1:
+        // foo(x,y);
+
+        //Type 2:
+         // foo(x,y,mc);
+    }
+
+    public static int foo(int x, int y, Boolean z) {
+        return x + 10;
+    }
+
+    /**
+     * Resolve the full receiver chain before a method call position.
+     * For example, for "mc.thePlayer.worldObj.weatherEffects.get()", 
+     * this would resolve mc -> Minecraft -> thePlayer -> EntityPlayer -> worldObj -> World -> weatherEffects -> List
+     * and return the final TypeInfo (List).
+     *
+     * @param methodNameStart The start position of the method name
+     * @return The TypeInfo of the final receiver, or null if no receiver or couldn't resolve
+     */
+    private TypeInfo resolveReceiverChain(int methodNameStart) {
+        // First check if preceded by a dot
+        int scanPos = methodNameStart - 1;
+        while (scanPos >= 0 && Character.isWhitespace(text.charAt(scanPos)))
+            scanPos--;
+
+        if (scanPos < 0 || text.charAt(scanPos) != '.') {
+            return null; // No receiver
+        }
+
+        // Walk backward to collect all identifiers in the chain
+        List<String> chainSegments = new ArrayList<>();
+        List<int[]> segmentPositions = new ArrayList<>();
+
+        int pos = scanPos; // Currently at the dot
+
+        while (pos >= 0) {
+            // Skip the dot
+            pos--;
+
+            // Skip whitespace
+            while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
+                pos--;
+
+            if (pos < 0)
+                break;
+
+            // Check if this is the end of an identifier
+            if (!Character.isJavaIdentifierPart(text.charAt(pos))) {
+                // Could be ')' from a method call - we need to skip that
+                if (text.charAt(pos) == ')') {
+                    // This is a method call result, e.g., getList().get()
+                    // For now, we can't resolve method return types in chains
+                    // So we return null to indicate unresolvable
+                    return null;
+                }
+                break;
+            }
+
+            // Read the identifier backward
+            int identEnd = pos + 1;
+            while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos)))
+                pos--;
+            int identStart = pos + 1;
+
+            String ident = text.substring(identStart, identEnd);
+            chainSegments.add(0, ident); // Add to front (we're going backward)
+            segmentPositions.add(0, new int[]{identStart, identEnd});
+
+            // Skip whitespace
+            while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
+                pos--;
+
+            // Check if there's another dot (continuing the chain)
+            if (pos >= 0 && text.charAt(pos) == '.') {
+                // Continue the loop to get the next segment
+                continue;
+            } else {
+                // No more dots - end of chain
+                break;
+            }
+        }
+
+        if (chainSegments.isEmpty()) {
+            return null;
+        }
+
+        // Now resolve the chain from left to right
+        String firstSegment = chainSegments.get(0);
+        TypeInfo currentType = null;
+
+        if (firstSegment.equals("this")) {
+            // For 'this', we use globalFields for resolution
+            // Can't fully resolve 'this' without class context, but we can try
+            currentType = null;
+
+            if (chainSegments.size() > 1) {
+                // this.something - check globalFields
+                String nextField = chainSegments.get(1);
+                if (globalFields.containsKey(nextField)) {
+                    currentType = globalFields.get(nextField).getTypeInfo();
+                    // Continue resolving from index 2
+                    for (int i = 2; i < chainSegments.size(); i++) {
+                        if (currentType == null || !currentType.isResolved())
+                            return null;
+                        String field = chainSegments.get(i);
+                        if (currentType.hasField(field)) {
+                            FieldInfo fieldInfo = currentType.getFieldInfo(field);
+                            currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+                        } else {
+                            return null;
+                        }
+                    }
+                    return currentType;
+                }
+            }
+            return null;
+        } else if (Character.isUpperCase(firstSegment.charAt(0))) {
+            // Static access like Minecraft.getMinecraft() - the type is the class itself
+            currentType = resolveType(firstSegment);
+        } else {
+            // Variable like mc.thePlayer.worldObj
+            int[] firstPos = segmentPositions.get(0);
+            FieldInfo varInfo = resolveVariable(firstSegment, firstPos[0]);
+            if (varInfo != null) {
+                currentType = varInfo.getTypeInfo();
+            }
+        }
+
+        // Resolve remaining segments
+        for (int i = 1; i < chainSegments.size(); i++) {
+            if (currentType == null || !currentType.isResolved()) {
+                return null;
+            }
+
+            String field = chainSegments.get(i);
+            if (currentType.hasField(field)) {
+                FieldInfo fieldInfo = currentType.getFieldInfo(field);
+                currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+            } else {
+                // Field doesn't exist
+                return null;
+            }
+        }
+
+        return currentType;
+    }
+
+    /**
+     * Check if a method name is defined in this script.
+     */
+    private boolean isScriptMethod(String methodName) {
+        for (MethodInfo method : methods) {
+            if (method.getName().equals(methodName)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void markVariables(List<ScriptLine.Mark> marks) {
@@ -982,16 +1124,16 @@ public class ScriptDocument {
             if (isInImportOrPackage(position))
                 continue;
 
-            // Skip uppercase (type references handled elsewhere)
-            if (Character.isUpperCase(name.charAt(0)))
-                continue;
-
             // Skip method calls (followed by paren)
             if (isFollowedByParen(m.end(1)))
                 continue;
 
             // Find containing method
             MethodInfo containingMethod = findMethodAtPosition(position);
+
+            // For uppercase identifiers, only process if it's a known field
+            // Otherwise, let type handling (markImportedClassUsages) handle it
+            boolean isUppercase = Character.isUpperCase(name.charAt(0));
 
             if (containingMethod != null) {
                 // Check parameters
@@ -1019,6 +1161,10 @@ public class ScriptDocument {
                     continue;
                 }
 
+                // Skip uppercase if not a known field - type handling will deal with it
+                if (isUppercase)
+                    continue;
+
                 // Unknown variable inside method - mark as undefined
                 marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
             } else {
@@ -1030,6 +1176,10 @@ public class ScriptDocument {
                     continue;
                 }
 
+                // Skip uppercase if not a known field - type handling will deal with it
+                if (isUppercase)
+                    continue;
+
                 // Unknown variable outside method - mark as undefined
                 marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR));
             }
@@ -1039,6 +1189,7 @@ public class ScriptDocument {
     /**
      * Mark chained field accesses like: mc.player.world, array.length, this.field, etc.
      * This handles dot-separated access chains and colors each segment appropriately.
+     * Does NOT mark method calls (identifiers followed by parentheses) - those are handled by markMethodCalls.
      */
     private void markChainedFieldAccesses(List<ScriptLine.Mark> marks) {
         // Pattern to find identifier chains: identifier.identifier, this.identifier, etc.
@@ -1055,6 +1206,17 @@ public class ScriptDocument {
             // Skip import/package statements
             if (isInImportOrPackage(chainStart))
                 continue;
+
+            // Check if the SECOND segment is a method call (followed by parentheses)
+            // If so, we skip this match entirely - markMethodCalls will handle it
+            int afterSecond = m.end(2);
+            int checkPos = afterSecond;
+            while (checkPos < text.length() && Character.isWhitespace(text.charAt(checkPos)))
+                checkPos++;
+            if (checkPos < text.length() && text.charAt(checkPos) == '(') {
+                // This is "something.methodCall()" - skip, handled by markMethodCalls
+                continue;
+            }
 
             // Build the full chain by continuing to match subsequent .identifier patterns
             List<String> chainSegments = new ArrayList<>();
@@ -1093,10 +1255,10 @@ public class ScriptDocument {
                 int identEnd = pos;
 
                 // Check if this is followed by parentheses (method call - stop)
-                int checkPos = pos;
-                while (checkPos < text.length() && Character.isWhitespace(text.charAt(checkPos)))
-                    checkPos++;
-                if (checkPos < text.length() && text.charAt(checkPos) == '(') {
+                int checkPosInner = pos;
+                while (checkPosInner < text.length() && Character.isWhitespace(text.charAt(checkPosInner)))
+                    checkPosInner++;
+                if (checkPosInner < text.length() && text.charAt(checkPosInner) == '(') {
                     break; // This is a method call, not a field
                 }
 
