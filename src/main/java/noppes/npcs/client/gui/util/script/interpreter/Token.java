@@ -140,12 +140,8 @@ public class Token {
             return;
 
         if (methodCallInfo.hasArgCountError()) {
-            try {
-                int tokenWidth = ClientProxy.Font.width(text);
-                ScriptLine.drawCurlyUnderline(x + 1, y, tokenWidth + 1, getUnderlineColor());
-            } catch (Exception e) {
-
-            }
+            int tokenWidth = ClientProxy.Font.width(text);
+            ScriptLine.drawCurlyUnderline(x + 1, y, tokenWidth + 1, getUnderlineColor());
             return;
         }
 
@@ -160,16 +156,15 @@ public class Token {
 
             for (MethodCallInfo.ArgumentTypeError error : methodCallInfo.getArgumentTypeErrors()) {
                 MethodCallInfo.Argument arg = error.getArg();
-                int argStart = arg.getStartOffset();
-                try {
-                    String beforeArg = line.substring(0,
-                            argStart - parent.getGlobalStart());
-                    int beforeWidth = ClientProxy.Font.width(beforeArg);
-                    int argWidth = ClientProxy.Font.width(arg.getText());
-                    ScriptLine.drawCurlyUnderline(x + beforeWidth, y, argWidth, getUnderlineColor());
-                } catch (Exception e) {
-        
-                }
+                int lineArgStart = arg.getStartOffset() - parent.getGlobalStart();
+                if (lineArgStart < 0 || lineArgStart >= line.length())
+                    continue;
+                
+                String beforeArg = line.substring(0, lineArgStart);
+                int beforeWidth = ClientProxy.Font.width(beforeArg);
+                int argWidth = ClientProxy.Font.width(arg.getText());
+                ScriptLine.drawCurlyUnderline(x + beforeWidth, y, argWidth, getUnderlineColor());
+               
             }
         }
     }
