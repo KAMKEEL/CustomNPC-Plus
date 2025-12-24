@@ -221,9 +221,6 @@ public class ScriptLine {
                 builder.append(gapText);
                 currentX += ClientProxy.Font.width(gapText);
             }
-
-            // Track underline position if token has one
-            t.drawUnderline(currentX, y + ClientProxy.Font.height() - 1);
             
 
             // Append the colored token
@@ -244,6 +241,100 @@ public class ScriptLine {
 
         // Draw the text
         ClientProxy.Font.drawString(builder.toString(), x, y, defaultColor);
+
+        // Draw underlines for method call arguments that intersect this line
+        drawMethodCallUnderlines(x, y + ClientProxy.Font.height() - 1);
+    }
+
+    /**
+     * Draw underlines for all method call arguments that intersect this line.
+     * Uses the same token-walking logic as Token.drawUnderline but applies it
+     * to ALL method calls in the document, enabling multi-line underlines.
+     */
+    private void drawMethodCallUnderlines(int lineStartX, int baselineY) {
+        if (parent == null)
+            return;
+
+        ScriptDocument doc = parent;
+        String lineText = getText();
+        int lineStart = getGlobalStart();
+        int lineEnd = getGlobalEnd();
+
+        // Check all method calls in the document
+        for (MethodCallInfo call : doc.getMethodCalls()) {
+            // Skip method declarations that were erroneously recorded as calls.
+            boolean isDeclaration = false;
+            int methodStart = call.getMethodNameStart();
+            for (MethodInfo mi : doc.getMethods()) {
+                //SKIP method declarations cause for some reason their underlines are drawn here
+                if (mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
+                    isDeclaration = true;
+                    break;
+                }
+            }
+            if (isDeclaration)
+                continue;
+            // Skip if this call doesn't intersect this line
+            if (call.getCloseParenOffset() < lineStart || call.getOpenParenOffset() > lineEnd)
+                continue;
+
+            // Handle arg count errors (underline the method name)
+            if (call.hasArgCountError()) {
+                // Check if method name is on this line
+                if (methodStart >= lineStart && methodStart < lineEnd) {
+                    int lineLocalStart = methodStart - lineStart;
+                    if (lineLocalStart >= 0 && lineLocalStart < lineText.length()) {
+                        String beforeMethod = lineText.substring(0, lineLocalStart);
+                        int beforeWidth = ClientProxy.Font.width(beforeMethod);
+                        int methodWidth = ClientProxy.Font.width(call.getMethodName());
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, methodWidth, 0xFF5555);
+                    }
+                }
+            }
+
+            // Handle arg type errors (underline specific arguments)
+            if (call.hasArgTypeError()) {
+                for (MethodCallInfo.ArgumentTypeError error : call.getArgumentTypeErrors()) {
+                    MethodCallInfo.Argument arg = error.getArg();
+                    int argStart = arg.getStartOffset();
+                    int argEnd = arg.getEndOffset();
+
+                    // Clip argument to this line's bounds
+                    int clipStart = Math.max(argStart, lineStart);
+                    int clipEnd = Math.min(argEnd, lineEnd);
+
+                    // Skip if argument doesn't intersect this line
+                    if (clipStart >= clipEnd)
+                        continue;
+
+                    // Convert to line-local coordinates
+                    int lineLocalStart = clipStart - lineStart;
+                    int lineLocalEnd = clipEnd - lineStart;
+
+                    // Bounds check
+                    if (lineLocalStart < 0 || lineLocalStart >= lineText.length())
+                        continue;
+
+                    // Compute pixel position using same logic as Token.drawUnderline
+                    String beforeArg = lineText.substring(0, lineLocalStart);
+                    int beforeWidth = ClientProxy.Font.width(beforeArg);
+
+                    int argWidth;
+                    if (lineLocalEnd > lineText.length()) {
+                        // Argument extends past line end
+                        argWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+                    } else {
+                        // Argument is fully on this line (or clipped)
+                        String argTextOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
+                        argWidth = ClientProxy.Font.width(argTextOnLine);
+                    }
+
+                    if (argWidth > 0) {
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, argWidth, 0xFF5555);
+                    }
+                }
+            }
+        }
     }
 
     /**

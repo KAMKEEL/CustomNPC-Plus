@@ -129,45 +129,6 @@ public class Token {
     public int getUnderlineColor() {
         return underlineColor;
     }
-
-    /**
-     * Draw underlines for this token's errors.
-     * @param x start pixel of this token
-     * @param y baseline pixel for underline
-     */
-    public void drawUnderline(int x, int y) {
-        if (!isMethodCall() || methodCallInfo == null)
-            return;
-
-        if (methodCallInfo.hasArgCountError()) {
-            int tokenWidth = ClientProxy.Font.width(text);
-            ScriptLine.drawCurlyUnderline(x + 1, y, tokenWidth + 1, getUnderlineColor());
-            return;
-        }
-
-        if (methodCallInfo.hasArgTypeError()) {
-            // For arg type errors, underline the specific argument span(s).
-            // Compute pixel X for each argument by walking tokens on the same line
-            ScriptLine parent = getParentLine();
-
-            if (parent == null)
-                return;
-            String line = parent.getText();
-
-            for (MethodCallInfo.ArgumentTypeError error : methodCallInfo.getArgumentTypeErrors()) {
-                MethodCallInfo.Argument arg = error.getArg();
-                int lineArgStart = arg.getStartOffset() - parent.getGlobalStart();
-                if (lineArgStart < 0 || lineArgStart >= line.length())
-                    continue;
-                
-                String beforeArg = line.substring(0, lineArgStart);
-                int beforeWidth = ClientProxy.Font.width(beforeArg);
-                int argWidth = ClientProxy.Font.width(arg.getText());
-                ScriptLine.drawCurlyUnderline(x + beforeWidth, y, argWidth, getUnderlineColor());
-               
-            }
-        }
-    }
     // ==================== SETTERS ====================
 
     public void setType(TokenType type) { this.type = type; }

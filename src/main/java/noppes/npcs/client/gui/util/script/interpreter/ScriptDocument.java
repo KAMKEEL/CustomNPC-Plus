@@ -2631,6 +2631,10 @@ public class ScriptDocument {
         return Collections.unmodifiableList(methods);
     }
 
+    public List<MethodCallInfo> getMethodCalls() {
+        return Collections.unmodifiableList(methodCalls);
+    }
+
     public Map<String, FieldInfo> getGlobalFields() {
         return Collections.unmodifiableMap(globalFields);
     }
