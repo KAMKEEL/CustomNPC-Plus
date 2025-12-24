@@ -213,6 +213,7 @@ public class ScriptLine {
 
         for (Token t : tokens) {
             int tokenStart = t.getGlobalStart() - globalStart; // relative position in line
+            int tokenWidth = ClientProxy.Font.width(t.getText());
 
             // Calculate gap width before this token
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
@@ -223,7 +224,6 @@ public class ScriptLine {
 
             // Track underline position if token has one
             if (t.hasUnderline()) {
-                int tokenWidth = ClientProxy.Font.width(t.getText());
                 int currentY = y + ClientProxy.Font.height() - 1;
                 drawCurlyUnderline(currentX + 1, currentY, tokenWidth + 1, t.getUnderlineColor());
             }
@@ -235,7 +235,7 @@ public class ScriptLine {
                    .append(COLOR_CHAR)
                    .append('f'); // Reset to white
 
-            currentX += ClientProxy.Font.width(t.getText());
+            currentX += tokenWidth;
             lastIndex = tokenStart + t.getText().length();
         }
 
@@ -288,7 +288,6 @@ public class ScriptLine {
         GL11.glEnd();
 
         GL11.glEnable(GL11.GL_TEXTURE_2D);
-        GL11.glDisable(GL11.GL_BLEND);
         GL11.glPopMatrix();
     }
 
