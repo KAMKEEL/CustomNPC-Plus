@@ -76,6 +76,9 @@ public class ScriptDocument {
     // Method calls - stores all parsed method call information
     private final List<MethodCallInfo> methodCalls = new ArrayList<>();
 
+    // Field accesses - stores all parsed field access information
+    private final List<FieldAccessInfo> fieldAccesses = new ArrayList<>();
+
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
 
@@ -1322,6 +1325,15 @@ public class ScriptDocument {
                         methodName, nameStart, nameEnd, openParen, closeParen,
                         arguments, receiverType, resolvedMethod, computedStaticAccess
                     );
+                    
+                    // Only set expected type if this is the final expression (not followed by .field or .method)
+                    if (!isFollowedByDot(closeParen)) {
+                        TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
+                        if (expectedType != null) {
+                            callInfo.setExpectedType(expectedType);
+                        }
+                    }
+                    
                     callInfo.validate();
                     methodCalls.add(callInfo);
                     marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
@@ -1339,6 +1351,15 @@ public class ScriptDocument {
                             methodName, nameStart, nameEnd, openParen, closeParen,
                             arguments, null, resolvedMethod
                         );
+                        
+                        // Only set expected type if this is the final expression (not followed by .field or .method)
+                        if (!isFollowedByDot(closeParen)) {
+                            TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
+                            if (expectedType != null) {
+                                callInfo.setExpectedType(expectedType);
+                            }
+                        }
+                        
                         callInfo.validate();
                         methodCalls.add(callInfo);
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
@@ -2247,7 +2268,29 @@ public class ScriptDocument {
                     //TODO: THIS MAY NEED TO HANDLE STATIC VS INSTANCE FIELDS WITH DIFFERENT RENDERING
                     if (currentType.hasField(segment)) {
                         FieldInfo fieldInfo = currentType.getFieldInfo(segment);
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
+                        
+                        // Check if this is the last segment and if it's in an assignment context
+                        boolean isLastSegment = (i == chainSegments.size() - 1);
+                        if (isLastSegment) {
+                            // Create FieldAccessInfo for validation
+                            boolean isStaticAccess = Character.isUpperCase(chainSegments.get(i-1).charAt(0));
+                            FieldAccessInfo accessInfo = new FieldAccessInfo(
+                                segment, segPos[0], segPos[1], currentType, fieldInfo, isStaticAccess
+                            );
+                            
+                            // Set expected type from assignment context
+                            TypeInfo expectedType = findExpectedTypeAtPosition(segPos[0]);
+                            if (expectedType != null) {
+                                accessInfo.setExpectedType(expectedType);
+                            }
+                            
+                            accessInfo.validate();
+                            fieldAccesses.add(accessInfo);
+                            marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
+                        } else {
+                            marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
+                        }
+                        
                         // Update currentType for next segment
                         currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
 
@@ -2315,7 +2358,35 @@ public class ScriptDocument {
             FieldInfo fInfo = null;
             if (receiverType != null && receiverType.hasField(firstField)) {
                 fInfo = receiverType.getFieldInfo(firstField);
-                marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, fInfo));
+                
+                // Check if there are more segments after this one
+                boolean hasMoreSegments = false;
+                int checkPos = identEnd;
+                while (checkPos < text.length() && Character.isWhitespace(text.charAt(checkPos)))
+                    checkPos++;
+                if (checkPos < text.length() && text.charAt(checkPos) == '.') {
+                    hasMoreSegments = true;
+                }
+                
+                if (!hasMoreSegments) {
+                    // This is the final field - create FieldAccessInfo for validation
+                    boolean isStaticAccess = false; // Determine based on receiver
+                    FieldAccessInfo accessInfo = new FieldAccessInfo(
+                        firstField, identStart, identEnd, receiverType, fInfo, isStaticAccess
+                    );
+                    
+                    // Set expected type from assignment context
+                    TypeInfo expectedType = findExpectedTypeAtPosition(identStart);
+                    if (expectedType != null) {
+                        accessInfo.setExpectedType(expectedType);
+                    }
+                    
+                    accessInfo.validate();
+                    fieldAccesses.add(accessInfo);
+                    marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, accessInfo));
+                } else {
+                    marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, fInfo));
+                }
             } else {
                 marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.UNDEFINED_VAR));
             }
@@ -2352,9 +2423,38 @@ public class ScriptDocument {
                 if (isExcluded(nStart))
                     break;
 
+                // Check if this is the last segment (no more dots after)
+                boolean isLastSegment = true;
+                int checkNext = nEnd;
+                while (checkNext < text.length() && Character.isWhitespace(text.charAt(checkNext)))
+                    checkNext++;
+                if (checkNext < text.length() && text.charAt(checkNext) == '.') {
+                    isLastSegment = false;
+                }
+
                 if (currentType != null && currentType.isResolved() && currentType.hasField(seg)) {
                     FieldInfo segInfo = currentType.getFieldInfo(seg);
-                    marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, segInfo));
+                    
+                    if (isLastSegment) {
+                        // Create FieldAccessInfo for validation
+                        boolean isStaticAccess = false;
+                        FieldAccessInfo accessInfo = new FieldAccessInfo(
+                            seg, nStart, nEnd, currentType, segInfo, isStaticAccess
+                        );
+                        
+                        // Set expected type from assignment context
+                        TypeInfo expectedType = findExpectedTypeAtPosition(nStart);
+                        if (expectedType != null) {
+                            accessInfo.setExpectedType(expectedType);
+                        }
+                        
+                        accessInfo.validate();
+                        fieldAccesses.add(accessInfo);
+                        marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, accessInfo));
+                    } else {
+                        marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, segInfo));
+                    }
+                    
                     currentType = (segInfo != null) ? segInfo.getTypeInfo() : null;
                 } else {
                     marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.UNDEFINED_VAR));
@@ -2570,6 +2670,14 @@ public class ScriptDocument {
         return i < text.length() && text.charAt(i) == '(';
     }
 
+    private boolean isFollowedByDot(int position) {
+        // Start checking after the given position (e.g. after a closing paren)
+        int i = position + 1;
+        while (i < text.length() && Character.isWhitespace(text.charAt(i)))
+            i++;
+        return i < text.length() && text.charAt(i) == '.';
+    }
+
     private boolean isInImportOrPackage(int position) {
         if (position < 0 || position >= text.length())
             return false;
@@ -2635,6 +2743,10 @@ public class ScriptDocument {
         return Collections.unmodifiableList(methodCalls);
     }
 
+    public List<FieldAccessInfo> getFieldAccesses() {
+        return Collections.unmodifiableList(fieldAccesses);
+    }
+
     public Map<String, FieldInfo> getGlobalFields() {
         return Collections.unmodifiableMap(globalFields);
     }
@@ -2668,5 +2780,130 @@ public class ScriptDocument {
             }
         }
         return -1;
+    }
+
+    /**
+     * Find the expected type for an expression at the given position by looking for assignment context.
+     * Returns the type of the variable being assigned to, or null if not in an assignment.
+     * 
+     * Examples:
+     * - "Type varName = expr;" -> returns Type
+     * - "varName = expr;" -> returns type of varName
+     */
+    public TypeInfo findExpectedTypeAtPosition(int position) {
+        // Walk backward from position to find '='
+        int pos = position - 1;
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
+            pos--;
+        }
+
+        // Look for '=' that precedes this position
+        int equalsPos = -1;
+        int depth = 0; // Track parentheses/brackets depth
+        for (int i = pos; i >= 0; i--) {
+            if (isExcluded(i)) continue;
+
+            char c = text.charAt(i);
+            if (c == ')' || c == ']') depth++;
+            else if (c == '(' || c == '[') depth--;
+            else if (c == '=' && depth == 0) {
+                // Make sure it's not ==, !=, <=, >=
+                if (i > 0 && "!<>=".indexOf(text.charAt(i - 1)) >= 0) continue;
+                if (i < text.length() - 1 && text.charAt(i + 1) == '=') continue;
+                equalsPos = i;
+                break;
+            }
+            else if (c == ';' || c == '{' || c == '}') {
+                // Reached statement boundary without finding assignment
+                break;
+            }
+        }
+
+        if (equalsPos < 0) {
+            return null; // Not in an assignment
+        }
+
+        // Now parse the left-hand side of the assignment
+        // Could be: "Type varName = expr" or "varName = expr"
+        pos = equalsPos - 1;
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
+            pos--;
+        }
+
+        if (pos < 0) return null;
+
+        // Find the variable name (work backward to find identifier)
+        int varNameEnd = pos + 1;
+        int varNameStart = pos;
+        while (varNameStart >= 0 && (Character.isJavaIdentifierPart(text.charAt(varNameStart)))) {
+            varNameStart--;
+        }
+        varNameStart++; // Move to first char of identifier
+
+        if (varNameStart >= varNameEnd) return null;
+
+        String varName = text.substring(varNameStart, varNameEnd);
+
+        // Now check if there's a type declaration before the variable name
+        pos = varNameStart - 1;
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
+            pos--;
+        }
+
+        if (pos < 0) {
+            // Just "varName = expr" - look up varName in scope
+            return lookupVariableType(varName, position);
+        }
+
+        // Check if this could be a type declaration (look for identifier before varName)
+        int typeEnd = pos + 1;
+        int typeStart = pos;
+        while (typeStart >= 0 && (Character.isJavaIdentifierPart(text.charAt(typeStart)) || 
+                                   text.charAt(typeStart) == '<' || text.charAt(typeStart) == '>' ||
+                                   text.charAt(typeStart) == '[' || text.charAt(typeStart) == ']' ||
+                                   text.charAt(typeStart) == ',')) {
+            typeStart--;
+        }
+        typeStart++;
+
+        if (typeStart >= typeEnd) {
+            // Just "varName = expr" - look up varName
+            return lookupVariableType(varName, position);
+        }
+
+        String typeStr = text.substring(typeStart, typeEnd).trim();
+        
+        // Check if this is a var/let/const keyword (type inference)
+        if (typeStr.equals("var") || typeStr.equals("let") || typeStr.equals("const")) {
+            // Can't determine expected type from var/let/const
+            return null;
+        }
+
+        // Resolve the type
+        return resolveType(typeStr);
+    }
+
+    /**
+     * Look up the type of a variable by name at the given position.
+     */
+    private TypeInfo lookupVariableType(String varName, int position) {
+        // Check method locals
+        MethodInfo containingMethod = findMethodAtPosition(position);
+        if (containingMethod != null) {
+            Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
+            if (locals != null && locals.containsKey(varName)) {
+                FieldInfo field = locals.get(varName);
+                if (field.isVisibleAt(position)) {
+                    return field.getDeclaredType();
+                }
+            }
+        }
+
+        // Check global fields
+        if (globalFields.containsKey(varName)) {
+            return globalFields.get(varName).getDeclaredType();
+        }
+
+        return null;
     }
 }

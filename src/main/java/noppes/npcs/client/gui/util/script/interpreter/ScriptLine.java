@@ -236,17 +236,19 @@ public class ScriptLine {
 
         // Draw the text
         ClientProxy.Font.drawString(builder.toString(), x, y, defaultColor);
+//        Minecraft.getMinecraft().fontRenderer.drawString(builder.toString(), x, y, defaultColor);
 
-        // Draw underlines for method call arguments that intersect this line
-        drawMethodCallUnderlines(x, y + ClientProxy.Font.height() - 1);
+
+        // Draw underlines for validation errors (method calls and field accesses)
+        drawErrorUnderlines(x, y + ClientProxy.Font.height() - 1);
     }
 
     /**
-     * Draw underlines for all method call arguments that intersect this line.
+     * Draw underlines for all validation errors (method calls and field accesses) that intersect this line.
      * Uses the same token-walking logic as Token.drawUnderline but applies it
-     * to ALL method calls in the document, enabling multi-line underlines.
+     * to ALL validatable items in the document, enabling multi-line underlines.
      */
-    private void drawMethodCallUnderlines(int lineStartX, int baselineY) {
+    private void drawErrorUnderlines(int lineStartX, int baselineY) {
         if (parent == null)
             return;
 
@@ -275,6 +277,20 @@ public class ScriptLine {
 
             // Handle arg count errors (underline the method name)
             if (call.hasArgCountError()) {
+                // Check if method name is on this line
+                if (methodStart >= lineStart && methodStart < lineEnd) {
+                    int lineLocalStart = methodStart - lineStart;
+                    if (lineLocalStart >= 0 && lineLocalStart < lineText.length()) {
+                        String beforeMethod = lineText.substring(0, lineLocalStart);
+                        int beforeWidth = ClientProxy.Font.width(beforeMethod);
+                        int methodWidth = ClientProxy.Font.width(call.getMethodName());
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, methodWidth, 0xFF5555);
+                    }
+                }
+            }
+
+            // Handle return type mismatch (underline the method name)
+            if (call.hasReturnTypeMismatch()) {
                 // Check if method name is on this line
                 if (methodStart >= lineStart && methodStart < lineEnd) {
                     int lineLocalStart = methodStart - lineStart;
@@ -326,6 +342,30 @@ public class ScriptLine {
 
                     if (argWidth > 0) {
                         drawCurlyUnderline(lineStartX + beforeWidth, baselineY, argWidth, 0xFF5555);
+                    }
+                }
+            }
+        }
+
+        // Check all field accesses in the document
+        for (FieldAccessInfo access : doc.getFieldAccesses()) {
+            // Skip if this access doesn't intersect this line
+            int fieldStart = access.getFieldNameStart();
+            int fieldEnd = access.getFieldNameEnd();
+            
+            if (fieldEnd < lineStart || fieldStart > lineEnd)
+                continue;
+
+            // Handle type mismatch errors (underline the field name)
+            if (access.hasTypeMismatch()) {
+                // Check if field name is on this line
+                if (fieldStart >= lineStart && fieldStart < lineEnd) {
+                    int lineLocalStart = fieldStart - lineStart;
+                    if (lineLocalStart >= 0 && lineLocalStart < lineText.length()) {
+                        String beforeField = lineText.substring(0, lineLocalStart);
+                        int beforeWidth = ClientProxy.Font.width(beforeField);
+                        int fieldWidth = ClientProxy.Font.width(access.getFieldName());
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, fieldWidth, 0xFF5555);
                     }
                 }
             }
@@ -408,6 +448,8 @@ public class ScriptLine {
         if (lastIndex < text.length()) {
             renderer.draw(text.substring(lastIndex), currentX, y, 0xFFFFFF);
         }
+        drawErrorUnderlines(x, y + ClientProxy.Font.height() - 1);
+
     }
 
     /**

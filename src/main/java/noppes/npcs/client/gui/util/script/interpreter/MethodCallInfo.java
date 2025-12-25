@@ -79,6 +79,7 @@ public class MethodCallInfo {
         WRONG_ARG_COUNT,       // Number of args doesn't match any overload
         WRONG_ARG_TYPE,        // Specific argument has wrong type
         STATIC_ACCESS_ERROR,   // Trying to call instance method statically or vice versa
+        RETURN_TYPE_MISMATCH,  // Return type doesn't match expected type (e.g., assignment LHS)
         UNRESOLVED_METHOD,     // Method doesn't exist
         UNRESOLVED_RECEIVER    // Can't resolve the receiver type
     }
@@ -92,6 +93,7 @@ public class MethodCallInfo {
     private final TypeInfo receiverType;     // The type on which this method is called (null for standalone)
     private final MethodInfo resolvedMethod; // The resolved method (null if unresolved)
     private final boolean isStaticAccess;    // True if this is Class.method() style access
+    private TypeInfo expectedType;           // Expected return type (from assignment LHS, etc.)
 
     private ErrorType errorType = ErrorType.NONE;
     private String errorMessage;
@@ -162,6 +164,14 @@ public class MethodCallInfo {
         return isStaticAccess;
     }
 
+    public TypeInfo getExpectedType() {
+        return expectedType;
+    }
+
+    public void setExpectedType(TypeInfo expectedType) {
+        this.expectedType = expectedType;
+    }
+
     public ErrorType getErrorType() {
         return errorType;
     }
@@ -209,6 +219,13 @@ public class MethodCallInfo {
      */
     public boolean hasStaticAccessError() {
         return errorType == ErrorType.STATIC_ACCESS_ERROR;
+    }
+
+    /**
+     * Check if this is a return type mismatch error.
+     */
+    public boolean hasReturnTypeMismatch() {
+        return errorType == ErrorType.RETURN_TYPE_MISMATCH;
     }
 
     // Setters for validation results
@@ -294,6 +311,15 @@ public class MethodCallInfo {
                 setArgTypeError(i, "Parameter type of '" + para.getName() + "' is unresolved");
             } else if (argType == null) {
                 setArgTypeError(i, "Cannot resolve type of argument '" + arg.getText() + "'");
+            }
+        }
+
+        // Check return type compatibility with expected type (e.g., assignment LHS)
+        if (expectedType != null && resolvedMethod != null) {
+            TypeInfo returnType = resolvedMethod.getReturnType();
+            if (returnType != null && !isTypeCompatible(returnType, expectedType)) {
+                setError(ErrorType.RETURN_TYPE_MISMATCH,
+                        "Required type: " + expectedType.getSimpleName() + ", Provided: " + returnType.getSimpleName());
             }
         }
     }
