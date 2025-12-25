@@ -1428,46 +1428,33 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
         // CTRL+BACKSPACE: delete to previous word or whitespace boundary.
         if (isKeyComboCtrlBackspace(i)) {
-            String s = getSelectionBeforeText();
+            String before = getSelectionBeforeText();
             if (selection.getStartSelection() > 0 && !selection.hasSelection()) {
-                int nearestCondition = selection.getCursorPosition();
-                int g;
-                // If the char left of caret is whitespace, find the first non-space to the left;
-                // otherwise find first whitespace/newline to the left (word boundary).
-                boolean cursorInWhitespace = Character.isWhitespace(s.charAt(selection.getCursorPosition() - 1));
-                if (cursorInWhitespace) {
-                    // Scan left until non-whitespace (start of previous word)
-                    for (g = selection.getCursorPosition() - 1; g >= 0; g--) {
-                        char currentChar = s.charAt(g);
-                        if (!Character.isWhitespace(currentChar)) {
-                            nearestCondition = g;
-                            break;
-                        }
-                        if (g == 0) {
-                            nearestCondition = 0;
-                        }
-                    }
+                int pos = selection.getCursorPosition();
+                int g = pos;
+
+                // Helper: treat letters, digits and underscore as word characters
+                java.util.function.IntPredicate isWordChar = ch -> Character.isLetterOrDigit(ch) || ch == '_';
+
+                // If caret is after whitespace, delete contiguous whitespace first
+                char left = before.charAt(pos - 1);
+                if (Character.isWhitespace(left)) {
+                    while (g - 1 >= 0 && Character.isWhitespace(before.charAt(g - 1)))
+                        g--;
+                } else if (isWordChar.test(left)) {
+                    // Delete contiguous word characters (letters/digits/_)
+                    while (g - 1 >= 0 && isWordChar.test(before.charAt(g - 1)))
+                        g--;
                 } else {
-                    // Scan left until whitespace/newline is found (word boundary)
-                    for (g = selection.getCursorPosition() - 1; g >= 0; g--) {
-                        char currentChar = s.charAt(g);
-                        if (Character.isWhitespace(currentChar) || currentChar == '\n') {
-                            nearestCondition = g;
-                            break;
-                        }
-                        if (g == 0) {
-                            nearestCondition = 0;
-                        }
-                    }
+                    // Delete contiguous non-word, non-whitespace characters (punctuation)
+                    while (g - 1 >= 0 && !Character.isWhitespace(before.charAt(g - 1)) && !isWordChar.test(before.charAt(g - 1)))
+                        g--;
                 }
 
-                // Trim the prefix up to the discovered boundary
-                s = s.substring(0, nearestCondition);
-                // Adjust selection start to match removed characters
-                selection.setStartSelection(
-                        selection.getStartSelection() - (selection.getCursorPosition() - nearestCondition));
+                before = before.substring(0, g);
+                selection.setStartSelection(selection.getStartSelection() - (pos - g));
             }
-            setText(s + getSelectionAfterText());
+            setText(before + getSelectionAfterText());
             selection.reset(selection.getStartSelection());
             return true;
         }
