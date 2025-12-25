@@ -13,6 +13,9 @@ import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 // New interpreter system imports
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import noppes.npcs.client.gui.util.script.interpreter.Token;
+import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
+import noppes.npcs.client.gui.util.script.interpreter.hover.TokenHoverRenderer;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
@@ -82,6 +85,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== HELPER CLASS INSTANCES ====================
     private final ScrollState scroll = new ScrollState();
     private final SelectionState selection = new SelectionState();
+    private final HoverState hoverState = new HoverState();
     
     // ==================== UI COMPONENTS ====================
     private int cursorCounter;
@@ -503,6 +507,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         scroll.initializeIfNeeded(scroll.getScrolledLine());
         scroll.update(maxScroll);
 
+        // Update hover state for token tooltips
+        updateHoverState(xMouse, yMouse);
+
         // Handle click-dragging for selection
         if (clicked) {
             clicked = Mouse.isButtonDown(0);
@@ -872,6 +879,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw go to line dialog (overlays everything)
         goToLineDialog.draw(xMouse, yMouse);
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
+        
+        // Draw hover tooltip (on top of everything)
+        if (hoverState.isTooltipVisible()) {
+            ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft(), 
+                Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight);
+            TokenHoverRenderer.render(hoverState, sr.getScaledWidth(), sr.getScaledHeight());
+        }
     }
 
     private void scissorViewport() {
@@ -933,6 +947,107 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // Find which line the cursor is on (0-indexed)
     private int getCursorLineIndex() {
         return selection.getCursorLineIndex(container.lines, text != null ? text.length() : 0);
+    }
+    
+    /**
+     * Get the token at a specific screen position (mouse coordinates).
+     * Also returns the token's screen position and dimensions for tooltip placement.
+     * 
+     * @param xMouse Screen X coordinate
+     * @param yMouse Screen Y coordinate
+     * @return Array of [Token, tokenScreenX, tokenScreenY, tokenWidth] or null if no token
+     */
+    private Object[] getTokenAtScreenPosition(int xMouse, int yMouse) {
+        if (container == null || !(container instanceof ScriptTextContainer)) {
+            return null;
+        }
+        
+        ScriptTextContainer scriptContainer = (ScriptTextContainer) container;
+        
+        // Check if mouse is within the text viewport
+        int textAreaX = x + LINE_NUMBER_GUTTER_WIDTH + 1;
+        if (xMouse < textAreaX || xMouse > x + width || yMouse < y || yMouse > y + height) {
+            return null;
+        }
+        
+        // Adjust mouse position relative to text area
+        int relativeX = xMouse - textAreaX;
+        int relativeY = yMouse - y;
+        
+        // Account for fractional scrolling
+        double fracOffset = scroll.getFractionalOffset();
+        double fracPixels = fracOffset * container.lineHeight;
+        double adjustedY = relativeY + fracPixels;
+        
+        // Find which line the mouse is over
+        int lineIdx = scroll.getScrolledLine() + (int)(adjustedY / container.lineHeight);
+        if (lineIdx < 0 || lineIdx >= container.lines.size()) {
+            return null;
+        }
+        
+        LineData lineData = container.lines.get(lineIdx);
+        String lineText = lineData.text;
+        
+        // Find which character position in the line
+        int charPos = 0;
+        int accumulatedWidth = 0;
+        for (int i = 0; i < lineText.length(); i++) {
+            int charWidth = ClientProxy.Font.width(String.valueOf(lineText.charAt(i)));
+            if (relativeX < accumulatedWidth + charWidth) {
+                charPos = i;
+                break;
+            }
+            accumulatedWidth += charWidth;
+            charPos = i + 1;
+        }
+        
+        // Convert to global position
+        int globalPos = lineData.start + Math.min(charPos, lineText.length());
+        
+        // Get the token at this position
+        Token token = scriptContainer.getInterpreterTokenAt(globalPos);
+        if (token == null) {
+            return null;
+        }
+        
+        // Calculate token's screen position
+        int tokenLocalStart = token.getGlobalStart() - lineData.start;
+        int tokenLocalEnd = token.getGlobalEnd() - lineData.start;
+        tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, lineText.length()));
+        tokenLocalEnd = Math.max(0, Math.min(tokenLocalEnd, lineText.length()));
+        
+        int tokenScreenX = textAreaX + ClientProxy.Font.width(lineText.substring(0, tokenLocalStart));
+        int tokenScreenY = y + (lineIdx - scroll.getScrolledLine()) * container.lineHeight - (int)fracPixels;
+        int tokenWidth = ClientProxy.Font.width(lineText.substring(tokenLocalStart, tokenLocalEnd));
+        
+        return new Object[] { token, tokenScreenX, tokenScreenY, tokenWidth };
+    }
+    
+    /**
+     * Update hover state based on current mouse position.
+     * Called every frame from drawTextBox.
+     */
+    private void updateHoverState(int xMouse, int yMouse) {
+        // Don't show tooltips when not active, clicking, or when overlays are visible
+        if (!active || !isEnabled() || clicked || searchBar.isVisible() || 
+            goToLineDialog.isVisible() || KEYS_OVERLAY.isVisible() || renameHandler.isActive()) {
+            hoverState.clearHover();
+            return;
+        }
+        
+        // Get token at current mouse position
+        Object[] tokenInfo = getTokenAtScreenPosition(xMouse, yMouse);
+        
+        if (tokenInfo != null) {
+            Token token = (Token) tokenInfo[0];
+            int tokenScreenX = (Integer) tokenInfo[1];
+            int tokenScreenY = (Integer) tokenInfo[2];
+            int tokenWidth = (Integer) tokenInfo[3];
+            
+            hoverState.update(xMouse, yMouse, token, tokenScreenX, tokenScreenY, tokenWidth);
+        } else {
+            hoverState.update(xMouse, yMouse, null, 0, 0, 0);
+        }
     }
     
     

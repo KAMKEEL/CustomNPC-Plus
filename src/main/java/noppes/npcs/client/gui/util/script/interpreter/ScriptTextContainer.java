@@ -155,6 +155,26 @@ public class ScriptTextContainer extends JavaTextContainer {
     }
 
     /**
+     * Get the interpreter Token at a specific global position in the text.
+     * Returns null if no token is at that position or if the interpreter is disabled.
+     * 
+     * @param globalPosition Position in the document text
+     * @return The Token at that position, or null
+     */
+    public noppes.npcs.client.gui.util.script.interpreter.Token getInterpreterTokenAt(int globalPosition) {
+        if (!USE_NEW_INTERPRETER || document == null) {
+            return null;
+        }
+        
+        ScriptLine line = document.getLineAt(globalPosition);
+        if (line == null) {
+            return null;
+        }
+        
+        return line.getTokenAt(globalPosition);
+    }
+
+    /**
      * Get method blocks for compatibility with existing code.
      * Creates MethodBlock-like objects from the new MethodInfo.
      */
