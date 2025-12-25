@@ -206,36 +206,30 @@ public class TokenHoverInfo {
             int mods = clazz.getModifiers();
             
             // Modifiers
-            if (Modifier.isPublic(mods)) addSegment("public ", TextSegment.COLOR_KEYWORD);
-            if (Modifier.isAbstract(mods) && !clazz.isInterface()) addSegment("abstract ", TextSegment.COLOR_KEYWORD);
-            if (Modifier.isFinal(mods)) addSegment("final ", TextSegment.COLOR_KEYWORD);
+            if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isAbstract(mods) && !clazz.isInterface()) addSegment("abstract ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isFinal(mods)) addSegment("final ", TokenType.MODIFIER.getHexColor());
             
             // Class type keyword
             if (clazz.isInterface()) {
-                addSegment("interface ", TextSegment.COLOR_KEYWORD);
+                addSegment("interface ", TokenType.MODIFIER.getHexColor());
             } else if (clazz.isEnum()) {
-                addSegment("enum ", TextSegment.COLOR_KEYWORD);
+                addSegment("enum ", TokenType.MODIFIER.getHexColor());
             } else {
-                addSegment("class ", TextSegment.COLOR_KEYWORD);
+                addSegment("class ", TokenType.MODIFIER.getHexColor());
             }
             
-            // Class name
-            addSegment(typeInfo.getSimpleName(), TextSegment.COLOR_CLASS);
+            // Class name - use proper color based on type
+            int classColor = clazz.isInterface() ? TokenType.INTERFACE_DECL.getHexColor() 
+                : clazz.isEnum() ? TokenType.ENUM_DECL.getHexColor() 
+                : TokenType.IMPORTED_CLASS.getHexColor();
+            addSegment(typeInfo.getSimpleName(), classColor);
             
             // Extends
             Class<?> superclass = clazz.getSuperclass();
             if (superclass != null && superclass != Object.class) {
-                addSegment(" extends ", TextSegment.COLOR_KEYWORD);
-                int superClassCol = TextSegment.COLOR_TYPE;
-                if (superclass.isInterface()) {
-                    superClassCol = TokenType.INTERFACE_DECL.getHexColor();
-                } else if (superclass.isEnum()) {
-                    superClassCol = TokenType.ENUM_DECL.getHexColor();
-                } else {
-                    superClassCol = TokenType.IMPORTED_CLASS.getHexColor();
-
-                }
-                addSegment(superclass.getSimpleName(), superClassCol);
+                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                addSegment(superclass.getSimpleName(), getColorForClass(superclass));
             }
 
             List<TokenHoverInfo.TextSegment> declaration = null;
@@ -243,19 +237,19 @@ public class TokenHoverInfo {
             // Implements
             Class<?>[] interfaces = clazz.getInterfaces();
             if (interfaces.length > 0) {
-                addSegment(clazz.isInterface() ? " extends " : " implements ", TextSegment.COLOR_KEYWORD);
+                addSegment(clazz.isInterface() ? " extends " : " implements ", TokenType.MODIFIER.getHexColor());
                 for (int i = 0; i < Math.min(interfaces.length, 3); i++) {
-                    if (i > 0) addSegment(", ", TextSegment.COLOR_DEFAULT);
+                    if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
                     addSegment(interfaces[i].getSimpleName(), TokenType.INTERFACE_DECL.getHexColor());
                 }
                 if (interfaces.length > 3) {
-                    addSegment(", ...", TextSegment.COLOR_DEFAULT);
+                    addSegment(", ...", TokenType.DEFAULT.getHexColor());
                 }
             }
         } else {
             // Unresolved type
             iconIndicator = "?";
-            addSegment(typeInfo.getSimpleName(), TextSegment.COLOR_CLASS);
+            addSegment(typeInfo.getSimpleName(), TokenType.IMPORTED_CLASS.getHexColor());
             if (!typeInfo.isResolved()) {
                 errors.add("Cannot resolve class '" + typeInfo.getSimpleName() + "'");
             }
@@ -332,13 +326,14 @@ public class TokenHoverInfo {
                 packageName = pkg;
             }
             
-            // Type
-            addSegment(declaredType.getSimpleName(), TextSegment.COLOR_TYPE);
-            addSegment(" ", TextSegment.COLOR_DEFAULT);
+            // Type - check for actual type color
+            int typeColor = getColorForTypeInfo(declaredType);
+            addSegment(declaredType.getSimpleName(), typeColor);
+            addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
         
         // Field name
-        addSegment(fieldInfo.getName(), TextSegment.COLOR_FIELD);
+        addSegment(fieldInfo.getName(), TokenType.GLOBAL_FIELD.getHexColor());
     }
 
     private void extractLocalFieldInfo(Token token) {
@@ -349,11 +344,12 @@ public class TokenHoverInfo {
         
         TypeInfo declaredType = fieldInfo.getDeclaredType();
         if (declaredType != null) {
-            addSegment(declaredType.getSimpleName(), TextSegment.COLOR_TYPE);
-            addSegment(" ", TextSegment.COLOR_DEFAULT);
+            int typeColor = getColorForTypeInfo(declaredType);
+            addSegment(declaredType.getSimpleName(), typeColor);
+            addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
         
-        addSegment(fieldInfo.getName(), TextSegment.COLOR_FIELD);
+        addSegment(fieldInfo.getName(), TokenType.LOCAL_FIELD.getHexColor());
         
         // Show it's a local variable
         additionalInfo.add("Local variable");
@@ -367,18 +363,19 @@ public class TokenHoverInfo {
         
         TypeInfo declaredType = fieldInfo.getDeclaredType();
         if (declaredType != null) {
-            addSegment(declaredType.getSimpleName(), TextSegment.COLOR_TYPE);
-            addSegment(" ", TextSegment.COLOR_DEFAULT);
+            int typeColor = getColorForTypeInfo(declaredType);
+            addSegment(declaredType.getSimpleName(), typeColor);
+            addSegment(" ", TokenType.DEFAULT.getHexColor());
         }
         
-        addSegment(fieldInfo.getName(), TextSegment.COLOR_PARAM);
+        addSegment(fieldInfo.getName(), TokenType.PARAMETER.getHexColor());
         
         additionalInfo.add("Parameter");
     }
 
     private void extractUndefinedInfo(Token token) {
         iconIndicator = "?";
-        addSegment(token.getText(), TextSegment.COLOR_ERROR);
+        addSegment(token.getText(), TokenType.UNDEFINED_VAR.getHexColor());
         errors.add("Cannot resolve symbol '" + token.getText() + "'");
     }
 
@@ -425,70 +422,74 @@ public class TokenHoverInfo {
         // Skip for now - could add later
         
         // Modifiers
-        if (Modifier.isPublic(mods)) addSegment("public ", TextSegment.COLOR_KEYWORD);
-        else if (Modifier.isProtected(mods)) addSegment("protected ", TextSegment.COLOR_KEYWORD);
-        else if (Modifier.isPrivate(mods)) addSegment("private ", TextSegment.COLOR_KEYWORD);
+        if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
+        else if (Modifier.isProtected(mods)) addSegment("protected ", TokenType.MODIFIER.getHexColor());
+        else if (Modifier.isPrivate(mods)) addSegment("private ", TokenType.MODIFIER.getHexColor());
         
-        if (Modifier.isStatic(mods)) addSegment("static ", TextSegment.COLOR_KEYWORD);
-        if (Modifier.isFinal(mods)) addSegment("final ", TextSegment.COLOR_KEYWORD);
-        if (Modifier.isAbstract(mods)) addSegment("abstract ", TextSegment.COLOR_KEYWORD);
-        if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TextSegment.COLOR_KEYWORD);
+        if (Modifier.isStatic(mods)) addSegment("static ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isFinal(mods)) addSegment("final ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isAbstract(mods)) addSegment("abstract ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isSynchronized(mods)) addSegment("synchronized ", TokenType.MODIFIER.getHexColor());
         
-        // Return type
+        // Return type - check for actual type color
         Class<?> returnType = method.getReturnType();
-        addSegment(returnType.getSimpleName(), TextSegment.COLOR_TYPE);
-        addSegment(" ", TextSegment.COLOR_DEFAULT);
+        int returnTypeColor = getColorForClass(returnType);
+        addSegment(returnType.getSimpleName(), returnTypeColor);
+        addSegment(" ", TokenType.DEFAULT.getHexColor());
         
         // Method name
-        addSegment(method.getName(), TextSegment.COLOR_METHOD);
+        addSegment(method.getName(), TokenType.METHOD_CALL.getHexColor());
         
         // Parameters
-        addSegment("(", TextSegment.COLOR_DEFAULT);
+        addSegment("(", TokenType.DEFAULT.getHexColor());
         Class<?>[] paramTypes = method.getParameterTypes();
         java.lang.reflect.Parameter[] params = method.getParameters();
         for (int i = 0; i < paramTypes.length; i++) {
-            if (i > 0) addSegment(", ", TextSegment.COLOR_DEFAULT);
-            addSegment(paramTypes[i].getSimpleName(), TextSegment.COLOR_TYPE);
-            addSegment(" ", TextSegment.COLOR_DEFAULT);
+            if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
+            int paramTypeColor = getColorForClass(paramTypes[i]);
+            addSegment(paramTypes[i].getSimpleName(), paramTypeColor);
+            addSegment(" ", TokenType.DEFAULT.getHexColor());
             // Try to get parameter name if available
             String paramName = params.length > i ? params[i].getName() : "arg" + i;
-            addSegment(paramName, TextSegment.COLOR_PARAM);
+            addSegment(paramName, TokenType.PARAMETER.getHexColor());
         }
-        addSegment(")", TextSegment.COLOR_DEFAULT);
+        addSegment(")", TokenType.DEFAULT.getHexColor());
     }
 
     private void buildBasicMethodDeclaration(MethodInfo methodInfo, TypeInfo containingType) {
         // Modifiers
         if (methodInfo.isStatic()) {
-            addSegment("static ", TextSegment.COLOR_KEYWORD);
+            addSegment("static ", TokenType.MODIFIER.getHexColor());
         }
         
         // Return type
         TypeInfo returnType = methodInfo.getReturnType();
         if (returnType != null) {
-            addSegment(returnType.getSimpleName(), TextSegment.COLOR_TYPE);
-            addSegment(" ", TextSegment.COLOR_DEFAULT);
+            int returnTypeColor = getColorForTypeInfo(returnType);
+            addSegment(returnType.getSimpleName(), returnTypeColor);
+            addSegment(" ", TokenType.DEFAULT.getHexColor());
         } else {
-            addSegment("void ", TextSegment.COLOR_KEYWORD);
+            addSegment("void ", TokenType.KEYWORD.getHexColor());
         }
         
         // Method name
-        addSegment(methodInfo.getName(), TextSegment.COLOR_METHOD);
+        addSegment(methodInfo.getName(), TokenType.METHOD_CALL.getHexColor());
         
         // Parameters
-        addSegment("(", TextSegment.COLOR_DEFAULT);
+        addSegment("(", TokenType.DEFAULT.getHexColor());
         List<FieldInfo> params = methodInfo.getParameters();
         for (int i = 0; i < params.size(); i++) {
-            if (i > 0) addSegment(", ", TextSegment.COLOR_DEFAULT);
+            if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
             FieldInfo param = params.get(i);
             TypeInfo paramType = param.getDeclaredType();
             if (paramType != null) {
-                addSegment(paramType.getSimpleName(), TextSegment.COLOR_TYPE);
-                addSegment(" ", TextSegment.COLOR_DEFAULT);
+                int paramTypeColor = getColorForTypeInfo(paramType);
+                addSegment(paramType.getSimpleName(), paramTypeColor);
+                addSegment(" ", TokenType.DEFAULT.getHexColor());
             }
-            addSegment(param.getName(), TextSegment.COLOR_PARAM);
+            addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
         }
-        addSegment(")", TextSegment.COLOR_DEFAULT);
+        addSegment(")", TokenType.DEFAULT.getHexColor());
     }
 
     private void extractJavadoc(Method method) {
@@ -500,6 +501,27 @@ public class TokenHoverInfo {
         if (method.isAnnotationPresent(Deprecated.class)) {
             additionalInfo.add("@Deprecated");
         }
+    }
+
+    /**
+     * Get the appropriate color for a Class<?> based on its type.
+     */
+    private int getColorForClass(Class<?> clazz) {
+        if (clazz.isInterface()) return TokenType.INTERFACE_DECL.getHexColor();
+        if (clazz.isEnum()) return TokenType.ENUM_DECL.getHexColor();
+        return TokenType.IMPORTED_CLASS.getHexColor();
+    }
+    
+    /**
+     * Get the appropriate color for a TypeInfo based on its Java class.
+     */
+    private int getColorForTypeInfo(TypeInfo typeInfo) {
+        if (typeInfo != null) {
+            Class<?> clazz = typeInfo.getJavaClass();
+            if (clazz != null) 
+                return getColorForClass(clazz);
+        }
+        return TokenType.IMPORTED_CLASS.getHexColor();
     }
 
     // ==================== GETTERS ====================
