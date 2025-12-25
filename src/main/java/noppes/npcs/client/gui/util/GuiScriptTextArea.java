@@ -1249,16 +1249,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (i == Keyboard.KEY_LEFT) {
             int j = 1; // default: move one character
             if (isCtrlKeyDown()) {
-                // When Ctrl is down, compute distance to previous word boundary.
-                // We match words in the text slice before the cursor and pick
-                // the last match start as the new boundary.
-                Matcher m = container.regexWord.matcher(text.substring(0, selection.getCursorPosition()));
-                while (m.find()) {
-                    if (m.start() == m.end())
-                        continue; // skip empty matches
-                    // j becomes the number of chars to move left to reach word start
-                    j = selection.getCursorPosition() - m.start();
+                int pos = selection.getCursorPosition();
+                int g = pos;
+                java.util.function.IntPredicate isWordChar = ch -> Character.isLetterOrDigit(ch) || ch == '_';
+
+                if (pos > 0) {
+                    char left = text.charAt(pos - 1);
+                    if (Character.isWhitespace(left)) {
+                        while (g - 1 >= 0 && Character.isWhitespace(text.charAt(g - 1))) g--;
+                    } else if (isWordChar.test(left)) {
+                        while (g - 1 >= 0 && isWordChar.test(text.charAt(g - 1))) g--;
+                    } else {
+                        while (g - 1 >= 0 && !Character.isWhitespace(text.charAt(g - 1)) && !isWordChar.test(text.charAt(g - 1))) g--;
+                    }
                 }
+                j = Math.max(1, pos - g);
             }
             int newPos = Math.max(selection.getCursorPosition() - j, 0);
             // If Shift is held, extend selection; otherwise place caret.
@@ -1270,23 +1275,21 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (i == Keyboard.KEY_RIGHT) {
             int j = 1; // default: move one character
             if (isCtrlKeyDown()) {
-                String after = text.substring(selection.getCursorPosition());
-                Matcher m = container.regexWord.matcher(after);
-                if (m.find()) {
-                    if (m.start() == 0) {
-                        // If the first match starts at 0 (cursor at word start),
-                        // try to find the next match so we advance past the current word.
-                        if (m.find())
-                            j = m.start();
-                        else
-                            j = Math.max(1, after.length());
+                int pos = selection.getCursorPosition();
+                int end = pos;
+                java.util.function.IntPredicate isWordChar = ch -> Character.isLetterOrDigit(ch) || ch == '_';
+
+                if (pos < text.length()) {
+                    char first = text.charAt(pos);
+                    if (Character.isWhitespace(first)) {
+                        while (end < text.length() && Character.isWhitespace(text.charAt(end))) end++;
+                    } else if (isWordChar.test(first)) {
+                        while (end < text.length() && isWordChar.test(text.charAt(end))) end++;
                     } else {
-                        j = m.start();
+                        while (end < text.length() && !Character.isWhitespace(text.charAt(end)) && !isWordChar.test(text.charAt(end))) end++;
                     }
-                } else {
-                    // No word match found after cursor -> jump to end
-                    j = Math.max(1, after.length());
                 }
+                j = Math.max(1, end - pos);
             }
             int newPos = Math.min(selection.getCursorPosition() + j, text.length());
             setCursor(newPos, GuiScreen.isShiftKeyDown());
