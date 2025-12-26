@@ -22,9 +22,9 @@ public class ScriptLine {
     private static final char COLOR_CHAR = '\u00A7';
 
     private final String text;           // The actual text of this line
-    private final int globalStart;       // Start offset in the full document
-    private final int globalEnd;         // End offset in the full document (exclusive)
-    private final int lineIndex;         // 0-based line number
+    public final int globalStart;       // Start offset in the full document
+    public final int globalEnd;         // End offset in the full document (exclusive)
+    public final int lineIndex;         // 0-based line number
 
     private final List<Token> tokens = new ArrayList<>();
     private final List<Integer> indentGuides = new ArrayList<>(); // Column positions for indent guides
@@ -71,7 +71,7 @@ public class ScriptLine {
 
     public Token getTokenAt(int globalPosition) {
         for (Token t : tokens) {
-            if (globalPosition >= t.getGlobalStart() && globalPosition < t.getGlobalEnd()) {
+            if (globalPosition >= t.getGlobalStart() && globalPosition <= t.getGlobalEnd()) {
                 return t;
             }
         }
