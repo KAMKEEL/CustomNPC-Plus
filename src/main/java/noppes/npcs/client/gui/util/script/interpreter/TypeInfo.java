@@ -98,7 +98,7 @@ public class TypeInfo {
     /**
      * Create a TypeInfo for a primitive type.
      */
-    public static TypeInfo forPrimitive(String typeName) {
+    public static TypeInfo fromPrimitive(String typeName) {
         Class<?> primitiveClass = null;
         switch (typeName) {
             case "boolean": primitiveClass = boolean.class; break;
