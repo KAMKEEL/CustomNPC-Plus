@@ -6,6 +6,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Represents a single line of source code with its tokens.
@@ -70,12 +71,20 @@ public class ScriptLine {
     }
 
     public Token getTokenAt(int globalPosition) {
-        for (Token t : tokens) {
-            if (globalPosition >= t.getGlobalStart() && globalPosition <= t.getGlobalEnd()) {
+        for (Token t : tokens)
+            if (globalPosition >= t.getGlobalStart() && globalPosition <= t.getGlobalEnd()) 
                 return t;
-            }
-        }
+
         return null;
+    }
+
+    public Token getTokenAt(int globalPosition, Predicate<Token> condition) {
+        for (Token t : tokens) 
+            if (globalPosition >= t.getGlobalStart() && globalPosition <= t.getGlobalEnd() && condition.test(t))
+                return t;
+        
+        return null;
+        
     }
 
     // ==================== TOKEN MANAGEMENT ====================

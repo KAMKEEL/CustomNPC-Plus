@@ -14,6 +14,7 @@ import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.Token;
+import noppes.npcs.client.gui.util.script.interpreter.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
 import noppes.npcs.client.gui.util.script.interpreter.hover.TokenHoverRenderer;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
@@ -997,7 +998,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Get the token at this position
         int globalMouseX = getSelectionPos(xMouse,yMouse);
-        Token token = scriptContainer.getInterpreterTokenAt(globalMouseX);
+        Token token = lineData.getTokenAt(globalMouseX, (t) -> t.getType() != TokenType.DEFAULT); // Ignore default tokens i.e. whitespaces
         if (token == null) 
             return null;
         
