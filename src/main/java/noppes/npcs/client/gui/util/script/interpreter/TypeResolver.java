@@ -370,6 +370,16 @@ public class TypeResolver {
         }
     }
 
+
+    /**
+     * Check if a type name is a primitive type.
+     */
+    public static boolean isPrimitiveType(String typeName) {
+        return typeName.equals("boolean") || typeName.equals("byte") || typeName.equals("char") ||
+                typeName.equals("short") || typeName.equals("int") || typeName.equals("long") ||
+                typeName.equals("float") || typeName.equals("double") || typeName.equals("void");
+    }
+    
     /**
      * Represents a type occurrence within generic content.
      */

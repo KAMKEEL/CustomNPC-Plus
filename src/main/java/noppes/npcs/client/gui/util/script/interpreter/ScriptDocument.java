@@ -804,6 +804,16 @@ public class ScriptDocument {
         // Strip array brackets
         baseName = baseName.replace("[]", "").trim();
 
+        // Check primitive types first
+        if (TypeResolver.isPrimitiveType(baseName)) {
+            return TypeInfo.forPrimitive(baseName);
+        }
+
+        // Check for String (common case)
+        if (baseName.equals("String")) {
+            return typeResolver.resolveFullName("java.lang.String");
+        }
+
         // Check script-defined types FIRST
         if (scriptTypes.containsKey(baseName)) {
             return scriptTypes.get(baseName);
