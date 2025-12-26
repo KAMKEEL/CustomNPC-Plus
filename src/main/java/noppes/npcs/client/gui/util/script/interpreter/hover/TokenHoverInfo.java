@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -409,8 +410,33 @@ public class TokenHoverInfo {
             return;
 
         iconIndicator = "f";
-        
+
+
         TypeInfo declaredType = fieldInfo.getDeclaredType();
+
+        // Try to get modifiers from Java reflection if this is a chained field
+        boolean foundModifiers = false;
+        if (chainedField != null && chainedField.getReceiverType() != null) {
+            TypeInfo receiverType = chainedField.getReceiverType();
+            if (receiverType.getJavaClass() != null) {
+                try {
+                    Field javaField = receiverType.getJavaClass().getField(fieldInfo.getName());
+                    if (javaField != null)
+                        addFieldModifiers(javaField.getModifiers());
+                    foundModifiers = true;
+                } catch (Exception e) {
+                }
+            }
+        }
+        
+        if (!foundModifiers && fieldInfo.getDeclarationOffset() >= 0) {
+            // Show modifiers from source if we have a declaration position
+            String modifiers = extractModifiersAtPosition(fieldInfo.getDeclarationOffset());
+            if (modifiers != null && !modifiers.isEmpty()) {
+                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
+            }
+        }
+        
         if (declaredType != null) {
             // Show field's type package.ClassName for context
             String pkg = declaredType.getPackageName();
@@ -554,9 +580,17 @@ public class TokenHoverInfo {
     }
 
     private void buildBasicMethodDeclaration(MethodInfo methodInfo, TypeInfo containingType) {
-        // Modifiers
-        if (methodInfo.isStatic()) {
-            addSegment("static ", TokenType.MODIFIER.getHexColor());
+        // Try to extract modifiers from source if this is a declaration
+        if (methodInfo.isDeclaration() && methodInfo.getDeclarationOffset() >= 0) {
+            String modifiers = extractModifiersAtPosition(methodInfo.getDeclarationOffset());
+            if (modifiers != null && !modifiers.isEmpty()) {
+                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
+            }
+        } else {
+            // Fallback: show static if we know it
+            if (methodInfo.isStatic()) {
+                addSegment("static ", TokenType.MODIFIER.getHexColor());
+            }
         }
         
         // Return type
@@ -598,6 +632,69 @@ public class TokenHoverInfo {
         if (method.isAnnotationPresent(Deprecated.class)) {
             additionalInfo.add("@Deprecated");
         }
+    }
+
+    /**
+     * Extract modifiers (public, private, static, final, etc.) before a declaration position.
+     * Looks backward from the position to find modifiers.
+     */
+    private String extractModifiersAtPosition(int position) {
+        if (token.getParentLine().getParent() == null)
+            return null;
+
+        String text = token.getParentLine().getParent().getText();
+        if (position < 0 || position >= text.length())
+            return null;
+
+        // Look backward from position to find start of line or previous semicolon/brace
+        int searchStart = position - 1;
+        while (searchStart >= 0) {
+            char c = text.charAt(searchStart);
+            if (c == ';' || c == '{' || c == '}' || c == '\n') {
+                searchStart++;
+                break;
+            }
+            searchStart--;
+        }
+        if (searchStart < 0)
+            searchStart = 0;
+
+        // Extract text before the declaration
+        String beforeDecl = text.substring(searchStart, position).trim();
+
+        // Match modifier keywords
+        StringBuilder modifiers = new StringBuilder();
+        String[] words = beforeDecl.split("\\s+");
+        for (String word : words) {
+            if (TypeResolver.isModifier(word)) {
+                if (modifiers.length() > 0)
+                    modifiers.append(" ");
+                modifiers.append(word);
+            }
+        }
+
+        return modifiers.toString();
+    }
+
+    /**
+     * Add field modifiers from Java reflection modifiers.
+     */
+    private void addFieldModifiers(int mods) {
+        if (Modifier.isPublic(mods))
+            addSegment("public ", TokenType.MODIFIER.getHexColor());
+        else if (Modifier.isProtected(mods))
+            addSegment("protected ", TokenType.MODIFIER.getHexColor());
+        else if (Modifier.isPrivate(mods))
+            addSegment("private ", TokenType.MODIFIER.getHexColor());
+
+        if (Modifier.isStatic(mods))
+            addSegment("static ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isFinal(mods))
+            addSegment("final ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isVolatile(mods))
+            addSegment("volatile ", TokenType.MODIFIER.getHexColor());
+        if (Modifier.isTransient(mods))
+            addSegment("transient ", TokenType.MODIFIER.getHexColor());
     }
 
     /**
