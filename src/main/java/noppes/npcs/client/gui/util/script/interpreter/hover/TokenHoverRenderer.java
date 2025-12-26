@@ -48,7 +48,7 @@ public class TokenHoverRenderer {
     private static final int BORDER_COLOR = 0xFF3C3F41;
     
     /** Package text color */
-    private static final int PACKAGE_COLOR = 0xFF808080;
+    private static int PACKAGE_COLOR = 0xFF6490e2;
     
     /** Error text color */
     private static final int ERROR_COLOR = 0xFFFF6B68;
