@@ -972,15 +972,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         ScriptTextContainer scriptContainer = (ScriptTextContainer) container;
         
         // Check if mouse is within the text viewport
-        int textAreaX = x + LINE_NUMBER_GUTTER_WIDTH + 1;
-        if (xMouse < textAreaX || xMouse > x + width || yMouse < y || yMouse > y + height) {
+        int viewportX = x + LINE_NUMBER_GUTTER_WIDTH + 1;
+        if (xMouse < viewportX || xMouse > x + width || yMouse < y || yMouse > y + height) {
             return null;
         }
         
         // Adjust mouse position relative to text area
-        int relativeX = xMouse - textAreaX;
         int relativeY = yMouse - y;
-        
+
         // Account for fractional scrolling
         double fracOffset = scroll.getFractionalOffset();
         double fracPixels = fracOffset * container.lineHeight;
@@ -992,39 +991,23 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return null;
         }
         
-        LineData lineData = container.lines.get(lineIdx);
-        String lineText = lineData.text;
-        
-        // Find which character position in the line
-        int charPos = 0;
-        int accumulatedWidth = 0;
-        for (int i = 0; i < lineText.length(); i++) {
-            int charWidth = ClientProxy.Font.width(String.valueOf(lineText.charAt(i)));
-            // Check if mouse is in first half or second half of character
-            if (relativeX < accumulatedWidth + charWidth / 2) {
-                charPos = i;
-                break;
-            }
-            accumulatedWidth += charWidth;
-            charPos = i + 1;
-        }
-        
-        // Convert to global position
-        int globalPos = lineData.start + Math.min(charPos, lineText.length());
+        ScriptLine lineData = container.getDocument().getLine(lineIdx);
+        String lineText = lineData.getText();
+        int lineStart = lineData.getGlobalStart();
         
         // Get the token at this position
-        Token token = scriptContainer.getInterpreterTokenAt(globalPos);
-        if (token == null) {
+        int globalMouseX = getSelectionPos(xMouse,yMouse);
+        Token token = scriptContainer.getInterpreterTokenAt(globalMouseX);
+        if (token == null) 
             return null;
-        }
         
         // Calculate token's screen position
-        int tokenLocalStart = token.getGlobalStart() - lineData.start;
-        int tokenLocalEnd = token.getGlobalEnd() - lineData.start;
+        int tokenLocalStart = token.getGlobalStart() - lineStart;
+        int tokenLocalEnd = token.getGlobalEnd() - lineStart;
         tokenLocalStart = Math.max(0, Math.min(tokenLocalStart, lineText.length()));
         tokenLocalEnd = Math.max(0, Math.min(tokenLocalEnd, lineText.length()));
         
-        int tokenScreenX = textAreaX + ClientProxy.Font.width(lineText.substring(0, tokenLocalStart));
+        int tokenScreenX = viewportX + ClientProxy.Font.width(lineText.substring(0, tokenLocalStart));
         int tokenScreenY = y + (lineIdx - scroll.getScrolledLine()) * container.lineHeight - (int)fracPixels;
         int tokenWidth = ClientProxy.Font.width(lineText.substring(tokenLocalStart, tokenLocalEnd));
         
