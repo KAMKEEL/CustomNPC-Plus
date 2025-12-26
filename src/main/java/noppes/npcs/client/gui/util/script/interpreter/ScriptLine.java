@@ -155,6 +155,8 @@ public class ScriptLine {
                         token.setMethodCallInfo((MethodCallInfo) mark.metadata);
                     } else if (mark.metadata instanceof ImportData) {
                         token.setImportData((ImportData) mark.metadata);
+                    }else if (mark.metadata instanceof FieldAccessInfo) {
+                        token.setFieldAccessInfo((FieldAccessInfo) mark.metadata);
                     }
                 }
                 

@@ -2241,13 +2241,23 @@ public class ScriptDocument {
                 if (isExcluded(segPos[0]))
                     continue;
 
+                boolean isLastSegment = (i == chainSegments.size() - 1);
+                boolean isStaticAccessSeg = false;
+                if (i - 1 >= 0) {
+                    String prev = chainSegments.get(i - 1);
+                    if (!prev.isEmpty() && Character.isUpperCase(prev.charAt(0)))
+                        isStaticAccessSeg = true;
+                }
+                
                 // Handle the first segment if we're marking it (i.e., when preceded by dot)
                 if (i == 0 && firstIsPrecededByDot) {
                     // This is a field access on a receiver (e.g., the "thePlayer" in "getMinecraft().thePlayer")
                     TypeInfo receiverType = resolveReceiverChain(chainStart);
                     if (receiverType != null && receiverType.hasField(segment)) {
                         FieldInfo fieldInfo = receiverType.getFieldInfo(segment);
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
+                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], receiverType, fieldInfo, isLastSegment, isStaticAccessSeg);
+
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
                         currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
                     } else {
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
@@ -2270,26 +2280,9 @@ public class ScriptDocument {
                         FieldInfo fieldInfo = currentType.getFieldInfo(segment);
                         
                         // Check if this is the last segment and if it's in an assignment context
-                        boolean isLastSegment = (i == chainSegments.size() - 1);
-                        if (isLastSegment) {
-                            // Create FieldAccessInfo for validation
-                            boolean isStaticAccess = Character.isUpperCase(chainSegments.get(i-1).charAt(0));
-                            FieldAccessInfo accessInfo = new FieldAccessInfo(
-                                segment, segPos[0], segPos[1], currentType, fieldInfo, isStaticAccess
-                            );
-                            
-                            // Set expected type from assignment context
-                            TypeInfo expectedType = findExpectedTypeAtPosition(segPos[0]);
-                            if (expectedType != null) {
-                                accessInfo.setExpectedType(expectedType);
-                            }
-                            
-                            accessInfo.validate();
-                            fieldAccesses.add(accessInfo);
-                            marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
-                        } else {
-                            marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
-                        }
+                        // Create and mark FieldAccessInfo for this segment (last or intermediate)
+                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], currentType, fieldInfo, isLastSegment, isStaticAccessSeg);
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
                         
                         // Update currentType for next segment
                         currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
@@ -2368,25 +2361,14 @@ public class ScriptDocument {
                     hasMoreSegments = true;
                 }
                 
-                if (!hasMoreSegments) {
-                    // This is the final field - create FieldAccessInfo for validation
-                    boolean isStaticAccess = false; // Determine based on receiver
-                    FieldAccessInfo accessInfo = new FieldAccessInfo(
-                        firstField, identStart, identEnd, receiverType, fInfo, isStaticAccess
-                    );
-                    
-                    // Set expected type from assignment context
-                    TypeInfo expectedType = findExpectedTypeAtPosition(identStart);
-                    if (expectedType != null) {
-                        accessInfo.setExpectedType(expectedType);
-                    }
-                    
-                    accessInfo.validate();
-                    fieldAccesses.add(accessInfo);
-                    marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, accessInfo));
-                } else {
-                    marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, fInfo));
+                boolean isStaticAccessFirst = false;
+                if (receiverType != null) {
+                    String recvName = receiverType.getSimpleName();
+                    if (recvName != null && !recvName.isEmpty() && Character.isUpperCase(recvName.charAt(0)))
+                        isStaticAccessFirst = true;
                 }
+                FieldAccessInfo accessInfoFirst = createFieldAccessInfo(firstField, identStart, identEnd, receiverType, fInfo, !hasMoreSegments, isStaticAccessFirst);
+                marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, accessInfoFirst));
             } else {
                 marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.UNDEFINED_VAR));
             }
@@ -2435,25 +2417,14 @@ public class ScriptDocument {
                 if (currentType != null && currentType.isResolved() && currentType.hasField(seg)) {
                     FieldInfo segInfo = currentType.getFieldInfo(seg);
                     
-                    if (isLastSegment) {
-                        // Create FieldAccessInfo for validation
-                        boolean isStaticAccess = false;
-                        FieldAccessInfo accessInfo = new FieldAccessInfo(
-                            seg, nStart, nEnd, currentType, segInfo, isStaticAccess
-                        );
-                        
-                        // Set expected type from assignment context
-                        TypeInfo expectedType = findExpectedTypeAtPosition(nStart);
-                        if (expectedType != null) {
-                            accessInfo.setExpectedType(expectedType);
-                        }
-                        
-                        accessInfo.validate();
-                        fieldAccesses.add(accessInfo);
-                        marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, accessInfo));
-                    } else {
-                        marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, segInfo));
+                    boolean isStaticAccessSeg2 = false;
+                    if (currentType != null) {
+                        String tn = currentType.getSimpleName();
+                        if (tn != null && !tn.isEmpty() && Character.isUpperCase(tn.charAt(0)))
+                            isStaticAccessSeg2 = true;
                     }
+                    FieldAccessInfo accessInfoSeg = createFieldAccessInfo(seg, nStart, nEnd, currentType, segInfo, isLastSegment, isStaticAccessSeg2);
+                    marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, accessInfoSeg));
                     
                     currentType = (segInfo != null) ? segInfo.getTypeInfo() : null;
                 } else {
@@ -2625,6 +2596,25 @@ public class ScriptDocument {
     }
 
     // ==================== UTILITY METHODS ====================
+
+    /**
+     * Helper to create and validate a FieldAccessInfo. Does NOT add marks or register the info —
+     * callers should add to `fieldAccesses` and `marks` as appropriate so marking logic remains in-place.
+     */
+    private FieldAccessInfo createFieldAccessInfo(String name, int start, int end,
+                                                  TypeInfo receiverType, FieldInfo fieldInfo,
+                                                  boolean isLastSegment, boolean isStaticAccess) {
+        FieldAccessInfo accessInfo = new FieldAccessInfo(name, start, end, receiverType, fieldInfo, isStaticAccess);
+        if (isLastSegment) {
+            TypeInfo expectedType = findExpectedTypeAtPosition(start);
+            if (expectedType != null) {
+                accessInfo.setExpectedType(expectedType);
+            }
+        }
+        accessInfo.validate();
+        fieldAccesses.add(accessInfo);
+        return accessInfo;
+    }
 
     private FieldInfo resolveVariable(String name, int position) {
         // Find containing method
