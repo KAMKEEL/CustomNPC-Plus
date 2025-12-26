@@ -273,13 +273,18 @@ public class TokenHoverInfo {
         }
         
         if (containingType != null) {
-            // Show full package.ClassName for context (like IntelliJ)
-            String pkg = containingType.getPackageName();
-            String className = containingType.getSimpleName();
-            if (pkg != null && !pkg.isEmpty()) {
-                packageName = pkg + "." + className;
+            // Show full qualified class name (like IntelliJ)
+            String fullName = containingType.getFullName();
+            if (fullName != null && !fullName.isEmpty()) {
+                packageName = fullName;
             } else {
-                packageName = className;
+                String pkg = containingType.getPackageName();
+                String className = containingType.getSimpleName();
+                if (pkg != null && !pkg.isEmpty()) {
+                    packageName = pkg + "." + className;
+                } else {
+                    packageName = className;
+                }
             }
         }
         
@@ -313,18 +318,27 @@ public class TokenHoverInfo {
 
     private void extractGlobalFieldInfo(Token token) {
         FieldInfo fieldInfo = token.getFieldInfo();
-        if (fieldInfo == null) return;
-        
+        FieldAccessInfo chainedField = token.getFieldAccessInfo();
+        if (fieldInfo == null && chainedField != null)
+            fieldInfo = chainedField.getResolvedField();
+
+        if (fieldInfo == null)
+            return;
+
         iconIndicator = "f";
         
         TypeInfo declaredType = fieldInfo.getDeclaredType();
         if (declaredType != null) {
             // Show field's type package.ClassName for context
             String pkg = declaredType.getPackageName();
-            String className = declaredType.getSimpleName();
-            if (pkg != null && !pkg.isEmpty()) {
+
+            // For Minecraft.getMinecraft.thePlayer
+            // Return net.minecraft.client.Minecraft
+            if (chainedField != null)
+                pkg = chainedField.getReceiverType().getFullName(); 
+            
+            if (pkg != null && !pkg.isEmpty()) 
                 packageName = pkg;
-            }
             
             // Type - check for actual type color
             int typeColor = getColorForTypeInfo(declaredType);
