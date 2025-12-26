@@ -1636,6 +1636,48 @@ public class ScriptDocument {
         // Otherwise, treat it as an expression
         return resolveExpressionType(argText, position);
     }
+    
+    /**
+     * Check if a numeric literal has excessive precision for its type.
+     * Counts significant digits (excluding leading zeros, decimal point, and suffix).
+     * 
+     * @param numLiteral The numeric literal string (e.g., "1.23456789f", "0.00123456789")
+     * @param maxDigits Maximum significant digits allowed (7 for float, 15 for double)
+     * @return true if the literal has more significant digits than allowed
+     */
+    private boolean hasExcessivePrecision(String numLiteral, int maxDigits) {
+        String cleaned = numLiteral.trim();
+        
+        // Remove leading sign
+        if (cleaned.startsWith("-") || cleaned.startsWith("+")) {
+            cleaned = cleaned.substring(1);
+        }
+        
+        // Remove suffix (f, F, d, D, l, L)
+        if (cleaned.endsWith("f") || cleaned.endsWith("F") || 
+            cleaned.endsWith("d") || cleaned.endsWith("D") ||
+            cleaned.endsWith("l") || cleaned.endsWith("L")) {
+            cleaned = cleaned.substring(0, cleaned.length() - 1);
+        }
+        
+        // Remove decimal point for counting
+        cleaned = cleaned.replace(".", "");
+        
+        // Remove leading zeros (they're not significant in the mantissa)
+        while (cleaned.startsWith("0") && cleaned.length() > 1) {
+            cleaned = cleaned.substring(1);
+        }
+        
+        // If it's just "0", that's fine
+        if (cleaned.equals("0") || cleaned.isEmpty()) {
+            return false;
+        }
+        
+        // Count significant digits
+        int significantDigits = cleaned.length();
+        
+        return significantDigits > maxDigits;
+    }
 
     /**
      * Comprehensive expression type resolver that handles:
@@ -1682,13 +1724,23 @@ public class ScriptDocument {
             return null; // null is compatible with any reference type
         }
         
-        // Numeric literals
+        // Numeric literals with precision checking
         // Float: can be 10f, 10.5f, 10.f, .5f
         if (expr.matches("-?\\d*\\.?\\d+[fF]")) {
+            // Check if it has too many decimal places for float (>7 significant digits)
+            // If so, treat it as double (causing type mismatch)
+            if (hasExcessivePrecision(expr, 7)) {
+                return TypeInfo.fromPrimitive("double");
+            }
             return TypeInfo.fromPrimitive("float");
         }
         // Double: can be 10d, 10.5d, 10.5, .5, 10., but NOT plain integers
         if (expr.matches("-?\\d*\\.\\d+[dD]?") || expr.matches("-?\\d+\\.[dD]?") || expr.matches("-?\\d+[dD]")) {
+            // Check if it has too many decimal places for double (>15 significant digits)
+            // Return null to indicate the literal is invalid/unrepresentable
+            if (hasExcessivePrecision(expr, 15)) {
+                return null; // Exceeds double precision
+            }
             return TypeInfo.fromPrimitive("double");
         }
         // Long: 10L or 10l
