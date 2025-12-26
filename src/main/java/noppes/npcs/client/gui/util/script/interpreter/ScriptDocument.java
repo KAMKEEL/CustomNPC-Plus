@@ -764,9 +764,12 @@ public class ScriptDocument {
             if (isExcluded(m.start()))
                 continue;
 
-            String typeName = m.group(1);
+            String typeNameRaw = m.group(1);
             String fieldName = m.group(2);
             int position = m.start(2);
+
+            // Strip modifiers (public, private, protected, static, final, etc.) from type name
+            String typeName = stripModifiers(typeNameRaw);
 
             // Check if inside a method - if so, it's a local, not global
             boolean insideMethod = false;
@@ -784,6 +787,27 @@ public class ScriptDocument {
             }
         }
     }
+
+    /**
+     * Strip Java modifiers from a type name string.
+     * e.g., "public static String" -> "String"
+     */
+    private String stripModifiers(String typeName) {
+        if (typeName == null) return null;
+        
+        String[] parts = typeName.trim().split("\\s+");
+        // Filter out known modifiers
+        StringBuilder result = new StringBuilder();
+        for (String part : parts) {
+            if (!TypeResolver.isModifier(part)) {
+                if (result.length() > 0) result.append(" ");
+                result.append(part);
+            }
+        }
+        return result.toString();
+    }
+
+
 
     private TypeInfo resolveType(String typeName) {
         return resolveTypeAndTrackUsage(typeName);

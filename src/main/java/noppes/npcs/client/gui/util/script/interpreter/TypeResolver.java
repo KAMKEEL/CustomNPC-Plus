@@ -379,6 +379,16 @@ public class TypeResolver {
                 typeName.equals("short") || typeName.equals("int") || typeName.equals("long") ||
                 typeName.equals("float") || typeName.equals("double") || typeName.equals("void");
     }
+
+    /**
+     * Check if a word is a Java modifier keyword.
+     */
+    public static boolean isModifier(String word) {
+        return word.equals("public") || word.equals("private") || word.equals("protected") ||
+                word.equals("static") || word.equals("final") || word.equals("abstract") ||
+                word.equals("synchronized") || word.equals("volatile") || word.equals("transient") ||
+                word.equals("native") || word.equals("strictfp");
+    }
     
     /**
      * Represents a type occurrence within generic content.
