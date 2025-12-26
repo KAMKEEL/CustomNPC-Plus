@@ -480,6 +480,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
 
         // Draw line number gutter background
+        int viewportX = x + LINE_NUMBER_GUTTER_WIDTH;
         drawRect(x, y, x + LINE_NUMBER_GUTTER_WIDTH, y + height, 0xff000000);
         // Draw text viewport background (starts after gutter)
         drawRect(x + LINE_NUMBER_GUTTER_WIDTH, y, x + width, y + height, 0xff000000);
@@ -886,9 +887,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Draw hover tooltip (on top of everything)
         if (hoverState.isTooltipVisible()) {
-            ScaledResolution sr = new ScaledResolution(Minecraft.getMinecraft(), 
-                Minecraft.getMinecraft().displayWidth, Minecraft.getMinecraft().displayHeight);
-            TokenHoverRenderer.render(hoverState, sr.getScaledWidth(), sr.getScaledHeight());
+            int xOffset = hasVerticalScrollbar() ? -8 : -2;
+            int viewportWidth = width - LINE_NUMBER_GUTTER_WIDTH;
+            int viewportY = y;
+            int viewportHeight = height;
+            TokenHoverRenderer.render(hoverState, viewportX, viewportWidth+xOffset, viewportY, viewportHeight);
         }
     }
 

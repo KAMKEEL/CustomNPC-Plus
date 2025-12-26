@@ -2,10 +2,10 @@ package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.ScaledResolution;
 import noppes.npcs.client.ClientProxy;
 import org.lwjgl.opengl.GL11;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -18,7 +18,7 @@ import java.util.List;
  * - Documentation/Javadoc
  * - Error messages in red
  * 
- * Handles positioning to keep tooltip on screen.
+ * Uses a unified approach for width/height calculation based on max available width.
  */
 public class TokenHoverRenderer {
 
@@ -27,23 +27,17 @@ public class TokenHoverRenderer {
     /** Padding inside the tooltip box */
     private static final int PADDING = 6;
     
-    /** Gap between icon and text */
-    private static final int ICON_GAP = 4;
-    
-    /** Icon box size */
-    private static final int ICON_SIZE = 12;
-    
-    /** Line spacing */
+    /** Line spacing between rows */
     private static final int LINE_SPACING = 2;
     
     /** Vertical offset from token */
     private static final int VERTICAL_OFFSET = 4;
     
-    /** Maximum tooltip width */
-    private static final int MAX_WIDTH = 400;
+    /** Maximum tooltip width as percentage of viewport */
+    private static final float MAX_WIDTH_RATIO = 0.9f;
     
     /** Minimum tooltip width */
-    private static final int MIN_WIDTH = 150;
+    private static final int MIN_WIDTH = 50;
 
     // ==================== COLORS ====================
     
@@ -61,143 +55,147 @@ public class TokenHoverRenderer {
     
     /** Info text color */
     private static final int INFO_COLOR = 0xFF808080;
-
-    // ==================== ICON COLORS ====================
     
-    private static final int ICON_CLASS_BG = 0xFF4A6B8A;      // Blue for classes
-    private static final int ICON_INTERFACE_BG = 0xFF8A6B4A;  // Orange-brown for interfaces
-    private static final int ICON_ENUM_BG = 0xFF6B8A4A;       // Green for enums
-    private static final int ICON_METHOD_BG = 0xFF8A4A6B;     // Purple for methods
-    private static final int ICON_FIELD_BG = 0xFF4A8A6B;      // Teal for fields
-    private static final int ICON_VAR_BG = 0xFF6B6B8A;        // Blue-gray for variables
-    private static final int ICON_PARAM_BG = 0xFF8A8A4A;      // Yellow for parameters
-    private static final int ICON_UNKNOWN_BG = 0xFF8A4A4A;    // Red for unknown
+    /** Documentation text color */
+    private static final int DOC_COLOR = 0xFFA9B7C6;
 
     // ==================== RENDERING ====================
 
     /**
      * Render the hover tooltip.
-     * 
-     * @param hoverState The current hover state
-     * @param screenWidth Screen width for positioning
-     * @param screenHeight Screen height for positioning
      */
-    public static void render(HoverState hoverState, int screenWidth, int screenHeight) {
+    public static void render(HoverState hoverState, int viewportX, int viewportWidth, int viewportY, int viewportHeight) {
         if (!hoverState.isTooltipVisible()) return;
         
         TokenHoverInfo info = hoverState.getHoverInfo();
         if (info == null || !info.hasContent()) return;
         
-        // Calculate content dimensions
-        int contentWidth = calculateContentWidth(info);
-        int contentHeight = calculateContentHeight(info);
+        int lineHeight = ClientProxy.Font.height();
+        int tokenX = hoverState.getTokenScreenX();
+        int tokenY = hoverState.getTokenScreenY();
         
-        // Add padding
-        int boxWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, contentWidth + PADDING * 2 + ICON_SIZE + ICON_GAP));
+        // Calculate max available width for content
+        int maxContentWidth = getMaxContentWidth(viewportX, viewportWidth, tokenX);
+        
+        // Calculate actual content width needed (clamped to max)
+        int contentWidth = calculateContentWidth(info, maxContentWidth);
+        
+        // Calculate height based on the actual content width (accounts for wrapping)
+        int contentHeight = calculateContentHeight(info, contentWidth);
+        
+        // Box dimensions
+        int boxWidth = contentWidth + PADDING * 2;
         int boxHeight = contentHeight + PADDING * 2;
         
         // Position the tooltip
-        int tokenX = hoverState.getTokenScreenX();
-        int tokenY = hoverState.getTokenScreenY();
-        int lineHeight = ClientProxy.Font.height();
-        
-        // Default: show below the token
         int tooltipX = tokenX;
         int tooltipY = tokenY + lineHeight + VERTICAL_OFFSET;
         
-        // Adjust if tooltip would go off-screen
-        if (tooltipX + boxWidth > screenWidth - 10) {
-            tooltipX = screenWidth - boxWidth - 10;
+        // Clamp X position to viewport
+        int rightBound = viewportX + viewportWidth;
+        if (tooltipX + boxWidth > rightBound) {
+            tooltipX = rightBound - boxWidth;
         }
-        if (tooltipX < 10) {
-            tooltipX = 10;
+        if (tooltipX < viewportX) {
+            tooltipX = viewportX;
         }
         
-        if (tooltipY + boxHeight > screenHeight - 10) {
-            // Show above the token instead
+        // If box still doesn't fit horizontally, shrink it
+        int availableWidth = rightBound - tooltipX;
+        if (boxWidth > availableWidth) {
+            boxWidth = availableWidth;
+        }
+        
+        // Clamp Y position to viewport
+        int bottomBound = viewportY + viewportHeight;
+        if (tooltipY + boxHeight > bottomBound) {
+            // Try rendering above the token
             tooltipY = tokenY - boxHeight - VERTICAL_OFFSET;
         }
-        if (tooltipY < 10) {
-            tooltipY = 10;
+        // If still doesn't fit above, clamp to viewport top
+        if (tooltipY < viewportY) {
+            tooltipY = viewportY;
         }
         
-        // Render the tooltip
-        renderTooltipBox(tooltipX, tooltipY, boxWidth, boxHeight, info);
+        // Render the tooltip - use maxContentWidth for consistent wrapping
+        renderTooltipBox(tooltipX, tooltipY, boxWidth, maxContentWidth, info);
+    }
+
+    /**
+     * Calculate the maximum content width based on viewport and token position.
+     */
+    private static int getMaxContentWidth(int viewportX, int viewportWidth, int tokenX) {
+        // Max width is based on viewport size (80% by default)
+        // This scales naturally with viewport size - no artificial hard cap
+        int maxWidth = (int)(viewportWidth * MAX_WIDTH_RATIO);
+        
+        // The tooltip can expand across the entire viewport width
+        // (positioning logic will shift it left if needed)
+        return Math.max(MIN_WIDTH, maxWidth);
     }
 
     /**
      * Render the tooltip box with all content.
      */
-    private static void renderTooltipBox(int x, int y, int width, int height, TokenHoverInfo info) {
-        // Disable scissor test temporarily for tooltip rendering
+    private static void renderTooltipBox(int x, int y, int boxWidth, int wrapWidth, TokenHoverInfo info) {
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
         
+        int boxHeight = calculateContentHeight(info, wrapWidth) + PADDING * 1;
+        
         // Draw background
-        Gui.drawRect(x, y, x + width, y + height, BG_COLOR);
+        Gui.drawRect(x, y, x + boxWidth, y + boxHeight, BG_COLOR);
         
         // Draw border
-        Gui.drawRect(x, y, x + width, y + 1, BORDER_COLOR);
-        Gui.drawRect(x, y + height - 1, x + width, y + height, BORDER_COLOR);
-        Gui.drawRect(x, y, x + 1, y + height, BORDER_COLOR);
-        Gui.drawRect(x + width - 1, y, x + width, y + height, BORDER_COLOR);
+        Gui.drawRect(x, y, x + boxWidth, y + 1, BORDER_COLOR);
+        Gui.drawRect(x, y + boxHeight - 1, x + boxWidth, y + boxHeight, BORDER_COLOR);
+        Gui.drawRect(x, y, x + 1, y + boxHeight, BORDER_COLOR);
+        Gui.drawRect(x + boxWidth - 1, y, x + boxWidth, y + boxHeight, BORDER_COLOR);
         
-        int contentX = x + PADDING;
-        int contentY = y + PADDING;
-        int textX = contentX + ICON_SIZE + ICON_GAP;
-        int maxTextWidth = width - PADDING * 2 - ICON_SIZE - ICON_GAP;
+        int textX = x + PADDING;
+        int currentY = y + PADDING;
+        int lineHeight = ClientProxy.Font.height();
         
-        // Draw icon
-        String icon = info.getIconIndicator();
-        if (icon != null && !icon.isEmpty()) {
-            drawIcon(contentX, contentY, icon);
-        }
-        
-        int currentY = contentY;
-        
-        // Draw errors first (if any)
+        // Draw errors first
         List<String> errors = info.getErrors();
         if (!errors.isEmpty()) {
             for (String error : errors) {
-                drawText(textX, currentY, error, ERROR_COLOR);
-                currentY += ClientProxy.Font.height() + LINE_SPACING;
+                List<String> wrappedLines = wrapText(error, wrapWidth);
+                for (String line : wrappedLines) {
+                    drawText(textX, currentY, line, ERROR_COLOR);
+                    currentY += lineHeight + LINE_SPACING;
+                }
             }
-            currentY += LINE_SPACING; // Extra space after errors
+            currentY += LINE_SPACING;
         }
         
         // Draw package name
         String packageName = info.getPackageName();
         if (packageName != null && !packageName.isEmpty()) {
-            // Draw package icon
-            drawText(textX, currentY, "\u25CB " + packageName, PACKAGE_COLOR);
-            currentY += ClientProxy.Font.height() + LINE_SPACING;
+            String packageText = "\u25CB " + packageName;
+            List<String> wrappedLines = wrapText(packageText, wrapWidth);
+            for (String line : wrappedLines) {
+                drawText(textX, currentY, line, PACKAGE_COLOR);
+                currentY += lineHeight + LINE_SPACING;
+            }
         }
         
-        // Draw declaration
+        // Draw declaration (colored segments with wrapping)
         List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
         if (!declaration.isEmpty()) {
-            int segmentX = textX;
-            for (TokenHoverInfo.TextSegment segment : declaration) {
-                int segmentWidth = ClientProxy.Font.width(segment.text);
-                
-                // Check if we need to wrap (simple wrapping for now)
-                if (segmentX + segmentWidth > x + width - PADDING && segmentX > textX) {
-                    currentY += ClientProxy.Font.height() + LINE_SPACING;
-                    segmentX = textX;
-                }
-                
-                drawText(segmentX, currentY, segment.text, 0xFF000000 | segment.color);
-                segmentX += segmentWidth;
-            }
-            currentY += ClientProxy.Font.height() + LINE_SPACING;
+            currentY = drawWrappedSegments(textX, currentY, wrapWidth, declaration);
+            currentY += LINE_SPACING;
         }
         
         // Draw documentation
         List<String> docs = info.getDocumentation();
         if (!docs.isEmpty()) {
-            currentY += LINE_SPACING; // Extra space before docs
+            currentY += LINE_SPACING;
             for (String doc : docs) {
-                drawText(textX, currentY, doc, 0xFFA9B7C6);
-                currentY += ClientProxy.Font.height() + LINE_SPACING;
+                List<String> wrappedLines = wrapText(doc, wrapWidth);
+                for (String line : wrappedLines) {
+                    drawText(textX, currentY, line, DOC_COLOR);
+                    currentY += lineHeight + LINE_SPACING;
+                }
             }
         }
         
@@ -205,128 +203,273 @@ public class TokenHoverRenderer {
         List<String> additionalInfo = info.getAdditionalInfo();
         if (!additionalInfo.isEmpty()) {
             currentY += LINE_SPACING;
-            for (String line : additionalInfo) {
-                drawText(textX, currentY, line, INFO_COLOR);
-                currentY += ClientProxy.Font.height() + LINE_SPACING;
+            for (String infoLine : additionalInfo) {
+                List<String> wrappedLines = wrapText(infoLine, wrapWidth);
+                for (String line : wrappedLines) {
+                    drawText(textX, currentY, line, INFO_COLOR);
+                    currentY += lineHeight + LINE_SPACING;
+                }
+            }
+        }
+    }
+
+    /**
+     * Draw colored text segments with word wrapping.
+     * Returns the Y position after drawing.
+     */
+    private static int drawWrappedSegments(int startX, int startY, int maxWidth, List<TokenHoverInfo.TextSegment> segments) {
+        int lineHeight = ClientProxy.Font.height();
+        int currentX = startX;
+        int currentY = startY;
+        
+        for (TokenHoverInfo.TextSegment segment : segments) {
+            String text = segment.text;
+            int color = 0xFF000000 | segment.color;
+            
+            // Split segment into words for wrapping
+            String[] words = text.split("(?<=\\s)|(?=\\s)"); // Keep whitespace as separate tokens
+            
+            for (String word : words) {
+                int wordWidth = ClientProxy.Font.width(word);
+                
+                // Check if word fits on current line
+                if (currentX + wordWidth > startX + maxWidth && currentX > startX) {
+                    // Wrap to next line
+                    currentY += lineHeight + LINE_SPACING;
+                    currentX = startX;
+                    
+                    // Skip leading whitespace on new line
+                    if (word.trim().isEmpty()) {
+                        continue;
+                    }
+                }
+                
+                drawText(currentX, currentY, word, color);
+                currentX += wordWidth;
             }
         }
         
-        // Re-enable scissor test
-      //  GL11.glEnable(GL11.GL_SCISSOR_TEST);
+        return currentY + lineHeight;
     }
 
     /**
-     * Draw an icon indicator.
+     * Wrap text to fit within maxWidth.
+     * Returns list of lines.
      */
-    private static void drawIcon(int x, int y, String icon) {
-        int bgColor;
-        switch (icon) {
-            case "C": bgColor = ICON_CLASS_BG; break;
-            case "I": bgColor = ICON_INTERFACE_BG; break;
-            case "E": bgColor = ICON_ENUM_BG; break;
-            case "m": bgColor = ICON_METHOD_BG; break;
-            case "f": bgColor = ICON_FIELD_BG; break;
-            case "v": bgColor = ICON_VAR_BG; break;
-            case "p": bgColor = ICON_PARAM_BG; break;
-            default: bgColor = ICON_UNKNOWN_BG; break;
+    private static List<String> wrapText(String text, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        
+        if (text == null || text.isEmpty()) {
+            return lines;
         }
         
-        // Draw icon background (rounded effect with small rect)
-        int bgY = y-2;
-        Gui.drawRect(x, bgY, x + ICON_SIZE, bgY + ICON_SIZE, 0xFF000000 | bgColor);
+        // Use Minecraft's built-in wrapping if available
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.fontRenderer != null) {
+            @SuppressWarnings("unchecked")
+            List<String> wrapped = mc.fontRenderer.listFormattedStringToWidth(text, maxWidth);
+            return wrapped;
+        }
         
-        // Draw icon letter centered
-        int textWidth = ClientProxy.Font.width(icon);
-        int textX = x + (ICON_SIZE - textWidth) / 2;
-        int textY = y + (ICON_SIZE - ClientProxy.Font.height()) / 2;
-        drawText(textX, textY, icon, 0xFFFFFFFF);
+        // Fallback: simple word wrapping
+        String[] words = text.split(" ");
+        StringBuilder currentLine = new StringBuilder();
+        
+        for (String word : words) {
+            String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
+            int testWidth = ClientProxy.Font.width(testLine);
+            
+            if (testWidth > maxWidth && currentLine.length() > 0) {
+                lines.add(currentLine.toString());
+                currentLine = new StringBuilder(word);
+            } else {
+                if (currentLine.length() > 0) {
+                    currentLine.append(" ");
+                }
+                currentLine.append(word);
+            }
+        }
+        
+        if (currentLine.length() > 0) {
+            lines.add(currentLine.toString());
+        }
+        
+        if (lines.isEmpty()) {
+            lines.add(text);
+        }
+        return lines;
     }
 
     /**
-     * Draw text using the Minecraft font renderer.
+     * Draw text using the font renderer.
      */
     private static void drawText(int x, int y, String text, int color) {
-       ClientProxy.Font.drawString(text, x, y, color);
+        ClientProxy.Font.drawString(text, x, y, color);
     }
 
     // ==================== DIMENSION CALCULATION ====================
 
     /**
-     * Calculate the width needed for the content.
+     * Calculate the width needed for the content, clamped to maxWidth.
+     * Returns the width of the longest wrapped line.
      */
-    private static int calculateContentWidth(TokenHoverInfo info) {
-        int maxWidth = 0;
+    private static int calculateContentWidth(TokenHoverInfo info, int maxWidth) {
+        int longestLineWidth = 0;
         
-        // Package name width
+        // Package name
         String packageName = info.getPackageName();
         if (packageName != null && !packageName.isEmpty()) {
-            maxWidth = Math.max(maxWidth, ClientProxy.Font.width("\u25CB " + packageName));
+            String packageText = "\u25CB " + packageName;
+            List<String> wrappedLines = wrapText(packageText, maxWidth);
+            for (String line : wrappedLines) {
+                longestLineWidth = Math.max(longestLineWidth, ClientProxy.Font.width(line));
+            }
         }
         
-        // Declaration width
-        List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
-        int declWidth = 0;
-        for (TokenHoverInfo.TextSegment segment : declaration) {
-            declWidth += ClientProxy.Font.width(segment.text);
+        // Declaration - wrap segments and find longest line
+        if (!info.getDeclaration().isEmpty()) {
+            int declarationLongestLine = calculateSegmentsLongestLine(maxWidth, info.getDeclaration());
+            longestLineWidth = Math.max(longestLineWidth, declarationLongestLine);
         }
-        maxWidth = Math.max(maxWidth, declWidth);
         
-        // Error widths
+        // Errors
         for (String error : info.getErrors()) {
-            maxWidth = Math.max(maxWidth, ClientProxy.Font.width(error));
+            List<String> wrappedLines = wrapText(error, maxWidth);
+            for (String line : wrappedLines) {
+                longestLineWidth = Math.max(longestLineWidth, ClientProxy.Font.width(line));
+            }
         }
         
-        // Documentation widths
+        // Documentation
         for (String doc : info.getDocumentation()) {
-            maxWidth = Math.max(maxWidth, ClientProxy.Font.width(doc));
+            List<String> wrappedLines = wrapText(doc, maxWidth);
+            for (String line : wrappedLines) {
+                longestLineWidth = Math.max(longestLineWidth, ClientProxy.Font.width(line));
+            }
         }
         
-        // Additional info widths
+        // Additional info
         for (String line : info.getAdditionalInfo()) {
-            maxWidth = Math.max(maxWidth, ClientProxy.Font.width(line));
+            List<String> wrappedLines = wrapText(line, maxWidth);
+            for (String wrappedLine : wrappedLines) {
+                longestLineWidth = Math.max(longestLineWidth, ClientProxy.Font.width(wrappedLine));
+            }
         }
         
-        return maxWidth;
+        // Ensure minimum width
+        return Math.max(50, longestLineWidth);
     }
 
     /**
-     * Calculate the height needed for the content.
+     * Calculate the height needed for the content given the available width.
+     * Uses the same wrapping logic as rendering.
      */
-    private static int calculateContentHeight(TokenHoverInfo info) {
+    private static int calculateContentHeight(TokenHoverInfo info, int contentWidth) {
         int lineHeight = ClientProxy.Font.height();
         int totalHeight = 0;
-        int lineCount = 0;
         
         // Errors
-        if (!info.getErrors().isEmpty()) {
-            lineCount += info.getErrors().size();
+        List<String> errors = info.getErrors();
+        if (!errors.isEmpty()) {
+            for (String error : errors) {
+                List<String> wrappedLines = wrapText(error, contentWidth);
+                totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
+            }
             totalHeight += LINE_SPACING; // Extra space after errors
         }
         
         // Package name
-        if (info.getPackageName() != null && !info.getPackageName().isEmpty()) {
-            lineCount++;
+        String packageName = info.getPackageName();
+        if (packageName != null && !packageName.isEmpty()) {
+            String packageText = "\u25CB " + packageName;
+            List<String> wrappedLines = wrapText(packageText, contentWidth);
+            totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
         }
         
-        // Declaration
-        if (!info.getDeclaration().isEmpty()) {
-            lineCount++;
+        // Declaration (colored segments with wrapping)
+        List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
+        if (!declaration.isEmpty()) {
+            totalHeight += calculateSegmentsHeight(contentWidth, declaration);
+            totalHeight += LINE_SPACING;
         }
         
         // Documentation
-        if (!info.getDocumentation().isEmpty()) {
-            lineCount += info.getDocumentation().size();
+        List<String> docs = info.getDocumentation();
+        if (!docs.isEmpty()) {
             totalHeight += LINE_SPACING; // Extra space before docs
+            for (String doc : docs) {
+                List<String> wrappedLines = wrapText(doc, contentWidth);
+                totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
+            }
         }
         
         // Additional info
-        if (!info.getAdditionalInfo().isEmpty()) {
-            lineCount += info.getAdditionalInfo().size();
-            totalHeight += LINE_SPACING; // Extra space before info
+        List<String> additionalInfo = info.getAdditionalInfo();
+        if (!additionalInfo.isEmpty()) {
+            totalHeight += LINE_SPACING;
+            for (String infoLine : additionalInfo) {
+                List<String> wrappedLines = wrapText(infoLine, contentWidth);
+                totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
+            }
         }
         
-        totalHeight += lineCount * (lineHeight + LINE_SPACING);
+        return Math.max(lineHeight, totalHeight);
+    }
+
+    /**
+     * Calculate height needed for wrapped segments.
+     */
+    private static int calculateSegmentsHeight(int maxWidth, List<TokenHoverInfo.TextSegment> segments) {
+        int lineHeight = ClientProxy.Font.height();
+        int currentLineWidth = 0;
+        int lineCount = 1;
         
-        return Math.max(ICON_SIZE, totalHeight);
+        for (TokenHoverInfo.TextSegment segment : segments) {
+            String text = segment.text;
+            String[] words = text.split("(?<=\\s)|(?=\\s)");
+            
+            for (String word : words) {
+                int wordWidth = ClientProxy.Font.width(word);
+                
+                if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0) {
+                    lineCount++;
+                    currentLineWidth = word.trim().isEmpty() ? 0 : wordWidth;
+                } else {
+                    currentLineWidth += wordWidth;
+                }
+            }
+        }
+        
+        return lineCount * (lineHeight + LINE_SPACING);
+    }
+
+    /**
+     * Calculate the width of the longest line when segments are wrapped.
+     */
+    private static int calculateSegmentsLongestLine(int maxWidth, List<TokenHoverInfo.TextSegment> segments) {
+        int currentLineWidth = 0;
+        int longestLineWidth = 0;
+        
+        for (TokenHoverInfo.TextSegment segment : segments) {
+            String text = segment.text;
+            String[] words = text.split("(?<=\\s)|(?=\\s)");
+            
+            for (String word : words) {
+                int wordWidth = ClientProxy.Font.width(word);
+                
+                if (currentLineWidth + wordWidth > maxWidth && currentLineWidth > 0) {
+                    // Line break - record current line width and start new line
+                    longestLineWidth = Math.max(longestLineWidth, currentLineWidth);
+                    currentLineWidth = word.trim().isEmpty() ? 0 : wordWidth;
+                } else {
+                    currentLineWidth += wordWidth;
+                }
+            }
+        }
+        
+        // Don't forget the last line
+        longestLineWidth = Math.max(longestLineWidth, currentLineWidth);
+        
+        return longestLineWidth;
     }
 }
