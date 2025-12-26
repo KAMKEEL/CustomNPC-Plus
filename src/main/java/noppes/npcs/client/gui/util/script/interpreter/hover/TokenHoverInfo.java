@@ -125,10 +125,13 @@ public class TokenHoverInfo {
                 info.extractUndefinedInfo(token);
                 break;
                 
+            case LITERAL:
+                if (info.hasErrors()) 
+                    return info;
+                return null;
             case KEYWORD:
             case MODIFIER:
             case STRING:
-            case NUMBER:
             case COMMENT:
                 // These don't need hover info typically
                 return null;

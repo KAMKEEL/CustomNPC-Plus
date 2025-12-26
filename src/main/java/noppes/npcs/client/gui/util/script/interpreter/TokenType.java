@@ -36,7 +36,7 @@ public enum TokenType {
     LOCAL_FIELD(0xFFFF55, 25),         // local variables (yellow)
     
     // Literals
-    NUMBER(0x777777, 40),              // numeric literals
+    LITERAL(0x777777, 40),             // numeric and boolean literals
     
     // Default
     VARIABLE(0xFFFFFF, 30),            // generic variables
@@ -65,7 +65,7 @@ public enum TokenType {
     public char toColorCode() {
         switch (this) {
             case COMMENT:
-            case NUMBER:
+            case LITERAL:
             case UNUSED_IMPORT:
                 return '7'; // gray
             case STRING:

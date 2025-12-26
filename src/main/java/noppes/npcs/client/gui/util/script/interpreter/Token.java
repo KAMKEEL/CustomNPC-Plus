@@ -1,7 +1,5 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import noppes.npcs.client.ClientProxy;
-
 /**
  * Represents a single token in the source code with its type and metadata.
  * Tokens are the atomic units of the syntax highlighting system.
@@ -62,8 +60,8 @@ public class Token {
         return new Token(text, start, end, TokenType.STRING);
     }
 
-    public static Token number(String text, int start, int end) {
-        return new Token(text, start, end, TokenType.NUMBER);
+    public static Token literal(String text, int start, int end) {
+        return new Token(text, start, end, TokenType.LITERAL);
     }
 
     public static Token typeReference(String text, int start, int end, TypeInfo info) {

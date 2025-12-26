@@ -136,7 +136,7 @@ public class ScriptTextContainer extends JavaTextContainer {
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.TYPE_DECL) return JavaTextContainer.TokenType.TYPE_DECL;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.METHOD_DECL) return JavaTextContainer.TokenType.METHOD_DECARE;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.METHOD_CALL) return JavaTextContainer.TokenType.METHOD_CALL;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.NUMBER) return JavaTextContainer.TokenType.NUMBER;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.LITERAL) return JavaTextContainer.TokenType.NUMBER;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.GLOBAL_FIELD) return JavaTextContainer.TokenType.GLOBAL_FIELD;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.LOCAL_FIELD) return JavaTextContainer.TokenType.LOCAL_FIELD;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.PARAMETER) return JavaTextContainer.TokenType.PARAMETER;

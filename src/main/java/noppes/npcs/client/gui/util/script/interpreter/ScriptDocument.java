@@ -895,8 +895,8 @@ public class ScriptDocument {
         // Methods
         markMethodDeclarations(marks);
 
-        // Numbers
-        addPatternMarks(marks, NUMBER_PATTERN, TokenType.NUMBER);
+        // Numbers and othe
+        addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
 
         // Method calls (parse before variables so we can attach context)
         markMethodCalls(marks);
@@ -1653,15 +1653,6 @@ public class ScriptDocument {
                 return TypeInfo.fromPrimitive("long");
             }
             return TypeInfo.fromPrimitive("int");
-        }
-        if (expr.matches("-?\\d+\\.\\d*[fF]?")) {
-            if (expr.toLowerCase().endsWith("f")) {
-                return TypeInfo.fromPrimitive("float");
-            }
-            return TypeInfo.fromPrimitive("double");
-        }
-        if (expr.matches("-?\\d+\\.\\d*[dD]")) {
-            return TypeInfo.fromPrimitive("double");
         }
         
         // "this" keyword
