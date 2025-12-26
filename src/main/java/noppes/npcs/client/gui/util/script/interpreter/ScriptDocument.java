@@ -1683,10 +1683,20 @@ public class ScriptDocument {
         }
         
         // Numeric literals
-        if (expr.matches("-?\\d+[lL]?")) {
-            if (expr.toLowerCase().endsWith("l")) {
-                return TypeInfo.fromPrimitive("long");
-            }
+        // Float: can be 10f, 10.5f, 10.f, .5f
+        if (expr.matches("-?\\d*\\.?\\d+[fF]")) {
+            return TypeInfo.fromPrimitive("float");
+        }
+        // Double: can be 10d, 10.5d, 10.5, .5, 10., but NOT plain integers
+        if (expr.matches("-?\\d*\\.\\d+[dD]?") || expr.matches("-?\\d+\\.[dD]?") || expr.matches("-?\\d+[dD]")) {
+            return TypeInfo.fromPrimitive("double");
+        }
+        // Long: 10L or 10l
+        if (expr.matches("-?\\d+[lL]")) {
+            return TypeInfo.fromPrimitive("long");
+        }
+        // Int: plain integers without suffix
+        if (expr.matches("-?\\d+")) {
             return TypeInfo.fromPrimitive("int");
         }
         
