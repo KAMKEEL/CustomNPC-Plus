@@ -1267,10 +1267,20 @@ public class ScriptDocument {
                 continue;
             }
 
+            // Find the corresponding MethodInfo created in parseMethodDeclarations
+            int methodDeclStart = m.start();
+            MethodInfo methodInfo = null;
+            for (MethodInfo method : methods) {
+                if (method.getDeclarationOffset() == methodDeclStart) {
+                    methodInfo = method;
+                    break;
+                }
+            }
+
             // Return type
             marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.TYPE_DECL));
-            // Method name
-            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), TokenType.METHOD_DECL));
+            // Method name with MethodInfo metadata
+            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), TokenType.METHOD_DECL, methodInfo));
         }
     }
 
