@@ -77,7 +77,15 @@ public class TypeInfo {
         String fullName = clazz.getName();
         String simpleName = clazz.getSimpleName();
         Package pkg = clazz.getPackage();
-        String packageName = pkg != null ? pkg.getName() : "";
+        String packageName = "";
+        if (pkg != null) {
+            packageName = pkg.getName();
+        } else if (!fullName.equals(simpleName)) {
+            int lastDot = fullName.lastIndexOf('.');
+            if (lastDot > 0) {
+                packageName = fullName.substring(0, lastDot);
+            }
+        }
 
         TypeInfo enclosing = null;
         if (clazz.getEnclosingClass() != null) {
