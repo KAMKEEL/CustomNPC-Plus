@@ -153,6 +153,21 @@ public class TokenHoverInfo {
     // ==================== EXTRACTION METHODS ====================
 
     private void extractErrors(Token token) {
+        // Check if this token is part of a method call argument (positional lookup)
+        MethodCallInfo containingCall = findMethodCallContainingPosition(token);
+        if (containingCall != null) {
+            MethodCallInfo.Argument containingArg = findArgumentContainingPosition(containingCall, token.getGlobalStart());
+            if (containingArg != null) {
+                // Show only this argument's specific error
+                MethodCallInfo.ArgumentTypeError argError = findArgumentError(containingCall, containingArg);
+                if (argError != null) {
+                    errors.add(argError.getMessage());
+                    return; // Only show argument error, not method-level errors
+                }
+            }
+        }
+        
+        // Show method-level errors if this is the method name itself
         MethodCallInfo callInfo = token.getMethodCallInfo();
         if (callInfo != null) {
             if (callInfo.hasArgCountError()) {
@@ -171,15 +186,75 @@ public class TokenHoverInfo {
             }
         }
         
+        // Show field access errors
         FieldAccessInfo fieldAccessInfo = token.getFieldAccessInfo();
         if (fieldAccessInfo != null && fieldAccessInfo.hasError()) {
             errors.add(fieldAccessInfo.getErrorMessage());
         }
         
+        // Show unresolved field errors
         FieldInfo fieldInfo = token.getFieldInfo();
         if (fieldInfo != null && !fieldInfo.isResolved()) {
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
         }
+    }
+    
+    /**
+     * Find the method call that contains this token's position within its argument list.
+     */
+    private MethodCallInfo findMethodCallContainingPosition(Token token) {
+        ScriptLine line = token.getParentLine();
+        if (line == null || line.getParent() == null) {
+            return null;
+        }
+        
+        ScriptDocument doc = line.getParent();
+        int tokenStart = token.getGlobalStart();
+        
+        for (MethodCallInfo call : doc.getMethodCalls()) {
+            // Check if token is within the argument list
+            if (tokenStart >= call.getOpenParenOffset() && tokenStart <= call.getCloseParenOffset()) {
+                // Make sure it's not the method name itself
+                if (tokenStart >= call.getMethodNameStart() && tokenStart <= call.getMethodNameEnd()) {
+                    continue;
+                }
+                return call;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Find the argument that contains the given position.
+     */
+    private MethodCallInfo.Argument findArgumentContainingPosition(MethodCallInfo callInfo, int position) {
+        for (MethodCallInfo.Argument arg : callInfo.getArguments()) {
+            if (position >= arg.getStartOffset() && position <= arg.getEndOffset()) {
+                return arg;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Find the type error for a specific argument.
+     */
+    private MethodCallInfo.ArgumentTypeError findArgumentError(MethodCallInfo callInfo, MethodCallInfo.Argument argument) {
+        if (!callInfo.hasArgTypeError()) {
+            return null;
+        }
+        
+        int argIndex = callInfo.getArguments().indexOf(argument);
+        if (argIndex < 0) {
+            return null;
+        }
+        
+        for (MethodCallInfo.ArgumentTypeError error : callInfo.getArgumentTypeErrors()) {
+            if (error.getArgIndex() == argIndex) {
+                return error;
+            }
+        }
+        return null;
     }
     
     private int getExpectedArgCount(MethodCallInfo callInfo) {
