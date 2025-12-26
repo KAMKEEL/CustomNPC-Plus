@@ -601,6 +601,7 @@ public class TokenHoverInfo {
      * Get the appropriate color for a Class<?> based on its type.
      */
     private int getColorForClass(Class<?> clazz) {
+        if(clazz.isPrimitive()) return TokenType.KEYWORD.getHexColor();
         if (clazz.isInterface()) return TokenType.INTERFACE_DECL.getHexColor();
         if (clazz.isEnum()) return TokenType.ENUM_DECL.getHexColor();
         return TokenType.IMPORTED_CLASS.getHexColor();
