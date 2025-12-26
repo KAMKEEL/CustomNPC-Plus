@@ -1657,6 +1657,11 @@ public class ScriptDocument {
             return null;
         }
         
+        // Invalid expressions starting with brackets
+        if (expr.startsWith("[") || expr.startsWith("]")) {
+            return null; // Invalid syntax
+        }
+        
         // String literals
         if (expr.startsWith("\"") && expr.endsWith("\"")) {
             return resolveType("String");
@@ -1805,6 +1810,23 @@ public class ScriptDocument {
                     char c = expr.charAt(i);
                     if (c == '(') depth++;
                     else if (c == ')') depth--;
+                    i++;
+                }
+            }
+            
+            // Check if followed by array brackets (array access)
+            // Skip array accesses like [0] or [i] - treat them as part of the current segment
+            while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
+                i++;
+            }
+            if (i < expr.length() && expr.charAt(i) == '[') {
+                // Skip to the matching closing bracket
+                int depth = 1;
+                i++;
+                while (i < expr.length() && depth > 0) {
+                    char c = expr.charAt(i);
+                    if (c == '[') depth++;
+                    else if (c == ']') depth--;
                     i++;
                 }
             }
