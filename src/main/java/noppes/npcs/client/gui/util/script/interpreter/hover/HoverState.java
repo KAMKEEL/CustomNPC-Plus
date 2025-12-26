@@ -19,7 +19,7 @@ import noppes.npcs.client.gui.util.script.interpreter.Token;
 public class HoverState {
 
     /** Minimum hover time (ms) before showing tooltip */
-    private static final long HOVER_DELAY_MS = 500;
+    private static final long HOVER_DELAY_MS = 100;
     
     // ==================== STATE ====================
     
@@ -151,6 +151,7 @@ public class HoverState {
     public void update(int mouseX, int mouseY, Token token, int tokenX, int tokenY, int tokenW) {
         lastMouseX = mouseX;
         lastMouseY = mouseY;
+        clickToPinEnabled=false;
         // If a token has been pinned by click, ignore mouse movement updates
         if (pinnedToken != null) {
             // keep pinned tooltip visible

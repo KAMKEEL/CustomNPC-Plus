@@ -1020,7 +1020,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     private void updateHoverState(int xMouse, int yMouse) {
         // Don't show tooltips when not active, clicking, or when overlays are visible
-        if (!active || !isEnabled() || clicked || searchBar.isVisible() || 
+        if (!isEnabled() || clicked || searchBar.isVisible() || 
             goToLineDialog.isVisible() || KEYS_OVERLAY.isVisible() || renameHandler.isActive()) {
             hoverState.clearHover();
             return;
