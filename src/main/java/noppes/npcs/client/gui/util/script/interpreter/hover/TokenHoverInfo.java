@@ -171,6 +171,11 @@ public class TokenHoverInfo {
             }
         }
         
+        FieldAccessInfo fieldAccessInfo = token.getFieldAccessInfo();
+        if (fieldAccessInfo != null && fieldAccessInfo.hasError()) {
+            errors.add(fieldAccessInfo.getErrorMessage());
+        }
+        
         FieldInfo fieldInfo = token.getFieldInfo();
         if (fieldInfo != null && !fieldInfo.isResolved()) {
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
