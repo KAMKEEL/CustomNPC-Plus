@@ -1574,7 +1574,8 @@ public class ScriptDocument {
                     }
                     
                     // Try to resolve the argument type
-                    TypeInfo argType = resolveExpressionType(argText, actualStart);
+                    // First check if this looks like a parameter declaration (Type varName)
+                    TypeInfo argType = resolveArgumentType(argText, actualStart);
                     
                     args.add(new MethodCallInfo.Argument( 
                         argText, actualStart, actualEnd, argType, true, null
@@ -1605,6 +1606,35 @@ public class ScriptDocument {
         }
         
         return args;
+    }
+
+    /**
+     * Resolve the type of a method call argument.
+     * Handles both parameter declarations (Type varName) and expressions (variable.field()).
+     */
+    private TypeInfo resolveArgumentType(String argText, int position) {
+        argText = argText.trim();
+        
+        // Check if this looks like a parameter declaration: "Type varName"
+        // Pattern: identifier followed by whitespace and another identifier
+        if (argText.matches("^[A-Za-z_][a-zA-Z0-9_<>\\[\\],\\s]*\\s+[a-zA-Z_][a-zA-Z0-9_]*$")) {
+            // Split into tokens
+            String[] parts = argText.split("\\s+");
+            if (parts.length >= 2) {
+                // Last part is the variable name, everything before is the type
+                // Join all but last as the type name
+                StringBuilder typeBuilder = new StringBuilder();
+                for (int i = 0; i < parts.length - 1; i++) {
+                    if (i > 0) typeBuilder.append(" ");
+                    typeBuilder.append(parts[i]);
+                }
+                String typeName = typeBuilder.toString();
+                return resolveType(typeName);
+            }
+        }
+        
+        // Otherwise, treat it as an expression
+        return resolveExpressionType(argText, position);
     }
 
     /**
