@@ -86,6 +86,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private final ScrollState scroll = new ScrollState();
     private final SelectionState selection = new SelectionState();
     private final HoverState hoverState = new HoverState();
+    /** When true, clicking a token will pin its hover tooltip until dismissed. */
+    public boolean clickToPinEnabled = false;
     
     // ==================== UI COMPONENTS ====================
     private int cursorCounter;
@@ -135,6 +137,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         KEYS_OVERLAY.openOnClick = true;
         initGui();
         initializeKeyBindings();
+        // Propagate click-to-pin option into hover state
+        hoverState.setClickToPinEnabled(clickToPinEnabled);
     }
     public void initGui() {
         int endX = x + width, endY = y + height;
@@ -993,7 +997,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int accumulatedWidth = 0;
         for (int i = 0; i < lineText.length(); i++) {
             int charWidth = ClientProxy.Font.width(String.valueOf(lineText.charAt(i)));
-            if (relativeX < accumulatedWidth + charWidth) {
+            // Check if mouse is in first half or second half of character
+            if (relativeX < accumulatedWidth + charWidth / 2) {
                 charPos = i;
                 break;
             }
@@ -2195,6 +2200,29 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
             this.lastClicked = time;
             activeTextfield = this;
+
+            // Click-to-pin handling: if enabled, clicking a token will pin/unpin its tooltip
+            if (mouseButton == 0 && hoverState.isClickToPinEnabled()) {
+                Object[] tokenInfo = getTokenAtScreenPosition(xMouse, yMouse);
+                if (tokenInfo != null) {
+                    Token clickedToken = (Token) tokenInfo[0];
+                    int tokenScreenX = (Integer) tokenInfo[1];
+                    int tokenScreenY = (Integer) tokenInfo[2];
+                    int tokenWidth = (Integer) tokenInfo[3];
+
+                    // If already pinned on same token, unpin; otherwise pin this token
+                    if (hoverState.isPinned() && hoverState.getHoveredToken() == clickedToken) {
+                        hoverState.unpin();
+                    } else {
+                        hoverState.pinToken(clickedToken, tokenScreenX, tokenScreenY, tokenWidth);
+                    }
+                } else {
+                    // Clicked outside any token -> unpin any pinned tooltip
+                    if (hoverState.isPinned()) {
+                        hoverState.unpin();
+                    }
+                }
+            }
         }
     }
 

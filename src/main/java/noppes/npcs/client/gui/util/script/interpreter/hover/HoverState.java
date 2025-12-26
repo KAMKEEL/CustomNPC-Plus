@@ -43,6 +43,13 @@ public class HoverState {
     private int tokenScreenX;
     private int tokenScreenY;
     private int tokenWidth;
+    
+    /** Pinned token (set when user clicks a token to keep tooltip open) */
+    private Token pinnedToken;
+    private TokenHoverInfo pinnedHoverInfo;
+
+    /** Whether click-to-pin behaviour is enabled for this hover state. */
+    private boolean clickToPinEnabled = true;
 
     // ==================== UPDATE ====================
 
@@ -144,6 +151,13 @@ public class HoverState {
     public void update(int mouseX, int mouseY, Token token, int tokenX, int tokenY, int tokenW) {
         lastMouseX = mouseX;
         lastMouseY = mouseY;
+        // If a token has been pinned by click, ignore mouse movement updates
+        if (pinnedToken != null) {
+            // keep pinned tooltip visible
+            tooltipVisible = true;
+            hoverInfo = pinnedHoverInfo;
+            return;
+        }
         
         if (token == null) {
            clearHover();
@@ -179,8 +193,11 @@ public class HoverState {
         if (hoveredToken != null) {
             hoveredToken = null;
             hoverStartTime = 0;
-            tooltipVisible = false;
-            hoverInfo = null;
+            // Do not clear tooltipInfo here if pinned; if not pinned, hide tooltip.
+            if (pinnedToken == null) {
+                tooltipVisible = false;
+                hoverInfo = null;
+            }
         }
     }
 
@@ -190,6 +207,44 @@ public class HoverState {
     public void hideTooltip() {
         tooltipVisible = false;
     }
+
+    /**
+     * Enable or disable click-to-pin behaviour.
+     */
+    public void setClickToPinEnabled(boolean enabled) {
+        this.clickToPinEnabled = enabled;
+    }
+
+    public boolean isClickToPinEnabled() {
+        return clickToPinEnabled;
+    }
+
+    /**
+     * Pin a token so its tooltip stays visible until explicitly unpinned.
+     */
+    public void pinToken(Token token, int tokenX, int tokenY, int tokenW) {
+        if (token == null) return;
+        this.pinnedToken = token;
+        this.pinnedHoverInfo = TokenHoverInfo.fromToken(token);
+        this.tooltipVisible = pinnedHoverInfo != null && pinnedHoverInfo.hasContent();
+        this.tokenScreenX = tokenX;
+        this.tokenScreenY = tokenY;
+        this.tokenWidth = tokenW;
+        // ensure hoveredToken reflects pinned token
+        this.hoveredToken = token;
+    }
+
+    /**
+     * Unpin any pinned token and hide tooltip.
+     */
+    public void unpin() {
+        this.pinnedToken = null;
+        this.pinnedHoverInfo = null;
+        this.tooltipVisible = false;
+        this.hoverInfo = null;
+    }
+
+    public boolean isPinned() { return pinnedToken != null; }
 
     // ==================== POSITION CALCULATION ====================
 
