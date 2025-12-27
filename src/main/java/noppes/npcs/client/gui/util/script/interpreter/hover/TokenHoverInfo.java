@@ -796,13 +796,83 @@ public class TokenHoverInfo {
         
         // Add space before '=' for readability
         addSegment(" ", TokenType.DEFAULT.getHexColor());
-        
-        // Add each token with its proper color
+
+        // Add each token with its proper color, ensuring normalized spacing between tokens
+        String lastText = null;
         for (Token initToken : initTokens) {
-            addSegment(initToken.getText(), initToken.getType().getHexColor());
+            String text = initToken.getText();
+
+            // Normalize whitespace - replace all newlines and multiple spaces with single space
+            text = text.replaceAll("\\s+", " ").trim();
+
+            // Skip if token became empty after whitespace removal
+            if (text.isEmpty()) {
+                continue;
+            }
+
+            // Determine if we need a space between last token and current token
+            if (lastText != null && shouldAddSpace(lastText, text)) {
+                addSegment(" ", TokenType.DEFAULT.getHexColor());
+            }
+
+            addSegment(text, initToken.getType().getHexColor());
+            lastText = text;
         }
     }
 
+    /**
+     * Determine if a space should be added between two tokens.
+     */
+    private boolean shouldAddSpace(String lastToken, String currentToken) {
+        if (lastToken.isEmpty() || currentToken.isEmpty())
+            return false;
+
+        char lastChar = lastToken.charAt(lastToken.length() - 1);
+        char firstChar = currentToken.charAt(0);
+
+        // Never add space before these closing/trailing characters
+        if (firstChar == '(' || firstChar == '[' || firstChar == '{' || 
+            firstChar == '.' || firstChar == ',' || firstChar == ';' ||
+            (firstChar == ':' && lastToken.equals("?"))) {
+            return false;
+        }
+
+        // Never add space after these opening/leading characters
+        if (lastChar == '(' || lastChar == '[' || lastChar == '{' || lastChar == '.') {
+            return false;
+        }
+
+        // Add space around operators (check last/first characters)
+        if (isOperatorChar(lastChar) || isOperatorChar(firstChar)) {
+            return true;
+        }
+
+        // Add space after closing brackets/parens before other tokens
+        if (lastChar == ')' || lastChar == ']' || lastChar == '}') {
+            return true;
+        }
+        
+        // Add space after colons and commas (except after ?: ternary)
+        if ((lastChar == ':' && !lastToken.equals("?:")) || lastChar == ',') {
+            return true;
+        }
+
+        // Add space between identifiers/keywords and numbers
+        boolean lastIsIdentifier = Character.isLetterOrDigit(lastChar) || lastChar == '_';
+        boolean firstIsIdentifier = Character.isLetterOrDigit(firstChar) || firstChar == '_';
+        if (lastIsIdentifier && firstIsIdentifier) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if a character is an operator that needs spacing.
+     */
+    private boolean isOperatorChar(char c) {
+        return "+-*/%<>=!&|^?:".indexOf(c) >= 0;
+    }
     // ==================== GETTERS ====================
 
     public String getPackageName() { return packageName; }
