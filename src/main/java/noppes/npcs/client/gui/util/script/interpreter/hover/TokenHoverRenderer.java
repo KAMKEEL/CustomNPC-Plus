@@ -30,6 +30,12 @@ public class TokenHoverRenderer {
     /** Line spacing between rows */
     private static final int LINE_SPACING = 2;
     
+    /** Separator line height */
+    private static final int SEPARATOR_HEIGHT = 1;
+    
+    /** Spacing above and below separator */
+    private static final int SEPARATOR_SPACING = 5;
+    
     /** Vertical offset from token */
     private static final int VERTICAL_OFFSET = 4;
     
@@ -185,11 +191,12 @@ public class TokenHoverRenderer {
             currentY = drawWrappedSegments(textX, currentY, wrapWidth, declaration);
             currentY += LINE_SPACING;
         }
-        
         // Draw documentation
         List<String> docs = info.getDocumentation();
         if (!docs.isEmpty()) {
-            currentY += LINE_SPACING;
+            // Draw separator line before documentation
+            Gui.drawRect(textX, currentY, x + boxWidth - PADDING, currentY + SEPARATOR_HEIGHT, BORDER_COLOR);
+            currentY += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
             for (String doc : docs) {
                 List<String> wrappedLines = wrapText(doc, wrapWidth);
                 for (String line : wrappedLines) {
@@ -396,7 +403,8 @@ public class TokenHoverRenderer {
         // Documentation
         List<String> docs = info.getDocumentation();
         if (!docs.isEmpty()) {
-            totalHeight += LINE_SPACING; // Extra space before docs
+            // Add space for separator line and spacing
+            totalHeight += SEPARATOR_SPACING + SEPARATOR_HEIGHT;
             for (String doc : docs) {
                 List<String> wrappedLines = wrapText(doc, contentWidth);
                 totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
