@@ -280,15 +280,7 @@ public class TokenHoverRenderer {
         if (text == null || text.isEmpty()) {
             return lines;
         }
-        
-        // Use Minecraft's built-in wrapping if available
-        Minecraft mc = Minecraft.getMinecraft();
-        if (mc.fontRenderer != null) {
-            @SuppressWarnings("unchecked")
-            List<String> wrapped = mc.fontRenderer.listFormattedStringToWidth(text, maxWidth);
-            return wrapped;
-        }
-        
+
         // Fallback: simple word wrapping
         String[] words = text.split(" ");
         StringBuilder currentLine = new StringBuilder();
