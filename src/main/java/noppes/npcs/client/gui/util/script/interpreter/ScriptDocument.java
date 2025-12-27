@@ -50,7 +50,7 @@ public class ScriptDocument {
     private static final Pattern METHOD_CALL_PATTERN = Pattern.compile(
             "([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(");
     private static final Pattern FIELD_DECL_PATTERN = Pattern.compile(
-            "\\b([A-Za-z_][a-zA-Z0-9_<>,\\s\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
+            "\\b([A-Za-z_][a-zA-Z0-9_<>,[ \\t]\\[\\]]*)[ \\t]+([a-zA-Z_][a-zA-Z0-9_]*)[ \\t]*(=|;)");
     private static final Pattern NEW_TYPE_PATTERN = Pattern.compile("\\bnew\\s+([A-Za-z_][a-zA-Z0-9_]*)");
 
     // Function parameters (for JS-style scripts)
@@ -551,16 +551,18 @@ public class ScriptDocument {
             
             // Pattern for local variable declarations: Type varName = or Type varName;
             // Allows capital var names like "Minecraft Capital = new Minecraft();"
+            // Use [ \t] instead of \s to prevent matching across newlines
             Pattern localDecl = Pattern.compile(
-                    "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(=|;|,)");
+                    "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)[ \\t]+([A-Za-z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
             Matcher m = localDecl.matcher(bodyText);
             while (m.find()) {
-                int absPos = bodyStart + m.start();
-                if (isExcluded(absPos)) continue;
-
                 String typeName = m.group(1);
                 String varName = m.group(2);
                 String delimiter = m.group(3);
+                
+                // Skip if the variable name itself is excluded
+                int absPos = bodyStart + m.start(2);
+                if (isExcluded(absPos)) continue;
                 
                 // Skip if it looks like a method call or control flow
                 if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
@@ -772,12 +774,13 @@ public class ScriptDocument {
     private void parseGlobalFields() {
         Matcher m = FIELD_DECL_PATTERN.matcher(text);
         while (m.find()) {
-            if (isExcluded(m.start()))
-                continue;
-
             String typeNameRaw = m.group(1);
             String fieldName = m.group(2);
             int position = m.start(2);
+            
+            // Skip if the field name itself is excluded
+            if (isExcluded(position))
+                continue;
 
             // Strip modifiers (public, private, protected, static, final, etc.) from type name
             String typeName = stripModifiers(typeNameRaw);
