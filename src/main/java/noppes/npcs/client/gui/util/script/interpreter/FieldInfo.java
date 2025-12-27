@@ -18,12 +18,17 @@ public final class FieldInfo {
     private final int declarationOffset;     // Where this field was declared in the source
     private final boolean resolved;
     private final String documentation;      // Javadoc/comment documentation for this field
+    
+    // Initialization value range (for displaying "= value" in hover info)
+    private final int initStart;             // Position of '=' or -1 if no initializer
+    private final int initEnd;               // Position after initializer (before ';') or -1
 
     // For local/parameter fields, track the containing method
     private final MethodInfo containingMethod;
 
     private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
-                      int declarationOffset, boolean resolved, MethodInfo containingMethod, String documentation) {
+                      int declarationOffset, boolean resolved, MethodInfo containingMethod, 
+                      String documentation, int initStart, int initEnd) {
         this.name = name;
         this.scope = scope;
         this.declaredType = declaredType;
@@ -31,34 +36,44 @@ public final class FieldInfo {
         this.resolved = resolved;
         this.containingMethod = containingMethod;
         this.documentation = documentation;
+        this.initStart = initStart;
+        this.initEnd = initEnd;
     }
 
     // Factory methods
     public static FieldInfo globalField(String name, TypeInfo type, int declOffset) {
-        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, null);
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, null, -1, -1);
     }
     
     public static FieldInfo globalField(String name, TypeInfo type, int declOffset, String documentation) {
-        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, documentation);
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, documentation, -1, -1);
+    }
+    
+    public static FieldInfo globalField(String name, TypeInfo type, int declOffset, String documentation, int initStart, int initEnd) {
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, documentation, initStart, initEnd);
     }
 
     public static FieldInfo localField(String name, TypeInfo type, int declOffset, MethodInfo method) {
-        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null);
+        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null, -1, -1);
+    }
+    
+    public static FieldInfo localField(String name, TypeInfo type, int declOffset, MethodInfo method, int initStart, int initEnd) {
+        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null, initStart, initEnd);
     }
 
     public static FieldInfo parameter(String name, TypeInfo type, int declOffset, MethodInfo method) {
-        return new FieldInfo(name, Scope.PARAMETER, type, declOffset, type != null && type.isResolved(), method, null);
+        return new FieldInfo(name, Scope.PARAMETER, type, declOffset, type != null && type.isResolved(), method, null, -1, -1);
     }
 
     public static FieldInfo unresolved(String name, Scope scope) {
-        return new FieldInfo(name, scope, null, -1, false, null, null);
+        return new FieldInfo(name, scope, null, -1, false, null, null, -1, -1);
     }
 
     /**
      * Create a FieldInfo from reflection data for method parameters.
      */
     public static FieldInfo reflectionParam(String name, TypeInfo type) {
-        return new FieldInfo(name, Scope.PARAMETER, type, -1, true, null, null);
+        return new FieldInfo(name, Scope.PARAMETER, type, -1, true, null, null, -1, -1);
     }
 
     /**
@@ -67,7 +82,7 @@ public final class FieldInfo {
     public static FieldInfo fromReflection(java.lang.reflect.Field field, TypeInfo containingType) {
         String name = field.getName();
         TypeInfo type = TypeInfo.fromClass(field.getType());
-        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null);
+        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1);
     }
 
     // Getters
@@ -79,6 +94,9 @@ public final class FieldInfo {
     public boolean isResolved() { return resolved; }
     public MethodInfo getContainingMethod() { return containingMethod; }
     public String getDocumentation() { return documentation; }
+    public int getInitStart() { return initStart; }
+    public int getInitEnd() { return initEnd; }
+    public boolean hasInitializer() { return initStart >= 0 && initEnd > initStart; }
 
     public boolean isGlobal() { return scope == Scope.GLOBAL; }
     public boolean isLocal() { return scope == Scope.LOCAL; }

@@ -583,8 +583,28 @@ public class ScriptDocument {
                     typeInfo = resolveType(typeName);
                 }
                 
+                // Extract initialization range if there's an '=' delimiter
+                int initStart = -1;
+                int initEnd = -1;
+                if ("=".equals(delimiter)) {
+                    initStart = bodyStart + m.start(3); // Absolute position of '='
+                    // Find the semicolon or comma that ends this declaration
+                    int searchPos = bodyStart + m.end(3);
+                    int depth = 0; // Track nested parens/brackets/braces
+                    while (searchPos < text.length()) {
+                        char c = text.charAt(searchPos);
+                        if (c == '(' || c == '[' || c == '{') depth++;
+                        else if (c == ')' || c == ']' || c == '}') depth--;
+                        else if ((c == ';' || c == ',') && depth == 0) {
+                            initEnd = searchPos; // Position of ';' or ',' (exclusive)
+                            break;
+                        }
+                        searchPos++;
+                    }
+                }
+                
                 int declPos = bodyStart + m.start(2);
-                FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method);
+                FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd);
                 locals.put(varName, fieldInfo);
             }
         }
@@ -776,6 +796,7 @@ public class ScriptDocument {
         while (m.find()) {
             String typeNameRaw = m.group(1);
             String fieldName = m.group(2);
+            String delimiter = m.group(3);
             int position = m.start(2);
             
             // Skip if the field name itself is excluded
@@ -798,8 +819,28 @@ public class ScriptDocument {
                 // Extract documentation before this field
                 String documentation = extractDocumentationBefore(m.start());
                 
+                // Extract initialization range if there's an '=' delimiter
+                int initStart = -1;
+                int initEnd = -1;
+                if ("=".equals(delimiter)) {
+                    initStart = m.start(3); // Position of '='
+                    // Find the semicolon that ends this declaration
+                    int searchPos = m.end(3);
+                    int depth = 0; // Track nested parens/brackets/braces
+                    while (searchPos < text.length()) {
+                        char c = text.charAt(searchPos);
+                        if (c == '(' || c == '[' || c == '{') depth++;
+                        else if (c == ')' || c == ']' || c == '}') depth--;
+                        else if (c == ';' && depth == 0) {
+                            initEnd = searchPos; // Position of ';' (exclusive)
+                            break;
+                        }
+                        searchPos++;
+                    }
+                }
+                
                 TypeInfo typeInfo = resolveType(typeName);
-                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation);
+                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd);
                 globalFields.put(fieldName, fieldInfo);
             }
         }
@@ -3060,6 +3101,31 @@ public class ScriptDocument {
             }
         }
         return -1;
+    }
+    
+    /**
+     * Get all tokens that fall within a given range [start, end).
+     * Returns tokens in order. Tokens that span across the range boundaries
+     * are included if any part of them is within the range.
+     */
+    public List<Token> getTokensInRange(int start, int end) {
+        List<Token> result = new ArrayList<>();
+        if (start < 0 || end <= start) return result;
+        
+        for (ScriptLine line : lines) {
+            // Skip lines entirely before the range
+            if (line.getGlobalEnd() <= start) continue;
+            // Stop if line is entirely after the range
+            if (line.getGlobalStart() >= end) break;
+            
+            for (Token token : line.getTokens()) {
+                // Check if token overlaps with range
+                if (token.getGlobalEnd() > start && token.getGlobalStart() < end) {
+                    result.add(token);
+                }
+            }
+        }
+        return result;
     }
 
     /**

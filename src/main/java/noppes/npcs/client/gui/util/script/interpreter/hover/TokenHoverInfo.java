@@ -464,6 +464,9 @@ public class TokenHoverInfo {
         
         // Field name
         addSegment(fieldInfo.getName(), TokenType.GLOBAL_FIELD.getHexColor());
+        
+        // Add initialization value if available
+        addInitializationTokens(token, fieldInfo);
     }
 
     private void extractLocalFieldInfo(Token token) {
@@ -488,6 +491,9 @@ public class TokenHoverInfo {
         }
         
         addSegment(fieldInfo.getName(), TokenType.LOCAL_FIELD.getHexColor());
+        
+        // Add initialization value if available
+        addInitializationTokens(token, fieldInfo);
         
         // Show it's a local variable
         additionalInfo.add("Local variable");
@@ -749,6 +755,31 @@ public class TokenHoverInfo {
                 return getColorForClass(clazz);
         }
         return TokenType.IMPORTED_CLASS.getHexColor();
+    }
+    
+    /**
+     * Add initialization tokens from the field's initializer to the declaration.
+     * Fetches the tokens in the initialization range and adds them with their proper coloring.
+     */
+    private void addInitializationTokens(Token token, FieldInfo fieldInfo) {
+        if (!fieldInfo.hasInitializer()) return;
+        
+        ScriptLine line = token.getParentLine();
+        if (line == null || line.getParent() == null) return;
+        
+        ScriptDocument doc = line.getParent();
+        // Include the semicolon by extending range by 1
+        List<Token> initTokens = doc.getTokensInRange(fieldInfo.getInitStart(), fieldInfo.getInitEnd() + 1);
+        
+        if (initTokens.isEmpty()) return;
+        
+        // Add space before '=' for readability
+        addSegment(" ", TokenType.DEFAULT.getHexColor());
+        
+        // Add each token with its proper color
+        for (Token initToken : initTokens) {
+            addSegment(initToken.getText(), initToken.getType().getHexColor());
+        }
     }
 
     // ==================== GETTERS ====================
