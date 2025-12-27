@@ -25,7 +25,8 @@ public class AssignmentInfo {
         PRIVATE_ACCESS,         // Attempting to access private field
         PROTECTED_ACCESS,       // Attempting to access protected field from invalid context
         UNRESOLVED_TARGET,      // Target variable/field doesn't exist
-        STATIC_CONTEXT_ERROR    // Accessing instance field from static context
+        STATIC_CONTEXT_ERROR,   // Accessing instance field from static context
+        DUPLICATE_DECLARATION   // Variable is already defined in the scope
     }
 
     // Statement position
@@ -73,6 +74,29 @@ public class AssignmentInfo {
         this.receiverType = receiverType;
         this.reflectionField = reflectionField;
         this.isFinal = isFinal;
+    }
+    
+    /**
+     * Factory method to create an AssignmentInfo representing a duplicate declaration error.
+     * Only the LHS (variable name) position is relevant for underlining.
+     */
+    public static AssignmentInfo duplicateDeclaration(String varName, int nameStart, int nameEnd, String errorMessage) {
+        AssignmentInfo info = new AssignmentInfo(
+            varName,
+            nameStart,      // statementStart = nameStart for underline positioning
+            nameStart,      // lhsStart
+            nameEnd,        // lhsEnd
+            null,           // targetType
+            -1,             // rhsStart (not applicable)
+            -1,             // rhsEnd (not applicable)
+            null,           // sourceType
+            null,           // sourceExpr
+            null,           // receiverType
+            null,           // reflectionField
+            false           // isFinal
+        );
+        info.setError(ErrorType.DUPLICATE_DECLARATION, errorMessage);
+        return info;
     }
 
     // ==================== VALIDATION ====================
@@ -258,14 +282,15 @@ public class AssignmentInfo {
     // ==================== ERROR TYPE CHECKS ====================
 
     /**
-     * Check if this is an LHS error (final reassignment, access errors).
+     * Check if this is an LHS error (final reassignment, access errors, duplicate declarations).
      * These errors should underline the LHS.
      */
     public boolean isLhsError() {
         return errorType == ErrorType.FINAL_REASSIGNMENT ||
                errorType == ErrorType.PRIVATE_ACCESS ||
                errorType == ErrorType.PROTECTED_ACCESS ||
-               errorType == ErrorType.STATIC_CONTEXT_ERROR;
+               errorType == ErrorType.STATIC_CONTEXT_ERROR ||
+               errorType == ErrorType.DUPLICATE_DECLARATION;
     }
 
     /**

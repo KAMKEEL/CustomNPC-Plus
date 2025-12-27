@@ -83,6 +83,9 @@ public class ScriptDocument {
     // Assignments to external fields (fields from reflection, not script-defined)
     private final List<AssignmentInfo> externalFieldAssignments = new ArrayList<>();
 
+    // Declaration errors (duplicate declarations, etc.)
+    private final List<AssignmentInfo> declarationErrors = new ArrayList<>();
+
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
 
@@ -191,6 +194,7 @@ public class ScriptDocument {
         scriptTypes.clear();
         methodCalls.clear();
         externalFieldAssignments.clear();
+        declarationErrors.clear();
 
         // Phase 1: Find excluded regions (strings/comments)
         findExcludedRanges();
@@ -626,7 +630,16 @@ public class ScriptDocument {
                 
                 int declPos = bodyStart + m.start(2);
                 FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd, modifiers);
-                locals.put(varName, fieldInfo);
+
+                // Check for duplicate declaration (in locals or globals)
+                if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
+                    // Create a declaration error for this duplicate
+                    AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                            varName, declPos, declPos + varName.length(),
+                            "Variable '" + varName + "' is already defined in the scope");
+                    declarationErrors.add(dupError);
+                } else if (!locals.containsKey(varName))
+                    locals.put(varName, fieldInfo);
             }
         }
     }
@@ -865,7 +878,19 @@ public class ScriptDocument {
                 
                 TypeInfo typeInfo = resolveType(typeName);
                 FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd, modifiers);
-                globalFields.put(fieldName, fieldInfo);
+
+                // Check for duplicate declaration
+                if (globalFields.containsKey(fieldName)) {
+                    // Create a declaration error for this duplicate
+                    AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                            fieldName, position, position + fieldName.length(),
+                            "Variable '" + fieldName + "' is already defined in the scope");
+                    declarationErrors.add(dupError);
+                } else {
+                    globalFields.put(fieldName, fieldInfo);
+                }
+                
+             
             }
         }
     }
@@ -3152,7 +3177,7 @@ public class ScriptDocument {
         
         // Resolve the target field (should already exist from parseGlobalFields or parseLocalVariables)
         FieldInfo targetField = resolveVariable(varName, varNameStart);
-        if (targetField == null) {
+        if (targetField == null || targetField.getDeclarationAssignment() != null) {
             return; // Field doesn't exist, can't attach assignment
         }
         
@@ -3506,6 +3531,12 @@ public class ScriptDocument {
                 }
             }
         }
+
+        for (AssignmentInfo assign : declarationErrors) {
+            if (assign.containsLhsPosition(position)) {
+                return assign;
+            }
+        }
         
         // Check external field assignments with same LHS-first priority
         for (AssignmentInfo assign : externalFieldAssignments) {
@@ -3552,6 +3583,9 @@ public class ScriptDocument {
                 errored.add(assign);
             }
         }
+
+        // Include declaration errors (duplicates, etc.)
+        errored.addAll(declarationErrors);
         
         return errored;
     }
