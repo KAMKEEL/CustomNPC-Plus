@@ -723,7 +723,12 @@ public class TokenHoverInfo {
 
     public String getPackageName() { return packageName; }
     public String getIconIndicator() { return iconIndicator; }
-    public List<TextSegment> getDeclaration() { return declaration; }
+
+    public List<TextSegment> getDeclaration() {
+        if (getErrors().stream().anyMatch(err -> err.contains("Cannot resolve")))
+            return new ArrayList<>();
+        return declaration;
+    }
     public List<String> getDocumentation() { return documentation; }
     public List<String> getErrors() { return errors; }
     public List<String> getAdditionalInfo() { return additionalInfo; }
