@@ -1437,9 +1437,33 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             return true;
         }
 
-        // RETURN/ENTER: special handling when preceding char is an opening brace '{'
+        // RETURN/ENTER: special handling for /** javadoc stub and opening brace '{'
         if (i == Keyboard.KEY_RETURN) {
             int cursorPos = selection.getCursorPosition();
+            
+            // Check for /** javadoc stub auto-generation
+            String before = getSelectionBeforeText();
+            if (before.endsWith("/**")) {
+                // Find current line to get indent level
+                String indent = "";
+                for (LineData ld : this.container.lines) {
+                    if (cursorPos >= ld.start && cursorPos <= ld.end) {
+                        indent = ld.text.substring(0, IndentHelper.getLineIndent(ld.text));
+                        break;
+                    }
+                }
+                
+                // Generate properly indented javadoc block
+                String javadocStub = "\n" + indent + " * \n" + indent + " */";
+                addText(javadocStub);
+                
+                // Position cursor after " * " on the middle line
+                int newCursorPos = before.length() + 1 + indent.length() + 3; // +1 for \n, +3 for " * "
+                selection.reset(newCursorPos);
+                scrollToCursor();
+                return true;
+            }
+            
             int prevNonWs = cursorPos - 1;
             while (prevNonWs >= 0 && prevNonWs < (text != null ? text.length() : 0) && Character.isWhitespace(
                     text.charAt(prevNonWs))) {
@@ -1457,7 +1481,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 if (indent == null)
                     indent = "";
                 String childIndent = indent + "    ";
-                String before = getSelectionBeforeText();
                 String after = getSelectionAfterText();
 
                 int firstNewline = after.indexOf('\n');
