@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents resolved type information for a class/interface/enum.
  * Base class for type metadata. Extended by ScriptTypeInfo for script-defined types.
@@ -174,6 +177,30 @@ public class TypeInfo {
             // Security or linkage error
         }
         return false;
+    }
+    
+    /**
+     * Check if this type has constructors.
+     * Override in ScriptTypeInfo for script-defined types.
+     */
+    public boolean hasConstructors() {
+        return false;
+    }
+    
+    /**
+     * Get the constructors for this type.
+     * Override in ScriptTypeInfo for script-defined types.
+     */
+    public List<MethodInfo> getConstructors() {
+        return new ArrayList<>();
+    }
+    
+    /**
+     * Find the best matching constructor for the given argument count.
+     * Override in ScriptTypeInfo for script-defined types.
+     */
+    public MethodInfo findConstructor(int argCount) {
+        return null;
     }
 
     /**

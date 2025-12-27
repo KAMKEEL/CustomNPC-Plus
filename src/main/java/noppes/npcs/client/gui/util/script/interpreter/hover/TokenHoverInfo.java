@@ -397,6 +397,14 @@ public class TokenHoverInfo {
                 errors.add("Cannot resolve class '" + typeInfo.getSimpleName() + "'");
             }
         }
+        
+        // If this is a NEW_TYPE token with constructor info, show the constructor signature
+        if (token.getMethodInfo() != null) {
+            MethodInfo constructor = token.getMethodInfo();
+            declaration.add(new TextSegment("\n", TokenType.DEFAULT.getHexColor()));
+            additionalInfo.add("Constructor");
+            buildConstructorDeclaration(constructor, typeInfo);
+        }
     }
 
     private void extractMethodCallInfo(Token token) {
@@ -607,7 +615,41 @@ public class TokenHoverInfo {
         }
     }
 
-    // ==================== HELPER METHODS ====================
+    private void buildConstructorDeclaration(MethodInfo constructor, TypeInfo containingType) {
+        // Modifiers (public, private, etc.)
+        declaration.clear();
+        int mods = constructor.getModifiers();
+        if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
+        else if (Modifier.isProtected(mods)) addSegment("protected ", TokenType.MODIFIER.getHexColor());
+        else if (Modifier.isPrivate(mods)) addSegment("private ", TokenType.MODIFIER.getHexColor());
+        
+        // Constructor name (same as class name)
+        addSegment(constructor.getName(), containingType.getTokenType().getHexColor());
+        
+        // Parameters
+        addSegment("(", TokenType.DEFAULT.getHexColor());
+        List<FieldInfo> params = constructor.getParameters();
+        for (int i = 0; i < params.size(); i++) {
+            if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
+            FieldInfo param = params.get(i);
+            TypeInfo paramType = param.getDeclaredType();
+            if (paramType != null) {
+                int paramTypeColor = getColorForTypeInfo(paramType);
+                addSegment(paramType.getSimpleName(), paramTypeColor);
+                addSegment(" ", TokenType.DEFAULT.getHexColor());
+            }
+            addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
+        }
+        addSegment(")", TokenType.DEFAULT.getHexColor());
+        
+        // Add documentation if available
+        if (constructor.getDocumentation() != null && !constructor.getDocumentation().isEmpty()) {
+            String[] docLines = constructor.getDocumentation().split("\n");
+            for (String line : docLines) {
+                documentation.add(line);
+            }
+        }
+    }
 
     private void addSegment(String text, int color) {
         declaration.add(new TextSegment(text, color));

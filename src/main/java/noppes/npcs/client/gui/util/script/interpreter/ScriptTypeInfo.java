@@ -23,6 +23,7 @@ public class ScriptTypeInfo extends TypeInfo {
     // Script-defined members
     private final Map<String, FieldInfo> fields = new HashMap<>();
     private final Map<String, List<MethodInfo>> methods = new HashMap<>(); // name -> list of overloads
+    private final List<MethodInfo> constructors = new ArrayList<>(); // List of constructors
     private final List<ScriptTypeInfo> innerClasses = new ArrayList<>();
     
     // Parent class reference (for inner class resolution)
@@ -141,6 +142,36 @@ public class ScriptTypeInfo extends TypeInfo {
     
     public Map<String, List<MethodInfo>> getMethods() {
         return new HashMap<>(methods);
+    }
+    
+    // ==================== CONSTRUCTOR MANAGEMENT ====================
+    
+    public void addConstructor(MethodInfo constructor) {
+        constructors.add(constructor);
+    }
+    
+    @Override
+    public List<MethodInfo> getConstructors() {
+        return new ArrayList<>(constructors);
+    }
+    
+    @Override
+    public boolean hasConstructors() {
+        return !constructors.isEmpty();
+    }
+    
+    /**
+     * Find the best matching constructor for the given argument count.
+     * Returns null if no constructor matches.
+     */
+    @Override
+    public MethodInfo findConstructor(int argCount) {
+        for (MethodInfo constructor : constructors) {
+            if (constructor.getParameterCount() == argCount) {
+                return constructor;
+            }
+        }
+        return null;
     }
     
     // ==================== INNER CLASS LOOKUP ====================

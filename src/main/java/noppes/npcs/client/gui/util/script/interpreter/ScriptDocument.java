@@ -459,6 +459,45 @@ public class ScriptDocument {
                     methodName, returnType, params, absPos, methodBodyStart, methodBodyEnd, modifiers, documentation);
             scriptType.addMethod(methodInfo);
         }
+        
+        // Parse constructors (ClassName(params) { ... })
+        // Constructor pattern: ClassName matches the script type name, no return type
+        String typeName = scriptType.getSimpleName();
+        Pattern constructorPattern = Pattern.compile(
+                "\\b" + Pattern.quote(typeName) + "\\s*\\(([^)]*)\\)\\s*\\{");
+        Matcher cm = constructorPattern.matcher(bodyText);
+        while (cm.find()) {
+            int absPos = bodyStart + 1 + cm.start();
+            if (isExcluded(absPos)) continue;
+            
+            String paramList = cm.group(1);
+            
+            int constructorBodyStart = bodyStart + 1 + cm.end() - 1;
+            int constructorBodyEnd = findMatchingBrace(constructorBodyStart);
+            if (constructorBodyEnd < 0) constructorBodyEnd = bodyEnd;
+            
+            // Extract documentation before this constructor
+            String documentation = extractDocumentationBefore(absPos);
+            
+            // Extract modifiers by scanning backwards
+            int modifiers = extractModifiersBackwards(cm.start() - 1, bodyText);
+            
+            // Parse parameters with their actual positions
+            List<FieldInfo> params = parseParametersWithPositions(paramList, bodyStart + 1 + cm.start(1));
+            
+            // Constructors don't have a return type, but we'll use the containing type as a marker
+            MethodInfo constructorInfo = MethodInfo.declaration(
+                    typeName,
+                    scriptType,  // Return type is the type itself
+                    params,
+                    absPos,
+                    constructorBodyStart,
+                    constructorBodyEnd,
+                    modifiers,
+                    documentation
+            );
+            scriptType.addConstructor(constructorInfo);
+        }
     }
 
     /**
@@ -1202,7 +1241,6 @@ public class ScriptDocument {
 
         // Type declarations and usages
         markTypeDeclarations(marks);
-        addPatternMarks(marks, NEW_TYPE_PATTERN, TokenType.NEW_TYPE, 1);
 
         // Methods
         markMethodDeclarations(marks);
@@ -1531,6 +1569,19 @@ public class ScriptDocument {
             }
 
             searchFrom = m.end();
+        }
+    }
+
+    /**
+     * Wrapper class to hold both TypeInfo and constructor MethodInfo for "new" expressions.
+     */
+    static class NewExpressionInfo {
+        final TypeInfo typeInfo;
+        final MethodInfo constructor;
+        
+        NewExpressionInfo(TypeInfo typeInfo, MethodInfo constructor) {
+            this.typeInfo = typeInfo;
+            this.constructor = constructor;
         }
     }
 
@@ -2534,6 +2585,19 @@ public class ScriptDocument {
                 marks.add(new ScriptLine.Mark(pos, pos + name.length(), TokenType.PARAMETER, param));
             }
         }
+        
+        // Mark constructor parameters from script types
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            for (MethodInfo constructor : scriptType.getConstructors()) {
+                for (FieldInfo param : constructor.getParameters()) {
+                    int pos = param.getDeclarationOffset();
+                    if (pos >= 0) {
+                        String name = param.getName();
+                        marks.add(new ScriptLine.Mark(pos, pos + name.length(), TokenType.PARAMETER, param));
+                    }
+                }
+            }
+        }
 
         Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
         Matcher m = identifier.matcher(text);
@@ -3279,6 +3343,7 @@ public class ScriptDocument {
 
         while (tm.find()) {
             String className = tm.group(2);
+            String newKeyword = tm.group(1);
             int start = tm.start(2);
             int end = tm.end(2);
 
@@ -3292,6 +3357,51 @@ public class ScriptDocument {
             // Try to resolve the class
             TypeInfo info = resolveType(className);
             if (info != null && info.isResolved()) {
+                boolean isNewCreation = newKeyword != null && newKeyword.trim().equals("new");
+                boolean isConstructorDecl = info instanceof ScriptTypeInfo && className.equals(info.getSimpleName());
+                
+                // Check if this is a "new" expression or constructor declaration
+                if (isNewCreation || isConstructorDecl) {
+                    // Find opening paren after the class name
+                    int searchPos = end;
+                    while (searchPos < text.length() && Character.isWhitespace(text.charAt(searchPos)))
+                        searchPos++;
+                    
+                    if (searchPos < text.length() && text.charAt(searchPos) == '(') {
+                        int openParen = searchPos;
+                        int closeParen = findMatchingParen(openParen);
+                        
+                        if (closeParen >= 0) {
+                            // For constructor declarations, verify it's followed by opening brace
+                            if (isConstructorDecl && !isNewCreation) {
+                                int braceSearch = closeParen + 1;
+                                while (braceSearch < text.length() && Character.isWhitespace(text.charAt(braceSearch)))
+                                    braceSearch++;
+                                
+                                if (braceSearch >= text.length() || text.charAt(braceSearch) != '{') {
+                                    // Not a constructor declaration, treat as normal type usage
+                                    marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
+                                    continue;
+                                }
+                            }
+                            
+                            // Parse arguments to find matching constructor
+                            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen);
+                            int argCount = arguments.size();
+                            
+                            if (info.hasConstructors()) {
+                                MethodInfo constructor = info.findConstructor(argCount);
+                                if (constructor != null) {
+                                    // Attach both type info and constructor
+                                    NewExpressionInfo newExpr = new NewExpressionInfo(info, constructor);
+                                    marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), newExpr));
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+                
                 marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), info));
             } else {
                 // Unknown type - mark as undefined

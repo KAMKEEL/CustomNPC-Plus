@@ -152,6 +152,10 @@ public class ScriptLine {
                 if (mark.metadata != null) {
                     if (mark.metadata instanceof TypeInfo) {
                         token.setTypeInfo((TypeInfo) mark.metadata);
+                    } else if (mark.metadata instanceof ScriptDocument.NewExpressionInfo) {
+                        ScriptDocument.NewExpressionInfo newExpr = (ScriptDocument.NewExpressionInfo) mark.metadata;
+                        token.setTypeInfo(newExpr.typeInfo);
+                        token.setMethodInfo(newExpr.constructor);
                     } else if (mark.metadata instanceof FieldInfo.ArgInfo) {
                         FieldInfo.ArgInfo ctx = (FieldInfo.ArgInfo) mark.metadata;
                         token.setFieldInfo(ctx.fieldInfo);

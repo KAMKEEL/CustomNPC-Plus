@@ -151,7 +151,7 @@ public class HoverState {
     public void update(int mouseX, int mouseY, Token token, int tokenX, int tokenY, int tokenW) {
         lastMouseX = mouseX;
         lastMouseY = mouseY;
-        clickToPinEnabled=false;
+        clickToPinEnabled=true;
         // If a token has been pinned by click, ignore mouse movement updates
         if (pinnedToken != null) {
             // keep pinned tooltip visible
