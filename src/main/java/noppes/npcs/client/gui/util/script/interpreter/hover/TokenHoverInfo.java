@@ -584,7 +584,7 @@ public class TokenHoverInfo {
         addSegment(" ", TokenType.DEFAULT.getHexColor());
         
         // Method name
-        addSegment(method.getName(), TokenType.METHOD_CALL.getHexColor());
+        addSegment(method.getName(), TokenType.METHOD_DECL.getHexColor());
         
         // Parameters
         addSegment("(", TokenType.DEFAULT.getHexColor());
@@ -627,7 +627,7 @@ public class TokenHoverInfo {
         }
         
         // Method name
-        addSegment(methodInfo.getName(), TokenType.METHOD_CALL.getHexColor());
+        addSegment(methodInfo.getName(), TokenType.METHOD_DECL.getHexColor());
         
         // Parameters
         addSegment("(", TokenType.DEFAULT.getHexColor());
