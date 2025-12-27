@@ -351,6 +351,44 @@ public class TokenHoverInfo {
                     addSegment(", ...", TokenType.DEFAULT.getHexColor());
                 }
             }
+        } else if (typeInfo instanceof ScriptTypeInfo) {
+            // Script-defined type
+            ScriptTypeInfo scriptType = (ScriptTypeInfo) typeInfo;
+            
+            // Icon
+            if (scriptType.getKind() == TypeInfo.Kind.INTERFACE) {
+                iconIndicator = "I";
+            } else if (scriptType.getKind() == TypeInfo.Kind.ENUM) {
+                iconIndicator = "E";
+            } else {
+                iconIndicator = "C";
+            }
+            
+            // Build declaration with modifiers
+            int mods = scriptType.getModifiers();
+            
+            // Modifiers
+            if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isAbstract(mods) && scriptType.getKind() != TypeInfo.Kind.INTERFACE) 
+                addSegment("abstract ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isFinal(mods)) addSegment("final ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isStatic(mods)) addSegment("static ", TokenType.MODIFIER.getHexColor());
+            
+            // Class type keyword
+            if (scriptType.getKind() == TypeInfo.Kind.INTERFACE) {
+                addSegment("interface ", TokenType.MODIFIER.getHexColor());
+            } else if (scriptType.getKind() == TypeInfo.Kind.ENUM) {
+                addSegment("enum ", TokenType.MODIFIER.getHexColor());
+            } else {
+                addSegment("class ", TokenType.MODIFIER.getHexColor());
+            }
+            
+            // Class name
+            int classColor = scriptType.getKind() == TypeInfo.Kind.INTERFACE ? TokenType.INTERFACE_DECL.getHexColor() 
+                : scriptType.getKind() == TypeInfo.Kind.ENUM ? TokenType.ENUM_DECL.getHexColor() 
+                : TokenType.IMPORTED_CLASS.getHexColor();
+            addSegment(typeInfo.getSimpleName(), classColor);
+            
         } else {
             // Unresolved type
             iconIndicator = "?";

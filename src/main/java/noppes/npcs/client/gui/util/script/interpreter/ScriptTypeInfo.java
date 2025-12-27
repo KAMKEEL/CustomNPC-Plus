@@ -18,6 +18,7 @@ public class ScriptTypeInfo extends TypeInfo {
     private final int declarationOffset;
     private final int bodyStart;
     private final int bodyEnd;
+    private final int modifiers;  // Java reflection modifiers (public, static, final, etc.)
     
     // Script-defined members
     private final Map<String, FieldInfo> fields = new HashMap<>();
@@ -28,24 +29,25 @@ public class ScriptTypeInfo extends TypeInfo {
     private ScriptTypeInfo outerClass;
     
     private ScriptTypeInfo(String simpleName, String fullName, Kind kind,
-                           int declarationOffset, int bodyStart, int bodyEnd) {
+                           int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
         super(simpleName, fullName, "", kind, null, true, null, true);
         this.scriptClassName = simpleName;
         this.declarationOffset = declarationOffset;
         this.bodyStart = bodyStart;
         this.bodyEnd = bodyEnd;
+        this.modifiers = modifiers;
     }
     
     // Factory method
     public static ScriptTypeInfo create(String simpleName, Kind kind, 
-                                        int declarationOffset, int bodyStart, int bodyEnd) {
-        return new ScriptTypeInfo(simpleName, simpleName, kind, declarationOffset, bodyStart, bodyEnd);
+                                        int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
+        return new ScriptTypeInfo(simpleName, simpleName, kind, declarationOffset, bodyStart, bodyEnd, modifiers);
     }
     
     public static ScriptTypeInfo createInner(String simpleName, Kind kind, ScriptTypeInfo outer,
-                                             int declarationOffset, int bodyStart, int bodyEnd) {
+                                             int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
         String fullName = outer.getFullName() + "$" + simpleName;
-        ScriptTypeInfo inner = new ScriptTypeInfo(simpleName, fullName, kind, declarationOffset, bodyStart, bodyEnd);
+        ScriptTypeInfo inner = new ScriptTypeInfo(simpleName, fullName, kind, declarationOffset, bodyStart, bodyEnd, modifiers);
         inner.outerClass = outer;
         outer.innerClasses.add(inner);
         return inner;
@@ -56,6 +58,7 @@ public class ScriptTypeInfo extends TypeInfo {
     public int getDeclarationOffset() { return declarationOffset; }
     public int getBodyStart() { return bodyStart; }
     public int getBodyEnd() { return bodyEnd; }
+    public int getModifiers() { return modifiers; }
     public ScriptTypeInfo getOuterClass() { return outerClass; }
     public List<ScriptTypeInfo> getInnerClasses() { return innerClasses; }
     

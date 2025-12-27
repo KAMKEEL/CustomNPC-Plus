@@ -336,9 +336,11 @@ public class ScriptDocument {
      * Creates ScriptTypeInfo instances and stores them for later resolution.
      */
     private void parseScriptTypes() {
-        // Pattern: (class|interface|enum) ClassName { ... }
+        // Pattern: [modifiers] (class|interface|enum) ClassName [optional ()] { ... }
+        // Matches optional modifiers (public, private, static, final, abstract) before class/interface/enum
+        // Also allows optional () after the class name (common mistake)
         Pattern typeDecl = Pattern.compile(
-                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:extends\\s+[A-Za-z_][a-zA-Z0-9_.]*)?\\s*(?:implements\\s+[A-Za-z_][a-zA-Z0-9_.,\\s]*)?\\s*\\{");
+                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*(?:extends\\s+[A-Za-z_][a-zA-Z0-9_.]*)?\\s*(?:implements\\s+[A-Za-z_][a-zA-Z0-9_.,\\s]*)?\\s*\\{");
         
         Matcher m = typeDecl.matcher(text);
         while (m.find()) {
@@ -361,8 +363,12 @@ public class ScriptDocument {
                 default: kind = TypeInfo.Kind.CLASS; break;
             }
             
+            // Extract modifiers from the matched text
+            String fullMatch = text.substring(m.start(), m.end());
+            int modifiers = parseModifiers(fullMatch);
+            
             ScriptTypeInfo scriptType = ScriptTypeInfo.create(
-                    typeName, kind, m.start(), bodyStart, bodyEnd);
+                    typeName, kind, m.start(), bodyStart, bodyEnd, modifiers);
             
             // Parse fields and methods inside this type
             parseScriptTypeMembers(scriptType);
@@ -1697,22 +1703,30 @@ public class ScriptDocument {
                 } else {
                     if (isScriptMethod(methodName)) {
                         resolvedMethod = getScriptMethodInfo(methodName);
-                        MethodCallInfo callInfo = new MethodCallInfo(
-                            methodName, nameStart, nameEnd, openParen, closeParen,
-                            arguments, null, resolvedMethod
-                        );
                         
-                        // Only set expected type if this is the final expression (not followed by .field or .method)
-                        if (!isFollowedByDot(closeParen)) {
-                            TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
-                            if (expectedType != null) {
-                                callInfo.setExpectedType(expectedType);
+                        // Check if this is a method from a script type
+                        // Instance methods from script types cannot be called without a receiver
+                        if (resolvedMethod != null && isMethodFromScriptType(resolvedMethod) && !resolvedMethod.isStatic()) {
+                            // Instance method called without receiver - mark as undefined
+                            marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
+                        } else {
+                            MethodCallInfo callInfo = new MethodCallInfo(
+                                methodName, nameStart, nameEnd, openParen, closeParen,
+                                arguments, null, resolvedMethod
+                            );
+                            
+                            // Only set expected type if this is the final expression (not followed by .field or .method)
+                            if (!isFollowedByDot(closeParen)) {
+                                TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
+                                if (expectedType != null) {
+                                    callInfo.setExpectedType(expectedType);
+                                }
                             }
+                            
+                            callInfo.validate();
+                            methodCalls.add(callInfo);
+                            marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                         }
-                        
-                        callInfo.validate();
-                        methodCalls.add(callInfo);
-                        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                     } else {
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                     }
@@ -2475,6 +2489,30 @@ public class ScriptDocument {
             }
         }
         return null;
+    }
+    
+    /**
+     * Check if a method belongs to a script-defined type (class/interface/enum).
+     * Returns true if the method is defined inside a script type.
+     */
+    private boolean isMethodFromScriptType(MethodInfo method) {
+        if (method == null || !method.isDeclaration()) {
+            return false;
+        }
+        
+        int declPos = method.getDeclarationOffset();
+        if (declPos < 0) {
+            return false;
+        }
+        
+        // Check if the method's declaration position is inside any script type's body
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            if (scriptType.containsPosition(declPos)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private void markVariables(List<ScriptLine.Mark> marks) {
