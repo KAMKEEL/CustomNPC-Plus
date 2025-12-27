@@ -2970,6 +2970,7 @@ public class ScriptDocument {
         // Create the assignment info using the new constructor
         AssignmentInfo info = new AssignmentInfo(
             targetName,
+            stmtStart,
             lhsStart,
             lhsEnd,
             targetType,
@@ -3055,6 +3056,7 @@ public class ScriptDocument {
         // Create the assignment info
         AssignmentInfo info = new AssignmentInfo(
             varName,
+            stmtStart,
             varNameStart,
             varNameEnd,
             targetType,

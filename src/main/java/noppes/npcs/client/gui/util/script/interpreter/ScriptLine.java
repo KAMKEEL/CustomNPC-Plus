@@ -401,6 +401,9 @@ public class ScriptLine {
                 underlineStart = assign.getRhsStart();
                 underlineEnd = assign.getRhsEnd();
                 underlineText = assign.getSourceExpr();
+            } else if (assign.isFullLineError()) {
+                underlineStart = assign.getStatementStart();
+                underlineEnd = assign.getRhsEnd();
             } else {
                 // Skip assignments with no displayable error
                 continue;

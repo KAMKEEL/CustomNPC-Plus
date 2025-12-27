@@ -28,6 +28,9 @@ public class AssignmentInfo {
         STATIC_CONTEXT_ERROR    // Accessing instance field from static context
     }
 
+    // Statement position
+    private final int statementStart;       // Absolute start of statement (includes modifiers/type for declarations)
+    
     // Target/LHS info
     private final String targetName;
     private final int lhsStart;             // Position of first char of target variable/field
@@ -53,12 +56,13 @@ public class AssignmentInfo {
     private String requiredType;
     private String providedType;
 
-    public AssignmentInfo(String targetName, int lhsStart, int lhsEnd,
+    public AssignmentInfo(String targetName, int statementStart, int lhsStart, int lhsEnd,
                           TypeInfo targetType, int rhsStart, int rhsEnd,
                           TypeInfo sourceType, String sourceExpr,
                           TypeInfo receiverType, java.lang.reflect.Field reflectionField,
                           boolean isFinal) {
         this.targetName = targetName;
+        this.statementStart = statementStart;
         this.lhsStart = lhsStart;
         this.lhsEnd = lhsEnd;
         this.targetType = targetType;
@@ -269,12 +273,17 @@ public class AssignmentInfo {
      * These errors should underline the RHS.
      */
     public boolean isRhsError() {
+        return false;
+    }
+
+    public boolean isFullLineError() {
         return errorType == ErrorType.TYPE_MISMATCH;
     }
 
     // ==================== GETTERS ====================
 
     public String getTargetName() { return targetName; }
+    public int getStatementStart() { return statementStart; }
     public int getLhsStart() { return lhsStart; }
     public int getLhsEnd() { return lhsEnd; }
     public TypeInfo getTargetType() { return targetType; }
@@ -299,6 +308,7 @@ public class AssignmentInfo {
     public String toString() {
         return "AssignmentInfo{" +
                 "target='" + targetName + "', " +
+                "stmt=" + statementStart + ", " +
                 "lhs=[" + lhsStart + "-" + lhsEnd + "], " +
                 "rhs=[" + rhsStart + "-" + rhsEnd + "], " +
                 "targetType=" + targetType + ", " +
