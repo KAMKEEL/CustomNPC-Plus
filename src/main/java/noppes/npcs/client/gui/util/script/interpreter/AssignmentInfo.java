@@ -144,7 +144,7 @@ public class AssignmentInfo {
      * Build a formatted type mismatch error message (IntelliJ style).
      */
     private String buildTypeMismatchMessage() {
-        return "Required type:    " + requiredType + "\nProvided:            " + providedType;
+        return "Provided type:     " + providedType + "\nRequired:             " + requiredType;
     }
 
     /**
