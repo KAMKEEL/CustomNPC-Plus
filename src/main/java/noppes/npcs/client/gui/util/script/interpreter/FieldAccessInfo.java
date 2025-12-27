@@ -94,8 +94,8 @@ public class FieldAccessInfo {
             TypeInfo fieldType = resolvedField.getDeclaredType();
             if (fieldType != null && !isTypeCompatible(fieldType, expectedType)) {
                 //extra space is necessary for alignment
-                setError(ErrorType.TYPE_MISMATCH,  "Provided type:     " + fieldType.getSimpleName()+
-                        "\nRequired:             " + expectedType.getSimpleName());
+              //  setError(ErrorType.TYPE_MISMATCH,  "Provided type:     " + fieldType.getSimpleName()+
+                       // "\nRequired:             " + expectedType.getSimpleName());
             }
         }
     }

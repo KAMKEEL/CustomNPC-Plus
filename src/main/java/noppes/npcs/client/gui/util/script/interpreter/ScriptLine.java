@@ -309,7 +309,7 @@ public class ScriptLine {
                         String beforeMethod = lineText.substring(0, lineLocalStart);
                         int beforeWidth = ClientProxy.Font.width(beforeMethod);
                         int methodWidth = ClientProxy.Font.width(call.getMethodName());
-                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, methodWidth, 0xFF5555);
+                      //  drawCurlyUnderline(lineStartX + beforeWidth, baselineY, methodWidth, 0xFF5555);
                     }
                 }
             }
@@ -376,7 +376,7 @@ public class ScriptLine {
                         String beforeField = lineText.substring(0, lineLocalStart);
                         int beforeWidth = ClientProxy.Font.width(beforeField);
                         int fieldWidth = ClientProxy.Font.width(access.getFieldName());
-                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, fieldWidth, 0xFF5555);
+                       // drawCurlyUnderline(lineStartX + beforeWidth, baselineY, fieldWidth, 0xFF5555);
                     }
                 }
             }

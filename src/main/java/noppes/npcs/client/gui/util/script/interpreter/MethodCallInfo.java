@@ -318,8 +318,8 @@ public class MethodCallInfo {
         if (expectedType != null && resolvedMethod != null) {
             TypeInfo returnType = resolvedMethod.getReturnType();
             if (returnType != null && !isTypeCompatible(returnType, expectedType)) {
-                setError(ErrorType.RETURN_TYPE_MISMATCH,
-                        "Required type: " + expectedType.getSimpleName() + ", Provided: " + returnType.getSimpleName());
+              //  setError(ErrorType.RETURN_TYPE_MISMATCH,
+                      //  "Required type: " + expectedType.getSimpleName() + ", Provided: " + returnType.getSimpleName());
             }
         }
     }
