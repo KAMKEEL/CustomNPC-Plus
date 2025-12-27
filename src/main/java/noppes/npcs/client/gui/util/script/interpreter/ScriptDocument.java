@@ -3492,6 +3492,15 @@ public class ScriptDocument {
                 return assign;
             }
         }
+
+        for (Map<String, FieldInfo> locals : methodLocals.values()) {
+            for (FieldInfo field : locals.values()) {
+                AssignmentInfo assign = field.findAssignmentAtPosition(position);
+                if (assign != null) {
+                    return assign;
+                }
+            }
+        }
         
         // Check external field assignments with same LHS-first priority
         for (AssignmentInfo assign : externalFieldAssignments) {
