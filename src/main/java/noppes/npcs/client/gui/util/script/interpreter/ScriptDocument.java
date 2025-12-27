@@ -2882,7 +2882,7 @@ public class ScriptDocument {
         String potentialVar = parts[parts.length - 1];
         
         // Type patterns: primitives, or capitalized class names, or generic types
-        if (isPrimitiveType(potentialType) || 
+        if (TypeResolver.isPrimitiveType(potentialType) || 
             (Character.isUpperCase(potentialType.charAt(0)) && potentialType.matches("[A-Za-z_][A-Za-z0-9_<>\\[\\],\\s]*")) ||
             potentialType.equals("var") || potentialType.equals("let") || potentialType.equals("const")) {
             
@@ -2894,13 +2894,7 @@ public class ScriptDocument {
         
         return false;
     }
-    
-    private boolean isPrimitiveType(String type) {
-        return type.equals("int") || type.equals("long") || type.equals("short") || type.equals("byte") ||
-               type.equals("float") || type.equals("double") || type.equals("boolean") || type.equals("char") ||
-               type.equals("void");
-    }
-    
+
     /**
      * Create an AssignmentInfo for a reassignment statement and attach it to the appropriate FieldInfo.
      */
