@@ -1,8 +1,17 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import scala.annotation.meta.field;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Metadata for a field (variable) declaration or reference.
  * Tracks the field name, type, scope, and declaration location.
+ * Also tracks all assignments made to this field throughout the script.
  */
 public final class FieldInfo {
 
@@ -26,9 +35,22 @@ public final class FieldInfo {
     // For local/parameter fields, track the containing method
     private final MethodInfo containingMethod;
 
+    // Modifiers for script-defined fields
+    private final int modifiers;             // Java Modifier flags (e.g., Modifier.FINAL)
+
+    // Reflection field for external types
+    private final Field reflectionField;
+
+    // Assignments to this field (populated after parsing)
+    private final List<AssignmentInfo> assignments = new ArrayList<>();
+
+    // Declaration assignment (for initial value validation)
+    private AssignmentInfo declarationAssignment;
+
     private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
-                      int declarationOffset, boolean resolved, MethodInfo containingMethod, 
-                      String documentation, int initStart, int initEnd) {
+                      int declarationOffset, boolean resolved, MethodInfo containingMethod,
+                      String documentation, int initStart, int initEnd, int modifiers,
+                      Field reflectionField) {
         this.name = name;
         this.scope = scope;
         this.declaredType = declaredType;
@@ -38,54 +60,223 @@ public final class FieldInfo {
         this.documentation = documentation;
         this.initStart = initStart;
         this.initEnd = initEnd;
+        this.modifiers = modifiers;
+        this.reflectionField = reflectionField;
     }
 
     // Factory methods
     public static FieldInfo globalField(String name, TypeInfo type, int declOffset) {
-        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, null, -1, -1);
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, null, -1,
+                -1, 0, null);
     }
     
     public static FieldInfo globalField(String name, TypeInfo type, int declOffset, String documentation) {
-        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, documentation, -1, -1);
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null,
+                documentation, -1, -1, 0, null);
     }
     
     public static FieldInfo globalField(String name, TypeInfo type, int declOffset, String documentation, int initStart, int initEnd) {
-        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null, documentation, initStart, initEnd);
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null,
+                documentation, initStart, initEnd, 0, null);
+    }
+
+    public static FieldInfo globalField(String name, TypeInfo type, int declOffset, String documentation, int initStart,
+                                        int initEnd, int modifiers) {
+        return new FieldInfo(name, Scope.GLOBAL, type, declOffset, type != null && type.isResolved(), null,
+                documentation, initStart, initEnd, modifiers, null);
     }
 
     public static FieldInfo localField(String name, TypeInfo type, int declOffset, MethodInfo method) {
-        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null, -1, -1);
+        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null, -1,
+                -1, 0, null);
     }
     
     public static FieldInfo localField(String name, TypeInfo type, int declOffset, MethodInfo method, int initStart, int initEnd) {
-        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null, initStart, initEnd);
+        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null,
+                initStart, initEnd, 0, null);
+    }
+
+    public static FieldInfo localField(String name, TypeInfo type, int declOffset, MethodInfo method, int initStart,
+                                       int initEnd, int modifiers) {
+        return new FieldInfo(name, Scope.LOCAL, type, declOffset, type != null && type.isResolved(), method, null,
+                initStart, initEnd, modifiers, null);
     }
 
     public static FieldInfo parameter(String name, TypeInfo type, int declOffset, MethodInfo method) {
-        return new FieldInfo(name, Scope.PARAMETER, type, declOffset, type != null && type.isResolved(), method, null, -1, -1);
+        return new FieldInfo(name, Scope.PARAMETER, type, declOffset, type != null && type.isResolved(), method, null,
+                -1, -1, 0, null);
     }
 
     public static FieldInfo unresolved(String name, Scope scope) {
-        return new FieldInfo(name, scope, null, -1, false, null, null, -1, -1);
+        return new FieldInfo(name, scope, null, -1, false, null, null, -1, -1, 0, null);
     }
 
     /**
      * Create a FieldInfo from reflection data for method parameters.
      */
     public static FieldInfo reflectionParam(String name, TypeInfo type) {
-        return new FieldInfo(name, Scope.PARAMETER, type, -1, true, null, null, -1, -1);
+        return new FieldInfo(name, Scope.PARAMETER, type, -1, true, null, null, -1, -1, 0, null);
     }
 
     /**
      * Create a FieldInfo from reflection data for a class field.
      */
-    public static FieldInfo fromReflection(java.lang.reflect.Field field, TypeInfo containingType) {
+    public static FieldInfo fromReflection(Field field, TypeInfo containingType) {
         String name = field.getName();
         TypeInfo type = TypeInfo.fromClass(field.getType());
-        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1);
+        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1, field.getModifiers(), field);
     }
 
-    // Getters
+    // ==================== ASSIGNMENT MANAGEMENT ====================
+
+    /**
+     * Add an assignment to this field.
+     */
+    public void addAssignment(AssignmentInfo assignment) {
+        assignments.add(assignment);
+    }
+
+    /**
+     * Get all assignments to this field (unmodifiable).
+     */
+    public List<AssignmentInfo> getAssignments() {
+        return Collections.unmodifiableList(assignments);
+    }
+
+    /**
+     * Set the declaration assignment (initial value assignment).
+     */
+    public void setDeclarationAssignment(AssignmentInfo assignment) {
+        this.declarationAssignment = assignment;
+    }
+
+    /**
+     * Get the declaration assignment (initial value assignment).
+     * Returns null if there was no initializer or it hasn't been validated yet.
+     */
+    public AssignmentInfo getDeclarationAssignment() {
+        return declarationAssignment;
+    }
+
+    /**
+     * Find an assignment that contains the given position.
+     * Returns null if no assignment contains this position.
+     */
+    public AssignmentInfo findAssignmentAtPosition(int position) {
+        // Check declaration assignment first
+        if (declarationAssignment != null && declarationAssignment.containsPosition(position)) {
+            return declarationAssignment;
+        }
+
+        // Check other assignments
+        for (AssignmentInfo assign : assignments) {
+            if (assign.containsPosition(position)) {
+                return assign;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Get all errored assignments for this field.
+     */
+    public List<AssignmentInfo> getErroredAssignments() {
+        List<AssignmentInfo> errored = new ArrayList<>();
+
+        // Include declaration assignment if it has an error
+        if (declarationAssignment != null && declarationAssignment.hasError()) {
+            errored.add(declarationAssignment);
+        }
+
+        // Include all other assignments with errors
+        for (AssignmentInfo assign : assignments) {
+            if (assign.hasError()) {
+                errored.add(assign);
+            }
+        }
+        return errored;
+    }
+
+    /**
+     * Clear all assignments (for re-parsing).
+     */
+    public void clearAssignments() {
+        assignments.clear();
+        declarationAssignment = null;
+    }
+
+    // ==================== MODIFIER CHECKS ====================
+
+    /**
+     * Check if this field is declared as final.
+     * Works for both script-defined fields (via modifiers) and reflection fields.
+     */
+    public boolean isFinal() {
+        if (reflectionField != null)
+            return Modifier.isFinal(reflectionField.getModifiers());
+
+        return Modifier.isFinal(modifiers);
+    }
+
+    /**
+     * Check if this field is declared as static.
+     */
+    public boolean isStatic() {
+        if (reflectionField != null)
+            return Modifier.isStatic(reflectionField.getModifiers());
+
+        return Modifier.isStatic(modifiers);
+    }
+
+    /**
+     * Check if this field is declared as private.
+     */
+    public boolean isPrivate() {
+        if (reflectionField != null)
+            return Modifier.isPrivate(reflectionField.getModifiers());
+
+        return Modifier.isPrivate(modifiers);
+    }
+
+    /**
+     * Check if this field is declared as protected.
+     */
+    public boolean isProtected() {
+        if (reflectionField != null)
+            return Modifier.isProtected(reflectionField.getModifiers());
+
+        return Modifier.isProtected(modifiers);
+    }
+
+    /**
+     * Check if this field is declared as public.
+     */
+    public boolean isPublic() {
+        if (reflectionField != null)
+            return Modifier.isPublic(reflectionField.getModifiers());
+
+        return Modifier.isPublic(modifiers);
+    }
+
+    /**
+     * Get the raw modifiers value.
+     */
+    public int getModifiers() {
+        if (reflectionField != null)
+            return reflectionField.getModifiers();
+
+        return modifiers;
+    }
+
+    /**
+     * Get the reflection field, if available.
+     */
+    public java.lang.reflect.Field getReflectionField() {
+        return reflectionField;
+    }
+
+    // ==================== BASIC GETTERS ====================
+    
     public String getName() { return name; }
     public Scope getScope() { return scope; }
     public TypeInfo getDeclaredType() { return declaredType; }
@@ -135,7 +326,7 @@ public final class FieldInfo {
 
     @Override
     public String toString() {
-        return "FieldInfo{" + name + ", " + scope + ", type=" + declaredType + "}";
+        return "FieldInfo{" + name + ", " + scope + ", type=" + declaredType + ", final=" + isFinal() + "}";
     }
 
     @Override

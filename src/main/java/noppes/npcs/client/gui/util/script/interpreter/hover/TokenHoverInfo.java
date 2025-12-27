@@ -196,11 +196,50 @@ public class TokenHoverInfo {
             errors.add(fieldAccessInfo.getErrorMessage());
         }
         
+        // Show assignment errors (type mismatch, final reassignment, etc.)
+        // Search through FieldInfo's assignments by position
+        AssignmentInfo assignmentInfo = findAssignmentContainingPosition(token);
+        if (assignmentInfo != null && assignmentInfo.hasError()) {
+            errors.add(assignmentInfo.getErrorMessage());
+        }
+        
         // Show unresolved field errors
         FieldInfo fieldInfo = token.getFieldInfo();
         if (fieldInfo != null && !fieldInfo.isResolved()) {
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
         }
+    }
+    
+    /**
+     * Find an assignment that contains this token's position.
+     * Searches through all FieldInfo's assignments in the document.
+     */
+    private AssignmentInfo findAssignmentContainingPosition(Token token) {
+        ScriptLine line = token.getParentLine();
+        if (line == null || line.getParent() == null) {
+            return null;
+        }
+        
+        ScriptDocument doc = line.getParent();
+        int tokenStart = token.getGlobalStart();
+        
+        // Search global fields
+        for (FieldInfo field : doc.getGlobalFields().values()) {
+            AssignmentInfo assign = field.findAssignmentAtPosition(tokenStart);
+            if (assign != null) {
+                return assign;
+            }
+        }
+        
+        // Search method locals (need access to method locals map)
+        // For now, use the getAllErroredAssignments approach and filter by position
+        for (AssignmentInfo assign : doc.getAllErroredAssignments()) {
+            if (assign.containsPosition(tokenStart)) {
+                return assign;
+            }
+        }
+        
+        return null;
     }
     
     /**

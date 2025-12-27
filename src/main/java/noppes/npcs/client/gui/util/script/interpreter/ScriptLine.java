@@ -164,7 +164,7 @@ public class ScriptLine {
                         token.setMethodCallInfo((MethodCallInfo) mark.metadata);
                     } else if (mark.metadata instanceof ImportData) {
                         token.setImportData((ImportData) mark.metadata);
-                    }else if (mark.metadata instanceof FieldAccessInfo) {
+                    } else if (mark.metadata instanceof FieldAccessInfo) {
                         token.setFieldAccessInfo((FieldAccessInfo) mark.metadata);
                     }
                 }
@@ -379,6 +379,67 @@ public class ScriptLine {
                         drawCurlyUnderline(lineStartX + beforeWidth, baselineY, fieldWidth, 0xFF5555);
                     }
                 }
+            }
+        }
+        
+        // Check all errored assignments in the document (stored in FieldInfo objects)
+        for (AssignmentInfo assign : doc.getAllErroredAssignments()) {
+            // Determine what to underline based on error type
+            // LHS errors (final reassignment, access errors) underline the LHS
+            // RHS errors (type mismatch) underline the RHS
+            
+            int underlineStart, underlineEnd;
+            String underlineText;
+            
+            if (assign.isLhsError()) {
+                // Underline the LHS (target variable)
+                underlineStart = assign.getLhsStart();
+                underlineEnd = assign.getLhsEnd();
+                underlineText = assign.getTargetName();
+            } else if (assign.isRhsError()) {
+                // Underline the RHS (source expression)
+                underlineStart = assign.getRhsStart();
+                underlineEnd = assign.getRhsEnd();
+                underlineText = assign.getSourceExpr();
+            } else {
+                // Skip assignments with no displayable error
+                continue;
+            }
+            
+            // Skip if this doesn't intersect this line
+            if (underlineEnd < lineStart || underlineStart > lineEnd)
+                continue;
+            
+            // Clip to line boundaries
+            int clipStart = Math.max(underlineStart, lineStart);
+            int clipEnd = Math.min(underlineEnd, lineEnd);
+            
+            if (clipStart >= clipEnd)
+                continue;
+            
+            // Convert to line-local coordinates
+            int lineLocalStart = clipStart - lineStart;
+            int lineLocalEnd = clipEnd - lineStart;
+            
+            // Bounds check
+            if (lineLocalStart < 0 || lineLocalStart >= lineText.length())
+                continue;
+            
+            // Compute pixel position
+            String beforeUnderline = lineText.substring(0, lineLocalStart);
+            int beforeWidth = ClientProxy.Font.width(beforeUnderline);
+            
+            int underlineWidth;
+            if (lineLocalEnd > lineText.length()) {
+                // Extends past line end
+                underlineWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+            } else {
+                String underlineOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
+                underlineWidth = ClientProxy.Font.width(underlineOnLine);
+            }
+            
+            if (underlineWidth > 0) {
+                drawCurlyUnderline(lineStartX + beforeWidth, baselineY, underlineWidth, 0xFF5555);
             }
         }
     }

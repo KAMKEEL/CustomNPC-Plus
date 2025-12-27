@@ -317,6 +317,9 @@ public class ScriptDocument {
 
         // Parse global fields (outside methods)
         parseGlobalFields();
+        
+        // Parse and validate assignments (reassignments) - stores in FieldInfo
+        parseAssignments();
     }
 
     /**
@@ -2766,6 +2769,304 @@ public class ScriptDocument {
         }
 
     }
+    
+    /**
+     * Parse assignment statements (reassignments, not declarations) and validate type compatibility.
+     * This detects patterns like: varName = expr; or obj.field = expr;
+     * Assignments are stored in the corresponding FieldInfo, not as marks.
+     */
+    private void parseAssignments() {
+        // First clear any existing assignments in all FieldInfo objects
+        for (FieldInfo field : globalFields.values()) {
+            field.clearAssignments();
+        }
+        for (Map<String, FieldInfo> locals : methodLocals.values()) {
+            for (FieldInfo field : locals.values()) {
+                field.clearAssignments();
+            }
+        }
+        
+        // Pattern to find assignments: identifier = expression;
+        // But NOT declarations (Type varName = expr) or compound assignments (+=, -=, etc.)
+        // We need to find '=' that is:
+        // 1. Not preceded by another operator (!, <, >, =)
+        // 2. Not followed by '='
+        // 3. The LHS must be a valid l-value (variable or field access)
+        
+        int pos = 0;
+        while (pos < text.length()) {
+            // Find the next '=' character
+            int equalsPos = text.indexOf('=', pos);
+            if (equalsPos < 0) break;
+            
+            // Skip if in excluded region (string/comment)
+            if (isExcluded(equalsPos)) {
+                pos = equalsPos + 1;
+                continue;
+            }
+            
+            // Check it's not part of ==, !=, <=, >=, +=, -=, *=, /=, %=, &=, |=, ^=
+            if (equalsPos > 0 && "!<>=+-*/%&|^".indexOf(text.charAt(equalsPos - 1)) >= 0) {
+                pos = equalsPos + 1;
+                continue;
+            }
+            if (equalsPos < text.length() - 1 && text.charAt(equalsPos + 1) == '=') {
+                pos = equalsPos + 2;
+                continue;
+            }
+            
+            // Find the start of this statement (previous ; or { or } or start of text)
+            int stmtStart = equalsPos - 1;
+            while (stmtStart >= 0) {
+                char c = text.charAt(stmtStart);
+                if (c == ';' || c == '{' || c == '}') {
+                    stmtStart++;
+                    break;
+                }
+                stmtStart--;
+            }
+            if (stmtStart < 0) stmtStart = 0;
+            
+            // Find the end of this statement (next ;)
+            int stmtEnd = text.indexOf(';', equalsPos);
+            if (stmtEnd < 0) stmtEnd = text.length();
+            
+            // Extract LHS (before =) and RHS (after =)
+            String lhsRaw = text.substring(stmtStart, equalsPos).trim();
+            String rhsRaw = text.substring(equalsPos + 1, stmtEnd).trim();
+            
+            // Skip empty assignments
+            if (lhsRaw.isEmpty() || rhsRaw.isEmpty()) {
+                pos = equalsPos + 1;
+                continue;
+            }
+            
+            // Check if this is a declaration (has type before variable name)
+            // Declarations have: Type varName = expr
+            // Reassignments have: varName = expr or obj.field = expr
+            boolean isDeclaration = isVariableDeclaration(lhsRaw);
+            
+            if (isDeclaration) {
+                // This is a declaration with initializer - validate the initial value
+                createAndAttachDeclarationAssignment(lhsRaw, rhsRaw, stmtStart, equalsPos, stmtEnd);
+            } else {
+                // This is a reassignment - create AssignmentInfo and attach to FieldInfo
+                createAndAttachAssignment(lhsRaw, rhsRaw, stmtStart, equalsPos, stmtEnd);
+            }
+            
+            pos = stmtEnd + 1;
+        }
+    }
+    
+    /**
+     * Check if the LHS represents a variable declaration (has a type before the variable name).
+     */
+    private boolean isVariableDeclaration(String lhs) {
+        // Split by whitespace
+        String[] parts = lhs.trim().split("\\s+");
+        
+        // Single word = reassignment (e.g., "x")
+        if (parts.length == 1) {
+            // Could also be a.b = expr (field access)
+            return false;
+        }
+        
+        // Check if it matches pattern: [modifiers] Type varName
+        // Last part is the variable name, second-to-last should be a type
+        String potentialType = parts[parts.length - 2];
+        String potentialVar = parts[parts.length - 1];
+        
+        // Type patterns: primitives, or capitalized class names, or generic types
+        if (isPrimitiveType(potentialType) || 
+            (Character.isUpperCase(potentialType.charAt(0)) && potentialType.matches("[A-Za-z_][A-Za-z0-9_<>\\[\\],\\s]*")) ||
+            potentialType.equals("var") || potentialType.equals("let") || potentialType.equals("const")) {
+            
+            // Make sure the variable name is a valid identifier (not a field access chain)
+            if (potentialVar.matches("[a-zA-Z_][a-zA-Z0-9_]*") && !potentialVar.contains(".")) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean isPrimitiveType(String type) {
+        return type.equals("int") || type.equals("long") || type.equals("short") || type.equals("byte") ||
+               type.equals("float") || type.equals("double") || type.equals("boolean") || type.equals("char") ||
+               type.equals("void");
+    }
+    
+    /**
+     * Create an AssignmentInfo for a reassignment statement and attach it to the appropriate FieldInfo.
+     */
+    private void createAndAttachAssignment(String lhs, String rhs, int stmtStart, int equalsPos, int stmtEnd) {
+        lhs = lhs.trim();
+        rhs = rhs.trim();
+        
+        // Parse the target (LHS)
+        // Could be: varName or obj.field or this.field or array[index]
+        String targetName = lhs;
+        FieldInfo targetField = null;
+        TypeInfo targetType = null;
+        TypeInfo receiverType = null;
+        java.lang.reflect.Field reflectionField = null;
+        
+        // Find the position where the LHS starts in the actual text (skip leading whitespace)
+        int lhsStart = stmtStart;
+        while (lhsStart < equalsPos && Character.isWhitespace(text.charAt(lhsStart))) {
+            lhsStart++;
+        }
+        
+        // Calculate the actual LHS end (before '=' minus trailing whitespace)
+        int lhsEnd = equalsPos;
+        while (lhsEnd > lhsStart && Character.isWhitespace(text.charAt(lhsEnd - 1))) {
+            lhsEnd--;
+        }
+        
+        // Calculate RHS start (first non-whitespace after '=')
+        int rhsStart = equalsPos + 1;
+        while (rhsStart < stmtEnd && Character.isWhitespace(text.charAt(rhsStart))) {
+            rhsStart++;
+        }
+        
+        // RHS end is at the semicolon position (inclusive for error underline)
+        int rhsEnd = stmtEnd;
+        
+        // Handle chained field access (obj.field)
+        if (lhs.contains(".")) {
+            // Split into segments
+            String[] segments = lhs.split("\\.");
+            targetName = segments[segments.length - 1].trim();
+            
+            // Resolve the chain to get the target type
+            String receiverExpr = lhs.substring(0, lhs.lastIndexOf('.')).trim();
+            receiverType = resolveExpressionType(receiverExpr, lhsStart);
+            
+            if (receiverType != null && receiverType.isResolved()) {
+                // Get the field from the receiver type
+                if (receiverType.hasField(targetName)) {
+                    targetField = receiverType.getFieldInfo(targetName);
+                    targetType = targetField.getTypeInfo();
+                    reflectionField = targetField.getReflectionField();
+                }
+            }
+        } else {
+            // Simple variable
+            targetField = resolveVariable(targetName, lhsStart);
+            if (targetField != null) {
+                targetType = targetField.getDeclaredType();
+                reflectionField = targetField.getReflectionField();
+            }
+        }
+        
+        // If we couldn't resolve the target field, we can't attach the assignment
+        if (targetField == null) {
+            return;
+        }
+        
+        // Resolve the source type (RHS)
+        TypeInfo sourceType = resolveExpressionType(rhs, equalsPos + 1);
+        
+        // Create the assignment info using the new constructor
+        AssignmentInfo info = new AssignmentInfo(
+            targetName,
+            lhsStart,
+            lhsEnd,
+            targetType,
+            rhsStart,
+            rhsEnd,
+            sourceType,
+            rhs,
+            receiverType,
+            reflectionField,
+            targetField.isFinal()
+        );
+        
+        // Validate the assignment
+        info.validate();
+        
+        // Attach to the FieldInfo
+        targetField.addAssignment(info);
+    }
+    
+    /**
+     * Create an AssignmentInfo for a declaration with initializer and attach it to the appropriate FieldInfo.
+     * Example: String str = 20; or final int x = "test";
+     */
+    private void createAndAttachDeclarationAssignment(String lhs, String rhs, int stmtStart, int equalsPos, int stmtEnd) {
+        lhs = lhs.trim();
+        rhs = rhs.trim();
+        
+        // Parse the declaration: [modifiers] Type varName
+        String[] parts = lhs.split("\\s+");
+        if (parts.length < 2) {
+            return; // Invalid declaration format
+        }
+        
+        // Last part is the variable name
+        String varName = parts[parts.length - 1].trim();
+        
+        // Find the actual position of the variable name in the text
+        int varNameStart = stmtStart;
+        int searchStart = stmtStart;
+        while (searchStart < equalsPos) {
+            int found = text.indexOf(varName, searchStart);
+            if (found >= 0 && found < equalsPos) {
+                // Verify it's the actual variable name (not part of type name)
+                // Check that it's either at start or preceded by whitespace
+                if (found == stmtStart || Character.isWhitespace(text.charAt(found - 1))) {
+                    // Check that it's followed by whitespace or '='
+                    int afterVar = found + varName.length();
+                    if (afterVar >= text.length() || Character.isWhitespace(text.charAt(afterVar)) || text.charAt(afterVar) == '=') {
+                        varNameStart = found;
+                        break;
+                    }
+                }
+                searchStart = found + 1;
+            } else {
+                break;
+            }
+        }
+        
+        int varNameEnd = varNameStart + varName.length();
+        
+        // Calculate RHS positions
+        int rhsStart = equalsPos + 1;
+        while (rhsStart < stmtEnd && Character.isWhitespace(text.charAt(rhsStart))) {
+            rhsStart++;
+        }
+        int rhsEnd = stmtEnd;
+        
+        // Resolve the target field (should already exist from parseGlobalFields or parseLocalVariables)
+        FieldInfo targetField = resolveVariable(varName, varNameStart);
+        if (targetField == null) {
+            return; // Field doesn't exist, can't attach assignment
+        }
+        
+        TypeInfo targetType = targetField.getDeclaredType();
+        TypeInfo sourceType = resolveExpressionType(rhs, rhsStart);
+        
+        // Create the assignment info
+        AssignmentInfo info = new AssignmentInfo(
+            varName,
+            varNameStart,
+            varNameEnd,
+            targetType,
+            rhsStart,
+            rhsEnd,
+            sourceType,
+            rhs,
+            null, // No receiver for simple declarations
+            targetField.getReflectionField(),
+            targetField.isFinal()
+        );
+        
+        // Validate the assignment
+        info.validate();
+        
+        // Attach as the declaration assignment
+        targetField.setDeclarationAssignment(info);
+    }
 
     private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
         // Find uppercase identifiers followed by dot (static method calls, field access)
@@ -3070,6 +3371,28 @@ public class ScriptDocument {
 
     public Map<String, FieldInfo> getGlobalFields() {
         return Collections.unmodifiableMap(globalFields);
+    }
+    
+    /**
+     * Get all errored assignments across all fields (global and local).
+     * Used by ScriptLine to draw error underlines.
+     */
+    public List<AssignmentInfo> getAllErroredAssignments() {
+        List<AssignmentInfo> errored = new ArrayList<>();
+        
+        // Check global fields
+        for (FieldInfo field : globalFields.values()) {
+            errored.addAll(field.getErroredAssignments());
+        }
+        
+        // Check method locals
+        for (Map<String, FieldInfo> locals : methodLocals.values()) {
+            for (FieldInfo field : locals.values()) {
+                errored.addAll(field.getErroredAssignments());
+            }
+        }
+        
+        return errored;
     }
 
     public TypeResolver getTypeResolver() {
