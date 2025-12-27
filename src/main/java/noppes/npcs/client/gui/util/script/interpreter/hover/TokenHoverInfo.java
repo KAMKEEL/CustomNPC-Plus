@@ -879,7 +879,7 @@ public class TokenHoverInfo {
     public String getIconIndicator() { return iconIndicator; }
 
     public List<TextSegment> getDeclaration() {
-        if (getErrors().stream().anyMatch(err -> err.contains("Cannot resolve")))
+        if (getErrors().stream().anyMatch(err -> err.contains("Cannot resolve symbol")))
             return new ArrayList<>();
         return declaration;
     }
