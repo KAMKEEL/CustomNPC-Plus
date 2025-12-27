@@ -238,7 +238,7 @@ public class AssignmentInfo {
      * Check if the given global position falls within the LHS (target) of this assignment.
      */
     public boolean containsLhsPosition(int position) {
-        return position >= lhsStart && position < lhsEnd;
+        return position >= statementStart && position < lhsEnd;
     }
 
     /**
@@ -252,7 +252,7 @@ public class AssignmentInfo {
      * Check if the given global position falls anywhere in this assignment (LHS or RHS).
      */
     public boolean containsPosition(int position) {
-        return position >= lhsStart && position <= rhsEnd;
+        return position >= statementStart && position <= rhsEnd;
     }
 
     // ==================== ERROR TYPE CHECKS ====================

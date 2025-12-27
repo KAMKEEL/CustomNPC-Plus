@@ -127,16 +127,13 @@ public class TokenHoverInfo {
                 break;
                 
             case LITERAL:
-                if (info.hasErrors()) 
-                    return info;
-                return null;
             case KEYWORD:
             case MODIFIER:
             case STRING:
             case COMMENT:
-                // These don't need hover info typically
+                if (info.hasErrors())
+                    return info;
                 return null;
-                
             default:
                 // For other types, try to extract any available metadata
                 if (token.getTypeInfo() != null) {
