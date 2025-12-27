@@ -21,11 +21,12 @@ public final class MethodInfo {
     private final boolean resolved;
     private final boolean isDeclaration;      // true if this is a declaration, false if it's a call
     private final boolean isStatic;           // true if this is a static method
+    private final String documentation;       // Javadoc/comment documentation for this method
 
     private MethodInfo(String name, TypeInfo returnType, TypeInfo containingType,
                        List<FieldInfo> parameters, int declarationOffset,
                        int bodyStart, int bodyEnd, boolean resolved, boolean isDeclaration,
-                       boolean isStatic) {
+                       boolean isStatic, String documentation) {
         this.name = name;
         this.returnType = returnType;
         this.containingType = containingType;
@@ -36,17 +37,23 @@ public final class MethodInfo {
         this.resolved = resolved;
         this.isDeclaration = isDeclaration;
         this.isStatic = isStatic;
+        this.documentation = documentation;
     }
 
     // Factory methods
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int declOffset, int bodyStart, int bodyEnd) {
-        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, false);
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, false, null);
     }
     
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int declOffset, int bodyStart, int bodyEnd, boolean isStatic) {
-        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, isStatic);
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, isStatic, null);
+    }
+    
+    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
+                                         int declOffset, int bodyStart, int bodyEnd, boolean isStatic, String documentation) {
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, isStatic, documentation);
     }
 
     public static MethodInfo call(String name, TypeInfo containingType, int paramCount) {
@@ -56,7 +63,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, containingType, params, -1, -1, -1, resolved, false, false);
+        return new MethodInfo(name, null, containingType, params, -1, -1, -1, resolved, false, false, null);
     }
 
     public static MethodInfo unresolvedCall(String name, int paramCount) {
@@ -64,7 +71,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, null, params, -1, -1, -1, false, false, false);
+        return new MethodInfo(name, null, null, params, -1, -1, -1, false, false, false, null);
     }
 
     /**
@@ -83,7 +90,7 @@ public final class MethodInfo {
             params.add(FieldInfo.reflectionParam("arg" + i, paramType));
         }
         
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false, isStatic);
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false, isStatic, null);
     }
 
     // Getters
@@ -99,6 +106,7 @@ public final class MethodInfo {
     public boolean isDeclaration() { return isDeclaration; }
     public boolean isCall() { return !isDeclaration; }
     public boolean isStatic() { return isStatic; }
+    public String getDocumentation() { return documentation; }
 
     /**
      * Check if a position is inside this method's body.

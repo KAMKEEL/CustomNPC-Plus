@@ -411,6 +411,13 @@ public class TokenHoverInfo {
 
         iconIndicator = "f";
 
+        // Add documentation if available
+        if (fieldInfo.getDocumentation() != null && !fieldInfo.getDocumentation().isEmpty()) {
+            String[] docLines = fieldInfo.getDocumentation().split("\n");
+            for (String line : docLines) {
+                documentation.add(line);
+            }
+        }
 
         TypeInfo declaredType = fieldInfo.getDeclaredType();
 
@@ -465,6 +472,14 @@ public class TokenHoverInfo {
         
         iconIndicator = "v";
         
+        // Add documentation if available (though local vars rarely have docs)
+        if (fieldInfo.getDocumentation() != null && !fieldInfo.getDocumentation().isEmpty()) {
+            String[] docLines = fieldInfo.getDocumentation().split("\n");
+            for (String line : docLines) {
+                documentation.add(line);
+            }
+        }
+        
         TypeInfo declaredType = fieldInfo.getDeclaredType();
         if (declaredType != null) {
             int typeColor = getColorForTypeInfo(declaredType);
@@ -483,6 +498,14 @@ public class TokenHoverInfo {
         if (fieldInfo == null) return;
         
         iconIndicator = "p";
+        
+        // Add documentation if available (args/parameters might have docs from method javadoc)
+        if (fieldInfo.getDocumentation() != null && !fieldInfo.getDocumentation().isEmpty()) {
+            String[] docLines = fieldInfo.getDocumentation().split("\n");
+            for (String line : docLines) {
+                documentation.add(line);
+            }
+        }
         
         TypeInfo declaredType = fieldInfo.getDeclaredType();
         if (declaredType != null) {
@@ -621,8 +644,17 @@ public class TokenHoverInfo {
             addSegment(param.getName(), TokenType.PARAMETER.getHexColor());
         }
         addSegment(")", TokenType.DEFAULT.getHexColor());
-    }
 
+        // Add documentation if available
+        if (methodInfo.getDocumentation() != null && !methodInfo.getDocumentation().isEmpty()) {
+            String[] docLines = methodInfo.getDocumentation().split("\n");
+            for (String line : docLines) {
+                documentation.add(line);
+            }
+        }
+
+    }
+    
     private void extractJavadoc(Method method) {
         // Java reflection doesn't provide Javadoc at runtime
         // We could potentially load it from source files or external documentation

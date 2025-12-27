@@ -393,8 +393,11 @@ public class ScriptDocument {
                 continue;
             }
             
+            // Extract documentation before this field
+            String documentation = extractDocumentationBefore(absPos);
+            
             TypeInfo fieldType = resolveType(typeName);
-            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos);
+            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos, documentation);
             scriptType.addField(fieldInfo);
         }
         
@@ -420,12 +423,15 @@ public class ScriptDocument {
             int methodBodyEnd = findMatchingBrace(methodBodyStart);
             if (methodBodyEnd < 0) methodBodyEnd = bodyEnd;
             
+            // Extract documentation before this method
+            String documentation = extractDocumentationBefore(absPos);
+            
             TypeInfo returnType = resolveType(returnTypeName);
             List<FieldInfo> params = parseParametersWithPositions(paramList, 
                     bodyStart + 1 + mm.start(3));
             
             MethodInfo methodInfo = MethodInfo.declaration(
-                    methodName, returnType, params, absPos, methodBodyStart, methodBodyEnd);
+                    methodName, returnType, params, absPos, methodBodyStart, methodBodyEnd, false, documentation);
             scriptType.addMethod(methodInfo);
         }
     }
@@ -472,6 +478,9 @@ public class ScriptDocument {
             if (bodyEnd < 0)
                 bodyEnd = text.length();
 
+            // Extract documentation before this method
+            String documentation = extractDocumentationBefore(m.start());
+
             // Parse parameters with their actual positions
             List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
 
@@ -481,7 +490,9 @@ public class ScriptDocument {
                     params,
                     m.start(),
                     bodyStart,
-                    bodyEnd
+                    bodyEnd,
+                    false,
+                    documentation
             );
             methods.add(methodInfo);
         }
@@ -781,8 +792,11 @@ public class ScriptDocument {
             }
 
             if (!insideMethod) {
+                // Extract documentation before this field
+                String documentation = extractDocumentationBefore(m.start());
+                
                 TypeInfo typeInfo = resolveType(typeName);
-                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position);
+                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation);
                 globalFields.put(fieldName, fieldInfo);
             }
         }
@@ -807,7 +821,131 @@ public class ScriptDocument {
         return result.toString();
     }
 
-
+    /**
+     * Extract documentation comment immediately preceding a position.
+     * Supports both single-line (//) and multi-line (/* *\/) comment styles.
+     * Returns null if no documentation is found.
+     * 
+     * @param position The position of the declaration (e.g., start of method/field)
+     * @return The documentation text, or null if none found
+     */
+    private String extractDocumentationBefore(int position) {
+        if (position <= 0) return null;
+        
+        // First, skip backwards to get off the current declaration line
+        // (declarations might have modifiers like 'public' before the matched position)
+        int searchStart = position - 1;
+        
+        // Skip backwards to the previous newline
+        while (searchStart >= 0 && text.charAt(searchStart) != '\n') {
+            searchStart--;
+        }
+        
+        if (searchStart < 0) return null;
+        
+        // Now we're at a newline before the declaration line
+        // Skip backwards through any additional whitespace
+        searchStart--;
+        while (searchStart >= 0 && Character.isWhitespace(text.charAt(searchStart))) {
+            searchStart--;
+        }
+        
+        if (searchStart < 0) return null;
+        
+        // Now searchStart should be at the last non-whitespace character before the declaration line
+        
+        // Check if we're at the end of a comment
+        // Case 1: Multi-line comment ending with */
+        if (searchStart > 0 && text.charAt(searchStart) == '/' && text.charAt(searchStart - 1) == '*') {
+            // Find the start of this comment
+            int commentEnd = searchStart + 1;
+            int commentStart = text.lastIndexOf("/*", searchStart - 1);
+            if (commentStart >= 0) {
+                String comment = text.substring(commentStart, commentEnd);
+                return cleanDocumentation(comment);
+            }
+        }
+        
+        // Case 2: Single-line comments (may be multiple consecutive lines)
+        StringBuilder doc = new StringBuilder();
+        int currentPos = searchStart;
+        
+        // Walk backward through consecutive comment lines
+        while (currentPos >= 0) {
+            // Find start of current line
+            int lineStart = currentPos;
+            while (lineStart > 0 && text.charAt(lineStart - 1) != '\n') {
+                lineStart--;
+            }
+            
+            // Find end of current line
+            int lineEnd = currentPos;
+            while (lineEnd < text.length() && text.charAt(lineEnd) != '\n') {
+                lineEnd++;
+            }
+            
+            // Extract the line and trim
+            String line = text.substring(lineStart, lineEnd).trim();
+            
+            // Check if this line is a comment
+            if (line.startsWith("//") || line.startsWith("#")) {
+                // Prepend to doc (we're going backwards)
+                String commentText = line.substring(2).trim();
+                if (doc.length() > 0) {
+                    doc.insert(0, "\n");
+                }
+                doc.insert(0, commentText);
+                
+                // Move to previous line
+                if (lineStart > 0) {
+                    currentPos = lineStart - 1;
+                    // Skip to previous line (skip the newline)
+                    while (currentPos >= 0 && text.charAt(currentPos) == '\n') {
+                        currentPos--;
+                    }
+                } else {
+                    break;
+                }
+            } else {
+                // Not a comment line, stop
+                break;
+            }
+        }
+        
+        if (doc.length() > 0) {
+            return doc.toString();
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Clean up documentation comment text by removing comment markers and extra formatting.
+     */
+    private String cleanDocumentation(String comment) {
+        if (comment == null || comment.isEmpty()) return null;
+        
+        // Remove /* and */ markers
+        comment = comment.replaceAll("^/\\*+\\s*", "").replaceAll("\\s*\\*+/$", "");
+        
+        // Split into lines and clean each one
+        String[] lines = comment.split("\n");
+        StringBuilder cleaned = new StringBuilder();
+        
+        for (String line : lines) {
+            // Remove leading asterisks and whitespace
+            line = line.trim().replaceAll("^\\*+\\s*", "");
+            if (cleaned.length() > 0 && !line.isEmpty()) {
+                cleaned.append("\n");
+            }
+            if (!line.isEmpty()) {
+                cleaned.append(line);
+            }
+        }
+        
+        String result = cleaned.toString().trim();
+        return result.isEmpty() ? null : result;
+    }
 
     private TypeInfo resolveType(String typeName) {
         return resolveTypeAndTrackUsage(typeName);
