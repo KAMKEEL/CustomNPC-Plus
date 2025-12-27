@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 
 import java.util.*;
@@ -385,8 +386,12 @@ public class ScriptDocument {
             int absPos = bodyStart + 1 + fm.start();
             if (isExcluded(absPos)) continue;
             
-            String typeName = fm.group(1).trim();
+            String typeNameRaw = fm.group(1).trim();
             String fieldName = fm.group(2);
+            
+            // Parse modifiers and strip them
+            int modifiers = parseModifiers(typeNameRaw);
+            String typeName = stripModifiers(typeNameRaw);
             
             // Skip if this looks like a method declaration
             if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
@@ -404,7 +409,7 @@ public class ScriptDocument {
             String documentation = extractDocumentationBefore(absPos);
             
             TypeInfo fieldType = resolveType(typeName);
-            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos, documentation);
+            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos, documentation, -1, -1, modifiers);
             scriptType.addField(fieldInfo);
         }
         
@@ -433,12 +438,15 @@ public class ScriptDocument {
             // Extract documentation before this method
             String documentation = extractDocumentationBefore(absPos);
             
+            // Extract modifiers by scanning backwards in bodyText from match start
+            int modifiers = extractModifiersBackwards(mm.start() - 1, bodyText);
+            
             TypeInfo returnType = resolveType(returnTypeName);
             List<FieldInfo> params = parseParametersWithPositions(paramList, 
                     bodyStart + 1 + mm.start(3));
             
             MethodInfo methodInfo = MethodInfo.declaration(
-                    methodName, returnType, params, absPos, methodBodyStart, methodBodyEnd, false, documentation);
+                    methodName, returnType, params, absPos, methodBodyStart, methodBodyEnd, modifiers, documentation);
             scriptType.addMethod(methodInfo);
         }
     }
@@ -488,6 +496,9 @@ public class ScriptDocument {
             // Extract documentation before this method
             String documentation = extractDocumentationBefore(m.start());
 
+            // Extract modifiers by scanning backwards from match start
+            int modifiers = extractModifiersBackwards(m.start() - 1, text);
+
             // Parse parameters with their actual positions
             List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
 
@@ -498,7 +509,7 @@ public class ScriptDocument {
                     m.start(),
                     bodyStart,
                     bodyEnd,
-                    false,
+                    modifiers,
                     documentation
             );
             methods.add(methodInfo);
@@ -578,6 +589,9 @@ public class ScriptDocument {
                     continue;
                 }
 
+                // Parse modifiers from the raw type declaration
+                int modifiers = parseModifiers(typeName);
+
                 TypeInfo typeInfo;
                 
                 // For var/let/const, infer type from the right-hand side expression
@@ -611,7 +625,7 @@ public class ScriptDocument {
                 }
                 
                 int declPos = bodyStart + m.start(2);
-                FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd);
+                FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd, modifiers);
                 locals.put(varName, fieldInfo);
             }
         }
@@ -810,6 +824,9 @@ public class ScriptDocument {
             if (isExcluded(position))
                 continue;
 
+            // Parse modifiers from the raw type declaration
+            int modifiers = parseModifiers(typeNameRaw);
+
             // Strip modifiers (public, private, protected, static, final, etc.) from type name
             String typeName = stripModifiers(typeNameRaw);
 
@@ -847,7 +864,7 @@ public class ScriptDocument {
                 }
                 
                 TypeInfo typeInfo = resolveType(typeName);
-                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd);
+                FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd, modifiers);
                 globalFields.put(fieldName, fieldInfo);
             }
         }
@@ -870,6 +887,81 @@ public class ScriptDocument {
             }
         }
         return result.toString();
+    }
+
+    /**
+     * Parse modifiers from a declaration string and return the corresponding Modifier flags.
+     * e.g., "public static final" -> Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL
+     */
+    private int parseModifiers(String declaration) {
+        if (declaration == null) return 0;
+        
+        int modifiers = 0;
+        String[] parts = declaration.trim().split("\\s+");
+        for (String part : parts) {
+            if (part.equals("public")) modifiers |= java.lang.reflect.Modifier.PUBLIC;
+            else if (part.equals("private")) modifiers |= java.lang.reflect.Modifier.PRIVATE;
+            else if (part.equals("protected")) modifiers |= java.lang.reflect.Modifier.PROTECTED;
+            else if (part.equals("static")) modifiers |= java.lang.reflect.Modifier.STATIC;
+            else if (part.equals("final")) modifiers |= java.lang.reflect.Modifier.FINAL;
+            else if (part.equals("abstract")) modifiers |= java.lang.reflect.Modifier.ABSTRACT;
+            else if (part.equals("synchronized")) modifiers |= java.lang.reflect.Modifier.SYNCHRONIZED;
+            else if (part.equals("volatile")) modifiers |= java.lang.reflect.Modifier.VOLATILE;
+            else if (part.equals("transient")) modifiers |= java.lang.reflect.Modifier.TRANSIENT;
+            else if (part.equals("native")) modifiers |= java.lang.reflect.Modifier.NATIVE;
+            else if (part.equals("strictfp")) modifiers |= java.lang.reflect.Modifier.STRICT;
+        }
+        return modifiers;
+    }
+
+    /**
+     * Scan backwards from scanStart position in the given text to extract modifier keywords.
+     * Returns the parsed modifier flags.
+     * 
+     * @param scanStart The position to start scanning backwards from (exclusive)
+     * @param sourceText The text to scan in
+     * @return The combined modifier flags
+     */
+    private int extractModifiersBackwards(int scanStart, String sourceText) {
+        // Skip whitespace
+        while (scanStart >= 0 && Character.isWhitespace(sourceText.charAt(scanStart))) {
+            scanStart--;
+        }
+        
+        // Scan backwards collecting modifier words
+        StringBuilder modifiersText = new StringBuilder();
+        while (scanStart >= 0) {
+            // Skip whitespace
+            while (scanStart >= 0 && Character.isWhitespace(sourceText.charAt(scanStart))) {
+                scanStart--;
+            }
+            if (scanStart < 0) break;
+            
+            // Read a word backwards
+            int wordEnd = scanStart + 1;
+            while (scanStart >= 0 && Character.isJavaIdentifierPart(sourceText.charAt(scanStart))) {
+                scanStart--;
+            }
+            int wordStart = scanStart + 1;
+            if (wordStart < wordEnd) {
+                String word = sourceText.substring(wordStart, wordEnd);
+                // Check if it's a modifier
+                if (TypeResolver.isModifier(word)) {
+                    if (modifiersText.length() > 0) {
+                        modifiersText.insert(0, " ");
+                    }
+                    modifiersText.insert(0, word);
+                } else {
+                    // Hit a non-modifier word, stop scanning
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        
+        // Parse the collected modifiers
+        return parseModifiers(modifiersText.toString());
     }
 
     /**
@@ -2949,6 +3041,8 @@ public class ScriptDocument {
                     reflectionField = targetField.getReflectionField();
                 }
             }
+          //  Minecraft.getMinecraft().thePlayer.PERSISTED_NBT_TAG = null;
+
         } else {
             // Simple variable
             targetField = resolveVariable(targetName, lhsStart);
@@ -2957,7 +3051,7 @@ public class ScriptDocument {
                 reflectionField = targetField.getReflectionField();
             }
         }
-        
+
         // Resolve the source type (RHS)
         TypeInfo sourceType = resolveExpressionType(rhs, equalsPos + 1);
         
@@ -2966,6 +3060,13 @@ public class ScriptDocument {
         boolean isScriptField = targetField != null && 
             (globalFields.containsValue(targetField) || 
              methodLocals.values().stream().anyMatch(m -> m.containsValue(finalTargetField)));
+        
+        // Determine if the target field is final
+        // For script fields, use the modifiers; for external fields, use reflection
+        boolean isFinal = false;
+        if (targetField != null) {
+            isFinal = targetField.isFinal();
+        }
         
         // Create the assignment info using the new constructor
         AssignmentInfo info = new AssignmentInfo(
@@ -2980,7 +3081,7 @@ public class ScriptDocument {
             rhs,
             receiverType,
             reflectionField,
-            targetField != null ? targetField.isFinal() : false
+            isFinal
         );
         
         // Validate the assignment
@@ -3054,6 +3155,7 @@ public class ScriptDocument {
         TypeInfo sourceType = resolveExpressionType(rhs, rhsStart);
         
         // Create the assignment info
+        // Declaration assignments should NOT check final status - this is the one place where final fields can be assigned
         AssignmentInfo info = new AssignmentInfo(
             varName,
             stmtStart,
@@ -3066,7 +3168,7 @@ public class ScriptDocument {
             rhs,
             null, // No receiver for simple declarations
             targetField.getReflectionField(),
-            targetField.isFinal()
+            false // Don't flag as final for declaration assignments - initial assignment is always allowed
         );
         
         // Validate the assignment

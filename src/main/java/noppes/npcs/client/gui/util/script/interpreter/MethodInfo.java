@@ -20,13 +20,13 @@ public final class MethodInfo {
     private final int bodyEnd;                // End of method body (before })
     private final boolean resolved;
     private final boolean isDeclaration;      // true if this is a declaration, false if it's a call
-    private final boolean isStatic;           // true if this is a static method
+    private final int modifiers;              // Java Modifier flags (e.g., Modifier.PUBLIC | Modifier.STATIC)
     private final String documentation;       // Javadoc/comment documentation for this method
 
     private MethodInfo(String name, TypeInfo returnType, TypeInfo containingType,
                        List<FieldInfo> parameters, int declarationOffset,
                        int bodyStart, int bodyEnd, boolean resolved, boolean isDeclaration,
-                       boolean isStatic, String documentation) {
+                       int modifiers, String documentation) {
         this.name = name;
         this.returnType = returnType;
         this.containingType = containingType;
@@ -36,24 +36,31 @@ public final class MethodInfo {
         this.bodyEnd = bodyEnd;
         this.resolved = resolved;
         this.isDeclaration = isDeclaration;
-        this.isStatic = isStatic;
+        this.modifiers = modifiers;
         this.documentation = documentation;
     }
 
     // Factory methods
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int declOffset, int bodyStart, int bodyEnd) {
-        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, false, null);
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, 0, null);
     }
     
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int declOffset, int bodyStart, int bodyEnd, boolean isStatic) {
-        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, isStatic, null);
+        int modifiers = isStatic ? Modifier.STATIC : 0;
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, modifiers, null);
     }
     
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int declOffset, int bodyStart, int bodyEnd, boolean isStatic, String documentation) {
-        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, isStatic, documentation);
+        int modifiers = isStatic ? Modifier.STATIC : 0;
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, modifiers, documentation);
+    }
+
+    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
+                                         int declOffset, int bodyStart, int bodyEnd, int modifiers, String documentation) {
+        return new MethodInfo(name, returnType, null, params, declOffset, bodyStart, bodyEnd, true, true, modifiers, documentation);
     }
 
     public static MethodInfo call(String name, TypeInfo containingType, int paramCount) {
@@ -63,7 +70,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, containingType, params, -1, -1, -1, resolved, false, false, null);
+        return new MethodInfo(name, null, containingType, params, -1, -1, -1, resolved, false, 0, null);
     }
 
     public static MethodInfo unresolvedCall(String name, int paramCount) {
@@ -71,7 +78,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, null, params, -1, -1, -1, false, false, false, null);
+        return new MethodInfo(name, null, null, params, -1, -1, -1, false, false, 0, null);
     }
 
     /**
@@ -81,7 +88,7 @@ public final class MethodInfo {
     public static MethodInfo fromReflection(java.lang.reflect.Method method, TypeInfo containingType) {
         String name = method.getName();
         TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
-        boolean isStatic = Modifier.isStatic(method.getModifiers());
+        int modifiers = method.getModifiers();
         
         List<FieldInfo> params = new ArrayList<>();
         Class<?>[] paramTypes = method.getParameterTypes();
@@ -90,7 +97,7 @@ public final class MethodInfo {
             params.add(FieldInfo.reflectionParam("arg" + i, paramType));
         }
         
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false, isStatic, null);
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false, modifiers, null);
     }
 
     // Getters
@@ -105,7 +112,15 @@ public final class MethodInfo {
     public boolean isResolved() { return resolved; }
     public boolean isDeclaration() { return isDeclaration; }
     public boolean isCall() { return !isDeclaration; }
-    public boolean isStatic() { return isStatic; }
+    public int getModifiers() { return modifiers; }
+    public boolean isStatic() { return Modifier.isStatic(modifiers); }
+    public boolean isFinal() { return Modifier.isFinal(modifiers); }
+    public boolean isAbstract() { return Modifier.isAbstract(modifiers); }
+    public boolean isSynchronized() { return Modifier.isSynchronized(modifiers); }
+    public boolean isNative() { return Modifier.isNative(modifiers); }
+    public boolean isPublic() { return Modifier.isPublic(modifiers); }
+    public boolean isPrivate() { return Modifier.isPrivate(modifiers); }
+    public boolean isProtected() { return Modifier.isProtected(modifiers); }
     public String getDocumentation() { return documentation; }
 
     /**
