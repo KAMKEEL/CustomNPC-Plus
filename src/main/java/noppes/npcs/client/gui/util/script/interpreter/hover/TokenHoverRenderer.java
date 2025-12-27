@@ -160,6 +160,12 @@ public class TokenHoverRenderer {
         int textX = x + PADDING;
         int currentY = y + PADDING;
         int lineHeight = ClientProxy.Font.height();
+
+
+        String packageName = info.getPackageName();
+        List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
+        List<String> docs = info.getDocumentation();
+        List<String> additionalInfo = info.getAdditionalInfo();
         
         // Draw errors first
         List<String> errors = info.getErrors();
@@ -171,11 +177,18 @@ public class TokenHoverRenderer {
                     currentY += lineHeight + LINE_SPACING;
                 }
             }
+            boolean onlyErrors = errors != null && !errors.isEmpty() && (packageName == null || packageName.isEmpty()) && (declaration == null ||
+                    declaration.isEmpty()) && (docs == null || docs.isEmpty()) && (additionalInfo == null || additionalInfo.isEmpty());
+
+            if (!onlyErrors) { //Add error separator line
+                currentY += SEPARATOR_HEIGHT + SEPARATOR_SPACING - 5;
+                Gui.drawRect(textX, currentY, x + boxWidth - PADDING, currentY + SEPARATOR_HEIGHT, BORDER_COLOR);
+                currentY += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
+            }
             currentY += LINE_SPACING;
         }
         
         // Draw package name
-        String packageName = info.getPackageName();
         if (packageName != null && !packageName.isEmpty()) {
             String packageText = "\u25CB " + packageName;
             List<String> wrappedLines = wrapText(packageText, wrapWidth);
@@ -186,13 +199,11 @@ public class TokenHoverRenderer {
         }
         
         // Draw declaration (colored segments with wrapping)
-        List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
         if (!declaration.isEmpty()) {
             currentY = drawWrappedSegments(textX, currentY, wrapWidth, declaration);
             currentY += LINE_SPACING;
         }
         // Draw documentation
-        List<String> docs = info.getDocumentation();
         if (!docs.isEmpty()) {
             // Draw separator line before documentation
             Gui.drawRect(textX, currentY, x + boxWidth - PADDING, currentY + SEPARATOR_HEIGHT, BORDER_COLOR);
@@ -207,7 +218,7 @@ public class TokenHoverRenderer {
         }
         
         // Draw additional info
-        List<String> additionalInfo = info.getAdditionalInfo();
+
         if (!additionalInfo.isEmpty()) {
             currentY += LINE_SPACING;
             for (String infoLine : additionalInfo) {
@@ -374,7 +385,12 @@ public class TokenHoverRenderer {
     private static int calculateContentHeight(TokenHoverInfo info, int contentWidth) {
         int lineHeight = ClientProxy.Font.height();
         int totalHeight = 0;
-        
+
+        String packageName = info.getPackageName();
+        List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
+        List<String> docs = info.getDocumentation();
+        List<String> additionalInfo = info.getAdditionalInfo();
+
         // Errors
         List<String> errors = info.getErrors();
         if (!errors.isEmpty()) {
@@ -382,11 +398,17 @@ public class TokenHoverRenderer {
                 List<String> wrappedLines = wrapText(error, contentWidth);
                 totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
             }
+
+            boolean onlyErrors = errors != null && !errors.isEmpty() && (packageName == null || packageName.isEmpty()) && (declaration == null ||
+                    declaration.isEmpty()) && (docs == null || docs.isEmpty()) && (additionalInfo == null || additionalInfo.isEmpty());
+            
+            if (!onlyErrors) //Add error separator height
+                totalHeight += (SEPARATOR_SPACING + SEPARATOR_HEIGHT) * 2 - 5;
+            
             totalHeight += LINE_SPACING; // Extra space after errors
         }
         
         // Package name
-        String packageName = info.getPackageName();
         if (packageName != null && !packageName.isEmpty()) {
             String packageText = "\u25CB " + packageName;
             List<String> wrappedLines = wrapText(packageText, contentWidth);
@@ -394,14 +416,12 @@ public class TokenHoverRenderer {
         }
         
         // Declaration (colored segments with wrapping)
-        List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
         if (!declaration.isEmpty()) {
             totalHeight += calculateSegmentsHeight(contentWidth, declaration);
             totalHeight += LINE_SPACING;
         }
         
         // Documentation
-        List<String> docs = info.getDocumentation();
         if (!docs.isEmpty()) {
             // Add space for separator line and spacing
             totalHeight += SEPARATOR_SPACING + SEPARATOR_HEIGHT;
@@ -412,7 +432,6 @@ public class TokenHoverRenderer {
         }
         
         // Additional info
-        List<String> additionalInfo = info.getAdditionalInfo();
         if (!additionalInfo.isEmpty()) {
             totalHeight += LINE_SPACING;
             for (String infoLine : additionalInfo) {
