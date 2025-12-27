@@ -212,7 +212,7 @@ public class TokenHoverInfo {
     
     /**
      * Find an assignment that contains this token's position.
-     * Searches through all FieldInfo's assignments in the document.
+     * Searches through all assignments (script fields and external fields).
      */
     private AssignmentInfo findAssignmentContainingPosition(Token token) {
         ScriptLine line = token.getParentLine();
@@ -223,23 +223,8 @@ public class TokenHoverInfo {
         ScriptDocument doc = line.getParent();
         int tokenStart = token.getGlobalStart();
         
-        // Search global fields
-        for (FieldInfo field : doc.getGlobalFields().values()) {
-            AssignmentInfo assign = field.findAssignmentAtPosition(tokenStart);
-            if (assign != null) {
-                return assign;
-            }
-        }
-        
-        // Search method locals (need access to method locals map)
-        // For now, use the getAllErroredAssignments approach and filter by position
-        for (AssignmentInfo assign : doc.getAllErroredAssignments()) {
-            if (assign.containsPosition(tokenStart)) {
-                return assign;
-            }
-        }
-        
-        return null;
+        // Use ScriptDocument's method which handles all prioritization
+        return doc.findAssignmentAtPosition(tokenStart);
     }
     
     /**

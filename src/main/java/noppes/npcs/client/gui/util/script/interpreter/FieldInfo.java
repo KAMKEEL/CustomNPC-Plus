@@ -161,19 +161,35 @@ public final class FieldInfo {
     /**
      * Find an assignment that contains the given position.
      * Returns null if no assignment contains this position.
+     * Prioritizes LHS matches over RHS matches.
      */
     public AssignmentInfo findAssignmentAtPosition(int position) {
         // Check declaration assignment first
         if (declarationAssignment != null && declarationAssignment.containsPosition(position)) {
-            return declarationAssignment;
+            // Prioritize LHS match
+            if (declarationAssignment.containsLhsPosition(position)) {
+                return declarationAssignment;
+            }
         }
 
-        // Check other assignments
+        // Check other assignments for LHS matches first (more specific)
         for (AssignmentInfo assign : assignments) {
-            if (assign.containsPosition(position)) {
+            if (assign.containsLhsPosition(position)) {
                 return assign;
             }
         }
+
+        // Then check RHS matches (less specific - might just be a reference in the value)
+        if (declarationAssignment != null && declarationAssignment.containsRhsPosition(position)) {
+            return declarationAssignment;
+        }
+
+        for (AssignmentInfo assign : assignments) {
+            if (assign.containsRhsPosition(position)) {
+                return assign;
+            }
+        }
+
         return null;
     }
 

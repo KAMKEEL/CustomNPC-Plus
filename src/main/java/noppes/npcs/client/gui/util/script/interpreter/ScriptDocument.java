@@ -78,6 +78,9 @@ public class ScriptDocument {
 
     // Field accesses - stores all parsed field access information
     private final List<FieldAccessInfo> fieldAccesses = new ArrayList<>();
+    
+    // Assignments to external fields (fields from reflection, not script-defined)
+    private final List<AssignmentInfo> externalFieldAssignments = new ArrayList<>();
 
     // Excluded regions (strings/comments) - positions where other patterns shouldn't match
     private final List<int[]> excludedRanges = new ArrayList<>();
@@ -186,6 +189,7 @@ public class ScriptDocument {
         methodLocals.clear();
         scriptTypes.clear();
         methodCalls.clear();
+        externalFieldAssignments.clear();
 
         // Phase 1: Find excluded regions (strings/comments)
         findExcludedRanges();
@@ -2785,6 +2789,7 @@ public class ScriptDocument {
                 field.clearAssignments();
             }
         }
+        externalFieldAssignments.clear();
         
         // Pattern to find assignments: identifier = expression;
         // But NOT declarations (Type varName = expr) or compound assignments (+=, -=, etc.)
@@ -2959,13 +2964,14 @@ public class ScriptDocument {
             }
         }
         
-        // If we couldn't resolve the target field, we can't attach the assignment
-        if (targetField == null) {
-            return;
-        }
-        
         // Resolve the source type (RHS)
         TypeInfo sourceType = resolveExpressionType(rhs, equalsPos + 1);
+        
+        // Determine if this is a script-defined field or external field
+        FieldInfo finalTargetField = targetField;
+        boolean isScriptField = targetField != null && 
+            (globalFields.containsValue(targetField) || 
+             methodLocals.values().stream().anyMatch(m -> m.containsValue(finalTargetField)));
         
         // Create the assignment info using the new constructor
         AssignmentInfo info = new AssignmentInfo(
@@ -2979,14 +2985,20 @@ public class ScriptDocument {
             rhs,
             receiverType,
             reflectionField,
-            targetField.isFinal()
+            targetField != null ? targetField.isFinal() : false
         );
         
         // Validate the assignment
         info.validate();
         
-        // Attach to the FieldInfo
-        targetField.addAssignment(info);
+        // Attach to the appropriate location
+        if (isScriptField && targetField != null) {
+            // Script-defined field - attach to FieldInfo
+            targetField.addAssignment(info);
+        } else {
+            // External field or unresolved - store separately
+            externalFieldAssignments.add(info);
+        }
     }
     
     /**
@@ -3368,13 +3380,43 @@ public class ScriptDocument {
     public List<FieldAccessInfo> getFieldAccesses() {
         return Collections.unmodifiableList(fieldAccesses);
     }
+    
+    /**
+     * Find an assignment at the given position, prioritizing LHS over RHS.
+     * Searches across all script fields and external field assignments.
+     * Used by TokenHoverInfo for finding assignment errors.
+     */
+    public AssignmentInfo findAssignmentAtPosition(int position) {
+        // Check script fields (FieldInfo.findAssignmentAtPosition already handles LHS/RHS priority)
+        for (FieldInfo field : globalFields.values()) {
+            AssignmentInfo assign = field.findAssignmentAtPosition(position);
+            if (assign != null) {
+                return assign;
+            }
+        }
+        
+        // Check external field assignments with same LHS-first priority
+        for (AssignmentInfo assign : externalFieldAssignments) {
+            if (assign.containsLhsPosition(position)) {
+                return assign;
+            }
+        }
+        
+        for (AssignmentInfo assign : externalFieldAssignments) {
+            if (assign.containsRhsPosition(position)) {
+                return assign;
+            }
+        }
+        
+        return null;
+    }
 
     public Map<String, FieldInfo> getGlobalFields() {
         return Collections.unmodifiableMap(globalFields);
     }
     
     /**
-     * Get all errored assignments across all fields (global and local).
+     * Get all errored assignments across all fields (global, local, and external).
      * Used by ScriptLine to draw error underlines.
      */
     public List<AssignmentInfo> getAllErroredAssignments() {
@@ -3389,6 +3431,13 @@ public class ScriptDocument {
         for (Map<String, FieldInfo> locals : methodLocals.values()) {
             for (FieldInfo field : locals.values()) {
                 errored.addAll(field.getErroredAssignments());
+            }
+        }
+        
+        // Check external field assignments
+        for (AssignmentInfo assign : externalFieldAssignments) {
+            if (assign.hasError()) {
+                errored.add(assign);
             }
         }
         
