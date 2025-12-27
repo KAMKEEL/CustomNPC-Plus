@@ -2924,6 +2924,11 @@ public class ScriptDocument {
             }
             if (stmtStart < 0) stmtStart = 0;
             
+            // Skip leading whitespace to get to the actual first character of the statement
+            while (stmtStart < equalsPos && Character.isWhitespace(text.charAt(stmtStart))) {
+                stmtStart++;
+            }
+            
             // Find the end of this statement (next ;)
             int stmtEnd = text.indexOf(';', equalsPos);
             if (stmtEnd < 0) stmtEnd = text.length();
