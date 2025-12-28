@@ -137,9 +137,9 @@ public class Token {
     public void setMethodCallInfo(MethodCallInfo info) { this.methodCallInfo = info; }
     public void setImportData(ImportData data) { this.importData = data; }
     
-    void setParentLine(ScriptLine line) { this.parentLine = line; }
-    void setPrev(Token prev) { this.prev = prev; }
-    void setNext(Token next) { this.next = next; }
+    public void setParentLine(ScriptLine line) { this.parentLine = line; }
+    public void setPrev(Token prev) { this.prev = prev; }
+    public void setNext(Token next) { this.next = next; }
 
     // ==================== NAVIGATION ====================
 
