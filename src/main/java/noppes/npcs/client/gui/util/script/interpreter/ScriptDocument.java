@@ -455,8 +455,23 @@ public class ScriptDocument {
             List<FieldInfo> params = parseParametersWithPositions(paramList, 
                     bodyStart + 1 + mm.start(3));
             
+            // Calculate the three offsets
+            int typeOffset = bodyStart + 1 + mm.start(1);  // Start of return type
+            int nameOffset = bodyStart + 1 + mm.start(2);  // Start of method name
+            int fullDeclOffset = findFullDeclarationStart(mm.start(1), bodyText);
+            if (fullDeclOffset >= 0) {
+                fullDeclOffset += bodyStart + 1;
+            } else {
+                fullDeclOffset = typeOffset;
+            }
+            
             MethodInfo methodInfo = MethodInfo.declaration(
-                    methodName, returnType, params, absPos, methodBodyStart, methodBodyEnd, modifiers, documentation);
+                    methodName, returnType, params, fullDeclOffset, typeOffset, nameOffset, methodBodyStart, methodBodyEnd, modifiers, documentation);
+            
+            // Validate the method (including return type checking)
+            String methodBodyText = text.substring(methodBodyStart + 1, methodBodyEnd);
+            methodInfo.validate(methodBodyText, (expr, pos) -> resolveExpressionType(expr, pos));
+            
             scriptType.addMethod(methodInfo);
         }
         
@@ -485,12 +500,25 @@ public class ScriptDocument {
             // Parse parameters with their actual positions
             List<FieldInfo> params = parseParametersWithPositions(paramList, bodyStart + 1 + cm.start(1));
             
+            // Calculate the three offsets for constructor
+            // For constructors, type offset and name offset are the same (start of constructor name)
+            int nameOffset = bodyStart + 1 + cm.start();
+            int typeOffset = nameOffset;  // No separate type for constructors
+            int fullDeclOffset = findFullDeclarationStart(cm.start(), bodyText);
+            if (fullDeclOffset >= 0) {
+                fullDeclOffset += bodyStart + 1;
+            } else {
+                fullDeclOffset = nameOffset;
+            }
+            
             // Constructors don't have a return type, but we'll use the containing type as a marker
             MethodInfo constructorInfo = MethodInfo.declaration(
                     typeName,
                     scriptType,  // Return type is the type itself
                     params,
-                    absPos,
+                    fullDeclOffset,
+                    typeOffset,
+                    nameOffset,
                     constructorBodyStart,
                     constructorBodyEnd,
                     modifiers,
@@ -547,6 +575,11 @@ public class ScriptDocument {
 
             // Extract modifiers by scanning backwards from match start
             int modifiers = extractModifiersBackwards(m.start() - 1, text);
+            
+            // Calculate offset positions
+            int typeOffset = m.start(1);        // Start of return type
+            int nameOffset = m.start(2);        // Start of method name
+            int fullDeclOffset = findFullDeclarationStart(m.start(1), text); // Start including modifiers
 
             // Parse parameters with their actual positions
             List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
@@ -555,12 +588,19 @@ public class ScriptDocument {
                     methodName,
                     resolveType(returnType),
                     params,
-                    m.start(),
+                    fullDeclOffset,
+                    typeOffset,
+                    nameOffset,
                     bodyStart,
                     bodyEnd,
                     modifiers,
                     documentation
             );
+            
+            // Validate the method (return statements, parameters) with type resolution
+            String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";
+            methodInfo.validate(methodBodyText, (expr, pos) -> resolveExpressionType(expr, pos));
+            
             methods.add(methodInfo);
         }
 
@@ -582,6 +622,48 @@ public class ScriptDocument {
             }
             // We don't need to store JS functions in methods list - just extract params
         }
+    }
+
+    /**
+     * Find the start of a full method declaration, including any modifiers before the type.
+     */
+    private int findFullDeclarationStart(int typeStart, String sourceText) {
+        int pos = typeStart - 1;
+        
+        // Skip whitespace before type
+        while (pos >= 0 && Character.isWhitespace(sourceText.charAt(pos))) {
+            pos--;
+        }
+        
+        // Check for modifiers
+        int earliestPos = typeStart;
+        while (pos >= 0) {
+            // Skip whitespace
+            while (pos >= 0 && Character.isWhitespace(sourceText.charAt(pos))) {
+                pos--;
+            }
+            if (pos < 0) break;
+            
+            // Read word backwards
+            int wordEnd = pos + 1;
+            while (pos >= 0 && Character.isJavaIdentifierPart(sourceText.charAt(pos))) {
+                pos--;
+            }
+            int wordStart = pos + 1;
+            
+            if (wordStart < wordEnd) {
+                String word = sourceText.substring(wordStart, wordEnd);
+                if (TypeResolver.isModifier(word)) {
+                    earliestPos = wordStart;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        
+        return earliestPos;
     }
 
     private List<FieldInfo> parseParametersWithPositions(String paramList, int paramListStart) {
