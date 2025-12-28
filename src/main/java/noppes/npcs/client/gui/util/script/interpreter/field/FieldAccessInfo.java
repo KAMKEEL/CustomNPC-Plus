@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.field;
 
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 /**
@@ -94,40 +95,12 @@ public class FieldAccessInfo {
         // Check return type compatibility with expected type (e.g., assignment LHS)
         if (expectedType != null && resolvedField != null) {
             TypeInfo fieldType = resolvedField.getDeclaredType();
-            if (fieldType != null && !isTypeCompatible(fieldType, expectedType)) {
+            if (fieldType != null && !TypeChecker.isTypeCompatible(expectedType, fieldType)) {
                 //extra space is necessary for alignment
                 //setError(ErrorType.TYPE_MISMATCH,  "Provided type:      " + fieldType.getSimpleName()+
                         //"\nRequired:                " + expectedType.getSimpleName());
             }
         }
-    }
-
-    /**
-     * Check if sourceType can be assigned to targetType.
-     */
-    private boolean isTypeCompatible(TypeInfo sourceType, TypeInfo targetType) {
-        if (sourceType == null || targetType == null) {
-            return true; // Can't validate, assume compatible
-        }
-
-        // Same type
-        if (sourceType.getFullName().equals(targetType.getFullName())) {
-            return true;
-        }
-
-        // Check if sourceType is a subtype of targetType
-        if (sourceType.isResolved() && targetType.isResolved()) {
-            Class<?> sourceClass = sourceType.getJavaClass();
-            Class<?> targetClass = targetType.getJavaClass();
-
-            if (sourceClass != null && targetClass != null) {
-                return targetClass.isAssignableFrom(sourceClass);
-            }
-        }
-
-        // Primitive widening/boxing conversions would go here
-        // For now, just check direct equality
-        return false;
     }
 
     private void setError(ErrorType type, String message) {

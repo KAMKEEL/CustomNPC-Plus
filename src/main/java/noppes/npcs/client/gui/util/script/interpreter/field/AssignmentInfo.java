@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.field;
 
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.lang.reflect.Field;
@@ -134,7 +135,7 @@ public class AssignmentInfo {
 
         // Check type compatibility
         if (targetType != null && sourceType != null) {
-            if (!isTypeCompatible(sourceType, targetType)) {
+            if (!TypeChecker.isTypeCompatible(targetType, sourceType)) {
                 this.requiredType = targetType.getSimpleName();
                 this.providedType = sourceType.getSimpleName();
                 setError(ErrorType.TYPE_MISMATCH, buildTypeMismatchMessage());
@@ -147,110 +148,6 @@ public class AssignmentInfo {
      */
     private String buildTypeMismatchMessage() {
         return "Provided type:     " + providedType + "\nRequired:             " + requiredType;
-    }
-
-    /**
-     * Check if sourceType can be assigned to targetType.
-     */
-    private boolean isTypeCompatible(TypeInfo sourceType, TypeInfo targetType) {
-        if (sourceType == null || targetType == null) {
-            return true; // Can't validate, assume compatible
-        }
-
-        // Same type name
-        if (sourceType.getFullName().equals(targetType.getFullName())) {
-            return true;
-        }
-        
-        // Same simple name (for primitives and common types)
-        if (sourceType.getSimpleName().equals(targetType.getSimpleName())) {
-            return true;
-        }
-
-        // Check if sourceType is a subtype of targetType via reflection
-        if (sourceType.isResolved() && targetType.isResolved()) {
-            Class<?> sourceClass = sourceType.getJavaClass();
-            Class<?> targetClass = targetType.getJavaClass();
-
-            if (sourceClass != null && targetClass != null) {
-                // Direct assignability
-                if (targetClass.isAssignableFrom(sourceClass)) {
-                    return true;
-                }
-                
-                // Primitive widening conversions
-                if (isPrimitiveWidening(sourceClass, targetClass)) {
-                    return true;
-                }
-                
-                // Boxing/unboxing
-                if (isBoxingCompatible(sourceClass, targetClass)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Check for primitive widening conversions.
-     * byte -> short -> int -> long -> float -> double
-     * char -> int -> long -> float -> double
-     */
-    private boolean isPrimitiveWidening(Class<?> from, Class<?> to) {
-        if (!from.isPrimitive() || !to.isPrimitive()) {
-            return false;
-        }
-        
-        if (from == byte.class) {
-            return to == short.class || to == int.class || to == long.class || 
-                   to == float.class || to == double.class;
-        }
-        if (from == short.class || from == char.class) {
-            return to == int.class || to == long.class || to == float.class || to == double.class;
-        }
-        if (from == int.class) {
-            return to == long.class || to == float.class || to == double.class;
-        }
-        if (from == long.class) {
-            return to == float.class || to == double.class;
-        }
-        if (from == float.class) {
-            return to == double.class;
-        }
-        return false;
-    }
-
-    /**
-     * Check for boxing/unboxing compatibility.
-     */
-    private boolean isBoxingCompatible(Class<?> from, Class<?> to) {
-        if (from.isPrimitive()) {
-            Class<?> wrapper = getWrapperClass(from);
-            if (wrapper != null && to.isAssignableFrom(wrapper)) {
-                return true;
-            }
-        }
-        if (to.isPrimitive()) {
-            Class<?> wrapper = getWrapperClass(to);
-            if (wrapper != null && wrapper.isAssignableFrom(from)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private Class<?> getWrapperClass(Class<?> primitive) {
-        if (primitive == boolean.class) return Boolean.class;
-        if (primitive == byte.class) return Byte.class;
-        if (primitive == char.class) return Character.class;
-        if (primitive == short.class) return Short.class;
-        if (primitive == int.class) return Integer.class;
-        if (primitive == long.class) return Long.class;
-        if (primitive == float.class) return Float.class;
-        if (primitive == double.class) return Double.class;
-        return null;
     }
 
     private void setError(ErrorType type, String message) {

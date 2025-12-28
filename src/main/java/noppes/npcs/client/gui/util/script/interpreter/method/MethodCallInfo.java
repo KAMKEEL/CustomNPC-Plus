@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.method;
 
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.util.ArrayList;
@@ -348,7 +349,7 @@ public class MethodCallInfo {
             TypeInfo argType = arg.getResolvedType();
             TypeInfo paramType = para.getDeclaredType();
             if (argType != null && paramType != null) {
-                if (!isTypeCompatible(argType, paramType)) {
+                if (!TypeChecker.isTypeCompatible(paramType, argType)) {
                     setArgTypeError(i, "Expected " + paramType.getSimpleName() +
                             " but got " + argType.getSimpleName());
                 }
@@ -362,82 +363,11 @@ public class MethodCallInfo {
         // Check return type compatibility with expected type (e.g., assignment LHS)
         if (expectedType != null && resolvedMethod != null) {
             TypeInfo returnType = resolvedMethod.getReturnType();
-            if (returnType != null && !isTypeCompatible(returnType, expectedType)) {
+            if (returnType != null && !TypeChecker.isTypeCompatible(expectedType, returnType)) {
               //  setError(ErrorType.RETURN_TYPE_MISMATCH,
                       //  "Required type: " + expectedType.getSimpleName() + ", Provided: " + returnType.getSimpleName());
             }
         }
-    }
-
-    /**
-     * Check if sourceType can be assigned to targetType.
-     * Handles primitive widening, inheritance, etc.
-     */
-    private boolean isTypeCompatible(TypeInfo sourceType, TypeInfo targetType) {
-        if (sourceType == null || targetType == null) {
-            return true; // Can't verify, assume compatible
-        }
-
-        if (sourceType.equals(targetType)) {
-            return true;
-        }
-
-        Class<?> sourceClass = sourceType.getJavaClass();
-        Class<?> targetClass = targetType.getJavaClass();
-
-        if (sourceClass == null || targetClass == null) {
-            return true; // Can't verify, assume compatible
-        }
-
-        // Check inheritance
-        if (targetClass.isAssignableFrom(sourceClass)) {
-            return true;
-        }
-
-        // Check primitive widening conversions
-        if (isPrimitiveWidening(sourceClass, targetClass)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Check if widening conversion is valid between primitives.
-     */
-    private boolean isPrimitiveWidening(Class<?> source, Class<?> target) {
-        // byte -> short -> int -> long -> float -> double
-        // char -> int -> long -> float -> double
-        if (target == double.class || target == Double.class) {
-            return source == float.class || source == Float.class ||
-                    source == long.class || source == Long.class ||
-                    source == int.class || source == Integer.class ||
-                    source == short.class || source == Short.class ||
-                    source == byte.class || source == Byte.class ||
-                    source == char.class || source == Character.class;
-        }
-        if (target == float.class || target == Float.class) {
-            return source == long.class || source == Long.class ||
-                    source == int.class || source == Integer.class ||
-                    source == short.class || source == Short.class ||
-                    source == byte.class || source == Byte.class ||
-                    source == char.class || source == Character.class;
-        }
-        if (target == long.class || target == Long.class) {
-            return source == int.class || source == Integer.class ||
-                    source == short.class || source == Short.class ||
-                    source == byte.class || source == Byte.class ||
-                    source == char.class || source == Character.class;
-        }
-        if (target == int.class || target == Integer.class) {
-            return source == short.class || source == Short.class ||
-                    source == byte.class || source == Byte.class ||
-                    source == char.class || source == Character.class;
-        }
-        if (target == short.class || target == Short.class) {
-            return source == byte.class || source == Byte.class;
-        }
-        return false;
     }
 
     @Override

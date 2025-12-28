@@ -16,15 +16,30 @@ public final class TypeChecker {
      */
     public static boolean isTypeCompatible(TypeInfo expected, TypeInfo actual) {
         if (expected == null) return true; // void can accept anything (shouldn't happen)
-        if (actual == null) return true; // null is compatible with any reference type
+        if (actual == null) return true; // Can't verify, assume compatible
+        
+        // Handle null literal - null is compatible with any reference type (non-primitive)
+        if ("<null>".equals(actual.getFullName())) {
+            Class<?> expectedClass = expected.getJavaClass();
+            if (expectedClass != null && !expectedClass.isPrimitive()) {
+                return true; // null can be assigned to any reference type
+            }
+            // null cannot be assigned to primitive types
+            return false;
+        }
         
         String expectedName = expected.getSimpleName();
         String actualName = actual.getSimpleName();
         
         if (expectedName == null || actualName == null) return true;
         
-        // Exact match
+        // Exact match by simple name
         if (expectedName.equals(actualName)) return true;
+        
+        // Exact match by full name
+        if (expected.getFullName() != null && actual.getFullName() != null) {
+            if (expected.getFullName().equals(actual.getFullName())) return true;
+        }
         
         // Primitive widening conversions
         if (isNumericType(expectedName) && isNumericType(actualName)) {
@@ -33,10 +48,26 @@ public final class TypeChecker {
         
         // Object type compatibility (check inheritance)
         if (expected.getJavaClass() != null && actual.getJavaClass() != null) {
-            return expected.getJavaClass().isAssignableFrom(actual.getJavaClass());
+            Class<?> expectedClass = expected.getJavaClass();
+            Class<?> actualClass = actual.getJavaClass();
+            
+            // Direct assignability
+            if (expectedClass.isAssignableFrom(actualClass)) {
+                return true;
+            }
+            
+            // Primitive widening with Class objects
+            if (isPrimitiveWidening(actualClass, expectedClass)) {
+                return true;
+            }
+            
+            // Boxing/unboxing compatibility
+            if (isBoxingCompatible(actualClass, expectedClass)) {
+                return true;
+            }
         }
         
-        // Allow boxed/unboxed conversions
+        // Allow boxed/unboxed conversions by name
         if (isPrimitiveOrWrapper(expectedName) && isPrimitiveOrWrapper(actualName)) {
             return getUnboxedName(expectedName).equals(getUnboxedName(actualName));
         }
@@ -156,6 +187,69 @@ public final class TypeChecker {
     public static boolean isVoidType(TypeInfo type) {
         if (type == null) return true;
         return isVoidType(type.getSimpleName());
+    }
+
+    /**
+     * Check for primitive widening conversions.
+     * byte -> short -> int -> long -> float -> double
+     * char -> int -> long -> float -> double
+     */
+    private static boolean isPrimitiveWidening(Class<?> from, Class<?> to) {
+        if (!from.isPrimitive() || !to.isPrimitive()) {
+            return false;
+        }
+        
+        if (from == byte.class) {
+            return to == short.class || to == int.class || to == long.class || 
+                   to == float.class || to == double.class;
+        }
+        if (from == short.class || from == char.class) {
+            return to == int.class || to == long.class || to == float.class || to == double.class;
+        }
+        if (from == int.class) {
+            return to == long.class || to == float.class || to == double.class;
+        }
+        if (from == long.class) {
+            return to == float.class || to == double.class;
+        }
+        if (from == float.class) {
+            return to == double.class;
+        }
+        return false;
+    }
+
+    /**
+     * Check for boxing/unboxing compatibility.
+     */
+    private static boolean isBoxingCompatible(Class<?> from, Class<?> to) {
+        if (from.isPrimitive()) {
+            Class<?> wrapper = getWrapperClassInternal(from);
+            if (wrapper != null && to.isAssignableFrom(wrapper)) {
+                return true;
+            }
+        }
+        if (to.isPrimitive()) {
+            Class<?> wrapper = getWrapperClassInternal(to);
+            if (wrapper != null && wrapper.isAssignableFrom(from)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Get the wrapper class for a primitive type.
+     */
+    private static Class<?> getWrapperClassInternal(Class<?> primitive) {
+        if (primitive == boolean.class) return Boolean.class;
+        if (primitive == byte.class) return Byte.class;
+        if (primitive == char.class) return Character.class;
+        if (primitive == short.class) return Short.class;
+        if (primitive == int.class) return Integer.class;
+        if (primitive == long.class) return Long.class;
+        if (primitive == float.class) return Float.class;
+        if (primitive == double.class) return Double.class;
+        return null;
     }
 }
 
