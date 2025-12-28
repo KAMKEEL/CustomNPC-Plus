@@ -1660,7 +1660,7 @@ public class ScriptDocument {
             // Skip class/interface/enum declarations - these look like method declarations
             // but "class Foo(" is not a method, it's a class declaration
             String returnType = m.group(1);
-            if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum")) {
+            if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") ||returnType.equals("new")) {
                 continue;
             }
 
