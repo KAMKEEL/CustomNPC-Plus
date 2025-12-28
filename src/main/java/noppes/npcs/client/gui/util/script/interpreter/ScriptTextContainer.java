@@ -128,7 +128,6 @@ public class ScriptTextContainer extends JavaTextContainer {
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.IMPORT_KEYWORD) return JavaTextContainer.TokenType.IMPORT_KEYWORD;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.KEYWORD) return JavaTextContainer.TokenType.KEYWORD;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.MODIFIER) return JavaTextContainer.TokenType.MODIFIER;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.NEW_TYPE) return JavaTextContainer.TokenType.NEW_TYPE;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.INTERFACE_DECL) return JavaTextContainer.TokenType.INTERFACE_DECL;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.ENUM_DECL) return JavaTextContainer.TokenType.ENUM_DECL;
         if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.CLASS_DECL) return JavaTextContainer.TokenType.CLASS_DECL;

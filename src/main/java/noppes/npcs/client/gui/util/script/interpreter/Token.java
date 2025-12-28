@@ -191,7 +191,7 @@ public class Token {
     public boolean isTypeReference() {
         return type == TokenType.TYPE_DECL || type == TokenType.IMPORTED_CLASS ||
                type == TokenType.CLASS_DECL || type == TokenType.INTERFACE_DECL ||
-               type == TokenType.ENUM_DECL || type == TokenType.NEW_TYPE;
+               type == TokenType.ENUM_DECL;
     }
 
     public boolean isResolved() {

@@ -18,7 +18,6 @@ public enum TokenType {
     MODIFIER(0xFFAA00, 90),            // public, private, static, final, etc.
     
     // Type declarations and references
-    NEW_TYPE(0xFF55FF, 80),            // type after 'new' keyword
     INTERFACE_DECL(0x55FFFF, 85),      // interface names (aqua)
     ENUM_DECL(0xFF55FF, 85),           // enum names (magenta)
     CLASS_DECL(0x00AAAA, 85),          // class names in declarations
@@ -76,7 +75,6 @@ public enum TokenType {
             case IMPORT_KEYWORD:
             case MODIFIER:
                 return '6'; // gold
-            case NEW_TYPE:
             case ENUM_DECL:
                 return 'd'; // magenta
             case INTERFACE_DECL:

@@ -98,7 +98,6 @@ public class TokenHoverInfo {
             case INTERFACE_DECL:
             case ENUM_DECL:
             case TYPE_DECL:
-            case NEW_TYPE:
                 info.extractClassInfo(token);
                 break;
                 
