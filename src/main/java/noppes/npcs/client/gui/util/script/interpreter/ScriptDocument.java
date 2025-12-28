@@ -382,11 +382,12 @@ public class ScriptDocument {
             
             ScriptTypeInfo scriptType = ScriptTypeInfo.create(
                     typeName, kind, m.start(), bodyStart, bodyEnd, modifiers);
-            
-            // Parse fields and methods inside this type
+
+            scriptTypes.put(typeName, scriptType);
+
+            // Parse fields and methods inside this type AFTER adding the scriptType globally, so its members can reference it
             parseScriptTypeMembers(scriptType);
             
-            scriptTypes.put(typeName, scriptType);
         }
     }
 
