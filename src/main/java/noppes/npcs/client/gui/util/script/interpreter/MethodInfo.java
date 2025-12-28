@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -85,7 +87,7 @@ public final class MethodInfo {
      * Create a MethodInfo from reflection data.
      * Used when resolving method calls on known types.
      */
-    public static MethodInfo fromReflection(java.lang.reflect.Method method, TypeInfo containingType) {
+    public static MethodInfo fromReflection(Method method, TypeInfo containingType) {
         String name = method.getName();
         TypeInfo returnType = TypeInfo.fromClass(method.getReturnType());
         int modifiers = method.getModifiers();
@@ -98,6 +100,25 @@ public final class MethodInfo {
         }
         
         return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, false, modifiers, null);
+    }
+
+    /**
+     * Create a MethodInfo from a Constructor via reflection.
+     * Used when resolving constructor calls on external types.
+     */
+    public static MethodInfo fromReflectionConstructor(Constructor<?> constructor, TypeInfo containingType) {
+        String name = containingType.getSimpleName(); // Constructor name is the type name
+        TypeInfo returnType = containingType; // Constructor "returns" an instance of the type
+        int modifiers = constructor.getModifiers();
+        
+        List<FieldInfo> params = new ArrayList<>();
+        Class<?>[] paramTypes = constructor.getParameterTypes();
+        for (int i = 0; i < paramTypes.length; i++) {
+            TypeInfo paramType = TypeInfo.fromClass(paramTypes[i]);
+            params.add(FieldInfo.reflectionParam("arg" + i, paramType));
+        }
+        
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, true, true, modifiers, null);
     }
 
     // Getters

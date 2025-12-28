@@ -184,7 +184,13 @@ public class TypeInfo {
      * Override in ScriptTypeInfo for script-defined types.
      */
     public boolean hasConstructors() {
-        return false;
+        if (javaClass == null) return false;
+        try {
+            return javaClass.getConstructors().length > 0;
+        } catch (Exception e) {
+            // Security or linkage error
+            return false;
+        }
     }
     
     /**
@@ -192,7 +198,18 @@ public class TypeInfo {
      * Override in ScriptTypeInfo for script-defined types.
      */
     public List<MethodInfo> getConstructors() {
-        return new ArrayList<>();
+        List<MethodInfo> result = new ArrayList<>();
+        if (javaClass == null) return result;
+        
+        try {
+            java.lang.reflect.Constructor<?>[] constructors = javaClass.getConstructors();
+            for (java.lang.reflect.Constructor<?> ctor : constructors) {
+                result.add(MethodInfo.fromReflectionConstructor(ctor, this));
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return result;
     }
     
     /**
@@ -200,6 +217,18 @@ public class TypeInfo {
      * Override in ScriptTypeInfo for script-defined types.
      */
     public MethodInfo findConstructor(int argCount) {
+        if (javaClass == null) return null;
+        
+        try {
+            java.lang.reflect.Constructor<?>[] constructors = javaClass.getConstructors();
+            for (java.lang.reflect.Constructor<?> ctor : constructors) {
+                if (ctor.getParameterCount() == argCount) {
+                    return MethodInfo.fromReflectionConstructor(ctor, this);
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
         return null;
     }
 
