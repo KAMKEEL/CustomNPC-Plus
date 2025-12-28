@@ -99,6 +99,8 @@ public class MethodCallInfo {
     private String errorMessage;
     private int errorArgIndex = -1;          // Index of the problematic argument (for WRONG_ARG_TYPE)
     private List<ArgumentTypeError> argumentTypeErrors = new ArrayList<>();
+    
+    private boolean isConstructor;
 
     public MethodCallInfo(String methodName, int methodNameStart, int methodNameEnd,
                           int openParenOffset, int closeParenOffset,
@@ -121,6 +123,27 @@ public class MethodCallInfo {
         this.receiverType = receiverType;
         this.resolvedMethod = resolvedMethod;
         this.isStaticAccess = isStaticAccess;
+    }
+
+    /**
+     * Factory method to create a MethodCallInfo for a constructor call.
+     * Constructors are represented as method calls where the type itself is the receiver.
+     */
+    public static MethodCallInfo constructor(TypeInfo typeInfo, MethodInfo constructor,
+                                             int typeNameStart, int typeNameEnd,
+                                             int openParenOffset, int closeParenOffset,
+                                             List<Argument> arguments) {
+        return new MethodCallInfo(
+            typeInfo.getSimpleName(),  // Constructor name is the type name
+            typeNameStart,
+            typeNameEnd,
+            openParenOffset,
+            closeParenOffset,
+            arguments,
+            typeInfo,                  // The type itself is the receiver
+            constructor,               // The constructor MethodInfo
+            false                      // Constructors are not static access
+        ).setConstructor(true);
     }
 
     // Getters
@@ -170,6 +193,15 @@ public class MethodCallInfo {
 
     public void setExpectedType(TypeInfo expectedType) {
         this.expectedType = expectedType;
+    }
+    
+    public boolean isConstructor() {
+        return isConstructor;
+    }
+    
+    public MethodCallInfo setConstructor(boolean isConstructor) {
+        this.isConstructor = isConstructor;
+        return this;
     }
 
     public ErrorType getErrorType() {
@@ -276,9 +308,9 @@ public class MethodCallInfo {
             setError(ErrorType.UNRESOLVED_METHOD, "Cannot resolve method '" + methodName + "'");
             return;
         }
-
-        // Check static/instance access
-        if (isStaticAccess && !resolvedMethod.isStatic()) {
+        
+        // Check static/instance access (skip for constructors)
+        if (!isConstructor && isStaticAccess && !resolvedMethod.isStatic()) {
             setError(ErrorType.STATIC_ACCESS_ERROR,
                     "Cannot call instance method '" + methodName + "' on a class type");
             return;

@@ -1572,18 +1572,7 @@ public class ScriptDocument {
         }
     }
 
-    /**
-     * Wrapper class to hold both TypeInfo and constructor MethodInfo for "new" expressions.
-     */
-    static class NewExpressionInfo {
-        final TypeInfo typeInfo;
-        final MethodInfo constructor;
-        
-        NewExpressionInfo(TypeInfo typeInfo, MethodInfo constructor) {
-            this.typeInfo = typeInfo;
-            this.constructor = constructor;
-        }
-    }
+
 
     /**
      * Recursively parse and mark generic type parameters.
@@ -3392,9 +3381,12 @@ public class ScriptDocument {
                             if (info.hasConstructors()) {
                                 MethodInfo constructor = info.findConstructor(argCount);
                                 if (constructor != null) {
-                                    // Attach both type info and constructor
-                                    NewExpressionInfo newExpr = new NewExpressionInfo(info, constructor);
-                                    marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), newExpr));
+                                    // Create MethodCallInfo for constructor
+                                    MethodCallInfo ctorCall = MethodCallInfo.constructor(
+                                        info, constructor, start, end, openParen, closeParen, arguments
+                                    );
+                                    ctorCall.validate();
+                                    marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), ctorCall));
                                     continue;
                                 }
                             }
