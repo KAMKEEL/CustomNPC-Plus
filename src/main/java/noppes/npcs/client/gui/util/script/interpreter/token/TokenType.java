@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.token;
 
 /**
  * Defines all token types for syntax highlighting with hex colors and priorities.

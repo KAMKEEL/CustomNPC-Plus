@@ -1,4 +1,10 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.method;
+
+import noppes.npcs.client.gui.util.script.interpreter.*;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;

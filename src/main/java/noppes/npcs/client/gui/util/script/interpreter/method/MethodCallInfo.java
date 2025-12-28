@@ -1,6 +1,8 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.method;
 
-import scala.annotation.meta.param;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;

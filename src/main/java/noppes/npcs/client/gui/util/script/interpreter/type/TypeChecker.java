@@ -1,4 +1,4 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.type;
 
 /**
  * Utility class for checking type compatibility between types.

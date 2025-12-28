@@ -2,7 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
-import noppes.npcs.client.gui.util.script.interpreter.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 
 /**
  * Manages the hover state for token tooltips in the script editor.

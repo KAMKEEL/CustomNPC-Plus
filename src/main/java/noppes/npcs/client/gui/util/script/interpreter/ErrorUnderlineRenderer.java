@@ -1,6 +1,10 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import org.lwjgl.opengl.GL11;
 
 /**

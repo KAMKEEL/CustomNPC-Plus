@@ -13,8 +13,8 @@ import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 // New interpreter system imports
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
-import noppes.npcs.client.gui.util.script.interpreter.Token;
-import noppes.npcs.client.gui.util.script.interpreter.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
 import noppes.npcs.client.gui.util.script.interpreter.hover.TokenHoverRenderer;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;

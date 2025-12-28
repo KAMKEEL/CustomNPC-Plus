@@ -1,4 +1,12 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.token;
+
+import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 
 /**
  * Represents a single token in the source code with its type and metadata.

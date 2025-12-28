@@ -1,6 +1,7 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.PackageFinder;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.util.*;
 

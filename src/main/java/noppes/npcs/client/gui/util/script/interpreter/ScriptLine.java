@@ -1,7 +1,14 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
-import org.lwjgl.opengl.GL11;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.util.ArrayList;
 import java.util.Collections;

@@ -1,4 +1,6 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.field;
+
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

@@ -1,6 +1,9 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.field;
 
-import scala.annotation.meta.field;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;

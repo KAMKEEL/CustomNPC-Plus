@@ -1,6 +1,16 @@
 package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
+import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;

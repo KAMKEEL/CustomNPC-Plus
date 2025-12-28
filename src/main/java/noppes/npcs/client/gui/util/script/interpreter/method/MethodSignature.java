@@ -1,4 +1,6 @@
-package noppes.npcs.client.gui.util.script.interpreter;
+package noppes.npcs.client.gui.util.script.interpreter.method;
+
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.util.ArrayList;
 import java.util.List;

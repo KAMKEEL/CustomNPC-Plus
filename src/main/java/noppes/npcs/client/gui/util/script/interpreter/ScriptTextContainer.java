@@ -2,6 +2,8 @@ package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.JavaTextContainer;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +93,7 @@ public class ScriptTextContainer extends JavaTextContainer {
             ld.indentCols.addAll(scriptLine.getIndentGuides());
 
             // Convert tokens - use fully qualified name to avoid conflict with inherited Token
-            for (noppes.npcs.client.gui.util.script.interpreter.Token interpreterToken : scriptLine.getTokens()) {
+            for (noppes.npcs.client.gui.util.script.interpreter.token.Token interpreterToken : scriptLine.getTokens()) {
                 ld.tokens.add(new JavaTextContainer.Token(
                         interpreterToken.getText(),
                         toLegacyTokenType(interpreterToken.getType()),
@@ -121,26 +123,27 @@ public class ScriptTextContainer extends JavaTextContainer {
     /**
      * Convert new interpreter TokenType to legacy JavaTextContainer.TokenType format.
      */
-    private JavaTextContainer.TokenType toLegacyTokenType(noppes.npcs.client.gui.util.script.interpreter.TokenType type) {
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.COMMENT) return JavaTextContainer.TokenType.COMMENT;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.STRING) return JavaTextContainer.TokenType.STRING;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.CLASS_KEYWORD) return JavaTextContainer.TokenType.CLASS_KEYWORD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.IMPORT_KEYWORD) return JavaTextContainer.TokenType.IMPORT_KEYWORD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.KEYWORD) return JavaTextContainer.TokenType.KEYWORD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.MODIFIER) return JavaTextContainer.TokenType.MODIFIER;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.INTERFACE_DECL) return JavaTextContainer.TokenType.INTERFACE_DECL;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.ENUM_DECL) return JavaTextContainer.TokenType.ENUM_DECL;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.CLASS_DECL) return JavaTextContainer.TokenType.CLASS_DECL;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.IMPORTED_CLASS) return JavaTextContainer.TokenType.IMPORTED_CLASS;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.TYPE_DECL) return JavaTextContainer.TokenType.TYPE_DECL;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.METHOD_DECL) return JavaTextContainer.TokenType.METHOD_DECARE;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.METHOD_CALL) return JavaTextContainer.TokenType.METHOD_CALL;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.LITERAL) return JavaTextContainer.TokenType.NUMBER;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.GLOBAL_FIELD) return JavaTextContainer.TokenType.GLOBAL_FIELD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.LOCAL_FIELD) return JavaTextContainer.TokenType.LOCAL_FIELD;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.PARAMETER) return JavaTextContainer.TokenType.PARAMETER;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.UNDEFINED_VAR) return JavaTextContainer.TokenType.UNDEFINED_VAR;
-        if (type == noppes.npcs.client.gui.util.script.interpreter.TokenType.VARIABLE) return JavaTextContainer.TokenType.VARIABLE;
+    private JavaTextContainer.TokenType toLegacyTokenType(
+            noppes.npcs.client.gui.util.script.interpreter.token.TokenType type) {
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.COMMENT) return JavaTextContainer.TokenType.COMMENT;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.STRING) return JavaTextContainer.TokenType.STRING;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.CLASS_KEYWORD) return JavaTextContainer.TokenType.CLASS_KEYWORD;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.IMPORT_KEYWORD) return JavaTextContainer.TokenType.IMPORT_KEYWORD;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.KEYWORD) return JavaTextContainer.TokenType.KEYWORD;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.MODIFIER) return JavaTextContainer.TokenType.MODIFIER;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.INTERFACE_DECL) return JavaTextContainer.TokenType.INTERFACE_DECL;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.ENUM_DECL) return JavaTextContainer.TokenType.ENUM_DECL;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.CLASS_DECL) return JavaTextContainer.TokenType.CLASS_DECL;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.IMPORTED_CLASS) return JavaTextContainer.TokenType.IMPORTED_CLASS;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.TYPE_DECL) return JavaTextContainer.TokenType.TYPE_DECL;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.METHOD_DECL) return JavaTextContainer.TokenType.METHOD_DECARE;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.METHOD_CALL) return JavaTextContainer.TokenType.METHOD_CALL;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.LITERAL) return JavaTextContainer.TokenType.NUMBER;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.GLOBAL_FIELD) return JavaTextContainer.TokenType.GLOBAL_FIELD;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.LOCAL_FIELD) return JavaTextContainer.TokenType.LOCAL_FIELD;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.PARAMETER) return JavaTextContainer.TokenType.PARAMETER;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.UNDEFINED_VAR) return JavaTextContainer.TokenType.UNDEFINED_VAR;
+        if (type == noppes.npcs.client.gui.util.script.interpreter.token.TokenType.VARIABLE) return JavaTextContainer.TokenType.VARIABLE;
         return JavaTextContainer.TokenType.DEFAULT;
     }
 
@@ -160,7 +163,7 @@ public class ScriptTextContainer extends JavaTextContainer {
      * @param globalPosition Position in the document text
      * @return The Token at that position, or null
      */
-    public noppes.npcs.client.gui.util.script.interpreter.Token getInterpreterTokenAt(int globalPosition) {
+    public noppes.npcs.client.gui.util.script.interpreter.token.Token getInterpreterTokenAt(int globalPosition) {
         if (!USE_NEW_INTERPRETER || document == null) {
             return null;
         }
