@@ -30,6 +30,7 @@ public final class MethodInfo {
         MISSING_RETURN,        // Non-void method missing return statement
         RETURN_TYPE_MISMATCH,  // Return statement type doesn't match method return type
         VOID_METHOD_RETURNS_VALUE,  // Void method returns a value
+        DUPLICATE_METHOD,      // Method with same signature already defined in scope
         DUPLICATE_PARAMETER,   // Two parameters have the same name
         PARAMETER_UNDEFINED    // Parameter type cannot be resolved
     }
@@ -192,6 +193,16 @@ public final class MethodInfo {
     }
 
     /**
+     * Get the end of the method declaration (closing paren position).
+     * This is used for error highlighting of duplicate methods.
+     */
+    public int getDeclarationEnd() {
+        // The declaration ends just before the opening brace
+        // We find the closing paren by searching backwards from bodyStart
+        return bodyStart > 0 ? bodyStart - 1 : nameOffset + name.length();
+    }
+
+    /**
      * Check if this method has a parameter with the given name.
      */
     public boolean hasParameter(String paramName) {
@@ -213,6 +224,22 @@ public final class MethodInfo {
             }
         }
         return null;
+    }
+
+    /**
+     * Get method signature for duplicate detection.
+     * Signature = name + parameter types (ignoring parameter names).
+     */
+    public MethodSignature cachedSignature;
+
+    public MethodSignature getSignature() {
+        if (cachedSignature == null) {
+            List<TypeInfo> paramTypes = new ArrayList<>();
+            for (FieldInfo param : parameters)
+                paramTypes.add(param.getDeclaredType());
+            cachedSignature = new MethodSignature(name, paramTypes);
+        }
+        return cachedSignature;
     }
 
     /**

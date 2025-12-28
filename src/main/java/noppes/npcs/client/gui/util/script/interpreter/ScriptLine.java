@@ -522,6 +522,47 @@ public class ScriptLine {
                 }
             }
 
+            // Handle duplicate method error (underline from full declaration start to closing paren)
+            if (method.getErrorType() == MethodInfo.ErrorType.DUPLICATE_METHOD) {
+                int declStart = method.getFullDeclarationOffset();
+                int declEnd = method.getDeclarationEnd();
+
+                // Skip if declaration doesn't intersect this line
+                if (declEnd < lineStart || declStart > lineEnd)
+                    continue;
+
+                // Clip to line boundaries
+                int clipStart = Math.max(declStart, lineStart);
+                int clipEnd = Math.min(declEnd, lineEnd);
+
+                if (clipStart >= clipEnd)
+                    continue;
+
+                // Convert to line-local coordinates
+                int lineLocalStart = clipStart - lineStart;
+                int lineLocalEnd = clipEnd - lineStart;
+
+                // Bounds check
+                if (lineLocalStart < 0 || lineLocalStart >= lineText.length())
+                    continue;
+
+                // Compute pixel position
+                String beforeDecl = lineText.substring(0, lineLocalStart);
+                int beforeWidth = ClientProxy.Font.width(beforeDecl);
+
+                int declWidth;
+                if (lineLocalEnd > lineText.length()) {
+                    declWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+                } else {
+                    String declTextOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
+                    declWidth = ClientProxy.Font.width(declTextOnLine);
+                }
+
+                if (declWidth > 0) {
+                    drawCurlyUnderline(lineStartX + beforeWidth, baselineY, declWidth, 0xFF5555);
+                }
+            }
+
             // Handle parameter errors (underline specific parameters)
             if (method.hasParameterErrors()) {
                 for (MethodInfo.ParameterError paramError : method.getParameterErrors()) {

@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 
 import java.util.*;
@@ -604,6 +603,9 @@ public class ScriptDocument {
             methods.add(methodInfo);
         }
 
+        // Check for duplicate method declarations
+        checkDuplicateMethods();
+
         // Also parse JS-style functions
         Matcher funcM = FUNC_PARAMS_PATTERN.matcher(text);
         while (funcM.find()) {
@@ -664,6 +666,97 @@ public class ScriptDocument {
         }
         
         return earliestPos;
+    }
+
+    /**
+     * Check for duplicate method declarations with same signature in same scope.
+     */
+    private void checkDuplicateMethods() {
+        // Group methods by scope depth
+        Map<Integer, List<MethodInfo>> methodsByScope = new HashMap<>();
+        
+        for (MethodInfo method : methods) {
+            int scopeDepth = calculateScopeDepth(method.getFullDeclarationOffset());
+            methodsByScope.computeIfAbsent(scopeDepth, k -> new ArrayList<>()).add(method);
+        }
+        
+        // Check each scope for duplicates
+        for (List<MethodInfo> scopeMethods : methodsByScope.values()) {
+            Map<MethodSignature, List<MethodInfo>> signatureMap = new HashMap<>();
+            
+            for (MethodInfo method : scopeMethods) {
+                MethodSignature signature = method.getSignature();
+                signatureMap.computeIfAbsent(signature, k -> new ArrayList<>()).add(method);
+            }
+            
+            // Mark all methods with duplicate signatures
+            for (Map.Entry<MethodSignature, List<MethodInfo>> entry : signatureMap.entrySet()) {
+                List<MethodInfo> duplicates = entry.getValue();
+                if (duplicates.size() > 1) {
+                    for (MethodInfo duplicate : duplicates) {
+                        duplicate.setError(
+                            MethodInfo.ErrorType.DUPLICATE_METHOD,
+                            duplicate.getSignature() + " is already defined in this scope"
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Calculate the scope depth of a position (0 = top level, 1 = in class, etc.).
+     */
+    private int calculateScopeDepth(int position) {
+        int depth = 0;
+        int braceDepth = 0;
+        boolean inString = false;
+        boolean inComment = false;
+        boolean inLineComment = false;
+        
+        for (int i = 0; i < position && i < text.length(); i++) {
+            char c = text.charAt(i);
+            char next = (i + 1 < text.length()) ? text.charAt(i + 1) : 0;
+            
+            // Handle strings
+            if (c == '"' && !inComment && !inLineComment) {
+                inString = !inString;
+                continue;
+            }
+            if (inString) continue;
+            
+            // Handle comments
+            if (!inComment && !inLineComment && c == '/' && next == '/') {
+                inLineComment = true;
+                i++;
+                continue;
+            }
+            if (!inComment && !inLineComment && c == '/' && next == '*') {
+                inComment = true;
+                i++;
+                continue;
+            }
+            if (inComment && c == '*' && next == '/') {
+                inComment = false;
+                i++;
+                continue;
+            }
+            if (inLineComment && c == '\n') {
+                inLineComment = false;
+                continue;
+            }
+            if (inComment || inLineComment) continue;
+            
+            // Track braces
+            if (c == '{') {
+                braceDepth++;
+                depth = Math.max(depth, braceDepth);
+            } else if (c == '}') {
+                braceDepth--;
+            }
+        }
+        
+        return depth;
     }
 
     private List<FieldInfo> parseParametersWithPositions(String paramList, int paramListStart) {

@@ -221,6 +221,16 @@ public class TokenHoverInfo {
                 }
             }
             
+            // If hovering over duplicate method declaration, show the error
+            if (methodDecl.getErrorType() == MethodInfo.ErrorType.DUPLICATE_METHOD) {
+                int declStart = methodDecl.getFullDeclarationOffset();
+                int declEnd = methodDecl.getDeclarationEnd();
+                
+                if (tokenStart >= declStart && tokenEnd <= declEnd) {
+                    errors.add(methodDecl.getErrorMessage());
+                }
+            }
+            
             // If hovering over a parameter with an error, show that error
             if (methodDecl.hasParameterErrors()) {
                 for (MethodInfo.ParameterError paramError : methodDecl.getParameterErrors()) {
