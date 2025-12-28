@@ -281,27 +281,37 @@ public class TokenHoverRenderer {
             return lines;
         }
 
-        // Fallback: simple word wrapping
-        String[] words = text.split(" ");
-        StringBuilder currentLine = new StringBuilder();
+        // First split by explicit newlines
+        String[] paragraphs = text.split("\n", -1);  // -1 to preserve trailing empty lines
         
-        for (String word : words) {
-            String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
-            int testWidth = ClientProxy.Font.width(testLine);
-            
-            if (testWidth > maxWidth && currentLine.length() > 0) {
-                lines.add(currentLine.toString());
-                currentLine = new StringBuilder(word);
-            } else {
-                if (currentLine.length() > 0) {
-                    currentLine.append(" ");
-                }
-                currentLine.append(word);
+        for (String paragraph : paragraphs) {
+            if (paragraph.isEmpty()) {
+                lines.add("");
+                continue;
             }
-        }
-        
-        if (currentLine.length() > 0) {
-            lines.add(currentLine.toString());
+            
+            // Then apply word wrapping to each paragraph
+            String[] words = paragraph.split(" ");
+            StringBuilder currentLine = new StringBuilder();
+            
+            for (String word : words) {
+                String testLine = currentLine.length() == 0 ? word : currentLine + " " + word;
+                int testWidth = ClientProxy.Font.width(testLine);
+                
+                if (testWidth > maxWidth && currentLine.length() > 0) {
+                    lines.add(currentLine.toString());
+                    currentLine = new StringBuilder(word);
+                } else {
+                    if (currentLine.length() > 0) {
+                        currentLine.append(" ");
+                    }
+                    currentLine.append(word);
+                }
+            }
+            
+            if (currentLine.length() > 0) {
+                lines.add(currentLine.toString());
+            }
         }
         
         if (lines.isEmpty()) {
