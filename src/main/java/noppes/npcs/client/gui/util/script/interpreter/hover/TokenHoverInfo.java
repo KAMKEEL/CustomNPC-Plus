@@ -171,7 +171,7 @@ public class TokenHoverInfo {
         MethodCallInfo callInfo = token.getMethodCallInfo();
         if (callInfo != null) {
             if (callInfo.hasArgCountError()) {
-                errors.add("Expected " + getExpectedArgCount(callInfo) + " argument(s) but found " + callInfo.getArguments().size());
+                errors.add(callInfo.getErrorMessage());
             }
             if (callInfo.hasArgTypeError()) {
                 for (MethodCallInfo.ArgumentTypeError error : callInfo.getArgumentTypeErrors()) {

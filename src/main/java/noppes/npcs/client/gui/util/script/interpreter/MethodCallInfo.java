@@ -305,7 +305,18 @@ public class MethodCallInfo {
      */
     public void validate() {
         if (resolvedMethod == null) {
-            setError(ErrorType.UNRESOLVED_METHOD, "Cannot resolve method '" + methodName + "'");
+            if (isConstructor) {
+                // For constructors, check if the type has any constructors at all
+                if (receiverType != null && receiverType.hasConstructors()) {
+                    setError(ErrorType.WRONG_ARG_COUNT, 
+                            "No constructor in '" + methodName + "' matches " + arguments.size() + " argument(s)");
+                } else {
+                    setError(ErrorType.UNRESOLVED_METHOD, 
+                            "Cannot resolve constructor for '" + methodName + "'");
+                }
+            } else {
+                setError(ErrorType.UNRESOLVED_METHOD, "Cannot resolve method '" + methodName + "'");
+            }
             return;
         }
         

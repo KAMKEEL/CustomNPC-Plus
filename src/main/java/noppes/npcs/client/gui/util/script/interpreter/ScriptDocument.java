@@ -3378,18 +3378,17 @@ public class ScriptDocument {
                             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen);
                             int argCount = arguments.size();
                             
-                            if (info.hasConstructors()) {
-                                MethodInfo constructor = info.findConstructor(argCount);
-                                if (constructor != null) {
-                                    // Create MethodCallInfo for constructor
-                                    MethodCallInfo ctorCall = MethodCallInfo.constructor(
-                                        info, constructor, start, end, openParen, closeParen, arguments
-                                    );
-                                    ctorCall.validate();
-                                    marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), ctorCall));
-                                    continue;
-                                }
-                            }
+                            // Try to find matching constructor (may be null if not found)
+                            MethodInfo constructor = info.hasConstructors() ? info.findConstructor(argCount) : null;
+                            
+                            // Create MethodCallInfo for constructor (even if null, so errors are tracked)
+                            MethodCallInfo ctorCall = MethodCallInfo.constructor(
+                                info, constructor, start, end, openParen, closeParen, arguments
+                            );
+                            ctorCall.validate();
+                            methodCalls.add(ctorCall);  // Add to methodCalls list for error tracking
+                            marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), ctorCall));
+                            continue;
                         }
                     }
                 }
