@@ -29,6 +29,7 @@ public final class MethodInfo {
         NONE,
         MISSING_RETURN,        // Non-void method missing return statement
         RETURN_TYPE_MISMATCH,  // Return statement type doesn't match method return type
+        VOID_METHOD_RETURNS_VALUE,  // Void method returns a value
         DUPLICATE_PARAMETER,   // Two parameters have the same name
         PARAMETER_UNDEFINED    // Parameter type cannot be resolved
     }
@@ -454,9 +455,9 @@ public final class MethodInfo {
      */
     private void validateReturnTypes(String bodyText, TypeResolver typeResolver) {
         if (bodyText == null || bodyText.isEmpty()) return;
-        if (TypeChecker.isVoidType(returnType)) return;
         
-        String expectedTypeName = returnType.getSimpleName();
+        boolean isVoid = TypeChecker.isVoidType(returnType);
+        String expectedTypeName = isVoid ? "void" : returnType.getSimpleName();
         
         // Remove comments but keep strings (we need accurate positions)
         String cleanBody = CodeParser.removeComments(bodyText);
@@ -478,12 +479,17 @@ public final class MethodInfo {
             // Extract the return expression
             String returnExpr = cleanBody.substring(returnPos + 6, semiPos).trim();
             
-            // Skip empty returns (handled by missing return check)
-            if (!returnExpr.isEmpty()) {
-                // Calculate absolute position (bodyStart + 1 is after the opening brace)
-                int absoluteReturnStart = bodyStart + 1 + returnPos;
-                int absoluteSemiEnd = bodyStart + 1 + semiPos + 1; // +1 to include semicolon
-                
+            // Calculate absolute position (bodyStart + 1 is after the opening brace)
+            int absoluteReturnStart = bodyStart + 1 + returnPos;
+            int absoluteSemiEnd = bodyStart + 1 + semiPos + 1; // +1 to include semicolon
+            
+            // Check void method returning a value
+            if (isVoid && !returnExpr.isEmpty()) {
+                String message = "Cannot return a value from a method with void result type";
+                addReturnStatementError(absoluteReturnStart, absoluteSemiEnd, message, returnType, null);
+            }
+            // Check non-void method return type compatibility
+            else if (!isVoid && !returnExpr.isEmpty() && typeResolver != null) {
                 // Resolve the expression type
                 TypeInfo actualType = typeResolver.resolveExpression(returnExpr, absoluteReturnStart);
                 
