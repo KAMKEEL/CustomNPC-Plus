@@ -450,6 +450,126 @@ public class ScriptLine {
                 drawCurlyUnderline(lineStartX + beforeWidth, baselineY, underlineWidth, 0xFF5555);
             }
         }
+
+        // Check all method declarations for errors (missing return, parameter errors, return type errors)
+        for (MethodInfo method : doc.getMethods()) {
+            if (!method.isDeclaration() || !method.hasError())
+                continue;
+
+            // Handle return statement type errors (underline the entire return statement)
+            if (method.hasReturnStatementErrors()) {
+                for (MethodInfo.ReturnStatementError returnError : method.getReturnStatementErrors()) {
+                    int returnStart = returnError.getStartOffset();
+                    int returnEnd = returnError.getEndOffset();
+
+                    //error 247, 258
+                    //line 235, 259
+                    // Skip if return statement doesn't intersect this line
+                    if (returnEnd < lineStart || returnStart > lineEnd)
+                        continue;
+
+                    // Clip to line boundaries
+                    int clipStart = Math.max(returnStart, lineStart);
+                    int clipEnd = Math.min(returnEnd, lineEnd);
+
+                    if (clipStart >= clipEnd)
+                        continue;
+
+                    // Convert to line-local coordinates
+                    int lineLocalStart = clipStart - lineStart;
+                    int lineLocalEnd = clipEnd - lineStart;
+
+                    // Bounds check
+                    if (lineLocalStart < 0 || lineLocalStart >= lineText.length())
+                        continue;
+
+                    // Compute pixel position
+                    String beforeReturn = lineText.substring(0, lineLocalStart);
+                    int beforeWidth = ClientProxy.Font.width(beforeReturn);
+
+                    int returnWidth;
+                    if (lineLocalEnd > lineText.length()) {
+                        returnWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+                    } else {
+                        String returnTextOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
+                        returnWidth = ClientProxy.Font.width(returnTextOnLine);
+                    }
+
+                    if (returnWidth > 0) {
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, returnWidth, 0xFF5555);
+                    }
+                }
+            }
+            
+            // Handle missing return error (underline the method name)
+            if (method.hasMissingReturnError()) {
+                int methodNameStart = method.getNameOffset();
+                int methodNameEnd = methodNameStart + method.getName().length();
+
+                // Skip if method name doesn't intersect this line
+                if (methodNameEnd < lineStart || methodNameStart > lineEnd)
+                    continue;
+
+                // Check if method name is on this line
+                if (methodNameStart >= lineStart && methodNameStart < lineEnd) {
+                    int lineLocalStart = methodNameStart - lineStart;
+                    if (lineLocalStart >= 0 && lineLocalStart < lineText.length()) {
+                        String beforeMethod = lineText.substring(0, lineLocalStart);
+                        int beforeWidth = ClientProxy.Font.width(beforeMethod);
+                        int methodWidth = ClientProxy.Font.width(method.getName());
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, methodWidth, 0xFF5555);
+                    }
+                }
+            }
+
+            // Handle parameter errors (underline specific parameters)
+            if (method.hasParameterErrors()) {
+                for (MethodInfo.ParameterError paramError : method.getParameterErrors()) {
+                    FieldInfo param = paramError.getParameter();
+                    if (param == null || param.getDeclarationOffset() < 0)
+                        continue;
+
+                    int paramStart = param.getDeclarationOffset();
+                    int paramEnd = paramStart + param.getName().length();
+
+                    // Skip if parameter doesn't intersect this line
+                    if (paramEnd < lineStart || paramStart > lineEnd)
+                        continue;
+
+                    // Clip to line boundaries
+                    int clipStart = Math.max(paramStart, lineStart);
+                    int clipEnd = Math.min(paramEnd, lineEnd);
+
+                    if (clipStart >= clipEnd)
+                        continue;
+
+                    // Convert to line-local coordinates
+                    int lineLocalStart = clipStart - lineStart;
+                    int lineLocalEnd = clipEnd - lineStart;
+
+                    // Bounds check
+                    if (lineLocalStart < 0 || lineLocalStart >= lineText.length())
+                        continue;
+
+                    // Compute pixel position
+                    String beforeParam = lineText.substring(0, lineLocalStart);
+                    int beforeWidth = ClientProxy.Font.width(beforeParam);
+
+                    int paramWidth;
+                    if (lineLocalEnd > lineText.length()) {
+                        paramWidth = ClientProxy.Font.width(lineText.substring(lineLocalStart));
+                    } else {
+                        String paramTextOnLine = lineText.substring(lineLocalStart, lineLocalEnd);
+                        paramWidth = ClientProxy.Font.width(paramTextOnLine);
+                    }
+
+                    if (paramWidth > 0) {
+                        drawCurlyUnderline(lineStartX + beforeWidth, baselineY, paramWidth, 0xFF5555);
+                    }
+                }
+            }
+
+        }
     }
 
     /**

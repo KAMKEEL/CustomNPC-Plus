@@ -204,6 +204,50 @@ public class TokenHoverInfo {
         if (fieldInfo != null && !fieldInfo.isResolved()) {
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
         }
+
+        // Show method declaration errors (missing return, parameter errors, return type errors)
+        MethodInfo methodDecl = findMethodDeclarationContainingPosition(token);
+        if (methodDecl != null && methodDecl.hasError()) {
+            int tokenStart = token.getGlobalStart();
+            int tokenEnd = token.getGlobalEnd();
+            
+            // If hovering over the method name, show missing return error
+            if (methodDecl.hasMissingReturnError()) {
+                int methodNameStart = methodDecl.getNameOffset();
+                int methodNameEnd = methodNameStart + methodDecl.getName().length();
+                
+                if (tokenStart >= methodNameStart && tokenEnd <= methodNameEnd) {
+                    errors.add(methodDecl.getErrorMessage());
+                }
+            }
+            
+            // If hovering over a parameter with an error, show that error
+            if (methodDecl.hasParameterErrors()) {
+                for (MethodInfo.ParameterError paramError : methodDecl.getParameterErrors()) {
+                    FieldInfo param = paramError.getParameter();
+                    if (param != null && param.getDeclarationOffset() >= 0) {
+                        int paramStart = param.getDeclarationOffset();
+                        int paramEnd = paramStart + param.getName().length();
+                        
+                        if (tokenStart >= paramStart && tokenEnd <= paramEnd) {
+                            errors.add(paramError.getMessage());
+                        }
+                    }
+                }
+            }
+            
+            // If hovering over a return statement with a type error, show that error
+            if (methodDecl.hasReturnStatementErrors()) {
+                for (MethodInfo.ReturnStatementError returnError : methodDecl.getReturnStatementErrors()) {
+                    int returnStart = returnError.getStartOffset();
+                    int returnEnd = returnError.getEndOffset();
+                    
+                    if (tokenStart >= returnStart && tokenEnd <= returnEnd) {
+                        errors.add(returnError.getMessage());
+                    }
+                }
+            }
+        }
     }
     
     /**
@@ -243,6 +287,36 @@ public class TokenHoverInfo {
                     continue;
                 }
                 return call;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find the method declaration that contains this token's position.
+     * Returns null if the token is not within a method declaration (header or body).
+     */
+    private MethodInfo findMethodDeclarationContainingPosition(Token token) {
+        ScriptLine line = token.getParentLine();
+        if (line == null || line.getParent() == null) {
+            return null;
+        }
+
+        ScriptDocument doc = line.getParent();
+        int tokenStart = token.getGlobalStart();
+
+        for (MethodInfo method : doc.getMethods()) {
+            if (!method.isDeclaration())
+                continue;
+
+            // Check if token is within the method declaration header OR body
+            int methodStart = method.getFullDeclarationOffset();
+            if (methodStart < 0) methodStart = method.getTypeOffset();
+            int bodyEnd = method.getBodyEnd();
+
+            // Token is within the method (header + body)
+            if (tokenStart >= methodStart && tokenStart <= bodyEnd) {
+                return method;
             }
         }
         return null;
