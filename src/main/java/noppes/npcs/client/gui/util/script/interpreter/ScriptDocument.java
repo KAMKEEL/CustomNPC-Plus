@@ -1,6 +1,8 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.util.script.interpreter.expression.ExpressionNode;
+import noppes.npcs.client.gui.util.script.interpreter.expression.ExpressionTypeResolver;
 import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
@@ -2236,6 +2238,7 @@ public class ScriptDocument {
      * - Mixed chains (a.b().c.d())
      * - Static access (Class.field, Class.method())
      * - New expressions (new Type())
+     * - All Java operators (arithmetic, logical, bitwise, etc.)
      * 
      * This is THE method that should be used for all type resolution needs.
      */
@@ -2244,6 +2247,11 @@ public class ScriptDocument {
         
         if (expr.isEmpty()) {
             return null;
+        }
+        
+        // Check if expression contains operators - if so, use the full expression resolver
+        if (containsOperators(expr)) {
+            return resolveExpressionWithOperators(expr, position);
         }
         
         // Invalid expressions starting with brackets
@@ -2529,6 +2537,350 @@ public class ScriptDocument {
             }
             return null;
         }
+    }
+
+    // ==================== OPERATOR EXPRESSION RESOLUTION ====================
+    
+    /**
+     * Check if an expression contains operators that need advanced resolution.
+     * This is a quick heuristic check - it may have false positives for operators
+     * inside strings, but those are handled by the full parser.
+     */
+    private boolean containsOperators(String expr) {
+        if (expr == null) return false;
+        
+        boolean inString = false;
+        boolean inChar = false;
+        
+        for (int i = 0; i < expr.length(); i++) {
+            char c = expr.charAt(i);
+            char next = (i + 1 < expr.length()) ? expr.charAt(i + 1) : 0;
+            
+            // Track string literals
+            if (c == '"' && !inChar) {
+                if (!inString) {
+                    inString = true;
+                } else if (i > 0 && expr.charAt(i - 1) != '\\') {
+                    inString = false;
+                }
+                continue;
+            }
+            
+            // Track char literals  
+            if (c == '\'' && !inString) {
+                if (!inChar) {
+                    inChar = true;
+                } else if (i > 0 && expr.charAt(i - 1) != '\\') {
+                    inChar = false;
+                }
+                continue;
+            }
+            
+            // Skip content inside strings/chars
+            if (inString || inChar) continue;
+            
+            // Check for operators (excluding . which is used for member access)
+            switch (c) {
+                case '+':
+                    // + is arithmetic unless it's unary at start or after operator
+                    if (next == '+') return true; // ++
+                    if (next == '=') return true; // +=
+                    // Check if this is binary + by looking at previous non-whitespace
+                    int prevIdx = i - 1;
+                    while (prevIdx >= 0 && Character.isWhitespace(expr.charAt(prevIdx))) prevIdx--;
+                    if (prevIdx >= 0) {
+                        char prev = expr.charAt(prevIdx);
+                        // If previous char is identifier char or ), this is binary
+                        if (Character.isJavaIdentifierPart(prev) || prev == ')' || prev == ']' || Character.isDigit(prev)) {
+                            return true;
+                        }
+                    }
+                    break;
+                    
+                case '-':
+                    // - is arithmetic unless it's unary minus before a number
+                    if (next == '-') return true; // --
+                    if (next == '=') return true; // -=
+                    // Check if this is binary - by looking at previous non-whitespace
+                    prevIdx = i - 1;
+                    while (prevIdx >= 0 && Character.isWhitespace(expr.charAt(prevIdx))) prevIdx--;
+                    if (prevIdx >= 0) {
+                        char prev = expr.charAt(prevIdx);
+                        // If previous char is identifier char or ), this is binary
+                        if (Character.isJavaIdentifierPart(prev) || prev == ')' || prev == ']' || Character.isDigit(prev)) {
+                            return true;
+                        }
+                    }
+                    break;
+                    
+                case '*': case '/': case '%':
+                    return true;
+                    
+                case '&':
+                    if (next == '&' || next == '=') return true;
+                    // Single & is bitwise AND
+                    return true;
+                    
+                case '|':
+                    if (next == '|' || next == '=') return true;
+                    // Single | is bitwise OR
+                    return true;
+                    
+                case '^': case '~':
+                    return true;
+                    
+                case '<':
+                    // Could be < > <= >= << or generics
+                    if (next == '<' || next == '=') return true;
+                    // Check if this looks like relational (not generic type params)
+                    // Generics typically follow a type name directly with no space
+                    int nextNonSpace = i + 1;
+                    while (nextNonSpace < expr.length() && Character.isWhitespace(expr.charAt(nextNonSpace))) nextNonSpace++;
+                    if (nextNonSpace < expr.length() && !Character.isUpperCase(expr.charAt(nextNonSpace))) {
+                        return true;
+                    }
+                    break;
+                    
+                case '>':
+                    if (next == '>' || next == '=') return true;
+                    // Similar check for generics
+                    break;
+                    
+                case '!':
+                    if (next == '=') return true; // !=
+                    // Standalone ! is logical NOT
+                    return true;
+                    
+                case '=':
+                    if (next == '=') return true; // ==
+                    // Single = is assignment
+                    return true;
+                    
+                case '?':
+                    // Ternary operator - but be careful of generics with ?
+                    // If followed by :, it's definitely ternary
+                    for (int j = i + 1; j < expr.length(); j++) {
+                        if (expr.charAt(j) == ':') return true;
+                    }
+                    break;
+            }
+        }
+        
+        // Check for instanceof keyword
+        if (expr.contains(" instanceof ")) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Resolve an expression that contains operators using the full expression parser.
+     * This handles all Java operators with proper precedence and type promotion rules.
+     */
+    private TypeInfo resolveExpressionWithOperators(String expr, int position) {
+        // Create a context that bridges to ScriptDocument's existing resolution methods
+        ExpressionNode.TypeResolverContext context = createExpressionResolverContext(position);
+        
+        // Use the expression resolver to parse and resolve the type
+        ExpressionTypeResolver resolver = new ExpressionTypeResolver(context);
+        TypeInfo result = resolver.resolve(expr);
+        
+        // If the expression resolver couldn't resolve it, fall back to simple resolution
+        if (result == null || !result.isResolved()) {
+            // Try the simple path in case the operator detection was a false positive
+            return resolveSimpleExpression(expr, position);
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Create a type resolver context that connects the expression resolver
+     * to ScriptDocument's existing type resolution infrastructure.
+     */
+    private ExpressionNode.TypeResolverContext createExpressionResolverContext(int position) {
+        return new ExpressionNode.TypeResolverContext() {
+            @Override
+            public TypeInfo resolveIdentifier(String name) {
+                // Check for special keywords first
+                if ("this".equals(name)) {
+                    return findEnclosingScriptType(position);
+                }
+                if ("true".equals(name) || "false".equals(name)) {
+                    return TypeInfo.fromPrimitive("boolean");
+                }
+                if ("null".equals(name)) {
+                    return null;
+                }
+                
+                // Try to resolve as a variable
+                FieldInfo varInfo = resolveVariable(name, position);
+                if (varInfo != null) {
+                    return varInfo.getTypeInfo();
+                }
+                
+                // Try as a class name (for static access)
+                if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) {
+                    return resolveType(name);
+                }
+                
+                return null;
+            }
+            
+            @Override
+            public TypeInfo resolveMemberAccess(TypeInfo targetType, String memberName) {
+                if (targetType == null || !targetType.isResolved()) {
+                    return null;
+                }
+                
+                if (targetType.hasField(memberName)) {
+                    FieldInfo fieldInfo = targetType.getFieldInfo(memberName);
+                    return (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+                }
+                
+                return null;
+            }
+            
+            @Override
+            public TypeInfo resolveMethodCall(TypeInfo targetType, String methodName, TypeInfo[] argTypes) {
+                if (targetType == null || !targetType.isResolved()) {
+                    // Try as a script-defined method
+                    if (isScriptMethod(methodName)) {
+                        MethodInfo scriptMethod = getScriptMethodInfo(methodName);
+                        if (scriptMethod != null) {
+                            return scriptMethod.getReturnType();
+                        }
+                    }
+                    return null;
+                }
+                
+                if (targetType.hasMethod(methodName)) {
+                    MethodInfo methodInfo = targetType.getMethodInfo(methodName);
+                    return (methodInfo != null) ? methodInfo.getReturnType() : null;
+                }
+                
+                return null;
+            }
+            
+            @Override
+            public TypeInfo resolveArrayAccess(TypeInfo arrayType) {
+                if (arrayType == null || !arrayType.isResolved()) {
+                    return null;
+                }
+                
+                String typeName = arrayType.getFullName();
+                if (typeName.endsWith("[]")) {
+                    String elementTypeName = typeName.substring(0, typeName.length() - 2);
+                    // Try to resolve the element type properly
+                    return resolveType(elementTypeName);
+                }
+                
+                // For List<T> or similar, try to extract the element type
+                // This is a simplified version - could be enhanced for full generic support
+                return null;
+            }
+            
+            @Override
+            public TypeInfo resolveTypeName(String typeName) {
+                return resolveType(typeName);
+            }
+        };
+    }
+    
+    /**
+     * Resolve a simple expression without operators.
+     * This is the fallback path when operator detection was a false positive.
+     */
+    private TypeInfo resolveSimpleExpression(String expr, int position) {
+        // String literals
+        if (expr.startsWith("\"") && expr.endsWith("\"")) {
+            return resolveType("String");
+        }
+        
+        // Character literals
+        if (expr.startsWith("'") && expr.endsWith("'")) {
+            return TypeInfo.fromPrimitive("char");
+        }
+        
+        // Boolean literals
+        if (expr.equals("true") || expr.equals("false")) {
+            return TypeInfo.fromPrimitive("boolean");
+        }
+        
+        // Null literal
+        if (expr.equals("null")) {
+            return null;
+        }
+        
+        // Numeric literals
+        if (expr.matches("-?\\d*\\.?\\d+[fF]")) {
+            if (hasExcessivePrecision(expr, 7)) {
+                return TypeInfo.fromPrimitive("double");
+            }
+            return TypeInfo.fromPrimitive("float");
+        }
+        if (expr.matches("-?\\d*\\.\\d+[dD]?") || expr.matches("-?\\d+\\.[dD]?") || expr.matches("-?\\d+[dD]")) {
+            if (hasExcessivePrecision(expr, 15)) {
+                return null;
+            }
+            return TypeInfo.fromPrimitive("double");
+        }
+        if (expr.matches("-?\\d+[lL]")) {
+            return TypeInfo.fromPrimitive("long");
+        }
+        if (expr.matches("-?\\d+")) {
+            return TypeInfo.fromPrimitive("int");
+        }
+        
+        // "this" keyword
+        if (expr.equals("this")) {
+            return findEnclosingScriptType(position);
+        }
+        
+        // "new Type()" expressions
+        if (expr.startsWith("new ")) {
+            Matcher newMatcher = NEW_TYPE_PATTERN.matcher(expr);
+            if (newMatcher.find()) {
+                return resolveType(newMatcher.group(1));
+            }
+        }
+        
+        // Try as variable or field chain
+        List<ChainSegment> segments = parseExpressionChain(expr);
+        if (segments.isEmpty()) {
+            return null;
+        }
+        
+        ChainSegment first = segments.get(0);
+        TypeInfo currentType = null;
+        
+        if (first.name.equals("this")) {
+            currentType = findEnclosingScriptType(position);
+        } else if (Character.isUpperCase(first.name.charAt(0))) {
+            currentType = resolveType(first.name);
+        } else if (!first.isMethodCall) {
+            FieldInfo varInfo = resolveVariable(first.name, position);
+            if (varInfo != null) {
+                currentType = varInfo.getTypeInfo();
+            }
+        } else {
+            if (isScriptMethod(first.name)) {
+                MethodInfo scriptMethod = getScriptMethodInfo(first.name);
+                if (scriptMethod != null) {
+                    currentType = scriptMethod.getReturnType();
+                }
+            }
+        }
+        
+        for (int i = 1; i < segments.size(); i++) {
+            currentType = resolveChainSegment(currentType, segments.get(i));
+            if (currentType == null) {
+                return null;
+            }
+        }
+        
+        return currentType;
     }
 
     /**
