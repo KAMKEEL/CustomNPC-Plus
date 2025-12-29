@@ -120,6 +120,67 @@ public final class TypeChecker {
     }
 
     /**
+     * Check if a type is a numeric primitive (byte, short, int, long, float, double)
+     */
+    public static boolean isNumericPrimitive(TypeInfo type) {
+        if (type == null || type.getJavaClass() == null) return false;
+        Class<?> cls = type.getJavaClass();
+        return cls == byte.class || cls == Byte.class ||
+                cls == short.class || cls == Short.class ||
+                cls == int.class || cls == Integer.class ||
+                cls == long.class || cls == Long.class ||
+                cls == float.class || cls == Float.class ||
+                cls == double.class || cls == Double.class;
+    }
+
+    /**
+     * Check if a numeric type can be promoted to a target numeric type.
+     * Follows Java's numeric promotion hierarchy: byte -> short -> int -> long -> float -> double
+     */
+    public static boolean canPromoteNumeric(TypeInfo from, TypeInfo to) {
+        if (from == null || to == null || from.getJavaClass() == null || to.getJavaClass() == null) return false;
+
+        Class<?> fromClass = from.getJavaClass();
+        Class<?> toClass = to.getJavaClass();
+
+        // Unbox if necessary
+        if (fromClass == Byte.class) fromClass = byte.class;
+        if (fromClass == Short.class) fromClass = short.class;
+        if (fromClass == Integer.class) fromClass = int.class;
+        if (fromClass == Long.class) fromClass = long.class;
+        if (fromClass == Float.class) fromClass = float.class;
+        if (fromClass == Double.class) fromClass = double.class;
+
+        if (toClass == Byte.class) toClass = byte.class;
+        if (toClass == Short.class) toClass = short.class;
+        if (toClass == Integer.class) toClass = int.class;
+        if (toClass == Long.class) toClass = long.class;
+        if (toClass == Float.class) toClass = float.class;
+        if (toClass == Double.class) toClass = double.class;
+
+        // Get numeric ranks (higher = wider type)
+        int fromRank = getNumericRank(fromClass);
+        int toRank = getNumericRank(toClass);
+
+        return fromRank >= 0 && toRank >= 0 && fromRank <= toRank;
+    }
+
+    /**
+     * Get the numeric rank for promotion hierarchy.
+     * byte=0, short=1, int=2, long=3, float=4, double=5
+     */
+    public static int getNumericRank(Class<?> cls) {
+        if (cls == byte.class) return 0;
+        if (cls == short.class) return 1;
+        if (cls == int.class) return 2;
+        if (cls == long.class) return 3;
+        if (cls == float.class) return 4;
+        if (cls == double.class) return 5;
+        return -1;
+    }
+
+
+    /**
      * Check if the type name is a primitive or its wrapper type.
      */
     public static boolean isPrimitiveOrWrapper(String typeName) {

@@ -321,7 +321,7 @@ public class TypeInfo {
 
     /**
      * Find the best matching method overload based on argument types.
-     * Uses Java's method resolution rules: exact match, then widening conversion, then autoboxing.
+     * Uses Java's method resolution rules: exact match, then numeric promotion, then widening conversion, then autoboxing.
      * 
      * @param methodName The name of the method
      * @param argTypes The types of the arguments being passed
@@ -359,7 +359,67 @@ public class TypeInfo {
             }
         }
         
-        // Phase 2: Try compatible match (widening, autoboxing, subtyping)
+        // Phase 2: Try numeric promotion match
+        // For methods with all numeric parameters, find the narrowest common type that all args can promote to
+        MethodInfo bestNumericMatch = null;
+        int bestNumericRank = Integer.MAX_VALUE;
+        
+        for (MethodInfo method : overloads) {
+            if (method.getParameterCount() == argTypes.length) {
+                java.util.List<FieldInfo> params = method.getParameters();
+                
+                // Check if all parameters and arguments are numeric primitives
+                boolean allNumeric = true;
+                for (int i = 0; i < argTypes.length; i++) {
+                    TypeInfo paramType = params.get(i).getTypeInfo();
+                    TypeInfo argType = argTypes[i];
+                    if (paramType == null || argType == null || 
+                        !TypeChecker.isNumericPrimitive(paramType) || !TypeChecker.isNumericPrimitive(argType)) {
+                        allNumeric = false;
+                        break;
+                    }
+                }
+                
+                if (allNumeric) { 
+                    // Check if all parameters are the same numeric type
+                    TypeInfo commonParamType = params.get(0).getTypeInfo();
+                    boolean allParamsSame = true;
+                    for (int i = 1; i < params.size(); i++) {
+                        TypeInfo paramType = params.get(i).getTypeInfo();
+                        if (!paramType.equals(commonParamType)) {
+                            allParamsSame = false;
+                            break;
+                        }
+                    }
+                    
+                    // If all parameters are the same numeric type, check if args can promote to it
+                    if (allParamsSame) {
+                        boolean canPromote = true;
+                        for (int i = 0; i < argTypes.length; i++) {
+                            if (!TypeChecker.canPromoteNumeric(argTypes[i], commonParamType)) {
+                                canPromote = false;
+                                break;
+                            }
+                        }
+                        
+                        // If all args can promote, check if this is the narrowest match so far
+                        if (canPromote) {
+                            int paramRank = TypeChecker.getNumericRank(commonParamType.getJavaClass());
+                            if (paramRank < bestNumericRank) {
+                                bestNumericRank = paramRank;
+                                bestNumericMatch = method;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        if (bestNumericMatch != null) {
+            return bestNumericMatch;
+        }
+        
+        // Phase 3: Try compatible match (widening, autoboxing, subtyping)
         for (MethodInfo method : overloads) {
             if (method.getParameterCount() == argTypes.length) {
                 boolean compatible = true;
@@ -376,7 +436,7 @@ public class TypeInfo {
             }
         }
         
-        // Phase 3: Return first overload as fallback
+        // Phase 4: Return first overload as fallback
         return overloads.get(0);
     }
 
