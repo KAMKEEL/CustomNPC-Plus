@@ -2431,8 +2431,10 @@ public class ScriptDocument {
             
             // Check if followed by parentheses (method call)
             boolean isMethodCall = false;
+            String arguments = null;
             if (i < expr.length() && expr.charAt(i) == '(') {
                 isMethodCall = true;
+                int argsStart = i + 1;
                 // Skip to the matching closing paren
                 int depth = 1;
                 i++;
@@ -2441,6 +2443,13 @@ public class ScriptDocument {
                     if (c == '(') depth++;
                     else if (c == ')') depth--;
                     i++;
+                }
+                // Extract argument text (between parentheses)
+                int argsEnd = i - 1;  // Position of closing paren
+                if (argsEnd > argsStart) {
+                    arguments = expr.substring(argsStart, argsEnd);
+                } else {
+                    arguments = "";  // Empty arguments
                 }
             }
             
@@ -2461,7 +2470,7 @@ public class ScriptDocument {
                 }
             }
             
-            segments.add(new ChainSegment(name, start, i, isMethodCall));
+            segments.add(new ChainSegment(name, start, i, isMethodCall, arguments));
             
             // Skip whitespace
             while (i < expr.length() && Character.isWhitespace(expr.charAt(i))) {
@@ -2578,12 +2587,14 @@ public class ScriptDocument {
         final int start;
         final int end;
         final boolean isMethodCall;
+        final String arguments;  // The text between parentheses for method calls, or null for fields
         
-        ChainSegment(String name, int start, int end, boolean isMethodCall) {
+        ChainSegment(String name, int start, int end, boolean isMethodCall, String arguments) {
             this.name = name;
             this.start = start;
             this.end = end;
             this.isMethodCall = isMethodCall;
+            this.arguments = arguments;
         }
     }
 
@@ -2596,9 +2607,13 @@ public class ScriptDocument {
         }
         
         if (segment.isMethodCall) {
-            // Method call - get return type
+            // Method call - get return type with argument-based overload resolution
             if (currentType.hasMethod(segment.name)) {
-                MethodInfo methodInfo = currentType.getMethodInfo(segment.name);
+                // Parse argument types from the method call
+                TypeInfo[] argTypes = parseArgumentTypes(segment.arguments, segment.start);
+                
+                // Get the best matching overload based on argument types
+                MethodInfo methodInfo = currentType.getBestMethodOverload(segment.name, argTypes);
                 return (methodInfo != null) ? methodInfo.getReturnType() : null;
             }
             return null;
