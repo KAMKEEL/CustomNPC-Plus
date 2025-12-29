@@ -11,7 +11,10 @@ import java.util.function.Function;
  * - Nested casts: ((Type) expr)
  * - Cast chains: ((Type) expr).method()
  * - Parenthesized expressions: (expr)
+ * 
+ * @Deprecated ExpressionTypeResolver API has all this built in.
  */
+@Deprecated 
 public class CastExpressionResolver {
 
     /**

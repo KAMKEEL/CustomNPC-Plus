@@ -2272,13 +2272,9 @@ public class ScriptDocument {
         }
         
         // Check if expression contains operators - if so, use the full expression resolver
-        if (containsOperators(expr)) {
-            return resolveExpressionWithOperators(expr, position);
-        }
-        
         // Handle cast expressions: (Type)expr, ((Type)expr).method(), etc.
-        if (expr.startsWith("(")) {
-            return resolveCastOrParenthesizedExpression(expr, position);
+        if (containsOperators(expr) || expr.startsWith("(")) {
+            return resolveExpressionWithParserAPI(expr, position);
         }
         
         // Invalid expressions starting with brackets
@@ -2802,10 +2798,10 @@ public class ScriptDocument {
     }
     
     /**
-     * Resolve an expression that contains operators using the full expression parser.
+     * Resolve an expression that contains operators or casts using the full expression parser.
      * This handles all Java operators with proper precedence and type promotion rules.
      */
-    private TypeInfo resolveExpressionWithOperators(String expr, int position) {
+    private TypeInfo resolveExpressionWithParserAPI(String expr, int position) {
         // Create a context that bridges to ScriptDocument's existing resolution methods
         ExpressionNode.TypeResolverContext context = createExpressionResolverContext(position);
         
