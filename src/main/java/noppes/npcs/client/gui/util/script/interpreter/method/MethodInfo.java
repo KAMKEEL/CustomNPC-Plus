@@ -54,6 +54,7 @@ public final class MethodInfo {
     private final boolean isDeclaration;      // true if this is a declaration, false if it's a call
     private final int modifiers;              // Java Modifier flags (e.g., Modifier.PUBLIC | Modifier.STATIC)
     private final String documentation;       // Javadoc/comment documentation for this method
+    private final java.lang.reflect.Method javaMethod;  // The Java reflection Method, if this was created from reflection
 
     // Error tracking for method declarations
     private ErrorType errorType = ErrorType.NONE;
@@ -64,7 +65,7 @@ public final class MethodInfo {
     private MethodInfo(String name, TypeInfo returnType, TypeInfo containingType,
                        List<FieldInfo> parameters, int fullDeclarationOffset, int typeOffset, int nameOffset,
                        int bodyStart, int bodyEnd, boolean resolved, boolean isDeclaration,
-                       int modifiers, String documentation) {
+                       int modifiers, String documentation, java.lang.reflect.Method javaMethod) {
         this.name = name;
         this.returnType = returnType;
         this.containingType = containingType;
@@ -78,33 +79,34 @@ public final class MethodInfo {
         this.isDeclaration = isDeclaration;
         this.modifiers = modifiers;
         this.documentation = documentation;
+        this.javaMethod = javaMethod;
     }
 
     // Factory methods
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int fullDeclOffset, int typeOffset, int nameOffset,
                                          int bodyStart, int bodyEnd) {
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, 0, null);
+        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, 0, null, null);
     }
     
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int fullDeclOffset, int typeOffset, int nameOffset,
                                          int bodyStart, int bodyEnd, boolean isStatic) {
         int modifiers = isStatic ? Modifier.STATIC : 0;
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, null);
+        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, null, null);
     }
     
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int fullDeclOffset, int typeOffset, int nameOffset,
                                          int bodyStart, int bodyEnd, boolean isStatic, String documentation) {
         int modifiers = isStatic ? Modifier.STATIC : 0;
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation);
+        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation, null);
     }
 
     public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
                                          int fullDeclOffset, int typeOffset, int nameOffset,
                                          int bodyStart, int bodyEnd, int modifiers, String documentation) {
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation);
+        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation, null);
     }
 
     public static MethodInfo call(String name, TypeInfo containingType, int paramCount) {
@@ -114,7 +116,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, containingType, params, -1, -1, -1, -1, -1, resolved, false, 0, null);
+        return new MethodInfo(name, null, containingType, params, -1, -1, -1, -1, -1, resolved, false, 0, null, null);
     }
 
     public static MethodInfo unresolvedCall(String name, int paramCount) {
@@ -122,7 +124,7 @@ public final class MethodInfo {
         for (int i = 0; i < paramCount; i++) {
             params.add(FieldInfo.unresolved("arg" + i, FieldInfo.Scope.PARAMETER));
         }
-        return new MethodInfo(name, null, null, params, -1, -1, -1, -1, -1, false, false, 0, null);
+        return new MethodInfo(name, null, null, params, -1, -1, -1, -1, -1, false, false, 0, null, null);
     }
 
     /**
@@ -141,7 +143,7 @@ public final class MethodInfo {
             params.add(FieldInfo.reflectionParam("arg" + i, paramType));
         }
         
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, null);
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, null, method);
     }
 
     /**
@@ -160,7 +162,7 @@ public final class MethodInfo {
             params.add(FieldInfo.reflectionParam("arg" + i, paramType));
         }
         
-        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, true, modifiers, null);
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, true, modifiers, null, null);
     }
 
     // Getters
@@ -169,6 +171,7 @@ public final class MethodInfo {
     public TypeInfo getContainingType() { return containingType; }
     public List<FieldInfo> getParameters() { return Collections.unmodifiableList(parameters); }
     public int getParameterCount() { return parameters.size(); }
+    public Method getJavaMethod() { return javaMethod; }
     /** @deprecated Use getTypeOffset() or getNameOffset() instead */
     @Deprecated
     public int getDeclarationOffset() { return typeOffset; }

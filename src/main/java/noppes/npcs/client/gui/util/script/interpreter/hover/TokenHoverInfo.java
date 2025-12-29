@@ -533,15 +533,10 @@ public class TokenHoverInfo {
         }
         
         // Try to get actual Java method for more details
-        if (containingType != null && containingType.getJavaClass() != null && methodInfo != null) {
-            Class<?> clazz = containingType.getJavaClass();
-            Method javaMethod = findJavaMethod(clazz, methodInfo.getName(), methodInfo.getParameterCount());
-            
-            if (javaMethod != null) {
-                buildMethodDeclaration(javaMethod, containingType);
-                extractJavadoc(javaMethod);
-                return;
-            }
+        if (methodInfo != null && methodInfo.getJavaMethod() != null) {
+            buildMethodDeclaration(methodInfo.getJavaMethod(), containingType);
+            extractJavadoc(methodInfo.getJavaMethod());
+            return;
         }
         
         // Fallback to basic method info
@@ -746,19 +741,6 @@ public class TokenHoverInfo {
 
     private void addSegment(String text, int color) {
         declaration.add(new TextSegment(text, color));
-    }
-
-    private Method findJavaMethod(Class<?> clazz, String name, int paramCount) {
-        try {
-            for (Method m : clazz.getMethods()) {
-                if (m.getName().equals(name) && m.getParameterCount() == paramCount) {
-                    return m;
-                }
-            }
-        } catch (Exception e) {
-            // Ignore
-        }
-        return null;
     }
 
     private void buildMethodDeclaration(Method method, TypeInfo containingType) {
