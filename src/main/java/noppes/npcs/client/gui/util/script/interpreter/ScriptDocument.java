@@ -13,6 +13,7 @@ import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
@@ -1029,16 +1030,20 @@ public class ScriptDocument {
             if (pos < text.length() && text.charAt(pos) == '(') {
                 // Method call
                 if (currentType.hasMethod(segment)) {
-                    MethodInfo methodInfo = currentType.getMethodInfo(segment);
+                    // Parse argument types
+                    int closeParen = findMatchingParen(pos);
+                    if (closeParen < 0) return null;
+                    String argsText = text.substring(pos + 1, closeParen).trim();
+                    TypeInfo[] argTypes = parseArgumentTypes(argsText, pos + 1);
+                    
+                    MethodInfo methodInfo = currentType.getBestMethodOverload(segment, argTypes);
                     currentType = (methodInfo != null) ? methodInfo.getReturnType() : null;
+                    
+                    // Skip to after the closing paren
+                    pos = closeParen + 1;
                 } else {
                     return null;
                 }
-                
-                // Skip to after the closing paren
-                int closeParen = findMatchingParen(pos);
-                if (closeParen < 0) return null;
-                pos = closeParen + 1;
             } else {
                 // Field access
                 if (currentType.hasField(segment)) {
@@ -1906,13 +1911,17 @@ public class ScriptDocument {
 
             if (receiverType != null) {
                 if (receiverType.hasMethod(methodName)) {
-                    resolvedMethod = receiverType.getMethodInfo(methodName);
+          
+                    TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
+                    // Get best method overload based on argument types
+                    resolvedMethod = receiverType.getBestMethodOverload(methodName, argTypes);
+                    
                     MethodCallInfo callInfo = new MethodCallInfo(
                         methodName, nameStart, nameEnd, openParen, closeParen,
                         arguments, receiverType, resolvedMethod, computedStaticAccess
                     );
                     
-                    // Only set expected type if this is the final expression (not followed by .field or .method)
+                    // Set expected type for validation if this is the final expression
                     if (!isFollowedByDot(closeParen)) {
                         TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
                         if (expectedType != null) {
@@ -1932,7 +1941,10 @@ public class ScriptDocument {
                     marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                 } else {
                     if (isScriptMethod(methodName)) {
-                        resolvedMethod = getScriptMethodInfo(methodName);
+                        // Extract argument types from parsed arguments
+                        
+                        TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
+                        resolvedMethod = getScriptMethodInfo(methodName, argTypes);
                         
                         // Check if this is a method from a script type
                         // Instance methods from script types cannot be called without a receiver
@@ -2499,6 +2511,66 @@ public class ScriptDocument {
     }
 
     /**
+     * Parse argument types from a method call's argument list.
+     * @param argsText The text between parentheses (e.g., "20, 20" or "x, y.toString()")
+     * @param position The position in the source text
+     * @return Array of TypeInfo for each argument, or empty array if no arguments
+     */
+    private TypeInfo[] parseArgumentTypes(String argsText, int position) {
+        if (argsText == null || argsText.trim().isEmpty()) {
+            return new TypeInfo[0];
+        }
+        
+        // Split arguments by comma, respecting nested parentheses and strings
+        java.util.List<String> args = new java.util.ArrayList<>();
+        int depth = 0;
+        int start = 0;
+        boolean inString = false;
+        char stringChar = 0;
+        
+        for (int i = 0; i < argsText.length(); i++) {
+            char c = argsText.charAt(i);
+            
+            // Handle strings
+            if ((c == '"' || c == '\'') && (i == 0 || argsText.charAt(i-1) != '\\')) {
+                if (!inString) {
+                    inString = true;
+                    stringChar = c;
+                } else if (c == stringChar) {
+                    inString = false;
+                }
+                continue;
+            }
+            
+            if (inString) continue;
+            
+            // Track parentheses depth
+            if (c == '(' || c == '[' || c == '{') {
+                depth++;
+            } else if (c == ')' || c == ']' || c == '}') {
+                depth--;
+            } else if (c == ',' && depth == 0) {
+                // Found argument separator at top level
+                args.add(argsText.substring(start, i).trim());
+                start = i + 1;
+            }
+        }
+        
+        // Add the last argument
+        if (start < argsText.length()) {
+            args.add(argsText.substring(start).trim());
+        }
+        
+        // Resolve each argument's type
+        TypeInfo[] argTypes = new TypeInfo[args.size()];
+        for (int i = 0; i < args.size(); i++) {
+            argTypes[i] = resolveExpressionType(args.get(i), position);
+        }
+        
+        return argTypes;
+    }
+
+    /**
      * Helper class for chain segments (can be field access or method call).
      */
     private static class ChainSegment {
@@ -2762,7 +2834,7 @@ public class ScriptDocument {
                 }
                 
                 if (targetType.hasMethod(methodName)) {
-                    MethodInfo methodInfo = targetType.getMethodInfo(methodName);
+                    MethodInfo methodInfo = targetType.getBestMethodOverload(methodName, argTypes);
                     return (methodInfo != null) ? methodInfo.getReturnType() : null;
                 }
                 
@@ -3074,6 +3146,79 @@ public class ScriptDocument {
             }
         }
         return null;
+    }
+    
+    /**
+     * Get the best matching script method overload based on argument types.
+     */
+    private MethodInfo getScriptMethodInfo(String methodName, TypeInfo[] argTypes) {
+        List<MethodInfo> candidates = new ArrayList<>();
+        
+        // Collect all methods with matching name
+        for (MethodInfo method : methods) {
+            if (method.getName().equals(methodName)) {
+                candidates.add(method);
+            }
+        }
+        
+        if (candidates.isEmpty()) {
+            return null;
+        }
+        
+        if (candidates.size() == 1) {
+            return candidates.get(0);
+        }
+        
+        // Use same 3-phase matching as TypeInfo.getBestMethodOverload
+        
+        // Phase 1: Look for exact match
+        for (MethodInfo method : candidates) {
+            List<FieldInfo> params = method.getParameters();
+            if (params.size() != argTypes.length) {
+                continue;
+            }
+            
+            boolean exactMatch = true;
+            for (int i = 0; i < argTypes.length; i++) {
+                TypeInfo paramType = params.get(i).getDeclaredType();
+                TypeInfo argType = argTypes[i];
+                
+                if (argType == null || paramType == null || !argType.equals(paramType)) {
+                    exactMatch = false;
+                    break;
+                }
+            }
+            
+            if (exactMatch) {
+                return method;
+            }
+        }
+        
+        // Phase 2: Look for compatible match (widening/autoboxing)
+        for (MethodInfo method : candidates) {
+            List<FieldInfo> params = method.getParameters();
+            if (params.size() != argTypes.length) {
+                continue;
+            }
+            
+            boolean compatible = true;
+            for (int i = 0; i < argTypes.length; i++) {
+                TypeInfo paramType = params.get(i).getDeclaredType();
+                TypeInfo argType = argTypes[i];
+                
+                if (argType != null && paramType != null && !TypeChecker.isTypeCompatible(paramType, argType)) {
+                    compatible = false;
+                    break;
+                }
+            }
+            
+            if (compatible) {
+                return method;
+            }
+        }
+        
+        // Phase 3: Fallback to first overload
+        return candidates.get(0);
     }
     
     /**

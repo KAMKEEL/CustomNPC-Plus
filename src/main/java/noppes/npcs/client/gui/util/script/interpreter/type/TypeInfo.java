@@ -273,6 +273,114 @@ public class TypeInfo {
     }
 
     /**
+     * Get all MethodInfo overloads for a method by name.
+     * Returns an empty list if not found.
+     */
+    public java.util.List<MethodInfo> getAllMethodOverloads(String methodName) {
+        java.util.List<MethodInfo> overloads = new java.util.ArrayList<>();
+        if (javaClass == null) return overloads;
+        try {
+            for (java.lang.reflect.Method m : javaClass.getMethods()) {
+                if (m.getName().equals(methodName)) {
+                    overloads.add(MethodInfo.fromReflection(m, this));
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return overloads;
+    }
+
+    /**
+     * Find the best matching method overload considering return type.
+     * First tries to find a match with compatible return type, then falls back to any match.
+     * 
+     * @param methodName The name of the method
+     * @param expectedReturnType The expected return type (can be null)
+     * @return The best matching MethodInfo, or null if not found
+     */
+    public MethodInfo getBestMethodOverload(String methodName, TypeInfo expectedReturnType) {
+        java.util.List<MethodInfo> overloads = getAllMethodOverloads(methodName);
+        if (overloads.isEmpty()) return null;
+        
+        // If no expected return type, return first overload
+        if (expectedReturnType == null) {
+            return overloads.get(0);
+        }
+        
+        // First pass: look for return type compatible overload
+        for (MethodInfo method : overloads) {
+            TypeInfo returnType = method.getReturnType();
+            if (returnType != null && TypeChecker.isTypeCompatible(expectedReturnType, returnType)) {
+                return method;
+            }
+        }
+        // Second pass: return any overload (first one)
+        return overloads.get(0);
+    }
+
+    /**
+     * Find the best matching method overload based on argument types.
+     * Uses Java's method resolution rules: exact match, then widening conversion, then autoboxing.
+     * 
+     * @param methodName The name of the method
+     * @param argTypes The types of the arguments being passed
+     * @return The best matching MethodInfo, or null if not found
+     */
+    public MethodInfo getBestMethodOverload(String methodName, TypeInfo[] argTypes) {
+        java.util.List<MethodInfo> overloads = getAllMethodOverloads(methodName);
+        if (overloads.isEmpty()) return null;
+        
+        // If no arguments provided, try to find zero-arg method
+        if (argTypes == null || argTypes.length == 0) {
+            for (MethodInfo method : overloads) {
+                if (method.getParameterCount() == 0) {
+                    return method;
+                }
+            }
+            // Fall back to first overload if no zero-arg found
+            return overloads.get(0);
+        }
+        
+        // Phase 1: Try exact match
+        for (MethodInfo method : overloads) {
+            if (method.getParameterCount() == argTypes.length) {
+                boolean exactMatch = true;
+                java.util.List<FieldInfo> params = method.getParameters();
+                for (int i = 0; i < argTypes.length; i++) {
+                    TypeInfo paramType = params.get(i).getTypeInfo();
+                    TypeInfo argType = argTypes[i];
+                    if (paramType == null || argType == null || !paramType.equals(argType)) {
+                        exactMatch = false;
+                        break;
+                    }
+                }
+                if (exactMatch) return method;
+            }
+        }
+        
+        // Phase 2: Try compatible match (widening, autoboxing, subtyping)
+        for (MethodInfo method : overloads) {
+            if (method.getParameterCount() == argTypes.length) {
+                boolean compatible = true;
+                java.util.List<FieldInfo> params = method.getParameters();
+                for (int i = 0; i < argTypes.length; i++) {
+                    TypeInfo paramType = params.get(i).getTypeInfo();
+                    TypeInfo argType = argTypes[i];
+                    if (paramType == null || argType == null || !TypeChecker.isTypeCompatible(paramType, argType)) {
+                        compatible = false;
+                        break;
+                    }
+                }
+                if (compatible) return method;
+            }
+        }
+        
+        // Phase 3: Return first overload as fallback
+        return overloads.get(0);
+    }
+
+    /**
      * Get FieldInfo for a field by name. Returns null if not found.
      * Creates a synthetic FieldInfo based on reflection data.
      */
