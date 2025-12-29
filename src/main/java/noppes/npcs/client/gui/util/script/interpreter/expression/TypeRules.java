@@ -144,6 +144,15 @@ public class TypeRules {
         if (thenType == null && elseType == null) return null;
         if (thenType == null) return elseType;
         if (elseType == null) return thenType;
+        
+        // Handle null literal type
+        boolean thenIsNull = "<null>".equals(thenType.getFullName());
+        boolean elseIsNull = "<null>".equals(elseType.getFullName());
+        
+        if (thenIsNull && elseIsNull) return thenType; // both null -> null
+        if (thenIsNull) return elseType; // null : T -> T
+        if (elseIsNull) return thenType; // T : null -> T
+        
         if (!thenType.isResolved()) return elseType.isResolved() ? elseType : null;
         if (!elseType.isResolved()) return thenType;
         

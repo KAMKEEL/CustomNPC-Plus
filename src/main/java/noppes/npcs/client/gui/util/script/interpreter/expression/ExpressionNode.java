@@ -59,7 +59,9 @@ public abstract class ExpressionNode {
     
     public static class NullLiteralNode extends ExpressionNode {
         public NullLiteralNode(int start, int end) { super(start, end); }
-        public TypeInfo resolveType(TypeResolverContext resolver) { return null; }
+        public TypeInfo resolveType(TypeResolverContext resolver) { 
+            return TypeInfo.unresolved("null", "<null>"); 
+        }
     }
     
     public static class IdentifierNode extends ExpressionNode {

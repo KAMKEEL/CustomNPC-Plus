@@ -2277,7 +2277,7 @@ public class ScriptDocument {
         
         // Null literal
         if (expr.equals("null")) {
-            return null; // null is compatible with any reference type
+            return TypeInfo.unresolved("null", "<null>"); // null is compatible with any reference type
         }
         
         // Numeric literals with precision checking
@@ -2687,6 +2687,11 @@ public class ScriptDocument {
         ExpressionTypeResolver resolver = new ExpressionTypeResolver(context);
         TypeInfo result = resolver.resolve(expr);
         
+        // Special case: null literal type is "unresolved" but valid
+        if (result != null && "<null>".equals(result.getFullName())) {
+            return result;
+        }
+        
         // If the expression resolver couldn't resolve it, fall back to simple resolution
         if (result == null || !result.isResolved()) {
             // Try the simple path in case the operator detection was a false positive
@@ -2712,7 +2717,7 @@ public class ScriptDocument {
                     return TypeInfo.fromPrimitive("boolean");
                 }
                 if ("null".equals(name)) {
-                    return null;
+                    return TypeInfo.unresolved("null", "<null>");
                 }
                 
                 // Try to resolve as a variable

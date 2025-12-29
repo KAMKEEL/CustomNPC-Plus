@@ -51,7 +51,7 @@ public class ExpressionTypeResolver {
         if (node instanceof ExpressionNode.BooleanLiteralNode) return TypeInfo.fromPrimitive("boolean");
         if (node instanceof ExpressionNode.CharLiteralNode) return TypeInfo.fromPrimitive("char");
         if (node instanceof ExpressionNode.StringLiteralNode) return TypeInfo.fromClass(String.class);
-        if (node instanceof ExpressionNode.NullLiteralNode) return null;
+        if (node instanceof ExpressionNode.NullLiteralNode) return TypeInfo.unresolved("null", "<null>");
         
         if (node instanceof ExpressionNode.IdentifierNode) {
             return context.resolveIdentifier(((ExpressionNode.IdentifierNode) node).getName());
@@ -132,7 +132,7 @@ public class ExpressionTypeResolver {
         return new ExpressionNode.TypeResolverContext() {
             public TypeInfo resolveIdentifier(String name) {
                 if ("true".equals(name) || "false".equals(name)) return TypeInfo.fromPrimitive("boolean");
-                if ("null".equals(name)) return null;
+                if ("null".equals(name)) return TypeInfo.unresolved("null", "<null>");
                 return null;
             }
             public TypeInfo resolveMemberAccess(TypeInfo targetType, String memberName) { return null; }
