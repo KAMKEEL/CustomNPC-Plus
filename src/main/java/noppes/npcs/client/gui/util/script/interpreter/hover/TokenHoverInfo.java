@@ -7,6 +7,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenErrorMessage;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -267,6 +268,17 @@ public class TokenHoverInfo {
                     }
                 }
             }
+        }
+
+        if(token.getType() == TokenType.UNDEFINED_VAR)
+            errors.add("Cannot resolve symbol '" + token.getText() + "'");
+
+        TokenErrorMessage msg = token.getErrorMessage();
+        if (msg != null && !msg.getMessage().isEmpty()) {
+            if(msg.clearOtherErrors)
+                errors.clear();
+            
+            errors.add(msg.getMessage());
         }
     }
     
@@ -683,7 +695,6 @@ public class TokenHoverInfo {
     private void extractUndefinedInfo(Token token) {
         iconIndicator = "?";
         addSegment(token.getText(), TokenType.UNDEFINED_VAR.getHexColor());
-        errors.add("Cannot resolve symbol '" + token.getText() + "'");
     }
 
     private void extractFieldInfoGeneric(Token token) {

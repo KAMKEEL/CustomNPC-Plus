@@ -1,6 +1,5 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
-import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.interpreter.expression.CastExpressionResolver;
 import noppes.npcs.client.gui.util.script.interpreter.expression.ExpressionNode;
@@ -12,6 +11,7 @@ import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenErrorMessage;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
@@ -3602,7 +3602,8 @@ public class ScriptDocument {
                         */
                     } else if (isStaticAccessError && fieldInfo != null) {
                         // Mark as error - trying to access non-static field from static context
-                        String errorMsg = "Cannot access non-static field '" + segment + "' from static context '" + currentType.getSimpleName() + "'";
+                        TokenErrorMessage errorMsg = TokenErrorMessage.from(
+                                "Cannot access non-static field '" + segment + "' from static context '" + currentType.getSimpleName() + "'").clearOtherErrors();
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR, errorMsg));
                         currentType = null; // Can't continue resolving
                     } else {

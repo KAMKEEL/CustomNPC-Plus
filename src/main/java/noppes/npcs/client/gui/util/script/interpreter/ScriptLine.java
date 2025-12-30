@@ -6,6 +6,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenErrorMessage;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -178,6 +179,8 @@ public class ScriptLine {
                         token.setImportData((ImportData) mark.metadata);
                     } else if (mark.metadata instanceof FieldAccessInfo) {
                         token.setFieldAccessInfo((FieldAccessInfo) mark.metadata);
+                    } else if (mark.metadata instanceof TokenErrorMessage) {
+                        token.setErrorMessage((TokenErrorMessage) mark.metadata);
                     }
                 }
                 

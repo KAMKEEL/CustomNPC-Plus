@@ -32,6 +32,8 @@ public class Token {
     private MethodCallInfo methodCallInfo; // For method calls with argument info
     private ImportData importData;    // For import statements
     private FieldAccessInfo fieldAccessInfo; //For fields like Minecraft.getMinecraft.thePlayer
+    
+    private TokenErrorMessage errorMessage;
 
 
     // Navigation - set by ScriptLine
@@ -125,6 +127,7 @@ public class Token {
     public MethodCallInfo getMethodCallInfo() { return methodCallInfo; }
     public FieldAccessInfo getFieldAccessInfo() { return fieldAccessInfo; }
     public ImportData getImportData() { return importData; }
+    public TokenErrorMessage getErrorMessage() { return errorMessage; }
     public ScriptLine getParentLine() { return parentLine; }
 
     // ==================== SETTERS ====================
@@ -136,6 +139,7 @@ public class Token {
     public void setMethodInfo(MethodInfo info) { this.methodInfo = info; }
     public void setMethodCallInfo(MethodCallInfo info) { this.methodCallInfo = info; }
     public void setImportData(ImportData data) { this.importData = data; }
+    public void setErrorMessage(TokenErrorMessage message) { this.errorMessage = message; }
     
     public void setParentLine(ScriptLine line) { this.parentLine = line; }
     public void setPrev(Token prev) { this.prev = prev; }
