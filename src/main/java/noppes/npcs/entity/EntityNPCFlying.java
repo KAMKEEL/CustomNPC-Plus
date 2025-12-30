@@ -84,7 +84,6 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         }
 
         this.updateLimbSwing();
-        this.velocityChanged = true;
     }
 
     public void updateLimbSwing() {
@@ -136,7 +135,6 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
 
         if (flightModeActive) {
             super.performMountedMovement(strafe, forward, moveSpeed);
-            this.velocityChanged = true;
             return;
         }
 
@@ -149,6 +147,5 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         }
 
         this.updateLimbSwing();
-        this.velocityChanged = true;
     }
 }
