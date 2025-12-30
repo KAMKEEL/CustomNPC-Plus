@@ -19,6 +19,7 @@ import kamkeel.npcs.command.CommandKamkeel;
 import kamkeel.npcs.command.profile.CommandProfile;
 import kamkeel.npcs.controllers.AttributeController;
 import kamkeel.npcs.controllers.ProfileController;
+import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
@@ -99,7 +100,7 @@ import noppes.npcs.scripted.NpcAPI;
 import java.io.File;
 import java.util.Set;
 
-@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.2")
+@Mod(modid = "customnpcs", name = "CustomNPC+", version = "1.10.3")
 public class CustomNpcs {
 
     @SidedProxy(clientSide = "noppes.npcs.client.ClientProxy", serverSide = "noppes.npcs.CommonProxy")
@@ -310,6 +311,7 @@ public class CustomNpcs {
         ScriptController.HasStart = true;
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
+        SyncController.load();
     }
 
 

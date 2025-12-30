@@ -11,6 +11,9 @@ import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.client.event.GuiScreenEvent;
+import net.minecraftforge.common.MinecraftForge;
+import noppes.npcs.client.ClientEventHandler;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.TextBlockClient;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -23,6 +26,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class GuiNPCInterface extends GuiScreen {
     public EntityClientPlayerMP player;
@@ -51,7 +55,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
     public float bgScaleX = 1;
     public float bgScaleY = 1;
     public float bgScaleZ = 1;
-    public long timeClosedSubGui;
 
     public GuiNPCInterface(EntityNPCInterface npc) {
         this.player = Minecraft.getMinecraft().thePlayer;
@@ -94,6 +97,13 @@ public abstract class GuiNPCInterface extends GuiScreen {
         scrollWindows.clear();
         diagrams.clear();
         Keyboard.enableRepeatEvents(true);
+
+        if (drawRenderButtons) {
+            zoomIn = new GuiNpcButton(0, guiLeft + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "-");
+            zoomOut = new GuiNpcButton(0, guiLeft + 22 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "+");
+            rotateLeft = new GuiNpcButton(0, guiLeft + 44 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, "<");
+            rotateRight = new GuiNpcButton(0, guiLeft + 66 + xOffsetNpc + xOffsetButton, guiTop + yOffsetNpc + yOffsetButton, 20, 20, ">");
+        }
     }
 
     @Override
@@ -158,10 +168,40 @@ public abstract class GuiNPCInterface extends GuiScreen {
                 }
             }
             mouseEvent(i, j, k);
-            super.mouseClicked(i, j, k);
+            vanillaMouseClicked(i, j, k);
         }
     }
 
+    protected void vanillaMouseClicked(int mouseX, int mouseY, int mouseButton) {
+        if (mouseButton == 0 || mouseButton == 1) {
+            for (int l = 0; l < this.buttonList.size(); ++l) {
+                GuiButton guibutton = (GuiButton) this.buttonList.get(l);
+
+                AtomicBoolean rightClicked = null;
+                if (mouseButton == 1) {
+                    if (guibutton instanceof GuiNpcButton && ((GuiNpcButton) guibutton).rightClickable) {
+                        rightClicked = ((GuiNpcButton) guibutton).rightClicked;
+                        rightClicked.set(true);
+                    } else
+                        continue;
+                }
+
+                if (guibutton.mousePressed(this.mc, mouseX, mouseY)) {
+                    GuiScreenEvent.ActionPerformedEvent.Pre event = new GuiScreenEvent.ActionPerformedEvent.Pre(this, guibutton, this.buttonList);
+                    if (MinecraftForge.EVENT_BUS.post(event))
+                        break;
+                    this.selectedButton = event.button;
+                    event.button.func_146113_a(this.mc.getSoundHandler());
+                    this.actionPerformed(event.button);
+                    if (this.equals(this.mc.currentScreen))
+                        MinecraftForge.EVENT_BUS.post(new GuiScreenEvent.ActionPerformedEvent.Post(this, event.button, this.buttonList));
+                }
+
+                if (rightClicked != null)
+                    rightClicked.set(false);
+            }
+        }
+    }
     @Override
     public void mouseClickMove(int mouseX, int mouseY, int clickedMouseButton, long timeSinceLastClick) {
         if (subgui != null) {
@@ -206,11 +246,18 @@ public abstract class GuiNPCInterface extends GuiScreen {
             guiScrollableComponent.keyTyped(c, i);
         }
 
-        // Fixes closing sub with escape closes all of its parents
-        boolean enoughTimeSinceSubClosed = Minecraft.getSystemTime() - timeClosedSubGui > 50;
+        /*
+         Fixes closing sub with escape closes all of its parents.
+         The outermost GUI (root of all subs) closes the deepest open sub on ESC.
+         */
+        boolean isSub = this instanceof SubGuiInterface;
 
-        if (closeOnEsc && enoughTimeSinceSubClosed && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
-            close();
+        if (closeOnEsc && !isSub && (i == 1 || !GuiNpcTextField.isFieldActive() && isInventoryKey(i))) {
+            SubGuiInterface sub = getSubGui();
+            if (sub != null)
+                sub.close();
+            else
+                close();
         }
     }
 
@@ -219,6 +266,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
     }
 
     public void close() {
+        if(GuiNpcTextField.activeTextfield != null)
+            GuiNpcTextField.unfocus();
+
         Keyboard.enableRepeatEvents(false);
         displayGuiScreen(null);
         mc.setIngameFocus();
@@ -339,6 +389,9 @@ public abstract class GuiNPCInterface extends GuiScreen {
         if (subgui != null) {
             subgui.drawScreen(i, j, f);
         }
+
+        if (drawNpc)
+            drawNpcWithExtras(npc, i, j, f);
     }
 
     protected void drawBackground() {
@@ -402,7 +455,6 @@ public abstract class GuiNPCInterface extends GuiScreen {
 
     public void closeSubGui(SubGuiInterface gui) {
         subgui = null;
-        timeClosedSubGui = Minecraft.getSystemTime();
         initGui();
     }
 
@@ -410,17 +462,92 @@ public abstract class GuiNPCInterface extends GuiScreen {
         return subgui != null;
     }
 
+    /**
+     * @return The deepest open subgui
+     */
     public SubGuiInterface getSubGui() {
-        if (hasSubGui() && subgui.hasSubGui())
-            return subgui.getSubGui();
-        return subgui;
+        SubGuiInterface sub = subgui;
+        if (sub != null)
+            while (sub.hasSubGui())
+                sub = sub.getSubGui();
+        return sub;
     }
 
-    public void drawNpc(int x, int y) {
-        drawNpc(npc, x, y, 1, 0);
+    private GuiNpcButton rotateLeft, rotateRight, zoomOut, zoomIn;
+
+    public int xOffsetNpc = 0, xOffsetButton = 0, xMouseRange = 50;
+    public int yOffsetNpc = 0, yOffsetButton = 0, yMouseRange = 150;
+
+    public float defaultZoom = 1, zoom = 1, rotation;
+    public float minZoom = 1, maxZoom = 2.5f;
+
+    public boolean followMouse = true, allowRotate = true, drawNPConSub;
+    public boolean drawNpc, drawRenderButtons;
+
+    public boolean isMouseOverRenderer(int x, int y) {
+        if (!allowRotate) {
+            return false;
+        }
+        // Center of the entity rendering
+        int centerX = guiLeft + xOffsetNpc; // Matches l in drawScreen()
+        int centerY = guiTop + yOffsetNpc; // Matches i1 in drawScreen()
+
+        // Range from the center to start considering mouse is over renderer.
+        int xRange = xMouseRange; // Horizontal range (Left and right of center)
+        int yRange = yMouseRange; // Vertical range (Up and down of center)
+
+        // Check if the mouse is within the range area
+        return mouseX >= centerX - xRange && mouseX <= centerX + xRange && mouseY >= centerY - yRange && mouseY <= centerY + yRange;
     }
 
-    public void drawNpc(EntityLivingBase entity, int x, int y, float zoomed, int rotation) {
+
+    public void drawNpcWithExtras(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
+        drawNpc(entity, mouseX, mouseY, partialTicks);
+    }
+    public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, float partialTicks) {
+        if (hasSubGui() && !drawNPConSub)
+            return;
+
+
+        if (drawRenderButtons) {
+            rotateLeft.drawButton(mc, mouseX, mouseY);
+            rotateRight.drawButton(mc, mouseX, mouseY);
+            zoomOut.drawButton(mc, mouseX, mouseY);
+            zoomIn.drawButton(mc, mouseX, mouseY);
+        }
+
+        if (Mouse.isButtonDown(0) && drawRenderButtons) {
+            if (this.rotateLeft.mousePressed(this.mc, mouseX, mouseY)) {
+                rotation += partialTicks * 1.5F;
+            } else if (this.rotateRight.mousePressed(this.mc, mouseX, mouseY)) {
+                rotation -= partialTicks * 1.5F;
+            } else if (this.zoomOut.mousePressed(this.mc, mouseX, mouseY) && zoom < maxZoom) {
+                zoom += partialTicks * 0.05F;
+            } else if (this.zoomIn.mousePressed(this.mc, mouseX, mouseY) && zoom > minZoom) {
+                zoom -= partialTicks * 0.05F;
+            }
+        }
+
+
+        if (isMouseOverRenderer(mouseX, mouseY)) {
+            zoom += Mouse.getDWheel() * 0.001f;
+            if (Mouse.isButtonDown(0)) {
+                rotation -= Mouse.getDX() * 0.75f;
+            } else if (Mouse.isButtonDown(1)) {
+                rotation = 0;
+                zoom = defaultZoom;
+            }
+        }
+
+        if (zoom > maxZoom)
+            zoom = maxZoom;
+        if (zoom < minZoom)
+            zoom = minZoom;
+
+        drawNpc(entity, mouseX, mouseY, xOffsetNpc, yOffsetNpc, zoom, rotation, partialTicks);
+    }
+
+    public void drawNpc(EntityLivingBase entity, int mouseX, int mouseY, int x, int y, float zoomed, float rotation, float partialTicks) {
         EntityNPCInterface npc = null;
         if (entity instanceof EntityNPCInterface)
             npc = (EntityNPCInterface) entity;
@@ -430,10 +557,10 @@ public abstract class GuiNPCInterface extends GuiScreen {
             npc.isDrawn = true;
         GL11.glEnable(GL11.GL_COLOR_MATERIAL);
         GL11.glPushMatrix();
-        GL11.glTranslatef(guiLeft + x, guiTop + y, 50F);
+        GL11.glTranslatef(guiLeft + x, guiTop + y, 90F);
         float scale = 1;
         if (entity.height > 2.4)
-            scale = 2 / npc.height;
+            scale = 2 / entity.height;
 
         GL11.glScalef(-30 * scale * zoomed, 30 * scale * zoomed, 30 * scale * zoomed);
         GL11.glRotatef(180F, 0.0F, 0.0F, 1.0F);
@@ -447,20 +574,27 @@ public abstract class GuiNPCInterface extends GuiScreen {
         int orientation = 0;
         if (npc != null) {
             orientation = npc.ais.orientation;
-            npc.ais.orientation = rotation;
+            npc.ais.orientation = (int) rotation;
         }
 
         GL11.glRotatef(135F, 0.0F, 1.0F, 0.0F);
         RenderHelper.enableStandardItemLighting();
         GL11.glRotatef(-135F, 0.0F, 1.0F, 0.0F);
-        GL11.glRotatef(-(float) Math.atan(f6 / 40F) * 20F, 1.0F, 0.0F, 0.0F);
+        GL11.glRotatef(-(float) Math.atan(f6 / 400F) * 20F, 1.0F, 0.0F, 0.0F);
         entity.renderYawOffset = rotation;
-        entity.rotationYaw = (float) Math.atan(f5 / 80F) * 40F + rotation;
-        entity.rotationPitch = -(float) Math.atan(f6 / 40F) * 20F;
+        entity.rotationYaw = followMouse ? (float) Math.atan(f5 / 80F) * 40F + rotation : 0;
+        entity.rotationPitch = followMouse ? -(float) Math.atan(f6 / 40F) * 20F : 0;
         entity.rotationYawHead = entity.rotationYaw;
         GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
         RenderManager.instance.playerViewY = 180F;
-        RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 1);
+        ClientEventHandler.renderingEntityInGUI = true;
+
+        try {
+            RenderManager.instance.renderEntityWithPosYaw(entity, 0, 0, 0, 0, 1);
+        } catch (Exception e) {
+        }
+
+        ClientEventHandler.renderingEntityInGUI = false;
         entity.prevRenderYawOffset = entity.renderYawOffset = f2;
         entity.prevRotationYaw = entity.rotationYaw = f3;
         entity.prevRotationPitch = entity.rotationPitch = f4;

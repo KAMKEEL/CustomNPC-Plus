@@ -55,6 +55,7 @@ public class ClientEventHandler {
     public static float partialRenderTick;
     public static RendererLivingEntity renderer;
 
+    public static boolean renderingEntityInGUI;
     public static EntityNPCInterface renderingNpc;
     public static EntityPlayer renderingPlayer;
     public static HashMap<EnumAnimationPart, String[]> partNames = new HashMap<>();

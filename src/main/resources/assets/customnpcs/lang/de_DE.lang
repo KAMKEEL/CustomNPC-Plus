@@ -871,3 +871,12 @@ companion.stage=Bühne
 #German by DewTix
 
 key.npcInventory=NPC Inventar
+role.mount=Mount
+role.mount.offsetx=Seat X
+role.mount.offsety=Seat Y
+role.mount.offsetz=Seat Z
+role.mount.jumpheight=Jump
+role.mount.sprint=Sprint
+role.mount.reset=Reset Position
+role.mount.walkspeed=Walk Speed: %s
+key.customnpcs.special=Special Key

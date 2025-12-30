@@ -17,7 +17,7 @@ public abstract class GuiNPCInterface2 extends GuiNPCInterface {
         xSize = 420;
         ySize = 200;
         menu = new GuiNpcMenu(this, activeMenu, npc);
-
+        closeOnEsc = true;
     }
 
     @Override

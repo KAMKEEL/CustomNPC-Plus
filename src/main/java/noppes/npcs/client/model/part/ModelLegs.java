@@ -18,7 +18,7 @@ import org.lwjgl.opengl.GL11;
 
 public class ModelLegs extends ModelScaleRenderer {
     private EntityCustomNpc entity;
-    private ModelScaleRenderer leg1, leg2;
+    public ModelScaleRenderer leg1, leg2;
     private ModelRenderer spider;
     private ModelRenderer horse;
     private ModelNagaLegs naga;

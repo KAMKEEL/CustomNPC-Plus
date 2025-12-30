@@ -15,7 +15,9 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.constants.EnumCombatPolicy;
 import noppes.npcs.constants.EnumNavType;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.roles.RoleMount;
 
 public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IGuiData {
     private DataAI ai;
@@ -44,7 +46,12 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
         addLabel(new GuiNpcLabel(10, "ai.avoidwater", guiLeft + 150, guiTop + 17));
         addButton(new GuiNpcButton(5, guiLeft + 230, guiTop + 10, 60, 20, new String[]{"gui.no", "gui.yes"}, npc.ais.avoidsWater ? 1 : 0));
         addLabel(new GuiNpcLabel(11, "ai.return", guiLeft + 150, guiTop + 40));
-        addButton(new GuiNpcButton(6, guiLeft + 230, guiTop + 35, 60, 20, new String[]{"gui.no", "gui.yes"}, npc.ais.returnToStart ? 1 : 0));
+        int returnValue = npc.ais.returnToStart ? 1 : 0;
+        if (npc.advanced.role == EnumRoleType.Mount && npc.roleInterface instanceof RoleMount) {
+            returnValue = ((RoleMount) npc.roleInterface).getReturnToStartPreference() ? 1 : 0;
+        }
+        addButton(new GuiNpcButton(6, guiLeft + 230, guiTop + 35, 60, 20, new String[]{"gui.no", "gui.yes"}, returnValue));
+        getButton(6).setEnabled(npc.advanced.role != EnumRoleType.Mount);
         addLabel(new GuiNpcLabel(17, "ai.leapattarget", guiLeft + 150, guiTop + 65));
         addButton(new GuiNpcButton(15, guiLeft + 230, guiTop + 60, 60, 20, new String[]{"gui.no", "ai.jump", "ai.pounce"}, npc.ais.leapType));
         addLabel(new GuiNpcLabel(15, "ai.indirect", guiLeft + 150, guiTop + 90));
@@ -132,7 +139,13 @@ public class GuiNpcAI extends GuiNPCInterface2 implements ITextfieldListener, IG
         } else if (button.id == 5) {
             npc.setAvoidWater(button.getValue() == 1);
         } else if (button.id == 6) {
-            ai.returnToStart = (button.getValue() == 1);
+            if (npc.advanced.role == EnumRoleType.Mount && npc.roleInterface instanceof RoleMount) {
+                ((RoleMount) npc.roleInterface).setReturnToStartPreference(button.getValue() == 1);
+                ai.returnToStart = false;
+                initGui();
+            } else {
+                ai.returnToStart = (button.getValue() == 1);
+            }
         } else if (button.id == 7) {
             ai.canSwim = (button.getValue() == 1);
         } else if (button.id == 9) {

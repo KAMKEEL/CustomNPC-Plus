@@ -796,3 +796,12 @@ enchantment.infinite=무한
 enchantment.poison=독
 
 key.npcInventory=NPC 인벤토리
+role.mount=Mount
+role.mount.offsetx=Seat X
+role.mount.offsety=Seat Y
+role.mount.offsetz=Seat Z
+role.mount.jumpheight=Jump
+role.mount.sprint=Sprint
+role.mount.reset=Reset Position
+role.mount.walkspeed=Walk Speed: %s
+key.customnpcs.special=Special Key
