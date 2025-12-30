@@ -157,32 +157,8 @@ public class ScriptLine {
                 Token token = new Token(tokenText, tokenStart, tokenEnd, mark.type);
                 
                 // Attach metadata based on type
-                if (mark.metadata != null) {
-                    if (mark.metadata instanceof TypeInfo) {
-                        token.setTypeInfo((TypeInfo) mark.metadata);
-                    } else if (mark.metadata instanceof MethodCallInfo) {
-                        MethodCallInfo callInfo = (MethodCallInfo) mark.metadata;
-                        if (callInfo.isConstructor()) {
-                            token.setTypeInfo(callInfo.getReceiverType());
-                            token.setMethodInfo(callInfo.getResolvedMethod());
-                        }
-                        token.setMethodCallInfo(callInfo);
-                    } else if (mark.metadata instanceof FieldInfo.ArgInfo) {
-                        FieldInfo.ArgInfo ctx = (FieldInfo.ArgInfo) mark.metadata;
-                        token.setFieldInfo(ctx.fieldInfo);
-                        token.setMethodCallInfo(ctx.methodCallInfo);
-                    } else if (mark.metadata instanceof FieldInfo) {
-                        token.setFieldInfo((FieldInfo) mark.metadata);
-                    } else if (mark.metadata instanceof MethodInfo) {
-                        token.setMethodInfo((MethodInfo) mark.metadata);
-                    } else if (mark.metadata instanceof ImportData) {
-                        token.setImportData((ImportData) mark.metadata);
-                    } else if (mark.metadata instanceof FieldAccessInfo) {
-                        token.setFieldAccessInfo((FieldAccessInfo) mark.metadata);
-                    } else if (mark.metadata instanceof TokenErrorMessage) {
-                        token.setErrorMessage((TokenErrorMessage) mark.metadata);
-                    }
-                }
+                if (mark.metadata != null) 
+                   applyTokenMetadata(token, mark.metadata);
                 
                 addToken(token);
             }
@@ -200,6 +176,32 @@ public class ScriptLine {
         }
     }
 
+    public void applyTokenMetadata(Token token, Object metadata) {
+        if (metadata instanceof TypeInfo) {
+            token.setTypeInfo((TypeInfo) metadata);
+        } else if (metadata instanceof MethodCallInfo) {
+            MethodCallInfo callInfo = (MethodCallInfo) metadata;
+            if (callInfo.isConstructor()) {
+                token.setTypeInfo(callInfo.getReceiverType());
+                token.setMethodInfo(callInfo.getResolvedMethod());
+            }
+            token.setMethodCallInfo(callInfo);
+        } else if (metadata instanceof FieldInfo.ArgInfo) {
+            FieldInfo.ArgInfo ctx = (FieldInfo.ArgInfo) metadata;
+            token.setFieldInfo(ctx.fieldInfo);
+            token.setMethodCallInfo(ctx.methodCallInfo);
+        } else if (metadata instanceof FieldInfo) {
+            token.setFieldInfo((FieldInfo) metadata);
+        } else if (metadata instanceof MethodInfo) {
+            token.setMethodInfo((MethodInfo) metadata);
+        } else if (metadata instanceof ImportData) {
+            token.setImportData((ImportData) metadata);
+        } else if (metadata instanceof FieldAccessInfo) {
+            token.setFieldAccessInfo((FieldAccessInfo) metadata);
+        } else if (metadata instanceof TokenErrorMessage) {
+            token.setErrorMessage((TokenErrorMessage) metadata);
+        }
+    }
     // ==================== INDENT GUIDES ====================
 
     /**
