@@ -603,13 +603,18 @@ public class TokenHoverInfo {
             }
         }
         
-        if (!foundModifiers && fieldInfo.getDeclarationOffset() >= 0) {
-            // Show modifiers from source if we have a declaration position
-            String modifiers = extractModifiersAtPosition(fieldInfo.getDeclarationOffset());
-            if (modifiers != null && !modifiers.isEmpty()) {
-                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
-            }
+        int modifiers = fieldInfo.getModifiers();
+        if(modifiers !=0 && !foundModifiers) {
+            addFieldModifiers(modifiers);
         }
+        
+//        if (!foundModifiers && fieldInfo.getDeclarationOffset() >= 0) {
+//            // Show modifiers from source if we have a declaration position
+//            String modifiers = extractModifiersAtPosition(fieldInfo.getDeclarationOffset());
+//            if (modifiers != null && !modifiers.isEmpty()) {
+//                addSegment(modifiers + " ", TokenType.MODIFIER.getHexColor());
+//            }
+//        }
         
         if (declaredType != null) {
             // Show field's type package.ClassName for context
