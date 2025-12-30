@@ -2130,35 +2130,21 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.moveForward = forward;
 
         boolean flightMode = isMountFlightModeActive();
-        double prevMotionX = this.motionX;
         double prevMotionY = this.motionY;
-        double prevMotionZ = this.motionZ;
-        float previousJumpFactor = this.jumpMovementFactor;
-        float appliedJumpFactor = getMountedAirStrafeFactor(moveSpeed, flightMode);
 
-        this.jumpMovementFactor = appliedJumpFactor;
-
-        this.setAIMoveSpeed(moveSpeed);
-
-        super.moveEntityWithHeading(strafe, forward);
-
-        if (flightMode) {
-            this.motionY = prevMotionY;
-            this.isAirBorne = true;
-        }
-
-        this.jumpMovementFactor = previousJumpFactor;
-
+        // Server-side only physics (like vanilla horse)
         if (!worldObj.isRemote) {
-            double newMotionX = this.motionX;
-            double newMotionY = this.motionY;
-            double newMotionZ = this.motionZ;
-            if (Math.abs(newMotionX - prevMotionX) > 1.0E-5D || Math.abs(newMotionY - prevMotionY) > 1.0E-5D || Math.abs(newMotionZ - prevMotionZ) > 1.0E-5D) {
-                this.velocityChanged = true;
+            this.jumpMovementFactor = getMountedAirStrafeFactor(moveSpeed, flightMode);
+            this.setAIMoveSpeed(moveSpeed);
+            super.moveEntityWithHeading(strafe, forward);
+
+            if (flightMode) {
+                this.motionY = prevMotionY;
+                this.isAirBorne = true;
             }
         }
 
-        syncMountedRiderVelocity();
+        // Both sides do animation (like vanilla horse)
         updateMountedLimbSwing();
     }
 
@@ -2174,28 +2160,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             return moveSpeed * 0.1F;
         }
         return moveSpeed * 0.5F;
-    }
-
-    private void syncMountedRiderVelocity() {
-        if (!(this.riddenByEntity instanceof EntityLivingBase)) {
-            return;
-        }
-        EntityLivingBase rider = (EntityLivingBase) this.riddenByEntity;
-        double riderPrevMotionX = rider.motionX;
-        double riderPrevMotionY = rider.motionY;
-        double riderPrevMotionZ = rider.motionZ;
-
-        rider.motionX = this.motionX;
-        rider.motionY = this.motionY;
-        rider.motionZ = this.motionZ;
-        rider.fallDistance = 0.0F;
-        rider.isAirBorne = !this.onGround;
-
-        if (!worldObj.isRemote) {
-            if (Math.abs(rider.motionX - riderPrevMotionX) > 1.0E-5D || Math.abs(rider.motionY - riderPrevMotionY) > 1.0E-5D || Math.abs(rider.motionZ - riderPrevMotionZ) > 1.0E-5D) {
-                rider.velocityChanged = true;
-            }
-        }
     }
 
     private void updateMountedLimbSwing() {
