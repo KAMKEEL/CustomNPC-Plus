@@ -3494,12 +3494,13 @@ public class ScriptDocument {
                 // For 'this', we don't have a class context to resolve, but we can mark subsequent fields
                 // as global fields if they exist in globalFields
                 currentType = null; // We'll use globalFields for the next segment
-            } else if (Character.isUpperCase(firstSegment.charAt(0))) {
-                // Static field access like SomeClass.field
-                currentType = resolveType(firstSegment);
             } else {
-                // Variable or field access
-                if (firstIsPrecededByDot) {
+                // Try to resolve as a type first (class/interface/enum name)
+                TypeInfo typeCheck = resolveType(firstSegment);
+                if (typeCheck != null && typeCheck.isResolved()) {
+                    // Static field access like SomeClass.field or scriptType.field
+                    currentType = typeCheck;
+                } else if (firstIsPrecededByDot) {
                     // This is a field access on a previous result (e.g., getMinecraft().thePlayer)
                     // Resolve the receiver chain to get the type of what comes before the dot
                     TypeInfo receiverType = resolveReceiverChain(chainStart);
@@ -3529,11 +3530,14 @@ public class ScriptDocument {
                     continue;
 
                 boolean isLastSegment = (i == chainSegments.size() - 1);
-                boolean isStaticAccessSeg = false;
+                boolean isStaticAccess = false;
                 if (i - 1 >= 0) {
                     String prev = chainSegments.get(i - 1);
-                    if (!prev.isEmpty() && Character.isUpperCase(prev.charAt(0)))
-                        isStaticAccessSeg = true;
+                    // Check if previous segment is a class/type name (indicating static access)
+                    TypeInfo prevType = resolveType(prev);
+                    if (prevType != null && prevType.isResolved()) {
+                        isStaticAccess = true;
+                    }
                 }
                 
                 // Handle the first segment if we're marking it (i.e., when preceded by dot)
@@ -3542,7 +3546,7 @@ public class ScriptDocument {
                     TypeInfo receiverType = resolveReceiverChain(chainStart);
                     if (receiverType != null && receiverType.hasField(segment)) {
                         FieldInfo fieldInfo = receiverType.getFieldInfo(segment);
-                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], receiverType, fieldInfo, isLastSegment, isStaticAccessSeg);
+                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], receiverType, fieldInfo, isLastSegment, isStaticAccess);
 
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
                         currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
@@ -3566,7 +3570,7 @@ public class ScriptDocument {
                         FieldInfo fieldInfo = currentType.getFieldInfo(segment);
 
                         // If accessing from a class name (isStaticAccessSeg) and field is not static, that's an error
-                        if (isStaticAccessSeg && fieldInfo != null && !fieldInfo.isStatic()) {
+                        if (isStaticAccess && fieldInfo != null && !fieldInfo.isStatic()) {
                             // Mark as error - trying to access non-static field from static context
                             TokenErrorMessage errorMsg = TokenErrorMessage
                                     .from("Cannot access non-static field '" + segment + "' from static context '" + currentType.getSimpleName() + "'")
@@ -3576,7 +3580,7 @@ public class ScriptDocument {
                         } else {
                             // Valid access
                             FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1],
-                                    currentType, fieldInfo, isLastSegment, isStaticAccessSeg);
+                                    currentType, fieldInfo, isLastSegment, isStaticAccess);
                             marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
 
                             // Update currentType for next segment
