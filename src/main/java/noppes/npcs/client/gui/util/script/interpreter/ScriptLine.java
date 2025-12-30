@@ -299,31 +299,68 @@ public class ScriptLine {
      * @param renderer A renderer for drawing colored text and error underlines
      */
     public void drawStringHex(int x, int y, HexColorRenderer renderer) {
-        int currentX = x;
+        // Build the complete text with all tokens and gaps, draw it as ONE string
+        // to match the spacing behavior of drawString which draws everything at once
+        StringBuilder fullText = new StringBuilder();
         int lastIndex = 0;
+        
+        // Build segments with token position info
+        java.util.List<TextSegment> segments = new java.util.ArrayList<>();
 
         for (Token t : tokens) {
             int tokenStart = t.getGlobalStart() - globalStart;
 
-            // Draw any text before this token in default color
+            // Add any gap before this token
             if (tokenStart > lastIndex && tokenStart <= text.length()) {
                 String gap = text.substring(lastIndex, tokenStart);
-                currentX = renderer.draw(gap, currentX, y, 0xFFFFFF);
+                segments.add(new TextSegment(fullText.length(), gap, 0xFFFFFFFF, false));
+                fullText.append(gap);
             }
 
-            // Draw the colored token (with underline if flagged)
-            currentX = renderer.draw(t.getText(), currentX, y, t.getHexColor()
-            );
-
+            // Add the colored token
+            segments.add(new TextSegment(fullText.length(), t.getText(), t.getHexColor(), true));
+            fullText.append(t.getText());
+            
             lastIndex = tokenStart + t.getText().length();
         }
 
-        // Draw any remaining text in default color
+        // Add any remaining text after the last token
         if (lastIndex < text.length()) {
-            renderer.draw(text.substring(lastIndex), currentX, y, 0xFFFFFF);
+            String remaining = text.substring(lastIndex);
+            segments.add(new TextSegment(fullText.length(), remaining, 0xFFFFFFFF, false));
+            fullText.append(remaining);
         }
-        drawErrorUnderlines(x, y + ClientProxy.Font.height() - 1);
 
+        // Draw each segment at the correct position
+        // Calculate positions based on the full string to match drawString's spacing
+        for (TextSegment seg : segments) {
+            if (!seg.text.isEmpty()) {
+                // Get the width of everything before this segment
+                String prefix = fullText.substring(0, seg.startPos);
+                int prefixWidth = ClientProxy.Font.width(prefix);
+                int color = (seg.color & 0xFF000000) == 0 ? (0xFF000000 | seg.color) : seg.color;
+
+                // Draw this segment at the correct position
+                ClientProxy.Font.drawString(seg.text, x + prefixWidth, y, color);
+            }
+        }
+        
+        drawErrorUnderlines(x, y + ClientProxy.Font.height() - 1);
+    }
+    
+    // Helper class to track text segments
+    private static class TextSegment {
+        final int startPos;
+        final String text;
+        final int color;
+        final boolean isToken;
+        
+        TextSegment(int startPos, String text, int color, boolean isToken) {
+            this.startPos = startPos;
+            this.text = text;
+            this.color = color;
+            this.isToken = isToken;
+        }
     }
 
     /**
@@ -350,7 +387,7 @@ public class ScriptLine {
      */
     public static HexColorRenderer createDefaultHexRenderer() {
         return (text, x, y, hexColor) -> {
-            // Draw the text with hex color
+            // Draw the text with hex color and return the new X position directly from the renderer
             // Minecraft's font renderer uses ARGB, so add full alpha if not present
             int color = (hexColor & 0xFF000000) == 0 ? (0xFF000000 | hexColor) : hexColor;
             ClientProxy.Font.drawString(text, x, y, color);
