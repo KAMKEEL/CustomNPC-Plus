@@ -126,7 +126,7 @@ public class ScriptTypeInfo extends TypeInfo {
     /**
      * Get all method overloads with the given name.
      */
-    public List<MethodInfo> getMethodOverloads(String methodName) {
+    public List<MethodInfo> getAllMethodOverloads(String methodName) {
         return methods.getOrDefault(methodName, new ArrayList<>());
     }
     

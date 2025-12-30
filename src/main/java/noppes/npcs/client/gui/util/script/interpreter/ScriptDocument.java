@@ -1939,7 +1939,6 @@ public class ScriptDocument {
             // Resolve receiver using existing chain-based resolver and detect static access
             TypeInfo receiverType = resolveReceiverChain(nameStart);
             MethodInfo resolvedMethod = null;
-            boolean computedStaticAccess = isStaticAccessCall(nameStart);
 
             if (receiverType != null) {
                 if (receiverType.hasMethod(methodName)) {
@@ -1947,23 +1946,26 @@ public class ScriptDocument {
                     TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                     // Get best method overload based on argument types
                     resolvedMethod = receiverType.getBestMethodOverload(methodName, argTypes);
-                    
-                    MethodCallInfo callInfo = new MethodCallInfo(
-                        methodName, nameStart, nameEnd, openParen, closeParen,
-                        arguments, receiverType, resolvedMethod, computedStaticAccess
-                    );
-                    
-                    // Set expected type for validation if this is the final expression
-                    if (!isFollowedByDot(closeParen)) {
-                        TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
-                        if (expectedType != null) {
-                            callInfo.setExpectedType(expectedType);
+                    if (isStaticAccess && resolvedMethod != null && !resolvedMethod.isStatic()) {
+                        TokenErrorMessage errorMsg = TokenErrorMessage
+                                .from("Cannot call non-static method '" + methodName + "' from static context '" + receiverType.getSimpleName() + "'")
+                                .clearOtherErrors();
+                        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR, errorMsg));
+                    } else {
+                        MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
+                                closeParen, arguments, receiverType, resolvedMethod, isStaticAccess);
+                        // Set expected type for validation if this is the final expression
+                        if (!isFollowedByDot(closeParen)) {
+                            TypeInfo expectedType = findExpectedTypeAtPosition(nameStart);
+                            if (expectedType != null) {
+                                callInfo.setExpectedType(expectedType);
+                            }
                         }
+
+                        callInfo.validate();
+                        methodCalls.add(callInfo);
+                        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                     }
-                    
-                    callInfo.validate();
-                    methodCalls.add(callInfo);
-                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
                 } else {
                     marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR));
                 }

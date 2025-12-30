@@ -324,6 +324,7 @@ public class MethodCallInfo {
         }
         
         // Check static/instance access (skip for constructors)
+        // NO LONGER CHECKED HERE, BUT DIRECTLY AT MARK CREATION
         if (!isConstructor && isStaticAccess && !resolvedMethod.isStatic()) {
             setError(ErrorType.STATIC_ACCESS_ERROR,
                     "Cannot call instance method '" + methodName + "' on a class type");
