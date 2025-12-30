@@ -27,9 +27,10 @@ public class TypeInfo {
     private final Class<?> javaClass;      // The actual resolved Java class (null if unresolved)
     private final boolean resolved;        // Whether this type was successfully resolved
     private final TypeInfo enclosingType;  // For inner classes, the outer type (null if top-level)
+    private final boolean staticContext;   // true if this is a class reference (can only access static members), false if instance
 
     private TypeInfo(String simpleName, String fullName, String packageName, 
-                     Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
+                     Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType, boolean staticContext) {
         this.simpleName = simpleName;
         this.fullName = fullName;
         this.packageName = packageName;
@@ -37,12 +38,13 @@ public class TypeInfo {
         this.javaClass = javaClass;
         this.resolved = resolved;
         this.enclosingType = enclosingType;
+        this.staticContext = staticContext;
     }
     
     // Protected constructor for subclasses (like ScriptTypeInfo)
     protected TypeInfo(String simpleName, String fullName, String packageName,
                        Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
-                       @SuppressWarnings("unused") boolean subclass) {
+                       boolean staticContext, @SuppressWarnings("unused") boolean subclass) {
         this.simpleName = simpleName;
         this.fullName = fullName;
         this.packageName = packageName;
@@ -50,23 +52,24 @@ public class TypeInfo {
         this.javaClass = javaClass;
         this.resolved = resolved;
         this.enclosingType = enclosingType;
+        this.staticContext = staticContext;
     }
 
     // Factory methods
     public static TypeInfo resolved(String simpleName, String fullName, String packageName, 
                                     Kind kind, Class<?> javaClass) {
-        return new TypeInfo(simpleName, fullName, packageName, kind, javaClass, true, null);
+        return new TypeInfo(simpleName, fullName, packageName, kind, javaClass, true, null, false);
     }
 
     public static TypeInfo resolvedInner(String simpleName, String fullName, String packageName,
                                          Kind kind, Class<?> javaClass, TypeInfo enclosing) {
-        return new TypeInfo(simpleName, fullName, packageName, kind, javaClass, true, enclosing);
+        return new TypeInfo(simpleName, fullName, packageName, kind, javaClass, true, enclosing, false);
     }
 
     public static TypeInfo unresolved(String simpleName, String fullPath) {
         int lastDot = fullPath.lastIndexOf('.');
         String pkg = lastDot > 0 ? fullPath.substring(0, lastDot) : "";
-        return new TypeInfo(simpleName, fullPath, pkg, Kind.UNKNOWN, null, false, null);
+        return new TypeInfo(simpleName, fullPath, pkg, Kind.UNKNOWN, null, false, null, false);
     }
 
     public static TypeInfo fromClass(Class<?> clazz) {
@@ -99,7 +102,7 @@ public class TypeInfo {
             enclosing = fromClass(clazz.getEnclosingClass());
         }
 
-        return new TypeInfo(simpleName, fullName, packageName, kind, clazz, true, enclosing);
+        return new TypeInfo(simpleName, fullName, packageName, kind, clazz, true, enclosing, false);
     }
 
     /**
@@ -118,7 +121,7 @@ public class TypeInfo {
             case "double": primitiveClass = double.class; break;
             case "void": primitiveClass = void.class; break;
         }
-        return new TypeInfo(typeName, typeName, "", Kind.CLASS, primitiveClass, true, null);
+        return new TypeInfo(typeName, typeName, "", Kind.CLASS, primitiveClass, true, null, false);
     }
 
     // Getters
@@ -130,6 +133,25 @@ public class TypeInfo {
     public boolean isResolved() { return resolved; }
     public TypeInfo getEnclosingType() { return enclosingType; }
     public boolean isInnerClass() { return enclosingType != null; }
+    public boolean isStaticContext() { return staticContext; }
+
+    /**
+     * Create a new TypeInfo with static context (for class references).
+     * Used when referencing a class name directly, which can only access static members.
+     */
+    public TypeInfo asStaticContext() {
+        if (staticContext) return this;
+        return new TypeInfo(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, true);
+    }
+
+    /**
+     * Create a new TypeInfo with instance context (for object instances).
+     * Used when referencing an instance of a class, which can access both static and instance members.
+     */
+    public TypeInfo asInstanceContext() {
+        if (!staticContext) return this;
+        return new TypeInfo(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, false);
+    }
 
     /**
      * Get the appropriate TokenType for highlighting this type.
@@ -237,13 +259,19 @@ public class TypeInfo {
     }
 
     /**
-     * Check if this type has a field with the given name.
+     * Check if this type has a field with the given name that is accessible in the current context.
+     * In static context (class reference), only static fields are accessible.
+     * In instance context, both static and instance fields are accessible.
      */
     public boolean hasField(String fieldName) {
         if (javaClass == null) return false;
         try {
             for (java.lang.reflect.Field f : javaClass.getFields()) {
                 if (f.getName().equals(fieldName)) {
+                    // In static context, only static fields are accessible
+                    if (staticContext && !java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                        return false;
+                    }
                     return true;
                 }
             }
@@ -441,7 +469,9 @@ public class TypeInfo {
     }
 
     /**
-     * Get FieldInfo for a field by name. Returns null if not found.
+     * Get FieldInfo for a field by name. Returns null if not found or not accessible.
+     * In static context (class reference), only static fields are accessible.
+     * In instance context, both static and instance fields are accessible.
      * Creates a synthetic FieldInfo based on reflection data.
      */
     public FieldInfo getFieldInfo(String fieldName) {
@@ -449,8 +479,15 @@ public class TypeInfo {
         try {
             for (java.lang.reflect.Field f : javaClass.getFields()) {
                 if (f.getName().equals(fieldName)) {
+                    // In static context, only static fields are accessible
+                    if (staticContext && !java.lang.reflect.Modifier.isStatic(f.getModifiers())) {
+                        return null; // Non-static field not accessible from static context
+                    }
                     // Create a synthetic FieldInfo from reflection
-                    return FieldInfo.fromReflection(f, this);
+                    // Always return instance context for the field's type (field values are instances)
+                    FieldInfo fieldInfo = FieldInfo.fromReflection(f, this);
+                    // The field's type should be in instance context since we're accessing a value
+                    return fieldInfo;
                 }
             }
         } catch (Exception e) {

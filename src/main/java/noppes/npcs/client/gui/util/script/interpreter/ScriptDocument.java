@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
+import net.minecraft.client.Minecraft;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.interpreter.expression.CastExpressionResolver;
 import noppes.npcs.client.gui.util.script.interpreter.expression.ExpressionNode;
@@ -3495,7 +3496,9 @@ public class ScriptDocument {
                 currentType = null; // We'll use globalFields for the next segment
             } else if (Character.isUpperCase(firstSegment.charAt(0))) {
                 // Static field access like SomeClass.field
-                currentType = resolveType(firstSegment);
+                TypeInfo classType = resolveType(firstSegment);
+                // Class names are always in static context (can only access static members)
+                currentType = (classType != null) ? classType.asStaticContext() : null;
             } else {
                 // Variable or field access
                 if (firstIsPrecededByDot) {
@@ -3504,7 +3507,8 @@ public class ScriptDocument {
                     TypeInfo receiverType = resolveReceiverChain(chainStart);
                     if (receiverType != null && receiverType.hasField(firstSegment)) {
                         FieldInfo varInfo = receiverType.getFieldInfo(firstSegment);
-                        currentType = (varInfo != null) ? varInfo.getTypeInfo() : null;
+                        // Field values are always instances, even if field itself is static
+                        currentType = (varInfo != null) ? varInfo.getTypeInfo().asInstanceContext() : null;
                     } else {
                         currentType = null; // Can't resolve
                     }
@@ -3512,7 +3516,8 @@ public class ScriptDocument {
                     // This is a variable starting the chain
                     FieldInfo varInfo = resolveVariable(firstSegment, chainStart);
                     if (varInfo != null) {
-                        currentType = varInfo.getTypeInfo();
+                        // Variables are always instances
+                        currentType = varInfo.getTypeInfo().asInstanceContext();
                     } else {
                         currentType = null;
                     }
@@ -3544,7 +3549,8 @@ public class ScriptDocument {
                         FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], receiverType, fieldInfo, isLastSegment, isStaticAccessSeg);
 
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
-                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+                        // Field values are always instances
+                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo().asInstanceContext() : null;
                     } else {
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
                         currentType = null;
@@ -3554,29 +3560,51 @@ public class ScriptDocument {
                     if (globalFields.containsKey(segment)) {
                         FieldInfo fieldInfo = globalFields.get(segment);
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
-                        currentType = fieldInfo.getTypeInfo();
+                        // Field values are always instances
+                        currentType = fieldInfo.getTypeInfo().asInstanceContext();
                     } else {
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
                         currentType = null;
                     }
                 } else if (currentType != null && currentType.isResolved()) {
                     // Check if this type has this field
-                    //TODO: THIS MAY NEED TO HANDLE STATIC VS INSTANCE FIELDS WITH DIFFERENT RENDERING
-                    if (currentType.hasField(segment)) {
-                        FieldInfo fieldInfo = currentType.getFieldInfo(segment);
-                        
+                    // First check if field exists at all (ignoring static context)
+                    FieldInfo fieldInfo = null;
+                    boolean fieldExists = false;
+                    boolean isStaticAccessError = false;
+
+                    // Check if field exists by temporarily using instance context
+                    TypeInfo instanceContext = currentType.asInstanceContext();
+                    if (instanceContext.hasField(segment)) {
+                        fieldExists = true;
+                        // Now check if accessible in actual context
+                        if (currentType.hasField(segment)) {
+                            fieldInfo = currentType.getFieldInfo(segment);
+                        } else {
+                            // Field exists but not accessible in static context
+                            isStaticAccessError = true;
+                            fieldInfo = instanceContext.getFieldInfo(segment);
+                        }
+                    }
+
+                    if (fieldInfo != null && !isStaticAccessError) {
                         // Check if this is the last segment and if it's in an assignment context
                         // Create and mark FieldAccessInfo for this segment (last or intermediate)
                         FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], currentType, fieldInfo, isLastSegment, isStaticAccessSeg);
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
-                        
-                        // Update currentType for next segment
-                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+
+                        // Update currentType for next segment - field values are always instances
+                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo().asInstanceContext() : null;
 
                         /*TODO THIS ELSE OVERRIDES FOR CHAINED METHOD CALLS LIKE "Minecraft.getMinecraft()"
                         Do we resolve this by increasing METHOD_CALL PRIORITY or how exactly?
                         Think of the best fitting solution that doesnt regress other parts of the whole framework.   
                         */
+                    } else if (isStaticAccessError && fieldInfo != null) {
+                        // Mark as error - trying to access non-static field from static context
+                        String errorMsg = "Cannot access non-static field '" + segment + "' from static context '" + currentType.getSimpleName() + "'";
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR, errorMsg));
+                        currentType = null; // Can't continue resolving
                     } else {
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
                         currentType = null; // Can't continue resolving
