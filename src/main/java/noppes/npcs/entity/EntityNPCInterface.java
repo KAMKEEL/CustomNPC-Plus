@@ -32,7 +32,6 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIAttackOnCollide;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.EntityAIHurtByTarget;
-import net.minecraft.entity.ai.EntityAILeapAtTarget;
 import net.minecraft.entity.ai.EntityAIOpenDoor;
 import net.minecraft.entity.ai.EntityAIRestrictSun;
 import net.minecraft.entity.ai.EntityAISwimming;
@@ -101,6 +100,7 @@ import noppes.npcs.ai.EntityAIMoveIndoors;
 import noppes.npcs.ai.EntityAIMovingPath;
 import noppes.npcs.ai.EntityAIOrbitTarget;
 import noppes.npcs.ai.EntityAIPanic;
+import noppes.npcs.ai.EntityAILeapAtTargetNpc;
 import noppes.npcs.ai.EntityAIPounceTarget;
 import noppes.npcs.ai.EntityAIRangedAttack;
 import noppes.npcs.ai.EntityAIReturn;
@@ -160,6 +160,7 @@ import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
 import noppes.npcs.util.GameProfileAlt;
+import noppes.npcs.util.NPCMountUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -211,7 +212,9 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
 
     public ResourceLocation textureLocation = null;
 
-    private Entity lastRider;
+    private final NPCMountUtil.MountState mountState = new NPCMountUtil.MountState();
+    private static final int NPC_STATE_FLAG_FLYING = 1;
+    private static final int NPC_STATE_FLAG_JUMPING = 1 << 1;
 
     public EnumAnimation currentAnimation = EnumAnimation.NONE;
 
@@ -282,6 +285,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         this.dataWatcher.addObject(14, Integer.valueOf(0)); // Animation
         this.dataWatcher.addObject(15, Integer.valueOf(0)); // isWalking
         this.dataWatcher.addObject(16, ""); // Role
+        this.dataWatcher.addObject(17, Byte.valueOf((byte) 0)); // Mount state flags
     }
 
     protected boolean isAIEnabled() {
@@ -967,7 +971,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
      */
     public void setLeapTask() {
         if (this.ais.leapType == 1)
-            this.tasks.addTask(this.taskCount++, aiLeap = new EntityAILeapAtTarget(this, 0.4F));
+            this.tasks.addTask(this.taskCount++, aiLeap = new EntityAILeapAtTargetNpc(this, 0.4F));
         if (this.ais.leapType == 2)
             this.tasks.addTask(this.taskCount++, aiLeap = new EntityAIPounceTarget(this));
     }
@@ -1486,13 +1490,14 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             delete();
         } else {
             if (this.riddenByEntity != null) {
-                stabilizeDismountedRider(this.riddenByEntity);
+                NPCMountUtil.stabilizeDismountedRider(this.riddenByEntity);
                 this.riddenByEntity.mountEntity(null);
-                haltMountedMotion();
+                NPCMountUtil.haltMountedMotion(this, mountState);
             }
             if (this.ridingEntity != null)
                 this.mountEntity(null);
-            lastRider = null;
+            mountState.lastRider = null;
+            NPCMountUtil.resetMountedFlightState(this, mountState);
             setHealth(-1);
             setSprinting(false);
             getNavigator().clearPathEntity();
@@ -1623,7 +1628,32 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     public boolean isFlying() {
-        return isWalking() && !onGround;
+        return isNpcFlying();
+    }
+
+    public boolean isNpcFlying() {
+        return (dataWatcher.getWatchableObjectByte(17) & NPC_STATE_FLAG_FLYING) != 0;
+    }
+
+    public boolean isNpcJumping() {
+        return (dataWatcher.getWatchableObjectByte(17) & NPC_STATE_FLAG_JUMPING) != 0;
+    }
+
+    private void setNpcStateFlag(int mask, boolean value) {
+        byte current = dataWatcher.getWatchableObjectByte(17);
+        byte updated = value ? (byte) (current | mask) : (byte) (current & ~mask);
+        if (current != updated) {
+            dataWatcher.updateObject(17, updated);
+        }
+    }
+
+    public void setNpcFlyingState(boolean flying) {
+        setNpcStateFlag(NPC_STATE_FLAG_FLYING, flying);
+    }
+
+    public void setNpcJumpingState(boolean jumping) {
+        setNpcStateFlag(NPC_STATE_FLAG_JUMPING, jumping);
+        this.isJumping = jumping;
     }
 
     public void setBoolFlag(boolean bo, int id) {
@@ -1872,9 +1902,12 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     @Override
-    protected void fall(float par1) {
+    protected void fall(float distance) {
+        if (NPCMountUtil.isFlyingMountWithFlightEnabled(this)) {
+            return;
+        }
         if (!this.stats.noFallDamage)
-            super.fall(par1);
+            super.fall(distance);
     }
 
     @Override
@@ -2089,64 +2122,83 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     protected boolean handleMountedMovement(float strafe, float forward) {
-        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount))
-            return false;
-        if (riddenByEntity != null && !(riddenByEntity instanceof EntityPlayer)) {
-            riddenByEntity.mountEntity(null);
-            return false;
-        }
-        if (!(riddenByEntity instanceof EntityPlayer))
-            return false;
-
-        RoleMount mount = (RoleMount) roleInterface;
-        EntityPlayer rider = (EntityPlayer) riddenByEntity;
-        this.prevRotationYaw = this.rotationYaw = rider.rotationYaw;
-        this.rotationPitch = rider.rotationPitch * 0.5F;
-        this.setRotation(this.rotationYaw, this.rotationPitch);
-        this.renderYawOffset = this.rotationYaw;
-        this.rotationYawHead = this.rotationYaw;
-
-        float controlledStrafe = rider.moveStrafing * 0.5F;
-        float controlledForward = rider.moveForward;
-        if (controlledForward <= 0.0F) {
-            controlledForward *= 0.25F;
-        }
-
-        float moveSpeed = Math.max(0.1F, getSpeed());
-        boolean riderSprinting = rider.isSprinting() && mount.isSprintAllowed();
-        if (riderSprinting) {
-            moveSpeed *= 1.2F;
-        }
-
-        if (!mount.isSprintAllowed() && rider.isSprinting()) {
-            rider.setSprinting(false);
-        }
-
-        this.setSprinting(riderSprinting);
-        this.stepHeight = 1.0F;
-        this.jumpMovementFactor = moveSpeed * 0.1F;
-
-        this.getNavigator().clearPathEntity();
-        this.setAttackTarget(null);
-        this.setRevengeTarget(null);
-
-        this.fallDistance = 0.0F;
-        rider.fallDistance = 0.0F;
-
-        applyMountedVerticalMotion(rider, moveSpeed, controlledForward);
-        doMountedMovement(controlledStrafe, controlledForward, moveSpeed);
-
-        return true;
+        return NPCMountUtil.handleMountedMovement(this, mountState, strafe, forward);
     }
-
-    protected void doMountedMovement(float strafe, float forward, float moveSpeed) {
+    
+    public void performMountedMovement(float strafe, float forward, float moveSpeed) {
         this.moveStrafing = strafe;
         this.moveForward = forward;
-        if (!worldObj.isRemote) {
-            this.setAIMoveSpeed(moveSpeed);
-            super.moveEntityWithHeading(strafe, forward);
+
+        boolean flightMode = isMountFlightModeActive();
+        double prevMotionX = this.motionX;
+        double prevMotionY = this.motionY;
+        double prevMotionZ = this.motionZ;
+        float previousJumpFactor = this.jumpMovementFactor;
+        float appliedJumpFactor = getMountedAirStrafeFactor(moveSpeed, flightMode);
+
+        this.jumpMovementFactor = appliedJumpFactor;
+
+        this.setAIMoveSpeed(moveSpeed);
+
+        super.moveEntityWithHeading(strafe, forward);
+
+        if (flightMode) {
+            this.motionY = prevMotionY;
+            this.isAirBorne = true;
         }
 
+        this.jumpMovementFactor = previousJumpFactor;
+
+        if (!worldObj.isRemote) {
+            double newMotionX = this.motionX;
+            double newMotionY = this.motionY;
+            double newMotionZ = this.motionZ;
+            if (Math.abs(newMotionX - prevMotionX) > 1.0E-5D || Math.abs(newMotionY - prevMotionY) > 1.0E-5D || Math.abs(newMotionZ - prevMotionZ) > 1.0E-5D) {
+                this.velocityChanged = true;
+            }
+        }
+
+        syncMountedRiderVelocity();
+        updateMountedLimbSwing();
+    }
+
+    protected boolean isMountFlightModeActive() {
+        return NPCMountUtil.isMountInFlightMode(mountState);
+    }
+
+    private float getMountedAirStrafeFactor(float moveSpeed, boolean flightMode) {
+        if (moveSpeed <= 0.0F) {
+            return 0.0F;
+        }
+        if (!flightMode) {
+            return moveSpeed * 0.1F;
+        }
+        return moveSpeed * 0.5F;
+    }
+
+    private void syncMountedRiderVelocity() {
+        if (!(this.riddenByEntity instanceof EntityLivingBase)) {
+            return;
+        }
+        EntityLivingBase rider = (EntityLivingBase) this.riddenByEntity;
+        double riderPrevMotionX = rider.motionX;
+        double riderPrevMotionY = rider.motionY;
+        double riderPrevMotionZ = rider.motionZ;
+
+        rider.motionX = this.motionX;
+        rider.motionY = this.motionY;
+        rider.motionZ = this.motionZ;
+        rider.fallDistance = 0.0F;
+        rider.isAirBorne = !this.onGround;
+
+        if (!worldObj.isRemote) {
+            if (Math.abs(rider.motionX - riderPrevMotionX) > 1.0E-5D || Math.abs(rider.motionY - riderPrevMotionY) > 1.0E-5D || Math.abs(rider.motionZ - riderPrevMotionZ) > 1.0E-5D) {
+                rider.velocityChanged = true;
+            }
+        }
+    }
+
+    private void updateMountedLimbSwing() {
         this.prevLimbSwingAmount = this.limbSwingAmount;
         double deltaX = this.posX - this.prevPosX;
         double deltaZ = this.posZ - this.prevPosZ;
@@ -2160,46 +2212,6 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
         this.limbSwingAmount += (limbSwingSpeed - this.limbSwingAmount) * 0.4F;
         this.limbSwing += this.limbSwingAmount;
-    }
-
-    protected void applyMountedVerticalMotion(EntityLivingBase rider, float moveSpeed, float forward) {
-        if (!(roleInterface instanceof RoleMount)) {
-            return;
-        }
-        RoleMount mount = (RoleMount) roleInterface;
-        double jumpFactor = MathHelper.clamp_double(mount.getJumpStrength(), 0.1D, 3.0D);
-
-        if (canFly()) {
-            double verticalBase = Math.max(0.1D, moveSpeed * 0.6D);
-            double vertical = MathHelper.clamp_double(verticalBase * jumpFactor, 0.05D, 2.0D);
-            if (rider.isJumping) {
-                this.motionY = Math.min(this.motionY + vertical, vertical);
-                this.isAirBorne = true;
-                this.velocityChanged = true;
-            } else {
-                float pitch = rider.rotationPitch;
-                if (pitch < -10F) {
-                    this.motionY = vertical;
-                } else if (pitch > 10F) {
-                    this.motionY = -vertical;
-                } else if (!this.onGround) {
-                    this.motionY *= 0.6D;
-                }
-            }
-        } else if (rider.isJumping && this.onGround) {
-            double baseVelocity = MathHelper.clamp_double(0.4D + moveSpeed * 1.5D, 0.2D, 1.2D);
-            double jumpVelocity = MathHelper.clamp_double(baseVelocity * jumpFactor, 0.2D, 2.0D);
-            this.motionY = jumpVelocity;
-            this.isAirBorne = true;
-            this.velocityChanged = true;
-            if (forward > 0.0F) {
-                float yawRadians = this.rotationYaw * (float) Math.PI / 180.0F;
-                double boost = 0.4D * forward;
-                this.motionX += -MathHelper.sin(yawRadians) * boost;
-                this.motionZ += MathHelper.cos(yawRadians) * boost;
-            }
-            ForgeHooks.onLivingJump(this);
-        }
     }
 
     @Override
@@ -2240,71 +2252,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     }
 
     private void handleMountRiderState() {
-        if (worldObj.isRemote) {
-            if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
-                lastRider = null;
-            }
-            return;
-        }
-
-        if (advanced.role != EnumRoleType.Mount || !(roleInterface instanceof RoleMount)) {
-            lastRider = null;
-            return;
-        }
-
-        Entity currentRider = this.riddenByEntity;
-        if (currentRider != null && !(currentRider instanceof EntityPlayer)) {
-            Entity dismount = currentRider;
-            dismount.mountEntity(null);
-            stabilizeDismountedRider(dismount);
-            haltMountedMotion();
-            currentRider = null;
-        }
-        if (currentRider != lastRider) {
-            if (lastRider != null) {
-                stabilizeDismountedRider(lastRider);
-                haltMountedMotion();
-            }
-            lastRider = currentRider;
-        }
-    }
-
-    private void stabilizeDismountedRider(Entity rider) {
-        boolean wasOnGround = rider.onGround;
-        double previousMotionX = rider.motionX;
-        double previousMotionY = rider.motionY;
-        double previousMotionZ = rider.motionZ;
-        float previousFall = rider.fallDistance;
-
-        if (wasOnGround) {
-            rider.motionX = 0.0D;
-            rider.motionY = 0.0D;
-            rider.motionZ = 0.0D;
-            rider.fallDistance = 0.0F;
-            rider.onGround = true;
-        } else {
-            rider.motionX = previousMotionX;
-            rider.motionY = previousMotionY;
-            rider.motionZ = previousMotionZ;
-            rider.fallDistance = previousFall;
-        }
-
-        rider.velocityChanged = true;
-    }
-
-    private void haltMountedMotion() {
-        this.motionX = 0.0D;
-        this.motionY = 0.0D;
-        this.motionZ = 0.0D;
-        this.velocityChanged = true;
-        this.isAirBorne = false;
-        this.setSprinting(false);
-        this.moveForward = 0.0F;
-        this.moveStrafing = 0.0F;
-        this.setAIMoveSpeed(0.0F);
-        this.limbSwingAmount = 0.0F;
-        this.limbSwing = 0.0F;
-        this.getNavigator().clearPathEntity();
+        NPCMountUtil.handleMountRiderState(this, mountState);
     }
 
     // Model Types: 0: Steve 64x32, 1: Steve 64x64, 2: Alex 64x64

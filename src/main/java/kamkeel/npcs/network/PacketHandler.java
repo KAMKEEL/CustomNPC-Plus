@@ -60,6 +60,7 @@ import kamkeel.npcs.network.packets.player.MailActionPacket;
 import kamkeel.npcs.network.packets.player.SaveBookPacket;
 import kamkeel.npcs.network.packets.player.SaveSignPacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
+import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import kamkeel.npcs.network.packets.player.TransportPacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomGuiButtonPacket;
 import kamkeel.npcs.network.packets.player.customgui.CustomGuiClosePacket;
@@ -575,6 +576,7 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new InputDevicePacket());
 
         PLAYER_PACKET.registerPacket(new ScreenSizePacket());
+        PLAYER_PACKET.registerPacket(new SpecialKeyStatePacket());
 
         PLAYER_PACKET.registerPacket(new SyncRevisionInfoPacket());
 

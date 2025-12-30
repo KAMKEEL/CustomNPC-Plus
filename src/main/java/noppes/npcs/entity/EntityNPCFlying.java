@@ -45,6 +45,7 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
         if (handleMountedMovement(p_70612_1_, p_70612_2_))
             return;
         if (!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
+            setNpcFlyingState(false);
             super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
             return;
         }
@@ -66,11 +67,13 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;
             } else {
+                setNpcFlyingState(false);
                 super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
                 return;
             }
         }
         this.flyLimitAllow = true;
+        setNpcFlyingState(true);
 
         double d3 = this.motionY;
         super.moveEntityWithHeading(p_70612_1_, p_70612_2_);
@@ -97,11 +100,14 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
     }
 
     @Override
-    protected void doMountedMovement(float strafe, float forward, float moveSpeed) {
+    public void performMountedMovement(float strafe, float forward, float moveSpeed) {
         if (!this.canFly() || this.hurtTime != 0 || !this.canBreathe()) {
-            super.doMountedMovement(strafe, forward, moveSpeed);
+            setNpcFlyingState(false);
+            super.performMountedMovement(strafe, forward, moveSpeed);
             return;
         }
+
+        boolean flightModeActive = isMountFlightModeActive();
 
         boolean aboveLimit = false;
         double heightOffGround = this.posY - this.worldObj.getTopSolidOrLiquidBlock((int) this.posX, (int) this.posZ);
@@ -120,14 +126,22 @@ public abstract class EntityNPCFlying extends EntityNPCInterface {
             if (!this.getNavigator().noPath() && this.motionY > 0) {
                 this.motionY = 0;
             } else {
-                super.doMountedMovement(strafe, forward, moveSpeed);
+                setNpcFlyingState(false);
+                super.performMountedMovement(strafe, forward, moveSpeed);
                 return;
             }
         }
         this.flyLimitAllow = true;
+        setNpcFlyingState(true);
+
+        if (flightModeActive) {
+            super.performMountedMovement(strafe, forward, moveSpeed);
+            this.velocityChanged = true;
+            return;
+        }
 
         double d3 = this.motionY;
-        super.doMountedMovement(strafe, forward, moveSpeed);
+        super.performMountedMovement(strafe, forward, moveSpeed);
         this.motionY = d3;
 
         if (this.getNavigator().noPath()) {
