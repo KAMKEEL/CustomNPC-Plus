@@ -420,7 +420,7 @@ public class ScriptDocument {
             
             String typeNameRaw = fm.group(1).trim();
             String fieldName = fm.group(2);
-            
+            String delimiter = fm.group(3);
             // Parse modifiers and strip them
             int modifiers = parseModifiers(typeNameRaw);
             String typeName = stripModifiers(typeNameRaw);
@@ -440,8 +440,28 @@ public class ScriptDocument {
             // Extract documentation before this field
             String documentation = extractDocumentationBefore(absPos);
             
+            // Extract initialization range if there's an '=' delimiter
+            int initStart = -1;
+            int initEnd = -1;
+            if ("=".equals(delimiter)) {
+                initStart = bodyStart + 1 + fm.start(3); // Absolute position of '='
+                // Find the semicolon that ends this declaration
+                int searchPos = bodyStart + 1 + fm.end(3);
+                int depth = 0; // Track nested parens/brackets/braces
+                while (searchPos < text.length()) {
+                    char c = text.charAt(searchPos);
+                    if (c == '(' || c == '[' || c == '{') depth++;
+                    else if (c == ')' || c == ']' || c == '}') depth--;
+                    else if (c == ';' && depth == 0) {
+                        initEnd = searchPos; // Position of ';' (exclusive)
+                        break;
+                    }
+                    searchPos++;
+                }
+            }
+            
             TypeInfo fieldType = resolveType(typeName);
-            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos, documentation, -1, -1, modifiers);
+            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos, documentation, initStart, initEnd, modifiers);
             scriptType.addField(fieldInfo);
         }
         
@@ -3764,6 +3784,12 @@ public class ScriptDocument {
                 field.clearAssignments();
             }
         }
+        // Also clear assignments in script type fields
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            for (FieldInfo field : scriptType.getFields().values()) {
+                field.clearAssignments();
+            }
+        }
         externalFieldAssignments.clear();
         
         // Pattern to find assignments: identifier = expression;
@@ -4361,6 +4387,12 @@ public class ScriptDocument {
                     return localInfo;
                 }
             }
+        }
+        
+        // Check if we're inside a script type and look for fields there
+        ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+        if (enclosingType != null && enclosingType.hasField(name)) {
+            return enclosingType.getFieldInfo(name);
         }
         
         // Check global fields
