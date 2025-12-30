@@ -150,7 +150,7 @@ public class ScriptContainer {
             var14.printStackTrace(pw);
         } finally {
             String errorString = sw.getBuffer().toString().trim();
-            this.appendConsole(errorString);
+          //  this.appendConsole(errorString);
             pw.close();
         }
     }
@@ -225,7 +225,7 @@ public class ScriptContainer {
                 errored = true;
                 e.printStackTrace(pw);
             } finally {
-                appendConsole(sw.getBuffer().toString().trim());
+            //    appendConsole(sw.getBuffer().toString().trim());
                 pw.close();
                 Current = null;
             }
