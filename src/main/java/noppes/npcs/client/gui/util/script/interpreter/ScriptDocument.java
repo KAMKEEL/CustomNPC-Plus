@@ -999,9 +999,10 @@ public class ScriptDocument {
         TypeInfo currentType = null;
         
         // Resolve the first segment
-        if (Character.isUpperCase(firstIdent.charAt(0))) {
-            // Static access like Event.player
-            currentType = resolveType(firstIdent);
+        TypeInfo typeCheck = resolveType(firstIdent);
+        if (typeCheck != null && typeCheck.isResolved()) {
+            // Static access like Event.player or scriptType.field
+            currentType = typeCheck;
         } else {
             // Variable access
             FieldInfo varInfo = resolveVariable(firstIdent, identStart);
@@ -1804,8 +1805,9 @@ public class ScriptDocument {
             }
             String typeName = content.substring(start, i);
 
-            // Only process if it looks like a type name (starts with uppercase)
-            if (Character.isUpperCase(typeName.charAt(0))) {
+            // Only process if it's an actual type (check via resolveType)
+            TypeInfo typeCheck = resolveType(typeName);
+            if (typeCheck != null && typeCheck.isResolved()) {
                 int absStart = baseOffset + start;
                 int absEnd = baseOffset + i;
 
@@ -2044,8 +2046,10 @@ public class ScriptDocument {
             return false;
         }
         
-        // It's static access if the identifier starts with uppercase
-        return !ident.isEmpty() && Character.isUpperCase(ident.charAt(0));
+        // It's static access if the identifier resolves to a type
+        if (ident.isEmpty()) return false;
+        TypeInfo typeCheck = resolveType(ident);
+        return typeCheck != null && typeCheck.isResolved();
     }
 
     /**
@@ -2371,10 +2375,15 @@ public class ScriptDocument {
                     return currentType;
                 }
             }
-        } else if (Character.isUpperCase(first.name.charAt(0))) {
-            // Uppercase first letter - could be a class name for static access
-            currentType = resolveType(first.name);
-        } else if (!first.isMethodCall) {
+        } else {
+            // Check if first segment is a type name for static access
+            TypeInfo typeCheck = resolveType(first.name);
+            if (typeCheck != null && typeCheck.isResolved()) {
+                currentType = typeCheck;
+            }
+        }
+        
+        if (currentType == null && !first.isMethodCall) {
             // Regular variable
             FieldInfo varInfo = resolveVariable(first.name, position);
             if (varInfo != null) {
@@ -2850,8 +2859,11 @@ public class ScriptDocument {
                 }
                 
                 // Try as a class name (for static access)
-                if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) {
-                    return resolveType(name);
+                if (name.length() > 0) {
+                    TypeInfo typeCheck = resolveType(name);
+                    if (typeCheck != null && typeCheck.isResolved()) {
+                        return typeCheck;
+                    }
                 }
                 
                 return null;
@@ -2986,9 +2998,15 @@ public class ScriptDocument {
         
         if (first.name.equals("this")) {
             currentType = findEnclosingScriptType(position);
-        } else if (Character.isUpperCase(first.name.charAt(0))) {
-            currentType = resolveType(first.name);
-        } else if (!first.isMethodCall) {
+        } else {
+            // Check if first segment is a type name
+            TypeInfo typeCheck = resolveType(first.name);
+            if (typeCheck != null && typeCheck.isResolved()) {
+                currentType = typeCheck;
+            }
+        }
+        
+        if (currentType == null && !first.isMethodCall) {
             FieldInfo varInfo = resolveVariable(first.name, position);
             if (varInfo != null) {
                 currentType = varInfo.getTypeInfo();

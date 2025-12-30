@@ -625,9 +625,14 @@ public class FormatHelper {
                     start--;
                 }
                 String before = code.substring(start, pos);
-                // Common generic types or capital letter start (type name)
-                if (!before.isEmpty() && Character.isUpperCase(before.charAt(0))) {
-                    return true;
+                // Check if it's actually a type name (more robust than just checking uppercase)
+                if (!before.isEmpty()) {
+                    // For FormatHelper, we don't have access to ScriptDocument's resolveType,
+                    // so we check common patterns: uppercase start or known generic types
+                    if (Character.isUpperCase(before.charAt(0)) || 
+                        before.equals("var") || before.equals("let") || before.equals("const")) {
+                        return true;
+                    }
                 }
             }
             // Check if there's a matching >

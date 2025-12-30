@@ -368,7 +368,8 @@ public class ClassPathFinder {
                 if (p == null || p.isEmpty()) continue;
                 String[] segs = p.split("\\.");
                 String last = segs[segs.length - 1];
-                boolean lastIsClass = last.length() > 0 && Character.isUpperCase(last.charAt(0));
+                // Check if last segment is actually a class (try to resolve it)
+                boolean lastIsClass = last.length() > 0 && tryResolveClass(p) != null;
 
                 // Try package wildcard: pkg.SimpleName
                 if (!lastIsClass) {
@@ -532,6 +533,8 @@ public class ClassPathFinder {
     private int findFirstUppercaseSegment(String[] segments) {
         for (int i = 0; i < segments.length; i++) {
             if (segments[i].length() > 0 && Character.isUpperCase(segments[i].charAt(0))) {
+                // Keep uppercase check here as it's a heuristic for package splitting
+                // This is about Java naming conventions, not actual type resolution
                 return i;
             }
         }
@@ -646,10 +649,10 @@ public class ClassPathFinder {
             }
             String typeName = content.substring(start, i);
 
-            // Only process if it looks like a type name (starts with uppercase)
-            if (Character.isUpperCase(typeName.charAt(0))) {
-                // Resolve the type
-                ClassInfo info = resolveSimpleName(typeName, importedClasses, importedPackages);
+            // Try to resolve as an actual type
+            ClassInfo info = resolveSimpleName(typeName, importedClasses, importedPackages);
+            if (info != null) {
+                // Only process if it actually resolves to a type
                 ClassType classType = (info != null) ? info.type : ClassType.CLASS;
 
                 results.add(new TypeOccurrence(baseOffset + start, baseOffset + i, typeName, classType));
