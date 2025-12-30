@@ -1699,7 +1699,7 @@ public class ScriptDocument {
         // Pattern for type optionally followed by generics - we'll manually parse generics
         Pattern typeStart = Pattern.compile(
                 "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" +
-                        "([A-Z][a-zA-Z0-9_]*)\\s*");
+                        "([a-zA-Z][a-zA-Z0-9_]*)\\s*");
 
         Matcher m = typeStart.matcher(text);
         int searchFrom = 0;
@@ -4117,7 +4117,7 @@ public class ScriptDocument {
 
     private void markImportedClassUsages(List<ScriptLine.Mark> marks) {
         // Find uppercase identifiers followed by dot (static method calls, field access)
-        Pattern classUsage = Pattern.compile("\\b([A-Z][a-zA-Z0-9_]*)\\s*\\.");
+        Pattern classUsage = Pattern.compile("\\b([A-Za-z][a-zA-Z0-9_]*)\\s*\\.");
         Matcher m = classUsage.matcher(text);
 
         while (m.find()) {
@@ -4143,7 +4143,7 @@ public class ScriptDocument {
         }
 
         // Also mark uppercase identifiers in type positions (new X(), X variable, etc.)
-        Pattern typeUsage = Pattern.compile("\\b(new\\s+)?([A-Z][a-zA-Z0-9_]*)(?:\\s*<[^>]*>)?\\s*(?:\\(|\\[|\\b[a-z])");
+        Pattern typeUsage = Pattern.compile("\\b(new\\s+)?([A-Za-z][a-zA-Z0-9_]*)(?:\\s*<[^>]*>)?\\s*(?:\\(|\\[|\\b[a-z])");
         Matcher tm = typeUsage.matcher(text);
 
         while (tm.find()) {
