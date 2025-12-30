@@ -18,6 +18,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
+import scala.annotation.meta.param;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -1930,8 +1931,8 @@ public class ScriptDocument {
                 continue;
             }
 
-            // Parse the arguments
-            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen);
+            // Parse the arguments (first pass - without expected types for overload resolution)
+            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
 
             // Check if this is a static access (Class.method() style)
             boolean isStaticAccess = isStaticAccessCall(nameStart);
@@ -1946,12 +1947,18 @@ public class ScriptDocument {
                     TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                     // Get best method overload based on argument types
                     resolvedMethod = receiverType.getBestMethodOverload(methodName, argTypes);
+
                     if (isStaticAccess && resolvedMethod != null && !resolvedMethod.isStatic()) {
                         TokenErrorMessage errorMsg = TokenErrorMessage
                                 .from("Cannot call non-static method '" + methodName + "' from static context '" + receiverType.getSimpleName() + "'")
                                 .clearOtherErrors();
                         marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.UNDEFINED_VAR, errorMsg));
                     } else {
+                        // Second pass: Re-resolve arguments with expected parameter types if method was found
+                        if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size())
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                        
+                        
                         MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
                                 closeParen, arguments, receiverType, resolvedMethod, isStaticAccess);
                         // Set expected type for validation if this is the final expression
@@ -1979,6 +1986,11 @@ public class ScriptDocument {
                         
                         TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                         resolvedMethod = getScriptMethodInfo(methodName, argTypes);
+
+                        // Second pass: Re-resolve arguments with expected parameter types if method was found
+                        if (resolvedMethod != null && resolvedMethod.getParameters().size() == arguments.size()) {
+                            arguments = parseMethodArguments(openParen + 1, closeParen, resolvedMethod);
+                        }
                         
                         // Check if this is a method from a script type
                         // Instance methods from script types cannot be called without a receiver
@@ -2144,7 +2156,15 @@ public class ScriptDocument {
      * Parse method arguments from the text between opening and closing parentheses.
      * Handles nested expressions, strings, and complex argument types.
      */
-    private List<MethodCallInfo.Argument> parseMethodArguments(int start, int end) {
+    /**
+     * Parse method call arguments.
+     *
+     * @param start Start position of arguments (after opening paren)
+     * @param end End position of arguments (at closing paren)
+     * @param methodInfo Optional MethodInfo to provide expected parameter types for validation
+     * @return List of parsed arguments with resolved types
+     */
+    private List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
         List<MethodCallInfo.Argument> args = new ArrayList<>();
         
         if (start >= end) {
@@ -2173,7 +2193,14 @@ public class ScriptDocument {
                     
                     // Try to resolve the argument type
                     // First check if this looks like a parameter declaration (Type varName)
-                    TypeInfo argType = resolveArgumentType(argText, actualStart);
+                    // Get expected parameter type if available
+                    TypeInfo expectedParamType = null;
+                    if (methodInfo != null && args.size() < methodInfo.getParameters().size()) {
+                        FieldInfo parameter = methodInfo.getParameters().get(args.size());
+                        expectedParamType = parameter.getDeclaredType();
+                    }
+
+                    TypeInfo argType = resolveArgumentType(argText, actualStart, expectedParamType);
                     
                     args.add(new MethodCallInfo.Argument( 
                         argText, actualStart, actualEnd, argType, true, null
@@ -2209,8 +2236,13 @@ public class ScriptDocument {
     /**
      * Resolve the type of a method call argument.
      * Handles both parameter declarations (Type varName) and expressions (variable.field()).
+     *
+     * @param argText The argument text
+     * @param position The position in the document
+     * @param expectedType Optional expected parameter type for validation
+     * @return The resolved type of the argument
      */
-    private TypeInfo resolveArgumentType(String argText, int position) {
+    private TypeInfo resolveArgumentType(String argText, int position, TypeInfo expectedType) {
         argText = argText.trim();
         
         // Check if this looks like a parameter declaration: "Type varName"
@@ -2230,8 +2262,18 @@ public class ScriptDocument {
                 return resolveType(typeName);
             }
         }
-        
-        // Otherwise, treat it as an expression
+
+        // Otherwise, treat it as an expression with expected type context
+        if (expectedType != null) {
+            ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = expectedType;
+            try {
+                return resolveExpressionType(argText, position);
+            } finally {
+                ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = null;
+            }
+        }
+
+        // No expected type - resolve normally
         return resolveExpressionType(argText, position);
     }
     
@@ -3968,8 +4010,14 @@ public class ScriptDocument {
             }
         }
 
-        // Resolve the source type (RHS)
-        TypeInfo sourceType = resolveExpressionType(rhs, equalsPos + 1);
+        // Resolve the source type (RHS) with expected type context
+        TypeInfo sourceType;
+        ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = targetType;
+        try {
+            sourceType = resolveExpressionType(rhs, equalsPos + 1);
+        } finally {
+            ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = null;
+        }
         
         // Determine if this is a script-defined field or external field
         FieldInfo finalTargetField = targetField;
@@ -4068,7 +4116,15 @@ public class ScriptDocument {
         }
         
         TypeInfo targetType = targetField.getDeclaredType();
-        TypeInfo sourceType = resolveExpressionType(rhs, rhsStart);
+
+        // Resolve the source type with expected type context
+        TypeInfo sourceType;
+        ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = targetType;
+        try {
+            sourceType = resolveExpressionType(rhs, rhsStart);
+        } finally {
+            ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = null;
+        }
         
         // Create the assignment info
         // Declaration assignments should NOT check final status - this is the one place where final fields can be assigned
@@ -4219,7 +4275,8 @@ public class ScriptDocument {
                             }
                             
                             // Parse arguments to find matching constructor
-                            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen);
+                            List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen,
+                                    null);
                             int argCount = arguments.size();
                             
                             // Try to find matching constructor (may be null if not found)

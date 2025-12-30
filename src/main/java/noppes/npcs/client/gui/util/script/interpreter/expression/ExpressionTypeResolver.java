@@ -6,6 +6,14 @@ import java.util.List;
 public class ExpressionTypeResolver {
     private final ExpressionNode.TypeResolverContext context;
     
+    /**
+     * Static field to track the expected/desired type for the current expression being resolved.
+     * This allows TypeRules to validate type compatibility in context (e.g., ternary operator branches
+     * must be compatible with the assignment target type).
+     * Should be set before calling resolve() and cleared after.
+     */
+    public static TypeInfo CURRENT_EXPECTED_TYPE = null;
+    
     public ExpressionTypeResolver(ExpressionNode.TypeResolverContext context) {
         this.context = context;
     }
