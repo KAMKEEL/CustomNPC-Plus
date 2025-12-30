@@ -4505,6 +4505,14 @@ public class ScriptDocument {
                 return assign;
             }
         }
+
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            for (FieldInfo field : scriptType.getFields().values()) {
+                AssignmentInfo assign = field.findAssignmentAtPosition(position);
+                if (assign != null)
+                    return assign;
+            }
+        }
         
         return null;
     }
@@ -4538,6 +4546,14 @@ public class ScriptDocument {
                 errored.add(assign);
             }
         }
+
+
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            for (FieldInfo field : scriptType.getFields().values()) {
+                errored.addAll(field.getErroredAssignments());
+            }
+        }
+        
 
         // Include declaration errors (duplicates, etc.)
         errored.addAll(declarationErrors);
