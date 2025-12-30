@@ -694,7 +694,7 @@ public class TokenHoverInfo {
 
     private void extractUndefinedInfo(Token token) {
         iconIndicator = "?";
-        addSegment(token.getText(), TokenType.UNDEFINED_VAR.getHexColor());
+        //addSegment(token.getText(), TokenType.UNDEFINED_VAR.getHexColor());
     }
 
     private void extractFieldInfoGeneric(Token token) {
