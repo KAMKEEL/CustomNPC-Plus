@@ -569,9 +569,9 @@ public class TokenHoverInfo {
 
     private void extractGlobalFieldInfo(Token token) {
         FieldInfo fieldInfo = token.getFieldInfo();
-        FieldAccessInfo chainedField = token.getFieldAccessInfo();
-        if (fieldInfo == null && chainedField != null)
-            fieldInfo = chainedField.getResolvedField();
+        FieldAccessInfo accessInfo = token.getFieldAccessInfo();
+        if (fieldInfo == null && accessInfo != null)
+            fieldInfo = accessInfo.getResolvedField();
 
         if (fieldInfo == null)
             return;
@@ -590,8 +590,8 @@ public class TokenHoverInfo {
 
         // Try to get modifiers from Java reflection if this is a chained field
         boolean foundModifiers = false;
-        if (chainedField != null && chainedField.getReceiverType() != null) {
-            TypeInfo receiverType = chainedField.getReceiverType();
+        if (accessInfo != null && accessInfo.getReceiverType() != null) {
+            TypeInfo receiverType = accessInfo.getReceiverType();
             if (receiverType.getJavaClass() != null) {
                 try {
                     Field javaField = receiverType.getJavaClass().getField(fieldInfo.getName());
@@ -617,8 +617,8 @@ public class TokenHoverInfo {
 
             // For Minecraft.getMinecraft.thePlayer
             // Return net.minecraft.client.Minecraft
-            if (chainedField != null)
-                pkg = chainedField.getReceiverType().getFullName(); 
+            if (accessInfo != null)
+                pkg = accessInfo.getReceiverType().getFullName(); 
             
             if (pkg != null && !pkg.isEmpty()) 
                 packageName = pkg;
