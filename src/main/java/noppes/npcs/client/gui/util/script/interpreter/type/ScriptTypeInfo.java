@@ -34,8 +34,8 @@ public class ScriptTypeInfo extends TypeInfo {
     private ScriptTypeInfo outerClass;
     
     private ScriptTypeInfo(String simpleName, String fullName, Kind kind,
-                           int declarationOffset, int bodyStart, int bodyEnd, int modifiers, boolean staticContext) {
-        super(simpleName, fullName, "", kind, null, true, null, staticContext, true);
+                           int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
+        super(simpleName, fullName, "", kind, null, true, null, true);
         this.scriptClassName = simpleName;
         this.declarationOffset = declarationOffset;
         this.bodyStart = bodyStart;
@@ -46,13 +46,13 @@ public class ScriptTypeInfo extends TypeInfo {
     // Factory method
     public static ScriptTypeInfo create(String simpleName, Kind kind, 
                                         int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
-        return new ScriptTypeInfo(simpleName, simpleName, kind, declarationOffset, bodyStart, bodyEnd, modifiers, false);
+        return new ScriptTypeInfo(simpleName, simpleName, kind, declarationOffset, bodyStart, bodyEnd, modifiers);
     }
     
     public static ScriptTypeInfo createInner(String simpleName, Kind kind, ScriptTypeInfo outer,
                                              int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
         String fullName = outer.getFullName() + "$" + simpleName;
-        ScriptTypeInfo inner = new ScriptTypeInfo(simpleName, fullName, kind, declarationOffset, bodyStart, bodyEnd, modifiers, false);
+        ScriptTypeInfo inner = new ScriptTypeInfo(simpleName, fullName, kind, declarationOffset, bodyStart, bodyEnd, modifiers);
         inner.outerClass = outer;
         outer.innerClasses.add(inner);
         return inner;
@@ -82,26 +82,12 @@ public class ScriptTypeInfo extends TypeInfo {
     
     @Override
     public boolean hasField(String fieldName) {
-        FieldInfo field = fields.get(fieldName);
-        if (field == null) return false;
-        
-        // In static context, only static fields are accessible
-        if (isStaticContext() && !field.isStatic()) {
-            return false;
-        }
-        return true;
+        return fields.containsKey(fieldName);
     }
     
     @Override
     public FieldInfo getFieldInfo(String fieldName) {
-        FieldInfo field = fields.get(fieldName);
-        if (field == null) return null;
-        
-        // In static context, only static fields are accessible
-        if (isStaticContext() && !field.isStatic()) {
-            return null; // Non-static field not accessible from static context
-        }
-        return field;
+        return fields.get(fieldName);
     }
     
     public Map<String, FieldInfo> getFields() {
