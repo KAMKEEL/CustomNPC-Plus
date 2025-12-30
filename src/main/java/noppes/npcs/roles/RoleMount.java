@@ -192,6 +192,10 @@ public class RoleMount extends RoleInterface {
     }
 
     public void onDisable() {
+        // Dismount any rider when mount role is disabled
+        if (npc.riddenByEntity != null) {
+            npc.riddenByEntity.mountEntity(null);
+        }
         npc.ais.returnToStart = storedReturnToStart;
     }
 

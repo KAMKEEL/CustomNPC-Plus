@@ -11,6 +11,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.client.AnalyticsTracking;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.controllers.data.action.ActionManager;
 
 import java.net.InetAddress;
@@ -68,6 +69,11 @@ public class ServerTickHandler {
 
     @SubscribeEvent
     public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        // Dismount player from NPC mount before logout to prevent orphaned mount state
+        if (event.player.ridingEntity instanceof EntityNPCInterface) {
+            event.player.mountEntity(null);
+        }
+
         PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogout();

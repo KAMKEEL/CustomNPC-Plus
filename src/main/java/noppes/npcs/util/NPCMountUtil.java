@@ -177,6 +177,17 @@ public final class NPCMountUtil {
 
         RoleMount mount = (RoleMount) npc.roleInterface;
         Entity currentRider = npc.riddenByEntity;
+
+        // Validate rider is alive and valid - dismount dead/invalid riders
+        if (currentRider != null && !currentRider.isEntityAlive()) {
+            currentRider.mountEntity(null);
+            stabilizeDismountedRider(currentRider);
+            haltMountedMotion(npc, state);
+            applyUnriddenFlightDescent(npc, state, mount);
+            currentRider = null;
+        }
+
+        // Only allow EntityPlayer as riders
         if (currentRider != null && !(currentRider instanceof EntityPlayer)) {
             Entity dismount = currentRider;
             dismount.mountEntity(null);
