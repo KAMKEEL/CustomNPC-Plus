@@ -293,12 +293,8 @@ public class ScriptLine {
      * Draw this line with hex colors instead of Minecraft color codes.
      * More flexible but requires custom font rendering.
      * Also draws wavy underlines for tokens with errors.
-     * 
-     * @param x X position
-     * @param y Y position  
-     * @param renderer A renderer for drawing colored text and error underlines
      */
-    public void drawStringHex(int x, int y, HexColorRenderer renderer) {
+    public void drawStringHex(int x, int y) {
         // Build the complete text with all tokens and gaps, draw it as ONE string
         // to match the spacing behavior of drawString which draws everything at once
         StringBuilder fullText = new StringBuilder();
@@ -362,40 +358,6 @@ public class ScriptLine {
             this.isToken = isToken;
         }
     }
-
-    /**
-     * Functional interface for rendering text with hex colors and optional underlines.
-     */
-    @FunctionalInterface
-    public interface HexColorRenderer {
-        /**
-         * Draw text at the specified position with the given color.
-         *
-         * @param text     The text to draw
-         * @param x        X position
-         * @param y        Y position
-         * @param hexColor The text color in hex format
-         * @return The X position after drawing (for continuation)
-         */
-        int draw(String text, int x, int y, int hexColor);
-    }
-
-    /**
-     * Creates a default HexColorRenderer implementation using ClientProxy.Font.
-     * This renderer draws text with hex colors and curly underlines for errors.
-     * @return A HexColorRenderer that can be passed to drawStringHex
-     */
-    public static HexColorRenderer createDefaultHexRenderer() {
-        return (text, x, y, hexColor) -> {
-            // Draw the text with hex color and return the new X position directly from the renderer
-            // Minecraft's font renderer uses ARGB, so add full alpha if not present
-            int color = (hexColor & 0xFF000000) == 0 ? (0xFF000000 | hexColor) : hexColor;
-            ClientProxy.Font.drawString(text, x, y, color);
-            int textWidth = ClientProxy.Font.width(text);
-            return x + textWidth;
-        };
-    }
-
     // ==================== UTILITIES ====================
 
     /**
