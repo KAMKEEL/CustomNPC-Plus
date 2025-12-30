@@ -270,25 +270,6 @@ public class ScriptLine {
         // Draw underlines for validation errors (method calls and field accesses)
         drawErrorUnderlines(x, y + ClientProxy.Font.height() - 1);
     }
-
-    /**
-     * Draw underlines for all validation errors (method calls and field accesses) that intersect this line.
-     * Delegates to ErrorUnderlineRenderer for the actual rendering logic.
-     */
-    private void drawErrorUnderlines(int lineStartX, int baselineY) {
-        if (parent == null)
-            return;
-
-        ErrorUnderlineRenderer.drawErrorUnderlines(
-            parent,
-            lineStartX,
-            baselineY,
-            getText(),
-            getGlobalStart(),
-            getGlobalEnd()
-        );
-    }
-
     /**
      * Draw this line with hex colors instead of Minecraft color codes.
      * More flexible but requires custom font rendering.
@@ -343,7 +324,26 @@ public class ScriptLine {
         
         drawErrorUnderlines(x, y + ClientProxy.Font.height() - 1);
     }
-    
+
+    /**
+     * Draw underlines for all validation errors (method calls and field accesses) that intersect this line.
+     * Delegates to ErrorUnderlineRenderer for the actual rendering logic.
+     */
+    private void drawErrorUnderlines(int lineStartX, int baselineY) {
+        if (parent == null)
+            return;
+
+        ErrorUnderlineRenderer.drawErrorUnderlines(
+                parent,
+                lineStartX,
+                baselineY,
+                getText(),
+                getGlobalStart(),
+                getGlobalEnd()
+        );
+    }
+
+
     // Helper class to track text segments
     private static class TextSegment {
         final int startPos;
