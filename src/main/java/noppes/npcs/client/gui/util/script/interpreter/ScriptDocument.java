@@ -84,24 +84,23 @@ public class ScriptDocument {
 
     private String text = "";
     private final List<ScriptLine> lines = new ArrayList<>();
+
     private final List<ImportData> imports = new ArrayList<>();
-    private final List<MethodInfo> methods = new ArrayList<>();
-    private final Map<String, FieldInfo> globalFields = new HashMap<>();
     private final Set<String> wildcardPackages = new HashSet<>();
     private Map<String, ImportData> importsBySimpleName = new HashMap<>();
-    
+
     // Script-defined types (classes, interfaces, enums defined in the script)
     private final Map<String, ScriptTypeInfo> scriptTypes = new HashMap<>();
     
+    private final List<MethodInfo> methods = new ArrayList<>();
+    private final Map<String, FieldInfo> globalFields = new HashMap<>();
     // Local variables per method (methodStartOffset -> {varName -> FieldInfo})
     private final Map<Integer, Map<String, FieldInfo>> methodLocals = new HashMap<>();
 
     // Method calls - stores all parsed method call information
     private final List<MethodCallInfo> methodCalls = new ArrayList<>();
-
     // Field accesses - stores all parsed field access information
     private final List<FieldAccessInfo> fieldAccesses = new ArrayList<>();
-    
     // Assignments to external fields (fields from reflection, not script-defined)
     private final List<AssignmentInfo> externalFieldAssignments = new ArrayList<>();
 
