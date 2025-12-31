@@ -173,15 +173,6 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void invoke(LivingHurtEvent event) {
-        if(event.source.getEntity() instanceof EntityPlayerMP && event.entity instanceof EntityLivingBase ){
-            EntityPlayerMP ep = (EntityPlayerMP) event.source.getEntity();
-            if(ep.getHeldItem() != null && ep.getHeldItem().getItem() instanceof ItemLinked){
-                int time = ep.getHeldItem().stackTagCompound.getCompoundTag("ItemData").getCompoundTag("LinkedData").getInteger("AttackSpeed");
-                event.entity.hurtResistantTime = time;
-                ((EntityLivingBase) event.entity).hurtTime = time;
-            }
-        }
-
         if (!(event.entityLiving instanceof EntityPlayer))
             return;
 
