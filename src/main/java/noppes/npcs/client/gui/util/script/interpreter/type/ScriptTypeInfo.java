@@ -148,6 +148,14 @@ public class ScriptTypeInfo extends TypeInfo {
         return new HashMap<>(methods);
     }
     
+    public List<MethodInfo> getAllMethodsFlat() {
+        List<MethodInfo> allMethods = new ArrayList<>();
+        for (List<MethodInfo> overloads : methods.values()) {
+            allMethods.addAll(overloads);
+        }
+        return allMethods;
+    }       
+    
     // ==================== CONSTRUCTOR MANAGEMENT ====================
     
     public void addConstructor(MethodInfo constructor) {

@@ -636,6 +636,13 @@ public class ScriptDocument {
             int scopeDepth = calculateScopeDepth(method.getFullDeclarationOffset());
             methodsByScope.computeIfAbsent(scopeDepth, k -> new ArrayList<>()).add(method);
         }
+
+        for (ScriptTypeInfo type : scriptTypes.values()) {
+            for (MethodInfo method : type.getAllMethodsFlat()) {
+                int scopeDepth = calculateScopeDepth(method.getFullDeclarationOffset());
+                methodsByScope.computeIfAbsent(scopeDepth, k -> new ArrayList<>()).add(method);
+            }
+        }
         
         // Check each scope for duplicates
         for (List<MethodInfo> scopeMethods : methodsByScope.values()) {
