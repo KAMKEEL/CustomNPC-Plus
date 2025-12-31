@@ -159,6 +159,7 @@ import noppes.npcs.roles.RoleInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.entity.ScriptNpc;
 import noppes.npcs.scripted.event.NpcEvent;
+import noppes.npcs.scripted.item.ScriptCustomizableItem;
 import noppes.npcs.util.GameProfileAlt;
 import noppes.npcs.util.NPCMountUtil;
 
@@ -636,6 +637,22 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         }
         if (damagesource.damageType != null && damagesource.damageType.equals("outOfWorld") && isKilled()) {
             reset();
+        }
+
+        // Check for custom weapon attack speed - bypass immunity if enough time has passed
+        Entity sourceEntity = damagesource.getEntity();
+        if (sourceEntity instanceof EntityPlayer) {
+            EntityPlayer player = (EntityPlayer) sourceEntity;
+            ItemStack heldItem = player.getHeldItem();
+            if (heldItem != null) {
+                IItemStack itemStack = NpcAPI.Instance().getIItemStack(heldItem);
+                if (itemStack instanceof ScriptCustomizableItem) {
+                    int attackSpeed = ((ScriptCustomizableItem) itemStack).getAttackSpeed();
+                    if (this.hurtResistantTime <= this.maxHurtResistantTime - attackSpeed) {
+                        this.hurtResistantTime = 0;
+                    }
+                }
+            }
         }
 
         if ((float) this.hurtResistantTime > (float) this.maxHurtResistantTime / 2.0F && i <= this.lastDamage)
