@@ -409,113 +409,6 @@ public class ScriptDocument {
         
         String bodyText = text.substring(bodyStart + 1, Math.min(bodyEnd, text.length()));
         
-        // Parse field declarations
-        Pattern fieldPattern = Pattern.compile(
-                "\\b([A-Za-z_][a-zA-Z0-9_<>,\\s\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*(=|;)");
-        Matcher fm = fieldPattern.matcher(bodyText);
-        while (fm.find()) {
-            int absPos = bodyStart + 1 + fm.start();
-            if (isExcluded(absPos)) continue;
-            
-            String typeNameRaw = fm.group(1).trim();
-            String fieldName = fm.group(2);
-            String delimiter = fm.group(3);
-            // Parse modifiers and strip them
-            int modifiers = parseModifiers(typeNameRaw);
-            String typeName = stripModifiers(typeNameRaw);
-            
-            // Skip if this looks like a method declaration
-            if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
-                typeName.equals("for") || typeName.equals("switch") || typeName.equals("catch") ||
-                typeName.equals("new") || typeName.equals("throw")) {
-                continue;
-            }
-            
-            // Skip if inside a nested method body
-            if (isInsideNestedMethod(absPos, bodyStart, bodyEnd)) {
-                continue;
-            }
-            
-            // Extract documentation before this field
-            String documentation = extractDocumentationBefore(absPos);
-            
-            // Extract initialization range if there's an '=' delimiter
-            int initStart = -1;
-            int initEnd = -1;
-            if ("=".equals(delimiter)) {
-                initStart = bodyStart + 1 + fm.start(3); // Absolute position of '='
-                // Find the semicolon that ends this declaration
-                int searchPos = bodyStart + 1 + fm.end(3);
-                int depth = 0; // Track nested parens/brackets/braces
-                while (searchPos < text.length()) {
-                    char c = text.charAt(searchPos);
-                    if (c == '(' || c == '[' || c == '{') depth++;
-                    else if (c == ')' || c == ']' || c == '}') depth--;
-                    else if (c == ';' && depth == 0) {
-                        initEnd = searchPos; // Position of ';' (exclusive)
-                        break;
-                    }
-                    searchPos++;
-                }
-            }
-            
-            TypeInfo fieldType = resolveType(typeName);
-            FieldInfo fieldInfo = FieldInfo.globalField(fieldName, fieldType, absPos, documentation, initStart, initEnd, modifiers);
-            scriptType.addField(fieldInfo);
-        }
-        
-        // Parse method declarations
-        Pattern methodPattern = Pattern.compile(
-                "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*\\{");
-        Matcher mm = methodPattern.matcher(bodyText);
-        while (mm.find()) {
-            int absPos = bodyStart + 1 + mm.start();
-            if (isExcluded(absPos)) continue;
-            
-            String returnTypeName = mm.group(1);
-            String methodName = mm.group(2);
-            String paramList = mm.group(3);
-            
-            // Skip class/interface/enum keywords
-            if (returnTypeName.equals("class") || returnTypeName.equals("interface") || 
-                returnTypeName.equals("enum")) {
-                continue;
-            }
-            
-            int methodBodyStart = bodyStart + 1 + mm.end() - 1;
-            int methodBodyEnd = findMatchingBrace(methodBodyStart);
-            if (methodBodyEnd < 0) methodBodyEnd = bodyEnd;
-            
-            // Extract documentation before this method
-            String documentation = extractDocumentationBefore(absPos);
-            
-            // Extract modifiers by scanning backwards in bodyText from match start
-            int modifiers = extractModifiersBackwards(mm.start() - 1, bodyText);
-            
-            TypeInfo returnType = resolveType(returnTypeName);
-            List<FieldInfo> params = parseParametersWithPositions(paramList, 
-                    bodyStart + 1 + mm.start(3));
-            
-            // Calculate the three offsets
-            int typeOffset = bodyStart + 1 + mm.start(1);  // Start of return type
-            int nameOffset = bodyStart + 1 + mm.start(2);  // Start of method name
-            int fullDeclOffset = findFullDeclarationStart(mm.start(1), bodyText);
-            if (fullDeclOffset >= 0) {
-                fullDeclOffset += bodyStart + 1;
-            } else {
-                fullDeclOffset = typeOffset;
-            }
-            
-            MethodInfo methodInfo = MethodInfo.declaration(
-                    methodName, returnType, params, fullDeclOffset, typeOffset, nameOffset, methodBodyStart, methodBodyEnd, modifiers, documentation);
-            
-            // Validate the method (including return type checking)
-            String methodBodyText = text.substring(methodBodyStart + 1, methodBodyEnd);
-            methodInfo.validate(methodBodyText, (expr, pos) -> resolveExpressionType(expr, pos));
-            
-            scriptType.addMethod(methodInfo);
-        }
-        
         // Parse constructors (ClassName(params) { ... })
         // Constructor pattern: ClassName matches the script type name, no return type
         String typeName = scriptType.getSimpleName();
@@ -646,22 +539,25 @@ public class ScriptDocument {
                     documentation
             );
 
-            for (ScriptTypeInfo scriptType : scriptTypes.values()) {
-                if (scriptType.containsPosition(bodyStart)) {
-                 //   scriptType.addMethod(methodInfo);
-
-                    if (scriptType.getKind() == TypeInfo.Kind.INTERFACE)
-                        methodInfo.setBodyless(bodyless);
-                    
+            ScriptTypeInfo scriptType = null;
+            for (ScriptTypeInfo type : scriptTypes.values())
+                if (type.containsPosition(bodyStart)) {
+                    scriptType = type;
                     break;
                 }
-            }
-            
+
+
             // Validate the method (return statements, parameters) with type resolution
             String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";
             methodInfo.validate(methodBodyText, (expr, pos) -> resolveExpressionType(expr, pos));
-            
-            methods.add(methodInfo);
+
+            if (scriptType != null) {
+                if (scriptType.getKind() == TypeInfo.Kind.INTERFACE)
+                    methodInfo.setBodyless(bodyless);
+
+                scriptType.addMethod(methodInfo);
+            } else
+                methods.add(methodInfo);
         }
 
         // Check for duplicate method declarations
@@ -1129,16 +1025,31 @@ public class ScriptDocument {
             // Strip modifiers (public, private, protected, static, final, etc.) from type name
             String typeName = stripModifiers(typeNameRaw);
 
+            ScriptTypeInfo containingScriptType = null;
+            for (ScriptTypeInfo scriptType : scriptTypes.values())
+                if (scriptType.containsPosition(position)) {
+                    containingScriptType = scriptType;
+                    break;
+                }
+
             // Check if inside a method - if so, it's a local, not global
             boolean insideMethod = false;
-            for (MethodInfo method : methods) {
-                if (method.containsPosition(position)) {
-                    insideMethod = true;
-                    break;
+            if (containingScriptType != null && isInsideNestedMethod(position, containingScriptType.getBodyStart(),
+                    containingScriptType.getBodyEnd()))
+                insideMethod = true;
+            else {
+                for (MethodInfo method : methods) {
+                    if (method.containsPosition(position)) {
+                        insideMethod = true;
+                        break;
+                    }
                 }
             }
 
-            if (!insideMethod) {
+
+            if (insideMethod)
+                continue;
+            
                 // Extract documentation before this field
                 String documentation = extractDocumentationBefore(m.start());
                 
@@ -1165,8 +1076,11 @@ public class ScriptDocument {
                 TypeInfo typeInfo = resolveType(typeName);
                 FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd, modifiers);
 
+
+            if (containingScriptType != null) {
+                containingScriptType.addField(fieldInfo);
                 // Check for duplicate declaration
-                if (globalFields.containsKey(fieldName)) {
+            } else if (globalFields.containsKey(fieldName)) {
                     // Create a declaration error for this duplicate
                     AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
                             fieldName, position, position + fieldName.length(),
@@ -1175,9 +1089,6 @@ public class ScriptDocument {
                 } else {
                     globalFields.put(fieldName, fieldInfo);
                 }
-                
-             
-            }
         }
     }
 
