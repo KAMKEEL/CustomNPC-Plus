@@ -23,9 +23,9 @@ public class ScrollState {
     private boolean clickScrolling = false;
     
     // Animation parameters
-    private static final double TAU = 0.1; // Time constant (~55ms feels snappy)
-    private static final double SNAP_THRESHOLD = 0.01; // Snap to target when this close
-    private static final double MAX_DT = 0.05; // Max delta time for stability
+    private static final double TAU = 0.15; // Time constant (~55ms feels snappy)
+    private static final double SNAP_THRESHOLD = 0.1; // Snap to target when this close (increased to avoid microstutters)
+    private static final double MAX_DT = 0.1; // Max delta time for stability
     
     /**
      * Reset scroll state to initial values
