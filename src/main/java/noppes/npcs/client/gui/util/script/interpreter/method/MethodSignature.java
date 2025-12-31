@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.method;
 
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,5 +78,18 @@ public final class MethodSignature {
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    public static String asString(Method javaMethod) {
+        StringBuilder sig = new StringBuilder(javaMethod.getName());
+        sig.append("(");
+        Class<?>[] paramTypes = javaMethod.getParameterTypes();
+        for (int i = 0; i < paramTypes.length; i++) {
+            if (i > 0)
+                sig.append(", ");
+            sig.append(paramTypes[i].getSimpleName());
+        }
+        sig.append(")");
+        return sig.toString();
     }
 }

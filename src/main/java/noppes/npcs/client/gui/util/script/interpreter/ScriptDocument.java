@@ -4217,7 +4217,7 @@ public class ScriptDocument {
         for (ScriptTypeInfo scriptType : scriptTypes.values()) {
             scriptType.clearErrors();  // Clear previous errors
             detectMethodInheritanceForType(scriptType);
-            validateScriptType(scriptType);  // Validate after detecting inheritance
+            scriptType.validate();  // Validate after detecting inheritance
         }
     }
 
@@ -4253,126 +4253,6 @@ public class ScriptDocument {
                 }
             }
         }
-    }
-
-    /**
-     * Validate a script type for missing interface methods and constructor matching.
-     */
-    private void validateScriptType(ScriptTypeInfo scriptType) {
-        // Skip validation for interfaces - they don't implement methods
-        if (scriptType.getKind() == TypeInfo.Kind.INTERFACE)
-            return;
-
-        // Check that all interface methods are implemented
-        if (scriptType.hasImplementedInterfaces()) {
-            for (TypeInfo iface : scriptType.getImplementedInterfaces()) {
-                if (iface == null || !iface.isResolved()) {
-                    // Mark unresolved interface error
-                    scriptType.setError(ScriptTypeInfo.ErrorType.UNRESOLVED_INTERFACE,
-                            "Cannot resolve interface");
-                    continue;
-                }
-                validateInterfaceImplementation(scriptType, iface);
-            }
-        }
-
-        // Check that extending class has a matching constructor
-        if (scriptType.hasSuperClass()) {
-            TypeInfo superClass = scriptType.getSuperClass();
-            if (superClass == null || !superClass.isResolved()) {
-                scriptType.setError(ScriptTypeInfo.ErrorType.UNRESOLVED_PARENT,
-                        "Cannot resolve parent class " + scriptType.getSuperClassName());
-            } else {
-                validateConstructorChain(scriptType, superClass);
-            }
-        }
-    }
-
-    /**
-     * Validate that a script type implements all methods from an interface.
-     */
-    private void validateInterfaceImplementation(ScriptTypeInfo scriptType, TypeInfo iface) {
-        // Get all methods from the interface
-        Class<?> javaClass = iface.getJavaClass();
-        if (javaClass == null || !javaClass.isInterface())
-            return;
-
-        try {
-            for (java.lang.reflect.Method javaMethod : javaClass.getMethods()) {
-                // Skip static and default methods
-                if (java.lang.reflect.Modifier.isStatic(javaMethod.getModifiers()))
-                    continue;
-
-                // Check if scriptType has a matching method
-                String methodName = javaMethod.getName();
-                int paramCount = javaMethod.getParameterCount();
-
-                boolean found = false;
-                List<MethodInfo> overloads = scriptType.getAllMethodOverloads(methodName);
-                for (MethodInfo method : overloads) {
-                    if (parameterTypesMatch(method, javaMethod)) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    // Build signature string for error message
-                    StringBuilder sig = new StringBuilder("(");
-                    Class<?>[] paramTypes = javaMethod.getParameterTypes();
-                    for (int i = 0; i < paramTypes.length; i++) {
-                        if (i > 0)
-                            sig.append(", ");
-                        sig.append(paramTypes[i].getSimpleName());
-                    }
-                    sig.append(")");
-
-                    scriptType.addMissingMethodError(iface, methodName, sig.toString());
-                }
-            }
-        } catch (Exception e) {
-            // Security or linkage error
-        }
-    }
-
-    /**
-     * Validate that a script type has a constructor compatible with its parent class.
-     * This checks that for each parent constructor, there's a matching constructor in the child.
-     */
-    private void validateConstructorChain(ScriptTypeInfo scriptType, TypeInfo superClass) {
-        // If no constructors defined in script type, it has an implicit default constructor
-        // Check if parent has a no-arg constructor
-        if (!scriptType.hasConstructors()) {
-            boolean parentHasNoArg = false;
-
-            if (superClass instanceof ScriptTypeInfo) {
-                ScriptTypeInfo parentScript = (ScriptTypeInfo) superClass;
-                if (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null) {
-                    parentHasNoArg = true;
-                }
-            } else {
-                Class<?> javaClass = superClass.getJavaClass();
-                if (javaClass != null) {
-                    try {
-                        for (java.lang.reflect.Constructor<?> ctor : javaClass.getConstructors()) {
-                            if (ctor.getParameterCount() == 0) {
-                                parentHasNoArg = true;
-                                break;
-                            }
-                        }
-                    } catch (Exception e) {
-                        // Security error
-                    }
-                }
-            }
-
-            if (!parentHasNoArg) {
-                scriptType.addConstructorMismatchError(superClass,
-                        superClass.getSimpleName() + "()");
-            }
-        }
-        // If script type has constructors, we'd need to check super() calls - that's more complex
-        // For now, we just validate the implicit default constructor case
     }
 
     /**

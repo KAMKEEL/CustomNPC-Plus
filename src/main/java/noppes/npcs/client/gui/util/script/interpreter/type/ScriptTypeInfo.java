@@ -2,8 +2,11 @@ package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -347,45 +350,6 @@ public class ScriptTypeInfo extends TypeInfo {
     /**
      * Represents a missing interface method error.
      */
-    public static class MissingMethodError {
-        private final TypeInfo interfaceType;
-        private final String methodName;
-        private final String signature;
-        
-        public MissingMethodError(TypeInfo interfaceType, String methodName, String signature) {
-            this.interfaceType = interfaceType;
-            this.methodName = methodName;
-            this.signature = signature;
-        }
-        
-        public TypeInfo getInterfaceType() { return interfaceType; }
-        public String getMethodName() { return methodName; }
-        public String getSignature() { return signature; }
-        
-        public String getMessage() {
-            return "Class must implement method '" + methodName + signature + "' from interface " + interfaceType.getSimpleName();
-        }
-    }
-    
-    /**
-     * Represents a constructor mismatch error.
-     */
-    public static class ConstructorMismatchError {
-        private final TypeInfo parentType;
-        private final String parentConstructorSignature;
-        
-        public ConstructorMismatchError(TypeInfo parentType, String parentConstructorSignature) {
-            this.parentType = parentType;
-            this.parentConstructorSignature = parentConstructorSignature;
-        }
-        
-        public TypeInfo getParentType() { return parentType; }
-        public String getParentConstructorSignature() { return parentConstructorSignature; }
-        
-        public String getMessage() {
-            return "Class extends " + parentType.getSimpleName() + " but has no constructor matching " + parentConstructorSignature;
-        }
-    }
     
     // Error tracking
     private ErrorType errorType = ErrorType.NONE;
@@ -411,8 +375,8 @@ public class ScriptTypeInfo extends TypeInfo {
     /**
      * Add a missing interface method error.
      */
-    public void addMissingMethodError(TypeInfo interfaceType, String methodName, String signature) {
-        missingMethodErrors.add(new MissingMethodError(interfaceType, methodName, signature));
+    public void addMissingMethodError(TypeInfo interfaceType, String signature) {
+        missingMethodErrors.add(new MissingMethodError(interfaceType, signature));
     }
     
     /**
@@ -430,5 +394,198 @@ public class ScriptTypeInfo extends TypeInfo {
         errorMessage = null;
         missingMethodErrors.clear();
         constructorMismatchErrors.clear();
+    }
+
+    public static class MissingMethodError {
+        private final TypeInfo interfaceType;
+        private final String signature;
+
+        public MissingMethodError(TypeInfo interfaceType, String signature) {
+            this.interfaceType = interfaceType;
+            this.signature = signature;
+        }
+
+        public String getMessage() {
+            return "Class must implement method '" + signature + "' from interface " + interfaceType.getSimpleName();
+        }
+    }
+
+    /**
+     * Represents a constructor mismatch error.
+     */
+    public static class ConstructorMismatchError {
+        private final TypeInfo parentType;
+        private final String parentConstructorSignature;
+
+        public ConstructorMismatchError(TypeInfo parentType, String parentConstructorSignature) {
+            this.parentType = parentType;
+            this.parentConstructorSignature = parentConstructorSignature;
+        }
+
+        public String getMessage() {
+            return "Class extends " + parentType.getSimpleName() + " but has no constructor matching " + parentConstructorSignature;
+        }
+    }
+
+    // ==================== VALIDATION ====================
+
+    /**
+     * Validate this script type for missing interface methods and constructor matching.
+     */
+    @Override
+    public void validate() {
+        // Check that extending class has a matching constructor
+        if (hasSuperClass()) {
+            TypeInfo superClass = getSuperClass();
+            if (superClass == null || !superClass.isResolved()) {
+                setError(ErrorType.UNRESOLVED_PARENT,
+                        "Cannot resolve parent class " + getSuperClassName());
+            } else {
+                validateConstructorChain(superClass);
+            }
+        }
+        
+        // Skip validation for interfaces - they don't implement methods
+        if (getKind() == Kind.INTERFACE)
+            return;
+
+        // Check that all interface methods are implemented
+        if (hasImplementedInterfaces()) {
+            for (TypeInfo iface : getImplementedInterfaces()) {
+                if (iface == null || !iface.isResolved()) {
+                    // Mark unresolved interface error
+                    setError(ErrorType.UNRESOLVED_INTERFACE, "Cannot resolve interface");
+                    continue;
+                }
+                validateInterfaceImplementation(iface);
+            }
+        }
+    }
+
+    /**
+     * Validate that this script type implements all methods from an interface.
+     */
+    private void validateInterfaceImplementation(TypeInfo iface) {
+        // Handle Java interfaces
+        Class<?> javaClass = iface.getJavaClass();
+        if (javaClass != null && javaClass.isInterface()) {
+            try {
+                for (Method javaMethod : javaClass.getMethods()) {
+                    // Skip static and default methods
+                    if (Modifier.isStatic(javaMethod.getModifiers()))
+                        continue;
+
+                    // Check if this type has a matching method
+                    String methodName = javaMethod.getName();
+                    int paramCount = javaMethod.getParameterCount();
+
+                    boolean found = false;
+                    List<MethodInfo> overloads = getAllMethodOverloads(methodName);
+                    for (MethodInfo method : overloads) {
+                        if (parameterTypesMatch(method, javaMethod)) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    //Limit to one error at a time to not spam all missing methods
+                    if (!found && missingMethodErrors.isEmpty())
+                        addMissingMethodError(iface, MethodSignature.asString(javaMethod));
+                }
+            } catch (Exception e) {
+            }
+            return;
+        }
+
+        // Handle script-defined interfaces (ScriptType)
+        if (iface instanceof ScriptTypeInfo) {
+            ScriptTypeInfo ifaceType = (ScriptTypeInfo) iface;
+
+            // Check all methods declared in the interface
+            for (MethodInfo ifaceMethod : ifaceType.getAllMethodsFlat()) {
+                MethodSignature ifaceSignature = ifaceMethod.getSignature();
+                String methodName = ifaceMethod.getName();
+
+                boolean found = false;
+                List<MethodInfo> overloads = getAllMethodOverloads(methodName);
+                for (MethodInfo method : overloads) {
+                    if (method.getSignature().equals(ifaceSignature)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                //Limit to one error at a time to not spam all missing methods
+                if (!found && missingMethodErrors.isEmpty())
+                    addMissingMethodError(iface, ifaceSignature.toString());
+            }
+        }
+    }
+
+    /**
+     * Validate that this script type has a constructor compatible with its parent class.
+     * This checks that for each parent constructor, there's a matching constructor in the child.
+     */
+    private void validateConstructorChain(TypeInfo superClass) {
+        // If no constructors defined in script type, it has an implicit default constructor
+        // Check if parent has a no-arg constructor
+        if (!hasConstructors()) {
+            boolean parentHasNoArg = false;
+
+            if (superClass instanceof ScriptTypeInfo) {
+                ScriptTypeInfo parentScript = (ScriptTypeInfo) superClass;
+                if (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null) {
+                    parentHasNoArg = true;
+                }
+            } else {
+                Class<?> javaClass = superClass.getJavaClass();
+                if (javaClass != null) {
+                    try {
+                        for (java.lang.reflect.Constructor<?> ctor : javaClass.getConstructors()) {
+                            if (ctor.getParameterCount() == 0) {
+                                parentHasNoArg = true;
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Security error
+                    }
+                }
+            }
+
+            if (!parentHasNoArg) {
+                addConstructorMismatchError(superClass, superClass.getSimpleName());
+            }
+        }
+        // If script type has constructors, we'd need to check super() calls - that's more complex
+        // For now, we just validate the implicit default constructor case
+    }
+
+    /**
+     * Check if a MethodInfo's parameter types match a Java reflection Method's parameter types.
+     */
+    private boolean parameterTypesMatch(MethodInfo methodInfo, Method javaMethod) {
+        List<FieldInfo> params = methodInfo.getParameters();
+        Class<?>[] javaParams = javaMethod.getParameterTypes();
+
+        if (params.size() != javaParams.length)
+            return false;
+
+        for (int i = 0; i < params.size(); i++) {
+            TypeInfo paramType = params.get(i).getDeclaredType();
+            if (paramType == null)
+                continue; // Unresolved param, skip check
+
+            Class<?> javaParamClass = javaParams[i];
+            String javaParamName = javaParamClass.getName();
+
+            // Compare type names
+            if (!paramType.getFullName().equals(javaParamName) &&
+                    !paramType.getSimpleName().equals(javaParamClass.getSimpleName())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

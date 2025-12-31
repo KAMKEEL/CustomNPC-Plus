@@ -461,6 +461,14 @@ public class TypeInfo {
         return null;
     }
 
+    /**
+     * Validate this type. Default implementation does nothing (for Java types).
+     * Override in ScriptTypeInfo to validate script-defined types.
+     */
+    public void validate() {
+        // Default: no validation for Java types
+    }
+
     @Override
     public String toString() {
         return "TypeInfo{" + fullName + ", " + kind + ", resolved=" + resolved + "}";
