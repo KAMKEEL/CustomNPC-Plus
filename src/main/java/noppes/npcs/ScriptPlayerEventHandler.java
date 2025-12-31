@@ -554,9 +554,8 @@ public class ScriptPlayerEventHandler {
                     if (itemStack instanceof ScriptCustomizableItem) {
                         ScriptCustomizableItem sci = (ScriptCustomizableItem) itemStack;
                         int attackSpeed = sci.getAttackSpeed();
-                        if (attackSpeed < 20) {
+                        if (event.entityLiving.hurtResistantTime <= event.entityLiving.maxHurtResistantTime - attackSpeed) {
                             event.entityLiving.hurtResistantTime = 0;
-                            event.entityLiving.hurtTime = attackSpeed;
                         }
                     }
                 }
