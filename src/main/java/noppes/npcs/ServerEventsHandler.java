@@ -173,9 +173,6 @@ public class ServerEventsHandler {
 
     @SubscribeEvent
     public void invoke(LivingHurtEvent event) {
-
-
-
         if(event.source.getEntity() instanceof EntityPlayerMP && event.entity instanceof EntityLivingBase ){
             EntityPlayerMP ep = (EntityPlayerMP) event.source.getEntity();
             if(ep.getHeldItem() != null && ep.getHeldItem().getItem() instanceof ItemLinked){
@@ -184,7 +181,6 @@ public class ServerEventsHandler {
                 ((EntityLivingBase) event.entity).hurtTime = time;
             }
         }
-
 
         if (!(event.entityLiving instanceof EntityPlayer))
             return;

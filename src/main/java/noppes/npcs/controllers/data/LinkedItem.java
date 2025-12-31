@@ -29,7 +29,7 @@ public class LinkedItem implements ILinkedItem {
     public boolean isNormalItem = false;
     public boolean isTool = false;
     public int digSpeed = 1;
-    public int attackSpeed = 20;
+    public int attackSpeed = 10;
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 3: Fits in Head -> Boots slot respectively
     public int enchantability;
 
@@ -59,7 +59,8 @@ public class LinkedItem implements ILinkedItem {
         compound.setBoolean("IsTool", this.isTool);
         compound.setBoolean("IsNormalItem", this.isNormalItem);
         compound.setInteger("DigSpeed", this.digSpeed);
-        compound.setInteger("AttackSpeed",this.attackSpeed);
+        compound.setInteger("AttackSpeed", this.attackSpeed);
+
         compound.setInteger("ArmorType", this.armorType);
         compound.setInteger("Enchantability", this.enchantability);
 
@@ -89,7 +90,7 @@ public class LinkedItem implements ILinkedItem {
         this.isTool = compound.getBoolean("IsTool");
         this.isNormalItem = compound.getBoolean("IsNormalItem");
         this.digSpeed = compound.getInteger("DigSpeed");
-        this.attackSpeed = compound.getInteger("AttackSpeed");
+        this.setAttackSpeed(compound.getInteger("AttackSpeed"));
         this.armorType = compound.getInteger("ArmorType");
         this.enchantability = compound.getInteger("Enchantability");
 
@@ -241,6 +242,19 @@ public class LinkedItem implements ILinkedItem {
         this.enchantability = enchantability;
     }
 
+    @Override
+    public int getAttackSpeed() {
+        return attackSpeed;
+    }
+
+    @Override
+    public void setAttackSpeed(int time) {
+        if(time <= 0) {
+        	time = 10;
+        }
+        this.attackSpeed = time;
+    }
+
     public LinkedItem clone() {
         NBTTagCompound nbt = this.writeToNBT(true);
         LinkedItem clone = new LinkedItem(this.name);
@@ -254,10 +268,4 @@ public class LinkedItem implements ILinkedItem {
             setScriptHandler(data = new LinkedItemScript());
         return data;
     }
-
-    @Override
-    public int getAttackSpeed() {return attackSpeed;}
-
-    @Override
-    public void setAttackSpeed(int time) {this.attackSpeed = time;}
 }

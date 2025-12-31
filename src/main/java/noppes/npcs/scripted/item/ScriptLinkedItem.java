@@ -103,6 +103,11 @@ public class ScriptLinkedItem extends ScriptCustomizableItem implements IItemLin
     }
 
     @Override
+    public int getAttackSpeed() {
+        return this.linkedItem.attackSpeed;
+    }
+
+    @Override
     public String getTexture() {
         return this.itemDisplay.texture == null ? this.linkedItem.display.texture : this.itemDisplay.texture;
     }
