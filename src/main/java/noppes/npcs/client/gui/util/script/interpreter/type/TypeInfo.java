@@ -130,7 +130,9 @@ public class TypeInfo {
     public boolean isResolved() { return resolved; }
     public TypeInfo getEnclosingType() { return enclosingType; }
     public boolean isInnerClass() { return enclosingType != null; }
-
+    public boolean isInterface() {return kind == Kind.INTERFACE;}
+    public boolean isEnum() {return kind == Kind.ENUM;}
+    
     /**
      * Get the appropriate TokenType for highlighting this type.
      */

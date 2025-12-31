@@ -33,7 +33,8 @@ public final class MethodInfo {
      */
     public enum ErrorType {
         NONE,
-        MISSING_RETURN,        // Non-void method missing return statement
+        MISSING_RETURN,        // Non-void method missing return statement,
+        INTERFACE_METHOD_BODY, // Interface method has a body
         MISSING_BODY,        // Non-void method missing return statement
         RETURN_TYPE_MISMATCH,  // Return statement type doesn't match method return type
         VOID_METHOD_RETURNS_VALUE,  // Void method returns a value
@@ -57,7 +58,6 @@ public final class MethodInfo {
     private final String documentation;       // Javadoc/comment documentation for this method
     private final java.lang.reflect.Method javaMethod;  // The Java reflection Method, if this was created from reflection
 
-    private boolean bodyless;
     // Error tracking for method declarations
     private ErrorType errorType = ErrorType.NONE;
     private String errorMessage;
@@ -84,31 +84,10 @@ public final class MethodInfo {
         this.javaMethod = javaMethod;
     }
 
-    // Factory methods
-    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
-                                         int fullDeclOffset, int typeOffset, int nameOffset,
-                                         int bodyStart, int bodyEnd) {
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, 0, null, null);
-    }
-    
-    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
-                                         int fullDeclOffset, int typeOffset, int nameOffset,
-                                         int bodyStart, int bodyEnd, boolean isStatic) {
-        int modifiers = isStatic ? Modifier.STATIC : 0;
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, null, null);
-    }
-    
-    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
-                                         int fullDeclOffset, int typeOffset, int nameOffset,
-                                         int bodyStart, int bodyEnd, boolean isStatic, String documentation) {
-        int modifiers = isStatic ? Modifier.STATIC : 0;
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation, null);
-    }
-
-    public static MethodInfo declaration(String name, TypeInfo returnType, List<FieldInfo> params,
+    public static MethodInfo declaration(String name, TypeInfo containingType, TypeInfo returnType, List<FieldInfo> params,
                                          int fullDeclOffset, int typeOffset, int nameOffset,
                                          int bodyStart, int bodyEnd, int modifiers, String documentation) {
-        return new MethodInfo(name, returnType, null, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation, null);
+        return new MethodInfo(name, returnType, containingType, params, fullDeclOffset, typeOffset, nameOffset, bodyStart, bodyEnd, true, true, modifiers, documentation, null);
     }
 
     public static MethodInfo call(String name, TypeInfo containingType, int paramCount) {
@@ -195,8 +174,6 @@ public final class MethodInfo {
     public boolean isPrivate() { return Modifier.isPrivate(modifiers); }
     public boolean isProtected() { return Modifier.isProtected(modifiers); }
     public String getDocumentation() { return documentation; }
-    public boolean isBodyless() { return bodyless; }
-    public void setBodyless(boolean bodyless) { this.bodyless = bodyless; }
 
     /**
      * Check if a position is inside this method's body.
@@ -407,16 +384,7 @@ public final class MethodInfo {
     public interface TypeResolver {
         TypeInfo resolveExpression(String expression, int position);
     }
-
-    /**
-     * Validate this method declaration.
-     * Checks for parameter errors and missing return statements.
-     * 
-     * @param methodBodyText The text content of the method body (between { and })
-     */
-    public void validate(String methodBodyText) {
-        validate(methodBodyText, null);
-    }
+    
 
     /**
      * Validate this method declaration with type resolution for return statements.
@@ -425,16 +393,22 @@ public final class MethodInfo {
      * @param methodBodyText The text content of the method body (between { and })
      * @param typeResolver Optional callback to resolve expression types (for return type checking)
      */
-    public void validate(String methodBodyText, TypeResolver typeResolver) {
+    public void validate(String methodBodyText, boolean hasBody, TypeResolver typeResolver) {
         if (!isDeclaration) return;
 
         // Validate parameters
         validateParameters();
-
+        boolean interfaceMember = containingType != null && containingType.isInterface();
+        if (hasBody && (interfaceMember || isAbstract() || isNative())) {
+            setError(MethodInfo.ErrorType.INTERFACE_METHOD_BODY, "Interface or abstract methods cannot have a body");
+            return;
+        }
+        
         //No need to check for return types/statements 
-        if(bodyless)
+        if(interfaceMember)
             return;
 
+        //If no body and not interface or abstract/native
         if (bodyStart == bodyEnd && !isAbstract() && !isNative()) {
             setError(ErrorType.MISSING_BODY, "Method must have a body or be declared abstract/native.");
             return;

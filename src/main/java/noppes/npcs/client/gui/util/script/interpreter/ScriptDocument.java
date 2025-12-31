@@ -448,7 +448,9 @@ public class ScriptDocument {
             // Constructors don't have a return type, but we'll use the containing type as a marker
             MethodInfo constructorInfo = MethodInfo.declaration(
                     typeName,
-                    scriptType,  // Return type is the type itself
+                    scriptType,
+                    // Return type is the type itself
+                    scriptType,
                     params,
                     fullDeclOffset,
                     typeOffset,
@@ -456,8 +458,7 @@ public class ScriptDocument {
                     constructorBodyStart,
                     constructorBodyEnd,
                     modifiers,
-                    documentation
-            );
+                    documentation);
             scriptType.addConstructor(constructorInfo);
         }
     }
@@ -504,10 +505,10 @@ public class ScriptDocument {
             String methodName = m.group(2);
             String paramList = m.group(3);
             String delimiter = m.group(4);
-            boolean bodyless = delimiter.equals(";");
+            boolean hasBody = delimiter.equals("{");
 
-            int bodyStart = bodyless ? m.end() : text.indexOf('{', m.end() - 1);
-            int bodyEnd = bodyless ? m.end() : findMatchingBrace(bodyStart);
+            int bodyStart = !hasBody ? m.end() : text.indexOf('{', m.end() - 1);
+            int bodyEnd = !hasBody ? m.end() : findMatchingBrace(bodyStart);
             if (bodyEnd < 0)
                 bodyEnd = text.length();
 
@@ -523,11 +524,19 @@ public class ScriptDocument {
             int nameOffset = m.start(2);        // Start of method name
             int fullDeclOffset = findFullDeclarationStart(m.start(1), text); // Start including modifiers
 
+            ScriptTypeInfo scriptType = null;
+            for (ScriptTypeInfo type : scriptTypes.values())
+                if (type.containsPosition(bodyStart)) {
+                    scriptType = type;
+                    break;
+                }
+            
             // Parse parameters with their actual positions
             List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
 
             MethodInfo methodInfo = MethodInfo.declaration(
                     methodName,
+                    scriptType,
                     resolveType(returnType),
                     params,
                     fullDeclOffset,
@@ -539,25 +548,15 @@ public class ScriptDocument {
                     documentation
             );
 
-            ScriptTypeInfo scriptType = null;
-            for (ScriptTypeInfo type : scriptTypes.values())
-                if (type.containsPosition(bodyStart)) {
-                    scriptType = type;
-                    break;
-                }
-
-
-            // Validate the method (return statements, parameters) with type resolution
-            String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";
-            methodInfo.validate(methodBodyText, (expr, pos) -> resolveExpressionType(expr, pos));
 
             if (scriptType != null) {
-                if (scriptType.getKind() == TypeInfo.Kind.INTERFACE)
-                    methodInfo.setBodyless(bodyless);
-
                 scriptType.addMethod(methodInfo);
             } else
                 methods.add(methodInfo);
+
+            // Validate the method (return statements, parameters) with type resolution
+            String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";
+            methodInfo.validate(methodBodyText, hasBody, (expr, pos) -> resolveExpressionType(expr, pos));
         }
 
         // Check for duplicate method declarations
