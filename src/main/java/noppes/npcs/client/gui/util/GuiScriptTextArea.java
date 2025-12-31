@@ -849,10 +849,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 int yPos = posY + stringYOffset;
-                
-               // data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
-                scriptLine.drawString(x+LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
-               // scriptLine.drawStringHex(x+LINE_NUMBER_GUTTER_WIDTH + 1, yPos, ScriptLine.createDefaultHexRenderer());
+
+                //data.drawString(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
+
+                //scriptLine.drawString(x+LINE_NUMBER_GUTTER_WIDTH + 1, yPos, 0xFFe0e0e0);
+                scriptLine.drawStringHex(x + LINE_NUMBER_GUTTER_WIDTH + 1, yPos);
 
                 // Draw cursor: pause blinking while user is active recently
                 boolean recentInput = selection.hadRecentInput();

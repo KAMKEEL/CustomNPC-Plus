@@ -319,6 +319,7 @@ public class ScriptLine {
 
                 // Draw this segment at the correct position
                 ClientProxy.Font.drawString(seg.text, x + prefixWidth, y, color);
+                // Minecraft.getMinecraft().fontRenderer.drawString(seg.text, x + prefixWidth, y, color);
             }
         }
         
