@@ -53,7 +53,7 @@ public class ErrorUnderlineRenderer {
             // Skip method declarations that were erroneously recorded as calls
             boolean isDeclaration = false;
             int methodStart = call.getMethodNameStart();
-            for (MethodInfo mi : doc.getMethods()) {
+            for (MethodInfo mi : doc.getAllMethods()) {
                 if (mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
                     isDeclaration = true;
                     break;

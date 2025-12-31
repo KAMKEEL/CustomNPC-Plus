@@ -631,17 +631,11 @@ public class ScriptDocument {
         // Group methods by scope depth
         Map<Integer, List<MethodInfo>> methodsByScope = new HashMap<>();
         
-        for (MethodInfo method : methods) {
+        for (MethodInfo method : getAllMethods()) {
             int scopeDepth = calculateScopeDepth(method.getFullDeclarationOffset());
             methodsByScope.computeIfAbsent(scopeDepth, k -> new ArrayList<>()).add(method);
         }
-
-        for (ScriptTypeInfo type : scriptTypes.values()) {
-            for (MethodInfo method : type.getAllMethodsFlat()) {
-                int scopeDepth = calculateScopeDepth(method.getFullDeclarationOffset());
-                methodsByScope.computeIfAbsent(scopeDepth, k -> new ArrayList<>()).add(method);
-            }
-        }
+        
         
         // Check each scope for duplicates
         for (List<MethodInfo> scopeMethods : methodsByScope.values()) {
@@ -744,7 +738,7 @@ public class ScriptDocument {
     }
 
     private void parseLocalVariables() {
-        for (MethodInfo method : methods) {
+        for (MethodInfo method : getAllMethods()) {
             Map<String, FieldInfo> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
 
@@ -1044,7 +1038,7 @@ public class ScriptDocument {
                     containingScriptType.getBodyEnd()))
                 insideMethod = true;
             else {
-                for (MethodInfo method : methods) {
+                for (MethodInfo method : getAllMethods()) {
                     if (method.containsPosition(position)) {
                         insideMethod = true;
                         break;
@@ -1818,7 +1812,7 @@ public class ScriptDocument {
             // Find the corresponding MethodInfo created in parseMethodDeclarations
             int methodDeclStart = m.start();
             MethodInfo methodInfo = null;
-            for (MethodInfo method : methods) {
+            for (MethodInfo method : getAllMethods()) {
                 if (method.getDeclarationOffset() == methodDeclStart) {
                     methodInfo = method;
                     break;
@@ -3324,24 +3318,11 @@ public class ScriptDocument {
         ));
 
         // First pass: mark method parameters in their declaration positions
-        for (MethodInfo method : methods) {
+        for (MethodInfo method : getAllMethods()) {
             for (FieldInfo param : method.getParameters()) {
                 int pos = param.getDeclarationOffset();
                 String name = param.getName();
                 marks.add(new ScriptLine.Mark(pos, pos + name.length(), TokenType.PARAMETER, param));
-            }
-        }
-        
-        // Mark constructor parameters from script types
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
-            for (MethodInfo constructor : scriptType.getConstructors()) {
-                for (FieldInfo param : constructor.getParameters()) {
-                    int pos = param.getDeclarationOffset();
-                    if (pos >= 0) {
-                        String name = param.getName();
-                        marks.add(new ScriptLine.Mark(pos, pos + name.length(), TokenType.PARAMETER, param));
-                    }
-                }
             }
         }
 
@@ -4438,7 +4419,7 @@ public class ScriptDocument {
     }
 
     private MethodInfo findMethodAtPosition(int position) {
-        for (MethodInfo method : methods) {
+        for (MethodInfo method : getAllMethods()) {
             if (method.containsPosition(position)) {
                 return method;
             }
