@@ -34,6 +34,7 @@ public final class MethodInfo {
     public enum ErrorType {
         NONE,
         MISSING_RETURN,        // Non-void method missing return statement
+        MISSING_BODY,        // Non-void method missing return statement
         RETURN_TYPE_MISMATCH,  // Return statement type doesn't match method return type
         VOID_METHOD_RETURNS_VALUE,  // Void method returns a value
         DUPLICATE_METHOD,      // Method with same signature already defined in scope
@@ -433,6 +434,11 @@ public final class MethodInfo {
         //No need to check for return types/statements 
         if(bodyless)
             return;
+
+        if (bodyStart == bodyEnd && !isAbstract() && !isNative()) {
+            setError(ErrorType.MISSING_BODY, "Method must have a body or be declared abstract/native.");
+            return;
+        }
         
         // Validate return statement types FIRST if we have a type resolver
         // This ensures type errors are shown even if there's also a missing return

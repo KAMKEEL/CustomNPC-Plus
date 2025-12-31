@@ -111,7 +111,7 @@ public class ErrorUnderlineRenderer {
         }
 
         // Check all method declarations for errors
-        for (MethodInfo method : doc.getMethods()) {
+        for (MethodInfo method : doc.getAllMethods()) {
             if (!method.isDeclaration() || !method.hasError())
                 continue;
 
@@ -124,21 +124,14 @@ public class ErrorUnderlineRenderer {
             }
 
             // Handle missing return error (underline the method name)
-            if (method.hasMissingReturnError()) {
+            else if (method.hasMissingReturnError()) {
                 int methodNameStart = method.getNameOffset();
                 int methodNameEnd = methodNameStart + method.getName().length();
                 drawUnderlineForSpan(methodNameStart, methodNameEnd, lineStartX, baselineY,
                         lineText, lineStart, lineEnd, ERROR_COLOR);
             }
-
-            // Handle duplicate method error (underline from full declaration start to closing paren)
-            if (method.getErrorType() == MethodInfo.ErrorType.DUPLICATE_METHOD) {
-                drawUnderlineForSpan(method.getFullDeclarationOffset(), method.getDeclarationEnd(),
-                        lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
-            }
-
             // Handle parameter errors
-            if (method.hasParameterErrors()) {
+            else if (method.hasParameterErrors()) {
                 for (MethodInfo.ParameterError paramError : method.getParameterErrors()) {
                     FieldInfo param = paramError.getParameter();
                     if (param == null || param.getDeclarationOffset() < 0)
@@ -150,6 +143,13 @@ public class ErrorUnderlineRenderer {
                             lineText, lineStart, lineEnd, ERROR_COLOR);
                 }
             }
+
+            // Handle all other errors
+            else if (method.hasError()) {
+                drawUnderlineForSpan(method.getFullDeclarationOffset(), method.getDeclarationEnd(), lineStartX,
+                        baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
+            }
+
         }
     }
 

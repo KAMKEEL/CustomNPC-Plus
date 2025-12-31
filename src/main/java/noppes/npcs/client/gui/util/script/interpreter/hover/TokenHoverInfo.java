@@ -232,18 +232,8 @@ public class TokenHoverInfo {
                 }
             }
             
-            // If hovering over duplicate method declaration, show the error
-            if (methodDecl.getErrorType() == MethodInfo.ErrorType.DUPLICATE_METHOD) {
-                int declStart = methodDecl.getFullDeclarationOffset();
-                int declEnd = methodDecl.getDeclarationEnd();
-                
-                if (tokenStart >= declStart && tokenEnd <= declEnd) {
-                    errors.add(methodDecl.getErrorMessage());
-                }
-            }
-            
             // If hovering over a parameter with an error, show that error
-            if (methodDecl.hasParameterErrors()) {
+            else if (methodDecl.hasParameterErrors()) {
                 for (MethodInfo.ParameterError paramError : methodDecl.getParameterErrors()) {
                     FieldInfo param = paramError.getParameter();
                     if (param != null && param.getDeclarationOffset() >= 0) {
@@ -258,7 +248,7 @@ public class TokenHoverInfo {
             }
             
             // If hovering over a return statement with a type error, show that error
-            if (methodDecl.hasReturnStatementErrors()) {
+            else if (methodDecl.hasReturnStatementErrors()) {
                 for (MethodInfo.ReturnStatementError returnError : methodDecl.getReturnStatementErrors()) {
                     int returnStart = returnError.getStartOffset();
                     int returnEnd = returnError.getEndOffset();
@@ -266,6 +256,17 @@ public class TokenHoverInfo {
                     if (tokenStart >= returnStart && tokenEnd <= returnEnd) {
                         errors.add(returnError.getMessage());
                     }
+                }
+            }
+
+
+            // All other errors
+            else if (methodDecl.hasError()) {
+                int declStart = methodDecl.getFullDeclarationOffset();
+                int declEnd = methodDecl.getDeclarationEnd();
+
+                if (tokenStart >= declStart && tokenEnd <= declEnd) {
+                    errors.add(methodDecl.getErrorMessage());
                 }
             }
         }
@@ -337,7 +338,7 @@ public class TokenHoverInfo {
         ScriptDocument doc = line.getParent();
         int tokenStart = token.getGlobalStart();
 
-        for (MethodInfo method : doc.getMethods()) {
+        for (MethodInfo method : doc.getAllMethods()) {
             if (!method.isDeclaration())
                 continue;
 

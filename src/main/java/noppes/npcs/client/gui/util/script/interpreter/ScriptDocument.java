@@ -4482,6 +4482,13 @@ public class ScriptDocument {
         return Collections.unmodifiableList(methods);
     }
 
+    public List<MethodInfo> getAllMethods() {
+        List<MethodInfo> allMethods = new ArrayList<>(methods);
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) 
+            allMethods.addAll(scriptType.getAllMethodsFlat());
+        
+        return allMethods;
+    }
     public List<MethodCallInfo> getMethodCalls() {
         return Collections.unmodifiableList(methodCalls);
     }
