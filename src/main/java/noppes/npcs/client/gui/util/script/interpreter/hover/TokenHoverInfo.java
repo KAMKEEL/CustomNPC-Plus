@@ -135,7 +135,6 @@ public class TokenHoverInfo {
             case UNDEFINED_VAR:
                 info.extractUndefinedInfo(token);
                 break;
-                
             case LITERAL:
             case KEYWORD:
             case MODIFIER:
@@ -152,7 +151,9 @@ public class TokenHoverInfo {
                     info.extractMethodDeclInfo(token);
                 } else if (token.getFieldInfo() != null) {
                     info.extractFieldInfoGeneric(token);
-                } else {
+                } else if (info.hasErrors())
+                    return info;
+                else {
                     return null; // Nothing to show
                 }
                 break;
@@ -271,6 +272,22 @@ public class TokenHoverInfo {
             }
         }
 
+        ScriptTypeInfo scriptType = findScriptTypeContainingPosition(token);
+        if (scriptType != null && scriptType.hasError()) {
+            // Missing interface method errors
+            for (ScriptTypeInfo.MissingMethodError err : scriptType.getMissingMethodErrors()) {
+                errors.add(err.getMessage());
+            }
+            // Constructor mismatch errors
+            for (ScriptTypeInfo.ConstructorMismatchError err : scriptType.getConstructorMismatchErrors()) {
+                errors.add(err.getMessage());
+            }
+            // General error message
+            if (scriptType.getErrorMessage() != null) {
+                errors.add(scriptType.getErrorMessage());
+            }
+        }
+
         if(token.getType() == TokenType.UNDEFINED_VAR)
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
 
@@ -350,6 +367,27 @@ public class TokenHoverInfo {
             // Token is within the method (header + body)
             if (tokenStart >= methodStart && tokenStart <= bodyEnd) {
                 return method;
+            }
+        }
+        return null;
+    }
+
+    private ScriptTypeInfo findScriptTypeContainingPosition(Token token) {
+        ScriptLine line = token.getParentLine();
+        if (line == null || line.getParent() == null) {
+            return null;
+        }
+
+        ScriptDocument doc = line.getParent();
+        int tokenStart = token.getGlobalStart();
+
+        for (ScriptTypeInfo scriptType : doc.getScriptTypes()) {
+            int typeStart = scriptType.getDeclarationOffset();
+            int typeEnd = scriptType.getBodyStart();
+
+            // Token is within the type declaration
+            if (tokenStart >= typeStart && tokenStart <= typeEnd) {
+                return scriptType;
             }
         }
         return null;
@@ -539,7 +577,7 @@ public class TokenHoverInfo {
             }
             
             // Add ScriptTypeInfo errors
-            if (scriptType.hasError()) {
+            if (false) { //|| scriptType.hasError()
                 // Missing interface method errors
                 for (ScriptTypeInfo.MissingMethodError err : scriptType.getMissingMethodErrors()) {
                     errors.add(err.getMessage());

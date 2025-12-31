@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import org.lwjgl.opengl.GL11;
 
 /**
@@ -150,6 +151,17 @@ public class ErrorUnderlineRenderer {
                         baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
             }
 
+        }
+        
+        
+        for(ScriptTypeInfo types : doc.getScriptTypes()){
+            if(!types.hasError())
+                continue;
+            
+            int typeStart = types.getDeclarationOffset();
+            int typeEnd = types.getBodyStart();
+            drawUnderlineForSpan(typeStart, typeEnd, lineStartX, baselineY,
+                    lineText, lineStart, lineEnd, ERROR_COLOR);
         }
     }
 

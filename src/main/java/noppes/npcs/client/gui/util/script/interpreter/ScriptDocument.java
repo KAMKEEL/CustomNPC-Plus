@@ -22,6 +22,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * The main document container that manages script text, lines, and tokens.
@@ -4942,6 +4943,10 @@ public class ScriptDocument {
 
     public List<MethodInfo> getMethods() {
         return Collections.unmodifiableList(methods);
+    }
+
+    public List<ScriptTypeInfo> getScriptTypes() {
+        return scriptTypes.values().stream().collect(Collectors.toList());
     }
 
     public List<MethodInfo> getAllMethods() {
