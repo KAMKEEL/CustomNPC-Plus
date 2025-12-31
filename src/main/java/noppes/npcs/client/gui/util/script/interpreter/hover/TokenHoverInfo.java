@@ -621,6 +621,13 @@ public class TokenHoverInfo {
         TypeInfo containingType = null;
         if (callInfo != null) {
             containingType = callInfo.getReceiverType();
+            
+            //Checks true containing type from resolved method (handles inheritance cases)
+            if (callInfo.getResolvedMethod() != null) {
+                TypeInfo trueContainingType = callInfo.getResolvedMethod().getContainingType();
+                if (trueContainingType != null)
+                    containingType = trueContainingType;
+            }
         }
         if (containingType == null && methodInfo != null) {
             containingType = methodInfo.getContainingType();
