@@ -44,6 +44,7 @@ import net.minecraftforge.event.world.BlockEvent;
 import noppes.npcs.api.IWorld;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.item.IItemCustomizable;
+import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumQuestType;
@@ -60,6 +61,8 @@ import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.items.ItemNpcTool;
 import noppes.npcs.quests.QuestItem;
 import noppes.npcs.scripted.NpcAPI;
+import noppes.npcs.scripted.item.ScriptCustomizableItem;
+import noppes.npcs.scripted.item.ScriptItemStack;
 
 import static noppes.npcs.config.ConfigMain.TrackedQuestUpdateFrequency;
 
@@ -545,6 +548,16 @@ public class ScriptPlayerEventHandler {
             }
 
             if (event.source.getEntity() instanceof EntityPlayerMP) {
+                EntityPlayerMP playerMP = (EntityPlayerMP) event.source.getEntity();
+                if(playerMP.getHeldItem() != null) {
+                    IItemStack itemStack = NpcAPI.Instance().getIItemStack(playerMP.getHeldItem());
+                    if (itemStack instanceof ScriptCustomizableItem) {
+                        ScriptCustomizableItem sci = (ScriptCustomizableItem) itemStack;
+                        int attackSpeed = sci.getAttackSpeed();
+                        // TODO: Check Hurt Resistant Time.
+                    }
+                }
+
                 PlayerDataScript handler = ScriptController.Instance.getPlayerScripts((EntityPlayer) event.source.getEntity());
                 float attackAmount = event.ammount;
                 if (ConfigMain.AttributesEnabled && !DBCAddon.IsAvailable())
