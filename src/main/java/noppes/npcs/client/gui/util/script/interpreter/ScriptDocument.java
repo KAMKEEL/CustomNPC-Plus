@@ -18,7 +18,6 @@ import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
-import scala.annotation.meta.param;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -596,7 +595,7 @@ public class ScriptDocument {
 
     private void parseMethodDeclarations() {
         Pattern methodWithBody = Pattern.compile(
-                "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*\\{");
+                "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
 
         Matcher m = methodWithBody.matcher(text);
         while (m.find()) {
@@ -604,13 +603,21 @@ public class ScriptDocument {
                 continue;
 
             String returnType = m.group(1);
+
+            if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") ||returnType.equals("new")) {
+                continue;
+            }
+            
             String methodName = m.group(2);
             String paramList = m.group(3);
+            String delimiter = m.group(4);
+            boolean bodyless = delimiter.equals(";");
 
-            int bodyStart = text.indexOf('{', m.end() - 1);
-            int bodyEnd = findMatchingBrace(bodyStart);
+            int bodyStart = bodyless ? m.end() : text.indexOf('{', m.end() - 1);
+            int bodyEnd = bodyless ? m.end() : findMatchingBrace(bodyStart);
             if (bodyEnd < 0)
                 bodyEnd = text.length();
+
 
             // Extract documentation before this method
             String documentation = extractDocumentationBefore(m.start());
@@ -638,6 +645,17 @@ public class ScriptDocument {
                     modifiers,
                     documentation
             );
+
+            for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+                if (scriptType.containsPosition(bodyStart)) {
+                 //   scriptType.addMethod(methodInfo);
+
+                    if (scriptType.getKind() == TypeInfo.Kind.INTERFACE)
+                        methodInfo.setBodyless(bodyless);
+                    
+                    break;
+                }
+            }
             
             // Validate the method (return statements, parameters) with type resolution
             String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";

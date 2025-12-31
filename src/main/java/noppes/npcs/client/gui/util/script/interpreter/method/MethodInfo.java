@@ -56,6 +56,7 @@ public final class MethodInfo {
     private final String documentation;       // Javadoc/comment documentation for this method
     private final java.lang.reflect.Method javaMethod;  // The Java reflection Method, if this was created from reflection
 
+    private boolean bodyless;
     // Error tracking for method declarations
     private ErrorType errorType = ErrorType.NONE;
     private String errorMessage;
@@ -193,6 +194,8 @@ public final class MethodInfo {
     public boolean isPrivate() { return Modifier.isPrivate(modifiers); }
     public boolean isProtected() { return Modifier.isProtected(modifiers); }
     public String getDocumentation() { return documentation; }
+    public boolean isBodyless() { return bodyless; }
+    public void setBodyless(boolean bodyless) { this.bodyless = bodyless; }
 
     /**
      * Check if a position is inside this method's body.
@@ -427,6 +430,10 @@ public final class MethodInfo {
         // Validate parameters
         validateParameters();
 
+        //No need to check for return types/statements 
+        if(bodyless)
+            return;
+        
         // Validate return statement types FIRST if we have a type resolver
         // This ensures type errors are shown even if there's also a missing return
         if (typeResolver != null) {
