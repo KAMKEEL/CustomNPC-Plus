@@ -72,18 +72,21 @@ public class ErrorUnderlineRenderer {
                 int methodEnd = methodStart + call.getMethodName().length();
                 drawUnderlineForSpan(methodStart, methodEnd, lineStartX, baselineY,
                         lineText, lineStart, lineEnd, ERROR_COLOR);
-            }
+            } else if (call.hasArgTypeError()) {
+                // Handle return type mismatch (underline the method name) - currently commented out
+                // if (call.hasReturnTypeMismatch()) { ... }
 
-            // Handle return type mismatch (underline the method name) - currently commented out
-            // if (call.hasReturnTypeMismatch()) { ... }
-
-            // Handle arg type errors (underline specific arguments)
-            if (call.hasArgTypeError()) {
+                // Handle arg type errors (underline specific arguments)
+                
                 for (MethodCallInfo.ArgumentTypeError error : call.getArgumentTypeErrors()) {
                     MethodCallInfo.Argument arg = error.getArg();
                     drawUnderlineForSpan(arg.getStartOffset(), arg.getEndOffset(),
                             lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
                 }
+            } else if(call.hasError()){
+                // Handle other call errors (underline the whole call)
+                drawUnderlineForSpan(call.getMethodNameStart(), call.getCloseParenOffset() + 1,
+                        lineStartX, baselineY, lineText, lineStart, lineEnd, ERROR_COLOR);
             }
         }
 

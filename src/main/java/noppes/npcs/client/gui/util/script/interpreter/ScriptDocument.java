@@ -56,7 +56,7 @@ public class ScriptDocument {
     private static final Pattern MODIFIER_PATTERN = Pattern.compile(
             "\\b(public|protected|private|static|final|abstract|synchronized|native|default)\\b");
     private static final Pattern KEYWORD_PATTERN = Pattern.compile(
-            "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|new|typeof|instanceof|import)\\b");
+            "\\b(null|boolean|int|float|double|long|char|byte|short|void|if|else|switch|case|for|while|do|try|catch|finally|return|throw|var|let|const|function|continue|break|this|super|new|typeof|instanceof|import)\\b");
 
     // Declarations - Updated to capture method parameters
     private static final Pattern IMPORT_PATTERN = Pattern.compile(
@@ -1996,6 +1996,12 @@ public class ScriptDocument {
                 continue;
             }
 
+            // Handle super() constructor calls
+            if (methodName.equals("super")) {
+                handleSuperConstructorCall(marks, nameStart, nameEnd, openParen, closeParen);
+                continue;
+            }
+
             // Parse the arguments (first pass - without expected types for overload resolution)
             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
 
@@ -2007,7 +2013,15 @@ public class ScriptDocument {
             MethodInfo resolvedMethod = null;
 
             if (receiverType != null) {
-                if (receiverType.hasMethod(methodName)) {
+                // Check for method existence using hierarchy search if it's a ScriptTypeInfo
+                boolean hasMethod = false;
+                if (receiverType instanceof ScriptTypeInfo) {
+                    hasMethod = ((ScriptTypeInfo) receiverType).hasMethodInHierarchy(methodName);
+                } else {
+                    hasMethod = receiverType.hasMethod(methodName);
+                }
+
+                if (hasMethod) {
           
                     TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
                     // Get best method overload based on argument types
@@ -2504,6 +2518,14 @@ public class ScriptDocument {
                     return currentType;
                 }
             }
+        } else if (first.name.equals("super")) {
+            // Resolve super to parent class
+            ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+            if (enclosingType != null && enclosingType.hasSuperClass()) {
+                currentType = enclosingType.getSuperClass();
+            } else {
+                return null; // No parent class
+            }
         } else {
             // Check if first segment is a type name for static access
             TypeInfo typeCheck = resolveType(first.name);
@@ -2782,19 +2804,42 @@ public class ScriptDocument {
         
         if (segment.isMethodCall) {
             // Method call - get return type with argument-based overload resolution
-            if (currentType.hasMethod(segment.name)) {
+            // Check for method existence using hierarchy search if it's a ScriptTypeInfo
+            boolean hasMethod = false;
+            if (currentType instanceof ScriptTypeInfo) {
+                hasMethod = ((ScriptTypeInfo) currentType).hasMethodInHierarchy(segment.name);
+            } else {
+                hasMethod = currentType.hasMethod(segment.name);
+            }
+
+            if (hasMethod) {
                 // Parse argument types from the method call
                 TypeInfo[] argTypes = parseArgumentTypes(segment.arguments, segment.start);
                 
                 // Get the best matching overload based on argument types
+                // getBestMethodOverload is now overridden in ScriptTypeInfo to search hierarchy
                 MethodInfo methodInfo = currentType.getBestMethodOverload(segment.name, argTypes);
                 return (methodInfo != null) ? methodInfo.getReturnType() : null;
             }
             return null;
         } else {
-            // Field access
-            if (currentType.hasField(segment.name)) {
-                FieldInfo fieldInfo = currentType.getFieldInfo(segment.name);
+            // Field access - use hierarchy search for ScriptTypeInfo
+            boolean hasField = false;
+            FieldInfo fieldInfo = null;
+
+            if (currentType instanceof ScriptTypeInfo) {
+                hasField = ((ScriptTypeInfo) currentType).hasFieldInHierarchy(segment.name);
+                if (hasField) {
+                    fieldInfo = ((ScriptTypeInfo) currentType).getFieldInfoInHierarchy(segment.name);
+                }
+            } else {
+                hasField = currentType.hasField(segment.name);
+                if (hasField) {
+                    fieldInfo = currentType.getFieldInfo(segment.name);
+                }
+            }
+
+            if (hasField) {
                 return (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
             }
             return null;
@@ -3323,6 +3368,76 @@ public class ScriptDocument {
     }
 
     /**
+     * Find the constructor that contains the given position.
+     * Used for validating super() calls.
+     */
+    private MethodInfo findEnclosingConstructor(int position) {
+        ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+        if (enclosingType == null)
+            return null;
+
+        for (MethodInfo constructor : enclosingType.getConstructors()) {
+            int bodyStart = constructor.getBodyStart();
+            int bodyEnd = constructor.getBodyEnd();
+            if (bodyStart >= 0 && bodyEnd > bodyStart && position >= bodyStart && position < bodyEnd) {
+                return constructor;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Handle super() constructor calls with validation and argument matching.
+     */
+    private void handleSuperConstructorCall(List<ScriptLine.Mark> marks, int nameStart, int nameEnd, int openParen,
+                                            int closeParen) {
+        // Validate that we're in a constructor
+        TokenErrorMessage errorMsg = null;
+
+        //Parent class
+        ScriptTypeInfo enclosingType = findEnclosingScriptType(nameStart);
+        MethodInfo enclosingConstructor = findEnclosingConstructor(nameStart);
+        TypeInfo superClass = enclosingType != null ? enclosingType.getSuperClass() : null;
+
+        // Parse arguments and find matching parent constructor
+        List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen, null);
+        TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType).toArray(TypeInfo[]::new);
+
+        // Find matching constructor in parent class
+        MethodInfo parentConstructor = superClass != null ? superClass.findConstructor(argTypes) : null;
+
+        if (enclosingType == null || !enclosingType.hasSuperClass()) {
+            // No parent class - error
+            errorMsg = TokenErrorMessage
+                    .from(enclosingType == null ? "'super()' can only be used within a class" : "Class '" + enclosingType.getSimpleName() + "' does not have a parent class")
+                    .clearOtherErrors();
+        } else if (enclosingConstructor == null) {
+            // Not in a constructor - error
+            errorMsg = TokenErrorMessage.from("Call to 'super()' only allowed in constructor body").clearOtherErrors();
+        } else if (superClass == null || !superClass.isResolved()) {
+            // Parent class not resolved - error
+            errorMsg = TokenErrorMessage.from(
+                    "Cannot resolve parent class '" + enclosingType.getSuperClassName() + "'");
+        } else if (parentConstructor == null) {
+            // No matching constructor found
+            String argTypeStr = java.util.Arrays.stream(argTypes)
+                                                .map(t -> t != null ? t.getSimpleName() : "unknown")
+                                                .collect(java.util.stream.Collectors.joining(", "));
+            errorMsg = TokenErrorMessage
+                    .from("No constructor found in '" + superClass.getSimpleName() + "' matching super(" + argTypeStr + ")")
+                    .clearOtherErrors();
+        }
+        
+        // Successfully resolved - mark as a valid method call (constructor call)
+        MethodCallInfo callInfo = new MethodCallInfo("super", nameStart, nameEnd, openParen, closeParen, arguments,
+                superClass, parentConstructor, false).setConstructor(true);
+        callInfo.validate();
+        methodCalls.add(callInfo);
+        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.IMPORT_KEYWORD,
+                errorMsg != null ? errorMsg : callInfo));
+    }
+
+    /**
      * Check if a method name is defined in this script.
      */
     private boolean isScriptMethod(String methodName) {
@@ -3540,9 +3655,10 @@ public class ScriptDocument {
      * Does NOT mark method calls (identifiers followed by parentheses) - those are handled by markMethodCalls.
      */
     private void markChainedFieldAccesses(List<ScriptLine.Mark> marks) {
-        // Pattern to find identifier chains: identifier.identifier, this.identifier, etc.
-        // Start with an identifier or 'this' followed by at least one dot and another identifier
-        Pattern chainPattern = Pattern.compile("\\b(this|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
+        // Pattern to find identifier chains: identifier.identifier, this.identifier, super.identifier, etc.
+        // Start with an identifier, 'this', or 'super' followed by at least one dot and another identifier
+        Pattern chainPattern = Pattern.compile(
+                "\\b(this|super|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
         Matcher m = chainPattern.matcher(text);
  
         while (m.find()) {
@@ -3618,6 +3734,7 @@ public class ScriptDocument {
             // Start with resolving the first segment
             TypeInfo currentType = null;
             boolean firstIsThis = firstSegment.equals("this");
+            boolean firstIsSuper = firstSegment.equals("super");
             boolean firstIsPrecededByDot = isPrecededByDot(chainStart);
             
             // Determine the starting index for marking
@@ -3628,6 +3745,28 @@ public class ScriptDocument {
                 // For 'this', we don't have a class context to resolve, but we can mark subsequent fields
                 // as global fields if they exist in globalFields
                 currentType = null; // We'll use globalFields for the next segment
+            } else if (firstIsSuper) {
+                // For 'super', resolve to parent class type
+                ScriptTypeInfo enclosingType = findEnclosingScriptType(chainStart);
+                if (enclosingType != null && enclosingType.hasSuperClass()) {
+                    currentType = enclosingType.getSuperClass(); 
+                    if (currentType == null || !currentType.isResolved()) {
+                        // Mark 'super' as error - parent class not resolved
+                        marks.add(new ScriptLine.Mark(segmentPositions.get(0)[0], segmentPositions.get(0)[1],
+                                TokenType.UNDEFINED_VAR, TokenErrorMessage
+                                .from("Cannot resolve parent class '" + enclosingType.getSuperClassName() + "'")
+                                .clearOtherErrors()));
+                        return; // Can't continue
+                    }
+                } else {
+                    // Mark 'super' as error - no parent class
+                    String errorMsg = enclosingType == null ? "'super' can only be used within a class" : "Class '" + enclosingType.getSimpleName() + "' does not have a parent class";
+                    marks.add(new ScriptLine.Mark(segmentPositions.get(0)[0], segmentPositions.get(0)[1],
+                            TokenType.UNDEFINED_VAR, TokenErrorMessage.from(errorMsg).clearOtherErrors()));
+                    return; // Can't continue
+                }
+                marks.add(new ScriptLine.Mark(segmentPositions.get(0)[0], segmentPositions.get(0)[1],
+                        TokenType.IMPORT_KEYWORD, currentType));
             } else {
                 // Try to resolve as a type first (class/interface/enum name)
                 TypeInfo typeCheck = resolveType(firstSegment);
@@ -3696,6 +3835,38 @@ public class ScriptDocument {
                         currentType = fieldInfo.getTypeInfo();
                     } else {
                         marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
+                        currentType = null;
+                    }
+                } else if (i == 1 && firstIsSuper) {
+                    // For "super.field", currentType is already the parent class
+                    // Search recursively through the inheritance hierarchy
+                    boolean found = false;
+                    FieldInfo fieldInfo = null;
+
+                    if (currentType != null) {
+                        if (currentType instanceof ScriptTypeInfo) {
+                            found = ((ScriptTypeInfo) currentType).hasFieldInHierarchy(segment);
+                            if (found) {
+                                fieldInfo = ((ScriptTypeInfo) currentType).getFieldInfoInHierarchy(segment);
+                            }
+                        } else {
+                            // For Java classes, hasField already checks inheritance
+                            found = currentType.hasField(segment);
+                            if (found) {
+                                fieldInfo = currentType.getFieldInfo(segment);
+                            }
+                        }
+                    }
+
+                    if (found) {
+                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], currentType,
+                                fieldInfo, isLastSegment, false);
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
+                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
+                    } else {
+                        String errorMsg = currentType != null ? "Field '" + segment + "' not found in parent class hierarchy starting from '" + currentType.getSimpleName() + "'" : "Cannot resolve field '" + segment + "'";
+                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR,
+                                TokenErrorMessage.from(errorMsg).clearOtherErrors()));
                         currentType = null;
                     }
                 } else if (currentType != null && currentType.isResolved()) {
@@ -4556,9 +4727,12 @@ public class ScriptDocument {
                             List<MethodCallInfo.Argument> arguments = parseMethodArguments(openParen + 1, closeParen,
                                     null);
                             int argCount = arguments.size();
-                            
+                            TypeInfo[] argTypes = arguments.stream().map(MethodCallInfo.Argument::getResolvedType)
+                                                           .toArray(TypeInfo[]::new);
+
+
                             // Try to find matching constructor (may be null if not found)
-                            MethodInfo constructor = info.hasConstructors() ? info.findConstructor(argCount) : null;
+                            MethodInfo constructor = info.hasConstructors() ? info.findConstructor(argTypes) : null;
                             
                             // Create MethodCallInfo for constructor (even if null, so errors are tracked)
                             MethodCallInfo ctorCall = MethodCallInfo.constructor(

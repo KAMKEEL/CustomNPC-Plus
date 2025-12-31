@@ -288,6 +288,297 @@ public class ScriptTypeInfo extends TypeInfo {
         }
         return null;
     }
+
+    public MethodInfo findConstructor(TypeInfo[] argTypes) {
+        for (MethodInfo constructor : constructors) {
+            if (constructor.getParameterCount() == argTypes.length) {
+                boolean match = true;
+                List<FieldInfo> params = constructor.getParameters();
+                for (int i = 0; i < argTypes.length; i++) {
+                    TypeInfo paramType = params.get(i).getTypeInfo();
+                    if (!TypeChecker.isTypeCompatible(paramType, argTypes[i])) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match)
+                    return constructor;
+            }
+        }
+        return null;
+    }
+
+    // ==================== INHERITANCE HIERARCHY SEARCH ====================
+
+    /**
+     * Check if this type or any of its parent classes has a field with the given name.
+     * This recursively searches up the inheritance tree.
+     */
+    public boolean hasFieldInHierarchy(String fieldName) {
+        // Check this class first
+        if (hasField(fieldName)) {
+            return true;
+        }
+
+        // Check parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                return ((ScriptTypeInfo) superClass).hasFieldInHierarchy(fieldName);
+            } else {
+                // For Java classes, hasField already checks inheritance via reflection
+                return superClass.hasField(fieldName);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get field info from this type or any of its parent classes.
+     * This recursively searches up the inheritance tree.
+     */
+    public FieldInfo getFieldInfoInHierarchy(String fieldName) {
+        // Check this class first
+        FieldInfo field = getFieldInfo(fieldName);
+        if (field != null) {
+            return field;
+        }
+
+        // Check parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                return ((ScriptTypeInfo) superClass).getFieldInfoInHierarchy(fieldName);
+            } else {
+                // For Java classes, getFieldInfo already checks inheritance via reflection
+                return superClass.getFieldInfo(fieldName);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if this type or any of its parent classes has a method with the given name.
+     * This recursively searches up the inheritance tree.
+     */
+    public boolean hasMethodInHierarchy(String methodName) {
+        // Check this class first
+        if (hasMethod(methodName)) {
+            return true;
+        }
+
+        // Check parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                return ((ScriptTypeInfo) superClass).hasMethodInHierarchy(methodName);
+            } else {
+                // For Java classes, hasMethod already checks inheritance via reflection
+                return superClass.hasMethod(methodName);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if this type or any of its parent classes has a method with the given name and parameter count.
+     * This recursively searches up the inheritance tree.
+     */
+    public boolean hasMethodInHierarchy(String methodName, int paramCount) {
+        // Check this class first
+        if (hasMethod(methodName, paramCount)) {
+            return true;
+        }
+
+        // Check parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                return ((ScriptTypeInfo) superClass).hasMethodInHierarchy(methodName, paramCount);
+            } else {
+                // For Java classes, hasMethod already checks inheritance via reflection
+                return superClass.hasMethod(methodName, paramCount);
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Get method info from this type or any of its parent classes.
+     * This recursively searches up the inheritance tree.
+     */
+    public MethodInfo getMethodInfoInHierarchy(String methodName) {
+        // Check this class first
+        MethodInfo method = getMethodInfo(methodName);
+        if (method != null) {
+            return method;
+        }
+
+        // Check parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                return ((ScriptTypeInfo) superClass).getMethodInfoInHierarchy(methodName);
+            } else {
+                // For Java classes, getMethodInfo already checks inheritance via reflection
+                return superClass.getMethodInfo(methodName);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get method info with specific parameter count from this type or any of its parent classes.
+     * This recursively searches up the inheritance tree.
+     */
+    public MethodInfo getMethodWithParamCountInHierarchy(String methodName, int paramCount) {
+        // Check this class first
+        MethodInfo method = getMethodWithParamCount(methodName, paramCount);
+        if (method != null) {
+            return method;
+        }
+
+        // Check parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                return ((ScriptTypeInfo) superClass).getMethodWithParamCountInHierarchy(methodName, paramCount);
+            } else {
+                // For Java classes, reflection already handles inheritance
+                // We need to manually search for matching method
+                List<MethodInfo> overloads = superClass.getAllMethodOverloads(methodName);
+                for (MethodInfo m : overloads) {
+                    if (m.getParameterCount() == paramCount) {
+                        return m;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get all method overloads with the given name from this type or any of its parent classes.
+     * This recursively searches up the inheritance tree and returns all matching overloads.
+     */
+    public List<MethodInfo> getAllMethodOverloadsInHierarchy(String methodName) {
+        List<MethodInfo> result = new ArrayList<>();
+
+        // Get overloads from this class
+        result.addAll(getAllMethodOverloads(methodName));
+
+        // Get overloads from parent class recursively
+        if (superClass != null && superClass.isResolved()) {
+            if (superClass instanceof ScriptTypeInfo) {
+                result.addAll(((ScriptTypeInfo) superClass).getAllMethodOverloadsInHierarchy(methodName));
+            } else {
+                // For Java classes, getAllMethodOverloads already checks inheritance via reflection
+                result.addAll(superClass.getAllMethodOverloads(methodName));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Override getBestMethodOverload to search the inheritance hierarchy.
+     * This ensures that method overload resolution considers parent class methods.
+     */
+    @Override
+    public MethodInfo getBestMethodOverload(String methodName, TypeInfo[] argTypes) {
+        // Get all overloads from this class and parent classes
+        List<MethodInfo> allOverloads = getAllMethodOverloadsInHierarchy(methodName);
+        if (allOverloads.isEmpty())
+            return null;
+
+        // If no arguments provided, try to find zero-arg method
+        if (argTypes == null || argTypes.length == 0) {
+            for (MethodInfo method : allOverloads) {
+                if (method.getParameterCount() == 0) {
+                    return method;
+                }
+            }
+            // Fall back to first overload if no zero-arg found
+            return allOverloads.get(0);
+        }
+
+        // Phase 1: Try exact match
+        for (MethodInfo method : allOverloads) {
+            if (method.getParameterCount() == argTypes.length) {
+                boolean exactMatch = true;
+                List<FieldInfo> params = method.getParameters();
+                for (int i = 0; i < argTypes.length; i++) {
+                    TypeInfo paramType = params.get(i).getTypeInfo();
+                    TypeInfo argType = argTypes[i];
+                    if (paramType == null || argType == null || !paramType.equals(argType)) {
+                        exactMatch = false;
+                        break;
+                    }
+                }
+                if (exactMatch)
+                    return method;
+            }
+        }
+
+        // Phase 2: Try compatible type match (assignability)
+        for (MethodInfo method : allOverloads) {
+            if (method.getParameterCount() == argTypes.length) {
+                boolean compatible = true;
+                List<FieldInfo> params = method.getParameters();
+                for (int i = 0; i < argTypes.length; i++) {
+                    TypeInfo paramType = params.get(i).getTypeInfo();
+                    TypeInfo argType = argTypes[i];
+                    if (paramType == null || argType == null) {
+                        continue; // Allow null types (unresolved)
+                    }
+                    // Check if argType can be assigned to paramType
+                    if (!noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker.isTypeCompatible(paramType,
+                            argType)) {
+                        compatible = false;
+                        break;
+                    }
+                }
+                if (compatible)
+                    return method;
+            }
+        }
+
+        // Phase 3: Fall back to first overload with matching parameter count
+        for (MethodInfo method : allOverloads) {
+            if (method.getParameterCount() == argTypes.length) {
+                return method;
+            }
+        }
+
+        // No match found, return first overload
+        return allOverloads.get(0);
+    }
+
+    /**
+     * Override getBestMethodOverload with return type expectation to search the inheritance hierarchy.
+     */
+    @Override
+    public MethodInfo getBestMethodOverload(String methodName, TypeInfo expectedReturnType) {
+        List<MethodInfo> allOverloads = getAllMethodOverloadsInHierarchy(methodName);
+        if (allOverloads.isEmpty())
+            return null;
+
+        // If no expected return type, return first overload
+        if (expectedReturnType == null) {
+            return allOverloads.get(0);
+        }
+
+        // First pass: look for return type compatible overload
+        for (MethodInfo method : allOverloads) {
+            TypeInfo returnType = method.getReturnType();
+            if (returnType != null && noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker.isTypeCompatible(
+                    expectedReturnType, returnType)) {
+                return method;
+            }
+        }
+        // Second pass: return any overload (first one)
+        return allOverloads.get(0);
+    }
     
     // ==================== INNER CLASS LOOKUP ====================
     

@@ -4,6 +4,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -226,10 +227,37 @@ public class TypeInfo {
         if (javaClass == null) return null;
         
         try {
-            java.lang.reflect.Constructor<?>[] constructors = javaClass.getConstructors();
-            for (java.lang.reflect.Constructor<?> ctor : constructors) {
+           Constructor<?>[] constructors = javaClass.getConstructors();
+            for (Constructor<?> ctor : constructors) {
                 if (ctor.getParameterCount() == argCount) {
                     return MethodInfo.fromReflectionConstructor(ctor, this);
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return null;
+    }
+    
+    public MethodInfo findConstructor(TypeInfo[] argTypes) {
+        if (javaClass == null) return null;
+        
+        try {
+            Constructor<?>[] constructors = javaClass.getConstructors();
+            for (Constructor<?> ctor : constructors) {
+                if (ctor.getParameterCount() == argTypes.length) {
+                   Class<?>[] paramTypes = ctor.getParameterTypes();
+                    boolean match = true;
+                    for (int i = 0; i < argTypes.length; i++) {
+                        TypeInfo paramTypeInfo = TypeInfo.fromClass(paramTypes[i]);
+                        if (!TypeChecker.isTypeCompatible(paramTypeInfo, argTypes[i])) {
+                            match = false;
+                            break;
+                        }
+                    }
+                    if (match) {
+                        return MethodInfo.fromReflectionConstructor(ctor, this);
+                    }
                 }
             }
         } catch (Exception e) {
