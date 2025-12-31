@@ -175,47 +175,4 @@ public class ScriptTextContainer extends JavaTextContainer {
         
         return line.getTokenAt(globalPosition);
     }
-
-    /**
-     * Get method blocks for compatibility with existing code.
-     * Creates MethodBlock-like objects from the new MethodInfo.
-     */
-    public List<MethodBlockCompat> getMethodBlocks() {
-        if (document == null) {
-            return new ArrayList<>();
-        }
-        List<MethodBlockCompat> blocks = new ArrayList<>();
-        for (MethodInfo method : document.getMethods()) {
-            blocks.add(new MethodBlockCompat(method));
-        }
-        return blocks;
-    }
-
-    /**
-     * Compatibility wrapper for MethodBlock.
-     */
-    public static class MethodBlockCompat {
-        private final MethodInfo methodInfo;
-        public List<String> parameters = new ArrayList<>();
-        public List<String> localVariables = new ArrayList<>();
-
-        public MethodBlockCompat(MethodInfo methodInfo) {
-            this.methodInfo = methodInfo;
-            for (FieldInfo param : methodInfo.getParameters()) {
-                parameters.add(param.getName());
-            }
-        }
-
-        public int getStartOffset() { return methodInfo.getDeclarationOffset(); }
-        public int getEndOffset() { return methodInfo.getBodyEnd(); }
-
-        public boolean containsPosition(int position) {
-            return methodInfo.containsPosition(position);
-        }
-
-        public boolean isLocalDeclaredAtPosition(String varName, int position) {
-            // Simplified - would need local variable tracking for full support
-            return localVariables.contains(varName);
-        }
-    }
 }
