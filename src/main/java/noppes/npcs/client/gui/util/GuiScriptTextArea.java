@@ -17,6 +17,7 @@ import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.hover.GutterIconRenderer;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
 import noppes.npcs.client.gui.util.script.interpreter.hover.TokenHoverRenderer;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
@@ -98,15 +99,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     private static int LINE_NUMBER_GUTTER_WIDTH = 25;
     
     // ==================== GUTTER ICONS ====================
-    /** Icon width for override/implements icons in the gutter (scaled from 32x32 to fit line height) */
-    private static final int GUTTER_ICON_SIZE = 10;
-    /** Extra gutter width to accommodate inheritance icons */
-    private static final int ICON_GUTTER_WIDTH = 12;
-    /** Texture resource for script icons (64x32: first 32x32 = override, second 32x32 = implements) */
-    private static final ResourceLocation SCRIPT_ICONS = new ResourceLocation("customnpcs", "textures/gui/script/icons.png");
     /** Hover state for gutter icons - tracks which icon the mouse is over */
     private MethodInfo hoveredGutterMethod = null;
-    private int hoveredGutterLine = -1;
     
     // ==================== UNDO/REDO ====================
     public List<UndoData> undoList = new ArrayList<>();
@@ -483,7 +477,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int maxLineNum = container.linesCount;
             String maxLineStr = String.valueOf(maxLineNum);
             int digitWidth = ClientProxy.Font.width(maxLineStr);
-            LINE_NUMBER_GUTTER_WIDTH = digitWidth + 10 + ICON_GUTTER_WIDTH; // 10px padding + icon space
+            LINE_NUMBER_GUTTER_WIDTH = digitWidth + 10 + GutterIconRenderer.ICON_GUTTER_WIDTH; // 10px padding + icon space
         }
         // Draw outer border around entire area
         int offset = fullscreen() ? 2 : 1;
@@ -651,7 +645,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int posY = y + (i - scroll.getScrolledLine()) * container.lineHeight + stringYOffset;
             String lineNum = String.valueOf(i + 1);
             int lineNumWidth = ClientProxy.Font.width(lineNum);
-            int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5 - ICON_GUTTER_WIDTH; // right-align before icon space
+            int lineNumX = x + LINE_NUMBER_GUTTER_WIDTH - lineNumWidth - 5 - GutterIconRenderer.ICON_GUTTER_WIDTH; // right-align before icon space
             int lineNumY = posY + 1;
             // Highlight current line number
             int lineNumColor = 0xFF606366;
@@ -878,10 +872,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
         }
 
-        // Render GUTTER ICONS for method override/implements
-        hoveredGutterMethod = null;
-        hoveredGutterLine = -1;
-        renderGutterIcons(renderStart, renderEnd, stringYOffset, xMouse, yMouse, fracPixels);
+        // Render gutter icons for method override/implements
+        if (container != null && container.getDocument() != null) {
+            hoveredGutterMethod = GutterIconRenderer.renderIcons(container.lineHeight,
+                    x + LINE_NUMBER_GUTTER_WIDTH - GutterIconRenderer.ICON_GUTTER_WIDTH + 1, y, renderStart, renderEnd,
+                    scroll.getScrolledLine(), stringYOffset, container.getDocument().getAllMethods(), container.lines,
+                    xMouse, yMouse, fracPixels);
+        }
         
         GL11.glPopMatrix();
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
@@ -905,14 +902,19 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw go to line dialog (overlays everything)
         goToLineDialog.draw(xMouse, yMouse);
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
-        
-        // Draw hover tooltip (on top of everything)
+
+        // Draw hover tooltips (on top of everything)
         if (hoverState.isTooltipVisible()) {
             int xOffset = hasVerticalScrollbar() ? -8 : -2;
             int viewportWidth = width - LINE_NUMBER_GUTTER_WIDTH;
             int viewportY = y;
             int viewportHeight = height;
             TokenHoverRenderer.render(hoverState, viewportX, viewportWidth+xOffset, viewportY, viewportHeight);
+        }
+
+        // Draw gutter icon tooltip
+        if (hoveredGutterMethod != null) {
+            GutterIconRenderer.renderTooltip(hoveredGutterMethod, xMouse, yMouse, x, width, y, height);
         }
     }
 
@@ -925,127 +927,6 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int scissorW = (this.width) * scaleFactor;
         int scissorH = this.height * scaleFactor;
         GL11.glScissor(scissorX, scissorY, scissorW, scissorH);
-    }
-    
-    // ==================== GUTTER ICON RENDERING ====================
-    
-    /**
-     * Render override/implements icons in the gutter for methods with inheritance markers.
-     * Icons are rendered at the start of lines where method declarations with inheritance exist.
-     */
-    private void renderGutterIcons(int renderStart, int renderEnd, int stringYOffset, int xMouse, int yMouse, float fracPixels) {
-        if (container == null || container.getDocument() == null) return;
-        
-        // Icon position in the gutter (right side of gutter, before line numbers)
-        int iconX = x + LINE_NUMBER_GUTTER_WIDTH - ICON_GUTTER_WIDTH + 1;
-        
-        // Adjust mouse Y for fractional scroll
-        float adjustedMouseY = yMouse + fracPixels;
-        
-        for (int lineIndex = renderStart; lineIndex <= renderEnd; lineIndex++) {
-            // Get method info for this line if it has an inheritance marker
-            MethodInfo method = getMethodWithInheritanceMarkerAtLine(lineIndex);
-            if (method == null) continue;
-            
-            int posY = y + (lineIndex - scroll.getScrolledLine()) * container.lineHeight + stringYOffset;
-            int iconY = posY + (container.lineHeight - GUTTER_ICON_SIZE) / 2 - 1;
-            
-            // Determine which icon to draw (override = 0, implements = 1)
-            boolean isOverride = method.isOverride();
-            int iconU = isOverride ? 0 : 32; // U offset in texture (0 for override, 32 for implements)
-            
-            // Bind the icons texture
-            Minecraft.getMinecraft().renderEngine.bindTexture(SCRIPT_ICONS);
-            
-            // Draw the icon scaled from 32x32 to GUTTER_ICON_SIZE
-            GL11.glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-            GL11.glPushMatrix(); 
-            float scale = 2;
-            GL11.glScalef(scale,scale,scale);
-            GL11.glTranslatef(-4,-3.25F,0);
-            GuiUtil.drawScaledTexturedRect((int) (iconX/scale), (int) (iconY/scale), iconU, 0, 32, 32, GUTTER_ICON_SIZE, GUTTER_ICON_SIZE, 64, 32);
-            GL11.glPopMatrix();
-            // Check if mouse is hovering over this icon (for tooltip)
-            int screenPosY = y + (lineIndex - scroll.getScrolledLine()) * container.lineHeight;
-            if (xMouse >= iconX && xMouse < iconX + GUTTER_ICON_SIZE &&
-                adjustedMouseY >= screenPosY && adjustedMouseY < screenPosY + container.lineHeight) {
-                hoveredGutterMethod = method;
-                hoveredGutterLine = lineIndex;
-            }
-        }
-        
-        // Render gutter icon tooltip if hovering
-        renderGutterIconTooltip(xMouse, yMouse);
-    }
-    
-    /**
-     * Get a method with an inheritance marker (override or implements) that starts on the given line.
-     */
-    private MethodInfo getMethodWithInheritanceMarkerAtLine(int lineIndex) {
-        if (container == null || container.getDocument() == null) return null;
-        if (lineIndex < 0 || lineIndex >= container.lines.size()) return null;
-        
-        LineData lineData = container.lines.get(lineIndex);
-        int lineStart = lineData.start;
-        int lineEnd = lineData.end;
-        
-        // Check all methods in the document
-        for (MethodInfo method : container.getDocument().getAllMethods()) {
-            if (!method.hasInheritanceMarker()) continue;
-            
-            // Check if the method's name offset is on this line
-            int nameOffset = method.getNameOffset();
-            if (nameOffset >= lineStart && nameOffset < lineEnd) {
-                return method;
-            }
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Render tooltip for the currently hovered gutter icon.
-     */
-    private void renderGutterIconTooltip(int xMouse, int yMouse) {
-        if (hoveredGutterMethod == null) return;
-        
-        // Build tooltip text
-        String tooltipText;
-        if (hoveredGutterMethod.isOverride()) {
-            String parentName = hoveredGutterMethod.getOverridesFrom() != null 
-                ? hoveredGutterMethod.getOverridesFrom().getSimpleName() 
-                : "parent class";
-            tooltipText = "Overrides method in " + parentName;
-        } else {
-            String ifaceName = hoveredGutterMethod.getImplementsFrom() != null 
-                ? hoveredGutterMethod.getImplementsFrom().getSimpleName() 
-                : "interface";
-            tooltipText = "Implements method from " + ifaceName;
-        }
-        
-        // Calculate tooltip position (to the right of the icon)
-        int tooltipX = xMouse + 10;
-        int tooltipY = yMouse - 5;
-        
-        // Measure text width
-        int textWidth = ClientProxy.Font.width(tooltipText);
-        int padding = 4;
-        
-        // Draw tooltip background
-        drawRect(tooltipX - padding, tooltipY - padding, 
-                 tooltipX + textWidth + padding, tooltipY + ClientProxy.Font.height() + padding, 
-                 0xE0000000);
-        
-        // Draw tooltip border
-        drawRect(tooltipX - padding, tooltipY - padding, 
-                 tooltipX + textWidth + padding, tooltipY - padding + 1, 
-                 0xFF505050);
-        drawRect(tooltipX - padding, tooltipY + ClientProxy.Font.height() + padding - 1, 
-                 tooltipX + textWidth + padding, tooltipY + ClientProxy.Font.height() + padding, 
-                 0xFF505050);
-        
-        // Draw tooltip text
-        ClientProxy.Font.drawString(tooltipText, tooltipX, tooltipY, 0xFFFFFFFF);
     }
     
     // ==================== SELECTION & CURSOR POSITION ====================

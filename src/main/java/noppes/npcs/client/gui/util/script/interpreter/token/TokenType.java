@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.token;
 
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+
 /**
  * Defines all token types for syntax highlighting with hex colors and priorities.
  * Priority determines which token type wins when marks overlap.
@@ -55,6 +57,25 @@ public enum TokenType {
 
     public int getPriority() {
         return priority;
+    }
+
+    public static int getColor(TypeInfo typeInfo) {
+        if (typeInfo == null)
+            return TokenType.IMPORTED_CLASS.getHexColor();
+
+        switch (typeInfo.getKind()) {
+            case INTERFACE:
+                return TokenType.INTERFACE_DECL.getHexColor();
+            case ENUM:
+                return TokenType.ENUM_DECL.getHexColor();
+            case CLASS:
+                return TokenType.CLASS_DECL.getHexColor();
+            default:
+                break;
+        }
+
+        // Use the TypeInfo's own token type, which handles ScriptTypeInfo correctly
+        return typeInfo.getTokenType().getHexColor();
     }
 
     /**
