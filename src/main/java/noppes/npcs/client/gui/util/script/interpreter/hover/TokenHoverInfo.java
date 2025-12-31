@@ -495,6 +495,65 @@ public class TokenHoverInfo {
                 : TokenType.IMPORTED_CLASS.getHexColor();
             addSegment(typeInfo.getSimpleName(), classColor);
             
+            // Extends clause for ScriptTypeInfo
+            if (scriptType.hasSuperClass()) {
+                addSegment(" extends ", TokenType.MODIFIER.getHexColor());
+                TypeInfo superClass = scriptType.getSuperClass();
+                if (superClass != null && superClass.isResolved()) {
+                    // Color based on resolved type
+                    addSegment(superClass.getSimpleName(), getColorForTypeInfo(superClass));
+                } else {
+                    // Unresolved - show the raw name in undefined color
+                    String superName = scriptType.getSuperClassName();
+                    if (superName != null) {
+                        addSegment(superName, TokenType.UNDEFINED_VAR.getHexColor());
+                    }
+                }
+            }
+            
+            // Implements clause for ScriptTypeInfo
+            List<TypeInfo> implementedInterfaces = scriptType.getImplementedInterfaces();
+            if (!implementedInterfaces.isEmpty()) {
+                // For interfaces, they "extend" other interfaces; for classes, they "implement"
+                String keyword = scriptType.getKind() == TypeInfo.Kind.INTERFACE ? " extends " : " implements ";
+                if (scriptType.hasSuperClass() && scriptType.getKind() == TypeInfo.Kind.INTERFACE) {
+                    // Already showed extends, so use comma
+                    addSegment(", ", TokenType.DEFAULT.getHexColor());
+                } else {
+                    addSegment(keyword, TokenType.MODIFIER.getHexColor());
+                }
+                
+                List<String> interfaceNames = scriptType.getImplementedInterfaceNames();
+                for (int i = 0; i < implementedInterfaces.size(); i++) {
+                    if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
+                    
+                    TypeInfo ifaceType = implementedInterfaces.get(i);
+                    String ifaceName = (i < interfaceNames.size()) ? interfaceNames.get(i) : ifaceType.getSimpleName();
+                    
+                    if (ifaceType != null && ifaceType.isResolved()) {
+                        addSegment(ifaceName, getColorForTypeInfo(ifaceType));
+                    } else {
+                        addSegment(ifaceName, TokenType.UNDEFINED_VAR.getHexColor());
+                    }
+                }
+            }
+            
+            // Add ScriptTypeInfo errors
+            if (scriptType.hasError()) {
+                // Missing interface method errors
+                for (ScriptTypeInfo.MissingMethodError err : scriptType.getMissingMethodErrors()) {
+                    errors.add(err.getMessage());
+                }
+                // Constructor mismatch errors
+                for (ScriptTypeInfo.ConstructorMismatchError err : scriptType.getConstructorMismatchErrors()) {
+                    errors.add(err.getMessage());
+                }
+                // General error message
+                if (scriptType.getErrorMessage() != null) {
+                    errors.add(scriptType.getErrorMessage());
+                }
+            }
+            
         } else {
             // Unresolved type
             iconIndicator = "?";
@@ -939,15 +998,14 @@ public class TokenHoverInfo {
     }
     
     /**
-     * Get the appropriate color for a TypeInfo based on its Java class.
+     * Get the appropriate color for a TypeInfo based on its type kind.
+     * Works for both Java-backed TypeInfo and ScriptTypeInfo.
      */
     private int getColorForTypeInfo(TypeInfo typeInfo) {
-        if (typeInfo != null) {
-            Class<?> clazz = typeInfo.getJavaClass();
-            if (clazz != null) 
-                return getColorForClass(clazz);
-        }
-        return TokenType.IMPORTED_CLASS.getHexColor();
+        if (typeInfo == null) return TokenType.IMPORTED_CLASS.getHexColor();
+        
+        // Use the TypeInfo's own token type, which handles ScriptTypeInfo correctly
+        return typeInfo.getTokenType().getHexColor();
     }
     
     /**

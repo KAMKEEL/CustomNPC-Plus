@@ -63,6 +63,20 @@ public final class MethodInfo {
     private String errorMessage;
     private List<ParameterError> parameterErrors = new ArrayList<>();
     private List<ReturnStatementError> returnStatementErrors = new ArrayList<>();
+    
+    // ==================== OVERRIDE/IMPLEMENTS TRACKING ====================
+    
+    /**
+     * The type containing the method that this method overrides (the super class).
+     * Null if this method doesn't override anything.
+     */
+    private TypeInfo overridesFrom;
+    
+    /**
+     * The type containing the interface method that this method implements.
+     * Null if this method doesn't implement an interface method.
+     */
+    private TypeInfo implementsFrom;
 
     private MethodInfo(String name, TypeInfo returnType, TypeInfo containingType,
                        List<FieldInfo> parameters, int fullDeclarationOffset, int typeOffset, int nameOffset,
@@ -174,6 +188,47 @@ public final class MethodInfo {
     public boolean isPrivate() { return Modifier.isPrivate(modifiers); }
     public boolean isProtected() { return Modifier.isProtected(modifiers); }
     public String getDocumentation() { return documentation; }
+    
+    // ==================== OVERRIDE/IMPLEMENTS GETTERS/SETTERS ====================
+    
+    /**
+     * Check if this method overrides a parent class method.
+     */
+    public boolean isOverride() { return overridesFrom != null; }
+    
+    /**
+     * Get the type containing the method this overrides.
+     * @return The parent class TypeInfo, or null if not an override
+     */
+    public TypeInfo getOverridesFrom() { return overridesFrom; }
+    
+    /**
+     * Mark this method as overriding a parent class method.
+     * @param parentType The type containing the overridden method
+     */
+    public void setOverridesFrom(TypeInfo parentType) { this.overridesFrom = parentType; }
+    
+    /**
+     * Check if this method implements an interface method.
+     */
+    public boolean isImplements() { return implementsFrom != null; }
+    
+    /**
+     * Get the interface containing the method this implements.
+     * @return The interface TypeInfo, or null if not implementing
+     */
+    public TypeInfo getImplementsFrom() { return implementsFrom; }
+    
+    /**
+     * Mark this method as implementing an interface method.
+     * @param interfaceType The interface containing the implemented method
+     */
+    public void setImplementsFrom(TypeInfo interfaceType) { this.implementsFrom = interfaceType; }
+    
+    /**
+     * Check if this method either overrides or implements something.
+     */
+    public boolean hasInheritanceMarker() { return isOverride() || isImplements(); }
 
     /**
      * Check if a position is inside this method's body.

@@ -33,6 +33,33 @@ public class ScriptTypeInfo extends TypeInfo {
     // Parent class reference (for inner class resolution)
     private ScriptTypeInfo outerClass;
     
+    // ==================== INHERITANCE ====================
+    
+    /** 
+     * The parent/super class for this type (from "extends ParentClass").
+     * Can be a resolved TypeInfo or ScriptTypeInfo, or unresolved TypeInfo if the parent is not found.
+     * Null if this type doesn't extend anything (or extends Object implicitly).
+     */
+    private TypeInfo superClass;
+    
+    /** 
+     * The raw string name of the super class as written in the script (e.g., "ParentClass").
+     * Stored for display purposes even when the type couldn't be resolved.
+     */
+    private String superClassName;
+    
+    /** 
+     * All implemented interfaces (from "implements Interface1, Interface2, ...").
+     * Each can be resolved or unresolved. The list order matches the declaration order.
+     */
+    private final List<TypeInfo> implementedInterfaces = new ArrayList<>();
+    
+    /**
+     * The raw string names of implemented interfaces as written in the script.
+     * Stored for display purposes even when types couldn't be resolved.
+     */
+    private final List<String> implementedInterfaceNames = new ArrayList<>();
+    
     private ScriptTypeInfo(String simpleName, String fullName, Kind kind,
                            int declarationOffset, int bodyStart, int bodyEnd, int modifiers) {
         super(simpleName, fullName, "", kind, null, true, null, true);
@@ -66,6 +93,79 @@ public class ScriptTypeInfo extends TypeInfo {
     public int getModifiers() { return modifiers; }
     public ScriptTypeInfo getOuterClass() { return outerClass; }
     public List<ScriptTypeInfo> getInnerClasses() { return innerClasses; }
+    
+    // ==================== INHERITANCE ====================
+    
+    /**
+     * Get the super class (from "extends"). Can be resolved or unresolved.
+     * @return The parent class TypeInfo, or null if no extends clause
+     */
+    public TypeInfo getSuperClass() { return superClass; }
+    
+    /**
+     * Get the raw super class name as written in the script.
+     * @return The super class name string, or null if no extends clause
+     */
+    public String getSuperClassName() { return superClassName; }
+    
+    /**
+     * Set the super class info. Call this after resolving types.
+     * @param superClass The resolved or unresolved TypeInfo for the parent class
+     * @param superClassName The raw class name as written in the script
+     */
+    public void setSuperClass(TypeInfo superClass, String superClassName) {
+        this.superClass = superClass;
+        this.superClassName = superClassName;
+    }
+    
+    /**
+     * Check if this type has a super class (extends something).
+     */
+    public boolean hasSuperClass() { return superClass != null || superClassName != null; }
+    
+    /**
+     * Get all implemented interfaces. Each can be resolved or unresolved.
+     * @return Unmodifiable list of implemented interface TypeInfos
+     */
+    public List<TypeInfo> getImplementedInterfaces() { 
+        return new ArrayList<>(implementedInterfaces); 
+    }
+    
+    /**
+     * Get the raw interface names as written in the script.
+     * @return Unmodifiable list of interface name strings
+     */
+    public List<String> getImplementedInterfaceNames() { 
+        return new ArrayList<>(implementedInterfaceNames); 
+    }
+    
+    /**
+     * Add an implemented interface. Call this after resolving types.
+     * @param interfaceType The resolved or unresolved TypeInfo for the interface
+     * @param interfaceName The raw interface name as written in the script
+     */
+    public void addImplementedInterface(TypeInfo interfaceType, String interfaceName) {
+        implementedInterfaces.add(interfaceType);
+        implementedInterfaceNames.add(interfaceName);
+    }
+    
+    /**
+     * Check if this type implements any interfaces.
+     */
+    public boolean hasImplementedInterfaces() { return !implementedInterfaces.isEmpty(); }
+    
+    /**
+     * Check if this type implements a specific interface (by simple name).
+     */
+    public boolean implementsInterface(String interfaceName) {
+        for (String name : implementedInterfaceNames) {
+            if (name.equals(interfaceName)) return true;
+        }
+        for (TypeInfo ti : implementedInterfaces) {
+            if (ti.getSimpleName().equals(interfaceName)) return true;
+        }
+        return false;
+    }
     
     /**
      * Check if a position is inside this type's body.
@@ -229,5 +329,106 @@ public class ScriptTypeInfo extends TypeInfo {
     public String toString() {
         return "ScriptTypeInfo{" + scriptClassName + ", " + getKind() + 
                ", fields=" + fields.size() + ", methods=" + methods.size() + "}";
+    }
+    
+    // ==================== ERROR HANDLING ====================
+    
+    /**
+     * Error types for ScriptTypeInfo validation.
+     */
+    public enum ErrorType {
+        NONE,
+        MISSING_INTERFACE_METHOD,    // Class doesn't implement all interface methods
+        MISSING_CONSTRUCTOR_MATCH,   // Class extends parent but has no matching constructor
+        UNRESOLVED_PARENT,           // Parent class cannot be resolved
+        UNRESOLVED_INTERFACE         // Implemented interface cannot be resolved
+    }
+    
+    /**
+     * Represents a missing interface method error.
+     */
+    public static class MissingMethodError {
+        private final TypeInfo interfaceType;
+        private final String methodName;
+        private final String signature;
+        
+        public MissingMethodError(TypeInfo interfaceType, String methodName, String signature) {
+            this.interfaceType = interfaceType;
+            this.methodName = methodName;
+            this.signature = signature;
+        }
+        
+        public TypeInfo getInterfaceType() { return interfaceType; }
+        public String getMethodName() { return methodName; }
+        public String getSignature() { return signature; }
+        
+        public String getMessage() {
+            return "Class must implement method '" + methodName + signature + "' from interface " + interfaceType.getSimpleName();
+        }
+    }
+    
+    /**
+     * Represents a constructor mismatch error.
+     */
+    public static class ConstructorMismatchError {
+        private final TypeInfo parentType;
+        private final String parentConstructorSignature;
+        
+        public ConstructorMismatchError(TypeInfo parentType, String parentConstructorSignature) {
+            this.parentType = parentType;
+            this.parentConstructorSignature = parentConstructorSignature;
+        }
+        
+        public TypeInfo getParentType() { return parentType; }
+        public String getParentConstructorSignature() { return parentConstructorSignature; }
+        
+        public String getMessage() {
+            return "Class extends " + parentType.getSimpleName() + " but has no constructor matching " + parentConstructorSignature;
+        }
+    }
+    
+    // Error tracking
+    private ErrorType errorType = ErrorType.NONE;
+    private String errorMessage;
+    private final List<MissingMethodError> missingMethodErrors = new ArrayList<>();
+    private final List<ConstructorMismatchError> constructorMismatchErrors = new ArrayList<>();
+    
+    // Error getters
+    public ErrorType getErrorType() { return errorType; }
+    public String getErrorMessage() { return errorMessage; }
+    public boolean hasError() { return errorType != ErrorType.NONE || !missingMethodErrors.isEmpty() || !constructorMismatchErrors.isEmpty(); }
+    public List<MissingMethodError> getMissingMethodErrors() { return new ArrayList<>(missingMethodErrors); }
+    public List<ConstructorMismatchError> getConstructorMismatchErrors() { return new ArrayList<>(constructorMismatchErrors); }
+    
+    /**
+     * Set a general error on this type.
+     */
+    public void setError(ErrorType type, String message) {
+        this.errorType = type;
+        this.errorMessage = message;
+    }
+    
+    /**
+     * Add a missing interface method error.
+     */
+    public void addMissingMethodError(TypeInfo interfaceType, String methodName, String signature) {
+        missingMethodErrors.add(new MissingMethodError(interfaceType, methodName, signature));
+    }
+    
+    /**
+     * Add a constructor mismatch error.
+     */
+    public void addConstructorMismatchError(TypeInfo parentType, String parentConstructorSignature) {
+        constructorMismatchErrors.add(new ConstructorMismatchError(parentType, parentConstructorSignature));
+    }
+    
+    /**
+     * Clear all errors on this type.
+     */
+    public void clearErrors() {
+        errorType = ErrorType.NONE;
+        errorMessage = null;
+        missingMethodErrors.clear();
+        constructorMismatchErrors.clear();
     }
 }

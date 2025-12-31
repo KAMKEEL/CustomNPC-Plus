@@ -349,6 +349,9 @@ public class ScriptDocument {
         
         // Parse and validate assignments (reassignments) - stores in FieldInfo
         parseAssignments();
+
+        // Detect method overrides and interface implementations for script types
+        detectMethodInheritance();
     }
 
     /**
@@ -356,11 +359,12 @@ public class ScriptDocument {
      * Creates ScriptTypeInfo instances and stores them for later resolution.
      */
     private void parseScriptTypes() {
-        // Pattern: [modifiers] (class|interface|enum) ClassName [optional ()] { ... }
+        // Pattern: [modifiers] (class|interface|enum) ClassName [optional ()] [extends Parent] [implements I1, I2...] { ... }
         // Matches optional modifiers (public, private, static, final, abstract) before class/interface/enum
         // Also allows optional () after the class name (common mistake)
+        // Groups: 1=class|interface|enum, 2=TypeName, 3=extends clause (optional), 4=implements clause (optional)
         Pattern typeDecl = Pattern.compile(
-                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*(?:extends\\s+[A-Za-z_][a-zA-Z0-9_.]*)?\\s*(?:implements\\s+[A-Za-z_][a-zA-Z0-9_.,\\s]*)?\\s*\\{");
+                "(?:(?:public|private|protected|static|final|abstract)\\s+)*(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*(?:extends\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*(?:implements\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*\\{");
         
         Matcher m = typeDecl.matcher(text);
         while (m.find()) {
@@ -369,6 +373,9 @@ public class ScriptDocument {
             
             String kindStr = m.group(1);
             String typeName = m.group(2);
+            String extendsClause = m.group(3);     // e.g., "ParentClass" or null
+            String implementsClause = m.group(4); // e.g., "Interface1, Interface2" or null
+            
             int bodyStart = text.indexOf('{', m.start());
             int bodyEnd = findMatchingBrace(bodyStart);
             
@@ -390,7 +397,36 @@ public class ScriptDocument {
             ScriptTypeInfo scriptType = ScriptTypeInfo.create(
                     typeName, kind, m.start(), bodyStart, bodyEnd, modifiers);
 
+            // Store the script type first so it can be resolved by other types
             scriptTypes.put(typeName, scriptType);
+
+            // Process extends clause (parent class)
+            if (extendsClause != null && !extendsClause.trim().isEmpty()) {
+                String parentName = extendsClause.trim();
+                TypeInfo parentType = resolveType(parentName);
+                if (parentType == null) {
+                    // Create unresolved type info for display purposes
+                    parentType = TypeInfo.unresolved(parentName, parentName);
+                }
+                scriptType.setSuperClass(parentType, parentName);
+            }
+
+            // Process implements clause (interfaces)
+            if (implementsClause != null && !implementsClause.trim().isEmpty()) {
+                String[] interfaceNames = implementsClause.split(",");
+                for (String ifaceName : interfaceNames) {
+                    String trimmedName = ifaceName.trim();
+                    if (trimmedName.isEmpty())
+                        continue;
+
+                    TypeInfo ifaceType = resolveType(trimmedName);
+                    if (ifaceType == null) {
+                        // Create unresolved type info for display purposes
+                        ifaceType = TypeInfo.unresolved(trimmedName, trimmedName);
+                    }
+                    scriptType.addImplementedInterface(ifaceType, trimmedName);
+                }
+            }
 
             // Parse fields and methods inside this type AFTER adding the scriptType globally, so its members can reference it
             parseScriptTypeMembers(scriptType);
@@ -628,25 +664,25 @@ public class ScriptDocument {
      * Check for duplicate method declarations with same signature in same scope.
      */
     private void checkDuplicateMethods() {
-        // Group methods by scope depth
-        Map<Integer, List<MethodInfo>> methodsByScope = new HashMap<>();
+        // Group methods by their containing type (script class/interface or document root)
+        // Methods are only duplicates if they're in the SAME containing type
+        Map<TypeInfo, List<MethodInfo>> methodsByType = new HashMap<>();
         
         for (MethodInfo method : getAllMethods()) {
-            int scopeDepth = calculateScopeDepth(method.getFullDeclarationOffset());
-            methodsByScope.computeIfAbsent(scopeDepth, k -> new ArrayList<>()).add(method);
+            TypeInfo containingType = method.getContainingType();
+            methodsByType.computeIfAbsent(containingType, k -> new ArrayList<>()).add(method);
         }
-        
-        
-        // Check each scope for duplicates
-        for (List<MethodInfo> scopeMethods : methodsByScope.values()) {
+
+        // Check each type for duplicate method signatures
+        for (List<MethodInfo> typeMethods : methodsByType.values()) {
             Map<MethodSignature, List<MethodInfo>> signatureMap = new HashMap<>();
-            
-            for (MethodInfo method : scopeMethods) {
+
+            for (MethodInfo method : typeMethods) {
                 MethodSignature signature = method.getSignature();
                 signatureMap.computeIfAbsent(signature, k -> new ArrayList<>()).add(method);
             }
-            
-            // Mark all methods with duplicate signatures
+
+            // Mark all methods with duplicate signatures within the same type
             for (Map.Entry<MethodSignature, List<MethodInfo>> entry : signatureMap.entrySet()) {
                 List<MethodInfo> duplicates = entry.getValue();
                 if (duplicates.size() > 1) {
@@ -1622,7 +1658,14 @@ public class ScriptDocument {
     }
 
     private void markClassDeclarations(List<ScriptLine.Mark> marks) {
-        Matcher m = CLASS_DECL_PATTERN.matcher(text);
+        // Extended pattern to capture extends and implements clauses
+        // Groups: 1=class|interface|enum, 2=TypeName, 3=extends clause, 4=implements clause
+        Pattern classWithInheritance = Pattern.compile(
+                "\\b(class|interface|enum)\\s+([A-Za-z_][a-zA-Z0-9_]*)\\s*(?:\\(\\))?\\s*" +
+                        "(?:(extends)\\s+([A-Za-z_][a-zA-Z0-9_.]*))?\\s*" +
+                        "(?:(implements)\\s+([A-Za-z_][a-zA-Z0-9_.,\\s]*))?\\s*(?=\\{)");
+
+        Matcher m = classWithInheritance.matcher(text);
         while (m.find()) {
             if (isExcluded(m.start()))
                 continue;
@@ -1640,7 +1683,100 @@ public class ScriptDocument {
             } else {
                 nameType = TokenType.CLASS_DECL;
             }
-            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType));
+            String typeName = m.group(2);
+            marks.add(new ScriptLine.Mark(m.start(2), m.end(2), nameType, scriptTypes.get(typeName)));
+
+            // Mark extends clause
+            if (m.group(3) != null) {
+                //Extends key word
+                marks.add(new ScriptLine.Mark(m.start(3), m.end(3), TokenType.IMPORT_KEYWORD));
+                markExtendsClause(marks, m.start(4), m.group(4));
+            }
+
+            // Mark implements clause
+            if (m.group(5) != null) {
+                //Implements key word 
+                marks.add(new ScriptLine.Mark(m.start(5),m.end(5), TokenType.IMPORT_KEYWORD));
+                markImplementsClause(marks, m.start(6), m.group(6));
+            }
+        }
+    }
+
+    /**
+     * Mark the extends clause with proper coloring.
+     * The parent class is colored based on its resolved type.
+     */
+    private void markExtendsClause(List<ScriptLine.Mark> marks, int clauseStart, String parentName) {
+        String trimmedName = parentName.trim();
+        if (trimmedName.isEmpty())
+            return;
+
+
+        // Resolve the parent type
+        TypeInfo parentType = resolveType(trimmedName);
+        TokenType tokenType;
+
+        if (parentType != null && parentType.isResolved()) {
+            // Use the type's specific token type (CLASS, INTERFACE, ENUM)
+            tokenType = parentType.getTokenType();
+        } else {
+            // Unresolved - mark as undefined
+            tokenType = TokenType.UNDEFINED_VAR;
+            if (parentType == null) {
+                parentType = TypeInfo.unresolved(trimmedName, trimmedName);
+            }
+        }
+
+        // Find actual position in text (might have leading whitespace in the group)
+        int actualStart = clauseStart;
+        String fullClause = parentName;
+        while (actualStart < clauseStart + fullClause.length() &&
+                Character.isWhitespace(text.charAt(actualStart))) {
+            actualStart++;
+        }
+
+        marks.add(new ScriptLine.Mark(actualStart, actualStart + trimmedName.length(), tokenType, parentType));
+    }
+
+    /**
+     * Mark the implements clause with proper coloring.
+     * Each interface is colored based on its resolved type.
+     */
+    private void markImplementsClause(List<ScriptLine.Mark> marks, int clauseStart, String implementsList) {
+        String[] interfaces = implementsList.split(",");
+        int currentPos = clauseStart;
+
+        for (String ifaceName : interfaces) {
+            String trimmedName = ifaceName.trim();
+            if (trimmedName.isEmpty()) {
+                currentPos += ifaceName.length() + 1; // +1 for comma
+                continue;
+            }
+
+            // Find the actual start position of this interface name in the text
+            int leadingSpaces = 0;
+            while (leadingSpaces < ifaceName.length() && Character.isWhitespace(ifaceName.charAt(leadingSpaces))) {
+                leadingSpaces++;
+            }
+            int actualStart = currentPos + leadingSpaces;
+
+            // Resolve the interface type
+            TypeInfo ifaceType = resolveType(trimmedName);
+            TokenType tokenType;
+
+            if (ifaceType != null && ifaceType.isResolved()) {
+                tokenType = ifaceType.getTokenType();
+            } else {
+                tokenType = TokenType.UNDEFINED_VAR;
+                if (ifaceType == null) {
+                    ifaceType = TypeInfo.unresolved(trimmedName, trimmedName);
+                }
+            }
+
+            marks.add(new ScriptLine.Mark(actualStart, actualStart + trimmedName.length(), tokenType, ifaceType));
+
+            // Move past this interface name and the comma
+            currentPos += ifaceName.length() + 1;
         }
     }
 
@@ -4063,6 +4199,352 @@ public class ScriptDocument {
         
         // Attach as the declaration assignment
         targetField.setDeclarationAssignment(info);
+    }
+
+    // ==================== METHOD INHERITANCE DETECTION ====================
+
+    /**
+     * Detect method overrides and interface implementations for all script-defined types.
+     * This analyzes each method in each ScriptTypeInfo to determine if it:
+     * - Overrides a method from a parent class (extends)
+     * - Implements a method from an interface (implements)
+     *
+     * The detection uses signature matching (method name + parameter types).
+     * Also validates that all interface methods are implemented and constructors match.
+     */
+    private void detectMethodInheritance() {
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            scriptType.clearErrors();  // Clear previous errors
+            detectMethodInheritanceForType(scriptType);
+            validateScriptType(scriptType);  // Validate after detecting inheritance
+        }
+    }
+
+    /**
+     * Detect method inheritance for a single script type.
+     */
+    private void detectMethodInheritanceForType(ScriptTypeInfo scriptType) {
+        // Check each method in this type
+        for (List<MethodInfo> overloads : scriptType.getMethods().values()) {
+            for (MethodInfo method : overloads) {
+                // Check if method overrides a parent class method
+                if (scriptType.hasSuperClass()) {
+                    TypeInfo superClass = scriptType.getSuperClass();
+                    if (superClass != null && superClass.isResolved()) {
+                        TypeInfo overrideSource = findMethodInHierarchy(superClass, method, false);
+                        if (overrideSource != null) {
+                            method.setOverridesFrom(overrideSource);
+                        }
+                    }
+                }
+
+                // Check if method implements an interface method (only if not already marked as override)
+                if (!method.isOverride() && scriptType.hasImplementedInterfaces()) {
+                    for (TypeInfo iface : scriptType.getImplementedInterfaces()) {
+                        if (iface != null && iface.isResolved()) {
+                            TypeInfo implementsSource = findMethodInInterface(iface, method);
+                            if (implementsSource != null) {
+                                method.setImplementsFrom(implementsSource);
+                                break; // Only mark first matching interface
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate a script type for missing interface methods and constructor matching.
+     */
+    private void validateScriptType(ScriptTypeInfo scriptType) {
+        // Skip validation for interfaces - they don't implement methods
+        if (scriptType.getKind() == TypeInfo.Kind.INTERFACE)
+            return;
+
+        // Check that all interface methods are implemented
+        if (scriptType.hasImplementedInterfaces()) {
+            for (TypeInfo iface : scriptType.getImplementedInterfaces()) {
+                if (iface == null || !iface.isResolved()) {
+                    // Mark unresolved interface error
+                    scriptType.setError(ScriptTypeInfo.ErrorType.UNRESOLVED_INTERFACE,
+                            "Cannot resolve interface");
+                    continue;
+                }
+                validateInterfaceImplementation(scriptType, iface);
+            }
+        }
+
+        // Check that extending class has a matching constructor
+        if (scriptType.hasSuperClass()) {
+            TypeInfo superClass = scriptType.getSuperClass();
+            if (superClass == null || !superClass.isResolved()) {
+                scriptType.setError(ScriptTypeInfo.ErrorType.UNRESOLVED_PARENT,
+                        "Cannot resolve parent class " + scriptType.getSuperClassName());
+            } else {
+                validateConstructorChain(scriptType, superClass);
+            }
+        }
+    }
+
+    /**
+     * Validate that a script type implements all methods from an interface.
+     */
+    private void validateInterfaceImplementation(ScriptTypeInfo scriptType, TypeInfo iface) {
+        // Get all methods from the interface
+        Class<?> javaClass = iface.getJavaClass();
+        if (javaClass == null || !javaClass.isInterface())
+            return;
+
+        try {
+            for (java.lang.reflect.Method javaMethod : javaClass.getMethods()) {
+                // Skip static and default methods
+                if (java.lang.reflect.Modifier.isStatic(javaMethod.getModifiers()))
+                    continue;
+
+                // Check if scriptType has a matching method
+                String methodName = javaMethod.getName();
+                int paramCount = javaMethod.getParameterCount();
+
+                boolean found = false;
+                List<MethodInfo> overloads = scriptType.getAllMethodOverloads(methodName);
+                for (MethodInfo method : overloads) {
+                    if (parameterTypesMatch(method, javaMethod)) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    // Build signature string for error message
+                    StringBuilder sig = new StringBuilder("(");
+                    Class<?>[] paramTypes = javaMethod.getParameterTypes();
+                    for (int i = 0; i < paramTypes.length; i++) {
+                        if (i > 0)
+                            sig.append(", ");
+                        sig.append(paramTypes[i].getSimpleName());
+                    }
+                    sig.append(")");
+
+                    scriptType.addMissingMethodError(iface, methodName, sig.toString());
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+    }
+
+    /**
+     * Validate that a script type has a constructor compatible with its parent class.
+     * This checks that for each parent constructor, there's a matching constructor in the child.
+     */
+    private void validateConstructorChain(ScriptTypeInfo scriptType, TypeInfo superClass) {
+        // If no constructors defined in script type, it has an implicit default constructor
+        // Check if parent has a no-arg constructor
+        if (!scriptType.hasConstructors()) {
+            boolean parentHasNoArg = false;
+
+            if (superClass instanceof ScriptTypeInfo) {
+                ScriptTypeInfo parentScript = (ScriptTypeInfo) superClass;
+                if (!parentScript.hasConstructors() || parentScript.findConstructor(0) != null) {
+                    parentHasNoArg = true;
+                }
+            } else {
+                Class<?> javaClass = superClass.getJavaClass();
+                if (javaClass != null) {
+                    try {
+                        for (java.lang.reflect.Constructor<?> ctor : javaClass.getConstructors()) {
+                            if (ctor.getParameterCount() == 0) {
+                                parentHasNoArg = true;
+                                break;
+                            }
+                        }
+                    } catch (Exception e) {
+                        // Security error
+                    }
+                }
+            }
+
+            if (!parentHasNoArg) {
+                scriptType.addConstructorMismatchError(superClass,
+                        superClass.getSimpleName() + "()");
+            }
+        }
+        // If script type has constructors, we'd need to check super() calls - that's more complex
+        // For now, we just validate the implicit default constructor case
+    }
+
+    /**
+     * Search for a matching method in a type hierarchy (class inheritance).
+     * @param type The type to search in (and its superclasses)
+     * @param method The method to find a match for
+     * @param includeInterfaces Whether to also search interfaces
+     * @return The TypeInfo containing the matching method, or null if not found
+     */
+    private TypeInfo findMethodInHierarchy(TypeInfo type, MethodInfo method, boolean includeInterfaces) {
+        if (type == null || !type.isResolved())
+            return null;
+
+        // Check if this type has the method
+        if (hasMatchingMethod(type, method)) {
+            return type;
+        }
+
+        // If it's a ScriptTypeInfo, check its super class
+        if (type instanceof ScriptTypeInfo) {
+            ScriptTypeInfo scriptType = (ScriptTypeInfo) type;
+            if (scriptType.hasSuperClass()) {
+                TypeInfo result = findMethodInHierarchy(scriptType.getSuperClass(), method, includeInterfaces);
+                if (result != null)
+                    return result;
+            }
+        }
+
+        // If it's a Java class, check its superclass
+        Class<?> javaClass = type.getJavaClass();
+        if (javaClass != null) {
+            Class<?> superClass = javaClass.getSuperclass();
+            if (superClass != null && superClass != Object.class) {
+                TypeInfo superType = TypeInfo.fromClass(superClass);
+                TypeInfo result = findMethodInHierarchy(superType, method, includeInterfaces);
+                if (result != null)
+                    return result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Search for a matching method in an interface and its super-interfaces.
+     * @param iface The interface to search in
+     * @param method The method to find a match for
+     * @return The TypeInfo containing the matching method, or null if not found
+     */
+    private TypeInfo findMethodInInterface(TypeInfo iface, MethodInfo method) {
+        if (iface == null || !iface.isResolved())
+            return null;
+
+        // Check if this interface has the method
+        if (hasMatchingMethod(iface, method)) {
+            return iface;
+        }
+
+        // Check super-interfaces
+        Class<?> javaClass = iface.getJavaClass();
+        if (javaClass != null && javaClass.isInterface()) {
+            for (Class<?> superIface : javaClass.getInterfaces()) {
+                TypeInfo superType = TypeInfo.fromClass(superIface);
+                TypeInfo result = findMethodInInterface(superType, method);
+                if (result != null)
+                    return result;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if a type has a method matching the given signature.
+     * Uses method name and parameter types for matching.
+     */
+    private boolean hasMatchingMethod(TypeInfo type, MethodInfo method) {
+        String methodName = method.getName();
+        int paramCount = method.getParameterCount();
+
+        // For ScriptTypeInfo, check its methods map
+        if (type instanceof ScriptTypeInfo) {
+            ScriptTypeInfo scriptType = (ScriptTypeInfo) type;
+            List<MethodInfo> overloads = scriptType.getAllMethodOverloads(methodName);
+            for (MethodInfo candidate : overloads) {
+                if (signaturesMatch(method, candidate)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // For Java classes, use reflection
+        Class<?> javaClass = type.getJavaClass();
+        if (javaClass == null)
+            return false;
+
+        try {
+            for (java.lang.reflect.Method javaMethod : javaClass.getMethods()) {
+                if (javaMethod.getName().equals(methodName) &&
+                        javaMethod.getParameterCount() == paramCount) {
+                    // Check parameter types match
+                    if (parameterTypesMatch(method, javaMethod)) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if two MethodInfo signatures match (same name and parameter types).
+     */
+    private boolean signaturesMatch(MethodInfo m1, MethodInfo m2) {
+        if (!m1.getName().equals(m2.getName()))
+            return false;
+        if (m1.getParameterCount() != m2.getParameterCount())
+            return false;
+
+        List<FieldInfo> params1 = m1.getParameters();
+        List<FieldInfo> params2 = m2.getParameters();
+
+        for (int i = 0; i < params1.size(); i++) {
+            TypeInfo type1 = params1.get(i).getDeclaredType();
+            TypeInfo type2 = params2.get(i).getDeclaredType();
+
+            // Both null = match
+            if (type1 == null && type2 == null)
+                continue;
+
+            // One null, one not = no match
+            if (type1 == null || type2 == null)
+                return false;
+
+            // Compare full names
+            if (!type1.getFullName().equals(type2.getFullName())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if a MethodInfo's parameter types match a Java reflection Method's parameter types.
+     */
+    private boolean parameterTypesMatch(MethodInfo methodInfo, java.lang.reflect.Method javaMethod) {
+        List<FieldInfo> params = methodInfo.getParameters();
+        Class<?>[] javaParams = javaMethod.getParameterTypes();
+
+        if (params.size() != javaParams.length)
+            return false;
+
+        for (int i = 0; i < params.size(); i++) {
+            TypeInfo paramType = params.get(i).getDeclaredType();
+            if (paramType == null)
+                continue; // Unresolved param, skip check
+
+            Class<?> javaParamClass = javaParams[i];
+            String javaParamName = javaParamClass.getName();
+
+            // Compare type names
+            if (!paramType.getFullName().equals(javaParamName) &&
+                    !paramType.getSimpleName().equals(javaParamClass.getSimpleName())) {
+                return false;
+            }
+        }
+
+        return true;
     }
     
     /**
