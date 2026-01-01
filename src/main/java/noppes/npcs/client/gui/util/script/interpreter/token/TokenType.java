@@ -45,10 +45,18 @@ public enum TokenType {
 
     private final int hexColor;
     private final int priority;
+    private final boolean bold;
+    private final boolean italic;
 
     TokenType(int hexColor, int priority) {
+        this(hexColor, priority, false, false);
+    }
+
+    TokenType(int hexColor, int priority, boolean bold, boolean italic) {
         this.hexColor = hexColor;
         this.priority = priority;
+        this.bold = bold;
+        this.italic = italic;
     }
 
     public int getHexColor() {
@@ -57,6 +65,14 @@ public enum TokenType {
 
     public int getPriority() {
         return priority;
+    }
+
+    public boolean isBold() {
+        return bold;
+    }
+
+    public boolean isItalic() {
+        return italic;
     }
 
     public static int getColor(TypeInfo typeInfo) {

@@ -248,6 +248,17 @@ public class Token {
     public char getColorCode() {
         return type.toColorCode();
     }
+    
+    /**
+     * Get the Minecraft style prefix for this token (bold/italic codes).
+     * Returns empty string if no style, otherwise §l for bold, §o for italic, or both.
+     */
+    public String getStylePrefix() {
+        StringBuilder sb = new StringBuilder();
+        if (type.isBold()) sb.append('\u00A7').append('l');
+        if (type.isItalic()) sb.append('\u00A7').append('o');
+        return sb.toString();
+    }
 
     @Override
     public String toString() {

@@ -226,6 +226,7 @@ public class ScriptLine {
      * Draw this line with syntax highlighting using Minecraft color codes.
      * Compatible with the existing rendering system.
      * Also draws curly underlines for tokens with errors (method call validation failures).
+     * Supports bold (§l) and italic (§o) formatting for certain token types.
      */
     public void drawString(int x, int y, int defaultColor) {
         StringBuilder builder = new StringBuilder();
@@ -246,12 +247,16 @@ public class ScriptLine {
             }
             
 
-            // Append the colored token
+            // Append style codes (bold/italic) if applicable
+            String stylePrefix = t.getStylePrefix();
+            
+            // Append the colored token with style
             builder.append(COLOR_CHAR)
                    .append(t.getColorCode())
+                   .append(stylePrefix)
                    .append(t.getText())
                    .append(COLOR_CHAR)
-                   .append('f'); // Reset to white
+                   .append('r'); // Reset all formatting (color + bold/italic)
 
             currentX += tokenWidth;
             lastIndex = tokenStart + t.getText().length();
@@ -295,10 +300,11 @@ public class ScriptLine {
             }
 
             // Add the colored token
-            segments.add(new TextSegment(fullText.length(), t.getText(), t.getHexColor(), true));
-            fullText.append(t.getText());
+            String styledText = t.getStylePrefix() + t.getText();
+            segments.add(new TextSegment(fullText.length(), styledText, t.getHexColor(), true));
+            fullText.append(styledText);
             
-            lastIndex = tokenStart + t.getText().length();
+            lastIndex = tokenStart + styledText.length();
         }
 
         // Add any remaining text after the last token
