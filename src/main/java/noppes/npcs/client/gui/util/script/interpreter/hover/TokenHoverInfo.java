@@ -478,10 +478,11 @@ public class TokenHoverInfo {
         
         Class<?> clazz = typeInfo.getJavaClass();
         if (clazz != null) {
+            boolean isEnum = clazz.isEnum();
             // Icon
             if (clazz.isInterface()) {
                 iconIndicator = "I";
-            } else if (clazz.isEnum()) {
+            } else if (isEnum) {
                 iconIndicator = "E";
             } else {
                 iconIndicator = "C";
@@ -493,12 +494,12 @@ public class TokenHoverInfo {
             // Modifiers
             if (Modifier.isPublic(mods)) addSegment("public ", TokenType.MODIFIER.getHexColor());
             if (Modifier.isAbstract(mods) && !clazz.isInterface()) addSegment("abstract ", TokenType.MODIFIER.getHexColor());
-            if (Modifier.isFinal(mods)) addSegment("final ", TokenType.MODIFIER.getHexColor());
+            if (Modifier.isFinal(mods) && !isEnum) addSegment("final ", TokenType.MODIFIER.getHexColor());
             
             // Class type keyword
             if (clazz.isInterface()) {
                 addSegment("interface ", TokenType.MODIFIER.getHexColor());
-            } else if (clazz.isEnum()) {
+            } else if (isEnum) {
                 addSegment("enum ", TokenType.MODIFIER.getHexColor());
             } else {
                 addSegment("class ", TokenType.MODIFIER.getHexColor());
@@ -512,7 +513,7 @@ public class TokenHoverInfo {
             
             // Extends
             Class<?> superclass = clazz.getSuperclass();
-            if (superclass != null && superclass != Object.class) {
+            if (superclass != null && superclass != Object.class && !isEnum) {
                 addSegment(" extends ", TokenType.MODIFIER.getHexColor());
                 addSegment(superclass.getSimpleName(), getColorForClass(superclass));
             }
