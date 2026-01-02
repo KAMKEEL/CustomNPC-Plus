@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.expression.CastExpressionR
 import noppes.npcs.client.gui.util.script.interpreter.expression.ExpressionNode;
 import noppes.npcs.client.gui.util.script.interpreter.expression.ExpressionTypeResolver;
 import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
  */
 public class ScriptDocument {
 
+    public static ScriptDocument INSTANCE = null; // For easy access in expressions
     // ==================== PATTERNS ====================
 
     private static final Pattern WORD_PATTERN = Pattern.compile("[\\p{L}\\p{N}_-]+|\\n|$");
@@ -196,6 +198,7 @@ public class ScriptDocument {
         linesCount = lines.size();
         totalHeight = linesCount * lineHeight;
         visibleLines = Math.max(height / lineHeight - 1, 1);
+        INSTANCE = this;
     }
 
     // ==================== TOKENIZATION ====================
@@ -283,7 +286,7 @@ public class ScriptDocument {
         excludedRanges.addAll(merged);
     }
 
-    private boolean isExcluded(int position) {
+    public boolean isExcluded(int position) {
         for (int[] range : excludedRanges) {
             if (position >= range[0] && position < range[1]) {
                 return true;
@@ -497,6 +500,25 @@ public class ScriptDocument {
                     modifiers,
                     documentation);
             scriptType.addConstructor(constructorInfo);
+        }
+
+        // Parse enum constants (for enum types only)
+        if (scriptType.getKind() == TypeInfo.Kind.ENUM) {
+            List<EnumConstantInfo> constants = EnumConstantInfo.parseEnumConstants(
+                    scriptType,
+                    bodyText,
+                    bodyStart + 1,
+                    KEYWORD_PATTERN
+            );
+
+            for (EnumConstantInfo constant : constants) {
+                scriptType.addEnumConstant(constant);
+                if (constant.getConstructorCall() != null) {
+
+                }
+                //  methodCalls.add(constant.getConstructorCall());
+
+            }
         }
     }
 
@@ -1424,6 +1446,9 @@ public class ScriptDocument {
         // Class/interface/enum declarations
         markClassDeclarations(marks);
 
+        // Enum constants (must be after class declarations so enums are known)
+        markEnumConstants(marks);
+
         // Keywords and modifiers
         addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
         addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
@@ -1699,6 +1724,29 @@ public class ScriptDocument {
                 //Implements key word 
                 marks.add(new ScriptLine.Mark(m.start(5),m.end(5), TokenType.IMPORT_KEYWORD));
                 markImplementsClause(marks, m.start(6), m.group(6));
+            }
+        }
+    }
+
+    /**
+     * Mark enum constants with ENUM_CONSTANT token type.
+     * Adds marks for all enum constants in script-defined enums.
+     */
+    private void markEnumConstants(List<ScriptLine.Mark> marks) {
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            if (scriptType.getKind() != TypeInfo.Kind.ENUM) {
+                continue;
+            }
+
+            // Mark each enum constant
+            for (EnumConstantInfo constant : scriptType.getEnumConstants().values()) {
+                FieldInfo fieldInfo = constant.getFieldInfo();
+                int start = fieldInfo.getDeclarationOffset();
+                int end = start + fieldInfo.getName().length();
+
+                // Always use ENUM_CONSTANT token type (blue + bold + italic)
+                // Errors are shown via underline, not by changing the token type
+                marks.add(new ScriptLine.Mark(start, end, TokenType.ENUM_CONSTANT, constant));
             }
         }
     }
@@ -2243,7 +2291,7 @@ public class ScriptDocument {
      * @param methodInfo Optional MethodInfo to provide expected parameter types for validation
      * @return List of parsed arguments with resolved types
      */
-    private List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
+    public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
         List<MethodCallInfo.Argument> args = new ArrayList<>();
         
         if (start >= end) {
@@ -5005,19 +5053,40 @@ public class ScriptDocument {
 
     public List<MethodInfo> getAllMethods() {
         List<MethodInfo> allMethods = new ArrayList<>(methods);
-        for (ScriptTypeInfo scriptType : scriptTypes.values()) 
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
             allMethods.addAll(scriptType.getAllMethodsFlat());
+            // Include constructors so their parameters are recognized
+            allMethods.addAll(scriptType.getConstructors());
+        }
         
         return allMethods;
     }
     public List<MethodCallInfo> getMethodCalls() {
-        return Collections.unmodifiableList(methodCalls);
+        List<MethodCallInfo> allCalls = new ArrayList<>(methodCalls);
+
+        for (EnumConstantInfo constant : getAllEnumConstants()) {
+            if (constant.getConstructorCall() != null)
+                allCalls.add(constant.getConstructorCall());
+        }
+        
+        
+        return allCalls;
     }
 
     public List<FieldAccessInfo> getFieldAccesses() {
         return Collections.unmodifiableList(fieldAccesses);
     }
-    
+
+    public List<EnumConstantInfo> getAllEnumConstants() {
+        List<EnumConstantInfo> enums = new ArrayList<>();
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            if (!scriptType.hasEnumConstants())
+                continue;
+
+            enums.addAll(scriptType.getEnumConstants().values());
+        }
+        return enums;
+    }
     /**
      * Find an assignment at the given position, prioritizing LHS over RHS.
      * Searches across all script fields and external field assignments.

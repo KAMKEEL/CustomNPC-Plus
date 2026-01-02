@@ -73,7 +73,6 @@ public class MethodCallInfo {
                     (valid ? "" : " INVALID: " + errorMessage) + "}";
         }
     }
-
     /**
      * Validation error type.
      */
@@ -307,8 +306,8 @@ public class MethodCallInfo {
      * Sets error information if validation fails.
      */
     public void validate() {
-        if (resolvedMethod == null) {
-            if (isConstructor) {
+        if (isConstructor) {
+            if (resolvedMethod == null) {
                 // For constructors, check if the type has any constructors at all
                 if (receiverType != null && receiverType.hasConstructors()) {
                     setError(ErrorType.WRONG_ARG_COUNT, 
@@ -317,8 +316,8 @@ public class MethodCallInfo {
                     setError(ErrorType.UNRESOLVED_METHOD, 
                             "Cannot resolve constructor for '" + methodName + "'");
                 }
-            } else {
-                setError(ErrorType.UNRESOLVED_METHOD, "Cannot resolve method '" + methodName + "'");
+            } else if (receiverType != null && arguments.size() == resolvedMethod.getParameterCount()) {
+                validateArgTypeError();
             }
             return;
         }
@@ -343,9 +342,24 @@ public class MethodCallInfo {
         }
 
         // Check each argument type
-        for (int i = 0; i < actualCount; i++) {
+        validateArgTypeError();
+        
+        // Check return type compatibility with expected type (e.g., assignment LHS)
+        // ALREADY CHECKED AT AssignmentInfo LEVEL
+        if (expectedType != null && resolvedMethod != null) {
+            TypeInfo returnType = resolvedMethod.getReturnType();
+            if (returnType != null && !TypeChecker.isTypeCompatible(expectedType, returnType)) {
+              //  setError(ErrorType.RETURN_TYPE_MISMATCH,
+                      //  "Required type: " + expectedType.getSimpleName() + ", Provided: " + returnType.getSimpleName());
+            }
+        }
+    }
+
+    public void validateArgTypeError() {
+        // Check each argument type
+        for (int i = 0; i < arguments.size(); i++) {
             Argument arg = arguments.get(i);
-            FieldInfo para = params.get(i);
+            FieldInfo para = resolvedMethod.getParameters().get(i);
 
             TypeInfo argType = arg.getResolvedType();
             TypeInfo paramType = para.getDeclaredType();
@@ -358,15 +372,6 @@ public class MethodCallInfo {
                 setArgTypeError(i, "Parameter type of '" + para.getName() + "' is unresolved");
             } else if (argType == null) {
                 setArgTypeError(i, "Cannot resolve type of argument '" + arg.getText() + "'");
-            }
-        }
-
-        // Check return type compatibility with expected type (e.g., assignment LHS)
-        if (expectedType != null && resolvedMethod != null) {
-            TypeInfo returnType = resolvedMethod.getReturnType();
-            if (returnType != null && !TypeChecker.isTypeCompatible(expectedType, returnType)) {
-              //  setError(ErrorType.RETURN_TYPE_MISMATCH,
-                      //  "Required type: " + expectedType.getSimpleName() + ", Provided: " + returnType.getSimpleName());
             }
         }
     }

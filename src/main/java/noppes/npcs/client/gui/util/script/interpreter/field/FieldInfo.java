@@ -21,7 +21,8 @@ public final class FieldInfo {
     public enum Scope {
         GLOBAL,     // Class-level field
         LOCAL,      // Local variable inside a method
-        PARAMETER   // Method parameter
+        PARAMETER,  // Method parameter
+        ENUM_CONSTANT // Enum constant value
     }
 
     private final String name;
@@ -49,11 +50,17 @@ public final class FieldInfo {
 
     // Declaration assignment (for initial value validation)
     private AssignmentInfo declarationAssignment;
+    
+    // For enum constants: the arguments passed to the constructor (null if no args or not enum constant)
+    private final String enumConstantArgs;
+    
+    // For enum constants: the containing enum type
+    private final TypeInfo containingEnumType;
 
     private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
                       int declarationOffset, boolean resolved, MethodInfo containingMethod,
                       String documentation, int initStart, int initEnd, int modifiers,
-                      Field reflectionField) {
+                      Field reflectionField, String enumConstantArgs, TypeInfo containingEnumType) {
         this.name = name;
         this.scope = scope;
         this.declaredType = declaredType;
@@ -65,6 +72,17 @@ public final class FieldInfo {
         this.initEnd = initEnd;
         this.modifiers = modifiers;
         this.reflectionField = reflectionField;
+        this.enumConstantArgs = enumConstantArgs;
+        this.containingEnumType = containingEnumType;
+    }
+    
+    // Private constructor for backward compatibility
+    private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
+                      int declarationOffset, boolean resolved, MethodInfo containingMethod,
+                      String documentation, int initStart, int initEnd, int modifiers,
+                      Field reflectionField) {
+        this(name, scope, declaredType, declarationOffset, resolved, containingMethod,
+             documentation, initStart, initEnd, modifiers, reflectionField, null, null);
     }
 
     // Factory methods
@@ -128,6 +146,44 @@ public final class FieldInfo {
         String name = field.getName();
         TypeInfo type = TypeInfo.fromClass(field.getType());
         return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1, field.getModifiers(), field);
+    }
+    
+    /**
+     * Create a FieldInfo for an enum constant.
+     * @param name The constant name (e.g., "NORTH")
+     * @param type The enum type itself
+     * @param declOffset The declaration position
+     * @param args The constructor arguments (or null if no args)
+     * @param containingEnum The enum type this constant belongs to
+     */
+    public static FieldInfo enumConstant(String name, TypeInfo type, int declOffset, String args, TypeInfo containingEnum) {
+        // Enum constants are implicitly public static final
+        int modifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
+        return new FieldInfo(name, Scope.ENUM_CONSTANT, type, declOffset, true, null, null, -1, -1, 
+                             modifiers, null, args, containingEnum);
+    }
+    
+    // ==================== ERROR HANDLING ====================
+    
+    /**
+     * Check if this is an enum constant.
+     */
+    public boolean isEnumConstant() {
+        return scope == Scope.ENUM_CONSTANT;
+    }
+    
+    /**
+     * Get the enum constant args (for enum constants only).
+     */
+    public String getEnumConstantArgs() {
+        return enumConstantArgs;
+    }
+    
+    /**
+     * Get the containing enum type (for enum constants only).
+     */
+    public TypeInfo getContainingEnumType() {
+        return containingEnumType;
     }
 
     // ==================== ASSIGNMENT MANAGEMENT ====================
@@ -333,11 +389,17 @@ public final class FieldInfo {
         }
         switch (scope) {
             case GLOBAL:
+                // Static final fields get special highlighting
+                if (isStatic() && isFinal()) {
+                    return TokenType.STATIC_FINAL_FIELD;
+                }
                 return TokenType.GLOBAL_FIELD;
             case LOCAL:
                 return TokenType.LOCAL_FIELD;
             case PARAMETER:
                 return TokenType.PARAMETER;
+            case ENUM_CONSTANT:
+                return TokenType.ENUM_CONSTANT;
             default:
                 return TokenType.VARIABLE;
         }

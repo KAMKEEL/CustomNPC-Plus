@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.type;
 
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
@@ -32,6 +33,9 @@ public class ScriptTypeInfo extends TypeInfo {
     private final Map<String, List<MethodInfo>> methods = new HashMap<>(); // name -> list of overloads
     private final List<MethodInfo> constructors = new ArrayList<>(); // List of constructors
     private final List<ScriptTypeInfo> innerClasses = new ArrayList<>();
+    
+    // Enum constants (for enum types only) - name -> EnumConstantInfo
+    private final Map<String, EnumConstantInfo> enumConstants = new HashMap<>();
     
     // Parent class reference (for inner class resolution)
     private ScriptTypeInfo outerClass;
@@ -195,6 +199,46 @@ public class ScriptTypeInfo extends TypeInfo {
     
     public Map<String, FieldInfo> getFields() {
         return new HashMap<>(fields);
+    }
+    
+    // ==================== ENUM CONSTANT MANAGEMENT ====================
+    
+    /**
+     * Add an enum constant to this enum type.
+     * Only valid for enum types.
+     */
+    public void addEnumConstant(EnumConstantInfo constant) {
+        if (isEnum()) {
+            enumConstants.put(constant.getFieldInfo().getName(), constant);
+        }
+    }
+    
+    /**
+     * Check if this enum has a constant with the given name.
+     */
+    public boolean hasEnumConstant(String constantName) {
+        return enumConstants.containsKey(constantName);
+    }
+    
+    /**
+     * Get an enum constant by name.
+     */
+    public EnumConstantInfo getEnumConstant(String constantName) {
+        return enumConstants.get(constantName);
+    }
+    
+    /**
+     * Get all enum constants.
+     */
+    public Map<String, EnumConstantInfo> getEnumConstants() {
+        return new HashMap<>(enumConstants);
+    }
+    
+    /**
+     * Check if this is an enum type and has any constants.
+     */
+    public boolean hasEnumConstants() {
+        return isEnum() && !enumConstants.isEmpty();
     }
     
     // ==================== METHOD MANAGEMENT ====================

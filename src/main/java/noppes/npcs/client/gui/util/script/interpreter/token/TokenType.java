@@ -22,23 +22,25 @@ public enum TokenType {
     // Type declarations and references
     INTERFACE_DECL(0x55FFFF, 85),      // interface names (aqua)
     ENUM_DECL(0xFF55FF, 85),           // enum names (magenta)
+    ENUM_CONSTANT(0x55FFFF, 84, true, false),  // enum constant values (blue, bold+italic) - like IntelliJ
     CLASS_DECL(0x00AAAA, 85),          // class names in declarations
     IMPORTED_CLASS(0x00AAAA, 75),      // imported class usages
     TYPE_DECL(0x00AAAA, 70),           // package paths, type references
-    
+
     // Methods
     METHOD_DECL(0x00AA00, 60),         // method declarations (green)
     METHOD_CALL(0x55FF55, 50),         // method calls (bright green)
-    
+
     // Variables and fields
     UNDEFINED_VAR(0xAA0000, 20),      // unresolved variables (dark red) - high priority
     PARAMETER(0x5555FF, 36),           // method parameters (blue)
     GLOBAL_FIELD(0x55FFFF, 35),        // class-level fields (aqua)
     LOCAL_FIELD(0xFFFF55, 25),         // local variables (yellow)
-    
+    STATIC_FINAL_FIELD(0xFF55FF, 36, false, true), // static final fields (magenta, italic)
+
     // Literals
     LITERAL(0x777777, 40),             // numeric and boolean literals
-    
+
     // Default
     VARIABLE(0xFFFFFF, 30),            // generic variables
     DEFAULT(0xFFFFFF, 0);              // default text color (white)
@@ -113,7 +115,10 @@ public enum TokenType {
             case MODIFIER:
                 return '6'; // gold
             case ENUM_DECL:
+            case STATIC_FINAL_FIELD:
                 return 'd'; // magenta
+            case ENUM_CONSTANT:
+                return '9'; // blue (same as PARAMETER)
             case INTERFACE_DECL:
             case GLOBAL_FIELD:
                 return 'b'; // aqua

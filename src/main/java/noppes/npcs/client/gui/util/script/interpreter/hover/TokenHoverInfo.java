@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.hover;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
 import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -287,7 +288,12 @@ public class TokenHoverInfo {
                 errors.add(scriptType.getErrorMessage());
             }
         }
-
+        
+        EnumConstantInfo enumConst = findEnumConstantContainingPosition(token);
+        if (enumConst != null && enumConst.hasError()) {
+            errors.add(enumConst.getErrorMessage());
+        }
+        
         if(token.getType() == TokenType.UNDEFINED_VAR)
             errors.add("Cannot resolve symbol '" + token.getText() + "'");
 
@@ -388,6 +394,27 @@ public class TokenHoverInfo {
             // Token is within the type declaration
             if (tokenStart >= typeStart && tokenStart <= typeEnd) {
                 return scriptType;
+            }
+        }
+        return null;
+    }
+    
+    private EnumConstantInfo findEnumConstantContainingPosition(Token token) {
+        ScriptLine line = token.getParentLine();
+        if (line == null || line.getParent() == null) {
+            return null;
+        }
+
+        ScriptDocument doc = line.getParent();
+        int tokenStart = token.getGlobalStart();
+
+        for (EnumConstantInfo enumConst : doc.getAllEnumConstants()) {
+            int constStart = enumConst.getDeclarationOffset();
+            int constEnd = constStart + enumConst.getName().length();
+
+            // Token is within the enum constant declaration
+            if (tokenStart >= constStart && tokenStart <= constEnd) {
+                return enumConst;
             }
         }
         return null;

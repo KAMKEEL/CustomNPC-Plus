@@ -230,7 +230,8 @@ public class Token {
 
     public boolean isField() {
         return type == TokenType.GLOBAL_FIELD || type == TokenType.LOCAL_FIELD || 
-               type == TokenType.PARAMETER;
+               type == TokenType.PARAMETER || type == TokenType.STATIC_FINAL_FIELD ||
+               type == TokenType.ENUM_CONSTANT;
     }
 
     // ==================== RENDERING ====================

@@ -55,7 +55,8 @@ public class ErrorUnderlineRenderer {
             boolean isDeclaration = false;
             int methodStart = call.getMethodNameStart();
             for (MethodInfo mi : doc.getAllMethods()) {
-                if (mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
+                //!call.isConstructor for enum declarations
+                if (!call.isConstructor() && mi.getDeclarationOffset() <= methodStart && mi.getBodyStart() >= methodStart) {
                     isDeclaration = true;
                     break;
                 }
