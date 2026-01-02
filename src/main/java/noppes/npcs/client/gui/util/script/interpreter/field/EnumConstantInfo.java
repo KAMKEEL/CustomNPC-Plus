@@ -89,42 +89,49 @@ public class EnumConstantInfo {
                 continue;
             }
 
+            // Determine init range (the constructor arguments)
+            int initStart = -1;
+            int initEnd = -1;
+            
+            // Create MethodCallInfo for constructor validation if args present
+            MethodCallInfo constructorCall = null;
+            if (argsClause != null && !argsClause.isEmpty()) {
+                initStart = bodyOffset + m.start(2);  // Position of '('
+                initEnd = bodyOffset + m.end(2) - 1;     // Position after ')'
+                
+                constructorCall = createConstructorCall(
+                        enumType,
+                        constantName,
+                        absPos,
+                        initStart,
+                        initEnd
+                );
+            } else if (enumType.hasConstructors()) {
+                // No args provided, but enum has constructors - validate against no-arg constructor
+                initStart = absPos + constantName.length();
+                initEnd = initStart;
+
+                constructorCall = createConstructorCall(
+                        enumType,
+                        constantName,
+                        absPos,
+                        initStart,
+                        initEnd
+                );
+            }
+
+
             // Create FieldInfo for the enum constant
             FieldInfo fieldInfo = FieldInfo.enumConstant(
                     constantName,
                     enumType,
                     absPos,
                     args,
-                    enumType
+                    enumType,
+                    initStart,
+                    initEnd
             );
-
-            // Create MethodCallInfo for constructor validation if args present
-            MethodCallInfo constructorCall = null;
-            if (argsClause != null && !argsClause.isEmpty()) {
-                int openParenPos = bodyOffset + m.start(2);
-                int closeParenPos = bodyOffset + m.end(2) - 1;
-
-                constructorCall = createConstructorCall(
-                        enumType,
-                        constantName,
-                        absPos,
-                        openParenPos,
-                        closeParenPos
-                );
-            } else if (enumType.hasConstructors()) {
-                // No args provided, but enum has constructors - validate against no-arg constructor
-                int openParenPos = absPos + constantName.length();
-                int closeParenPos = openParenPos;
-
-                constructorCall = createConstructorCall(
-                        enumType,
-                        constantName,
-                        absPos,
-                        openParenPos,
-                        closeParenPos
-                );
-            }
-
+            
             EnumConstantInfo constantInfo = new EnumConstantInfo(fieldInfo, constructorCall, enumType);
             constants.add(constantInfo);
 

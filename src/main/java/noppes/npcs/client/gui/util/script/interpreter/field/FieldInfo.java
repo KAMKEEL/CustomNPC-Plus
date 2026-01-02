@@ -155,11 +155,13 @@ public final class FieldInfo {
      * @param declOffset The declaration position
      * @param args The constructor arguments (or null if no args)
      * @param containingEnum The enum type this constant belongs to
+     * @param initStart The position of '(' if args present, else -1
+     * @param initEnd The position after ')' if args present, else -1
      */
-    public static FieldInfo enumConstant(String name, TypeInfo type, int declOffset, String args, TypeInfo containingEnum) {
+    public static FieldInfo enumConstant(String name, TypeInfo type, int declOffset, String args, TypeInfo containingEnum, int initStart, int initEnd) {
         // Enum constants are implicitly public static final
         int modifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
-        return new FieldInfo(name, Scope.ENUM_CONSTANT, type, declOffset, true, null, null, -1, -1, 
+        return new FieldInfo(name, Scope.ENUM_CONSTANT, type, declOffset, true, null, null, initStart, initEnd,
                              modifiers, null, args, containingEnum);
     }
     
