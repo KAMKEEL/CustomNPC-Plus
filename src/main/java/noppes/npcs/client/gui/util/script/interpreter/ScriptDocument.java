@@ -4745,7 +4745,7 @@ public class ScriptDocument {
         for (ScriptTypeInfo scriptType : scriptTypes.values()) {
             allMethods.addAll(scriptType.getAllMethodsFlat());
             // Include constructors so their parameters are recognized
-            allMethods.addAll(scriptType.getConstructors());
+          //  allMethods.addAll(scriptType.getConstructors());
         }
         
         return allMethods;
