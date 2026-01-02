@@ -54,16 +54,13 @@ public class FieldChainMarker {
 
             // Mark each segment
             for (int i = ctx.startIndex; i < chain.segments.size(); i++) {
-                String segment = chain.segments.get(i);
+                ctx.currentIndex = i;
                 int[] pos = chain.positions.get(i);
                 
                 if (document.isExcluded(pos[0])) continue;
 
-                boolean isLast = (i == chain.segments.size() - 1);
-                boolean isStatic = (i > 0) && isStaticContext(chain.segments.get(i - 1));
-
                 // Determine what type of marking this segment needs
-                MarkResult result = resolveSegmentMark(ctx, segment, pos, i, isLast, isStatic, chainStart);
+                MarkResult result = resolveSegmentMark(ctx, chainStart);
                 
                 // Apply the mark
                 if (result.mark != null) {
@@ -118,7 +115,10 @@ public class FieldChainMarker {
 
     /** Context for chain resolution */
     private static class ChainContext {
+        ChainData chain;
+        int currentIndex;
         TypeInfo currentType;
+        ScriptTypeInfo enclosingType;  // The enclosing script type for 'this' resolution
         int startIndex;
         boolean firstIsThis;
         boolean firstIsSuper;
@@ -174,6 +174,8 @@ public class FieldChainMarker {
     /** Resolve the starting context for a chain */
     private ChainContext resolveChainStart(ChainData chain, int chainStart) {
         ChainContext ctx = new ChainContext();
+        ctx.chain = chain;
+        ctx.currentIndex = 0;
         String first = chain.segments.get(0);
         
         ctx.firstIsThis = first.equals("this");
@@ -181,15 +183,15 @@ public class FieldChainMarker {
         ctx.firstIsPrecededByDot = document.isPrecededByDot(chainStart);
         ctx.startIndex = ctx.firstIsPrecededByDot ? 0 : 1;
         ctx.currentType = null;
+        ctx.enclosingType = document.findEnclosingScriptType(chainStart);
 
         if (ctx.firstIsThis) {
-            // 'this' - will use globalFields for resolution
-            ctx.currentType = null;
+            // 'this' - resolve to enclosing class/global fields
+            ctx.currentType = ctx.enclosingType;
         } else if (ctx.firstIsSuper) {
             // 'super' - resolve to parent class
-            ScriptTypeInfo enclosingType = document.findEnclosingScriptType(chainStart);
-            if (enclosingType != null && enclosingType.hasSuperClass()) {
-                ctx.currentType = enclosingType.getSuperClass();
+            if (ctx.enclosingType != null && ctx.enclosingType.hasSuperClass()) {
+                ctx.currentType = ctx.enclosingType.getSuperClass();
             }
         } else if (ctx.firstIsPrecededByDot) {
             // Field access on a receiver (e.g., getMinecraft().thePlayer)
@@ -213,26 +215,29 @@ public class FieldChainMarker {
     }
 
     /** Resolve what mark a segment should get */
-    private MarkResult resolveSegmentMark(ChainContext ctx, String segment, int[] pos, 
-                                          int index, boolean isLast, boolean isStatic, int chainStart) {
+    private MarkResult resolveSegmentMark(ChainContext ctx, int chainStart) {
+        int index = ctx.currentIndex;
+        String segment = ctx.chain.segments.get(index);
+        int[] pos = ctx.chain.positions.get(index);
+        
         // Case 1: First segment preceded by dot (field on receiver)
         if (index == 0 && ctx.firstIsPrecededByDot) {
-            return resolveReceiverFieldMark(segment, pos, chainStart, isLast, isStatic);
+            return resolveReceiverFieldMark(ctx, chainStart);
         }
 
         // Case 2: this.field
         if (index == 1 && ctx.firstIsThis) {
-            return resolveThisFieldMark(segment, pos);
+            return resolveThisFieldMark(ctx);
         }
 
         // Case 3: super.field
         if (index == 1 && ctx.firstIsSuper) {
-            return resolveSuperFieldMark(ctx.currentType, segment, pos, isLast);
+            return resolveSuperFieldMark(ctx);
         }
 
         // Case 4: Resolved type with field
         if (ctx.currentType != null && ctx.currentType.isResolved()) {
-            return resolveTypedFieldMark(ctx.currentType, segment, pos, isLast, isStatic);
+            return resolveTypedFieldMark(ctx);
         }
 
         // Case 5: Unresolved - mark as undefined
@@ -245,20 +250,21 @@ public class FieldChainMarker {
     // ==================== SEGMENT RESOLUTION HELPERS ====================
 
     /** Resolve mark for field access on a receiver (preceded by dot) */
-    private MarkResult resolveReceiverFieldMark(String segment, int[] pos, int chainStart, 
-                                                 boolean isLast, boolean isStatic) {
+    private MarkResult resolveReceiverFieldMark(ChainContext ctx, int chainStart) {
+        int index = ctx.currentIndex;
+        String segment = ctx.chain.segments.get(index);
+        int[] pos = ctx.chain.positions.get(index);
+        boolean isLast = (index == ctx.chain.segments.size() - 1);
+        boolean isStatic = isStaticContext(ctx);
+        
         TypeInfo receiverType = document.resolveReceiverChain(chainStart);
         
         if (receiverType != null && receiverType.hasField(segment)) {
             FieldInfo fieldInfo = receiverType.getFieldInfo(segment);
             FieldAccessInfo accessInfo = document.createFieldAccessInfo(segment, pos[0], pos[1], 
                     receiverType, fieldInfo, isLast, isStatic);
-            
-            TokenType tokenType = (fieldInfo != null && fieldInfo.isEnumConstant()) 
-                    ? TokenType.ENUM_CONSTANT : TokenType.GLOBAL_FIELD;
-            
-            return new MarkResult(
-                new ScriptLine.Mark(pos[0], pos[1], tokenType, accessInfo),
+
+            return new MarkResult(new ScriptLine.Mark(pos[0], pos[1], getFieldTokenType(fieldInfo), accessInfo),
                 (fieldInfo != null) ? fieldInfo.getTypeInfo() : null
             );
         }
@@ -270,23 +276,45 @@ public class FieldChainMarker {
     }
 
     /** Resolve mark for this.field access */
-    private MarkResult resolveThisFieldMark(String segment, int[] pos) {
-        if (document.getGlobalFields().containsKey(segment)) {
-            FieldInfo fieldInfo = document.getGlobalFields().get(segment);
-            return new MarkResult(
-                new ScriptLine.Mark(pos[0], pos[1], TokenType.GLOBAL_FIELD, fieldInfo),
-                fieldInfo.getTypeInfo()
+    private MarkResult resolveThisFieldMark(ChainContext ctx) {
+        int index = ctx.currentIndex;
+        String segment = ctx.chain.segments.get(index);
+        int[] pos = ctx.chain.positions.get(index);
+        boolean isLast = (index == ctx.chain.segments.size() - 1);
+
+        boolean found = false;
+        FieldInfo fieldInfo = null;
+
+        // First check enclosing script type fields
+        if (ctx.enclosingType != null && ctx.enclosingType.hasField(segment)) {
+            found = true;
+            fieldInfo = ctx.enclosingType.getFieldInfo(segment);
+        } else if (document.getGlobalFields().containsKey(segment)) {
+            found = true;
+            fieldInfo = document.getGlobalFields().get(segment);
+        }
+
+        if (found) {
+            FieldAccessInfo accessInfo = document.createFieldAccessInfo(segment, pos[0], pos[1], ctx.enclosingType,
+                    fieldInfo, isLast, false);
+
+            return new MarkResult(new ScriptLine.Mark(pos[0], pos[1], getFieldTokenType(fieldInfo), accessInfo),
+                    (fieldInfo != null) ? fieldInfo.getTypeInfo() : null
             );
         }
-        
-        return new MarkResult(
-            new ScriptLine.Mark(pos[0], pos[1], TokenType.UNDEFINED_VAR),
-            null
+
+        return new MarkResult(new ScriptLine.Mark(pos[0], pos[1], TokenType.UNDEFINED_VAR), null
         );
     }
 
     /** Resolve mark for super.field access */
-    private MarkResult resolveSuperFieldMark(TypeInfo superType, String segment, int[] pos, boolean isLast) {
+    private MarkResult resolveSuperFieldMark(ChainContext ctx) {
+        int index = ctx.currentIndex;
+        String segment = ctx.chain.segments.get(index);
+        int[] pos = ctx.chain.positions.get(index);
+        boolean isLast = (index == ctx.chain.segments.size() - 1);
+        TypeInfo superType = ctx.currentType;
+        
         if (superType == null) {
             return new MarkResult(
                 new ScriptLine.Mark(pos[0], pos[1], TokenType.UNDEFINED_VAR,
@@ -311,8 +339,7 @@ public class FieldChainMarker {
         if (found) {
             FieldAccessInfo accessInfo = document.createFieldAccessInfo(segment, pos[0], pos[1], 
                     superType, fieldInfo, isLast, false);
-            return new MarkResult(
-                new ScriptLine.Mark(pos[0], pos[1], TokenType.GLOBAL_FIELD, accessInfo),
+            return new MarkResult(new ScriptLine.Mark(pos[0], pos[1], getFieldTokenType(fieldInfo), accessInfo),
                 (fieldInfo != null) ? fieldInfo.getTypeInfo() : null
             );
         }
@@ -327,8 +354,14 @@ public class FieldChainMarker {
     }
 
     /** Resolve mark for typed field access */
-    private MarkResult resolveTypedFieldMark(TypeInfo currentType, String segment, int[] pos, 
-                                              boolean isLast, boolean isStatic) {
+    private MarkResult resolveTypedFieldMark(ChainContext ctx) {
+        int index = ctx.currentIndex;
+        String segment = ctx.chain.segments.get(index);
+        int[] pos = ctx.chain.positions.get(index);
+        boolean isLast = (index == ctx.chain.segments.size() - 1);
+        boolean isStatic = isStaticContext(ctx);
+        TypeInfo currentType = ctx.currentType;
+        
         if (!currentType.hasField(segment)) {
             return new MarkResult(
                 new ScriptLine.Mark(pos[0], pos[1], TokenType.UNDEFINED_VAR),
@@ -353,12 +386,8 @@ public class FieldChainMarker {
         // Valid field access
         FieldAccessInfo accessInfo = document.createFieldAccessInfo(segment, pos[0], pos[1], 
                 currentType, fieldInfo, isLast, isStatic);
-        
-        TokenType tokenType = (fieldInfo != null && fieldInfo.isEnumConstant()) 
-                ? TokenType.ENUM_CONSTANT : TokenType.GLOBAL_FIELD;
 
-        return new MarkResult(
-            new ScriptLine.Mark(pos[0], pos[1], tokenType, accessInfo),
+        return new MarkResult(new ScriptLine.Mark(pos[0], pos[1], getFieldTokenType(fieldInfo), accessInfo),
             (fieldInfo != null) ? fieldInfo.getTypeInfo() : null
         );
     }
@@ -373,14 +402,13 @@ public class FieldChainMarker {
         if (receiverType != null && receiverType.hasField(firstField)) {
             fInfo = receiverType.getFieldInfo(firstField);
             boolean hasMore = document.isFollowedByDot(identEnd);
-            boolean isStatic = isStaticContext(receiverType.getSimpleName());
+            // For method/array result chains, the receiver is always an instance, not a type
+            boolean isStatic = false;
             
             FieldAccessInfo accessInfo = document.createFieldAccessInfo(firstField, identStart, identEnd, 
                     receiverType, fInfo, !hasMore, isStatic);
-            
-            TokenType tokenType = (fInfo != null && fInfo.isEnumConstant()) 
-                    ? TokenType.ENUM_CONSTANT : TokenType.GLOBAL_FIELD;
-            marks.add(new ScriptLine.Mark(identStart, identEnd, tokenType, accessInfo));
+
+            marks.add(new ScriptLine.Mark(identStart, identEnd, getFieldTokenType(fInfo), accessInfo));
             currentType = (fInfo != null) ? fInfo.getTypeInfo() : null;
         } else {
             marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.UNDEFINED_VAR));
@@ -411,14 +439,13 @@ public class FieldChainMarker {
 
             if (currentType != null && currentType.isResolved() && currentType.hasField(seg)) {
                 FieldInfo segInfo = currentType.getFieldInfo(seg);
-                boolean isStatic = isStaticContext(currentType.getSimpleName());
+                // In method/array result chains, segments are always instance access
+                boolean isStatic = false;
                 
                 FieldAccessInfo accessInfo = document.createFieldAccessInfo(seg, nStart, nEnd, 
                         currentType, segInfo, isLast, isStatic);
-                
-                TokenType tokenType = (segInfo != null && segInfo.isEnumConstant()) 
-                        ? TokenType.ENUM_CONSTANT : TokenType.GLOBAL_FIELD;
-                marks.add(new ScriptLine.Mark(nStart, nEnd, tokenType, accessInfo));
+
+                marks.add(new ScriptLine.Mark(nStart, nEnd, getFieldTokenType(segInfo), accessInfo));
                 currentType = (segInfo != null) ? segInfo.getTypeInfo() : null;
             } else {
                 marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.UNDEFINED_VAR));
@@ -429,6 +456,13 @@ public class FieldChainMarker {
 
     // ==================== UTILITY HELPERS ====================
 
+    private TokenType getFieldTokenType(FieldInfo fieldInfo) {
+        if (fieldInfo != null && fieldInfo.isEnumConstant())
+            return TokenType.ENUM_CONSTANT;
+
+        return TokenType.GLOBAL_FIELD;
+    }
+
     /** Get the non-whitespace character before a position */
     private Character getNonWhitespaceBefore(int pos) {
         int before = pos - 1;
@@ -436,8 +470,16 @@ public class FieldChainMarker {
         return (before >= 0) ? text.charAt(before) : null;
     }
 
-    /** Check if a name indicates static context (starts with uppercase) */
-    private boolean isStaticContext(String name) {
-        return name != null && !name.isEmpty() && Character.isUpperCase(name.charAt(0));
+    /** Check if the receiver type is a class/type (static context) */
+    private boolean isStaticContext(ChainContext ctx) {
+        // Static context if the previous segment name resolves to a type/class
+        if (ctx.currentIndex <= 0)
+            return false;
+
+        String previousSegment = ctx.chain.segments.get(ctx.currentIndex - 1);
+
+        // Try to resolve the previous segment as a type
+        TypeInfo typeCheck = document.resolveType(previousSegment);
+        return typeCheck != null && typeCheck.isResolved();
     }
 }
