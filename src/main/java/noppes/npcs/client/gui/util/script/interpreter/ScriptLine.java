@@ -191,13 +191,6 @@ public class ScriptLine {
             FieldInfo.ArgInfo ctx = (FieldInfo.ArgInfo) metadata;
             token.setFieldInfo(ctx.fieldInfo);
             token.setMethodCallInfo(ctx.methodCallInfo);
-        } else if (metadata instanceof EnumConstantInfo) {
-            EnumConstantInfo enumInfo = (EnumConstantInfo) metadata;
-            token.setEnumConstantInfo(enumInfo);
-            token.setFieldInfo(enumInfo.getFieldInfo());
-            if (enumInfo.getConstructorCall() != null) 
-                token.setMethodCallInfo(enumInfo.getConstructorCall());
-            
         } else if (metadata instanceof FieldInfo) {
             token.setFieldInfo((FieldInfo) metadata);
         } else if (metadata instanceof MethodInfo) {
@@ -205,7 +198,9 @@ public class ScriptLine {
         } else if (metadata instanceof ImportData) {
             token.setImportData((ImportData) metadata);
         } else if (metadata instanceof FieldAccessInfo) {
-            token.setFieldAccessInfo((FieldAccessInfo) metadata);
+            FieldAccessInfo accessInfo = (FieldAccessInfo) metadata;
+            token.setFieldAccessInfo(accessInfo);
+            token.setFieldInfo(accessInfo.getResolvedField());
         } else if (metadata instanceof TokenErrorMessage) {
             token.setErrorMessage((TokenErrorMessage) metadata);
         }

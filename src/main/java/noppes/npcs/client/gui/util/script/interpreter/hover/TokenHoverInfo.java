@@ -764,12 +764,12 @@ public class TokenHoverInfo {
     }
 
     private void extractEnumConstantInfo(Token token) {
-        EnumConstantInfo enumInfo = token.getEnumConstantInfo();
-        if (enumInfo == null)
-            return;
-
-        FieldInfo fieldInfo = enumInfo.getFieldInfo();
+        FieldInfo fieldInfo = token.getFieldInfo();
         if (fieldInfo == null)
+            return;
+        
+        EnumConstantInfo enumInfo = fieldInfo.getEnumInfo();
+        if (enumInfo == null)
             return;
 
         iconIndicator = "e";
