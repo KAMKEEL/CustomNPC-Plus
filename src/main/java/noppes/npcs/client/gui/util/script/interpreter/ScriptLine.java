@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.ClientProxy;
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -190,6 +191,13 @@ public class ScriptLine {
             FieldInfo.ArgInfo ctx = (FieldInfo.ArgInfo) metadata;
             token.setFieldInfo(ctx.fieldInfo);
             token.setMethodCallInfo(ctx.methodCallInfo);
+        } else if (metadata instanceof EnumConstantInfo) {
+            EnumConstantInfo enumInfo = (EnumConstantInfo) metadata;
+            token.setEnumConstantInfo(enumInfo);
+            token.setFieldInfo(enumInfo.getFieldInfo());
+            if (enumInfo.getConstructorCall() != null) 
+                token.setMethodCallInfo(enumInfo.getConstructorCall());
+            
         } else if (metadata instanceof FieldInfo) {
             token.setFieldInfo((FieldInfo) metadata);
         } else if (metadata instanceof MethodInfo) {

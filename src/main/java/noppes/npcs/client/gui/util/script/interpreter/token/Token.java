@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.interpreter.token;
 import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -32,6 +33,7 @@ public class Token {
     private MethodCallInfo methodCallInfo; // For method calls with argument info
     private ImportData importData;    // For import statements
     private FieldAccessInfo fieldAccessInfo; //For fields like Minecraft.getMinecraft.thePlayer
+    private EnumConstantInfo enumConstantInfo; // For enum constant references
     
     private TokenErrorMessage errorMessage;
 
@@ -110,6 +112,15 @@ public class Token {
         return t;
     }
 
+    public static Token enumConstant(String text, int start, int end, EnumConstantInfo info) {
+        Token t = new Token(text, start, end, TokenType.ENUM_CONSTANT);
+        t.enumConstantInfo = info;
+        if (info != null) {
+            t.fieldInfo = info.getFieldInfo();
+        }
+        return t;
+    }
+
     public static Token undefined(String text, int start, int end) {
         return new Token(text, start, end, TokenType.UNDEFINED_VAR);
     }
@@ -127,6 +138,7 @@ public class Token {
     public MethodCallInfo getMethodCallInfo() { return methodCallInfo; }
     public FieldAccessInfo getFieldAccessInfo() { return fieldAccessInfo; }
     public ImportData getImportData() { return importData; }
+    public EnumConstantInfo getEnumConstantInfo() { return enumConstantInfo; }
     public TokenErrorMessage getErrorMessage() { return errorMessage; }
     public ScriptLine getParentLine() { return parentLine; }
 
@@ -139,6 +151,7 @@ public class Token {
     public void setMethodInfo(MethodInfo info) { this.methodInfo = info; }
     public void setMethodCallInfo(MethodCallInfo info) { this.methodCallInfo = info; }
     public void setImportData(ImportData data) { this.importData = data; }
+    public void setEnumConstantInfo(EnumConstantInfo info) { this.enumConstantInfo = info; }
     public void setErrorMessage(TokenErrorMessage message) { this.errorMessage = message; }
     
     public void setParentLine(ScriptLine line) { this.parentLine = line; }
