@@ -189,12 +189,27 @@ public class ScriptTypeInfo extends TypeInfo {
     
     @Override
     public boolean hasField(String fieldName) {
-        return fields.containsKey(fieldName);
+        if (fields.containsKey(fieldName))
+            return true;
+        
+        if (enumConstants.containsKey(fieldName))
+            return true;
+        
+        return false;
     }
     
     @Override
     public FieldInfo getFieldInfo(String fieldName) {
-        return fields.get(fieldName);
+        if (fields.containsKey(fieldName))
+            return fields.get(fieldName);
+
+        if (enumConstants.containsKey(fieldName)) {
+            EnumConstantInfo enumConst = enumConstants.get(fieldName);
+            if (enumConst != null)
+                return enumConst.getFieldInfo();
+        }
+
+        return null;
     }
     
     public Map<String, FieldInfo> getFields() {
