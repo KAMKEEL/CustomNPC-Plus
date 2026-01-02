@@ -120,7 +120,10 @@ public class TokenHoverInfo {
             case METHOD_DECL:
                 info.extractMethodDeclInfo(token);
                 break;
-                
+
+            case ENUM_CONSTANT:
+                info.extractEnumConstantInfo(token);
+                break;
             case GLOBAL_FIELD:
                 info.extractGlobalFieldInfo(token);
                 break;
@@ -773,6 +776,47 @@ public class TokenHoverInfo {
         addInitializationTokens(token, fieldInfo);
     }
 
+    private void extractEnumConstantInfo(Token token) {
+        EnumConstantInfo enumInfo = token.getEnumConstantInfo();
+        if (enumInfo == null)
+            return;
+
+        FieldInfo fieldInfo = enumInfo.getFieldInfo();
+        if (fieldInfo == null)
+            return;
+
+        iconIndicator = "e";
+
+        // Add documentation if available
+        if (fieldInfo.getDocumentation() != null && !fieldInfo.getDocumentation().isEmpty()) {
+            String[] docLines = fieldInfo.getDocumentation().split("\n");
+            for (String line : docLines) {
+                documentation.add(line);
+            }
+        }
+
+        TypeInfo enumType = enumInfo.getEnumType();
+
+        if (enumType != null) {
+            // Show enum's package
+            String pkg = getPackageName(enumType);
+            if (pkg != null && !pkg.isEmpty())
+                packageName = pkg;
+
+
+            // Type (enum type name)
+            int typeColor = getColorForTypeInfo(enumType);
+            addSegment(enumType.getSimpleName(), typeColor);
+            addSegment(" ", TokenType.DEFAULT.getHexColor());
+        }
+
+        // Enum constant name
+        addSegment(fieldInfo.getName(), TokenType.ENUM_CONSTANT.getHexColor());
+
+        // Add constructor arguments if available
+        addInitializationTokens(token, fieldInfo);
+    }
+
     private void extractLocalFieldInfo(Token token) {
         FieldInfo fieldInfo = token.getFieldInfo();
         if (fieldInfo == null) return;
@@ -801,6 +845,24 @@ public class TokenHoverInfo {
         
         // Show it's a local variable
         additionalInfo.add("Local variable");
+    }
+
+    public String getPackageName(TypeInfo type) {
+        if (type == null)
+            return null;
+
+        String fullName = type.getFullName();
+        if (fullName != null && !fullName.isEmpty()) {
+            return fullName;
+        } else {
+            String pkg = type.getPackageName();
+            String className = type.getSimpleName();
+            if (pkg != null && !pkg.isEmpty()) {
+                return pkg + "." + className;
+            } else {
+                return className;
+            }
+        }
     }
 
     private void extractParameterInfo(Token token) {
