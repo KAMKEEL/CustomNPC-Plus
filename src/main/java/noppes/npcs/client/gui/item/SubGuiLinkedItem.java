@@ -125,12 +125,6 @@ public class SubGuiLinkedItem extends SubGuiInterface implements ITextfieldListe
 
         y += spacing;
 
-        // Attack Speed Field (integers only)
-        //addLabel(new GuiNpcLabel(13,"Attack Speed",x,y + 5, CustomNpcResourceListener.DefaultTextColor));
-
-
-        //y += spacing;
-
         // TEXTURE field
         addLabel(new GuiNpcLabel(3, "display.texture", x, y + 5, CustomNpcResourceListener.DefaultTextColor));
         addTextField(new GuiNpcTextField(2, this, x + 60, y, 200, 20, linkedItem.display.texture));
