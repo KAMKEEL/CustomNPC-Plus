@@ -665,18 +665,9 @@ public class TokenHoverInfo {
         
         if (containingType != null) {
             // Show full qualified class name (like IntelliJ)
-            String fullName = containingType.getFullName();
-            if (fullName != null && !fullName.isEmpty()) {
-                packageName = fullName;
-            } else {
-                String pkg = containingType.getPackageName();
-                String className = containingType.getSimpleName();
-                if (pkg != null && !pkg.isEmpty()) {
-                    packageName = pkg + "." + className;
-                } else {
-                    packageName = className;
-                }
-            }
+            String pkg = getPackageName(containingType);
+            if (pkg != null && !pkg.isEmpty())
+                packageName = pkg;
         }
         
         // Try to get actual Java method for more details
@@ -752,13 +743,9 @@ public class TokenHoverInfo {
 //        }
         
         if (declaredType != null) {
-            // Show field's type package.ClassName for context
-            String pkg = declaredType.getPackageName();
-
-            // For Minecraft.getMinecraft.thePlayer
-            // Return net.minecraft.client.Minecraft
-            if (accessInfo != null)
-                pkg = accessInfo.getReceiverType().getFullName(); 
+            // accessInfo For Minecraft.getMinecraft.thePlayer
+            // Return net.minecraft.client.Minecraft, and not net.minecraft.entity.EntityPlayer
+            String pkg = getPackageName(accessInfo != null ? accessInfo.getReceiverType() : declaredType);
             
             if (pkg != null && !pkg.isEmpty()) 
                 packageName = pkg;
