@@ -131,6 +131,15 @@ public final class FieldInfo {
     public static FieldInfo fromReflection(Field field, TypeInfo containingType) {
         String name = field.getName();
         TypeInfo type = TypeInfo.fromClass(field.getType());
+
+        // Check if this is an enum constant
+        if (field.isEnumConstant()) {
+            // Create enum constant FieldInfo
+            EnumConstantInfo constantInfo = EnumConstantInfo.fromReflection(name, containingType,field);
+            if (constantInfo != null)
+                return constantInfo.getFieldInfo();
+        }
+        
         return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1, field.getModifiers(), field);
     }
     
@@ -139,16 +148,14 @@ public final class FieldInfo {
      * @param name The constant name (e.g., "NORTH")
      * @param type The enum type itself
      * @param declOffset The declaration position
-     * @param args The constructor arguments (or null if no args)
-     * @param containingEnum The enum type this constant belongs to
      * @param initStart The position of '(' if args present, else -1
      * @param initEnd The position after ')' if args present, else -1
      */
-    public static FieldInfo enumConstant(String name, TypeInfo type, int declOffset, String args, TypeInfo containingEnum, int initStart, int initEnd) {
+    public static FieldInfo enumConstant(String name, TypeInfo type, int declOffset, int initStart, int initEnd,Field javaField) {
         // Enum constants are implicitly public static final
         int modifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
         return new FieldInfo(name, Scope.ENUM_CONSTANT, type, declOffset, true, null, null, initStart, initEnd,
-                modifiers, null);
+                modifiers, javaField);
     }
 
     // ==================== ENUM HANDLING ====================

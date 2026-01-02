@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.util.script.interpreter.type;
 
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
@@ -281,6 +282,37 @@ public class TypeInfo {
             // Security or linkage error
         }
         return false;
+    }
+
+    public boolean hasEnumConstant(String constantName) {
+        if (javaClass == null || !javaClass.isEnum()) return false;
+        try {
+            Object[] constants = javaClass.getEnumConstants();
+            for (Object constant : constants) {
+                if (constant.toString().equals(constantName)) 
+                    return true;
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return false;
+    }
+
+    /**
+     * Get an enum constant by name.
+     */
+    public EnumConstantInfo getEnumConstant(String constantName) {
+        if (javaClass == null || !javaClass.isEnum()) return null;
+        try {
+            Object[] constants = javaClass.getEnumConstants();
+            for (Object constant : constants) {
+                if (constant.toString().equals(constantName)) 
+                    return EnumConstantInfo.fromReflection(constantName, this, null);
+            }
+        } catch (Exception e) {
+            // Security or linkage error
+        }
+        return null;
     }
 
     /**

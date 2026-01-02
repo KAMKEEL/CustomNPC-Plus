@@ -22,9 +22,9 @@ public class EnumConstantInfo {
 
     private final FieldInfo fieldInfo;
     private final MethodCallInfo constructorCall;  // Can be null if no args provided
-    private final ScriptTypeInfo enumType;
+    private final TypeInfo enumType;
 
-    private EnumConstantInfo(FieldInfo fieldInfo, MethodCallInfo constructorCall, ScriptTypeInfo enumType) {
+    public EnumConstantInfo(FieldInfo fieldInfo, MethodCallInfo constructorCall, TypeInfo enumType) {
         this.fieldInfo = fieldInfo;
         this.constructorCall = constructorCall;
         this.enumType = enumType;
@@ -128,10 +128,9 @@ public class EnumConstantInfo {
                     constantName,
                     enumType,
                     absPos,
-                    args,
-                    enumType,
                     initStart,
-                    initEnd
+                    initEnd,
+                    null
             );
             
             EnumConstantInfo constantInfo = new EnumConstantInfo(fieldInfo, constructorCall, enumType);
@@ -193,7 +192,68 @@ public class EnumConstantInfo {
         callInfo.validate();
         return callInfo;
     }
-    
+
+    /**
+     * Create EnumConstantInfo from a reflection-based enum constant.
+     * Used for enum constants from external libraries (via reflection).
+     *
+     * @param constantName The name of the enum constant
+     * @param enumType     The enum type this constant belongs to
+     * @return EnumConstantInfo representing this constant, or null if not found
+     */
+    public static EnumConstantInfo fromReflection(String constantName, TypeInfo enumType, Field javaField) {
+        if (enumType == null || enumType.getJavaClass() == null || !enumType.getJavaClass().isEnum()) {
+            return null;
+        }
+
+        try {
+            Class<?> enumClass = enumType.getJavaClass();
+
+
+            // Create FieldInfo from the reflection field
+            FieldInfo fieldInfo = FieldInfo.enumConstant(
+                    constantName,
+                    enumType,
+                    -1,  // No declaration offset for reflection-based constants
+                    -1,
+                    -1,
+                    javaField
+            );
+
+            // Create a MethodCallInfo for the constructor validation
+            // Get constructors from the Java enum class itself
+            Constructor<?>[] javaConstructors = enumClass.getDeclaredConstructors();
+            Constructor<?> matchedConstructor = null;
+
+            // Find the primary constructor (usually the first one)
+            if (javaConstructors.length > 0) {
+                matchedConstructor = javaConstructors[0];
+            }
+
+            // Create MethodCallInfo for the constructor call
+            // For reflection-based enums, we don't have actual position info, so use -1
+            MethodCallInfo constructorCall = null;
+            if (matchedConstructor != null) {
+                constructorCall = new MethodCallInfo(
+                        constantName,     // Method name
+                        -1,               // No position info for reflection
+                        -1,               // No paren position
+                        -1,               // No open paren position
+                        -1,               // No close paren position
+                        new ArrayList<>(), // Empty arguments (reflection doesn't give us this)
+                        enumType,         // Receiver is the enum type
+                        null              // No MethodInfo for reflection-based constructor
+                );
+                constructorCall.setConstructor(true);
+            }
+            EnumConstantInfo enumInfo = new EnumConstantInfo(fieldInfo, constructorCall, enumType);
+            fieldInfo.setEnumConstantInfo(enumInfo);
+            return enumInfo;
+        } catch (SecurityException e) {
+            // Constant not found or access denied
+            return null;
+        }
+    }
 
     /**
      * Find where enum constants section ends.
@@ -259,7 +319,7 @@ public class EnumConstantInfo {
         return constructorCall;
     }
 
-    public ScriptTypeInfo getEnumType() {
+    public TypeInfo getEnumType() {
         return enumType;
     }
 
