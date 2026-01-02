@@ -1396,7 +1396,7 @@ public class ScriptDocument {
      */
     private TypeInfo resolveTypeAndTrackUsage(String typeName) {
         if (typeName == null || typeName.isEmpty())
-            return null;
+            return TypeInfo.unresolved(typeName, typeName);
 
         // Strip generics for resolution
         int genericStart = typeName.indexOf('<');
@@ -2019,7 +2019,12 @@ public class ScriptDocument {
             }
 
             // Return type
-            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.TYPE_DECL));
+            TokenType returnToken = TokenType.UNDEFINED_VAR;
+            if (methodInfo != null)
+                returnToken = methodInfo.getReturnType().getTokenType();
+
+            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), returnToken,
+                    methodInfo != null ? methodInfo.getReturnType() : null));
             // Method name with MethodInfo metadata
             marks.add(new ScriptLine.Mark(m.start(2), m.end(2), TokenType.METHOD_DECL, methodInfo));
         }

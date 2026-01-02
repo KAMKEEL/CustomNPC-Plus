@@ -125,7 +125,7 @@ public class TypeResolver {
                                       Map<String, ImportData> imports,
                                       Set<String> wildcardPackages) {
         if (simpleName == null || simpleName.isEmpty()) {
-            return null;
+            return TypeInfo.unresolved(simpleName,simpleName);
         }
 
         // 1. Check explicit imports
@@ -166,7 +166,7 @@ public class TypeResolver {
             }
         }
 
-        return null;
+        return TypeInfo.unresolved(simpleName,simpleName);
     }
 
     /**

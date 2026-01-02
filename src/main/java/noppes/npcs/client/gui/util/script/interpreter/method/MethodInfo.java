@@ -451,6 +451,10 @@ public final class MethodInfo {
     public void validate(String methodBodyText, boolean hasBody, TypeResolver typeResolver) {
         if (!isDeclaration) return;
 
+        // Don't error if return type unresolved
+        if(returnType != null && !returnType.isResolved()) 
+            return;
+        
         // Validate parameters
         validateParameters();
         boolean interfaceMember = containingType != null && containingType.isInterface();

@@ -77,23 +77,27 @@ public enum TokenType {
         return italic;
     }
 
-    public static int getColor(TypeInfo typeInfo) {
-        if (typeInfo == null)
-            return TokenType.IMPORTED_CLASS.getHexColor();
+    public static TokenType getByType(TypeInfo typeInfo) {
+        if (typeInfo == null || !typeInfo.isResolved())
+            return TokenType.UNDEFINED_VAR;
 
         switch (typeInfo.getKind()) {
             case INTERFACE:
-                return TokenType.INTERFACE_DECL.getHexColor();
+                return TokenType.INTERFACE_DECL;
             case ENUM:
-                return TokenType.ENUM_DECL.getHexColor();
+                return TokenType.ENUM_DECL;
             case CLASS:
-                return TokenType.CLASS_DECL.getHexColor();
+                return TokenType.CLASS_DECL;
             default:
                 break;
         }
 
         // Use the TypeInfo's own token type, which handles ScriptTypeInfo correctly
-        return typeInfo.getTokenType().getHexColor();
+        return typeInfo.getTokenType();
+    }
+    
+    public static int getColor(TypeInfo typeInfo) {
+        return getByType(typeInfo).getHexColor();
     }
 
     /**
