@@ -66,6 +66,8 @@ public class MusicController {
             this.playingSound.stopSound();
             this.sounds.remove(this.playingSound.sound);
             this.playingSound = null;
+            this.entity = null;
+            this.playDelay = 20; // Prevent immediate restart when music is stopped
         } else if (soundHandler != null) {
             try {
                 soundHandler.stopSounds();
@@ -192,5 +194,27 @@ public class MusicController {
             sound.stopSound();
         }
         this.sounds.clear();
+    }
+
+    /**
+     * Stops a specific sound by its resource key.
+     * This is used to stop dialog sounds without affecting Bard music.
+     * @param soundKey The sound resource key to stop
+     */
+    public void stopSound(String soundKey) {
+        if (soundKey == null || soundKey.isEmpty()) {
+            return;
+        }
+        ScriptClientSound sound = this.sounds.remove(soundKey);
+        if (sound != null) {
+            SoundHandler soundHandler = Minecraft.getMinecraft().getSoundHandler();
+            if (soundHandler != null) {
+                try {
+                    soundHandler.stopSound(sound);
+                } catch (Exception ignored) {
+                }
+            }
+            sound.stopSound();
+        }
     }
 }
