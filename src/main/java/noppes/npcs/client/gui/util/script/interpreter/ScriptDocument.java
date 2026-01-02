@@ -1857,7 +1857,7 @@ public class ScriptDocument {
             int typeNameStart = m.start(1);
             int typeNameEnd = m.end(1);
 
-            if (isExcluded(typeNameStart)) {
+            if (isExcluded(typeNameStart) || isInImportOrPackage(typeNameStart)) {
                 searchFrom = m.end();
                 continue;
             }
@@ -3703,10 +3703,26 @@ public class ScriptDocument {
                 // Check global fields
                 if (globalFields.containsKey(name)) {
                     FieldInfo fieldInfo = globalFields.get(name);
-                    Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
-                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
-                    continue;
+                    if (fieldInfo.getDeclarationOffset() == position) {
+                        Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
+                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
+                        continue;
+                    }
                 }
+                
+                for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+                    if (scriptType.hasField(name)) {
+                        FieldInfo fieldInfo = scriptType.getFieldInfo(name);
+                        if (fieldInfo.getDeclarationOffset() == position) {
+
+                            Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo,
+                                    callInfo) : fieldInfo;
+                            marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
+                            continue;
+                        }
+                    }
+                }
+                
 
                 // Skip uppercase if not a known field - type handling will deal with it
                 if (isUppercase)
