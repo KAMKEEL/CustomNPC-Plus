@@ -65,6 +65,10 @@ public class FieldAccessInfo {
         return isStaticAccess;
     }
 
+    public boolean isEnumConstantAccess() {
+        return resolvedField != null && resolvedField.isEnumConstant();
+    }
+    
     public TypeInfo getExpectedType() {
         return expectedType;
     }

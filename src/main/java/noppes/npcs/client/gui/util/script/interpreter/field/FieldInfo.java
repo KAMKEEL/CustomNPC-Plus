@@ -50,17 +50,14 @@ public final class FieldInfo {
 
     // Declaration assignment (for initial value validation)
     private AssignmentInfo declarationAssignment;
-    
-    // For enum constants: the arguments passed to the constructor (null if no args or not enum constant)
-    private final String enumConstantArgs;
-    
-    // For enum constants: the containing enum type
-    private final TypeInfo containingEnumType;
 
+    // Enum constant specific info
+    private EnumConstantInfo enumConstantInfo;
+    
     private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
                       int declarationOffset, boolean resolved, MethodInfo containingMethod,
                       String documentation, int initStart, int initEnd, int modifiers,
-                      Field reflectionField, String enumConstantArgs, TypeInfo containingEnumType) {
+                      Field reflectionField) {
         this.name = name;
         this.scope = scope;
         this.declaredType = declaredType;
@@ -72,17 +69,6 @@ public final class FieldInfo {
         this.initEnd = initEnd;
         this.modifiers = modifiers;
         this.reflectionField = reflectionField;
-        this.enumConstantArgs = enumConstantArgs;
-        this.containingEnumType = containingEnumType;
-    }
-    
-    // Private constructor for backward compatibility
-    private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
-                      int declarationOffset, boolean resolved, MethodInfo containingMethod,
-                      String documentation, int initStart, int initEnd, int modifiers,
-                      Field reflectionField) {
-        this(name, scope, declaredType, declarationOffset, resolved, containingMethod,
-             documentation, initStart, initEnd, modifiers, reflectionField, null, null);
     }
 
     // Factory methods
@@ -162,11 +148,18 @@ public final class FieldInfo {
         // Enum constants are implicitly public static final
         int modifiers = Modifier.PUBLIC | Modifier.STATIC | Modifier.FINAL;
         return new FieldInfo(name, Scope.ENUM_CONSTANT, type, declOffset, true, null, null, initStart, initEnd,
-                             modifiers, null, args, containingEnum);
+                modifiers, null);
     }
-    
-    // ==================== ERROR HANDLING ====================
-    
+
+    // ==================== ENUM HANDLING ====================
+
+    public void setEnumConstantInfo(EnumConstantInfo enumConstantInfo) {
+        this.enumConstantInfo = enumConstantInfo;
+    }
+
+    public EnumConstantInfo getEnumInfo() {
+        return enumConstantInfo;
+    }
     /**
      * Check if this is an enum constant.
      */
@@ -174,19 +167,6 @@ public final class FieldInfo {
         return scope == Scope.ENUM_CONSTANT;
     }
     
-    /**
-     * Get the enum constant args (for enum constants only).
-     */
-    public String getEnumConstantArgs() {
-        return enumConstantArgs;
-    }
-    
-    /**
-     * Get the containing enum type (for enum constants only).
-     */
-    public TypeInfo getContainingEnumType() {
-        return containingEnumType;
-    }
 
     // ==================== ASSIGNMENT MANAGEMENT ====================
 

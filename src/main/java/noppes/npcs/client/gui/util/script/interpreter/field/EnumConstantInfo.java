@@ -6,6 +6,8 @@ import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -133,6 +135,7 @@ public class EnumConstantInfo {
             );
             
             EnumConstantInfo constantInfo = new EnumConstantInfo(fieldInfo, constructorCall, enumType);
+            fieldInfo.setEnumConstantInfo(constantInfo);
             constants.add(constantInfo);
 
             lastEnd = m.end();
