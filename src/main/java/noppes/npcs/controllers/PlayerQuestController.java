@@ -136,10 +136,14 @@ public class PlayerQuestController {
             return player.worldObj.getTotalWorldTime() - questTime >= 24000;
         } else if (quest.repeat == EnumQuestRepeat.MCWEEKLY) {
             return player.worldObj.getTotalWorldTime() - questTime >= 168000;
+        } else if (quest.repeat == EnumQuestRepeat.MCCUSTOM) {
+            return player.worldObj.getTotalWorldTime() - questTime >= quest.customCooldown;
         } else if (quest.repeat == EnumQuestRepeat.RLDAILY) {
             return System.currentTimeMillis() - questTime >= 86400000;
         } else if (quest.repeat == EnumQuestRepeat.RLWEEKLY) {
             return System.currentTimeMillis() - questTime >= 604800000;
+        } else if (quest.repeat == EnumQuestRepeat.RLCUSTOM) {
+            return System.currentTimeMillis() - questTime >= quest.customCooldown;
         }
         return false;
     }
