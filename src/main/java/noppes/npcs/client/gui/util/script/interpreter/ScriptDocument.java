@@ -3680,55 +3680,80 @@ public class ScriptDocument {
             // Otherwise, let type handling (markImportedClassUsages) handle it
             boolean isUppercase = Character.isUpperCase(name.charAt(0));
 
-            if (containingMethod != null) {
-                // Check parameters
-                if (containingMethod.hasParameter(name)) {
-                    FieldInfo paramInfo = containingMethod.getParameter(name);
-                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER, paramInfo));
-                    continue;
-                }
+            // Scope resolution order:
+            // 1. Method parameters (if inside method)
+            // 2. Method local variables (if inside method)
+            // 3. Enclosing type fields (if inside method)
+            // 4. Global fields
+            // 5. Script type fields
+            
+            // Check parameters first (method scope)
+            if (containingMethod != null && containingMethod.hasParameter(name)) {
+                FieldInfo paramInfo = containingMethod.getParameter(name);
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.PARAMETER, paramInfo));
+                continue;
+            }
 
-                // Check local variables
+            // Check local variables (method scope)
+            if (containingMethod != null) {
                 Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
                 if (locals != null && locals.containsKey(name)) {
                     FieldInfo localInfo = locals.get(name);
-                    // Only highlight if the position is after the declaration
                     if (localInfo.isVisibleAt(position)) {
                         Object metadata = callInfo != null ? new FieldInfo.ArgInfo(localInfo, callInfo) : localInfo;
                         marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.LOCAL_FIELD, metadata));
                         continue;
                     }
                 }
-            } else {
-                // Check global fields
-                if (globalFields.containsKey(name)) {
-                    FieldInfo fieldInfo = globalFields.get(name);
-                    if (fieldInfo.getDeclarationOffset() == position) {
+            }
+
+            // Check enclosing type fields (when inside method)
+            if (containingMethod != null) {
+                ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+                if (enclosingType != null && enclosingType.hasField(name)) {
+                    FieldInfo fieldInfo = enclosingType.getFieldInfo(name);
+                    if (fieldInfo.isVisibleAt(position)) {
                         Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
                         marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
                         continue;
                     }
                 }
-                
-                for (ScriptTypeInfo scriptType : scriptTypes.values()) {
-                    if (scriptType.hasField(name)) {
-                        FieldInfo fieldInfo = scriptType.getFieldInfo(name);
-                        if (fieldInfo.getDeclarationOffset() == position) {
+            }
 
-                            Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo,
-                                    callInfo) : fieldInfo;
+            // Check other script type fields (only if position is within that type's boundaries)
+            for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+                if (scriptType.hasField(name)) {
+                    // Only check if position is within this script type's class body
+                    if (position >= scriptType.getBodyStart() && position <= scriptType.getBodyEnd()) {
+                        FieldInfo fieldInfo = scriptType.getFieldInfo(name);
+                        if(fieldInfo.isEnumConstant())
+                            continue;
+                        
+                        if (fieldInfo.isVisibleAt(position)) {
+                            Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
                             marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
                             continue;
                         }
                     }
                 }
-                
-
-                // Skip uppercase if not a known field - type handling will deal with it
-                if (isUppercase)
+            }
+            
+            // Check global fields
+            if (globalFields.containsKey(name)) {
+                FieldInfo fieldInfo = globalFields.get(name);
+                if (fieldInfo.isVisibleAt(position)) {
+                    Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
+                    marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
                     continue;
+                }
+            }
 
-                // Unknown variable inside method - mark as undefined
+            // Skip uppercase if not a known field - type handling will deal with it
+            if (isUppercase)
+                continue;
+
+            // Unknown variable - mark as undefined
+            if (containingMethod != null) {
                 marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.UNDEFINED_VAR, callInfo));
             }
         }
