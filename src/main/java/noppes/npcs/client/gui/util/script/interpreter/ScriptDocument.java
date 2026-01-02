@@ -1371,7 +1371,7 @@ public class ScriptDocument {
         return result.isEmpty() ? null : result;
     }
 
-    private TypeInfo resolveType(String typeName) {
+    TypeInfo resolveType(String typeName) {
         return resolveTypeAndTrackUsage(typeName);
     }
     
@@ -2460,7 +2460,7 @@ public class ScriptDocument {
      * 
      * This is THE method that should be used for all type resolution needs.
      */
-    private TypeInfo resolveExpressionType(String expr, int position) {
+    TypeInfo resolveExpressionType(String expr, int position) {
         expr = expr.trim();
         
         if (expr.isEmpty()) {
@@ -2742,7 +2742,7 @@ public class ScriptDocument {
      * @param methodNameStart The start position of the method name
      * @return The TypeInfo of the final receiver, or null if no receiver or couldn't resolve
      */
-    private TypeInfo resolveReceiverChain(int methodNameStart) {
+    TypeInfo resolveReceiverChain(int methodNameStart) {
         // First check if preceded by a dot
         int scanPos = methodNameStart - 1;
         while (scanPos >= 0 && Character.isWhitespace(text.charAt(scanPos)))
@@ -3357,7 +3357,7 @@ public class ScriptDocument {
      * of the receiver expression immediately to the left of the dot. The end
      * returned will be the dot index (exclusive). Returns null if not found or malformed.
      */
-    private int[] findReceiverBoundsBefore(int dotIndex) {
+    int[] findReceiverBoundsBefore(int dotIndex) {
         if (dotIndex < 0 || dotIndex >= text.length() || text.charAt(dotIndex) != '.') {
             return null;
         }
@@ -3368,6 +3368,12 @@ public class ScriptDocument {
         if (pos < 0) return null;
 
         while (pos >= 0) {
+            // Check if we're in a comment range (but not string range)
+            // Skip comments to avoid picking up types from comment text
+            if (isInCommentRange(pos)) {
+                return null;
+            }
+            
             char c = text.charAt(pos);
             if (Character.isWhitespace(c)) { pos--; continue; }
 
@@ -3406,7 +3412,7 @@ public class ScriptDocument {
      * Find the script-defined type that contains the given position.
      * Used for resolving 'this' references.
      */
-    private ScriptTypeInfo findEnclosingScriptType(int position) {
+    ScriptTypeInfo findEnclosingScriptType(int position) {
         for (ScriptTypeInfo type : scriptTypes.values()) {
             if (type.containsPosition(position)) {
                 return type;
@@ -3703,386 +3709,10 @@ public class ScriptDocument {
      * Does NOT mark method calls (identifiers followed by parentheses) - those are handled by markMethodCalls.
      */
     private void markChainedFieldAccesses(List<ScriptLine.Mark> marks) {
-        // Pattern to find identifier chains: identifier.identifier, this.identifier, super.identifier, etc.
-        // Start with an identifier, 'this', or 'super' followed by at least one dot and another identifier
-        Pattern chainPattern = Pattern.compile(
-                "\\b(this|super|[a-zA-Z_][a-zA-Z0-9_]*)\\s*\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
-        Matcher m = chainPattern.matcher(text);
- 
-        while (m.find()) {
-            int chainStart = m.start(1);
-
-            if (isExcluded(chainStart))
-                continue;
-
-            // Skip import/package statements
-            if (isInImportOrPackage(chainStart))
-                continue;
-
-            // Check if the SECOND segment is a method call (followed by parentheses)
-            // If so, we skip this match entirely - markMethodCalls will handle it
-            int afterSecond = m.end(2);
-            int checkPos = afterSecond;
-            while (checkPos < text.length() && Character.isWhitespace(text.charAt(checkPos)))
-                checkPos++;
-            if (checkPos < text.length() && text.charAt(checkPos) == '(') {
-                // This is "something.methodCall()" - skip, handled by markMethodCalls
-                continue;
-            }
-
-            // Build the full chain by continuing to match subsequent .identifier patterns
-            List<String> chainSegments = new ArrayList<>();
-            List<int[]> segmentPositions = new ArrayList<>(); // [start, end] for each segment
-
-            String firstSegment = m.group(1);
-            chainSegments.add(firstSegment);
-            segmentPositions.add(new int[]{m.start(1), m.end(1)});
-
-            String secondSegment = m.group(2);
-            chainSegments.add(secondSegment);
-            segmentPositions.add(new int[]{m.start(2), m.end(2)});
-
-            // Continue reading more segments
-            int pos = m.end(2);
-            while (pos < text.length()) {
-                // Skip whitespace
-                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
-                    pos++;
-
-                if (pos >= text.length() || text.charAt(pos) != '.')
-                    break;
-                pos++; // Skip the dot
-
-                // Skip whitespace after dot
-                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
-                    pos++;
-
-                if (pos >= text.length() || !Character.isJavaIdentifierStart(text.charAt(pos)))
-                    break;
-
-                // Read next identifier
-                int identStart = pos;
-                while (pos < text.length() && Character.isJavaIdentifierPart(text.charAt(pos)))
-                    pos++;
-                int identEnd = pos;
-
-                // Check if this is followed by parentheses (method call - stop)
-                int checkPosInner = pos;
-                while (checkPosInner < text.length() && Character.isWhitespace(text.charAt(checkPosInner)))
-                    checkPosInner++;
-                if (checkPosInner < text.length() && text.charAt(checkPosInner) == '(') {
-                    break; // This is a method call, not a field
-                }
-
-                chainSegments.add(text.substring(identStart, identEnd));
-                segmentPositions.add(new int[]{identStart, identEnd});
-            }
-
-            // Now resolve the chain type by type
-            // Start with resolving the first segment
-            TypeInfo currentType = null;
-            boolean firstIsThis = firstSegment.equals("this");
-            boolean firstIsSuper = firstSegment.equals("super");
-            boolean firstIsPrecededByDot = isPrecededByDot(chainStart);
-            
-            // Determine the starting index for marking
-            // If the first segment is preceded by a dot, it's a field access (not a variable), so we should mark it
-            int startMarkingIndex = firstIsPrecededByDot ? 0 : 1;
-
-            if (firstIsThis) {
-                // For 'this', we don't have a class context to resolve, but we can mark subsequent fields
-                // as global fields if they exist in globalFields
-                currentType = null; // We'll use globalFields for the next segment
-            } else if (firstIsSuper) {
-                // For 'super', resolve to parent class type
-                ScriptTypeInfo enclosingType = findEnclosingScriptType(chainStart);
-                if (enclosingType != null && enclosingType.hasSuperClass()) {
-                    currentType = enclosingType.getSuperClass(); 
-                    if (currentType == null || !currentType.isResolved()) {
-                        // Mark 'super' as error - parent class not resolved
-                        marks.add(new ScriptLine.Mark(segmentPositions.get(0)[0], segmentPositions.get(0)[1],
-                                TokenType.UNDEFINED_VAR, TokenErrorMessage
-                                .from("Cannot resolve parent class '" + enclosingType.getSuperClassName() + "'")
-                                .clearOtherErrors()));
-                        return; // Can't continue
-                    }
-                } else {
-                    // Mark 'super' as error - no parent class
-                    String errorMsg = enclosingType == null ? "'super' can only be used within a class" : "Class '" + enclosingType.getSimpleName() + "' does not have a parent class";
-                    marks.add(new ScriptLine.Mark(segmentPositions.get(0)[0], segmentPositions.get(0)[1],
-                            TokenType.UNDEFINED_VAR, TokenErrorMessage.from(errorMsg).clearOtherErrors()));
-                    return; // Can't continue
-                }
-                marks.add(new ScriptLine.Mark(segmentPositions.get(0)[0], segmentPositions.get(0)[1],
-                        TokenType.IMPORT_KEYWORD, currentType));
-            } else {
-                // Try to resolve as a type first (class/interface/enum name)
-                TypeInfo typeCheck = resolveType(firstSegment);
-                if (typeCheck != null && typeCheck.isResolved()) {
-                    // Static field access like SomeClass.field or scriptType.field
-                    currentType = typeCheck;
-                } else if (firstIsPrecededByDot) {
-                    // This is a field access on a previous result (e.g., getMinecraft().thePlayer)
-                    // Resolve the receiver chain to get the type of what comes before the dot
-                    TypeInfo receiverType = resolveReceiverChain(chainStart);
-                    if (receiverType != null && receiverType.hasField(firstSegment)) {
-                        FieldInfo varInfo = receiverType.getFieldInfo(firstSegment);
-                        currentType = (varInfo != null) ? varInfo.getTypeInfo() : null;
-                    } else {
-                        currentType = null; // Can't resolve
-                    }
-                } else {
-                    // This is a variable starting the chain
-                    FieldInfo varInfo = resolveVariable(firstSegment, chainStart);
-                    if (varInfo != null) {
-                        currentType = varInfo.getTypeInfo();
-                    } else {
-                        currentType = null;
-                    }
-                }
-            }
-
-            // Mark the segments - start from index determined above
-            for (int i = startMarkingIndex; i < chainSegments.size(); i++) {
-                String segment = chainSegments.get(i);
-                int[] segPos = segmentPositions.get(i);
-
-                if (isExcluded(segPos[0]))
-                    continue;
-
-                boolean isLastSegment = (i == chainSegments.size() - 1);
-                boolean isStaticAccess = false;
-                if (i - 1 >= 0) {
-                    String prev = chainSegments.get(i - 1);
-                    // Check if previous segment is a class/type name (indicating static access)
-                    TypeInfo prevType = resolveType(prev);
-                    if (prevType != null && prevType.isResolved()) {
-                        isStaticAccess = true;
-                    }
-                }
-                
-                // Handle the first segment if we're marking it (i.e., when preceded by dot)
-                if (i == 0 && firstIsPrecededByDot) {
-                    // This is a field access on a receiver (e.g., the "thePlayer" in "getMinecraft().thePlayer")
-                    TypeInfo receiverType = resolveReceiverChain(chainStart);
-                    if (receiverType != null && receiverType.hasField(segment)) {
-                        FieldInfo fieldInfo = receiverType.getFieldInfo(segment);
-                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], receiverType, fieldInfo, isLastSegment, isStaticAccess);
-
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
-                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
-                    } else {
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
-                        currentType = null;
-                    }
-                } else if (i == 1 && firstIsThis) {
-                    // For "this.field", check if field exists in globalFields
-                    if (globalFields.containsKey(segment)) {
-                        FieldInfo fieldInfo = globalFields.get(segment);
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, fieldInfo));
-                        currentType = fieldInfo.getTypeInfo();
-                    } else {
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
-                        currentType = null;
-                    }
-                } else if (i == 1 && firstIsSuper) {
-                    // For "super.field", currentType is already the parent class
-                    // Search recursively through the inheritance hierarchy
-                    boolean found = false;
-                    FieldInfo fieldInfo = null;
-
-                    if (currentType != null) {
-                        if (currentType instanceof ScriptTypeInfo) {
-                            found = ((ScriptTypeInfo) currentType).hasFieldInHierarchy(segment);
-                            if (found) {
-                                fieldInfo = ((ScriptTypeInfo) currentType).getFieldInfoInHierarchy(segment);
-                            }
-                        } else {
-                            // For Java classes, hasField already checks inheritance
-                            found = currentType.hasField(segment);
-                            if (found) {
-                                fieldInfo = currentType.getFieldInfo(segment);
-                            }
-                        }
-                    }
-
-                    if (found) {
-                        FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1], currentType,
-                                fieldInfo, isLastSegment, false);
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
-                        currentType = (fieldInfo != null) ? fieldInfo.getTypeInfo() : null;
-                    } else {
-                        String errorMsg = currentType != null ? "Field '" + segment + "' not found in parent class hierarchy starting from '" + currentType.getSimpleName() + "'" : "Cannot resolve field '" + segment + "'";
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR,
-                                TokenErrorMessage.from(errorMsg).clearOtherErrors()));
-                        currentType = null;
-                    }
-                } else if (currentType != null && currentType.isResolved()) {
-                    // Check if this type has this field
-                    if (currentType.hasField(segment)) {
-                        FieldInfo fieldInfo = currentType.getFieldInfo(segment);
-
-                        // If accessing from a class name (isStaticAccessSeg) and field is not static, that's an error
-                        if (isStaticAccess && fieldInfo != null && !fieldInfo.isStatic()) {
-                            // Mark as error - trying to access non-static field from static context
-                            TokenErrorMessage errorMsg = TokenErrorMessage
-                                    .from("Cannot access non-static field '" + segment + "' from static context '" + currentType.getSimpleName() + "'")
-                                    .clearOtherErrors();
-                            marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR, errorMsg));
-                            currentType = null; // Can't continue resolving
-                        } else {
-                            // Valid access
-                            FieldAccessInfo accessInfo = createFieldAccessInfo(segment, segPos[0], segPos[1],
-                                    currentType, fieldInfo, isLastSegment, isStaticAccess);
-                            marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.GLOBAL_FIELD, accessInfo));
-
-                            // Update currentType for next segment
-                            currentType = (fieldInfo != null && fieldInfo.getTypeInfo() != null) ? fieldInfo.getTypeInfo() : null;
-                        }
-                    } else {
-                        marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
-                        currentType = null; // Can't continue resolving
-                    }
-                } else {
-                    // Can't resolve - mark as undefined
-                    marks.add(new ScriptLine.Mark(segPos[0], segPos[1], TokenType.UNDEFINED_VAR));
-                    currentType = null;
-                }
-            }
-        }
-
-        // Second pass: handle cases where the receiver is a method call or array access
-        // Example: getMinecraft().thePlayer -> initial chainPattern won't match because
-        // the left side isn't a simple identifier. Find ".identifier" occurrences where
-        // the char before the dot ends with ')' or ']' and resolve the receiver expression.
-        Pattern dotIdent = Pattern.compile("\\.\\s*([a-zA-Z_][a-zA-Z0-9_]*)");
-        Matcher md = dotIdent.matcher(text);
-        while (md.find()) {
-            int identStart = md.start(1);
-            int identEnd = md.end(1);
-            int dotPos = md.start();
-
-            // Skip if excluded or in import/package
-            if (isExcluded(identStart) || isInImportOrPackage(identStart))
-                continue;
-
-            // Find non-whitespace char before the dot
-            int before = dotPos - 1;
-            while (before >= 0 && Character.isWhitespace(text.charAt(before)))
-                before--;
-            if (before < 0)
-                continue;
-
-            char bc = text.charAt(before);
-            // Only handle when left side ends with ')' or ']' (method call or array access)
-            if (bc != ')' && bc != ']')
-                continue;
-
-            // Extract receiver bounds and resolve its type
-            int[] bounds = findReceiverBoundsBefore(dotPos);
-            if (bounds == null)
-                continue;
-            int recvStart = bounds[0];
-            int recvEnd = bounds[1];
-
-            if (isExcluded(recvStart) || isInImportOrPackage(recvStart))
-                continue;
-
-            String receiverExpr = text.substring(recvStart, recvEnd).trim();
-            if (receiverExpr.isEmpty())
-                continue;
-
-            TypeInfo receiverType = resolveExpressionType(receiverExpr, recvStart);
-
-            // Now mark the first field after the dot and continue chaining
-            String firstField = md.group(1);
-            FieldInfo fInfo = null;
-            if (receiverType != null && receiverType.hasField(firstField)) {
-                fInfo = receiverType.getFieldInfo(firstField);
-                
-                // Check if there are more segments after this one
-                boolean hasMoreSegments = false;
-                int checkPos = identEnd;
-                while (checkPos < text.length() && Character.isWhitespace(text.charAt(checkPos)))
-                    checkPos++;
-                if (checkPos < text.length() && text.charAt(checkPos) == '.') {
-                    hasMoreSegments = true;
-                }
-                
-                boolean isStaticAccessFirst = false;
-                if (receiverType != null) {
-                    String recvName = receiverType.getSimpleName();
-                    if (recvName != null && !recvName.isEmpty() && Character.isUpperCase(recvName.charAt(0)))
-                        isStaticAccessFirst = true;
-                }
-                FieldAccessInfo accessInfoFirst = createFieldAccessInfo(firstField, identStart, identEnd, receiverType, fInfo, !hasMoreSegments, isStaticAccessFirst);
-                marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.GLOBAL_FIELD, accessInfoFirst));
-            } else {
-                marks.add(new ScriptLine.Mark(identStart, identEnd, TokenType.UNDEFINED_VAR));
-            }
-
-            // Attempt to continue the chain after this identifier
-            int pos = identEnd;
-            TypeInfo currentType = (fInfo != null) ? fInfo.getTypeInfo() : null;
-            while (pos < text.length()) {
-                // Skip whitespace
-                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
-                    pos++;
-                if (pos >= text.length() || text.charAt(pos) != '.')
-                    break;
-                pos++; // skip dot
-                // Skip whitespace
-                while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
-                    pos++;
-                if (pos >= text.length() || !Character.isJavaIdentifierStart(text.charAt(pos)))
-                    break;
-
-                int nStart = pos;
-                while (pos < text.length() && Character.isJavaIdentifierPart(text.charAt(pos)))
-                    pos++;
-                int nEnd = pos;
-                String seg = text.substring(nStart, nEnd);
-
-                // Check if next segment is a method call (followed by '(') -> stop
-                int checkPosInner = nEnd;
-                while (checkPosInner < text.length() && Character.isWhitespace(text.charAt(checkPosInner)))
-                    checkPosInner++;
-                if (checkPosInner < text.length() && text.charAt(checkPosInner) == '(')
-                    break;
-
-                if (isExcluded(nStart))
-                    break;
-
-                // Check if this is the last segment (no more dots after)
-                boolean isLastSegment = true;
-                int checkNext = nEnd;
-                while (checkNext < text.length() && Character.isWhitespace(text.charAt(checkNext)))
-                    checkNext++;
-                if (checkNext < text.length() && text.charAt(checkNext) == '.') {
-                    isLastSegment = false;
-                }
-
-                if (currentType != null && currentType.isResolved() && currentType.hasField(seg)) {
-                    FieldInfo segInfo = currentType.getFieldInfo(seg);
-                    
-                    boolean isStaticAccessSeg2 = false;
-                    if (currentType != null) {
-                        String tn = currentType.getSimpleName();
-                        if (tn != null && !tn.isEmpty() && Character.isUpperCase(tn.charAt(0)))
-                            isStaticAccessSeg2 = true;
-                    }
-                    FieldAccessInfo accessInfoSeg = createFieldAccessInfo(seg, nStart, nEnd, currentType, segInfo, isLastSegment, isStaticAccessSeg2);
-                    marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.GLOBAL_FIELD, accessInfoSeg));
-                    
-                    currentType = (segInfo != null) ? segInfo.getTypeInfo() : null;
-                } else {
-                    marks.add(new ScriptLine.Mark(nStart, nEnd, TokenType.UNDEFINED_VAR));
-                    currentType = null;
-                }
-            }
-        }
-
+        FieldChainMarker marker = new FieldChainMarker(this, text);
+        marker.markChainedFieldAccesses(marks);
     }
+
     
     /**
      * Parse assignment statements (reassignments, not declarations) and validate type compatibility.
@@ -4913,7 +4543,7 @@ public class ScriptDocument {
      * Helper to create and validate a FieldAccessInfo. Does NOT add marks or register the info —
      * callers should add to `fieldAccesses` and `marks` as appropriate so marking logic remains in-place.
      */
-    private FieldAccessInfo createFieldAccessInfo(String name, int start, int end,
+    FieldAccessInfo createFieldAccessInfo(String name, int start, int end,
                                                   TypeInfo receiverType, FieldInfo fieldInfo,
                                                   boolean isLastSegment, boolean isStaticAccess) {
         FieldAccessInfo accessInfo = new FieldAccessInfo(name, start, end, receiverType, fieldInfo, isStaticAccess);
@@ -4928,7 +4558,7 @@ public class ScriptDocument {
         return accessInfo;
     }
 
-    private FieldInfo resolveVariable(String name, int position) {
+    FieldInfo resolveVariable(String name, int position) {
         // Find containing method
         MethodInfo containingMethod = findMethodAtPosition(position);
         
@@ -4962,7 +4592,7 @@ public class ScriptDocument {
         return null;
     }
 
-    private boolean isPrecededByDot(int position) {
+    boolean isPrecededByDot(int position) {
         if (position <= 0)
             return false;
         int i = position - 1;
@@ -4971,22 +4601,7 @@ public class ScriptDocument {
         return i >= 0 && text.charAt(i) == '.';
     }
 
-    private boolean isFollowedByParen(int position) {
-        int i = position;
-        while (i < text.length() && Character.isWhitespace(text.charAt(i)))
-            i++;
-        return i < text.length() && text.charAt(i) == '(';
-    }
-
-    private boolean isFollowedByDot(int position) {
-        // Start checking after the given position (e.g. after a closing paren)
-        int i = position + 1;
-        while (i < text.length() && Character.isWhitespace(text.charAt(i)))
-            i++;
-        return i < text.length() && text.charAt(i) == '.';
-    }
-
-    private boolean isInImportOrPackage(int position) {
+    boolean isInImportOrPackage(int position) {
         if (position < 0 || position >= text.length())
             return false;
 
