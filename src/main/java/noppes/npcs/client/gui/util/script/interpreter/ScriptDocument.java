@@ -3638,7 +3638,10 @@ public class ScriptDocument {
         ));
 
         // First pass: mark method parameters in their declaration positions
-        for (MethodInfo method : getAllMethods()) {
+        List<MethodInfo> allMethods = getAllMethods();
+        allMethods.addAll(getAllConstructors());
+
+        for (MethodInfo method : allMethods) {
             for (FieldInfo param : method.getParameters()) {
                 int pos = param.getDeclarationOffset();
                 String name = param.getName();
@@ -4750,6 +4753,15 @@ public class ScriptDocument {
         
         return allMethods;
     }
+
+    public List<MethodInfo> getAllConstructors() {
+        List<MethodInfo> allConstructors = new ArrayList<>();
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            allConstructors.addAll(scriptType.getConstructors());
+        }
+        return allConstructors;
+    }
+    
     public List<MethodCallInfo> getMethodCalls() {
         List<MethodCallInfo> allCalls = new ArrayList<>(methodCalls);
 
