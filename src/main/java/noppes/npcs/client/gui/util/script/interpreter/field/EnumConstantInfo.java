@@ -207,10 +207,6 @@ public class EnumConstantInfo {
         }
 
         try {
-            Class<?> enumClass = enumType.getJavaClass();
-
-
-            // Create FieldInfo from the reflection field
             FieldInfo fieldInfo = FieldInfo.enumConstant(
                     constantName,
                     enumType,
@@ -220,33 +216,7 @@ public class EnumConstantInfo {
                     javaField
             );
 
-            // Create a MethodCallInfo for the constructor validation
-            // Get constructors from the Java enum class itself
-            Constructor<?>[] javaConstructors = enumClass.getDeclaredConstructors();
-            Constructor<?> matchedConstructor = null;
-
-            // Find the primary constructor (usually the first one)
-            if (javaConstructors.length > 0) {
-                matchedConstructor = javaConstructors[0];
-            }
-
-            // Create MethodCallInfo for the constructor call
-            // For reflection-based enums, we don't have actual position info, so use -1
-            MethodCallInfo constructorCall = null;
-            if (matchedConstructor != null) {
-                constructorCall = new MethodCallInfo(
-                        constantName,     // Method name
-                        -1,               // No position info for reflection
-                        -1,               // No paren position
-                        -1,               // No open paren position
-                        -1,               // No close paren position
-                        new ArrayList<>(), // Empty arguments (reflection doesn't give us this)
-                        enumType,         // Receiver is the enum type
-                        null              // No MethodInfo for reflection-based constructor
-                );
-                constructorCall.setConstructor(true);
-            }
-            EnumConstantInfo enumInfo = new EnumConstantInfo(fieldInfo, constructorCall, enumType);
+            EnumConstantInfo enumInfo = new EnumConstantInfo(fieldInfo, null, enumType);
             fieldInfo.setEnumConstantInfo(enumInfo);
             return enumInfo;
         } catch (SecurityException e) {
