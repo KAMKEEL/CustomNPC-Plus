@@ -206,6 +206,9 @@ public class Token {
                type == TokenType.ENUM_DECL;
     }
 
+    public boolean isEnumConstant() {
+        return type == TokenType.ENUM_CONSTANT;
+    }
     public boolean isResolved() {
         if (typeInfo != null) return typeInfo.isResolved();
         if (fieldInfo != null) return fieldInfo.isResolved();

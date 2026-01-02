@@ -184,7 +184,7 @@ public class TokenHoverInfo {
         }
         
         // Show method-level errors if this is the method name itself
-        MethodCallInfo callInfo = token.getMethodCallInfo();
+        MethodCallInfo callInfo = token.isEnumConstant()? containingCall : token.getMethodCallInfo();
         if (callInfo != null) {
             if (callInfo.hasArgCountError()) {
                 errors.add(callInfo.getErrorMessage());
@@ -337,12 +337,18 @@ public class TokenHoverInfo {
         
         ScriptDocument doc = line.getParent();
         int tokenStart = token.getGlobalStart();
-        
+
         for (MethodCallInfo call : doc.getMethodCalls()) {
+            boolean isWithinName = tokenStart >= call.getMethodNameStart() && tokenStart <= call.getMethodNameEnd();
+            
+            // If this is an enum constant, return methodCall on name itself
+            if (token.isEnumConstant() && isWithinName)
+                return call;
+
             // Check if token is within the argument list
             if (tokenStart >= call.getOpenParenOffset() && tokenStart <= call.getCloseParenOffset()) {
                 // Make sure it's not the method name itself
-                if (tokenStart >= call.getMethodNameStart() && tokenStart <= call.getMethodNameEnd()) {
+                if (isWithinName) {
                     continue;
                 }
                 return call;
