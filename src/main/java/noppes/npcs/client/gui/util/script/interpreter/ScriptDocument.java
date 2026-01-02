@@ -1749,9 +1749,8 @@ public class ScriptDocument {
      */
     private void markEnumConstants(List<ScriptLine.Mark> marks) {
         for (ScriptTypeInfo scriptType : scriptTypes.values()) {
-            if (scriptType.getKind() != TypeInfo.Kind.ENUM) {
+            if (!scriptType.isEnum()) 
                 continue;
-            }
 
             // Mark each enum constant
             for (EnumConstantInfo constant : scriptType.getEnumConstants().values()) {
@@ -1761,7 +1760,7 @@ public class ScriptDocument {
 
                 // Always use ENUM_CONSTANT token type (blue + bold + italic)
                 // Errors are shown via underline, not by changing the token type
-                marks.add(new ScriptLine.Mark(start, end, TokenType.ENUM_CONSTANT, constant));
+                marks.add(new ScriptLine.Mark(start, end, TokenType.ENUM_CONSTANT, fieldInfo));
             }
         }
     }
