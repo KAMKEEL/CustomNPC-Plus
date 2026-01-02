@@ -295,6 +295,21 @@ public class ScriptDocument {
         return false;
     }
 
+    /**
+     * Check if a position is within a comment range (not string).
+     * Used to skip comment text when scanning for identifiers.
+     */
+    private boolean isInCommentRange(int position) {
+        // Check if position is in a comment by checking against COMMENT_PATTERN
+        Matcher m = COMMENT_PATTERN.matcher(text);
+        while (m.find()) {
+            if (position >= m.start() && position < m.end()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     // ==================== PHASE 2: IMPORTS ====================
 
     private void parseImports() {
@@ -4616,6 +4631,25 @@ public class ScriptDocument {
             return true;
         }
         return false;
+    }
+
+    /** Check if position is followed by '(' (method call) */
+    boolean isFollowedByParen(int pos) {
+        int check = skipWhitespace(pos);
+        return check < text.length() && text.charAt(check) == '(';
+    }
+
+    /** Check if position is followed by '.' */
+    boolean isFollowedByDot(int pos) {
+        int check = skipWhitespace(pos);
+        return check < text.length() && text.charAt(check) == '.';
+    }
+
+    /** Skip whitespace and return new position */
+    int skipWhitespace(int pos) {
+        while (pos < text.length() && Character.isWhitespace(text.charAt(pos)))
+            pos++;
+        return pos;
     }
 
     private MethodInfo findMethodAtPosition(int position) {
