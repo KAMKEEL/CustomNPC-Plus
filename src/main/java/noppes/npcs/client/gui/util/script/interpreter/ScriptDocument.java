@@ -161,7 +161,7 @@ public class ScriptDocument {
      * Check if this is a JavaScript/ECMAScript document.
      */
     public boolean isJavaScript() {
-        return "ECMAScript".equalsIgnoreCase(language);
+        return false;//"ECMAScript".equalsIgnoreCase(language);
     }
 
     // ==================== TEXT MANAGEMENT ====================
@@ -2592,7 +2592,7 @@ public class ScriptDocument {
      * 
      * This is THE method that should be used for all type resolution needs.
      */
-    TypeInfo resolveExpressionType(String expr, int position) {
+    public TypeInfo resolveExpressionType(String expr, int position) {
         expr = expr.trim();
         
         if (expr.isEmpty()) {
@@ -5182,5 +5182,48 @@ public class ScriptDocument {
         }
 
         return null;
+    }
+    
+    // ==================== AUTOCOMPLETE SUPPORT ====================
+    
+    /**
+     * Find the method that contains the given position.
+     * Public accessor for autocomplete.
+     */
+    public MethodInfo findContainingMethod(int position) {
+        return findMethodAtPosition(position);
+    }
+    
+    /**
+     * Get local variables for a specific method.
+     * Used by autocomplete to show variables in scope.
+     */
+    public Map<String, FieldInfo> getLocalsForMethod(MethodInfo method) {
+        if (method == null) return null;
+        return methodLocals.get(method.getDeclarationOffset());
+    }
+    
+    /**
+     * Get all imported types that have been resolved.
+     * Used by autocomplete to show available types.
+     */
+    public List<TypeInfo> getImportedTypes() {
+        List<TypeInfo> types = new ArrayList<>();
+        for (ImportData imp : imports) {
+            if (!imp.isWildcard() && imp.isResolved()) {
+                TypeInfo type = typeResolver.resolveSimpleName(imp.getSimpleName(), importsBySimpleName, wildcardPackages);
+                if (type != null && type.isResolved()) {
+                    types.add(type);
+                }
+            }
+        }
+        return types;
+    }
+    
+    /**
+     * Get script types as a Map (needed by autocomplete).
+     */
+    public Map<String, ScriptTypeInfo> getScriptTypesMap() {
+        return Collections.unmodifiableMap(scriptTypes);
     }
 }

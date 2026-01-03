@@ -20,6 +20,7 @@ import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.hover.GutterIconRenderer;
 import noppes.npcs.client.gui.util.script.interpreter.hover.HoverState;
 import noppes.npcs.client.gui.util.script.interpreter.hover.TokenHoverRenderer;
+import noppes.npcs.client.gui.util.script.autocomplete.AutocompleteManager;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
@@ -119,6 +120,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     // ==================== RENAME REFACTOR ====================
     private final RenameRefactorHandler renameHandler = new RenameRefactorHandler();
+
+    // ==================== AUTOCOMPLETE ====================
+    private final AutocompleteManager autocompleteManager = new AutocompleteManager();
 
     // ==================== CONSTRUCTOR ====================
 
@@ -461,6 +465,56 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return width - LINE_NUMBER_GUTTER_WIDTH - 8; // Account for gutter and scrollbar
             }
         });
+        
+        // Initialize Autocomplete Manager with callback
+        autocompleteManager.setInsertCallback(new AutocompleteManager.InsertCallback() {
+            @Override
+            public void insertText(String text, int startPosition) {
+                // Replace text from startPosition to current cursor
+                int cursorPos = selection.getCursorPosition();
+                String before = GuiScriptTextArea.this.text.substring(0, startPosition);
+                String after = GuiScriptTextArea.this.text.substring(cursorPos);
+                setText(before + text + after);
+                selection.reset(startPosition + text.length());
+                scrollToCursor();
+            }
+            
+            @Override
+            public int getCursorPosition() {
+                return selection.getCursorPosition();
+            }
+            
+            @Override
+            public String getText() {
+                return GuiScriptTextArea.this.text;
+            }
+            
+            @Override
+            public int[] getCursorScreenPosition() {
+                // Calculate screen position of cursor for menu placement
+                int cursorLine = getCursorLineIndex();
+                int cursorCol = 0;
+                if (container != null && container.lines != null && cursorLine < container.lines.size()) {
+                    LineData ld = container.lines.get(cursorLine);
+                    String lineText = ld.text;
+                    int cursorOffset = selection.getCursorPosition() - ld.start;
+                    cursorCol = ClientProxy.Font.width(lineText.substring(0, Math.min(cursorOffset, lineText.length())));
+                }
+                
+                int screenX = GuiScriptTextArea.this.x + LINE_NUMBER_GUTTER_WIDTH + 1 + cursorCol;
+                int lineY = cursorLine - scroll.getScrolledLine();
+                int screenY = GuiScriptTextArea.this.y + lineY * (container != null ? container.lineHeight : 12);
+                
+                return new int[] { screenX, screenY };
+            }
+            
+            @Override
+            public int[] getViewportDimensions() {
+                Minecraft mc = Minecraft.getMinecraft();
+                ScaledResolution sr = new ScaledResolution(mc, mc.displayWidth, mc.displayHeight);
+                return new int[] { sr.getScaledWidth(), sr.getScaledHeight() };
+            }
+        });
     }
 
     public boolean fullscreen() {
@@ -507,9 +561,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         int wheelDelta = ((GuiNPCInterface) listener).mouseScroll = Mouse.getDWheel();
         if (listener instanceof GuiNPCInterface) {
             ((GuiNPCInterface) listener).mouseScroll = wheelDelta;
-            boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
-            if (wheelDelta != 0 && canScroll) 
-                scroll.applyWheelScroll(wheelDelta, maxScroll);
+            
+            // Let autocomplete menu consume scroll first if visible
+            if (wheelDelta != 0 && autocompleteManager.isVisible() && autocompleteManager.mouseScrolled(xMouse, yMouse, wheelDelta)) {
+                // Autocomplete consumed the scroll
+            } else {
+                boolean canScroll = !KEYS_OVERLAY.isVisible() || KEYS_OVERLAY.isVisible() && !KEYS_OVERLAY.aboveOverlay;
+                if (wheelDelta != 0 && canScroll) 
+                    scroll.applyWheelScroll(wheelDelta, maxScroll);
+            }
         }
 
         // Handle scrollbar dragging (delegated to ScrollState)
@@ -901,6 +961,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         // Draw go to line dialog (overlays everything)
         goToLineDialog.draw(xMouse, yMouse);
+        
+        // Draw autocomplete menu (overlays code area)
+        autocompleteManager.draw(xMouse, yMouse);
+        
         KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
 
         // Draw hover tooltips (on top of everything)
@@ -1322,6 +1386,14 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 renameHandler.startRename();
             }
         });
+        
+        // AUTOCOMPLETE: Trigger autocomplete (Ctrl+Space)
+        KEYS.AUTOCOMPLETE.setTask(e -> {
+            if (!e.isPress() || !isActive.get())
+                return;
+            
+            autocompleteManager.triggerExplicit();
+        });
     }
 
     public void unfocusAll() {
@@ -1329,6 +1401,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         if (goToLineDialog.hasFocus()) goToLineDialog.unfocus();
         if (renameHandler.isActive())
             renameHandler.cancel();
+        if (autocompleteManager.isVisible())
+            autocompleteManager.dismiss();
     }
     // ==================== KEYBOARD INPUT HANDLING ====================
 
@@ -1352,6 +1426,13 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Handle search bar input first if it has focus
         if (searchBar.isVisible() && searchBar.keyTyped(c, i)) 
             return true;
+        
+        // Handle autocomplete navigation keys first when visible
+        if (autocompleteManager.isVisible()) {
+            if (autocompleteManager.keyPressed(i)) {
+                return true;
+            }
+        }
 
         if (!active)
             return false;
@@ -1743,6 +1824,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             setText(s + getSelectionAfterText());
             selection.reset(selection.getStartSelection());
             scrollToCursor();
+            // Notify autocomplete of deletion
+            autocompleteManager.onDeleteKey(text, selection.getCursorPosition());
             return true;
         }
 
@@ -1897,6 +1980,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 // Move caret forward by one (skip over existing closer)
                 selection.reset(before.length() + 1);
                 scrollToCursor();
+                // Notify autocomplete of the character
+                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
                 return true;
             }
 
@@ -1906,30 +1991,40 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 setText(before + "\"\"" + after);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
+                // Notify autocomplete of the character
+                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
                 return true;
             }
             if (c == '\'') {
                 setText(before + "''" + after);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
+                // Notify autocomplete of the character
+                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
                 return true;
             }
             if (c == '[') {
                 setText(before + "[]" + after);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
+                // Notify autocomplete of the character
+                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
                 return true;
             }
             if (c == '(') {
                 setText(before + "()" + after);
                 selection.reset(before.length() + 1);
                 scrollToCursor();
+                // Notify autocomplete of the character
+                autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
                 return true;
             }
 
             // Default insertion for printable characters: insert at caret (replacing selection)
             addText(Character.toString(c));
             scrollToCursor();
+            // Notify autocomplete of the character
+            autocompleteManager.onCharTyped(c, text, selection.getCursorPosition());
             return true;
         }
         return false;
@@ -1958,7 +2053,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     }
     
     public boolean closeOnEsc(){
-        return !KEYS_OVERLAY.isVisible() && !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive(); 
+        return !KEYS_OVERLAY.isVisible() && !searchBar.isVisible() && !goToLineDialog.isVisible() && !renameHandler.isActive() && !autocompleteManager.isVisible(); 
     }
     
     // ==================== KEYBOARD MODIFIERS ====================
@@ -2154,6 +2249,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     // ==================== MOUSE HANDLING ====================
 
     public void mouseClicked(int xMouse, int yMouse, int mouseButton) {
+        // Check autocomplete menu clicks first
+        if (autocompleteManager.isVisible() && autocompleteManager.mouseClicked(xMouse, yMouse, mouseButton)) {
+            return;
+        }
+        
+        // Dismiss autocomplete if clicking elsewhere
+        if (autocompleteManager.isVisible()) {
+            autocompleteManager.dismiss();
+        }
+        
         // Check go to line dialog clicks first
         if (goToLineDialog.isVisible() && goToLineDialog.mouseClicked(xMouse, yMouse, mouseButton)) {
             return;
@@ -2311,6 +2416,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             // Consider text changes user activity to pause caret blinking briefly
             selection.markActivity();
             searchBar.updateMatches();
+            
+            // Update autocomplete manager with current container
+            autocompleteManager.setContainer(this.container);
 
         }
     }

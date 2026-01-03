@@ -336,6 +336,20 @@ public class JSTypeRegistry {
     }
     
     /**
+     * Get all type names.
+     */
+    public Set<String> getTypeNames() {
+        return types.keySet();
+    }
+    
+    /**
+     * Get all hook function names.
+     */
+    public Set<String> getHookNames() {
+        return hooks.keySet();
+    }
+    
+    /**
      * Get all registered hooks.
      */
     public Map<String, List<HookSignature>> getAllHooks() {
@@ -365,10 +379,16 @@ public class JSTypeRegistry {
     public static class HookSignature {
         public final String paramName;
         public final String paramType;
+        public final String doc;
         
         public HookSignature(String paramName, String paramType) {
+            this(paramName, paramType, null);
+        }
+        
+        public HookSignature(String paramName, String paramType, String doc) {
             this.paramName = paramName;
             this.paramType = paramType;
+            this.doc = doc;
         }
         
         @Override
