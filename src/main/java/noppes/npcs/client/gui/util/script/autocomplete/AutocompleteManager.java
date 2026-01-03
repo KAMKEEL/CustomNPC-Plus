@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.autocomplete;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -175,6 +176,50 @@ public class AutocompleteManager {
             if (currentPrefix.isEmpty() && !isAfterDot(text, cursorPosition)) {
                 dismiss();
             }
+        }
+    }
+
+    /**
+     * Called when cursor position changes (e.g., arrow keys).
+     * Updates the autocomplete prefix based on the new cursor position.
+     */
+    public void onCursorMove(String text, int cursorPosition) {
+        if (!active)
+            return;
+
+        // Check if we're still in a valid identifier position
+        if (cursorPosition < 0 || cursorPosition > text.length()) {
+            dismiss();
+            return;
+        }
+
+        // Find the word boundaries at the current position
+        int wordStart = cursorPosition;
+        while (wordStart > 0 && Character.isJavaIdentifierPart(text.charAt(wordStart - 1))) {
+            wordStart--;
+        }
+
+        int wordEnd = cursorPosition;
+        while (wordEnd < text.length() && Character.isJavaIdentifierPart(text.charAt(wordEnd))) {
+            wordEnd++;
+        }
+
+        // Check if we moved out of the current word
+        if (cursorPosition < prefixStartPosition || cursorPosition > prefixStartPosition + currentPrefix.length()) {
+            // Check if we're in a different word that we can autocomplete
+            boolean isMemberAccess = wordStart > 0 && text.charAt(wordStart - 1) == '.';
+
+            if (isMemberAccess || wordStart < cursorPosition) {
+                // Update to the new word
+                prefixStartPosition = wordStart;
+                updatePrefix(text, cursorPosition);
+            } else {
+                // Moved to empty space or invalid position
+                dismiss();
+            }
+        } else {
+            // Still in same word, just update the prefix
+            updatePrefix(text, cursorPosition);
         }
     }
     
@@ -373,6 +418,26 @@ public class AutocompleteManager {
         if (!active) return false;
         return menu.mouseScrolled(mouseX, mouseY, delta);
     }
+
+    /**
+     * Handle mouse release.
+     * @return true if the release was consumed
+     */
+    public boolean mouseReleased(int mouseX, int mouseY, int button) {
+        if (!active)
+            return false;
+        return menu.mouseReleased(mouseX, mouseY, button);
+    }
+
+    /**
+     * Handle mouse drag.
+     * @return true if the drag was consumed
+     */
+    public boolean mouseDragged(int mouseX, int mouseY) {
+        if (!active)
+            return false;
+        return menu.mouseDragged(mouseX, mouseY);
+    }
     
     // ==================== ITEM SELECTION ====================
     
@@ -416,6 +481,11 @@ public class AutocompleteManager {
     public void draw(int mouseX, int mouseY) {
         if (active) {
             menu.draw(mouseX, mouseY);
+
+            if (Mouse.isButtonDown(0))
+                mouseDragged(mouseX, mouseY);
+            else 
+                mouseReleased(mouseX, mouseY, 0);
         }
     }
     
