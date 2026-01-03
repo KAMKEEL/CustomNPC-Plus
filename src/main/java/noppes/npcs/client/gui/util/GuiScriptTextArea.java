@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 // New interpreter system imports
+import noppes.npcs.client.gui.util.script.autocomplete.AutocompleteMenu;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
@@ -2487,6 +2488,32 @@ public class GuiScriptTextArea extends GuiNpcTextField {
 
     private void clampSelectionBounds() {
         selection.clamp(text != null ? text.length() : 0);
+    }
+    
+    // ==================== AUTOCOMPLETE VISIBILITY ====================
+    
+    /**
+     * Check if a click position is within the bounds of the autocomplete menu.
+     * Returns false if autocomplete is not visible.
+     */
+    public boolean isClickInAutocompleteMenu(int mouseX, int mouseY) {
+        if (autocompleteManager == null || !autocompleteManager.isVisible()) {
+            return false;
+        }
+        
+        
+        AutocompleteMenu menu = autocompleteManager.getMenu();
+        if (menu == null) {
+            return false;
+        }
+        
+        int menuX = menu.getX();
+        int menuY = menu.getY();
+        int menuWidth = menu.getWidth();
+        int menuHeight = menu.getHeight();
+        
+        return mouseX >= menuX && mouseX <= menuX + menuWidth &&
+               mouseY >= menuY && mouseY <= menuY + menuHeight;
     }
     
     // ==================== INNER CLASSES ====================
