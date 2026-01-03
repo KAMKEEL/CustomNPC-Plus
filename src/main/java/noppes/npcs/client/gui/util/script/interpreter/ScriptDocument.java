@@ -1493,6 +1493,9 @@ public class ScriptDocument {
         
         // Mark unused imports (after all other marks are built)
         markUnusedImports(marks);
+        
+        // Final pass: Mark any remaining unmarked identifiers as undefined
+        markUndefinedIdentifiers(marks);
 
         return marks;
     }
@@ -1509,6 +1512,61 @@ public class ScriptDocument {
                 marks.add(new ScriptLine.Mark(imp.getStartOffset(), imp.getEndOffset(), 
                           TokenType.UNUSED_IMPORT, imp));
             }
+        }
+    }
+    
+    /**
+     * Final pass: Mark any remaining unmarked identifiers as UNDEFINED_VAR.
+     * This should be called last, after all other marking passes are complete.
+     * Only marks identifiers that haven't been marked by any other pass.
+     */
+    private void markUndefinedIdentifiers(List<ScriptLine.Mark> marks) {
+        // Build a set of all marked positions for fast lookup
+        // Use a boolean array for O(1) lookup
+        boolean[] markedPositions = new boolean[text.length()];
+        for (ScriptLine.Mark mark : marks) {
+            for (int i = mark.start; i < mark.end && i < markedPositions.length; i++) {
+                markedPositions[i] = true;
+            }
+        }
+        
+        // Keywords that should not be marked as undefined
+        Set<String> knownKeywords = new HashSet<>(Arrays.asList(
+                "boolean", "int", "float", "double", "long", "char", "byte", "short", "void",
+                "null", "true", "false", "if", "else", "switch", "case", "for", "while", "do",
+                "try", "catch", "finally", "return", "throw", "var", "let", "const", "function",
+                "continue", "break", "this", "new", "typeof", "instanceof", "class", "interface",
+                "extends", "implements", "import", "package", "public", "private", "protected",
+                "static", "final", "abstract", "synchronized", "native", "default", "enum",
+                "throws", "super", "assert", "volatile", "transient"
+        ));
+        
+        // Find all identifiers
+        Pattern identifier = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
+        Matcher m = identifier.matcher(text);
+        
+        while (m.find()) {
+            int start = m.start(1);
+            int end = m.end(1);
+            String name = m.group(1);
+            
+            // Skip if already marked
+            if (start < markedPositions.length && markedPositions[start]) {
+                continue;
+            }
+            
+            // Skip if in excluded region (string/comment)
+            if (isExcluded(start)) {
+                continue;
+            }
+            
+            // Skip keywords
+            if (knownKeywords.contains(name)) {
+                continue;
+            }
+            
+            // Mark as undefined
+            marks.add(new ScriptLine.Mark(start, end, TokenType.UNDEFINED_VAR, null));
         }
     }
 
