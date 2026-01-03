@@ -1439,7 +1439,7 @@ public class ScriptDocument {
         return result.isEmpty() ? null : result;
     }
 
-    TypeInfo resolveType(String typeName) {
+    public TypeInfo resolveType(String typeName) {
         return resolveTypeAndTrackUsage(typeName);
     }
     

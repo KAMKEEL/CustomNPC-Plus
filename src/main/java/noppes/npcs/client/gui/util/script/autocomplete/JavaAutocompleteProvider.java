@@ -75,11 +75,14 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             return;
         }
         
+        // Determine if this is a static context (accessing a class type)
+        boolean isStaticContext = isStaticAccess(receiverExpr, context.prefixStart);
+        
         Class<?> clazz = receiverType.getJavaClass();
         if (clazz == null) {
             // Try ScriptTypeInfo
             if (receiverType instanceof ScriptTypeInfo) {
-                addScriptTypeMembers((ScriptTypeInfo) receiverType, items);
+                addScriptTypeMembers((ScriptTypeInfo) receiverType, items, isStaticContext);
             }
             return;
         }
@@ -88,6 +91,11 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         Set<String> addedMethods = new HashSet<>();
         for (Method method : clazz.getMethods()) {
             if (Modifier.isPublic(method.getModifiers())) {
+                // Filter by static context
+                if (isStaticContext && !Modifier.isStatic(method.getModifiers())) {
+                    continue;
+                }
+                
                 String sig = method.getName() + "(" + method.getParameterCount() + ")";
                 if (!addedMethods.contains(sig)) {
                     addedMethods.add(sig);
@@ -100,6 +108,11 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         // Add fields
         for (Field field : clazz.getFields()) {
             if (Modifier.isPublic(field.getModifiers())) {
+                // Filter by static context
+                if (isStaticContext && !Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                
                 FieldInfo fieldInfo = FieldInfo.fromReflection(field, receiverType);
                 items.add(AutocompleteItem.fromField(fieldInfo));
             }
@@ -122,16 +135,24 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Add members from a script-defined type.
      */
-    private void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items) {
+    private void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext) {
         // Add methods (getMethods returns Map<String, List<MethodInfo>>)
         for (List<MethodInfo> overloads : scriptType.getMethods().values()) {
             for (MethodInfo method : overloads) {
+                // Filter by static context
+                if (isStaticContext && !method.isStatic()) {
+                    continue;
+                }
                 items.add(AutocompleteItem.fromMethod(method));
             }
         }
         
         // Add fields (getFields returns Map<String, FieldInfo>)
         for (FieldInfo field : scriptType.getFields().values()) {
+            // Filter by static context
+            if (isStaticContext && !field.isStatic()) {
+                continue;
+            }
             items.add(AutocompleteItem.fromField(field));
         }
         
@@ -253,6 +274,16 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
         return null;
+    }
+    
+    /**
+     * Check if the receiver expression represents static access (class type).
+     * Similar logic to FieldChainMarker.isStaticContext().
+     */
+    private boolean isStaticAccess(String receiverExpr, int position) {
+        // Try to resolve the receiver expression as a type
+        TypeInfo typeCheck = document.resolveType(receiverExpr);
+        return typeCheck != null && typeCheck.isResolved();
     }
     
     /**
