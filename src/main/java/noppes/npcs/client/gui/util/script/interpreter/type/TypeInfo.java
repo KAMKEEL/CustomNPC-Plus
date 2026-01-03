@@ -134,14 +134,17 @@ public class TypeInfo {
     public boolean isInnerClass() { return enclosingType != null; }
     public boolean isInterface() {return kind == Kind.INTERFACE;}
     public boolean isEnum() {return kind == Kind.ENUM;}
+    public boolean isPrimitive() {return javaClass != null && javaClass.isPrimitive();}
     
     /**
      * Get the appropriate TokenType for highlighting this type.
      */
     public TokenType getTokenType() {
-        if (!resolved) {
+        if (!resolved) 
             return TokenType.UNDEFINED_VAR;
-        }
+        if(isPrimitive())
+            return TokenType.KEYWORD;
+        
         switch (kind) {
             case INTERFACE:
                 return TokenType.INTERFACE_DECL;

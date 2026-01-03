@@ -653,18 +653,6 @@ public class ScriptTypeInfo extends TypeInfo {
         return null;
     }
     
-    @Override
-    public TokenType getTokenType() {
-        switch (getKind()) {
-            case INTERFACE:
-                return TokenType.INTERFACE_DECL;
-            case ENUM:
-                return TokenType.ENUM_DECL;
-            case CLASS:
-            default:
-                return TokenType.CLASS_DECL;
-        }
-    }
     
     // Script types are always considered resolved since they're defined in the script
     @Override

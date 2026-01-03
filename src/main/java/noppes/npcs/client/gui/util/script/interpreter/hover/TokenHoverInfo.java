@@ -1130,10 +1130,8 @@ public class TokenHoverInfo {
      * Works for both Java-backed TypeInfo and ScriptTypeInfo.
      */
     private int getColorForTypeInfo(TypeInfo typeInfo) {
-        if (typeInfo == null) return TokenType.IMPORTED_CLASS.getHexColor();
-        
         // Use the TypeInfo's own token type, which handles ScriptTypeInfo correctly
-        return typeInfo.getTokenType().getHexColor();
+        return TokenType.getColor(typeInfo);
     }
     
     /**
