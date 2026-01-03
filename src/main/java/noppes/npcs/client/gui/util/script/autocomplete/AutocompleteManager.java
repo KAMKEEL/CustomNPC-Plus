@@ -153,8 +153,15 @@ public class AutocompleteManager {
                 // Update existing autocomplete
                 updatePrefix(text, cursorPosition);
             } else if (Character.isJavaIdentifierStart(c)) {
-                // Potentially start new autocomplete
-                maybeStartAutocomplete(text, cursorPosition, false);
+                // Check if we're after a dot with whitespace (e.g., "obj. |" where | is cursor)
+                int dotPos = findDotBeforeWhitespace(text, cursorPosition - 1);
+                if (dotPos >= 0) {
+                    // We're typing after a dot (with possible whitespace), trigger member access
+                    triggerAfterDot(text, cursorPosition);
+                } else {
+                    // Potentially start new autocomplete
+                    maybeStartAutocomplete(text, cursorPosition, false);
+                }
             }
             return;
         }
@@ -247,9 +254,11 @@ public class AutocompleteManager {
      */
     private void triggerAfterDot(String text, int cursorPosition) {
         // Find the receiver expression before the dot
+        // First check if immediately before cursor
         int dotPos = cursorPosition - 1;
         if (dotPos < 0 || text.charAt(dotPos) != '.') {
-            dotPos = text.lastIndexOf('.', cursorPosition - 1);
+            // Look backwards skipping whitespace to find dot
+            dotPos = findDotBeforeWhitespace(text, cursorPosition - 1);
         }
         
         if (dotPos < 0) return;
@@ -257,7 +266,13 @@ public class AutocompleteManager {
         String receiverExpr = findReceiverExpression(text, dotPos);
         String prefix = findCurrentWord(text, cursorPosition);
         
-        prefixStartPosition = dotPos + 1;
+        // Find where the prefix actually starts (after dot + any whitespace)
+        int prefixStart = dotPos + 1;
+        while (prefixStart < cursorPosition && Character.isWhitespace(text.charAt(prefixStart))) {
+            prefixStart++;
+        }
+        
+        prefixStartPosition = prefixStart;
         currentPrefix = prefix;
         
         showSuggestions(text, cursorPosition, prefix, prefixStartPosition, true, receiverExpr);
@@ -306,13 +321,13 @@ public class AutocompleteManager {
         
         currentPrefix = newPrefix;
         
-        // Check if after dot
-        boolean isMemberAccess = prefixStartPosition > 0 && 
-            text.charAt(prefixStartPosition - 1) == '.';
+        // Check if after dot (skipping whitespace)
+        int dotPos = findDotBeforeWhitespace(text, prefixStartPosition - 1);
+        boolean isMemberAccess = dotPos >= 0;
         
         String receiverExpr = null;
         if (isMemberAccess) {
-            receiverExpr = findReceiverExpression(text, prefixStartPosition - 1);
+            receiverExpr = findReceiverExpression(text, dotPos);
         }
         
         showSuggestions(text, cursorPosition, currentPrefix, prefixStartPosition, 
@@ -577,12 +592,33 @@ public class AutocompleteManager {
     }
     
     /**
+     * Find dot position before cursor, skipping whitespace.
+     * Returns -1 if no dot found.
+     */
+    private int findDotBeforeWhitespace(String text, int fromPos) {
+        int pos = fromPos;
+        // Skip backwards over whitespace
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
+            pos--;
+        }
+        // Check if we found a dot
+        if (pos >= 0 && text.charAt(pos) == '.') {
+            return pos;
+        }
+        return -1;
+    }
+    
+    /**
      * Check if cursor is after a dot.
      */
     private boolean isAfterDot(String text, int cursorPos) {
         // Look backwards, skipping any identifier characters
         int pos = cursorPos - 1;
         while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos))) {
+            pos--;
+        }
+        // Also skip whitespace to check for dot
+        while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
             pos--;
         }
         return pos >= 0 && text.charAt(pos) == '.';
