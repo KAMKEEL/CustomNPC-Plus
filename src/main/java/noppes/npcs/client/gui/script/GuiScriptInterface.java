@@ -384,7 +384,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     private GuiScriptTextArea getActiveScriptArea() {
         if (this.activeTab > 0) {
             int idx = this.activeTab - 1;
-            if (idx >= 0 && idx < textAreas.size())
+            if (textAreas.containsKey(idx))
                 return textAreas.get(idx);
         }
         return null;
