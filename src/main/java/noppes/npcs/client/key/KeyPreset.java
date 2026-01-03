@@ -92,10 +92,8 @@ public class KeyPreset {
         int keyCode = keyCode();
         if (keyCode == -1 || keyCode == 0)
             return;
-
-        boolean isDown = isMouseKey() ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode);
-        isDown = isDown && (isCtrlKeyDown() == hasCtrl()) && (isAltKeyDown() == hasAlt()) && (isShiftKeyDown() == hasShift());
-        setDown(isDown);
+        
+        setDown(currentState.isDown());
     }
 
     private static final long SHORT_PRESS_MS = 250L;
@@ -209,6 +207,11 @@ public class KeyPreset {
             state.setState(keyCode, hasCtrl, hasAlt, hasShift);
         }
 
+        public boolean isDown() {
+            boolean isDown = isMouseKey() ? Mouse.isButtonDown(keyCode + 100) : Keyboard.isKeyDown(keyCode);
+            return isDown && (isCtrlKeyDown() == hasCtrl) && (isAltKeyDown() == hasAlt) && (isShiftKeyDown() == hasShift);
+        }
+
         public boolean hasState() {
             return keyCode != -1;
         }
@@ -246,6 +249,19 @@ public class KeyPreset {
             this.hasAlt = compound.getBoolean("hasAlt");
         }
 
+        public boolean matches(int keycode, boolean checkModifiers) {
+            if (!checkModifiers)
+                return this.keyCode == keycode;
+
+            return this.keyCode == keycode && this.hasCtrl == KeyPreset.isCtrlKeyDown()
+                    && this.hasAlt == KeyPreset.isAltKeyDown()
+                    && this.hasShift == KeyPreset.isShiftKeyDown();
+        }
+
+        public boolean isMouseKey() {
+            return keyCode < -1;
+        }
+        
         public String getName() {
             int code = keyCode;
             String name = "";
