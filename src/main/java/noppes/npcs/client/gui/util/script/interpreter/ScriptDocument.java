@@ -2316,8 +2316,7 @@ public class ScriptDocument {
         if (start >= end) 
             return args; // No arguments
         
-        if(end > text.length()) 
-            end = text.length();
+        end = Math.min(end, text.length());
         
         
         int depth = 0;
