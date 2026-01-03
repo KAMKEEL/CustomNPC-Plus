@@ -195,6 +195,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             activeArea.init(editorX, editorY, editorWidth, editorHeight,
                     container == null ? "" : container.script);
         }
+        
+        // Set the scripting language for proper syntax highlighting
+        activeArea.setLanguage(this.handler.getLanguage());
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {

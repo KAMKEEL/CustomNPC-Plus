@@ -2331,6 +2331,26 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         this.enableCodeHighlighting = true;
         this.container.formatCodeText();
     }
+    
+    /**
+     * Set the scripting language for syntax highlighting and type inference.
+     * @param language The language name (e.g., "ECMAScript", "Groovy")
+     */
+    public void setLanguage(String language) {
+        if (this.container != null) {
+            this.container.setLanguage(language);
+            if (this.enableCodeHighlighting) {
+                this.container.formatCodeText();
+            }
+        }
+    }
+    
+    /**
+     * Get the current scripting language.
+     */
+    public String getLanguage() {
+        return this.container != null ? this.container.getLanguage() : "ECMAScript";
+    }
 
     public void setListener(ITextChangeListener listener) {
         this.listener = listener;

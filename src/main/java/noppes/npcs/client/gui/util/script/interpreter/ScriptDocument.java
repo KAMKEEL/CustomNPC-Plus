@@ -8,6 +8,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSScriptAnalyzer;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
@@ -114,6 +115,9 @@ public class ScriptDocument {
 
     // Type resolver
     private final TypeResolver typeResolver;
+    
+    // Script language: "ECMAScript", "Groovy", etc.
+    private String language = "ECMAScript";
 
     // Layout properties
     public int lineHeight = 13;
@@ -131,6 +135,33 @@ public class ScriptDocument {
     public ScriptDocument(String text, TypeResolver resolver) {
         this.typeResolver = resolver != null ? resolver : TypeResolver.getInstance();
         setText(text);
+    }
+    
+    public ScriptDocument(String text, String language) {
+        this.typeResolver = TypeResolver.getInstance();
+        this.language = language != null ? language : "ECMAScript";
+        setText(text);
+    }
+    
+    /**
+     * Set the scripting language.
+     */
+    public void setLanguage(String language) {
+        this.language = language != null ? language : "ECMAScript";
+    }
+    
+    /**
+     * Get the scripting language.
+     */
+    public String getLanguage() {
+        return language;
+    }
+    
+    /**
+     * Check if this is a JavaScript/ECMAScript document.
+     */
+    public boolean isJavaScript() {
+        return "ECMAScript".equalsIgnoreCase(language);
     }
 
     // ==================== TEXT MANAGEMENT ====================
@@ -219,18 +250,15 @@ public class ScriptDocument {
         methodCalls.clear();
         externalFieldAssignments.clear();
         declarationErrors.clear();
-
-        // Phase 1: Find excluded regions (strings/comments)
-        findExcludedRanges();
-
-        // Phase 2: Parse imports
-        parseImports();
-
-        // Phase 3: Parse structure (script types, methods, fields, locals)
-        parseStructure();
-
-        // Phase 4: Build marks and assign to lines
-        List<ScriptLine.Mark> marks = buildMarks();
+        
+        List<ScriptLine.Mark> marks;
+        
+        // Use different analysis paths for JavaScript vs Java
+        if (isJavaScript()) {
+            marks = formatJavaScript();
+        } else {
+            marks = formatJava();
+        }
 
         // Phase 5: Resolve conflicts and sort
         marks = resolveConflicts(marks);
@@ -242,6 +270,32 @@ public class ScriptDocument {
 
         // Phase 7: Compute indent guides
         computeIndentGuides(marks);
+    }
+    
+    /**
+     * Format JavaScript/ECMAScript code using the JS type inference system.
+     */
+    private List<ScriptLine.Mark> formatJavaScript() {
+        // Use JSScriptAnalyzer for JS-specific analysis
+        JSScriptAnalyzer analyzer = new JSScriptAnalyzer(text);
+        return analyzer.analyze();
+    }
+    
+    /**
+     * Format Java/Groovy code using the full Java analysis system.
+     */
+    private List<ScriptLine.Mark> formatJava() {
+        // Phase 1: Find excluded regions (strings/comments)
+        findExcludedRanges();
+
+        // Phase 2: Parse imports
+        parseImports();
+
+        // Phase 3: Parse structure (script types, methods, fields, locals)
+        parseStructure();
+
+        // Phase 4: Build marks and assign to lines
+        return buildMarks();
     }
 
     // ==================== PHASE 1: EXCLUDED RANGES ====================

@@ -31,12 +31,41 @@ public class ScriptTextContainer extends JavaTextContainer {
     public static boolean USE_NEW_INTERPRETER = true;
 
     private ScriptDocument document;
+    
+    /** The scripting language: "ECMAScript", "Groovy", etc. */
+    private String language = "ECMAScript";
 
     public ScriptTextContainer(String text) {
         super(text);
         if (USE_NEW_INTERPRETER) {
             document = new ScriptDocument(text);
         }
+    }
+    
+    public ScriptTextContainer(String text, String language) {
+        super(text);
+        this.language = language != null ? language : "ECMAScript";
+        if (USE_NEW_INTERPRETER) {
+            document = new ScriptDocument(text, this.language);
+        }
+    }
+    
+    /**
+     * Set the scripting language. This affects syntax highlighting and type inference.
+     * @param language The language name (e.g., "ECMAScript", "Groovy")
+     */
+    public void setLanguage(String language) {
+        this.language = language != null ? language : "ECMAScript";
+        if (document != null) {
+            document.setLanguage(this.language);
+        }
+    }
+    
+    /**
+     * Get the current scripting language.
+     */
+    public String getLanguage() {
+        return language;
     }
 
     @Override
@@ -73,7 +102,7 @@ public class ScriptTextContainer extends JavaTextContainer {
             return;
         }
         
-        document = new ScriptDocument(this.text);
+        document = new ScriptDocument(this.text, this.language);
         init(width, height);
     }
 
