@@ -163,6 +163,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         KEYS_OVERLAY.viewButton.scale = 0.45f;
         KEYS_OVERLAY.viewButton.initGui(endX + xOffset, endY - 26);
         
+        // Dismiss autocomplete on resize to avoid positioning issues
+        if (autocompleteManager != null) {
+            autocompleteManager.dismiss();
+        }
+        
         // Initialize search bar (preserves state across initGui calls)
         searchBar.initGui(x, y, width);
         if (searchBar.isVisible()) { // If open
@@ -592,7 +597,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     doubleClicked = false;
                     tripleClicked = false;
                 }
-                setCursor(i, true);
+                setCursor(i, true);     
             }
         } else if (doubleClicked || tripleClicked) {
             doubleClicked = false;
@@ -1484,6 +1489,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             int newPos = Math.max(selection.getCursorPosition() - j, 0);
             // If Shift is held, extend selection; otherwise place caret.
             setCursor(newPos, GuiScreen.isShiftKeyDown());
+            
+            // Notify autocomplete of cursor movement
+            if (autocompleteManager.isVisible()) {
+                autocompleteManager.onCursorMove(text, newPos);
+            }
+            
             return true;
         }
 
@@ -1509,6 +1520,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
             int newPos = Math.min(selection.getCursorPosition() + j, text.length());
             setCursor(newPos, GuiScreen.isShiftKeyDown());
+            
+            // Notify autocomplete of cursor movement
+            if (autocompleteManager.isVisible()) {
+                autocompleteManager.onCursorMove(text, newPos);
+            }
+            
             return true;
         }
 
