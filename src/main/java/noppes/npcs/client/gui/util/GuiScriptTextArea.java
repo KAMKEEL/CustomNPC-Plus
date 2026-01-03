@@ -961,10 +961,10 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         // Draw go to line dialog (overlays everything)
         goToLineDialog.draw(xMouse, yMouse);
         
+        KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
+
         // Draw autocomplete menu (overlays code area)
         autocompleteManager.draw(xMouse, yMouse);
-        
-        KEYS_OVERLAY.draw(xMouse, yMouse, wheelDelta);
 
         // Draw hover tooltips (on top of everything)
         if (hoverState.isTooltipVisible()) {

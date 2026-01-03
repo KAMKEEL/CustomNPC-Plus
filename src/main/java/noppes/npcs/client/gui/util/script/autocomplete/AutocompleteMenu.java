@@ -42,6 +42,11 @@ public class AutocompleteMenu extends Gui {
     private int selectedIndex = 0;
     private int scrollOffset = 0;
     private int hoveredIndex = -1;
+
+    // Scrollbar drag state
+    private boolean isDraggingScrollbar = false;
+    private int dragStartY = 0;
+    private int dragStartScroll = 0;
     
     // ==================== POSITION ====================
     private int x, y;
@@ -266,7 +271,7 @@ public class AutocompleteMenu extends Gui {
         
         // Draw scrollbar if needed
         if (items.size() > MAX_VISIBLE_ITEMS) {
-            drawScrollbar();
+            drawScrollbar(mouseX, mouseY);
         }
         
         // Draw hint bar at bottom
@@ -337,7 +342,7 @@ public class AutocompleteMenu extends Gui {
     /**
      * Draw the scrollbar.
      */
-    private void drawScrollbar() {
+    private void drawScrollbar(int mouseX, int mouseY) {
         int scrollbarX = x + width - 8;
         int scrollbarY = y + PADDING;
         int scrollbarHeight = MAX_VISIBLE_ITEMS * ITEM_HEIGHT;
@@ -351,7 +356,13 @@ public class AutocompleteMenu extends Gui {
         float thumbPosRatio = (float) scrollOffset / Math.max(1, items.size() - MAX_VISIBLE_ITEMS);
         int thumbY = scrollbarY + (int) ((scrollbarHeight - thumbHeight) * thumbPosRatio);
         
-        drawRect(scrollbarX + 1, thumbY, scrollbarX + 5, thumbY + thumbHeight, SCROLLBAR_FG);
+        // Check if mouse is above the scrollbar thumb
+        boolean isAboveScrollbar = mouseX >= scrollbarX && mouseX <= scrollbarX + 6 && 
+                                   mouseY >= thumbY && mouseY < thumbY + thumbHeight;
+        
+        int col = isDraggingScrollbar || isAboveScrollbar? 0xFF808080 : SCROLLBAR_FG;
+
+        drawRect(scrollbarX + 1, thumbY, scrollbarX + 5, thumbY + thumbHeight, col);
     }
     
     /**
@@ -429,6 +440,18 @@ public class AutocompleteMenu extends Gui {
             hide();
             return false;
         }
+
+        // Check if clicking on scrollbar
+        if (button == 0 && items.size() > MAX_VISIBLE_ITEMS) {
+            int scrollbarX = x + width - 8;
+            if (mouseX >= scrollbarX && mouseX <= scrollbarX + 6) {
+                // Clicked on scrollbar area - start drag
+                isDraggingScrollbar = true;
+                dragStartY = mouseY;
+                dragStartScroll = scrollOffset;
+                return true;
+            }
+        }
         
         // Check if clicking on an item
         if (button == 0 && hoveredIndex >= 0 && hoveredIndex < items.size()) {
@@ -438,6 +461,43 @@ public class AutocompleteMenu extends Gui {
         }
         
         return true; // Consume click if inside menu
+    }
+
+    /**
+     * Handle mouse release.
+     * @return true if release was consumed
+     */
+    public boolean mouseReleased(int mouseX, int mouseY, int button) {
+        if (button == 0 && isDraggingScrollbar) {
+            isDraggingScrollbar = false;
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Handle mouse drag.
+     * @return true if drag was consumed
+     */
+    public boolean mouseDragged(int mouseX, int mouseY) {
+        if (!visible || !isDraggingScrollbar)
+            return false;
+
+        // Calculate scroll area height
+        int listHeight = MAX_VISIBLE_ITEMS * ITEM_HEIGHT;
+        int scrollbarHeight = Math.max(20, (listHeight * MAX_VISIBLE_ITEMS) / items.size());
+        int scrollTrackHeight = listHeight - scrollbarHeight;
+
+        // Calculate new scroll offset based on drag
+        int deltaY = mouseY - dragStartY;
+        int maxScroll = items.size() - MAX_VISIBLE_ITEMS;
+
+        if (scrollTrackHeight > 0) {
+            int scrollDelta = (deltaY * maxScroll) / scrollTrackHeight;
+            scrollOffset = Math.max(0, Math.min(maxScroll, dragStartScroll + scrollDelta));
+        }
+
+        return true;
     }
     
     /**
