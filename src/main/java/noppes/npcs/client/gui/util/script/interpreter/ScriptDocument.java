@@ -825,9 +825,8 @@ public class ScriptDocument {
             // Pattern for local variable declarations: Type varName = or Type varName;
             // Allows capital var names like "Minecraft Capital = new Minecraft();"
             // Use [ \t] instead of \s to prevent matching across newlines
-            Pattern localDecl = Pattern.compile(
-                    "\\b([A-Za-z_][a-zA-Z0-9_<>\\[\\]]*)[ \\t]+([A-Za-z_][a-zA-Z0-9_]*)[ \\t]*(=|;|,)");
-            Matcher m = localDecl.matcher(bodyText);
+        
+            Matcher m = FIELD_DECL_PATTERN.matcher(bodyText);
             while (m.find()) {
                 String typeName = m.group(1);
                 String varName = m.group(2);
