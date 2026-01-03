@@ -173,7 +173,8 @@ public class CustomNpcs {
             AdvancedClassFilter filter = new AdvancedClassFilter()
                 .addRegexes("noppes\\.npcs\\.api\\..*")
                 .banRegexes(".*ClassLoader.*",
-                    ".*File*.");
+                    ".*File*.",
+                    "java\\.lang\\.reflect\\..*");
 
             for (Consumer<AdvancedClassFilter> consumer : clientClassFilterConsumer) {
                 consumer.accept(filter);
