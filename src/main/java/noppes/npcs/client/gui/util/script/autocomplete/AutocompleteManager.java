@@ -25,6 +25,9 @@ public class AutocompleteManager {
     
     /** Minimum characters before showing suggestions (for non-dot triggers) */
     private static final int MIN_PREFIX_LENGTH = 1;
+
+    /** Maximum number of suggestions to show (performance/UX) */
+    private static final int MAX_SUGGESTIONS = 150;
     
     /** Pattern for identifier characters */
     private static final Pattern IDENTIFIER_PATTERN = Pattern.compile("[a-zA-Z_$][a-zA-Z0-9_$]*");
@@ -356,6 +359,13 @@ public class AutocompleteManager {
         // Get suggestions from appropriate provider
         AutocompleteProvider provider = document.isJavaScript() ? jsProvider : javaProvider;
         List<AutocompleteItem> suggestions = provider.getSuggestions(context);
+
+        // Limit suggestions to prevent overwhelming the UI and improve performance
+        // Items are already sorted by relevance in the provider
+        if (suggestions.size() > MAX_SUGGESTIONS) {
+            // Disabled for now to show all suggestions
+            //  suggestions = suggestions.subList(0, MAX_SUGGESTIONS);
+        }
         
         // Show menu
         if (suggestions.isEmpty()) {

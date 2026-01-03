@@ -51,11 +51,6 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         // Sort by score
         Collections.sort(items);
         
-        // Limit results
-        if (items.size() > 50) {
-            items = items.subList(0, 50);
-        }
-        
         return items;
     }
     
