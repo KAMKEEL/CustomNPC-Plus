@@ -82,8 +82,23 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         String signature = buildMethodSignature(method);
         
+        // Build display name with parameters like "read(byte[] b)"
+        StringBuilder displayName = new StringBuilder(name);
+        displayName.append("(");
+        for (int i = 0; i < method.getParameterCount(); i++) {
+            if (i > 0) displayName.append(", ");
+            FieldInfo param = method.getParameters().get(i);
+            String paramType = param.getTypeInfo() != null ? 
+                param.getTypeInfo().getSimpleName() : "?";
+            displayName.append(paramType);
+            if (param.getName() != null && !param.getName().isEmpty()) {
+                displayName.append(" ").append(param.getName());
+            }
+        }
+        displayName.append(")");
+        
         return new AutocompleteItem(
-            name,
+            displayName.toString(),
             insertText.toString(),
             Kind.METHOD,
             returnType,
@@ -165,8 +180,12 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         insertText.append("(");
         insertText.append(")");
         
+        // Use signature for display name if available, otherwise just name
+        String displayName = method.getSignature() != null && method.getSignature().contains("(") ?
+            method.getSignature().substring(method.getSignature().indexOf(name)) : name + "()";
+        
         return new AutocompleteItem(
-            name,
+            displayName,
             insertText.toString(),
             Kind.METHOD,
             method.getReturnType(),

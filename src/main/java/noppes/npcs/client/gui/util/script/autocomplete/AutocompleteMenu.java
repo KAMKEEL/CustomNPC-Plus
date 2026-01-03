@@ -301,9 +301,14 @@ public class AutocompleteMenu extends Gui {
         font.drawString(icon, textX + (ICON_WIDTH - font.getStringWidth(icon)) / 2, textY, iconColor);
         textX += ICON_WIDTH;
         
-        // Draw name with match highlighting
-        drawHighlightedText(item.getName(), item.getMatchIndices(), textX, textY, 
-            item.isDeprecated() ? DIM_TEXT_COLOR : TEXT_COLOR);
+        // Draw name with match highlighting and parameter coloring for methods
+        if (item.getKind() == AutocompleteItem.Kind.METHOD) {
+            drawMethodName(item.getName(), item.getMatchIndices(), textX, textY, 
+                item.isDeprecated() ? DIM_TEXT_COLOR : TEXT_COLOR);
+        } else {
+            drawHighlightedText(item.getName(), item.getMatchIndices(), textX, textY, 
+                item.isDeprecated() ? DIM_TEXT_COLOR : TEXT_COLOR);
+        }
         
         // Draw type label on the right
         if (item.getTypeLabel() != null && !item.getTypeLabel().isEmpty()) {
@@ -312,6 +317,28 @@ public class AutocompleteMenu extends Gui {
             int typeLabelX = itemX + itemWidth - typeLabelWidth - PADDING;
             font.drawString(typeLabel, typeLabelX, textY, DIM_TEXT_COLOR);
         }
+    }
+    
+    /**
+     * Draw method name with parameters colored gray.
+     */
+    private void drawMethodName(String text, int[] matchIndices, int x, int y, int baseColor) {
+        // Find the opening parenthesis
+        int parenIndex = text.indexOf('(');
+        if (parenIndex == -1) {
+            // No parameters, just draw normally
+            drawHighlightedText(text, matchIndices, x, y, baseColor);
+            return;
+        }
+        
+        // Draw method name part with highlighting
+        String methodName = text.substring(0, parenIndex);
+        drawHighlightedText(methodName, matchIndices, x, y, baseColor);
+        
+        // Draw parameters part in gray (no highlighting)
+        String params = text.substring(parenIndex);
+        int paramX = x + font.getStringWidth(methodName);
+        font.drawString(params, paramX, y, DIM_TEXT_COLOR);
     }
     
     /**
