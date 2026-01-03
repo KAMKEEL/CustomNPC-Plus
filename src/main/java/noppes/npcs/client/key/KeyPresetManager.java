@@ -24,6 +24,15 @@ public class KeyPresetManager {
         return preset;
     }
 
+    public boolean hasMatchingKeyPressed(int keyCode) {
+        for (KeyPreset key : keys) {
+            if (key.currentState.matches(keyCode, true))
+                return true;
+        }
+        
+        return false;
+    }
+    
     public void tick() {
         for (KeyPreset key : keys) 
             key.tick();

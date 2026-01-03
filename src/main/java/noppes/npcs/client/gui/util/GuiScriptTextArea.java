@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.util.ChatAllowedCharacters;
-import net.minecraft.util.ResourceLocation;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
@@ -1108,8 +1107,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     private void updateHoverState(int xMouse, int yMouse) {
         // Don't show tooltips when not active, clicking, or when overlays are visible
-        if (!isEnabled() || clicked || searchBar.isVisible() || 
-            goToLineDialog.isVisible() || KEYS_OVERLAY.isVisible() || renameHandler.isActive()) {
+        if (!isEnabled() || clicked || searchBar.isVisible() ||
+                goToLineDialog.isVisible() || KEYS_OVERLAY.isVisible() || renameHandler.isActive() || autocompleteManager.isVisible()) {
             hoverState.clearHover();
             return;
         }
@@ -1433,6 +1432,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                 return true;
             }
         }
+
+        // Ignore if any global keys bound to this code are currently pressed
+        if (KEYS.hasMatchingKeyPressed(i))
+            return false;
+        
 
         if (!active)
             return false;
