@@ -805,7 +805,7 @@ public class TokenHoverInfo {
         }
 
         // Enum constant name
-        addSegment(fieldInfo.getName(), TokenType.ENUM_CONSTANT.getHexColor());
+        addSegment(token.getStylePrefix() + fieldInfo.getName(), TokenType.ENUM_CONSTANT.getHexColor());
 
         // Add constructor arguments if available
         addInitializationTokens(token, fieldInfo);
