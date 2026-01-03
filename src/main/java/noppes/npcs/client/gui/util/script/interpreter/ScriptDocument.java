@@ -2313,9 +2313,12 @@ public class ScriptDocument {
     public List<MethodCallInfo.Argument> parseMethodArguments(int start, int end, MethodInfo methodInfo) {
         List<MethodCallInfo.Argument> args = new ArrayList<>();
         
-        if (start >= end) {
+        if (start >= end) 
             return args; // No arguments
-        }
+        
+        if(end > text.length()) 
+            end = text.length();
+        
         
         int depth = 0;
         int argStart = start;
