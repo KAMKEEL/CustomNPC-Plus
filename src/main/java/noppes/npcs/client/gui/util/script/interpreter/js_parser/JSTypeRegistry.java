@@ -4,7 +4,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
 
 import java.io.*;
+import java.net.URL;
 import java.util.*;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Central registry for all TypeScript types parsed from .d.ts files.
@@ -46,7 +49,7 @@ public class JSTypeRegistry {
     
     /**
      * Initialize the registry from the embedded resources.
-     * This loads .d.ts files from assets/customnpcs/api/
+     * Recursively loads all .d.ts files from assets/customnpcs/api/
      */
     public void initializeFromResources() {
         if (initialized || initializationAttempted) return;
@@ -55,20 +58,28 @@ public class JSTypeRegistry {
         try {
             TypeScriptDefinitionParser parser = new TypeScriptDefinitionParser(this);
             
-            // Load hooks.d.ts first (defines function parameter types)
-            loadResourceFile(parser, "hooks.d.ts");
+            // Recursively load all .d.ts files from the api directory
+            Set<String> dtsFiles = findAllDtsFilesInResources("assets/customnpcs/api");
             
-            // Load index.d.ts (type aliases)
-            loadResourceFile(parser, "index.d.ts");
+            System.out.println("[JSTypeRegistry] Found " + dtsFiles.size() + " .d.ts files in resources");
             
-            // Load main API files
-            loadResourceDirectory(parser, "noppes/npcs/api/");
-            loadResourceDirectory(parser, "noppes/npcs/api/entity/");
-            loadResourceDirectory(parser, "noppes/npcs/api/event/");
-            loadResourceDirectory(parser, "noppes/npcs/api/handler/");
-            loadResourceDirectory(parser, "noppes/npcs/api/item/");
-            loadResourceDirectory(parser, "noppes/npcs/api/block/");
-            loadResourceDirectory(parser, "noppes/npcs/api/gui/");
+            // Load hooks.d.ts and index.d.ts first if they exist (defines core types)
+            if (dtsFiles.contains("api/hooks.d.ts")) {
+                loadResourceFile(parser, "hooks.d.ts");
+            }
+            if (dtsFiles.contains("api/index.d.ts")) {
+                loadResourceFile(parser, "index.d.ts");
+            }
+            
+            // Load all other .d.ts files
+            for (String filePath : dtsFiles) {
+                if (filePath.startsWith("api/")) {
+                    String relPath = filePath.substring(4); // Remove "api/" prefix
+                    if (!relPath.equals("hooks.d.ts") && !relPath.equals("index.d.ts")) {
+                        loadResourceFile(parser, relPath);
+                    }
+                }
+            }
             
             resolveInheritance();
             initialized = true;
@@ -76,6 +87,97 @@ public class JSTypeRegistry {
         } catch (Exception e) {
             System.err.println("[JSTypeRegistry] Failed to load type definitions from resources: " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Recursively find all .d.ts files in the resources directory.
+     * Similar to ClassIndex.addPackage, scans both file system and JAR resources.
+     */
+    private Set<String> findAllDtsFilesInResources(String basePath) {
+        Set<String> dtsFiles = new HashSet<>();
+        
+        try {
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            Enumeration<URL> resources = classLoader.getResources(basePath);
+            
+            while (resources.hasMoreElements()) {
+                URL resource = resources.nextElement();
+                
+                if (resource.getProtocol().equals("file")) {
+                    // Scan file system directory
+                    File directory = new File(resource.getFile());
+                    scanDirectoryForDts(directory, basePath, dtsFiles);
+                } else if (resource.getProtocol().equals("jar")) {
+                    // Scan JAR file
+                    String jarPath = resource.getPath();
+                    if (jarPath.startsWith("file:")) {
+                        jarPath = jarPath.substring(5);
+                    }
+                    int separatorIndex = jarPath.indexOf("!");
+                    if (separatorIndex != -1) {
+                        jarPath = jarPath.substring(0, separatorIndex);
+                    }
+                    scanJarForDts(jarPath, basePath, dtsFiles);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[JSTypeRegistry] Error scanning for .d.ts files: " + e.getMessage());
+        }
+        
+        return dtsFiles;
+    }
+    
+    /**
+     * Recursively scan a file system directory for .d.ts files.
+     */
+    private void scanDirectoryForDts(File directory, String basePath, Set<String> dtsFiles) {
+        if (!directory.exists() || !directory.isDirectory()) {
+            return;
+        }
+        
+        File[] files = directory.listFiles();
+        if (files == null) {
+            return;
+        }
+        
+        for (File file : files) {
+            String fileName = file.getName();
+            
+            if (file.isDirectory()) {
+                // Recursively scan subdirectory
+                scanDirectoryForDts(file, basePath + "/" + fileName, dtsFiles);
+            } else if (fileName.endsWith(".d.ts")) {
+                // Add .d.ts file path relative to assets/customnpcs/
+                dtsFiles.add(basePath + "/" + fileName);
+            }
+        }
+    }
+    
+    /**
+     * Scan a JAR file for .d.ts files in the specified base path.
+     */
+    private void scanJarForDts(String jarPath, String basePath, Set<String> dtsFiles) {
+        try {
+            JarFile jarFile = new JarFile(jarPath);
+            Enumeration<JarEntry> entries = jarFile.entries();
+            String searchPath = "assets/customnpcs/" + basePath;
+            
+            while (entries.hasMoreElements()) {
+                JarEntry entry = entries.nextElement();
+                String entryName = entry.getName();
+                
+                // Check if entry is under our base path and is a .d.ts file
+                if (entryName.startsWith(searchPath) && entryName.endsWith(".d.ts")) {
+                    // Convert to relative path from assets/customnpcs/
+                    String relativePath = entryName.substring("assets/customnpcs/".length());
+                    dtsFiles.add(relativePath);
+                }
+            }
+            
+            jarFile.close();
+        } catch (Exception e) {
+            System.err.println("[JSTypeRegistry] Error scanning JAR for .d.ts files: " + e.getMessage());
         }
     }
     
@@ -100,77 +202,6 @@ public class JSTypeRegistry {
             // File might not exist, that's ok
             System.out.println("[JSTypeRegistry] Could not load " + fileName + ": " + e.getMessage());
         }
-    }
-    
-    /**
-     * Load all .d.ts files from a resource directory.
-     */
-    private void loadResourceDirectory(TypeScriptDefinitionParser parser, String dirPath) {
-        // In Minecraft resources, we can't list directory contents directly
-        // So we'll try to load known files from a manifest or just try common patterns
-        // For now, let's try loading specific known files
-        String[] knownFiles = getKnownFilesForDirectory(dirPath);
-        for (String file : knownFiles) {
-            loadResourceFile(parser, dirPath + file);
-        }
-    }
-    
-    /**
-     * Get list of known .d.ts files for a directory.
-     * This is a workaround since we can't list resource directories.
-     */
-    private String[] getKnownFilesForDirectory(String dirPath) {
-        // These are the known API files based on the actual file structure
-        if (dirPath.endsWith("noppes/npcs/api/")) {
-            return new String[]{
-                "AbstractNpcAPI.d.ts", "IBlock.d.ts", "ICommand.d.ts", "IContainer.d.ts",
-                "IDamageSource.d.ts", "INbt.d.ts", "IParticle.d.ts", "IPixelmonPlayerData.d.ts",
-                "IPos.d.ts", "IScreenSize.d.ts", "ISkinOverlay.d.ts", "ITileEntity.d.ts", 
-                "ITimers.d.ts", "IWorld.d.ts"
-            };
-        } else if (dirPath.endsWith("entity/")) {
-            return new String[]{
-                "ICustomNpc.d.ts", "IEntity.d.ts", "IEntityItem.d.ts", "IEntityLiving.d.ts",
-                "IEntityLivingBase.d.ts", "IPlayer.d.ts", "IProjectile.d.ts", "IAnimal.d.ts",
-                "IAnimatable.d.ts", "IArrow.d.ts", "IDBCPlayer.d.ts", "IFishHook.d.ts",
-                "IMonster.d.ts", "IPixelmon.d.ts", "IThrowable.d.ts", "IVillager.d.ts"
-            };
-        } else if (dirPath.endsWith("event/")) {
-            return new String[]{
-                "INpcEvent.d.ts", "IPlayerEvent.d.ts", "IItemEvent.d.ts", "IBlockEvent.d.ts",
-                "IDialogEvent.d.ts", "IQuestEvent.d.ts", "ICustomGuiEvent.d.ts",
-                "IAnimationEvent.d.ts", "ICustomNPCsEvent.d.ts", "IFactionEvent.d.ts",
-                "IForgeEvent.d.ts", "ILinkedItemEvent.d.ts", "IPartyEvent.d.ts",
-                "IProjectileEvent.d.ts", "IRecipeEvent.d.ts"
-            };
-        } else if (dirPath.endsWith("handler/")) {
-            return new String[]{
-                "ICloneHandler.d.ts", "IDialogHandler.d.ts", "IFactionHandler.d.ts",
-                "IQuestHandler.d.ts", "IRecipeHandler.d.ts", "ITagHandler.d.ts",
-                "IAnimationHandler.d.ts", "IActionManager.d.ts", "IAttributeHandler.d.ts",
-                "ICustomEffectHandler.d.ts", "IMagicHandler.d.ts", "INaturalSpawnsHandler.d.ts",
-                "IOverlayHandler.d.ts", "IPartyHandler.d.ts", "IPlayerBankData.d.ts",
-                "IPlayerData.d.ts", "IPlayerDialogData.d.ts", "IPlayerFactionData.d.ts",
-                "IPlayerItemGiverData.d.ts", "IPlayerMailData.d.ts", "IPlayerQuestData.d.ts",
-                "IPlayerTransportData.d.ts", "IProfileHandler.d.ts", "ITransportHandler.d.ts"
-            };
-        } else if (dirPath.endsWith("item/")) {
-            return new String[]{
-                "IItemStack.d.ts", "IItemArmor.d.ts", "IItemBook.d.ts", "IItemBlock.d.ts",
-                "IItemCustom.d.ts", "IItemCustomizable.d.ts", "IItemLinked.d.ts"
-            };
-        } else if (dirPath.endsWith("block/")) {
-            return new String[]{
-                "IBlockScripted.d.ts", "ITextPlane.d.ts"
-            };
-        } else if (dirPath.endsWith("gui/")) {
-            return new String[]{
-                "IButton.d.ts", "ICustomGui.d.ts", "ILabel.d.ts", "ITextField.d.ts",
-                "ITexturedRect.d.ts", "IScroll.d.ts", "IItemSlot.d.ts", "ICustomGuiComponent.d.ts",
-                "ILine.d.ts"
-            };
-        }
-        return new String[]{};
     }
     
     /**
