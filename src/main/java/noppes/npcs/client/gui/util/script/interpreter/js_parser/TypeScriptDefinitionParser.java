@@ -12,8 +12,13 @@ import java.util.zip.*;
 public class TypeScriptDefinitionParser {
     
     // Patterns for parsing .d.ts content
+    // Updated to handle generic type parameters like: export interface IEntityLivingBase<T> extends IEntity {
     private static final Pattern INTERFACE_PATTERN = Pattern.compile(
-        "export\\s+interface\\s+(\\w+)(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+        "export\\s+interface\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+    
+    // Similar pattern for classes
+    private static final Pattern CLASS_PATTERN = Pattern.compile(
+        "export\\s+class\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
     
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile(
         "export\\s+namespace\\s+(\\w+)\\s*\\{");
@@ -148,7 +153,7 @@ public class TypeScriptDefinitionParser {
     }
     
     /**
-     * Parse interface definitions from content.
+     * Parse interface and class definitions from content.
      */
     private void parseInterfaceFile(String content, String parentNamespace) {
         // Find interfaces
@@ -168,11 +173,41 @@ public class TypeScriptDefinitionParser {
                 if (extendsType.contains(",")) {
                     extendsType = extendsType.substring(0, extendsType.indexOf(',')).trim();
                 }
+                // Clean up import() syntax if present
+                extendsType = cleanType(extendsType);
                 typeInfo.setExtends(extendsType);
             }
             
             // Find the body of this interface
             int bodyStart = interfaceMatcher.end();
+            int bodyEnd = findMatchingBrace(content, bodyStart - 1);
+            if (bodyEnd > bodyStart) {
+                String body = content.substring(bodyStart, bodyEnd);
+                parseInterfaceBody(body, typeInfo);
+            }
+            
+            registry.registerType(typeInfo);
+        }
+        
+        // Find classes (same logic as interfaces)
+        Matcher classMatcher = CLASS_PATTERN.matcher(content);
+        while (classMatcher.find()) {
+            String className = classMatcher.group(1);
+            String extendsClause = classMatcher.group(2);
+            
+            JSTypeInfo typeInfo = new JSTypeInfo(className, parentNamespace);
+            if (extendsClause != null) {
+                String extendsType = extendsClause.trim();
+                extendsType = extendsType.replaceAll("<[^>]*>", "");
+                if (extendsType.contains(",")) {
+                    extendsType = extendsType.substring(0, extendsType.indexOf(',')).trim();
+                }
+                extendsType = cleanType(extendsType);
+                typeInfo.setExtends(extendsType);
+            }
+            
+            // Find the body of this class
+            int bodyStart = classMatcher.end();
             int bodyEnd = findMatchingBrace(content, bodyStart - 1);
             if (bodyEnd > bodyStart) {
                 String body = content.substring(bodyStart, bodyEnd);
