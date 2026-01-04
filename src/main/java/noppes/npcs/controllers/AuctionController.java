@@ -104,6 +104,9 @@ public class AuctionController {
             listing.id, seller.getCommandSenderName(),
             item.getDisplayName());
 
+        // Log to CNPC+ auction history
+        AuctionLogger.logListingCreated(listing);
+
         return listing;
     }
 
@@ -401,8 +404,9 @@ public class AuctionController {
             return false;
         }
 
-        // Store previous bidder for refund
+        // Store previous bidder for refund and notification
         UUID previousBidder = listing.highBidderUUID;
+        String previousBidderName = listing.highBidderName;
         long previousBidAmount = listing.currentBid;
 
         // Try to place bid
@@ -413,7 +417,7 @@ public class AuctionController {
         // Withdraw bid amount from new bidder
         CurrencyController.Instance.withdraw(bidder, amount);
 
-        // Refund previous bidder via claims system
+        // Refund previous bidder via claims system and notify
         if (previousBidder != null) {
             CurrencyController.Instance.addClaim(
                 previousBidder,
@@ -421,6 +425,20 @@ public class AuctionController {
                 "Auction Outbid",
                 String.valueOf(listingId)
             );
+
+            // Notify previous bidder they were outbid
+            if (AuctionNotificationController.Instance != null) {
+                AuctionNotificationController.Instance.notifyOutbid(
+                    listing, previousBidder, previousBidderName, previousBidAmount, amount);
+            }
+
+            // Log refund
+            AuctionLogger.logBidRefunded(listing, previousBidderName, previousBidAmount);
+        }
+
+        // Notify seller of new bid
+        if (AuctionNotificationController.Instance != null) {
+            AuctionNotificationController.Instance.notifyNewBid(listing, bidder.getCommandSenderName(), amount);
         }
 
         // Update bidder index
@@ -448,8 +466,9 @@ public class AuctionController {
             return false;
         }
 
-        // Store previous bidder for refund
+        // Store previous bidder for refund and notification
         UUID previousBidder = listing.highBidderUUID;
+        String previousBidderName = listing.highBidderName;
         long previousBidAmount = listing.currentBid;
 
         // Execute buyout
@@ -460,7 +479,7 @@ public class AuctionController {
         // Withdraw buyout amount from buyer
         CurrencyController.Instance.withdraw(buyer, listing.buyoutPrice);
 
-        // Refund previous bidder via claims system
+        // Refund previous bidder via claims system and notify
         if (previousBidder != null) {
             CurrencyController.Instance.addClaim(
                 previousBidder,
@@ -468,6 +487,15 @@ public class AuctionController {
                 "Auction Outbid (Buyout)",
                 String.valueOf(listingId)
             );
+
+            // Notify previous bidder they were outbid
+            if (AuctionNotificationController.Instance != null) {
+                AuctionNotificationController.Instance.notifyOutbid(
+                    listing, previousBidder, previousBidderName, previousBidAmount, listing.buyoutPrice);
+            }
+
+            // Log refund
+            AuctionLogger.logBidRefunded(listing, previousBidderName, previousBidAmount);
         }
 
         // Update bidder index
@@ -476,6 +504,16 @@ public class AuctionController {
         save();
         logger.info("Buyout executed on listing {} by {} for {}",
             listingId, buyer.getCommandSenderName(), listing.buyoutPrice);
+
+        // Log buyout and send notifications
+        AuctionLogger.logBuyout(listing, buyer.getCommandSenderName());
+
+        if (AuctionNotificationController.Instance != null) {
+            // Notify buyer they won
+            AuctionNotificationController.Instance.notifyAuctionWon(listing);
+            // Notify seller their item sold
+            AuctionNotificationController.Instance.notifyAuctionSold(listing);
+        }
 
         return true;
     }
@@ -490,6 +528,8 @@ public class AuctionController {
             return false;
         }
 
+        boolean byAdmin = !listing.sellerUUID.equals(requester.getUniqueID());
+
         if (!listing.cancel(requester.getUniqueID())) {
             return false;
         }
@@ -497,6 +537,12 @@ public class AuctionController {
         save();
         logger.info("Listing {} cancelled by {}",
             listingId, requester.getCommandSenderName());
+
+        // Log and notify
+        AuctionLogger.logAuctionCancelled(listing, byAdmin);
+        if (AuctionNotificationController.Instance != null) {
+            AuctionNotificationController.Instance.notifyAuctionCancelled(listing, byAdmin);
+        }
 
         return true;
     }
@@ -536,6 +582,9 @@ public class AuctionController {
         logger.info("Seller {} claimed {} from listing {}",
             seller.getCommandSenderName(), proceeds, listingId);
 
+        // Log the currency claim
+        AuctionLogger.logCurrencyClaimed(listing, seller.getCommandSenderName(), proceeds);
+
         return true;
     }
 
@@ -568,6 +617,9 @@ public class AuctionController {
 
         logger.info("Buyer {} claimed item from listing {}",
             buyer.getCommandSenderName(), listingId);
+
+        // Log the item claim
+        AuctionLogger.logItemClaimed(listing, buyer.getCommandSenderName(), false);
 
         return listing.item.copy();
     }
@@ -602,6 +654,9 @@ public class AuctionController {
         logger.info("Seller {} reclaimed item from listing {}",
             seller.getCommandSenderName(), listingId);
 
+        // Log the item reclaim
+        AuctionLogger.logItemClaimed(listing, seller.getCommandSenderName(), true);
+
         return listing.item.copy();
     }
 
@@ -624,6 +679,8 @@ public class AuctionController {
      */
     public void processExpiredAuctions() {
         boolean changed = false;
+        int expiredCount = 0;
+        int soldCount = 0;
 
         for (AuctionListing listing : listings.values()) {
             if (listing.status == EnumAuctionStatus.ACTIVE && listing.isExpired()) {
@@ -632,17 +689,32 @@ public class AuctionController {
 
                 // If sold, add proceeds to seller's claims
                 if (listing.status == EnumAuctionStatus.SOLD) {
+                    soldCount++;
                     // Proceeds will be claimed manually, no automatic deposit
                     logger.info("Auction {} ended with sale to {} for {}",
                         listing.id, listing.highBidderName, listing.currentBid);
+
+                    // Send notifications
+                    if (AuctionNotificationController.Instance != null) {
+                        AuctionNotificationController.Instance.notifyAuctionWon(listing);
+                        AuctionNotificationController.Instance.notifyAuctionSold(listing);
+                    }
                 } else {
+                    expiredCount++;
                     logger.info("Auction {} expired without bids", listing.id);
+
+                    // Notify seller about expiration
+                    if (AuctionNotificationController.Instance != null) {
+                        AuctionNotificationController.Instance.notifyAuctionExpired(listing);
+                    }
                 }
             }
         }
 
         if (changed) {
             save();
+            // Log processing tick if anything happened
+            AuctionLogger.logProcessingTick(expiredCount, soldCount);
         }
     }
 
@@ -804,8 +876,23 @@ public class AuctionController {
 
             logger.info("Loaded {} auction listings", listings.size());
 
+            // Log system startup
+            int activeCount = getActiveListingCount();
+            int pendingClaims = 0;
+            for (AuctionListing listing : listings.values()) {
+                if (!listing.sellerClaimed || !listing.buyerClaimed) {
+                    if (listing.status == EnumAuctionStatus.SOLD ||
+                        listing.status == EnumAuctionStatus.EXPIRED ||
+                        listing.status == EnumAuctionStatus.CANCELLED) {
+                        pendingClaims++;
+                    }
+                }
+            }
+            AuctionLogger.logSystemStartup(activeCount, pendingClaims);
+
         } catch (Exception e) {
             logger.error("Error loading auctions", e);
+            AuctionLogger.logError("Loading auctions", e);
         }
     }
 
