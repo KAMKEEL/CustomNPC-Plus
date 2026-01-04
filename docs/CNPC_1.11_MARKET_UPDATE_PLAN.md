@@ -10,15 +10,64 @@ This document outlines the implementation plan for the CustomNPC+ 1.11 update, f
 
 ---
 
+## Design Decisions (Confirmed)
+
+### 1. Auction Refund System
+**Decision:** When a player is outbid, the refund goes to **claims** (not direct to balance).
+- Players can manage their bids from claims
+- If auction ends while player is offline, they can claim their money later
+- This keeps the flow consistent with item claims
+
+### 2. Permission System
+**Decision:** Use the **existing CustomNPC+ permission system** used for Profiles.
+- Pattern: `customnpcs.auction.slots.X` where X is the max slot count
+- Implementation mirrors `ProfileController.allowSlotPermission()` approach
+- Uses `CustomNpcsPermissions.hasCustomPermission(player, permissionString)`
+
+### 3. Virtual Currency Storage
+**Decision:** Currency is **NOT profile slot bound** - all profile slots share the same currency pool per player.
+- Stored in PlayerData outside of slot components
+- Balance persists across profile slot switches
+- Balance viewing system to be added later (for now, visible via GUI only)
+
+### 4. Currency Display Icon
+**Decision:** Use the **existing gold coin** from the mod (`CustomItems.coinGold`).
+- Already has textures and localization for all supported languages
+- Available coin types: Wood, Stone, Bronze, Iron, Gold, Diamond, Emerald
+
+### 5. Trader Stock Reset Timer Display
+**Decision:** Show "Stocks reset in X hours" as a **banner ABOVE the GUI**.
+- Positioned at a higher Y level than the main GUI
+- Not overlayed on the GUI content
+- Displayed when opening the trader interface
+
+### 6. Item Trading Restrictions
+**Decision:** Implement the following restrictions for auction listings:
+- **Untradeable Attribute**: New item attribute that prevents auction listing
+- **SlotBound Items**: Cannot be listed (needs to be implemented)
+- **SoulBound Items**: Cannot be listed (needs to be implemented)
+- **Auction House Blacklist**: Configurable list of items that cannot be auctioned
+
+### 7. Admin Auction Management
+**Decision:** Create an **Auction Management system** with a Global Admin button.
+- Admins can modify, remove, and edit auction listings in real-time
+- Accessible via special admin GUI
+- Permission-gated for server operators
+
+---
+
 ## Table of Contents
 
-1. [Architecture Overview](#architecture-overview)
-2. [Feature 1: Currency System](#feature-1-currency-system)
-3. [Feature 2: Trader Enhancements](#feature-2-trader-enhancements)
-4. [Feature 3: Auction House](#feature-3-auction-house)
-5. [Implementation Order](#implementation-order)
-6. [File Summary](#file-summary)
-7. [Testing Strategy](#testing-strategy)
+1. [Design Decisions](#design-decisions-confirmed)
+2. [Architecture Overview](#architecture-overview)
+3. [Feature 1: Currency System](#feature-1-currency-system)
+4. [Feature 2: Trader Enhancements](#feature-2-trader-enhancements)
+5. [Feature 3: Auction House](#feature-3-auction-house)
+6. [Feature 4: Item Attributes & Restrictions](#feature-4-item-attributes--restrictions)
+7. [Feature 5: Admin Auction Management](#feature-5-admin-auction-management)
+8. [Implementation Order](#implementation-order)
+9. [File Summary](#file-summary)
+10. [Testing Strategy](#testing-strategy)
 
 ---
 
@@ -1720,6 +1769,433 @@ public void onServerTick(TickEvent.ServerTickEvent event) {
 
 ---
 
+## Feature 4: Item Attributes & Restrictions
+
+### 4.1 Overview
+
+Implement item attribute system to control which items can be traded/auctioned. Items with certain attributes will be blocked from the auction house.
+
+### 4.2 New Item Attributes
+
+#### 4.2.1 Untradeable Attribute
+
+A new NBT-based item attribute that marks items as untradeable.
+
+**File: `src/main/java/kamkeel/npcs/controllers/data/attribute/ItemTradeAttribute.java`**
+
+```java
+package kamkeel.npcs.controllers.data.attribute;
+
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+
+public class ItemTradeAttribute {
+    public static final String TAG_UNTRADEABLE = "CNPC_Untradeable";
+    public static final String TAG_SLOT_BOUND = "CNPC_SlotBound";
+    public static final String TAG_SOUL_BOUND = "CNPC_SoulBound";
+
+    /**
+     * Check if item can be traded/auctioned
+     */
+    public static boolean canTrade(ItemStack item) {
+        if (item == null || !item.hasTagCompound()) {
+            return true;
+        }
+        NBTTagCompound tag = item.getTagCompound();
+
+        // Check all trade-blocking attributes
+        if (tag.getBoolean(TAG_UNTRADEABLE)) return false;
+        if (tag.getBoolean(TAG_SLOT_BOUND)) return false;
+        if (tag.getBoolean(TAG_SOUL_BOUND)) return false;
+
+        return true;
+    }
+
+    /**
+     * Mark item as untradeable
+     */
+    public static void setUntradeable(ItemStack item, boolean untradeable) {
+        if (item == null) return;
+        if (!item.hasTagCompound()) {
+            item.setTagCompound(new NBTTagCompound());
+        }
+        item.getTagCompound().setBoolean(TAG_UNTRADEABLE, untradeable);
+    }
+
+    public static boolean isUntradeable(ItemStack item) {
+        if (item == null || !item.hasTagCompound()) return false;
+        return item.getTagCompound().getBoolean(TAG_UNTRADEABLE);
+    }
+
+    public static boolean isSlotBound(ItemStack item) {
+        if (item == null || !item.hasTagCompound()) return false;
+        return item.getTagCompound().getBoolean(TAG_SLOT_BOUND);
+    }
+
+    public static boolean isSoulBound(ItemStack item) {
+        if (item == null || !item.hasTagCompound()) return false;
+        return item.getTagCompound().getBoolean(TAG_SOUL_BOUND);
+    }
+
+    /**
+     * Get reason why item cannot be traded (for UI display)
+     */
+    public static String getTradeBlockReason(ItemStack item) {
+        if (item == null || !item.hasTagCompound()) return null;
+        NBTTagCompound tag = item.getTagCompound();
+
+        if (tag.getBoolean(TAG_UNTRADEABLE)) return "gui.auction.untradeable";
+        if (tag.getBoolean(TAG_SLOT_BOUND)) return "gui.auction.slotbound";
+        if (tag.getBoolean(TAG_SOUL_BOUND)) return "gui.auction.soulbound";
+
+        return null;
+    }
+}
+```
+
+### 4.3 Auction House Item Blacklist
+
+A configurable system to blacklist specific items from being auctioned.
+
+**File: `src/main/java/noppes/npcs/controllers/AuctionBlacklist.java`**
+
+```java
+package noppes.npcs.controllers;
+
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
+import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+
+public class AuctionBlacklist {
+    private static AuctionBlacklist instance;
+
+    // Blacklist by item registry name (e.g., "minecraft:diamond_sword")
+    private Set<String> blacklistedItems = new HashSet<>();
+
+    // Blacklist by mod ID (e.g., "minecraft" blocks all vanilla items)
+    private Set<String> blacklistedMods = new HashSet<>();
+
+    // Blacklist by NBT tag presence (e.g., items with specific custom data)
+    private Set<String> blacklistedNBTTags = new HashSet<>();
+
+    public static AuctionBlacklist getInstance() {
+        if (instance == null) {
+            instance = new AuctionBlacklist();
+            instance.load();
+        }
+        return instance;
+    }
+
+    /**
+     * Check if item is blacklisted
+     */
+    public boolean isBlacklisted(ItemStack item) {
+        if (item == null) return false;
+
+        // Check item registry name
+        String itemName = Item.itemRegistry.getNameForObject(item.getItem());
+        if (itemName != null && blacklistedItems.contains(itemName)) {
+            return true;
+        }
+
+        // Check mod ID
+        if (itemName != null) {
+            String modId = itemName.split(":")[0];
+            if (blacklistedMods.contains(modId)) {
+                return true;
+            }
+        }
+
+        // Check NBT tags
+        if (item.hasTagCompound()) {
+            NBTTagCompound tag = item.getTagCompound();
+            for (String nbtTag : blacklistedNBTTags) {
+                if (tag.hasKey(nbtTag)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    // Blacklist management methods
+    public void addItem(String itemName) {
+        blacklistedItems.add(itemName);
+        save();
+    }
+
+    public void removeItem(String itemName) {
+        blacklistedItems.remove(itemName);
+        save();
+    }
+
+    public void addMod(String modId) {
+        blacklistedMods.add(modId);
+        save();
+    }
+
+    public void removeMod(String modId) {
+        blacklistedMods.remove(modId);
+        save();
+    }
+
+    public void addNBTTag(String tag) {
+        blacklistedNBTTags.add(tag);
+        save();
+    }
+
+    public void removeNBTTag(String tag) {
+        blacklistedNBTTags.remove(tag);
+        save();
+    }
+
+    public Set<String> getBlacklistedItems() {
+        return new HashSet<>(blacklistedItems);
+    }
+
+    public Set<String> getBlacklistedMods() {
+        return new HashSet<>(blacklistedMods);
+    }
+
+    public Set<String> getBlacklistedNBTTags() {
+        return new HashSet<>(blacklistedNBTTags);
+    }
+
+    // Persistence
+    public void save() {
+        // Save to auction_blacklist.dat
+    }
+
+    public void load() {
+        // Load from auction_blacklist.dat
+    }
+}
+```
+
+### 4.4 Integration with Auction Listing
+
+Modify `AuctionController.createListing()` to check restrictions:
+
+```java
+public AuctionListing createListing(EntityPlayer seller, ItemStack item, ...) {
+    // Check item attribute restrictions
+    if (!ItemTradeAttribute.canTrade(item)) {
+        String reason = ItemTradeAttribute.getTradeBlockReason(item);
+        // Send message to player with reason
+        return null;
+    }
+
+    // Check blacklist
+    if (AuctionBlacklist.getInstance().isBlacklisted(item)) {
+        // Send "This item cannot be auctioned" message
+        return null;
+    }
+
+    // ... rest of listing creation
+}
+```
+
+---
+
+## Feature 5: Admin Auction Management
+
+### 5.1 Overview
+
+A comprehensive admin system for managing the auction house in real-time.
+
+### 5.2 Admin Permissions
+
+**File: `src/main/java/noppes/npcs/CustomNpcsPermissions.java`**
+
+Add new permissions:
+
+```java
+// Auction Administration
+public static final Permission AUCTION_ADMIN = new Permission("customnpcs.auction.admin");
+public static final Permission AUCTION_MANAGE = new Permission("customnpcs.auction.manage");
+public static final Permission AUCTION_BLACKLIST = new Permission("customnpcs.auction.blacklist");
+```
+
+### 5.3 Admin GUI
+
+**File: `src/main/java/noppes/npcs/client/gui/global/GuiAuctionAdmin.java`**
+
+Features:
+- **View All Listings**: See all active, expired, and cancelled listings
+- **Search/Filter**: Find listings by seller, item, status
+- **Cancel Any Listing**: Force-cancel listings (returns item to seller)
+- **Modify Listing**: Edit prices, duration (with warning)
+- **End Auction Early**: Force-end with current highest bidder winning
+- **Refund Bidders**: Manually refund specific bidders
+- **View Blacklist**: Manage item blacklist
+- **Audit Log**: View recent auction actions
+
+```java
+public class GuiAuctionAdmin extends GuiNPCInterface {
+    private List<AuctionListing> allListings;
+    private int currentPage = 0;
+    private EnumAuctionStatus filterStatus = null;
+    private String searchQuery = "";
+
+    // Admin action buttons
+    private static final int BTN_CANCEL = 10;
+    private static final int BTN_END_EARLY = 11;
+    private static final int BTN_EDIT = 12;
+    private static final int BTN_REFUND = 13;
+    private static final int BTN_BLACKLIST = 14;
+    private static final int BTN_AUDIT = 15;
+
+    @Override
+    public void initGui() {
+        // Tab buttons: All | Active | Sold | Expired | Cancelled
+        // Search bar
+        // Listing table with columns: ID, Seller, Item, Price, Bids, Status, Time
+        // Action buttons for selected listing
+        // Blacklist management button
+    }
+
+    @Override
+    protected void actionPerformed(GuiButton button) {
+        switch (button.id) {
+            case BTN_CANCEL:
+                adminCancelListing(selectedListing);
+                break;
+            case BTN_END_EARLY:
+                adminEndAuction(selectedListing);
+                break;
+            case BTN_EDIT:
+                openEditDialog(selectedListing);
+                break;
+            case BTN_REFUND:
+                openRefundDialog(selectedListing);
+                break;
+            case BTN_BLACKLIST:
+                openBlacklistGui();
+                break;
+            case BTN_AUDIT:
+                openAuditLog();
+                break;
+        }
+    }
+}
+```
+
+### 5.4 Admin Actions in AuctionController
+
+```java
+// Admin-only methods
+public boolean adminCancelListing(EntityPlayer admin, int listingId, String reason) {
+    if (!CustomNpcsPermissions.hasPermission(admin, AUCTION_MANAGE)) {
+        return false;
+    }
+
+    AuctionListing listing = listings.get(listingId);
+    if (listing == null) return false;
+
+    // Refund current bidder if any
+    if (listing.highBidderUUID != null) {
+        addClaim(listing.highBidderUUID, listing.highBidderName,
+                null, listing.currentBid, "Admin cancelled auction: " + reason);
+    }
+
+    // Return item to seller
+    addClaim(listing.sellerUUID, listing.sellerName, listing.item, 0,
+            "Listing cancelled by admin: " + reason);
+
+    listing.status = EnumAuctionStatus.CANCELLED;
+
+    // Log action
+    logAdminAction(admin, "CANCEL", listingId, reason);
+
+    return true;
+}
+
+public boolean adminEndAuction(EntityPlayer admin, int listingId) {
+    if (!CustomNpcsPermissions.hasPermission(admin, AUCTION_MANAGE)) {
+        return false;
+    }
+
+    AuctionListing listing = listings.get(listingId);
+    if (listing == null || listing.status != EnumAuctionStatus.ACTIVE) {
+        return false;
+    }
+
+    // End as if time expired
+    listing.expirationTime = System.currentTimeMillis();
+    processExpiredAuctions();
+
+    // Log action
+    logAdminAction(admin, "END_EARLY", listingId, "");
+
+    return true;
+}
+
+public boolean adminEditListing(EntityPlayer admin, int listingId,
+                                 double newStartPrice, double newBuyout,
+                                 long newExpiration) {
+    if (!CustomNpcsPermissions.hasPermission(admin, AUCTION_MANAGE)) {
+        return false;
+    }
+
+    AuctionListing listing = listings.get(listingId);
+    if (listing == null || listing.status != EnumAuctionStatus.ACTIVE) {
+        return false;
+    }
+
+    // Only allow if no bids placed
+    if (listing.highBidderUUID != null) {
+        return false; // Cannot edit listing with bids
+    }
+
+    listing.startingPrice = newStartPrice;
+    listing.currentBid = newStartPrice;
+    listing.buyoutPrice = newBuyout;
+    listing.expirationTime = newExpiration;
+
+    // Log action
+    logAdminAction(admin, "EDIT", listingId,
+        String.format("price=%.2f,buyout=%.2f", newStartPrice, newBuyout));
+
+    return true;
+}
+
+// Audit logging
+private void logAdminAction(EntityPlayer admin, String action, int listingId, String details) {
+    // Log to file: timestamp, admin name, action, listing id, details
+    LogWriter.info(String.format("[AUCTION ADMIN] %s performed %s on listing %d: %s",
+        admin.getCommandSenderName(), action, listingId, details));
+}
+```
+
+### 5.5 Blacklist Management GUI
+
+**File: `src/main/java/noppes/npcs/client/gui/global/GuiAuctionBlacklist.java`**
+
+Features:
+- Add item by holding it and clicking "Add"
+- Add by typing item registry name
+- Add entire mod by mod ID
+- Add NBT tag pattern
+- View current blacklist with remove buttons
+- Test item against blacklist
+
+### 5.6 Access Points
+
+The Admin GUI can be accessed via:
+1. **Global Menu**: New "Auction Management" button (requires permission)
+2. **Auctioneer NPC**: Admin gear icon when editing NPC role (requires permission)
+3. **Command**: `/cnpc auction admin` (requires OP or permission)
+
+---
+
 ## Implementation Order
 
 The features should be implemented in this order due to dependencies:
@@ -1742,10 +2218,17 @@ The features should be implemented in this order due to dependencies:
 6. Update network packets for stock synchronization
 7. Test stock depletion and reset timers
 
-### Phase 3: Auction House
+### Phase 3: Item Attributes & Restrictions
+1. Create `ItemTradeAttribute.java` with Untradeable, SlotBound, SoulBound tags
+2. Create `AuctionBlacklist.java` controller
+3. Add API methods to scripting interface for setting item attributes
+4. Create blacklist persistence (load/save to file)
+5. Test attribute blocking in listing creation
+
+### Phase 4: Auction House
 1. Create auction enums (`EnumAuctionDuration`, `EnumAuctionStatus`, `EnumAuctionCategory`)
 2. Create `AuctionListing.java` and `AuctionClaim` classes
-3. Create `AuctionController.java`
+3. Create `AuctionController.java` with item restriction checks
 4. Update `EnumRoleType.java` to add Auctioneer
 5. Create `RoleAuctioneer.java`
 6. Update `DataAdvanced.java` for role instantiation
@@ -1757,6 +2240,16 @@ The features should be implemented in this order due to dependencies:
 12. Create auctioneer setup GUI
 13. Comprehensive testing
 
+### Phase 5: Admin Auction Management
+1. Add auction admin permissions to `CustomNpcsPermissions.java`
+2. Create `GuiAuctionAdmin.java` admin interface
+3. Create `GuiAuctionBlacklist.java` blacklist management
+4. Add admin methods to `AuctionController.java`
+5. Add audit logging
+6. Create admin network packets
+7. Add command handler for `/cnpc auction admin`
+8. Test admin operations
+
 ---
 
 ## File Summary
@@ -1767,9 +2260,11 @@ The features should be implemented in this order due to dependencies:
 |------|-------------|
 | `kamkeel/npcs/compat/VaultHelper.java` | VaultAPI integration |
 | `kamkeel/npcs/controllers/CurrencyController.java` | Currency management |
-| `noppes/npcs/controllers/data/PlayerCurrencyData.java` | Per-player currency data |
+| `noppes/npcs/controllers/data/PlayerCurrencyData.java` | Per-player currency data (NOT slot-bound) |
 | `noppes/npcs/controllers/data/TraderStock.java` | Trader stock configuration |
 | `noppes/npcs/constants/EnumStockReset.java` | Stock reset types |
+| `kamkeel/npcs/controllers/data/attribute/ItemTradeAttribute.java` | Untradeable/SlotBound/SoulBound item attributes |
+| `noppes/npcs/controllers/AuctionBlacklist.java` | Auction item blacklist controller |
 | `noppes/npcs/controllers/AuctionController.java` | Auction house management |
 | `noppes/npcs/controllers/data/AuctionListing.java` | Auction listing data |
 | `noppes/npcs/constants/EnumAuctionDuration.java` | Auction duration options |
@@ -1779,8 +2274,11 @@ The features should be implemented in this order due to dependencies:
 | `noppes/npcs/containers/ContainerAuction*.java` | Auction containers |
 | `noppes/npcs/client/gui/player/GuiAuction*.java` | Auction GUIs |
 | `noppes/npcs/client/gui/roles/GuiNpcAuctioneerSetup.java` | Auctioneer config |
+| `noppes/npcs/client/gui/global/GuiAuctionAdmin.java` | Admin auction management |
+| `noppes/npcs/client/gui/global/GuiAuctionBlacklist.java` | Blacklist management GUI |
 | `kamkeel/npcs/network/packets/player/AuctionActionPacket.java` | Auction actions |
 | `kamkeel/npcs/network/packets/data/AuctionSyncPacket.java` | Auction data sync |
+| `kamkeel/npcs/network/packets/admin/AuctionAdminPacket.java` | Admin auction actions |
 
 ### Files to Modify
 
@@ -1788,17 +2286,20 @@ The features should be implemented in this order due to dependencies:
 |------|---------|
 | `dependencies.gradle` | Add VaultAPI dependency |
 | `repositories.gradle` | Add Vault repository |
-| `CustomNpcs.java` | Initialize VaultHelper, AuctionController |
+| `CustomNpcs.java` | Initialize VaultHelper, AuctionController, AuctionBlacklist |
+| `CustomNpcsPermissions.java` | Add auction admin permissions |
 | `EnumRoleType.java` | Add Auctioneer |
-| `EnumGuiType.java` | Add auction GUI types |
+| `EnumGuiType.java` | Add auction GUI types, admin GUIs |
 | `DataAdvanced.java` | Handle Auctioneer role |
 | `RoleTrader.java` | Add stock and currency support |
 | `ContainerNPCTrader.java` | Handle stock/currency transactions |
+| `GuiNpcTrader.java` | Add stock reset timer banner above GUI |
 | `GuiNpcTraderSetup.java` | Add stock/currency UI |
-| `PlayerData.java` | Add PlayerCurrencyData |
+| `PlayerData.java` | Add PlayerCurrencyData (NOT in slot components - shared across slots) |
 | `CommonProxy.java` | Register auction containers |
 | `ServerTickHandler.java` | Add auction expiration check |
-| `PacketHandler.java` | Register auction packets |
+| `PacketHandler.java` | Register auction packets and admin packets |
+| `CommandKamkeel.java` | Add `/cnpc auction admin` command |
 
 ---
 
@@ -1806,29 +2307,41 @@ The features should be implemented in this order due to dependencies:
 
 ### Unit Testing
 - Currency operations (deposit, withdraw, balance)
+- Currency shared across profile slots (not slot-bound)
 - Stock depletion and reset calculations
 - Auction bid validation
 - Auction expiration handling
+- Item attribute checks (Untradeable, SlotBound, SoulBound)
+- Blacklist matching (by item, mod, NBT tag)
 
 ### Integration Testing
 - VaultAPI integration on hybrid servers
 - Fallback to item currency when Vault unavailable
 - Stock persistence across server restarts
 - Auction persistence and recovery
+- Profile slot switching with shared currency
+- Outbid refunds going to claims correctly
+- Admin actions affecting live auctions
 
 ### User Acceptance Testing
 - Complete trading flow with stock limits
 - Complete auction flow (list → bid → win → claim)
-- Currency display formatting
+- Currency display formatting with gold coin icon
+- Stock reset timer banner display above trader GUI
 - GUI usability
+- Admin management workflow
 
 ### Edge Cases
 - Negative currency amounts
 - Concurrent bids on same auction
 - Server crash during transaction
-- Player offline when auction ends
-- Maximum listings per player
+- Player offline when auction ends (claim on next login)
+- Maximum listings per player (permission-based)
 - Inventory full when claiming
+- Trying to auction Untradeable/SlotBound/SoulBound items
+- Trying to auction blacklisted items
+- Admin cancelling auction with active bids
+- Profile slot switch while having pending claims
 
 ---
 
@@ -1843,29 +2356,61 @@ boolean withdraw(IPlayer player, double amount);
 boolean deposit(IPlayer player, double amount);
 String format(double amount);
 
+// IItemStack extensions for trade attributes
+boolean isUntradeable();
+void setUntradeable(boolean value);
+boolean isSlotBound();
+void setSlotBound(boolean value);
+boolean isSoulBound();
+void setSoulBound(boolean value);
+boolean canTrade();  // Returns false if any blocking attribute is set
+String getTradeBlockReason();  // Returns localization key for reason
+
 // IAuction interface for scripts
 IAuctionListing createListing(IPlayer seller, IItemStack item,
                                double startPrice, double buyout, int durationHours);
 boolean cancelListing(int listingId);
 List<IAuctionListing> getPlayerListings(IPlayer player);
+boolean isItemBlacklisted(IItemStack item);
+
+// IAuctionBlacklist interface for scripts (admin)
+void addItemToBlacklist(String registryName);
+void removeItemFromBlacklist(String registryName);
+void addModToBlacklist(String modId);
+void removeModFromBlacklist(String modId);
+boolean isBlacklisted(IItemStack item);
 
 // Events
 onAuctionCreated(IAuctionListing listing);
 onAuctionBid(IAuctionListing listing, IPlayer bidder, double amount);
+onAuctionOutbid(IAuctionListing listing, IPlayer previousBidder, double refundAmount);
 onAuctionSold(IAuctionListing listing, IPlayer buyer, double price);
 onAuctionExpired(IAuctionListing listing);
+onAuctionCancelled(IAuctionListing listing, boolean byAdmin);
 onTraderPurchase(ITrader trader, IPlayer buyer, int slot, int stockRemaining);
 onTraderStockReset(ITrader trader);
+onCurrencyTransaction(IPlayer player, double amount, boolean isDeposit);
 ```
 
 ---
 
 ## Conclusion
 
-This implementation plan provides a comprehensive roadmap for the CustomNPC+ 1.11 Market Update. The three features are designed to work together seamlessly:
+This implementation plan provides a comprehensive roadmap for the CustomNPC+ 1.11 Market Update. The five features are designed to work together seamlessly:
 
-1. **Currency System** provides the foundation for monetary transactions
-2. **Trader Enhancements** modernize the existing trader with stock and currency support
-3. **Auction House** creates a global marketplace leveraging the currency system
+1. **Currency System** provides the foundation for monetary transactions (shared across profile slots)
+2. **Trader Enhancements** modernize the existing trader with stock, currency support, and reset timer banners
+3. **Item Attributes & Restrictions** control which items can be traded via Untradeable, SlotBound, SoulBound attributes and blacklists
+4. **Auction House** creates a global marketplace with claims-based refunds and permission-based slot limits
+5. **Admin Management** provides comprehensive tools for server operators to manage the auction house in real-time
 
-The implementation follows existing codebase patterns and can be developed incrementally, with each phase building on the previous one.
+The implementation follows existing codebase patterns (permission system from Profiles, gold coin from CustomItems) and can be developed incrementally, with each phase building on the previous one.
+
+### Key Design Decisions Summary
+- Outbid refunds → Claims (not direct to balance)
+- Currency → Shared across all profile slots per player
+- Permissions → Uses existing CustomNPC+ permission pattern
+- Display icon → Existing `CustomItems.coinGold`
+- Stock reset timer → Banner displayed ABOVE the trader GUI
+- Trade restrictions → Untradeable attribute + SlotBound/SoulBound + Blacklist system
+- Admin tools → Full management GUI with audit logging
