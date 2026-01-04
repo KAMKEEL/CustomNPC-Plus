@@ -508,22 +508,16 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     
     @Override
     public int compareTo(AutocompleteItem other) {
-        // First by match score (descending)
+        // First by match score (descending) - this includes all penalties and boosts
         if (this.matchScore != other.matchScore) {
             return other.matchScore - this.matchScore;
-        }
-        
-        // Push inherited Object methods to the bottom
-        boolean thisIsObjectMethod = this.isInheritedObjectMethod();
-        boolean otherIsObjectMethod = other.isInheritedObjectMethod();
-        if (thisIsObjectMethod != otherIsObjectMethod) {
-            return thisIsObjectMethod ? 1 : -1; // Object methods go to bottom
         }
         
         // Then by kind priority
         if (this.kind.getPriority() != other.kind.getPriority()) {
             return this.kind.getPriority() - other.kind.getPriority();
         }
+        
         // Finally alphabetically
         return this.name.compareToIgnoreCase(other.name);
     }

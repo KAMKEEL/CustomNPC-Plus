@@ -357,6 +357,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 item.calculateMatchScore("", false);
                 applyUsageBoost(item, tracker, ownerFullName);
                 applyStaticPenalty(item, isMemberAccess, isStaticContext);
+                applyObjectMethodPenalty(item);
             }
             return;
         }
@@ -365,7 +366,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         // For member access (after dot), allow fuzzy/contains matching
         boolean requirePrefix = !isMemberAccess;
         
-        // Filter, score, apply usage boosts, and apply static penalties
+        // Filter, score, apply usage boosts, and apply penalties
         Iterator<AutocompleteItem> iter = items.iterator();
         while (iter.hasNext()) {
             AutocompleteItem item = iter.next();
@@ -375,6 +376,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             } else {
                 applyUsageBoost(item, tracker, ownerFullName);
                 applyStaticPenalty(item, isMemberAccess, isStaticContext);
+                applyObjectMethodPenalty(item);
             }
         }
     }
@@ -419,6 +421,27 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 // Heavy penalty for fuzzy/substring matches - push to bottom
                 item.addScoreBoost(-matchScore);
             }
+        }
+    }
+    
+    /**
+     * Apply penalty to inherited Object methods to push them to bottom.
+     * Strong matches get lighter penalty, weak matches get pushed all the way down.
+     */
+    private void applyObjectMethodPenalty(AutocompleteItem item) {
+        if (!item.isInheritedObjectMethod()) {
+            return;
+        }
+        
+        int matchScore = item.getMatchScore();
+        // Strong prefix matches (score >= 900) get a moderate penalty
+        // Everything else gets pushed to the very bottom
+        if (matchScore >= 900) {
+            // Strong match - moderate penalty to keep it visible but below normal methods
+            item.addScoreBoost(-500);
+        } else {
+            // Weak match - heavy penalty to push to bottom
+            item.addScoreBoost(-10000);
         }
     }
     
