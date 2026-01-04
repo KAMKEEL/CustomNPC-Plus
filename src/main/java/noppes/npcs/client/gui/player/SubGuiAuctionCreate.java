@@ -25,8 +25,8 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
     public SubGuiAuctionCreate(GuiAuction parent, ContainerAuction container) {
         this.container = container;
         setBackground("menubg.png");
-        xSize = 220;
-        ySize = 180;
+        xSize = 260;
+        ySize = 190;
         closeOnEsc = true;
     }
 
@@ -35,7 +35,7 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
         super.initGui();
 
         // Title
-        addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.createListing"), guiLeft + 50, guiTop + 8, 0x404040));
+        addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.createListing"), guiLeft + 80, guiTop + 8, 0x404040));
 
         // Item slot instructions
         addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("auction.placeItemBelow"), guiLeft + 20, guiTop + 28, 0x404040));
@@ -49,35 +49,35 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
         }
 
         // Starting price
-        addLabel(new GuiNpcLabel(10, StatCollector.translateToLocal("auction.startingPrice"), guiLeft + 20, guiTop + 70, 0x404040));
-        startingPriceField = new GuiNpcTextField(11, this, guiLeft + 100, guiTop + 68, 80, 14, "100");
+        addLabel(new GuiNpcLabel(10, StatCollector.translateToLocal("auction.startingPrice"), guiLeft + 20, guiTop + 74, 0x404040));
+        startingPriceField = new GuiNpcTextField(11, this, guiLeft + 120, guiTop + 72, 90, 14, "100");
         startingPriceField.setIntegersOnly();
         startingPriceField.setMinMaxDefault(1, 999999999, 100);
         addTextField(startingPriceField);
 
         // Buyout price (optional)
-        addLabel(new GuiNpcLabel(20, StatCollector.translateToLocal("auction.buyoutPrice"), guiLeft + 20, guiTop + 90, 0x404040));
-        buyoutPriceField = new GuiNpcTextField(21, this, guiLeft + 100, guiTop + 88, 80, 14, "0");
+        addLabel(new GuiNpcLabel(20, StatCollector.translateToLocal("auction.buyoutPrice"), guiLeft + 20, guiTop + 96, 0x404040));
+        buyoutPriceField = new GuiNpcTextField(21, this, guiLeft + 120, guiTop + 94, 90, 14, "0");
         buyoutPriceField.setIntegersOnly();
         buyoutPriceField.setMinMaxDefault(0, 999999999, 0);
         addTextField(buyoutPriceField);
-        addLabel(new GuiNpcLabel(22, StatCollector.translateToLocal("auction.noBuyoutHint"), guiLeft + 185, guiTop + 90, 0x888888));
+        addLabel(new GuiNpcLabel(22, StatCollector.translateToLocal("auction.noBuyoutHint"), guiLeft + 215, guiTop + 96, 0x888888));
 
         // Duration selection
-        addLabel(new GuiNpcLabel(30, StatCollector.translateToLocal("auction.duration"), guiLeft + 20, guiTop + 112, 0x404040));
-        addButton(new GuiNpcButton(31, guiLeft + 100, guiTop + 108, 100, 20, getDurationDisplay()));
+        addLabel(new GuiNpcLabel(30, StatCollector.translateToLocal("auction.duration"), guiLeft + 20, guiTop + 118, 0x404040));
+        addButton(new GuiNpcButton(31, guiLeft + 120, guiTop + 114, 110, 20, getDurationDisplay()));
 
         // Fee display
         long fee = getListingFee();
         addLabel(new GuiNpcLabel(40, StatCollector.translateToLocal("auction.listingFee") + " " + fee + " " + ConfigMarket.CurrencyName,
-            guiLeft + 20, guiTop + 135, fee > 0 ? 0xAA0000 : 0x008800));
+            guiLeft + 20, guiTop + 142, fee > 0 ? 0xAA0000 : 0x008800));
 
         // Create button
-        addButton(new GuiNpcButton(50, guiLeft + 20, guiTop + 155, 80, 20, StatCollector.translateToLocal("auction.create")));
+        addButton(new GuiNpcButton(50, guiLeft + 30, guiTop + 162, 90, 20, StatCollector.translateToLocal("auction.create")));
         getButton(50).setEnabled(item != null);
 
         // Cancel button
-        addButton(new GuiNpcButton(51, guiLeft + 120, guiTop + 155, 80, 20, StatCollector.translateToLocal("gui.cancel")));
+        addButton(new GuiNpcButton(51, guiLeft + 140, guiTop + 162, 90, 20, StatCollector.translateToLocal("gui.cancel")));
     }
 
     private String getDurationDisplay() {
