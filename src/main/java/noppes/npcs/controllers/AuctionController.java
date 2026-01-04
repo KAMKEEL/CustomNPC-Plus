@@ -9,7 +9,9 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.constants.EnumAuctionCategory;
 import noppes.npcs.constants.EnumAuctionDuration;
+import noppes.npcs.constants.EnumAuctionSort;
 import noppes.npcs.constants.EnumAuctionStatus;
+import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -142,6 +144,171 @@ public class AuctionController {
         return getActiveListings().stream()
             .filter(l -> l.item.getDisplayName().toLowerCase().contains(lowerQuery))
             .collect(Collectors.toList());
+    }
+
+    // ==================== Filtering & Sorting ====================
+
+    /**
+     * Get filtered and sorted auction listings.
+     * This is the main method for GUI queries.
+     * @param filter The filter criteria
+     * @return FilterResult containing matching listings and metadata
+     */
+    public FilterResult getFilteredListings(AuctionFilter filter) {
+        processExpiredAuctions();
+
+        // Get all active listings
+        List<AuctionListing> results = listings.values().stream()
+            .filter(AuctionListing::isActive)
+            .filter(filter::matches)
+            .collect(Collectors.toList());
+
+        // Sort the results
+        sortListings(results, filter.sortOrder);
+
+        // Calculate pagination
+        int totalResults = results.size();
+        int totalPages = (int) Math.ceil((double) totalResults / filter.pageSize);
+        int startIndex = filter.page * filter.pageSize;
+        int endIndex = Math.min(startIndex + filter.pageSize, totalResults);
+
+        // Get the page slice
+        List<AuctionListing> pageResults;
+        if (startIndex >= totalResults) {
+            pageResults = new ArrayList<>();
+        } else {
+            pageResults = results.subList(startIndex, endIndex);
+        }
+
+        return new FilterResult(pageResults, totalResults, filter.page, totalPages);
+    }
+
+    /**
+     * Sort listings according to the specified sort order
+     */
+    public void sortListings(List<AuctionListing> listings, EnumAuctionSort sortOrder) {
+        if (listings == null || listings.isEmpty()) {
+            return;
+        }
+
+        Comparator<AuctionListing> comparator;
+
+        switch (sortOrder) {
+            case NEWEST_FIRST:
+                comparator = Comparator.comparingLong(l -> -l.listingTime);
+                break;
+
+            case OLDEST_FIRST:
+                comparator = Comparator.comparingLong(l -> l.listingTime);
+                break;
+
+            case PRICE_HIGH_TO_LOW:
+                comparator = Comparator.comparingLong((AuctionListing l) ->
+                    -(l.currentBid > 0 ? l.currentBid : l.startingPrice));
+                break;
+
+            case PRICE_LOW_TO_HIGH:
+                comparator = Comparator.comparingLong(l ->
+                    l.currentBid > 0 ? l.currentBid : l.startingPrice);
+                break;
+
+            case BUYOUT_HIGH_TO_LOW:
+                // Listings with buyout first, sorted high to low
+                comparator = Comparator
+                    .comparingInt((AuctionListing l) -> l.buyoutPrice > 0 ? 0 : 1)
+                    .thenComparingLong(l -> -l.buyoutPrice);
+                break;
+
+            case BUYOUT_LOW_TO_HIGH:
+                // Listings with buyout first, sorted low to high
+                comparator = Comparator
+                    .comparingInt((AuctionListing l) -> l.buyoutPrice > 0 ? 0 : 1)
+                    .thenComparingLong(l -> l.buyoutPrice);
+                break;
+
+            case ENDING_SOON:
+                comparator = Comparator.comparingLong(l -> l.expirationTime);
+                break;
+
+            case MOST_TIME_LEFT:
+                comparator = Comparator.comparingLong(l -> -l.expirationTime);
+                break;
+
+            case NAME_A_TO_Z:
+                comparator = Comparator.comparing(l ->
+                    l.item.getDisplayName().toLowerCase());
+                break;
+
+            case NAME_Z_TO_A:
+                comparator = Comparator.comparing((AuctionListing l) ->
+                    l.item.getDisplayName().toLowerCase()).reversed();
+                break;
+
+            case MOST_BIDS:
+                comparator = Comparator.comparingInt(l -> -l.bidCount);
+                break;
+
+            case LEAST_BIDS:
+                comparator = Comparator.comparingInt(l -> l.bidCount);
+                break;
+
+            default:
+                comparator = Comparator.comparingLong(l -> l.expirationTime);
+        }
+
+        listings.sort(comparator);
+    }
+
+    /**
+     * Quick search with default sorting (ending soon)
+     */
+    public List<AuctionListing> quickSearch(String searchText, EnumAuctionCategory category, int limit) {
+        AuctionFilter filter = new AuctionFilter()
+            .withSearch(searchText)
+            .withCategory(category)
+            .withSort(EnumAuctionSort.ENDING_SOON)
+            .withPage(0, limit);
+
+        return getFilteredListings(filter).listings;
+    }
+
+    /**
+     * Get listings sorted by a specific order
+     */
+    public List<AuctionListing> getListingsSorted(EnumAuctionSort sortOrder) {
+        List<AuctionListing> results = new ArrayList<>(getActiveListings());
+        sortListings(results, sortOrder);
+        return results;
+    }
+
+    /**
+     * Result container for filtered queries
+     */
+    public static class FilterResult {
+        public final List<AuctionListing> listings;
+        public final int totalResults;
+        public final int currentPage;
+        public final int totalPages;
+
+        public FilterResult(List<AuctionListing> listings, int totalResults,
+                           int currentPage, int totalPages) {
+            this.listings = listings;
+            this.totalResults = totalResults;
+            this.currentPage = currentPage;
+            this.totalPages = totalPages;
+        }
+
+        public boolean hasNextPage() {
+            return currentPage < totalPages - 1;
+        }
+
+        public boolean hasPreviousPage() {
+            return currentPage > 0;
+        }
+
+        public boolean isEmpty() {
+            return listings == null || listings.isEmpty();
+        }
     }
 
     /**

@@ -182,6 +182,67 @@ public class NoppesUtil {
         data = new HashMap<String, Integer>();
     }
 
+    // ==================== Auction Data ====================
+
+    // Static storage for auction data that the GUI can access
+    private static NBTTagCompound auctionListingData;
+    private static int auctionDataType;
+    private static int auctionTotalResults;
+    private static int auctionCurrentPage;
+    private static int auctionTotalPages;
+    private static long auctionPlayerBalance;
+
+    public static void setAuctionData(int dataType, NBTTagCompound compound,
+                                       int totalResults, int currentPage, int totalPages,
+                                       long playerBalance) {
+        auctionDataType = dataType;
+        auctionListingData = compound;
+        auctionTotalResults = totalResults;
+        auctionCurrentPage = currentPage;
+        auctionTotalPages = totalPages;
+        auctionPlayerBalance = playerBalance;
+
+        // Notify the current GUI if it's an auction GUI
+        GuiScreen gui = Minecraft.getMinecraft().currentScreen;
+        if (gui instanceof IAuctionData) {
+            ((IAuctionData) gui).onAuctionDataReceived(dataType, compound,
+                totalResults, currentPage, totalPages, playerBalance);
+        }
+    }
+
+    public static NBTTagCompound getAuctionListingData() {
+        return auctionListingData;
+    }
+
+    public static int getAuctionDataType() {
+        return auctionDataType;
+    }
+
+    public static int getAuctionTotalResults() {
+        return auctionTotalResults;
+    }
+
+    public static int getAuctionCurrentPage() {
+        return auctionCurrentPage;
+    }
+
+    public static int getAuctionTotalPages() {
+        return auctionTotalPages;
+    }
+
+    public static long getAuctionPlayerBalance() {
+        return auctionPlayerBalance;
+    }
+
+    /**
+     * Interface for GUIs that receive auction data
+     */
+    public interface IAuctionData {
+        void onAuctionDataReceived(int dataType, NBTTagCompound data,
+                                   int totalResults, int currentPage, int totalPages,
+                                   long playerBalance);
+    }
+
     public static void guiQuestCompletion(EntityPlayer player, NBTTagCompound read) {
         Quest quest = new Quest();
         quest.readNBT(read);

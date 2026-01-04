@@ -36,6 +36,7 @@ import kamkeel.npcs.network.packets.data.gui.GuiWaypointPacket;
 import kamkeel.npcs.network.packets.data.gui.IsGuiOpenPacket;
 import kamkeel.npcs.network.packets.data.large.GuiDataPacket;
 import kamkeel.npcs.network.packets.data.large.PartyDataPacket;
+import kamkeel.npcs.network.packets.data.large.AuctionDataPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollDataPacket;
 import kamkeel.npcs.network.packets.data.large.ScrollListPacket;
 import kamkeel.npcs.network.packets.data.large.SyncEffectPacket;
@@ -551,6 +552,7 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new SyncEffectPacket());
         DATA_PACKET.registerPacket(new GuiDataPacket());
         DATA_PACKET.registerPacket(new PartyDataPacket());
+        DATA_PACKET.registerPacket(new AuctionDataPacket());
     }
 
     public void registerPlayerPackets() {

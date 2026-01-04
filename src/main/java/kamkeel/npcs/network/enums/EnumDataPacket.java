@@ -58,4 +58,7 @@ public enum EnumDataPacket {
     SWING_PLAYER_ARM,
     DISABLE_MOUSE_INPUT,
     LOGIN,
+
+    // Auction
+    AUCTION_DATA,
 }

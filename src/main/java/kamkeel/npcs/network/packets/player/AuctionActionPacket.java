@@ -19,8 +19,10 @@ import noppes.npcs.constants.EnumAuctionDuration;
 import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.CurrencyController;
+import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
 import noppes.npcs.util.NBTJsonUtil;
+import kamkeel.npcs.network.packets.data.large.AuctionDataPacket;
 
 import java.io.IOException;
 
@@ -37,6 +39,7 @@ public class AuctionActionPacket extends AbstractPacket {
     private long buyoutPrice;
     private int durationOrdinal;
     private NBTTagCompound itemData;
+    private NBTTagCompound filterData;  // For query operations
     private String responseMessage;
     private boolean success;
 
@@ -118,6 +121,43 @@ public class AuctionActionPacket extends AbstractPacket {
         PacketClient.sendClient(packet);
     }
 
+    /**
+     * Query filtered listings
+     */
+    @SideOnly(Side.CLIENT)
+    public static void QueryListings(AuctionFilter filter) {
+        AuctionActionPacket packet = new AuctionActionPacket(Action.QueryListings);
+        packet.filterData = filter.writeToNBT(new NBTTagCompound());
+        PacketClient.sendClient(packet);
+    }
+
+    /**
+     * Request player's own listings
+     */
+    @SideOnly(Side.CLIENT)
+    public static void QueryMyListings() {
+        AuctionActionPacket packet = new AuctionActionPacket(Action.QueryMyListings);
+        PacketClient.sendClient(packet);
+    }
+
+    /**
+     * Request player's active bids
+     */
+    @SideOnly(Side.CLIENT)
+    public static void QueryMyBids() {
+        AuctionActionPacket packet = new AuctionActionPacket(Action.QueryMyBids);
+        PacketClient.sendClient(packet);
+    }
+
+    /**
+     * Request player's claimable items
+     */
+    @SideOnly(Side.CLIENT)
+    public static void QueryClaimable() {
+        AuctionActionPacket packet = new AuctionActionPacket(Action.QueryClaimable);
+        PacketClient.sendClient(packet);
+    }
+
     @Override
     public Enum getType() {
         return EnumPlayerPacket.AuctionAction;
@@ -154,6 +194,19 @@ public class AuctionActionPacket extends AbstractPacket {
             case ClaimItem:
             case ClaimProceeds:
                 out.writeInt(listingId);
+                break;
+
+            case QueryListings:
+                String filterJson = NBTJsonUtil.Convert(filterData);
+                byte[] filterBytes = filterJson.getBytes("UTF-8");
+                out.writeInt(filterBytes.length);
+                out.writeBytes(filterBytes);
+                break;
+
+            case QueryMyListings:
+            case QueryMyBids:
+            case QueryClaimable:
+                // No additional data needed
                 break;
         }
     }
@@ -203,6 +256,18 @@ public class AuctionActionPacket extends AbstractPacket {
                 break;
             case ClaimProceeds:
                 handleClaimProceeds(in, playerMP);
+                break;
+            case QueryListings:
+                handleQueryListings(in, playerMP);
+                break;
+            case QueryMyListings:
+                handleQueryMyListings(playerMP);
+                break;
+            case QueryMyBids:
+                handleQueryMyBids(playerMP);
+                break;
+            case QueryClaimable:
+                handleQueryClaimable(playerMP);
                 break;
         }
     }
@@ -420,6 +485,62 @@ public class AuctionActionPacket extends AbstractPacket {
         }
     }
 
+    // ==================== Query Handlers ====================
+
+    private void handleQueryListings(ByteBuf in, EntityPlayerMP player) throws IOException {
+        // Check permission
+        if (!CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.AUCTION_USE)) {
+            sendResponse(player, false, "You don't have permission to view auctions");
+            return;
+        }
+
+        int filterBytesLength = in.readInt();
+        byte[] filterBytes = new byte[filterBytesLength];
+        in.readBytes(filterBytes);
+        String filterJson = new String(filterBytes, "UTF-8");
+
+        try {
+            NBTTagCompound filterNBT = NBTJsonUtil.Convert(filterJson);
+            AuctionFilter filter = new AuctionFilter();
+            filter.readFromNBT(filterNBT);
+
+            // Send filtered listings to client
+            AuctionDataPacket.sendFilteredListings(player, filter);
+        } catch (Exception e) {
+            sendResponse(player, false, "Error parsing filter");
+        }
+    }
+
+    private void handleQueryMyListings(EntityPlayerMP player) {
+        // Check permission
+        if (!CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.AUCTION_USE)) {
+            sendResponse(player, false, "You don't have permission to view auctions");
+            return;
+        }
+
+        AuctionDataPacket.sendMyListings(player);
+    }
+
+    private void handleQueryMyBids(EntityPlayerMP player) {
+        // Check permission
+        if (!CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.AUCTION_USE)) {
+            sendResponse(player, false, "You don't have permission to view auctions");
+            return;
+        }
+
+        AuctionDataPacket.sendMyBids(player);
+    }
+
+    private void handleQueryClaimable(EntityPlayerMP player) {
+        // Check permission
+        if (!CustomNpcsPermissions.hasPermission(player, CustomNpcsPermissions.AUCTION_USE)) {
+            sendResponse(player, false, "You don't have permission to view auctions");
+            return;
+        }
+
+        AuctionDataPacket.sendClaimable(player);
+    }
+
     /**
      * Send a response message to the player
      */
@@ -436,6 +557,10 @@ public class AuctionActionPacket extends AbstractPacket {
         Buyout,
         CancelListing,
         ClaimItem,
-        ClaimProceeds
+        ClaimProceeds,
+        QueryListings,
+        QueryMyListings,
+        QueryMyBids,
+        QueryClaimable
     }
 }

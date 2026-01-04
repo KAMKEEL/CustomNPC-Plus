@@ -55,7 +55,22 @@ public class AuctionListing {
     public boolean sellerClaimed = false;   // Has seller claimed their proceeds?
     public boolean buyerClaimed = false;    // Has buyer claimed their item?
 
+    // Bid tracking
+    public int bidCount = 0;                // Number of bids placed
+
     public AuctionListing() {
+    }
+
+    /**
+     * Alias for listingTime (when the auction was created)
+     */
+    public long getCreationTime() {
+        return listingTime;
+    }
+
+    // For sorting compatibility
+    public long creationTime() {
+        return listingTime;
     }
 
     /**
@@ -174,6 +189,7 @@ public class AuctionListing {
         highBidderUUID = bidder;
         highBidderName = bidderName;
         currentBid = amount;
+        bidCount++;
 
         // Snipe protection - extend if bid placed in final minutes
         if (ConfigMarket.SnipeProtectionMinutes > 0) {
@@ -338,6 +354,7 @@ public class AuctionListing {
         compound.setInteger("Category", category.ordinal());
         compound.setBoolean("SellerClaimed", sellerClaimed);
         compound.setBoolean("BuyerClaimed", buyerClaimed);
+        compound.setInteger("BidCount", bidCount);
 
         return compound;
     }
@@ -388,5 +405,6 @@ public class AuctionListing {
 
         sellerClaimed = compound.getBoolean("SellerClaimed");
         buyerClaimed = compound.getBoolean("BuyerClaimed");
+        bidCount = compound.getInteger("BidCount");
     }
 }
