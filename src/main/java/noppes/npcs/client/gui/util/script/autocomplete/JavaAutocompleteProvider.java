@@ -405,16 +405,8 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             return;
         }
         
-        // Check if the item is a static member
-        Object sourceData = item.getSourceData();
-        boolean isStatic = false;
-        
-        if (sourceData instanceof MethodInfo) {
-            isStatic = ((MethodInfo) sourceData).isStatic();
-        } else if (sourceData instanceof FieldInfo) {
-            isStatic = ((FieldInfo) sourceData).isStatic();
-        }
-        
+        boolean isStatic = item.isStatic();
+   
         // Apply penalty to static members in instance context
         if (isStatic) {
             int matchScore = item.getMatchScore();

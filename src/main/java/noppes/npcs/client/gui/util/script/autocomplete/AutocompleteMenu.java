@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
+import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -294,6 +295,22 @@ public class AutocompleteMenu extends Gui {
         
         int textX = itemX;
         int textY = itemY + (ITEM_HEIGHT - font.FONT_HEIGHT) / 2;
+
+        // Draw modifier text (static/final) if present
+        boolean isStatic = item.isStatic();
+        boolean isFinal = item.isFinal();
+        if (isStatic || isFinal) {
+            GL11.glPushMatrix();
+            float scale = 0.5f;
+            GL11.glScalef(scale, scale, scale);
+            int col = TokenType.MODIFIER.getHexColor();
+            
+            if (isStatic)
+                font.drawString("s", (int) (textX / scale), (int) (textY / scale), col);
+            if (isFinal)
+                font.drawString("f", (int) (textX / scale), (int) (textY / scale) + 10, col);
+            GL11.glPopMatrix();
+        }
         
         // Draw icon
         String icon = item.getIconId();

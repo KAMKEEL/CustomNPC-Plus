@@ -397,6 +397,30 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public int[] getMatchIndices() { return matchIndices; }
     
     /**
+     * Check if this item represents a static member.
+     */
+    public boolean isStatic() {
+        if (sourceData instanceof MethodInfo) {
+            return ((MethodInfo) sourceData).isStatic();
+        } else if (sourceData instanceof FieldInfo) {
+            return ((FieldInfo) sourceData).isStatic();
+        }
+        return false;
+    }
+    
+    /**
+     * Check if this item represents a final member.
+     */
+    public boolean isFinal() {
+        if (sourceData instanceof MethodInfo) {
+            return ((MethodInfo) sourceData).isFinal();
+        } else if (sourceData instanceof FieldInfo) {
+            return ((FieldInfo) sourceData).isFinal();
+        }
+        return false;
+    }
+    
+    /**
      * Get icon identifier based on kind.
      */
     public String getIconId() {
