@@ -37,14 +37,17 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             return items;
         }
         
-        // Resolve owner type for usage tracking
+        // Resolve owner type for usage tracking and static context detection
         String ownerFullName = null;
+        boolean isStaticContext = false;
         if (context.isMemberAccess && context.receiverExpression != null) {
             TypeInfo receiverType = document.resolveExpressionType(
                 context.receiverExpression, context.prefixStart);
             if (receiverType != null && receiverType.isResolved()) {
                 ownerFullName = receiverType.getFullName();
             }
+            // Check if accessing through a class (static context) vs instance
+            isStaticContext = isStaticAccess(context.receiverExpression, context.prefixStart);
         }
         
         if (context.isMemberAccess) {
@@ -55,8 +58,8 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             addScopeSuggestions(context, items);
         }
         
-        // Filter and score by prefix, then apply usage boosts
-        filterAndScore(items, context.prefix, context.isMemberAccess, ownerFullName);
+        // Filter and score by prefix, then apply usage boosts and static penalties
+        filterAndScore(items, context.prefix, context.isMemberAccess, isStaticContext, ownerFullName);
         
         // Sort by score
         Collections.sort(items);
@@ -342,10 +345,10 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     }
     
     /**
-     * Filter items by prefix, calculate match scores, and apply usage boosts.
+     * Filter items by prefix, calculate match scores, apply usage boosts, and penalize static members in instance contexts.
      */
     private void filterAndScore(List<AutocompleteItem> items, String prefix, 
-                                 boolean isMemberAccess, String ownerFullName) {
+                                 boolean isMemberAccess, boolean isStaticContext, String ownerFullName) {
         UsageTracker tracker = UsageTracker.getJavaInstance();
         
         if (prefix == null || prefix.isEmpty()) {
@@ -353,6 +356,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             for (AutocompleteItem item : items) {
                 item.calculateMatchScore("", false);
                 applyUsageBoost(item, tracker, ownerFullName);
+                applyStaticPenalty(item, isMemberAccess, isStaticContext);
             }
             return;
         }
@@ -361,7 +365,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         // For member access (after dot), allow fuzzy/contains matching
         boolean requirePrefix = !isMemberAccess;
         
-        // Filter, score, and apply usage boosts
+        // Filter, score, apply usage boosts, and apply static penalties
         Iterator<AutocompleteItem> iter = items.iterator();
         while (iter.hasNext()) {
             AutocompleteItem item = iter.next();
@@ -370,6 +374,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 iter.remove();
             } else {
                 applyUsageBoost(item, tracker, ownerFullName);
+                applyStaticPenalty(item, isMemberAccess, isStaticContext);
             }
         }
     }
@@ -381,6 +386,38 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         int usageCount = tracker.getUsageCount(item, ownerFullName);
         int boost = UsageTracker.calculateUsageBoost(usageCount);
         item.addScoreBoost(boost);
+    }
+    
+    /**
+     * Apply penalty to static members when accessed in a non-static (instance) context.
+     * This matches IntelliJ's behavior where static members are deprioritized when
+     * accessing through an instance (e.g., Minecraft.getMinecraft().getMinecraft()).
+     */
+    private void applyStaticPenalty(AutocompleteItem item, boolean isMemberAccess, boolean isStaticContext) {
+        // Only apply penalty in member access contexts (after dot)
+        if (!isMemberAccess) {
+            return;
+        }
+        
+        // Only penalize when we're in an instance context (not static)
+        if (isStaticContext) {
+            return;
+        }
+        
+        // Check if the item is a static member
+        Object sourceData = item.getSourceData();
+        boolean isStatic = false;
+        
+        if (sourceData instanceof MethodInfo) {
+            isStatic = ((MethodInfo) sourceData).isStatic();
+        } else if (sourceData instanceof FieldInfo) {
+            isStatic = ((FieldInfo) sourceData).isStatic();
+        }
+        
+        // Apply penalty to static members in instance context
+        if (isStatic) {
+            item.addScoreBoost(-item.getMatchScore()); // Significant penalty to push static members down
+        }
     }
     
     /**
