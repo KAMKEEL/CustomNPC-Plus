@@ -197,10 +197,14 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         StringBuilder insertText = new StringBuilder(name);
         insertText.append("(");
         insertText.append(")");
-        
-        // Use signature for display name if available, otherwise just name
-        String displayName = method.getSignature() != null && method.getSignature().contains("(") ?
-            method.getSignature().substring(method.getSignature().indexOf(name)) : name + "()";
+
+        // Extract display name from signature: remove return type prefix and keep only name(params)
+        String displayName = name;
+        String sig = method.getSignature();
+        int returnIndex = sig.lastIndexOf(":"); 
+        if (returnIndex != -1) //remove ":ReturnType"
+            displayName = sig.substring(0, returnIndex);
+      
         
         return new AutocompleteItem(
             displayName,
