@@ -2229,95 +2229,94 @@ The Admin GUI can be accessed via:
 
 ## Configuration Reference
 
-All auction and market settings will be added to the configuration system.
+All auction and market settings will be added to the **main configuration file** under dedicated categories.
 
-### Auction Configuration
+### Location
 
-**File: `config/customnpcs/auction.cfg`** (or section in existing config)
+**File: `config/CustomNPCs/main.cfg`** (existing main config)
 
-```properties
-# ===========================================
-# Auction House Configuration
-# ===========================================
+New categories to add:
+- `market` - General market/economy settings
+- `market.currency` - Currency system settings
+- `market.auction` - Auction house settings
+- `market.trader` - Trader stock settings
 
-# General Settings
-# ----------------
-# Enable/disable the auction house system
-B:AuctionEnabled=true
-
-# Default maximum auction listings per player (without permission override)
-I:DefaultMaxListings=5
-
-# Listing fee as percentage of starting price (0.0 = no fee)
-D:ListingFeePercent=0.0
-
-# Sales tax as percentage taken from final sale price (0.05 = 5%)
-D:SalesTaxPercent=0.05
-
-# Require an Auctioneer NPC to access auction house
-B:RequireAuctioneerNPC=true
-
-# Timing Settings
-# ---------------
-# Available auction durations in hours (comma-separated)
-S:AvailableDurations=2,12,24,48
-
-# Default auction duration in hours
-I:DefaultDurationHours=24
-
-# Claim expiration in days (claims auto-expire after this period, 0 = never)
-I:ClaimExpirationDays=30
-
-# Bidding Rules
-# -------------
-# Minimum bid increment as percentage (0.05 = 5% minimum increase)
-D:MinBidIncrementPercent=0.05
-
-# Snipe protection: extend auction TO this many minutes when bid placed near end
-# Set to 0 to disable snipe protection
-I:SnipeProtectionMinutes=5
-
-# How many minutes before end triggers snipe protection
-# (bids placed with less than this remaining will extend the auction)
-I:SnipeProtectionThreshold=5
-
-# Permissions
-# -----------
-# Permission pattern for auction slot limits: customnpcs.auction.slots.X
-# Players without any permission get DefaultMaxListings
-# Example: Player with customnpcs.auction.slots.10 can have 10 listings
-```
-
-### Currency Configuration
+### Market Configuration (Main Category)
 
 ```properties
 # ===========================================
-# Currency System Configuration
+# Market & Economy Configuration
 # ===========================================
+market {
+    # Enable the market/economy system
+    B:Enabled=true
 
-# Use VaultAPI if available on Bukkit hybrid servers
-B:UseVaultIfAvailable=true
+    # ===========================================
+    # Currency Settings
+    # ===========================================
+    currency {
+        # Use VaultAPI if available on Bukkit hybrid servers
+        B:UseVaultIfAvailable=true
 
-# Fallback currency item (registry name) when Vault unavailable
-# Leave empty to disable fallback currency
-S:FallbackCurrencyItem=customnpcs:npcCoinGold
+        # Fallback currency item (registry name) when Vault unavailable
+        # Leave empty to disable fallback currency
+        S:FallbackCurrencyItem=customnpcs:npcCoinGold
 
-# Conversion ratio: 1 fallback item = X virtual currency
-D:FallbackItemRatio=1.0
-```
+        # Conversion ratio: 1 fallback item = X virtual currency
+        D:FallbackItemRatio=1.0
+    }
 
-### Trader Stock Configuration
+    # ===========================================
+    # Auction House Settings
+    # ===========================================
+    auction {
+        # Enable/disable the auction house system
+        B:Enabled=true
 
-```properties
-# ===========================================
-# Trader Stock Configuration
-# ===========================================
+        # Default maximum auction listings per player (without permission override)
+        I:DefaultMaxListings=5
 
-# Enable stock system by default for new traders
-B:EnableStockByDefault=false
+        # Listing fee as percentage of starting price (0.0 = no fee)
+        D:ListingFeePercent=0.0
 
-# Default stock reset type (NONE, MCDAILY, MCWEEKLY, RLDAILY, RLWEEKLY)
-S:DefaultResetType=NONE
+        # Sales tax as percentage taken from final sale price (0.05 = 5%)
+        D:SalesTaxPercent=0.05
+
+        # Require an Auctioneer NPC to access auction house
+        B:RequireAuctioneerNPC=true
+
+        # Available auction durations in hours (comma-separated)
+        S:AvailableDurations=2,12,24,48
+
+        # Default auction duration in hours
+        I:DefaultDurationHours=24
+
+        # Claim expiration in days (claims auto-expire after this period, 0 = never)
+        I:ClaimExpirationDays=30
+
+        # Minimum bid increment as percentage (0.05 = 5% minimum increase)
+        D:MinBidIncrementPercent=0.05
+
+        # Snipe protection: extend auction TO this many minutes when bid placed near end
+        # Set to 0 to disable snipe protection
+        I:SnipeProtectionMinutes=5
+
+        # How many minutes before end triggers snipe protection
+        # (bids placed with less than this remaining will extend the auction)
+        I:SnipeProtectionThreshold=5
+    }
+
+    # ===========================================
+    # Trader Stock Settings
+    # ===========================================
+    trader {
+        # Enable stock system by default for new traders
+        B:EnableStockByDefault=false
+
+        # Default stock reset type (NONE, MCDAILY, MCWEEKLY, RLDAILY, RLWEEKLY)
+        S:DefaultResetType=NONE
+    }
+}
 ```
 
 ### Permission Nodes
