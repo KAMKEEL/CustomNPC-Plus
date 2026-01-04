@@ -608,12 +608,20 @@ public class AutocompleteManager {
     private int findDotBeforeWhitespace(String text, int fromPos) {
         int pos = fromPos;
         // Skip backwards over whitespace
+
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos))) {
             pos--;
         }
+
         // Check if we found a dot
         if (pos >= 0 && text.charAt(pos) == '.') {
             return pos;
+        } else {
+            while (pos >= 0 && Character.isJavaIdentifierPart(text.charAt(pos)))
+                pos--;
+
+            if (pos >= 0 && text.charAt(pos) == '.')
+                return pos;
         }
         return -1;
     }
