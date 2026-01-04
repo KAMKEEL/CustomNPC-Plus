@@ -1,7 +1,9 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
+import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import scala.annotation.meta.field;
 
 import java.util.*;
 import java.util.regex.*;
@@ -12,6 +14,7 @@ import java.util.regex.*;
  */
 public class JSScriptAnalyzer {
     
+    private final ScriptDocument document;
     private final String text;
     private final JSTypeRegistry registry;
     
@@ -41,8 +44,9 @@ public class JSScriptAnalyzer {
     
     private static final Pattern NUMBER_PATTERN = Pattern.compile("\\b\\d+\\.?\\d*\\b");
     
-    public JSScriptAnalyzer(String text) {
-        this.text = text;
+    public JSScriptAnalyzer(ScriptDocument document) {
+        this.document = document;
+        this.text = document.getText();
         this.registry = JSTypeRegistry.getInstance();
         // Ensure registry is initialized
         if (!registry.isInitialized()) {
@@ -384,5 +388,12 @@ public class JSScriptAnalyzer {
      */
     public String getVariableType(String varName) {
         return variableTypes.get(varName);
+    }
+    
+    /**
+     * Get all inferred variable types.
+     */
+    public Map<String, String> getVariableTypes() {
+        return new HashMap<>(variableTypes);
     }
 }

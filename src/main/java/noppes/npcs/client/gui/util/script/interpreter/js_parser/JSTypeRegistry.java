@@ -254,12 +254,15 @@ public class JSTypeRegistry {
         
         // Detect circular alias references
         if (visited.contains(baseName)) {
-            System.err.println("[JSTypeRegistry] Circular type alias detected: " + baseName);
+            // Circular alias detected - try direct type lookup as fallback
+            if (types.containsKey(baseName)) {
+                return types.get(baseName);
+            }
             return null;
         }
         visited.add(baseName);
         
-        // Direct lookup
+        // Direct lookup in types first (higher priority than aliases)
         if (types.containsKey(baseName)) {
             return types.get(baseName);
         }
@@ -267,6 +270,10 @@ public class JSTypeRegistry {
         // Check type aliases
         if (typeAliases.containsKey(baseName)) {
             String resolved = typeAliases.get(baseName);
+            // Don't follow alias if it resolves to itself
+            if (resolved.equals(baseName)) {
+                return null;
+            }
             return getType(resolved, visited);
         }
         

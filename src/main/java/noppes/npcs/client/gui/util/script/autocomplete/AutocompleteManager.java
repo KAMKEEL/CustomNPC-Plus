@@ -1,12 +1,10 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
-import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import org.lwjgl.input.Mouse;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -391,6 +389,12 @@ public class AutocompleteManager {
         
         // Get suggestions from appropriate provider
         AutocompleteProvider provider = document.isJavaScript() ? jsProvider : javaProvider;
+        
+        // For JavaScript, update variable types from analyzer
+        if (document.isJavaScript() && document.getJSAnalyzer() != null) {
+            jsProvider.updateVariableTypes(document.getJSAnalyzer().getVariableTypes());
+        }
+        
         List<AutocompleteItem> suggestions = provider.getSuggestions(context);
 
         // Limit suggestions to prevent overwhelming the UI and improve performance

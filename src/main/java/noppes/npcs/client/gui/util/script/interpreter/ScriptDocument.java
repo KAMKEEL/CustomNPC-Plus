@@ -161,7 +161,7 @@ public class ScriptDocument {
      * Check if this is a JavaScript/ECMAScript document.
      */
     public boolean isJavaScript() {
-        return false;//"ECMAScript".equalsIgnoreCase(language);
+        return "ECMAScript".equalsIgnoreCase(language);
     }
 
     // ==================== TEXT MANAGEMENT ====================
@@ -271,14 +271,24 @@ public class ScriptDocument {
         // Phase 7: Compute indent guides
         computeIndentGuides(marks);
     }
+
+    // Store the last JS analyzer for autocomplete
+    private JSScriptAnalyzer currentJSAnalyzer;
     
     /**
      * Format JavaScript/ECMAScript code using the JS type inference system.
      */
     private List<ScriptLine.Mark> formatJavaScript() {
         // Use JSScriptAnalyzer for JS-specific analysis
-        JSScriptAnalyzer analyzer = new JSScriptAnalyzer(text);
-        return analyzer.analyze();
+        currentJSAnalyzer = new JSScriptAnalyzer(this);
+        return currentJSAnalyzer.analyze();
+    }
+    
+    /**
+     * Get the last JS analyzer (for autocomplete to access variable types).
+     */
+    public JSScriptAnalyzer getJSAnalyzer() {
+        return currentJSAnalyzer;
     }
     
     /**
