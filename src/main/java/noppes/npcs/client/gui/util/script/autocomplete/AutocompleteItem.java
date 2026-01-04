@@ -16,12 +16,12 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * The kind of completion item.
      */
     public enum Kind {
+        ENUM_CONSTANT(-1), // Enum constant value (highest priority for enums)
         METHOD(0),      // Method or function
         FIELD(1),       // Field or property
         VARIABLE(2),    // Local variable or parameter
         CLASS(3),       // Class or interface type
         ENUM(4),        // Enum type
-        ENUM_CONSTANT(5), // Enum constant value
         KEYWORD(6),     // Language keyword
         SNIPPET(7);     // Code snippet
         
