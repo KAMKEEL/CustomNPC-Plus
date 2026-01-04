@@ -26,20 +26,20 @@ public class ContainerAuction extends Container {
 
         // Create a single-slot inventory for the item being listed
         listingInventory = new InventoryAuctionListing();
-        listingSlot = new SlotAuctionItem(listingInventory, 0, 80, 35);
+        listingSlot = new SlotAuctionItem(listingInventory, 0, 251, 146);
         addSlotToContainer(listingSlot);
 
         // Player inventory slots (standard positioning)
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlotToContainer(new Slot(player.inventory, col + row * 9 + 9,
-                    8 + col * 18, 140 + row * 18));
+                    8 + col * 18, 166 + row * 18));
             }
         }
 
         // Player hotbar
         for (int col = 0; col < 9; col++) {
-            addSlotToContainer(new Slot(player.inventory, col, 8 + col * 18, 198));
+            addSlotToContainer(new Slot(player.inventory, col, 8 + col * 18, 224));
         }
     }
 

@@ -23,8 +23,8 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         this.listing = listing;
         this.playerBalance = playerBalance;
         setBackground("menubg.png");
-        xSize = 200;
-        ySize = 150;
+        xSize = 240;
+        ySize = 165;
         closeOnEsc = true;
     }
 
@@ -36,13 +36,13 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         int labelColor = 0x404040;
 
         if (listing.item == null) {
-            addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.noItemSelected"), guiLeft + 40, y, 0xAA0000));
-            addButton(new GuiNpcButton(31, guiLeft + 60, guiTop + 110, 80, 20, StatCollector.translateToLocal("gui.cancel")));
+            addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.noItemSelected"), guiLeft + 60, y, 0xAA0000));
+            addButton(new GuiNpcButton(31, guiLeft + 80, guiTop + 125, 80, 20, StatCollector.translateToLocal("gui.cancel")));
             return;
         }
 
         // Title
-        addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.placeBid"), guiLeft + 70, y, labelColor));
+        addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.placeBid"), guiLeft + 90, y, labelColor));
         y += 18;
 
         // Item name
@@ -52,30 +52,30 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         // Current price
         long currentPrice = listing.currentBid > 0 ? listing.currentBid : listing.startingPrice;
         addLabel(new GuiNpcLabel(2, StatCollector.translateToLocal("auction.currentPrice"), guiLeft + 15, y, labelColor));
-        addLabel(new GuiNpcLabel(3, formatCurrency(currentPrice), guiLeft + 100, y, 0x008800));
+        addLabel(new GuiNpcLabel(3, formatCurrency(currentPrice), guiLeft + 120, y, 0x008800));
         y += 14;
 
         // Minimum bid
         long minBid = listing.getMinimumBid();
         addLabel(new GuiNpcLabel(4, StatCollector.translateToLocal("auction.minimumBid"), guiLeft + 15, y, labelColor));
-        addLabel(new GuiNpcLabel(5, formatCurrency(minBid), guiLeft + 100, y, 0x0066AA));
+        addLabel(new GuiNpcLabel(5, formatCurrency(minBid), guiLeft + 120, y, 0x0066AA));
         y += 14;
 
         // Your balance
         addLabel(new GuiNpcLabel(6, StatCollector.translateToLocal("auction.yourBalance"), guiLeft + 15, y, labelColor));
-        addLabel(new GuiNpcLabel(7, formatCurrency(playerBalance), guiLeft + 100, y,
+        addLabel(new GuiNpcLabel(7, formatCurrency(playerBalance), guiLeft + 120, y,
             playerBalance >= minBid ? 0x008800 : 0xAA0000));
         y += 14;
 
         // Time remaining
         addLabel(new GuiNpcLabel(8, StatCollector.translateToLocal("auction.timeLeft"), guiLeft + 15, y, labelColor));
-        addLabel(new GuiNpcLabel(9, formatTimeRemaining(listing.getTimeRemaining()), guiLeft + 100, y,
+        addLabel(new GuiNpcLabel(9, formatTimeRemaining(listing.getTimeRemaining()), guiLeft + 120, y,
             getTimeColor(listing.getTimeRemaining())));
         y += 18;
 
         // Bid input
         addLabel(new GuiNpcLabel(10, StatCollector.translateToLocal("auction.yourBid"), guiLeft + 15, y + 3, labelColor));
-        bidField = new GuiNpcTextField(11, this, guiLeft + 80, y, 100, 16, String.valueOf(minBid));
+        bidField = new GuiNpcTextField(11, this, guiLeft + 100, y, 110, 16, String.valueOf(minBid));
         bidField.setIntegersOnly();
         int minBidInt = (int) Math.min(Integer.MAX_VALUE, Math.max(1L, minBid));
         bidField.setMinMaxDefault(minBidInt, Integer.MAX_VALUE, minBidInt);
@@ -83,24 +83,24 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         y += 24;
 
         // Quick bid buttons
-        addButton(new GuiNpcButton(20, guiLeft + 15, y, 55, 16, StatCollector.translateToLocal("auction.minBid")));
-        addButton(new GuiNpcButton(21, guiLeft + 73, y, 55, 16, StatCollector.translateToLocal("auction.bidPlus10")));
-        addButton(new GuiNpcButton(22, guiLeft + 131, y, 55, 16, StatCollector.translateToLocal("auction.bidPlus25")));
+        addButton(new GuiNpcButton(20, guiLeft + 15, y, 60, 16, StatCollector.translateToLocal("auction.minBid")));
+        addButton(new GuiNpcButton(21, guiLeft + 79, y, 60, 16, StatCollector.translateToLocal("auction.bidPlus10")));
+        addButton(new GuiNpcButton(22, guiLeft + 143, y, 60, 16, StatCollector.translateToLocal("auction.bidPlus25")));
         y += 22;
 
         // Place bid button
-        GuiNpcButton bidButton = new GuiNpcButton(30, guiLeft + 15, y, 80, 20, StatCollector.translateToLocal("auction.placeBid"));
+        GuiNpcButton bidButton = new GuiNpcButton(30, guiLeft + 35, y, 80, 20, StatCollector.translateToLocal("auction.placeBid"));
         bidButton.setEnabled(playerBalance >= minBid && listing.isActive());
         addButton(bidButton);
 
         // Cancel button
-        addButton(new GuiNpcButton(31, guiLeft + 105, y, 80, 20, StatCollector.translateToLocal("gui.cancel")));
+        addButton(new GuiNpcButton(31, guiLeft + 125, y, 80, 20, StatCollector.translateToLocal("gui.cancel")));
 
         // Error message area
         if (playerBalance < minBid) {
-            addLabel(new GuiNpcLabel(40, StatCollector.translateToLocal("auction.insufficientFunds"), guiLeft + 50, guiTop + ySize - 15, 0xAA0000));
+            addLabel(new GuiNpcLabel(40, StatCollector.translateToLocal("auction.insufficientFunds"), guiLeft + 70, guiTop + ySize - 15, 0xAA0000));
         } else if (!listing.isActive()) {
-            addLabel(new GuiNpcLabel(40, StatCollector.translateToLocal("auction.auctionEnded"), guiLeft + 50, guiTop + ySize - 15, 0xAA0000));
+            addLabel(new GuiNpcLabel(40, StatCollector.translateToLocal("auction.auctionEnded"), guiLeft + 70, guiTop + ySize - 15, 0xAA0000));
         }
     }
 

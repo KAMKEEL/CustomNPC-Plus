@@ -21,8 +21,8 @@ public class SubGuiAuctionDetails extends SubGuiInterface {
     public SubGuiAuctionDetails(GuiAuction parent, AuctionListing listing) {
         this.listing = listing;
         setBackground("menubg.png");
-        xSize = 240;
-        ySize = 200;
+        xSize = 280;
+        ySize = 210;
         closeOnEsc = true;
     }
 
@@ -35,76 +35,76 @@ public class SubGuiAuctionDetails extends SubGuiInterface {
         int valueColor = 0x000000;
 
         if (listing.item == null) {
-            addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.noItemSelected"), guiLeft + 60, y, 0xAA0000));
-            addButton(new GuiNpcButton(50, guiLeft + 80, guiTop + 175, 80, 20, StatCollector.translateToLocal("gui.close")));
+            addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.noItemSelected"), guiLeft + 80, y, 0xAA0000));
+            addButton(new GuiNpcButton(50, guiLeft + 100, guiTop + 185, 80, 20, StatCollector.translateToLocal("gui.close")));
             return;
         }
 
         // Title
-        addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.auctionDetails"), guiLeft + 80, y, labelColor));
+        addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.auctionDetails"), guiLeft + 100, y, labelColor));
         y += 16;
 
         // Item name
         addLabel(new GuiNpcLabel(1, StatCollector.translateToLocal("auction.item"), guiLeft + 20, y, labelColor));
-        addLabel(new GuiNpcLabel(2, listing.item.getDisplayName(), guiLeft + 80, y, valueColor));
+        addLabel(new GuiNpcLabel(2, listing.item.getDisplayName(), guiLeft + 100, y, valueColor));
         y += 14;
 
         // Quantity
         addLabel(new GuiNpcLabel(3, StatCollector.translateToLocal("auction.quantity"), guiLeft + 20, y, labelColor));
-        addLabel(new GuiNpcLabel(4, String.valueOf(listing.item.stackSize), guiLeft + 80, y, valueColor));
+        addLabel(new GuiNpcLabel(4, String.valueOf(listing.item.stackSize), guiLeft + 100, y, valueColor));
         y += 14;
 
         // Seller
         addLabel(new GuiNpcLabel(5, StatCollector.translateToLocal("auction.seller"), guiLeft + 20, y, labelColor));
-        addLabel(new GuiNpcLabel(6, listing.sellerName, guiLeft + 80, y, valueColor));
+        addLabel(new GuiNpcLabel(6, listing.sellerName, guiLeft + 100, y, valueColor));
         y += 14;
 
         // Starting price
         addLabel(new GuiNpcLabel(10, StatCollector.translateToLocal("auction.startingPrice"), guiLeft + 20, y, labelColor));
-        addLabel(new GuiNpcLabel(11, formatCurrency(listing.startingPrice), guiLeft + 100, y, valueColor));
+        addLabel(new GuiNpcLabel(11, formatCurrency(listing.startingPrice), guiLeft + 120, y, valueColor));
         y += 14;
 
         // Current bid
         if (listing.currentBid > 0) {
             addLabel(new GuiNpcLabel(12, StatCollector.translateToLocal("auction.currentBid"), guiLeft + 20, y, labelColor));
-            addLabel(new GuiNpcLabel(13, formatCurrency(listing.currentBid), guiLeft + 100, y, 0x008800));
+            addLabel(new GuiNpcLabel(13, formatCurrency(listing.currentBid), guiLeft + 120, y, 0x008800));
             y += 14;
 
             // High bidder
             addLabel(new GuiNpcLabel(14, StatCollector.translateToLocal("auction.highBidder"), guiLeft + 20, y, labelColor));
-            addLabel(new GuiNpcLabel(15, listing.highBidderName, guiLeft + 100, y, valueColor));
+            addLabel(new GuiNpcLabel(15, listing.highBidderName, guiLeft + 120, y, valueColor));
             y += 14;
 
             // Bid count
             addLabel(new GuiNpcLabel(16, StatCollector.translateToLocal("auction.totalBids"), guiLeft + 20, y, labelColor));
-            addLabel(new GuiNpcLabel(17, String.valueOf(listing.bidCount), guiLeft + 100, y, valueColor));
+            addLabel(new GuiNpcLabel(17, String.valueOf(listing.bidCount), guiLeft + 120, y, valueColor));
             y += 14;
         } else {
             addLabel(new GuiNpcLabel(12, StatCollector.translateToLocal("auction.currentBid"), guiLeft + 20, y, labelColor));
-            addLabel(new GuiNpcLabel(13, StatCollector.translateToLocal("auction.noBidsYet"), guiLeft + 100, y, 0x888888));
+            addLabel(new GuiNpcLabel(13, StatCollector.translateToLocal("auction.noBidsYet"), guiLeft + 120, y, 0x888888));
             y += 14;
         }
 
         // Buyout price
         if (listing.buyoutPrice > 0) {
             addLabel(new GuiNpcLabel(20, StatCollector.translateToLocal("auction.buyoutPrice"), guiLeft + 20, y, labelColor));
-            addLabel(new GuiNpcLabel(21, formatCurrency(listing.buyoutPrice), guiLeft + 100, y, 0xAA6600));
+            addLabel(new GuiNpcLabel(21, formatCurrency(listing.buyoutPrice), guiLeft + 120, y, 0xAA6600));
             y += 14;
         }
 
         // Minimum bid
         addLabel(new GuiNpcLabel(22, StatCollector.translateToLocal("auction.minimumBid"), guiLeft + 20, y, labelColor));
-        addLabel(new GuiNpcLabel(23, formatCurrency(listing.getMinimumBid()), guiLeft + 100, y, 0x0066AA));
+        addLabel(new GuiNpcLabel(23, formatCurrency(listing.getMinimumBid()), guiLeft + 120, y, 0x0066AA));
         y += 14;
 
         // Time remaining (will be updated)
         addLabel(new GuiNpcLabel(30, StatCollector.translateToLocal("auction.timeLeft"), guiLeft + 20, y, labelColor));
-        addLabel(new GuiNpcLabel(31, formatTimeRemaining(listing.getTimeRemaining()), guiLeft + 100, y,
+        addLabel(new GuiNpcLabel(31, formatTimeRemaining(listing.getTimeRemaining()), guiLeft + 120, y,
             getTimeColor(listing.getTimeRemaining())));
         y += 20;
 
         // Close button
-        addButton(new GuiNpcButton(50, guiLeft + 80, guiTop + 175, 80, 20, StatCollector.translateToLocal("gui.close")));
+        addButton(new GuiNpcButton(50, guiLeft + 100, guiTop + 185, 80, 20, StatCollector.translateToLocal("gui.close")));
     }
 
     private String formatCurrency(long amount) {
@@ -162,8 +162,8 @@ public class SubGuiAuctionDetails extends SubGuiInterface {
 
         // Draw item icon
         if (listing.item != null) {
-            int itemX = guiLeft + 200;
-            int itemY = guiTop + 30;
+            int itemX = guiLeft + 230;
+            int itemY = guiTop + 32;
 
             RenderHelper.enableGUIStandardItemLighting();
             GL11.glEnable(GL12.GL_RESCALE_NORMAL);

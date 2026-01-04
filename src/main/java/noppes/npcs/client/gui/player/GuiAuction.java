@@ -5,12 +5,15 @@ import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.containers.ContainerAuction;
+import noppes.npcs.constants.EnumAuctionDuration;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -27,8 +30,25 @@ import java.util.List;
 public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         ICustomScrollListener, NoppesUtil.IAuctionData {
 
+    private static final ResourceLocation BG_TEXTURE = new ResourceLocation("customnpcs", "textures/gui/standardbg.png");
+    private static final int LEFT_PANEL_X = 8;
+    private static final int LEFT_PANEL_WIDTH = 190;
+    private static final int RIGHT_PANEL_X = 210;
+    private static final int ACTION_BUTTON_WIDTH = 98;
+    private static final int LISTING_SCROLL_HEIGHT = 100;
+    private static final int LISTING_SCROLL_WIDTH = 190;
+    private static final int PAGE_BUTTON_WIDTH = 60;
+    private static final int SEARCH_FIELD_WIDTH = 140;
+    private static final int SEARCH_BUTTON_WIDTH = 46;
+    private static final int HIDDEN_SLOT_POSITION = -1000;
+    private static final int INVENTORY_START_X = 8;
+    private static final int INVENTORY_START_Y = 166;
+    private static final int HOTBAR_Y_OFFSET = 58;
+
     // GUI Components
     private GuiNpcTextField searchField;
+    private GuiNpcTextField startingPriceField;
+    private GuiNpcTextField buyoutPriceField;
     private GuiCustomScroll listingScroll;
 
     // Current state
@@ -41,6 +61,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
 
     // Tab state (0=Browse, 1=My Listings, 2=My Bids, 3=Claims, 4=Create)
     private int currentTab = 0;
+    private int selectedDuration = 1;
 
     // Selected listing for details
     private int selectedListingIndex = -1;
@@ -51,8 +72,8 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     public GuiAuction(EntityNPCInterface npc, ContainerAuction container) {
         super(npc, container);
         this.title = "";
-        this.xSize = 256;
-        this.ySize = 222;
+        this.xSize = 319;
+        this.ySize = 238;
         this.closeOnEsc = true;
         this.drawDefaultBackground = true;
 
@@ -64,47 +85,66 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     public void initGui() {
         super.initGui();
 
+        int leftX = guiLeft + LEFT_PANEL_X;
+        int rightX = guiLeft + RIGHT_PANEL_X;
+        int actionY = guiTop + 44;
+        boolean isCreateTab = currentTab == 4;
+
+        updateListingSlotPosition(isCreateTab);
+
         // Tab buttons at top
-        addTopButton(new GuiMenuTopButton(0, guiLeft + 4, guiTop - 17, StatCollector.translateToLocal("auction.browse")));
-        addTopButton(new GuiMenuTopButton(1, guiLeft + 54, guiTop - 17, StatCollector.translateToLocal("auction.myListings")));
-        addTopButton(new GuiMenuTopButton(2, guiLeft + 114, guiTop - 17, StatCollector.translateToLocal("auction.myBids")));
-        addTopButton(new GuiMenuTopButton(3, guiLeft + 164, guiTop - 17, StatCollector.translateToLocal("auction.claims")));
-        addTopButton(new GuiMenuTopButton(4, guiLeft + 214, guiTop - 17, StatCollector.translateToLocal("auction.sell")));
+        GuiMenuTopButton browseButton = new GuiMenuTopButton(0, guiLeft + 4, guiTop - 17, StatCollector.translateToLocal("auction.browse"));
+        addTopButton(browseButton);
+        GuiMenuTopButton myListingsButton = new GuiMenuTopButton(1, browseButton, StatCollector.translateToLocal("auction.myListings"));
+        addTopButton(myListingsButton);
+        GuiMenuTopButton myBidsButton = new GuiMenuTopButton(2, myListingsButton, StatCollector.translateToLocal("auction.myBids"));
+        addTopButton(myBidsButton);
+        GuiMenuTopButton claimsButton = new GuiMenuTopButton(3, myBidsButton, StatCollector.translateToLocal("auction.claims"));
+        addTopButton(claimsButton);
+        GuiMenuTopButton sellButton = new GuiMenuTopButton(4, claimsButton, StatCollector.translateToLocal("auction.sell"));
+        addTopButton(sellButton);
         getTopButton(currentTab).setEnabled(false);
 
-        // Search field
-        searchField = new GuiNpcTextField(10, this, guiLeft + 8, guiTop + 6, 140, 14, currentFilter.searchText);
-        searchField.setMaxStringLength(50);
-        addTextField(searchField);
+        if (isCreateTab) {
+            addCreateControls(leftX, rightX);
+        } else {
+            // Search field
+            searchField = new GuiNpcTextField(10, this, leftX, guiTop + 6, SEARCH_FIELD_WIDTH, 14, currentFilter.searchText);
+            searchField.setMaxStringLength(50);
+            addTextField(searchField);
 
-        // Search button
-        addButton(new GuiNpcButton(11, guiLeft + 150, guiTop + 5, 40, 16, StatCollector.translateToLocal("auction.search")));
+            // Search button
+            addButton(new GuiNpcButton(11, leftX + SEARCH_FIELD_WIDTH + 4, guiTop + 5, SEARCH_BUTTON_WIDTH, 16,
+                StatCollector.translateToLocal("auction.search")));
 
-        // Sort button
-        addButton(new GuiNpcButton(30, guiLeft + 8, guiTop + 24, 120, 16, currentFilter.sortOrder.getDisplayName()));
+            // Sort button
+            addButton(new GuiNpcButton(30, leftX, guiTop + 24, LEFT_PANEL_WIDTH, 16, currentFilter.sortOrder.getDisplayName()));
 
-        // Listing scroll area
-        listingScroll = new GuiCustomScroll(this, 0);
-        listingScroll.guiLeft = guiLeft + 8;
-        listingScroll.guiTop = guiTop + 44;
-        listingScroll.setSize(160, 128);
-        addScroll(listingScroll);
-        updateListingDisplay();
+            // Listing scroll area
+            listingScroll = new GuiCustomScroll(this, 0);
+            listingScroll.guiLeft = leftX;
+            listingScroll.guiTop = guiTop + 44;
+            listingScroll.setSize(LISTING_SCROLL_WIDTH, LISTING_SCROLL_HEIGHT);
+            addScroll(listingScroll);
+            updateListingDisplay();
 
-        // Pagination buttons
-        addButton(new GuiNpcButton(40, guiLeft + 8, guiTop + 176, 40, 16, StatCollector.translateToLocal("auction.prevPage")));
-        addLabel(new GuiNpcLabel(41, getPageLabel(), guiLeft + 90, guiTop + 180, CustomNpcResourceListener.DefaultTextColor));
-        addButton(new GuiNpcButton(42, guiLeft + 128, guiTop + 176, 40, 16, StatCollector.translateToLocal("auction.nextPage")));
+            // Pagination buttons
+            addButton(new GuiNpcButton(40, leftX, guiTop + 148, PAGE_BUTTON_WIDTH, 16,
+                StatCollector.translateToLocal("auction.prevPage")));
+            addLabel(new GuiNpcLabel(41, getPageLabel(), leftX + 70, guiTop + 152, CustomNpcResourceListener.DefaultTextColor));
+            addButton(new GuiNpcButton(42, leftX + LEFT_PANEL_WIDTH - PAGE_BUTTON_WIDTH, guiTop + 148, PAGE_BUTTON_WIDTH, 16,
+                StatCollector.translateToLocal("auction.nextPage")));
 
-        // Action buttons (right side)
-        addButton(new GuiNpcButton(50, guiLeft + 175, guiTop + 50, 73, 20, StatCollector.translateToLocal("auction.viewDetails")));
-        addButton(new GuiNpcButton(51, guiLeft + 175, guiTop + 75, 73, 20, StatCollector.translateToLocal("auction.placeBid")));
-        addButton(new GuiNpcButton(52, guiLeft + 175, guiTop + 100, 73, 20, StatCollector.translateToLocal("auction.buyout")));
-        addButton(new GuiNpcButton(53, guiLeft + 175, guiTop + 125, 73, 20, StatCollector.translateToLocal("auction.refresh")));
+            // Action buttons (right side)
+            addButton(new GuiNpcButton(50, rightX, actionY, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.viewDetails")));
+            addButton(new GuiNpcButton(51, rightX, actionY + 24, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.placeBid")));
+            addButton(new GuiNpcButton(52, rightX, actionY + 48, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.buyout")));
+            addButton(new GuiNpcButton(53, rightX, actionY + 72, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.refresh")));
 
-        // Balance display
-        addLabel(new GuiNpcLabel(60, String.format(StatCollector.translateToLocal("auction.balance"), formatCurrency(playerBalance)),
-            guiLeft + 175, guiTop + 155, 0x00AA00));
+            // Balance display
+            addLabel(new GuiNpcLabel(60, String.format(StatCollector.translateToLocal("auction.balance"), formatCurrency(playerBalance)),
+                rightX, guiTop + 170, 0x00AA00));
+        }
 
         updateButtonStates();
     }
@@ -118,6 +158,29 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         if (now - lastCountdownUpdate >= 1000) {
             lastCountdownUpdate = now;
             updateListingDisplay();
+        }
+
+        if (currentTab == 4 && inventorySlots instanceof ContainerAuction) {
+            ItemStack item = ((ContainerAuction) inventorySlots).getListingItem();
+            GuiNpcLabel itemLabel = getLabel(102);
+            GuiNpcButton createButton = getButton(71);
+            if (item != null) {
+                if (itemLabel != null) {
+                    itemLabel.label = StatCollector.translateToLocal("auction.item") + " " + item.getDisplayName();
+                    itemLabel.color = 0x008800;
+                }
+                if (createButton != null) {
+                    createButton.setEnabled(true);
+                }
+            } else {
+                if (itemLabel != null) {
+                    itemLabel.label = StatCollector.translateToLocal("auction.noItemSelected");
+                    itemLabel.color = 0x888888;
+                }
+                if (createButton != null) {
+                    createButton.setEnabled(false);
+                }
+            }
         }
     }
 
@@ -153,6 +216,13 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             buyout();
         } else if (id == 53) {
             refresh();
+        } else if (id == 70) {
+            selectedDuration = (selectedDuration + 1) % EnumAuctionDuration.values().length;
+            initGui();
+        } else if (id == 71) {
+            createListing();
+        } else if (id == 72) {
+            switchTab(0);
         }
     }
 
@@ -173,8 +243,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             case 3: // Claims
                 AuctionActionPacket.QueryClaimable();
                 break;
-            case 4: // Create - open sub GUI
-                setSubGui(new SubGuiAuctionCreate(this, (ContainerAuction) inventorySlots));
+            case 4:
                 break;
         }
 
@@ -348,19 +417,139 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         }
     }
 
+    private void updateListingSlotPosition(boolean showInventory) {
+        if (!(inventorySlots instanceof ContainerAuction)) {
+            return;
+        }
+
+        ContainerAuction container = (ContainerAuction) inventorySlots;
+        if (showInventory) {
+            container.listingSlot.xDisplayPosition = RIGHT_PANEL_X + 41;
+            container.listingSlot.yDisplayPosition = 64;
+
+            for (int row = 0; row < 3; row++) {
+                for (int col = 0; col < 9; col++) {
+                    int slotIndex = 1 + col + row * 9;
+                    container.inventorySlots.get(slotIndex).xDisplayPosition = INVENTORY_START_X + col * 18;
+                    container.inventorySlots.get(slotIndex).yDisplayPosition = INVENTORY_START_Y + row * 18;
+                }
+            }
+
+            for (int col = 0; col < 9; col++) {
+                int slotIndex = 28 + col;
+                container.inventorySlots.get(slotIndex).xDisplayPosition = INVENTORY_START_X + col * 18;
+                container.inventorySlots.get(slotIndex).yDisplayPosition = INVENTORY_START_Y + HOTBAR_Y_OFFSET;
+            }
+        } else {
+            container.listingSlot.xDisplayPosition = HIDDEN_SLOT_POSITION;
+            container.listingSlot.yDisplayPosition = HIDDEN_SLOT_POSITION;
+
+            for (int slotIndex = 1; slotIndex < container.inventorySlots.size(); slotIndex++) {
+                container.inventorySlots.get(slotIndex).xDisplayPosition = HIDDEN_SLOT_POSITION;
+                container.inventorySlots.get(slotIndex).yDisplayPosition = HIDDEN_SLOT_POSITION;
+            }
+        }
+    }
+
+    private void addCreateControls(int leftX, int rightX) {
+        addLabel(new GuiNpcLabel(100, StatCollector.translateToLocal("auction.createListing"), leftX, guiTop + 8, 0x404040));
+        addLabel(new GuiNpcLabel(101, StatCollector.translateToLocal("auction.placeItemBelow"), rightX, guiTop + 32, 0x404040));
+
+        ItemStack item = ((ContainerAuction) inventorySlots).getListingItem();
+        if (item != null) {
+            addLabel(new GuiNpcLabel(102, StatCollector.translateToLocal("auction.item") + " " + item.getDisplayName(),
+                rightX, guiTop + 86, 0x008800));
+        } else {
+            addLabel(new GuiNpcLabel(102, StatCollector.translateToLocal("auction.noItemSelected"), rightX, guiTop + 86, 0x888888));
+        }
+
+        addLabel(new GuiNpcLabel(110, StatCollector.translateToLocal("auction.startingPrice"), leftX, guiTop + 36, 0x404040));
+        startingPriceField = new GuiNpcTextField(111, this, leftX + 120, guiTop + 34, 90, 14, "100");
+        startingPriceField.setIntegersOnly();
+        startingPriceField.setMinMaxDefault(1, 999999999, 100);
+        addTextField(startingPriceField);
+
+        addLabel(new GuiNpcLabel(120, StatCollector.translateToLocal("auction.buyoutPrice"), leftX, guiTop + 58, 0x404040));
+        buyoutPriceField = new GuiNpcTextField(121, this, leftX + 120, guiTop + 56, 90, 14, "0");
+        buyoutPriceField.setIntegersOnly();
+        buyoutPriceField.setMinMaxDefault(0, 999999999, 0);
+        addTextField(buyoutPriceField);
+        addLabel(new GuiNpcLabel(122, StatCollector.translateToLocal("auction.noBuyoutHint"), leftX + 214, guiTop + 58, 0x888888));
+
+        addLabel(new GuiNpcLabel(130, StatCollector.translateToLocal("auction.duration"), leftX, guiTop + 80, 0x404040));
+        addButton(new GuiNpcButton(70, leftX + 120, guiTop + 76, 110, 20, getDurationDisplay()));
+
+        long fee = getListingFee();
+        addLabel(new GuiNpcLabel(140, StatCollector.translateToLocal("auction.listingFee") + " " + fee + " " + ConfigMarket.CurrencyName,
+            leftX, guiTop + 104, fee > 0 ? 0xAA0000 : 0x008800));
+
+        addButton(new GuiNpcButton(71, leftX, guiTop + 126, 90, 20, StatCollector.translateToLocal("auction.create")));
+        addButton(new GuiNpcButton(72, leftX + 100, guiTop + 126, 90, 20, StatCollector.translateToLocal("gui.cancel")));
+
+        if (getButton(71) != null) {
+            getButton(71).setEnabled(item != null);
+        }
+    }
+
+    private String getDurationDisplay() {
+        EnumAuctionDuration duration = EnumAuctionDuration.values()[selectedDuration];
+        return duration.getDisplayName();
+    }
+
+    private long getListingFee() {
+        EnumAuctionDuration duration = EnumAuctionDuration.values()[selectedDuration];
+        return duration.getListingFee();
+    }
+
+    private void createListing() {
+        ContainerAuction container = (ContainerAuction) inventorySlots;
+        ItemStack item = container.getListingItem();
+        if (item == null) {
+            return;
+        }
+
+        long startingPrice = parsePrice(startingPriceField, 1);
+        long buyoutPrice = parsePrice(buyoutPriceField, 0);
+
+        if (startingPrice < 1) {
+            startingPrice = 1;
+        }
+
+        if (buyoutPrice > 0 && buyoutPrice < startingPrice) {
+            return;
+        }
+
+        EnumAuctionDuration duration = EnumAuctionDuration.values()[selectedDuration];
+        AuctionActionPacket.CreateListing(item, startingPrice, buyoutPrice, duration);
+        container.clearListingSlot();
+        switchTab(0);
+    }
+
+    private long parsePrice(GuiNpcTextField field, long defaultValue) {
+        if (field == null) {
+            return defaultValue;
+        }
+        try {
+            return Long.parseLong(field.getText());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     @Override
     protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY) {
         drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         // Draw background
-        mc.renderEngine.bindTexture(new ResourceLocation("customnpcs", "textures/gui/bgfilled.png"));
-        drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
+        mc.renderEngine.bindTexture(BG_TEXTURE);
+        drawTexturedModalRect(guiLeft, guiTop, 0, 0, 252, ySize);
+        drawTexturedModalRect(guiLeft + 252, guiTop, 188, 0, xSize - 252, ySize);
 
         // Draw selected item preview
         if (selectedListingIndex >= 0 && selectedListingIndex < listings.size()) {
             AuctionListing listing = listings.get(selectedListingIndex);
-            drawItemPreview(listing, guiLeft + 180, guiTop + 160);
+            drawItemPreview(listing, guiLeft + RIGHT_PANEL_X + 41, guiTop + 192);
         }
 
         super.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
@@ -387,9 +576,10 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         fontRendererObj.drawString(titleText, (xSize - fontRendererObj.getStringWidth(titleText)) / 2, -8,
             CustomNpcResourceListener.DefaultTextColor);
 
-        // Results count
-        String listingsLabel = String.format(StatCollector.translateToLocal("auction.listings"), totalResults);
-        fontRendererObj.drawString(listingsLabel, 175, 42, 0x666666);
+        if (currentTab != 4) {
+            String listingsLabel = String.format(StatCollector.translateToLocal("auction.listings"), totalResults);
+            fontRendererObj.drawString(listingsLabel, LEFT_PANEL_X, 36, 0x666666);
+        }
     }
 
     private String getTabTitle() {
