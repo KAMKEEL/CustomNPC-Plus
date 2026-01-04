@@ -481,21 +481,33 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             @Override
             public void insertText(String text, int startPosition) {
                 // Replace text from startPosition to current cursor
+                String fullText = GuiScriptTextArea.this.text;
                 int cursorPos = selection.getCursorPosition();
-                String before = GuiScriptTextArea.this.text.substring(0, startPosition);
-                String after = GuiScriptTextArea.this.text.substring(cursorPos);
+                
+                // Bounds check to prevent StringIndexOutOfBoundsException
+                int start = Math.max(0, Math.min(startPosition, fullText.length()));
+                int cursor = Math.max(start, Math.min(cursorPos, fullText.length()));
+                
+                String before = fullText.substring(0, start);
+                String after = fullText.substring(cursor);
                 setText(before + text + after);
-                selection.reset(startPosition + text.length());
+                selection.reset(start + text.length());
                 scrollToCursor();
             }
             
             @Override
             public void replaceTextRange(String text, int startPosition, int endPosition) {
                 // Replace text from startPosition to endPosition
-                String before = GuiScriptTextArea.this.text.substring(0, startPosition);
-                String after = GuiScriptTextArea.this.text.substring(endPosition);
+                String fullText = GuiScriptTextArea.this.text;
+                
+                // Bounds check to prevent StringIndexOutOfBoundsException
+                int start = Math.max(0, Math.min(startPosition, fullText.length()));
+                int end = Math.max(start, Math.min(endPosition, fullText.length()));
+                
+                String before = fullText.substring(0, start);
+                String after = fullText.substring(end);
                 setText(before + text + after);
-                selection.reset(startPosition + text.length());
+                selection.reset(start + text.length());
                 scrollToCursor();
             }
             
