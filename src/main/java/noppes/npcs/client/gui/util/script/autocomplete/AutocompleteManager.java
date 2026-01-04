@@ -76,6 +76,12 @@ public class AutocompleteManager {
         void replaceTextRange(String text, int startPosition, int endPosition);
         
         /**
+         * Add an import statement and sort all imports.
+         * @param importPath Full path of the class to import (e.g., "net.minecraft.client.Minecraft")
+         */
+        void addImport(String importPath);
+        
+        /**
          * Get current cursor position.
          */
         int getCursorPosition();
@@ -510,8 +516,14 @@ public class AutocompleteManager {
             }
         }
         
-        // Replace from prefixStart to endPos using the new method
+        // IMPORTANT: Do the text replacement FIRST, then add import
+        // This prevents position corruption since import adds text at the TOP
         insertCallback.replaceTextRange(insertText, prefixStartPosition, endPos);
+        
+        // If this item requires an import, add it AFTER the text replacement
+        if (item.requiresImport() && item.getImportPath() != null) {
+            insertCallback.addImport(item.getImportPath());
+        }
         
         active = false;
     }

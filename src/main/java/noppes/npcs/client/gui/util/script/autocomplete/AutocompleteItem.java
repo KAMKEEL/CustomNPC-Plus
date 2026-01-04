@@ -45,12 +45,17 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     private final Object sourceData;        // Original source (MethodInfo, FieldInfo, etc.)
     private final boolean deprecated;       // Whether this item is deprecated
     
+    // Import tracking
+    private final boolean requiresImport;   // Whether selecting this item requires adding an import
+    private final String importPath;        // Full path for import (e.g., "net.minecraft.client.Minecraft")
+    
     // Match scoring
     private int matchScore = 0;             // How well this matches the query
     private int[] matchIndices;             // Indices of matched characters for highlighting
     
     private AutocompleteItem(String name, String insertText, Kind kind, String typeLabel,
-                             String signature, String documentation, Object sourceData, boolean deprecated) {
+                             String signature, String documentation, Object sourceData, boolean deprecated,
+                             boolean requiresImport, String importPath) {
         this.name = name;
         this.insertText = insertText;
         this.kind = kind;
@@ -59,6 +64,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         this.documentation = documentation;
         this.sourceData = sourceData;
         this.deprecated = deprecated;
+        this.requiresImport = requiresImport;
+        this.importPath = importPath;
     }
     
     // ==================== FACTORY METHODS ====================
@@ -105,7 +112,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             signature,
             method.getDocumentation(),
             method,
-            false // TODO: Check for @Deprecated annotation
+            false, // TODO: Check for @Deprecated annotation
+            false, // Methods don't require imports
+            null
         );
     }
     
@@ -139,7 +148,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             typeLabel + " " + field.getName(),
             null,
             field,
-            false
+            false,
+            false, // Fields don't require imports
+            null
         );
     }
     
@@ -167,7 +178,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             type.getFullName(),
             null,
             type,
-            false
+            false,
+            false, // Will be overridden for unimported types
+            null
         );
     }
     
@@ -192,7 +205,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             method.getSignature(),
             method.getDocumentation(),
             method,
-            false
+            false,
+            false,
+            null
         );
     }
     
@@ -208,7 +223,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field.toString(),
             field.getDocumentation(),
             field,
-            false
+            false,
+            false,
+            null
         );
     }
     
@@ -224,7 +241,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             null,
             null,
             null,
-            false
+            false,
+            false,
+            null
         );
     }
     
@@ -339,6 +358,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public String getDocumentation() { return documentation; }
     public Object getSourceData() { return sourceData; }
     public boolean isDeprecated() { return deprecated; }
+    public boolean requiresImport() { return requiresImport; }
+    public String getImportPath() { return importPath; }
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
     
@@ -409,6 +430,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         private String documentation;
         private Object sourceData;
         private boolean deprecated = false;
+        private boolean requiresImport = false;
+        private String importPath = null;
         
         public Builder name(String name) {
             this.name = name;
@@ -450,12 +473,22 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             return this;
         }
         
+        public Builder requiresImport(boolean requiresImport) {
+            this.requiresImport = requiresImport;
+            return this;
+        }
+        
+        public Builder importPath(String importPath) {
+            this.importPath = importPath;
+            return this;
+        }
+        
         public AutocompleteItem build() {
             if (insertText == null) {
                 insertText = name;
             }
             return new AutocompleteItem(name, insertText, kind, typeLabel, 
-                signature, documentation, sourceData, deprecated);
+                signature, documentation, sourceData, deprecated, requiresImport, importPath);
         }
     }
 }

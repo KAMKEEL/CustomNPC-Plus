@@ -500,6 +500,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
             
             @Override
+            public void addImport(String importPath) {
+                // Add import statement and sort all imports
+                addAndSortImport(importPath);
+            }
+            
+            @Override
             public int getCursorPosition() {
                 return selection.getCursorPosition();
             }
@@ -2532,6 +2538,131 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         
         return mouseX >= menuX && mouseX <= menuX + menuWidth &&
                mouseY >= menuY && mouseY <= menuY + menuHeight;
+    }
+    
+    // ==================== AUTO-IMPORT ====================
+    
+    /**
+     * Add an import statement and sort all imports.
+     */
+    private void addAndSortImport(String importPath) {
+        String currentText = this.text;
+        int savedCursorPos = selection.getCursorPosition();
+        
+        // Find all existing imports
+        java.util.regex.Pattern importPattern = java.util.regex.Pattern.compile(
+            "(?m)^\\s*import\\s+(?:static\\s+)?([A-Za-z_][A-Za-z0-9_]*(?:\\s*\\.\\s*[A-Za-z_*][A-Za-z0-9_]*)*)\\s*;\\s*$"
+        );
+        java.util.regex.Matcher matcher = importPattern.matcher(currentText);
+        
+        java.util.List<ImportEntry> imports = new java.util.ArrayList<>();
+        int firstImportStart = -1;
+        int lastImportEnd = -1;
+        
+        while (matcher.find()) {
+            String importStatement = matcher.group(0);
+            String importPathFound = matcher.group(1).replaceAll("\\s+", "");
+            
+            if (firstImportStart == -1) {
+                firstImportStart = matcher.start();
+            }
+            lastImportEnd = matcher.end();
+            
+            // Skip if this is the import we're trying to add
+            if (!importPathFound.equals(importPath)) {
+                imports.add(new ImportEntry(importPathFound, importStatement.trim()));
+            }
+        }
+        
+        // Add the new import
+        imports.add(new ImportEntry(importPath, "import " + importPath + ";"));
+        
+        // Sort imports
+        java.util.Collections.sort(imports, new java.util.Comparator<ImportEntry>() {
+            @Override
+            public int compare(ImportEntry a, ImportEntry b) {
+                // Sort order: java.*, javax.*, then others alphabetically
+                boolean aIsJava = a.path.startsWith("java.");
+                boolean aIsJavax = a.path.startsWith("javax.");
+                boolean bIsJava = b.path.startsWith("java.");
+                boolean bIsJavax = b.path.startsWith("javax.");
+                
+                if (aIsJava && !bIsJava) return -1;
+                if (!aIsJava && bIsJava) return 1;
+                if (aIsJavax && !bIsJavax && !bIsJava) return -1;
+                if (!aIsJavax && bIsJavax && !aIsJava) return 1;
+                
+                return a.path.compareTo(b.path);
+            }
+        });
+        
+        // Build the new import block
+        StringBuilder importBlock = new StringBuilder();
+        String prevPackage = "";
+        for (ImportEntry entry : imports) {
+            // Add blank line between different top-level packages
+            String topPackage = entry.path.contains(".") ? 
+                entry.path.substring(0, entry.path.indexOf('.')) : entry.path;
+            if (!prevPackage.isEmpty() && !topPackage.equals(prevPackage)) {
+                importBlock.append("\n");
+            }
+            importBlock.append(entry.statement).append("\n");
+            prevPackage = topPackage;
+        }
+        
+        // Determine where to insert/replace imports
+        String newText;
+        int cursorAdjustment = 0;
+        
+        if (firstImportStart != -1) {
+            // Replace existing import block
+            String before = currentText.substring(0, firstImportStart);
+            String after = currentText.substring(lastImportEnd);
+            newText = before + importBlock.toString() + after;
+            
+            // Adjust cursor if it's after the import block
+            int newImportEnd = firstImportStart + importBlock.length();
+            if (savedCursorPos >= lastImportEnd) {
+                cursorAdjustment = newImportEnd - lastImportEnd;
+            }
+        } else {
+            // No existing imports - add at top after package statement (if any)
+            java.util.regex.Pattern packagePattern = java.util.regex.Pattern.compile(
+                "(?m)^\\s*package\\s+[A-Za-z_][A-Za-z0-9_.]*\\s*;\\s*$"
+            );
+            java.util.regex.Matcher pkgMatcher = packagePattern.matcher(currentText);
+            
+            int insertPos = 0;
+            if (pkgMatcher.find()) {
+                insertPos = pkgMatcher.end();
+                // Add blank line after package
+                newText = currentText.substring(0, insertPos) + "\n" + 
+                         importBlock.toString() + "\n" + currentText.substring(insertPos);
+                cursorAdjustment = importBlock.length() + 2; // +2 for the newlines
+            } else {
+                // Insert at very beginning
+                newText = importBlock.toString() + "\n" + currentText;
+                cursorAdjustment = importBlock.length() + 1;
+            }
+        }
+        
+        // Apply the changes
+        setText(newText);
+        selection.reset(savedCursorPos + cursorAdjustment);
+        scrollToCursor();
+    }
+    
+    /**
+     * Helper class for tracking imports during sorting.
+     */
+    private static class ImportEntry {
+        String path;
+        String statement;
+        
+        ImportEntry(String path, String statement) {
+            this.path = path;
+            this.statement = statement;
+        }
     }
     
     // ==================== INNER CLASSES ====================

@@ -391,6 +391,29 @@ public class TypeResolver {
                 word.equals("native") || word.equals("strictfp");
     }
     
+    // ==================== CLASS SEARCH ====================
+    
+    /**
+     * Search for classes matching the given prefix.
+     * Uses ClassIndex for O(n) lookup where n is the number of indexed classes.
+     * 
+     * @param prefix The prefix to match (case-sensitive for class names)
+     * @param maxResults Maximum number of results to return
+     * @return List of fully-qualified class names that match
+     */
+    public List<String> findClassesByPrefix(String prefix, int maxResults) {
+        return ClassIndex.getInstance().findByPrefix(prefix, maxResults);
+    }
+    
+    /**
+     * @deprecated Use findClassesByPrefix instead for prefix matching
+     */
+    @Deprecated
+    public List<String> findClassesBySimpleName(String simpleName, int maxResults) {
+        // Redirect to prefix matching for backwards compatibility
+        return findClassesByPrefix(simpleName, maxResults);
+    }
+    
     /**
      * Represents a type occurrence within generic content.
      */

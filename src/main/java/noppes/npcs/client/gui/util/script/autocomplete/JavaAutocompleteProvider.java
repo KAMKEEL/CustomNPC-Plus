@@ -224,8 +224,71 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             items.add(AutocompleteItem.fromType(scriptType));
         }
         
+        // Add unimported classes that match the prefix (for auto-import)
+        if (context.prefix != null && context.prefix.length() >= 2 && Character.isUpperCase(context.prefix.charAt(0))) {
+            addUnimportedClassSuggestions(context.prefix, items);
+        }
+        
         // Add keywords
         addKeywords(items);
+    }
+    
+    /**
+     * Add suggestions for unimported classes that match the prefix.
+     * These will trigger auto-import when selected.
+     */
+    private void addUnimportedClassSuggestions(String prefix, List<AutocompleteItem> items) {
+        // Get the type resolver
+        TypeResolver resolver = TypeResolver.getInstance();
+        
+        // Find classes matching this prefix (not just exact matches)
+        List<String> matchingClasses = resolver.findClassesByPrefix(prefix, 15);
+        
+        // Track what's already imported to avoid duplicates
+        Set<String> importedFullNames = new HashSet<>();
+        for (TypeInfo imported : document.getImportedTypes()) {
+            importedFullNames.add(imported.getFullName());
+        }
+        
+        // Also track simple names already in the list to avoid showing both
+        // imported and unimported versions of the same class
+        Set<String> existingSimpleNames = new HashSet<>();
+        for (AutocompleteItem item : items) {
+            if (item.getKind() == AutocompleteItem.Kind.CLASS || 
+                item.getKind() == AutocompleteItem.Kind.ENUM) {
+                existingSimpleNames.add(item.getName());
+            }
+        }
+        
+        for (String fullName : matchingClasses) {
+            // Skip if already imported
+            if (importedFullNames.contains(fullName)) {
+                continue;
+            }
+            
+            TypeInfo type = resolver.resolveFullName(fullName);
+            if (type != null && type.isResolved()) {
+                // Skip if a class with this simple name is already in the list
+                if (existingSimpleNames.contains(type.getSimpleName())) {
+                    continue;
+                }
+                
+                // Create an item that requires import
+                AutocompleteItem item = new AutocompleteItem.Builder()
+                    .name(type.getSimpleName())
+                    .insertText(type.getSimpleName())
+                    .kind(type.getKind() == TypeInfo.Kind.ENUM ? 
+                          AutocompleteItem.Kind.ENUM : AutocompleteItem.Kind.CLASS)
+                    .typeLabel(type.getPackageName())
+                    .signature(type.getFullName())
+                    .sourceData(type)
+                    .requiresImport(true)
+                    .importPath(fullName)
+                    .build();
+                items.add(item);
+                existingSimpleNames.add(type.getSimpleName());
+            }
+        }
     }
     
     /**
