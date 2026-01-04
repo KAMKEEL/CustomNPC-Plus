@@ -90,6 +90,13 @@ public class CustomNpcsPermissions {
 
     public static final Permission SOULSTONE_ALL = new Permission("customnpcs.soulstone.all");
 
+    // Auction System
+    public static final Permission AUCTION_USE = new Permission("customnpcs.auction.use");
+    public static final Permission AUCTION_LIST = new Permission("customnpcs.auction.list");
+    public static final Permission AUCTION_BID = new Permission("customnpcs.auction.bid");
+    public static final Permission AUCTION_BUYOUT = new Permission("customnpcs.auction.buyout");
+    public static final Permission AUCTION_ADMIN = new Permission("customnpcs.auction.admin");
+
     // Modify / Save Scripts
     public static final Permission SCRIPT = new Permission("customnpcs.script");
     public static final Permission SCRIPT_NPC = new Permission("customnpcs.script.npc");

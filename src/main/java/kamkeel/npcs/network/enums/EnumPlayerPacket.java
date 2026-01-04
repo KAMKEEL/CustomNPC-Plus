@@ -33,4 +33,7 @@ public enum EnumPlayerPacket {
     ProfileGet,
     ProfileGetInfo,
     SyncRevisionInfo,
+
+    // Auction
+    AuctionAction,
 }

@@ -49,6 +49,7 @@ import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
+import kamkeel.npcs.network.packets.player.AuctionActionPacket;
 import kamkeel.npcs.network.packets.player.BankActionPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
@@ -611,6 +612,9 @@ public class PacketHandler {
         PLAYER_PACKET.registerPacket(new PartyAcceptInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyIgnoreInvitePacket());
         PLAYER_PACKET.registerPacket(new PartyLogToServerPacket());
+
+        // Auction Packets
+        PLAYER_PACKET.registerPacket(new AuctionActionPacket());
     }
 
     public void registerChannels() {

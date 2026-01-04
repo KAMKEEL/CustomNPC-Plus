@@ -49,6 +49,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumQuestType;
 import noppes.npcs.containers.ContainerCustomGui;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.CurrencyController;
 import noppes.npcs.controllers.CustomGuiController;
 import noppes.npcs.controllers.DialogController;
@@ -1012,5 +1013,71 @@ public class ScriptPlayer<T extends EntityPlayerMP> extends ScriptLivingBase<T> 
             return 0;
         }
         return CurrencyController.Instance.claimAll(player);
+    }
+
+    // ==================== AUCTION METHODS ====================
+
+    /**
+     * Get the number of active auction listings the player has.
+     * @return Number of active listings
+     * @since 1.11
+     */
+    public int getAuctionListingCount() {
+        if (AuctionController.Instance == null) {
+            return 0;
+        }
+        return AuctionController.Instance.getActiveListingsCount(player.getUniqueID());
+    }
+
+    /**
+     * Get the maximum number of auction listings the player is allowed.
+     * @return Maximum listing count
+     * @since 1.11
+     */
+    public int getMaxAuctionListings() {
+        if (AuctionController.Instance == null) {
+            return 0;
+        }
+        return AuctionController.Instance.getMaxListings(player);
+    }
+
+    /**
+     * Check if the player has auction items waiting to be claimed.
+     * This includes won items, expired listings, and sale proceeds.
+     * @return true if there are claimable items
+     * @since 1.11
+     */
+    public boolean hasAuctionClaims() {
+        if (AuctionController.Instance == null) {
+            return false;
+        }
+        return !AuctionController.Instance.getClaimableListings(player.getUniqueID()).isEmpty();
+    }
+
+    /**
+     * Get the number of auction items waiting to be claimed.
+     * @return Number of claimable items/listings
+     * @since 1.11
+     */
+    public int getAuctionClaimCount() {
+        if (AuctionController.Instance == null) {
+            return 0;
+        }
+        return AuctionController.Instance.getClaimableListings(player.getUniqueID()).size();
+    }
+
+    /**
+     * Get the number of auctions where the player is the current high bidder.
+     * @return Number of active bids
+     * @since 1.11
+     */
+    public int getActiveAuctionBidCount() {
+        if (AuctionController.Instance == null) {
+            return 0;
+        }
+        return (int) AuctionController.Instance.getListingsAsBidder(player.getUniqueID())
+            .stream()
+            .filter(l -> l.isActive())
+            .count();
     }
 }
