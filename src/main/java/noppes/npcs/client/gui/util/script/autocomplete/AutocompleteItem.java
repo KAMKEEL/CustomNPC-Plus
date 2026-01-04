@@ -373,9 +373,17 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         return calculateMatchScore(query, false);
     }
     
+    /**
+     * Add a boost to the match score (e.g., from usage tracking).
+     */
+    public void addScoreBoost(int boost) {
+        this.matchScore += boost;
+    }
+    
     // ==================== GETTERS ====================
     
     public String getName() { return name; }
+    public String getSearchName() { return searchName; }
     public String getInsertText() { return insertText; }
     public Kind getKind() { return kind; }
     public String getTypeLabel() { return typeLabel; }

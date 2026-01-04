@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.autocomplete;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import org.lwjgl.input.Mouse;
 
 import java.util.ArrayList;
@@ -52,6 +53,12 @@ public class AutocompleteManager {
     
     /** Whether this was an explicit trigger (Ctrl+Space) */
     private boolean explicitTrigger = false;
+    
+    /** The full class name of the current receiver type (for member access tracking) */
+    private String currentReceiverFullName = null;
+    
+    /** Whether current context is member access */
+    private boolean currentIsMemberAccess = false;
     
     /** Callback for text insertion */
     private InsertCallback insertCallback;
@@ -360,6 +367,18 @@ public class AutocompleteManager {
                                   int prefixStart, boolean isMemberAccess, String receiverExpr) {
         if (insertCallback == null || document == null) return;
         
+        // Track context for usage recording when item is selected
+        currentIsMemberAccess = isMemberAccess;
+        currentReceiverFullName = null;
+        
+        // Resolve receiver type if member access
+        if (isMemberAccess && receiverExpr != null) {
+            TypeInfo receiverType = document.resolveExpressionType(receiverExpr, prefixStart);
+            if (receiverType != null && receiverType.isResolved()) {
+                currentReceiverFullName = receiverType.getFullName();
+            }
+        }
+        
         // Build context
         int lineNumber = getLineNumber(text, cursorPosition);
         String currentLine = getCurrentLine(text, cursorPosition);
@@ -491,6 +510,9 @@ public class AutocompleteManager {
             return;
         }
         
+        // Record usage for learning
+        recordUsage(item);
+        
         String insertText = item.getInsertText();
         
         // Smart tab completion: replace till next separator
@@ -526,6 +548,22 @@ public class AutocompleteManager {
         }
         
         active = false;
+    }
+    
+    /**
+     * Record that the user selected an autocomplete item for usage tracking.
+     */
+    private void recordUsage(AutocompleteItem item) {
+        if (document == null) return;
+        
+        UsageTracker tracker = document.isJavaScript() ? 
+            UsageTracker.getJSInstance() : UsageTracker.getJavaInstance();
+        
+        // For member access, use the resolved receiver type
+        // For standalone items (types, keywords, variables), owner is null
+        String owner = currentIsMemberAccess ? currentReceiverFullName : null;
+        
+        tracker.recordUsage(item, owner);
     }
     
     // ==================== DISMISS ====================

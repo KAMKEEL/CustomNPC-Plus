@@ -37,6 +37,16 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             return items;
         }
         
+        // Resolve owner type for usage tracking
+        String ownerFullName = null;
+        if (context.isMemberAccess && context.receiverExpression != null) {
+            TypeInfo receiverType = document.resolveExpressionType(
+                context.receiverExpression, context.prefixStart);
+            if (receiverType != null && receiverType.isResolved()) {
+                ownerFullName = receiverType.getFullName();
+            }
+        }
+        
         if (context.isMemberAccess) {
             // Member access: resolve type of receiver and get its members
             addMemberSuggestions(context, items);
@@ -45,8 +55,8 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             addScopeSuggestions(context, items);
         }
         
-        // Filter and score by prefix
-        filterAndScore(items, context.prefix, context.isMemberAccess);
+        // Filter and score by prefix, then apply usage boosts
+        filterAndScore(items, context.prefix, context.isMemberAccess, ownerFullName);
         
         // Sort by score
         Collections.sort(items);
@@ -332,13 +342,17 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     }
     
     /**
-     * Filter items by prefix and calculate match scores.
+     * Filter items by prefix, calculate match scores, and apply usage boosts.
      */
-    private void filterAndScore(List<AutocompleteItem> items, String prefix, boolean isMemberAccess) {
+    private void filterAndScore(List<AutocompleteItem> items, String prefix, 
+                                 boolean isMemberAccess, String ownerFullName) {
+        UsageTracker tracker = UsageTracker.getJavaInstance();
+        
         if (prefix == null || prefix.isEmpty()) {
-            // No filtering needed, all items get a base score
+            // No filtering needed, all items get a base score + usage boost
             for (AutocompleteItem item : items) {
                 item.calculateMatchScore("", false);
+                applyUsageBoost(item, tracker, ownerFullName);
             }
             return;
         }
@@ -347,15 +361,26 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         // For member access (after dot), allow fuzzy/contains matching
         boolean requirePrefix = !isMemberAccess;
         
-        // Filter and score
+        // Filter, score, and apply usage boosts
         Iterator<AutocompleteItem> iter = items.iterator();
         while (iter.hasNext()) {
             AutocompleteItem item = iter.next();
             int score = item.calculateMatchScore(prefix, requirePrefix);
             if (score < 0) {
                 iter.remove();
+            } else {
+                applyUsageBoost(item, tracker, ownerFullName);
             }
         }
+    }
+    
+    /**
+     * Apply usage-based score boost to an item.
+     */
+    private void applyUsageBoost(AutocompleteItem item, UsageTracker tracker, String ownerFullName) {
+        int usageCount = tracker.getUsageCount(item, ownerFullName);
+        int boost = UsageTracker.calculateUsageBoost(usageCount);
+        item.addScoreBoost(boost);
     }
     
     /**
