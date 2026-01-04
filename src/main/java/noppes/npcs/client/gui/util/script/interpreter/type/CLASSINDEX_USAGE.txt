@@ -1,0 +1,20 @@
+﻿/**
+ * Example Usage of ClassIndex:
+ *
+ * 1. Add a single class:
+ *    ClassIndex.getInstance().addClass(EntityPlayer.class);
+ *
+ * 2. Add an entire package recursively:
+ *    ClassIndex.getInstance().addPackage("net.minecraft.entity.player");
+ *    This will scan and add ALL classes in that package and subpackages.
+ *
+ * 3. Find classes by prefix:
+ *    List<String> matches = ClassIndex.getInstance().findByPrefix("Entity", 50);
+ *    // Returns fully-qualified names like "net.minecraft.entity.Entity", etc.
+ *
+ * Benefits:
+ * - No more manual string pairs! Just pass Class<?> objects.
+ * - Simple name and package are extracted automatically via reflection.
+ * - Can scan entire package trees recursively with one call.
+ * - Cleaner, more maintainable, and easier to extend.
+ */
