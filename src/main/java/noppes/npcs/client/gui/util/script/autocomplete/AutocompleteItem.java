@@ -395,6 +395,15 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public String getImportPath() { return importPath; }
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
+
+    public int getParameterCount() {
+        if (sourceData instanceof MethodInfo) {
+            return ((MethodInfo) sourceData).getParameterCount();
+        } else if (sourceData instanceof JSMethodInfo) {
+            return ((JSMethodInfo) sourceData).getParameterCount();
+        }
+        return 0;
+    }
     
     /**
      * Check if this item represents a static member.

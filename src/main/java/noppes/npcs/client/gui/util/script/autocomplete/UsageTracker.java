@@ -156,6 +156,13 @@ public class UsageTracker {
      */
     public void recordUsage(AutocompleteItem item, String ownerFullName) {
         String name = item.getSearchName() != null ? item.getSearchName() : item.getName();
+        
+        // For methods, include parameter count to distinguish overloads
+        if (item.getKind() == AutocompleteItem.Kind.METHOD) {
+            int paramCount = item.getParameterCount();
+            name = name + "(" + paramCount + ")";
+        }
+        
         recordUsage(ownerFullName, name, item.getKind());
     }
     
@@ -177,6 +184,13 @@ public class UsageTracker {
      */
     public int getUsageCount(AutocompleteItem item, String ownerFullName) {
         String name = item.getSearchName() != null ? item.getSearchName() : item.getName();
+        
+        // For methods, include parameter count to distinguish overloads
+        if (item.getKind() == AutocompleteItem.Kind.METHOD) {
+            int paramCount = item.getParameterCount();
+            name = name + "(" + paramCount + ")";
+        }
+        
         return getUsageCount(ownerFullName, name, item.getKind());
     }
     
