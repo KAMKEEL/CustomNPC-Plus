@@ -19,7 +19,7 @@ import java.util.*;
  */
 public class JavaAutocompleteProvider implements AutocompleteProvider {
     
-    private ScriptDocument document;
+    protected ScriptDocument document;
     
     public void setDocument(ScriptDocument document) {
         this.document = document;
@@ -71,7 +71,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Add suggestions for member access (after dot).
      */
-    private void addMemberSuggestions(Context context, List<AutocompleteItem> items) {
+    protected void addMemberSuggestions(Context context, List<AutocompleteItem> items) {
         String receiverExpr = context.receiverExpression;
         if (receiverExpr == null || receiverExpr.isEmpty()) {
             return;
@@ -132,7 +132,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Add members from a script-defined type.
      */
-    private void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext) {
+    protected void addScriptTypeMembers(ScriptTypeInfo scriptType, List<AutocompleteItem> items, boolean isStaticContext) {
         // Add methods (getMethods returns Map<String, List<MethodInfo>>)
         for (List<MethodInfo> overloads : scriptType.getMethods().values()) {
             for (MethodInfo method : overloads) {
@@ -181,7 +181,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Add suggestions based on current scope (not after a dot).
      */
-    private void addScopeSuggestions(Context context, List<AutocompleteItem> items) {
+    protected void addScopeSuggestions(Context context, List<AutocompleteItem> items) {
         int pos = context.cursorPosition;
         
         // Find containing method
@@ -256,7 +256,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Add suggestions for unimported classes that match the prefix.
      * These will trigger auto-import when selected.
      */
-    private void addUnimportedClassSuggestions(String prefix, List<AutocompleteItem> items) {
+    protected void addUnimportedClassSuggestions(String prefix, List<AutocompleteItem> items) {
         // Get the type resolver
         TypeResolver resolver = TypeResolver.getInstance();
         // Find classes matching this prefix (not just exact matches)
@@ -312,7 +312,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Add Java keywords.
      */
-    private void addKeywords(List<AutocompleteItem> items) {
+    protected void addKeywords(List<AutocompleteItem> items) {
         String[] keywords = {
             "if", "else", "for", "while", "do", "switch", "case", "break", "continue",
             "return", "try", "catch", "finally", "throw", "throws", "new", "this", "super",
@@ -331,7 +331,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Find the enclosing script type at a position.
      * This is a workaround since findEnclosingScriptType is package-private.
      */
-    private ScriptTypeInfo findEnclosingType(int position) {
+    protected ScriptTypeInfo findEnclosingType(int position) {
         for (ScriptTypeInfo type : document.getScriptTypesMap().values()) {
             if (type.containsPosition(position)) {
                 return type;
@@ -344,18 +344,20 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Check if the receiver expression represents static access (class type).
      * Similar logic to FieldChainMarker.isStaticContext().
      */
-    private boolean isStaticAccess(String receiverExpr, int position) {
+    protected boolean isStaticAccess(String receiverExpr, int position) {
         // Try to resolve the receiver expression as a type
         TypeInfo typeCheck = document.resolveType(receiverExpr);
         return typeCheck != null && typeCheck.isResolved();
     }
-    
+    protected  UsageTracker getUsageTracker() {
+        return UsageTracker.getJavaInstance();
+    }
     /**
      * Filter items by prefix, calculate match scores, apply usage boosts, and penalize static members in instance contexts.
      */
-    private void filterAndScore(List<AutocompleteItem> items, String prefix, 
+    protected void filterAndScore(List<AutocompleteItem> items, String prefix, 
                                  boolean isMemberAccess, boolean isStaticContext, String ownerFullName) {
-        UsageTracker tracker = UsageTracker.getJavaInstance();
+        UsageTracker tracker = getUsageTracker();
         
         if (prefix == null || prefix.isEmpty()) {
             // No filtering needed, all items get a base score + usage boost
@@ -390,7 +392,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Apply usage-based score boost to an item.
      */
-    private void applyUsageBoost(AutocompleteItem item, UsageTracker tracker, String ownerFullName) {
+    protected void applyUsageBoost(AutocompleteItem item, UsageTracker tracker, String ownerFullName) {
         int usageCount = tracker.getUsageCount(item, ownerFullName);
         int boost = UsageTracker.calculateUsageBoost(usageCount);
         item.addScoreBoost(boost);
@@ -402,7 +404,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * accessing through an instance (e.g., Minecraft.getMinecraft().getMinecraft()).
      * However, if the item is a very strong match (exact prefix), don't penalize as much.
      */
-    private void applyStaticPenalty(AutocompleteItem item, boolean isMemberAccess, boolean isStaticContext) {
+    protected void applyStaticPenalty(AutocompleteItem item, boolean isMemberAccess, boolean isStaticContext) {
         // Only apply penalty in member access contexts (after dot)
         if (!isMemberAccess) {
             return;
@@ -434,7 +436,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Apply penalty to inherited Object methods to push them to bottom.
      * Strong matches get lighter penalty, weak matches get pushed all the way down.
      */
-    private void applyObjectMethodPenalty(AutocompleteItem item) {
+    protected void applyObjectMethodPenalty(AutocompleteItem item) {
         if (!item.isInheritedObjectMethod()) {
             return;
         }

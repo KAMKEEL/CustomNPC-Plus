@@ -390,10 +390,7 @@ public class AutocompleteManager {
         // Get suggestions from appropriate provider
         AutocompleteProvider provider = document.isJavaScript() ? jsProvider : javaProvider;
         
-        // For JavaScript, update variable types from analyzer
-        if (document.isJavaScript() && document.getJSAnalyzer() != null) {
-            jsProvider.updateVariableTypes(document.getJSAnalyzer().getVariableTypes());
-        }
+        // No need to update variable types - JSAutocompleteProvider now gets them directly from ScriptDocument
         
         List<AutocompleteItem> suggestions = provider.getSuggestions(context);
 
