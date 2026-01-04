@@ -421,6 +421,49 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     }
     
     /**
+     * Check if this method is inherited from Object class and NOT overridden.
+     * These methods should be deprioritized in autocomplete.
+     */
+    public boolean isInheritedObjectMethod() {
+        if (kind != Kind.METHOD || !(sourceData instanceof MethodInfo)) {
+            return false;
+        }
+        
+        MethodInfo methodInfo = (MethodInfo) sourceData;
+        
+        // For Java reflection methods, check the declaring class
+        if (methodInfo.getJavaMethod() != null) {
+            java.lang.reflect.Method javaMethod = methodInfo.getJavaMethod();
+            Class<?> declaringClass = javaMethod.getDeclaringClass();
+            
+            // If the method is declared in Object, it's an inherited Object method
+            // unless the containing type is Object itself
+            if (declaringClass.getName().equals("java.lang.Object")) {
+                TypeInfo containingType = methodInfo.getContainingType();
+                // If we're showing methods for Object itself, don't treat them as "inherited"
+                return containingType != null && !containingType.getFullName().equals("java.lang.Object");
+            }
+        } else {
+            // For script-defined methods, use the original logic
+            TypeInfo containingType = methodInfo.getContainingType();
+            
+            // Check if declaring class is Object
+            if (containingType != null && containingType.getFullName().equals("java.lang.Object")) {
+                return true;
+            }
+            
+            // Check if method overrides from Object (meaning it's overridden, so NOT inherited)
+            if (methodInfo.isOverride()) {
+                TypeInfo overridesFrom = methodInfo.getOverridesFrom();
+                // If it overrides from Object, it means this class overrode it, so it's NOT just inherited
+                return false;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
      * Get icon identifier based on kind.
      */
     public String getIconId() {
@@ -460,6 +503,14 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         if (this.matchScore != other.matchScore) {
             return other.matchScore - this.matchScore;
         }
+        
+        // Push inherited Object methods to the bottom
+        boolean thisIsObjectMethod = this.isInheritedObjectMethod();
+        boolean otherIsObjectMethod = other.isInheritedObjectMethod();
+        if (thisIsObjectMethod != otherIsObjectMethod) {
+            return thisIsObjectMethod ? 1 : -1; // Object methods go to bottom
+        }
+        
         // Then by kind priority
         if (this.kind.getPriority() != other.kind.getPriority()) {
             return this.kind.getPriority() - other.kind.getPriority();
