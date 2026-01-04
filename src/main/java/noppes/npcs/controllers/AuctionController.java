@@ -132,6 +132,7 @@ public class AuctionController {
     public List<AuctionListing> searchListings(String query) {
         String lowerQuery = query.toLowerCase();
         return getActiveListings().stream()
+            .filter(l -> l.item != null)
             .filter(l -> l.item.getDisplayName().toLowerCase().contains(lowerQuery))
             .collect(Collectors.toList());
     }
@@ -157,8 +158,14 @@ public class AuctionController {
 
         // Calculate pagination
         int totalResults = results.size();
-        int totalPages = Math.max(1, (int) Math.ceil((double) totalResults / filter.pageSize));
-        int startIndex = filter.page * filter.pageSize;
+        int totalPages = totalResults == 0
+            ? 0
+            : Math.max(1, (int) Math.ceil((double) totalResults / filter.pageSize));
+        int currentPage = Math.max(0, filter.page);
+        if (totalPages > 0 && currentPage >= totalPages) {
+            currentPage = totalPages - 1;
+        }
+        int startIndex = currentPage * filter.pageSize;
         int endIndex = Math.min(startIndex + filter.pageSize, totalResults);
 
         // Get the page slice
@@ -169,7 +176,7 @@ public class AuctionController {
             pageResults = new ArrayList<>(results.subList(startIndex, endIndex));
         }
 
-        return new FilterResult(pageResults, totalResults, filter.page, totalPages);
+        return new FilterResult(pageResults, totalResults, currentPage, totalPages);
     }
 
     /**
@@ -204,11 +211,11 @@ public class AuctionController {
                 comparator = Comparator.comparingLong(l -> -l.expirationTime);
                 break;
             case NAME_A_TO_Z:
-                comparator = Comparator.comparing(l -> l.item.getDisplayName().toLowerCase());
+                comparator = Comparator.comparing(l -> getListingName(l).toLowerCase());
                 break;
             case NAME_Z_TO_A:
                 comparator = Comparator.comparing((AuctionListing l) ->
-                    l.item.getDisplayName().toLowerCase()).reversed();
+                    getListingName(l).toLowerCase()).reversed();
                 break;
             case MOST_BIDS:
                 comparator = Comparator.comparingInt(l -> -l.bidCount);
@@ -287,6 +294,7 @@ public class AuctionController {
         return ids.stream()
             .map(listings::get)
             .filter(Objects::nonNull)
+            .filter(AuctionListing::isActive)
             .filter(l -> bidderUUID.equals(l.highBidderUUID))
             .collect(Collectors.toList());
     }
@@ -433,17 +441,33 @@ public class AuctionController {
     /**
      * Cancel an auction listing
      */
-    public boolean cancelListing(int listingId, EntityPlayer requester) {
+    public boolean cancelListing(int listingId, EntityPlayer requester, boolean forceCancel) {
         AuctionListing listing = listings.get(listingId);
         if (listing == null) {
             return false;
         }
 
         boolean byAdmin = !listing.sellerUUID.equals(requester.getUniqueID());
-
-        if (!listing.cancel(requester.getUniqueID())) {
+        if (byAdmin && !forceCancel) {
             return false;
         }
+        if (!forceCancel && listing.hasBids()) {
+            return false;
+        }
+        if (listing.status != EnumAuctionStatus.ACTIVE) {
+            return false;
+        }
+
+        if (forceCancel && listing.hasBids() && listing.highBidderUUID != null) {
+            CurrencyController.Instance.addClaim(listing.highBidderUUID, listing.currentBid,
+                "Auction Cancelled", String.valueOf(listingId));
+            notifyPlayer(listing.highBidderUUID, EnumChatFormatting.RED +
+                "Your bid on " + EnumChatFormatting.WHITE + listing.item.getDisplayName() +
+                EnumChatFormatting.RED + " was cancelled. Your " +
+                formatCurrency(listing.currentBid) + " has been refunded.");
+        }
+
+        listing.status = EnumAuctionStatus.CANCELLED;
 
         save();
 
@@ -716,6 +740,13 @@ public class AuctionController {
 
     private void logEvent(String event, String details) {
         LogWriter.info(LOG_PREFIX + event + ": " + details);
+    }
+
+    private String getListingName(AuctionListing listing) {
+        if (listing == null || listing.item == null) {
+            return "";
+        }
+        return listing.item.getDisplayName();
     }
 
     // ==================== Persistence ====================

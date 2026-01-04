@@ -17,6 +17,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.constants.EnumAuctionDuration;
 import noppes.npcs.constants.EnumRoleType;
+import noppes.npcs.containers.ContainerAuction;
 import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.CurrencyController;
 import noppes.npcs.controllers.data.AuctionFilter;
@@ -290,10 +291,23 @@ public class AuctionActionPacket extends AbstractPacket {
 
         try {
             NBTTagCompound itemNBT = NBTJsonUtil.Convert(itemJson);
-            ItemStack item = ItemStack.loadItemStackFromNBT(itemNBT);
+            ItemStack requestedItem = ItemStack.loadItemStackFromNBT(itemNBT);
 
-            if (item == null) {
-                sendResponse(player, false, "Invalid item");
+            if (!(player.openContainer instanceof ContainerAuction)) {
+                sendResponse(player, false, "Open the auction listing screen to create a listing");
+                return;
+            }
+
+            ContainerAuction container = (ContainerAuction) player.openContainer;
+            ItemStack slotItem = container.getListingItem();
+
+            if (requestedItem == null || slotItem == null) {
+                sendResponse(player, false, "Place an item in the listing slot");
+                return;
+            }
+
+            if (!ItemStack.areItemStacksEqual(slotItem, requestedItem) || slotItem.stackSize != requestedItem.stackSize) {
+                sendResponse(player, false, "Listing item mismatch");
                 return;
             }
 
@@ -318,11 +332,10 @@ public class AuctionActionPacket extends AbstractPacket {
 
             // Create the listing
             AuctionListing listing = AuctionController.Instance.createListing(
-                player, item, startingPrice, buyoutPrice, duration);
+                player, slotItem, startingPrice, buyoutPrice, duration);
 
             if (listing != null) {
-                // Remove item from player's inventory
-                // Note: The GUI should have already collected the item, this is validation
+                container.clearListingSlot();
                 sendResponse(player, true, "Listing created successfully");
             } else {
                 sendResponse(player, false, "Failed to create listing. Check your balance and listing limit.");
@@ -429,7 +442,7 @@ public class AuctionActionPacket extends AbstractPacket {
             return;
         }
 
-        if (AuctionController.Instance.cancelListing(listingId, player)) {
+        if (AuctionController.Instance.cancelListing(listingId, player, isAdmin)) {
             sendResponse(player, true, "Listing cancelled. Claim your item.");
         } else {
             sendResponse(player, false, "Failed to cancel listing");

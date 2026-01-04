@@ -107,6 +107,9 @@ public class AuctionFilter {
         if (listing == null) {
             return false;
         }
+        if (listing.item == null) {
+            return false;
+        }
 
         // Search text filter (case-insensitive)
         if (!searchText.isEmpty()) {
@@ -199,9 +202,13 @@ public class AuctionFilter {
         maxPrice = compound.getLong("MaxPrice");
         buyoutOnly = compound.getBoolean("BuyoutOnly");
         noBidsOnly = compound.getBoolean("NoBidsOnly");
-        page = compound.getInteger("Page");
+        page = Math.max(0, compound.getInteger("Page"));
         pageSize = compound.getInteger("PageSize");
-        if (pageSize <= 0) pageSize = 20;
+        if (pageSize <= 0) {
+            pageSize = 20;
+        } else {
+            pageSize = Math.min(100, pageSize);
+        }
         sellerUUID = compound.getString("SellerUUID");
         sellerName = compound.getString("SellerName");
     }
