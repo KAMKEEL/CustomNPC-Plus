@@ -51,14 +51,14 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
         // Starting price
         addLabel(new GuiNpcLabel(10, StatCollector.translateToLocal("auction.startingPrice"), guiLeft + 20, guiTop + 70, 0x404040));
         startingPriceField = new GuiNpcTextField(11, this, guiLeft + 100, guiTop + 68, 80, 14, "100");
-        startingPriceField.setNumbersOnly();
+        startingPriceField.setIntegersOnly();
         startingPriceField.setMinMaxDefault(1, 999999999, 100);
         addTextField(startingPriceField);
 
         // Buyout price (optional)
         addLabel(new GuiNpcLabel(20, StatCollector.translateToLocal("auction.buyoutPrice"), guiLeft + 20, guiTop + 90, 0x404040));
         buyoutPriceField = new GuiNpcTextField(21, this, guiLeft + 100, guiTop + 88, 80, 14, "0");
-        buyoutPriceField.setNumbersOnly();
+        buyoutPriceField.setIntegersOnly();
         buyoutPriceField.setMinMaxDefault(0, 999999999, 0);
         addTextField(buyoutPriceField);
         addLabel(new GuiNpcLabel(22, StatCollector.translateToLocal("auction.noBuyoutHint"), guiLeft + 185, guiTop + 90, 0x888888));
@@ -87,7 +87,7 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
 
     private long getListingFee() {
         EnumAuctionDuration duration = EnumAuctionDuration.values()[selectedDuration];
-        return duration.getFee();
+        return duration.getListingFee();
     }
 
     @Override
@@ -113,8 +113,8 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
             return;
         }
 
-        long startingPrice = startingPriceField.getInteger();
-        long buyoutPrice = buyoutPriceField.getInteger();
+        long startingPrice = parsePrice(startingPriceField, 1);
+        long buyoutPrice = parsePrice(buyoutPriceField, 0);
 
         if (startingPrice < 1) {
             startingPrice = 1;
@@ -133,6 +133,14 @@ public class SubGuiAuctionCreate extends SubGuiInterface {
         // Clear slot and close
         container.clearListingSlot();
         close();
+    }
+
+    private long parsePrice(GuiNpcTextField field, long defaultValue) {
+        try {
+            return Long.parseLong(field.getText());
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
     }
 
     @Override

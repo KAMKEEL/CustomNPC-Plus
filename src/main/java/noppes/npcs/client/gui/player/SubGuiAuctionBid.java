@@ -35,6 +35,12 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         int y = guiTop + 10;
         int labelColor = 0x404040;
 
+        if (listing.item == null) {
+            addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.noItemSelected"), guiLeft + 40, y, 0xAA0000));
+            addButton(new GuiNpcButton(31, guiLeft + 60, guiTop + 110, 80, 20, StatCollector.translateToLocal("gui.cancel")));
+            return;
+        }
+
         // Title
         addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.placeBid"), guiLeft + 70, y, labelColor));
         y += 18;
@@ -70,8 +76,9 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         // Bid input
         addLabel(new GuiNpcLabel(10, StatCollector.translateToLocal("auction.yourBid"), guiLeft + 15, y + 3, labelColor));
         bidField = new GuiNpcTextField(11, this, guiLeft + 80, y, 100, 16, String.valueOf(minBid));
-        bidField.setNumbersOnly();
-        bidField.setMinMaxDefault(minBid, 999999999, minBid);
+        bidField.setIntegersOnly();
+        int minBidInt = (int) Math.min(Integer.MAX_VALUE, Math.max(1L, minBid));
+        bidField.setMinMaxDefault(minBidInt, Integer.MAX_VALUE, minBidInt);
         addTextField(bidField);
         y += 24;
 
@@ -179,7 +186,7 @@ public class SubGuiAuctionBid extends SubGuiInterface {
     }
 
     private void placeBid() {
-        long bidAmount = bidField.getInteger();
+        long bidAmount = parseBid(bidField);
         long minBid = listing.getMinimumBid();
 
         if (bidAmount < minBid) {
@@ -197,6 +204,14 @@ public class SubGuiAuctionBid extends SubGuiInterface {
         // Send bid to server
         AuctionActionPacket.PlaceBid(listing.id, bidAmount);
         close();
+    }
+
+    private long parseBid(GuiNpcTextField field) {
+        try {
+            return Long.parseLong(field.getText());
+        } catch (NumberFormatException e) {
+            return 0L;
+        }
     }
 
     @Override

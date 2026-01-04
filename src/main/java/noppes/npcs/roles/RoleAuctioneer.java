@@ -6,6 +6,7 @@ import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.controllers.AuctionController;
+import noppes.npcs.controllers.data.Line;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -69,9 +70,9 @@ public class RoleAuctioneer extends RoleInterface {
         // Check if auction system is enabled
         if (!ConfigMarket.AuctionEnabled) {
             if (!noAuctionMessage.isEmpty()) {
-                npc.say(player, noAuctionMessage);
+                npc.say(player, new Line(noAuctionMessage));
             } else {
-                npc.say(player, "The auction house is currently closed.");
+                npc.say(player, new Line("The auction house is currently closed."));
             }
             return;
         }
@@ -83,7 +84,7 @@ public class RoleAuctioneer extends RoleInterface {
 
         // Say welcome message
         if (!welcomeMessage.isEmpty()) {
-            npc.say(player, welcomeMessage);
+            npc.say(player, new Line(welcomeMessage));
         } else {
             npc.say(player, npc.advanced.getInteractLine());
         }

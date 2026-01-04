@@ -215,6 +215,9 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     private void viewDetails() {
         if (selectedListingIndex >= 0 && selectedListingIndex < listings.size()) {
             AuctionListing listing = listings.get(selectedListingIndex);
+            if (listing.item == null) {
+                return;
+            }
             setSubGui(new SubGuiAuctionDetails(this, listing));
         }
     }
@@ -222,6 +225,9 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     private void placeBid() {
         if (selectedListingIndex >= 0 && selectedListingIndex < listings.size()) {
             AuctionListing listing = listings.get(selectedListingIndex);
+            if (listing.item == null) {
+                return;
+            }
             setSubGui(new SubGuiAuctionBid(this, listing, playerBalance));
         }
     }
@@ -261,7 +267,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             String line = formatListingLine(listing);
             displayList.add(line);
         }
-        listingScroll.setList(displayList);
+        listingScroll.setList(displayList, true, false);
 
         if (selectedListingIndex >= 0 && selectedListingIndex < displayList.size()) {
             listingScroll.selected = selectedListingIndex;
@@ -269,7 +275,9 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     }
 
     private String formatListingLine(AuctionListing listing) {
-        String itemName = listing.item.getDisplayName();
+        String itemName = listing.item == null
+            ? "Unknown"
+            : listing.item.getDisplayName();
         if (itemName.length() > 15) {
             itemName = itemName.substring(0, 12) + "...";
         }
@@ -324,12 +332,17 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
 
         // Action buttons based on selection
         boolean hasSelection = selectedListingIndex >= 0 && selectedListingIndex < listings.size();
+        if (hasSelection && listings.get(selectedListingIndex).item == null) {
+            hasSelection = false;
+        }
         if (getButton(50) != null) getButton(50).setEnabled(hasSelection);
         if (getButton(51) != null) getButton(51).setEnabled(hasSelection);
 
         if (hasSelection && getButton(52) != null) {
             AuctionListing listing = listings.get(selectedListingIndex);
-            getButton(52).setEnabled(listing.buyoutPrice > 0 && playerBalance >= listing.buyoutPrice);
+            getButton(52).setEnabled(listing.item != null &&
+                listing.buyoutPrice > 0 &&
+                playerBalance >= listing.buyoutPrice);
         } else if (getButton(52) != null) {
             getButton(52).setEnabled(false);
         }
@@ -392,18 +405,17 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
 
     // ICustomScrollListener
     @Override
-    public void scrollClicked(int scrollId, int index, boolean doubleClick, String selection) {
+    public void customScrollClicked(int mouseX, int mouseY, int mouseButton, GuiCustomScroll scroll) {
+        int index = scroll.selected;
         selectedListingIndex = index;
         updateButtonStates();
-
-        if (doubleClick && selectedListingIndex >= 0 && selectedListingIndex < listings.size()) {
-            viewDetails();
-        }
     }
 
     @Override
-    public void scrollDoubleClicked(String selection, GuiCustomScroll scroll) {
-        // Handled above
+    public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
+        if (selectedListingIndex >= 0 && selectedListingIndex < listings.size()) {
+            viewDetails();
+        }
     }
 
     // IGuiData

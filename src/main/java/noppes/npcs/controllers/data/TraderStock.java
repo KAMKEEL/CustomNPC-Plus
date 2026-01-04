@@ -58,6 +58,9 @@ public class TraderStock {
             return pStock.getStock(slot, maxStock[slot]);
         }
 
+        if (currentStock[slot] < 0) {
+            return maxStock[slot];
+        }
         return Math.max(0, currentStock[slot]);
     }
 
@@ -83,6 +86,9 @@ public class TraderStock {
             return pStock.consumeStock(slot, maxStock[slot], amount);
         }
 
+        if (currentStock[slot] < 0) {
+            currentStock[slot] = maxStock[slot];
+        }
         if (currentStock[slot] >= amount) {
             currentStock[slot] -= amount;
             return true;

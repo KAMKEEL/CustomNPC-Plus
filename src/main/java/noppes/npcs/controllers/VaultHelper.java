@@ -4,7 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.controllers.data.PlayerData;
-import noppes.npcs.controllers.data.PlayerDataController;
+import noppes.npcs.controllers.PlayerDataController;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

@@ -34,6 +34,12 @@ public class SubGuiAuctionDetails extends SubGuiInterface {
         int labelColor = 0x404040;
         int valueColor = 0x000000;
 
+        if (listing.item == null) {
+            addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.noItemSelected"), guiLeft + 60, y, 0xAA0000));
+            addButton(new GuiNpcButton(50, guiLeft + 80, guiTop + 175, 80, 20, StatCollector.translateToLocal("gui.close")));
+            return;
+        }
+
         // Title
         addLabel(new GuiNpcLabel(0, StatCollector.translateToLocal("auction.auctionDetails"), guiLeft + 80, y, labelColor));
         y += 16;

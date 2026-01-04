@@ -95,8 +95,16 @@ public class ConfigMarket {
             StartingBalance = config.get(CURRENCY, "Starting Balance", 1000,
                 "Starting balance for new players (only used when Vault is not available)").getInt(1000);
 
-            MaxBalance = config.get(CURRENCY, "Maximum Balance", 999999999999L,
-                "Maximum balance a player can have (only used when Vault is not available)").getLong(999999999999L);
+            Property maxBalanceProp = config.get(CURRENCY, "Maximum Balance", String.valueOf(MaxBalance),
+                "Maximum balance a player can have (only used when Vault is not available)");
+            try {
+                MaxBalance = Long.parseLong(maxBalanceProp.getString());
+            } catch (NumberFormatException e) {
+                MaxBalance = 999999999999L;
+            }
+            if (MaxBalance < 0) {
+                MaxBalance = 0;
+            }
 
             // =========================================
             // Auction Settings
