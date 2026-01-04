@@ -64,20 +64,17 @@ public class JSTypeRegistry {
             System.out.println("[JSTypeRegistry] Found " + dtsFiles.size() + " .d.ts files in resources");
             
             // Load hooks.d.ts and index.d.ts first if they exist (defines core types)
-            if (dtsFiles.contains("api/hooks.d.ts")) {
+            if (dtsFiles.contains("hooks.d.ts")) {
                 loadResourceFile(parser, "hooks.d.ts");
             }
-            if (dtsFiles.contains("api/index.d.ts")) {
+            if (dtsFiles.contains("index.d.ts")) {
                 loadResourceFile(parser, "index.d.ts");
             }
             
             // Load all other .d.ts files
             for (String filePath : dtsFiles) {
-                if (filePath.startsWith("api/")) {
-                    String relPath = filePath.substring(4); // Remove "api/" prefix
-                    if (!relPath.equals("hooks.d.ts") && !relPath.equals("index.d.ts")) {
-                        loadResourceFile(parser, relPath);
-                    }
+                if (!filePath.equals("hooks.d.ts") && !filePath.equals("index.d.ts")) {
+                    loadResourceFile(parser, filePath);
                 }
             }
             
@@ -93,13 +90,15 @@ public class JSTypeRegistry {
     /**
      * Recursively find all .d.ts files in the resources directory.
      * Similar to ClassIndex.addPackage, scans both file system and JAR resources.
+     *
+     * @param resourcePath The full resource path (e.g., "assets/customnpcs/api")
      */
-    private Set<String> findAllDtsFilesInResources(String basePath) {
+    private Set<String> findAllDtsFilesInResources(String resourcePath) {
         Set<String> dtsFiles = new HashSet<>();
         
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-            Enumeration<URL> resources = classLoader.getResources(basePath);
+            Enumeration<URL> resources = classLoader.getResources(resourcePath);
             
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
@@ -107,7 +106,7 @@ public class JSTypeRegistry {
                 if (resource.getProtocol().equals("file")) {
                     // Scan file system directory
                     File directory = new File(resource.getFile());
-                    scanDirectoryForDts(directory, basePath, dtsFiles);
+                    scanDirectoryForDts(directory, "", dtsFiles);
                 } else if (resource.getProtocol().equals("jar")) {
                     // Scan JAR file
                     String jarPath = resource.getPath();
@@ -118,7 +117,7 @@ public class JSTypeRegistry {
                     if (separatorIndex != -1) {
                         jarPath = jarPath.substring(0, separatorIndex);
                     }
-                    scanJarForDts(jarPath, basePath, dtsFiles);
+                    scanJarForDts(jarPath, resourcePath, dtsFiles);
                 }
             }
         } catch (Exception e) {
@@ -130,8 +129,12 @@ public class JSTypeRegistry {
     
     /**
      * Recursively scan a file system directory for .d.ts files.
+     *
+     * @param directory The directory to scan
+     * @param currentPath The relative path from the base (used for building file paths)
+     * @param dtsFiles The set to collect .d.ts file paths
      */
-    private void scanDirectoryForDts(File directory, String basePath, Set<String> dtsFiles) {
+    private void scanDirectoryForDts(File directory, String currentPath, Set<String> dtsFiles) {
         if (!directory.exists() || !directory.isDirectory()) {
             return;
         }
@@ -143,34 +146,34 @@ public class JSTypeRegistry {
         
         for (File file : files) {
             String fileName = file.getName();
+            String filePath = currentPath.isEmpty() ? fileName : currentPath + "/" + fileName;
             
             if (file.isDirectory()) {
                 // Recursively scan subdirectory
-                scanDirectoryForDts(file, basePath + "/" + fileName, dtsFiles);
+                scanDirectoryForDts(file, filePath, dtsFiles);
             } else if (fileName.endsWith(".d.ts")) {
-                // Add .d.ts file path relative to assets/customnpcs/
-                dtsFiles.add(basePath + "/" + fileName);
+                // Add .d.ts file path
+                dtsFiles.add(filePath);
             }
         }
     }
     
     /**
-     * Scan a JAR file for .d.ts files in the specified base path.
+     * Scan a JAR file for .d.ts files in the specified resource path.
      */
-    private void scanJarForDts(String jarPath, String basePath, Set<String> dtsFiles) {
+    private void scanJarForDts(String jarPath, String resourcePath, Set<String> dtsFiles) {
         try {
             JarFile jarFile = new JarFile(jarPath);
             Enumeration<JarEntry> entries = jarFile.entries();
-            String searchPath = "assets/customnpcs/" + basePath;
             
             while (entries.hasMoreElements()) {
                 JarEntry entry = entries.nextElement();
                 String entryName = entry.getName();
-                
-                // Check if entry is under our base path and is a .d.ts file
-                if (entryName.startsWith(searchPath) && entryName.endsWith(".d.ts")) {
-                    // Convert to relative path from assets/customnpcs/
-                    String relativePath = entryName.substring("assets/customnpcs/".length());
+
+                // Check if entry is under our resource path and is a .d.ts file
+                if (entryName.startsWith(resourcePath + "/") && entryName.endsWith(".d.ts")) {
+                    // Convert to relative path from resourcePath
+                    String relativePath = entryName.substring(resourcePath.length() + 1);
                     dtsFiles.add(relativePath);
                 }
             }
