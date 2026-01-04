@@ -61,12 +61,32 @@ public class ClassIndex {
      * Uses ClassLoader to scan the classpath.
      */
     public void addPackage(String packageName) {
+        addPackage(packageName, new String[0]);
+    }
+    
+    /**
+     * Register all classes in a package and all subpackages recursively,
+     * excluding specified packages.
+     * Uses ClassLoader to scan the classpath.
+     * 
+     * @param packageName The base package to scan
+     * @param excludedPackages Array of package names to exclude (including their subpackages)
+     */
+    public void addPackage(String packageName, String... excludedPackages) {
         try {
             ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
             String path = packageName.replace('.', '/');
             Enumeration<URL> resources = classLoader.getResources(path);
             
             Set<String> classNames = new HashSet<>();
+            Set<String> excludedPrefixes = new HashSet<>();
+            
+            // Prepare excluded package prefixes for matching
+            for (String excluded : excludedPackages) {
+                if (excluded != null && !excluded.isEmpty()) {
+                    excludedPrefixes.add(excluded + ".");
+                }
+            }
             
             while (resources.hasMoreElements()) {
                 URL resource = resources.nextElement();
@@ -74,7 +94,7 @@ public class ClassIndex {
                 if (resource.getProtocol().equals("file")) {
                     // Scan directory
                     File directory = new File(resource.getFile());
-                    scanDirectory(directory, packageName, classNames);
+                    scanDirectory(directory, packageName, classNames, excludedPrefixes);
                 } else if (resource.getProtocol().equals("jar")) {
                     // Scan JAR file
                     String jarPath = resource.getPath();
@@ -85,7 +105,7 @@ public class ClassIndex {
                     if (separatorIndex != -1) {
                         jarPath = jarPath.substring(0, separatorIndex);
                     }
-                    scanJar(jarPath, packageName, classNames);
+                    scanJar(jarPath, packageName, classNames, excludedPrefixes);
                 }
             }
             
@@ -104,8 +124,19 @@ public class ClassIndex {
     }
     
     private void scanDirectory(File directory, String packageName, Set<String> classNames) {
+        scanDirectory(directory, packageName, classNames, new HashSet<>());
+    }
+    
+    private void scanDirectory(File directory, String packageName, Set<String> classNames, Set<String> excludedPrefixes) {
         if (!directory.exists() || !directory.isDirectory()) {
             return;
+        }
+        
+        // Check if this package is excluded
+        for (String excludedPrefix : excludedPrefixes) {
+            if ((packageName + ".").startsWith(excludedPrefix) || packageName.equals(excludedPrefix.substring(0, excludedPrefix.length() - 1))) {
+                return; // Skip excluded package
+            }
         }
         
         File[] files = directory.listFiles();
@@ -118,7 +149,7 @@ public class ClassIndex {
             
             if (file.isDirectory()) {
                 // Recursively scan subdirectory
-                scanDirectory(file, packageName + "." + fileName, classNames);
+                scanDirectory(file, packageName + "." + fileName, classNames, excludedPrefixes);
             } else if (fileName.endsWith(".class")) {
                 // Add class name
                 String className = packageName + "." + fileName.substring(0, fileName.length() - 6);
@@ -128,6 +159,10 @@ public class ClassIndex {
     }
     
     private void scanJar(String jarPath, String packageName, Set<String> classNames) {
+        scanJar(jarPath, packageName, classNames, new HashSet<>());
+    }
+    
+    private void scanJar(String jarPath, String packageName, Set<String> classNames, Set<String> excludedPrefixes) {
         try {
             JarFile jarFile = new JarFile(jarPath);
             Enumeration<JarEntry> entries = jarFile.entries();
@@ -142,7 +177,20 @@ public class ClassIndex {
                     String className = entryName
                         .substring(0, entryName.length() - 6)
                         .replace('/', '.');
-                    classNames.add(className);
+                    
+                    // Check if this class is in an excluded package
+                    boolean excluded = false;
+                    for (String excludedPrefix : excludedPrefixes) {
+                        if ((className + ".").startsWith(excludedPrefix) || 
+                            className.startsWith(excludedPrefix.substring(0, excludedPrefix.length() - 1) + ".")) {
+                            excluded = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!excluded) {
+                        classNames.add(className);
+                    }
                 }
             }
             
