@@ -318,13 +318,30 @@ public class AutocompleteMenu extends Gui {
         font.drawString(icon, textX + (ICON_WIDTH - font.getStringWidth(icon)) / 2, textY, iconColor);
         textX += ICON_WIDTH;
         
+        // Calculate available width for text (leave space for type label)
+        int availableWidth = itemWidth - (textX - itemX);
+        if (item.getTypeLabel() != null && !item.getTypeLabel().isEmpty()) {
+            int typeLabelWidth = font.getStringWidth(item.getTypeLabel());
+            availableWidth -= typeLabelWidth + PADDING * 2;
+        }
+        
+        // Determine text color - gray for inherited Object methods
+        int textColor;
+        if (item.isInheritedObjectMethod()) {
+            textColor = DIM_TEXT_COLOR;
+        } else if (item.isDeprecated()) {
+            textColor = DIM_TEXT_COLOR;
+        } else {
+            textColor = TEXT_COLOR;
+        }
+        
         // Draw name with match highlighting and parameter coloring for methods
         if (item.getKind() == AutocompleteItem.Kind.METHOD) {
-            drawMethodName(item.getName(), item.getMatchIndices(), textX, textY, 
-                item.isDeprecated() ? DIM_TEXT_COLOR : TEXT_COLOR);
+            drawMethodNameTruncated(item.getName(), item.getMatchIndices(), textX, textY, 
+                textColor, availableWidth);
         } else {
-            drawHighlightedText(item.getName(), item.getMatchIndices(), textX, textY, 
-                item.isDeprecated() ? DIM_TEXT_COLOR : TEXT_COLOR);
+            drawHighlightedTextTruncated(item.getName(), item.getMatchIndices(), textX, textY, 
+                textColor, availableWidth);
         }
         
         // Draw type label on the right
@@ -359,6 +376,54 @@ public class AutocompleteMenu extends Gui {
     }
     
     /**
+     * Draw method name with parameters colored gray, truncated if too long.
+     */
+    private void drawMethodNameTruncated(String text, int[] matchIndices, int x, int y, int baseColor, int maxWidth) {
+        // Find the opening parenthesis
+        int parenIndex = text.indexOf('(');
+        if (parenIndex == -1) {
+            // No parameters, just draw normally
+            drawHighlightedTextTruncated(text, matchIndices, x, y, baseColor, maxWidth);
+            return;
+        }
+        
+        String methodName = text.substring(0, parenIndex);
+        String params = text.substring(parenIndex);
+        
+        int methodNameWidth = font.getStringWidth(methodName);
+        int paramsWidth = font.getStringWidth(params);
+        int totalWidth = methodNameWidth + paramsWidth;
+        
+        if (totalWidth <= maxWidth) {
+            // Fits, draw normally
+            drawHighlightedText(methodName, matchIndices, x, y, baseColor);
+            int paramX = x + methodNameWidth;
+            font.drawString(params, paramX, y, DIM_TEXT_COLOR);
+        } else {
+            // Need to truncate
+            String ellipsis = "...";
+            int ellipsisWidth = font.getStringWidth(ellipsis);
+            
+            // Always show method name, truncate params if needed
+            if (methodNameWidth + ellipsisWidth < maxWidth) {
+                drawHighlightedText(methodName, matchIndices, x, y, baseColor);
+                int paramX = x + methodNameWidth;
+                
+                // Truncate parameters
+                int availableForParams = maxWidth - methodNameWidth - ellipsisWidth;
+                String truncatedParams = truncateString(params, availableForParams);
+                font.drawString(truncatedParams + ellipsis, paramX, y, DIM_TEXT_COLOR);
+            } else {
+                // Even method name doesn't fit, truncate it too
+                int availableForMethod = maxWidth - ellipsisWidth;
+                String truncatedMethod = truncateString(methodName, availableForMethod);
+                drawHighlightedText(truncatedMethod, matchIndices, x, y, baseColor);
+                font.drawString(ellipsis, x + font.getStringWidth(truncatedMethod), y, baseColor);
+            }
+        }
+    }
+    
+    /**
      * Draw text with specific characters highlighted.
      */
     private void drawHighlightedText(String text, int[] matchIndices, int x, int y, int baseColor) {
@@ -381,6 +446,57 @@ public class AutocompleteMenu extends Gui {
             font.drawString(ch, currentX, y, color);
             currentX += font.getStringWidth(ch);
         }
+    }
+    
+    /**
+     * Draw text with highlighting, truncated if too long.
+     */
+    private void drawHighlightedTextTruncated(String text, int[] matchIndices, int x, int y, int baseColor, int maxWidth) {
+        int textWidth = font.getStringWidth(text);
+        
+        if (textWidth <= maxWidth) {
+            // Fits, draw normally
+            drawHighlightedText(text, matchIndices, x, y, baseColor);
+        } else {
+            // Truncate with ellipsis
+            String ellipsis = "...";
+            int ellipsisWidth = font.getStringWidth(ellipsis);
+            String truncated = truncateString(text, maxWidth - ellipsisWidth);
+            
+            // Adjust match indices for truncated text
+            int[] adjustedIndices = null;
+            if (matchIndices != null) {
+                java.util.List<Integer> validIndices = new java.util.ArrayList<>();
+                for (int idx : matchIndices) {
+                    if (idx < truncated.length()) {
+                        validIndices.add(idx);
+                    }
+                }
+                adjustedIndices = new int[validIndices.size()];
+                for (int i = 0; i < validIndices.size(); i++) {
+                    adjustedIndices[i] = validIndices.get(i);
+                }
+            }
+            
+            drawHighlightedText(truncated, adjustedIndices, x, y, baseColor);
+            font.drawString(ellipsis, x + font.getStringWidth(truncated), y, baseColor);
+        }
+    }
+    
+    /**
+     * Truncate a string to fit within the given width.
+     */
+    private String truncateString(String text, int maxWidth) {
+        if (text.isEmpty()) return text;
+        
+        int width = 0;
+        for (int i = 0; i < text.length(); i++) {
+            width += font.getStringWidth(String.valueOf(text.charAt(i)));
+            if (width > maxWidth) {
+                return text.substring(0, Math.max(0, i));
+            }
+        }
+        return text;
     }
     
     /**
