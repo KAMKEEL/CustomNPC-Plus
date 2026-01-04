@@ -490,6 +490,16 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             }
             
             @Override
+            public void replaceTextRange(String text, int startPosition, int endPosition) {
+                // Replace text from startPosition to endPosition
+                String before = GuiScriptTextArea.this.text.substring(0, startPosition);
+                String after = GuiScriptTextArea.this.text.substring(endPosition);
+                setText(before + text + after);
+                selection.reset(startPosition + text.length());
+                scrollToCursor();
+            }
+            
+            @Override
             public int getCursorPosition() {
                 return selection.getCursorPosition();
             }

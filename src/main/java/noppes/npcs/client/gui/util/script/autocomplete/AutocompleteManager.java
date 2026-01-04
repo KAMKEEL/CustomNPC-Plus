@@ -68,6 +68,14 @@ public class AutocompleteManager {
         void insertText(String text, int startPosition);
         
         /**
+         * Replace text in a specific range.
+         * @param text Text to insert
+         * @param startPosition Position to start replacing from
+         * @param endPosition Position to end replacing at
+         */
+        void replaceTextRange(String text, int startPosition, int endPosition);
+        
+        /**
          * Get current cursor position.
          */
         int getCursorPosition();
@@ -478,7 +486,32 @@ public class AutocompleteManager {
         }
         
         String insertText = item.getInsertText();
-        insertCallback.insertText(insertText, prefixStartPosition);
+        
+        // Smart tab completion: replace till next separator
+        // Find the end position (current word till next separator)
+        String text = insertCallback.getText();
+        int cursorPos = insertCallback.getCursorPosition();
+        int endPos = cursorPos;
+        
+        // Extend to consume rest of current word
+        while (endPos < text.length() && Character.isJavaIdentifierPart(text.charAt(endPos))) {
+            endPos++;
+        }
+        
+        // Also consume following parentheses and their content if present
+        if (endPos < text.length() && text.charAt(endPos) == '(') {
+            int parenDepth = 1;
+            endPos++; // Skip opening paren
+            while (endPos < text.length() && parenDepth > 0) {
+                char c = text.charAt(endPos);
+                if (c == '(') parenDepth++;
+                else if (c == ')') parenDepth--;
+                endPos++;
+            }
+        }
+        
+        // Replace from prefixStart to endPos using the new method
+        insertCallback.replaceTextRange(insertText, prefixStartPosition, endPos);
         
         active = false;
     }
