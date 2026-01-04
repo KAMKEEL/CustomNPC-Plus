@@ -113,18 +113,6 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
             }
         }
         
-        // Add enum constants if it's an enum
-        if (clazz.isEnum()) {
-            for (Object constant : clazz.getEnumConstants()) {
-                String constantName = constant.toString();
-                items.add(new AutocompleteItem.Builder()
-                    .name(constantName)
-                    .insertText(constantName)
-                    .kind(AutocompleteItem.Kind.ENUM_CONSTANT)
-                    .typeLabel(receiverType.getSimpleName())
-                    .build());
-            }
-        }
     }
     
     /**
