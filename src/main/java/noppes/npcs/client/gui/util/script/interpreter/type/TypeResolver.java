@@ -1,15 +1,22 @@
 package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.PackageFinder;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
 import java.util.*;
 
 /**
- * Resolves class/interface/enum types from import paths and simple names.
- * Maintains caches for performance and handles inner class resolution.
+ * Unified type resolver for both Java and JavaScript/TypeScript types.
+ * Serves as the single front-end for all type resolution needs.
  * 
- * This is a clean reimplementation of ClassPathFinder with better OOP structure.
+ * For Java: Uses reflection and import resolution
+ * For JavaScript: Delegates to JSTypeRegistry for .d.ts defined types
+ * 
+ * This is the ONLY class that should be used for type resolution.
  */
 public class TypeResolver {
 
@@ -18,6 +25,9 @@ public class TypeResolver {
 
     // Cache: validated package paths
     private final Set<String> validPackages = new HashSet<>();
+    
+    // JavaScript type registry (lazily initialized)
+    private JSTypeRegistry jsTypeRegistry;
 
     // Auto-imported java.lang classes
     public static final Set<String> JAVA_LANG_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -30,6 +40,19 @@ public class TypeResolver {
             "IndexOutOfBoundsException", "NullPointerException", "NumberFormatException",
             "UnsupportedOperationException", "AssertionError", "OutOfMemoryError", "StackOverflowError"
     )));
+    
+    // JavaScript primitive type mappings
+    private static final Map<String, String> JS_PRIMITIVE_TO_JAVA = new HashMap<>();
+    static {
+        JS_PRIMITIVE_TO_JAVA.put("string", "String");
+        JS_PRIMITIVE_TO_JAVA.put("number", "double");
+        JS_PRIMITIVE_TO_JAVA.put("boolean", "boolean");
+        JS_PRIMITIVE_TO_JAVA.put("any", "Object");
+        JS_PRIMITIVE_TO_JAVA.put("void", "void");
+        JS_PRIMITIVE_TO_JAVA.put("null", "null");
+        JS_PRIMITIVE_TO_JAVA.put("undefined", "void");
+        JS_PRIMITIVE_TO_JAVA.put("object", "Object");
+    }
 
     // Singleton instance for global caching (optional - can also use per-document instances)
     private static TypeResolver instance;
@@ -48,6 +71,42 @@ public class TypeResolver {
         validPackages.add("java.util");
         validPackages.add("java.io");
     }
+    
+    // ==================== JS TYPE REGISTRY ACCESS ====================
+    
+    /**
+     * Get the JS type registry, initializing it if needed.
+     */
+    public JSTypeRegistry getJSTypeRegistry() {
+        if (jsTypeRegistry == null) {
+            jsTypeRegistry = JSTypeRegistry.getInstance();
+            if (!jsTypeRegistry.isInitialized()) {
+                jsTypeRegistry.initializeFromResources();
+            }
+        }
+        return jsTypeRegistry;
+    }
+    
+    /**
+     * Check if a function name is a known JS hook.
+     */
+    public boolean isJSHook(String functionName) {
+        return getJSTypeRegistry().isHook(functionName);
+    }
+    
+    /**
+     * Get the parameter type for a JS hook function.
+     */
+    public String getJSHookParameterType(String functionName) {
+        return getJSTypeRegistry().getHookParameterType(functionName);
+    }
+    
+    /**
+     * Get hook signatures for a JS function.
+     */
+    public List<JSTypeRegistry.HookSignature> getJSHookSignatures(String functionName) {
+        return getJSTypeRegistry().getHookSignatures(functionName);
+    }
 
     // ==================== CACHE MANAGEMENT ====================
 
@@ -62,6 +121,57 @@ public class TypeResolver {
         validPackages.add("java.lang");
         validPackages.add("java.util");
         validPackages.add("java.io");
+    }
+    
+    // ==================== UNIFIED TYPE RESOLUTION ====================
+    
+    /**
+     * Resolve a type name for JavaScript context.
+     * Handles JS primitives, .d.ts types, and falls back to Java types.
+     * 
+     * @param jsTypeName The JS type name (e.g., "IPlayer", "string", "number")
+     * @return TypeInfo for the resolved type, or unresolved TypeInfo if not found
+     */
+    public TypeInfo resolveJSType(String jsTypeName) {
+        if (jsTypeName == null || jsTypeName.isEmpty()) {
+            return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Strip array brackets for base type resolution
+        boolean isArray = jsTypeName.endsWith("[]");
+        String baseName = isArray ? jsTypeName.substring(0, jsTypeName.length() - 2) : jsTypeName;
+        
+        // Check JS primitives first
+        if (JS_PRIMITIVE_TO_JAVA.containsKey(baseName)) {
+            String javaType = JS_PRIMITIVE_TO_JAVA.get(baseName);
+            TypeInfo baseType = TypeResolver.isPrimitiveType(javaType) 
+                ? TypeInfo.fromPrimitive(javaType)
+                : resolveFullName("java.lang." + javaType);
+            return isArray ? TypeInfo.arrayOf(baseType) : baseType;
+        }
+        
+        // Check JS type registry
+        JSTypeInfo jsTypeInfo = getJSTypeRegistry().getType(baseName);
+        if (jsTypeInfo != null) {
+            TypeInfo baseType = TypeInfo.fromJSTypeInfo(jsTypeInfo);
+            return isArray ? TypeInfo.arrayOf(baseType) : baseType;
+        }
+        
+        // Fall back to Java type resolution
+        TypeInfo javaType = resolveFullName(baseName);
+        if (javaType != null && javaType.isResolved()) {
+            return isArray ? TypeInfo.arrayOf(javaType) : javaType;
+        }
+        
+        // Unresolved
+        return TypeInfo.unresolved(jsTypeName, jsTypeName);
+    }
+    
+    /**
+     * Check if a JS type name is a primitive.
+     */
+    public boolean isJSPrimitive(String typeName) {
+        return JS_PRIMITIVE_TO_JAVA.containsKey(typeName);
     }
 
     // ==================== TYPE RESOLUTION ====================

@@ -8,7 +8,11 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSScriptAnalyzer;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
@@ -20,6 +24,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
+import scala.annotation.meta.field;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -233,13 +238,20 @@ public class ScriptDocument {
     }
 
     // ==================== TOKENIZATION ====================
+    
+    // JS-specific: Function parameter types (funcName -> paramName -> typeName)
+    private final Map<String, Map<String, String>> jsFunctionParams = new HashMap<>();
+    
+    // JS-specific: Inferred variable types (varName -> typeName)  
+    private final Map<String, String> jsVariableTypes = new HashMap<>();
 
     /**
      * Main tokenization entry point.
      * Performs complete analysis and builds tokens for all lines.
+     * Uses a UNIFIED pipeline for both Java and JavaScript.
      */
     public void formatCodeText() {
-        // Clear previous state
+        // Clear previous state (common for both languages)
         imports.clear();
         methods.clear();
         globalFields.clear();
@@ -250,15 +262,11 @@ public class ScriptDocument {
         methodCalls.clear();
         externalFieldAssignments.clear();
         declarationErrors.clear();
+        jsFunctionParams.clear();
+        jsVariableTypes.clear();
         
-        List<ScriptLine.Mark> marks;
-        
-        // Use different analysis paths for JavaScript vs Java
-        if (isJavaScript()) {
-            marks = formatJavaScript();
-        } else {
-            marks = formatJava();
-        }
+        // Unified pipeline for both languages
+        List<ScriptLine.Mark> marks = formatUnified();
 
         // Phase 5: Resolve conflicts and sort
         marks = resolveConflicts(marks);
@@ -272,40 +280,66 @@ public class ScriptDocument {
         computeIndentGuides(marks);
     }
 
-    // Store the last JS analyzer for autocomplete
+    // Store the last JS analyzer for autocomplete (deprecated - use getJSVariableTypes instead)
+    @Deprecated
     private JSScriptAnalyzer currentJSAnalyzer;
     
     /**
-     * Format JavaScript/ECMAScript code using the JS type inference system.
+     * @deprecated Use the unified pipeline. Variable types are now in jsVariableTypes.
      */
-    private List<ScriptLine.Mark> formatJavaScript() {
-        // Use JSScriptAnalyzer for JS-specific analysis
-        currentJSAnalyzer = new JSScriptAnalyzer(this);
-        return currentJSAnalyzer.analyze();
-    }
-    
-    /**
-     * Get the last JS analyzer (for autocomplete to access variable types).
-     */
+    @Deprecated
     public JSScriptAnalyzer getJSAnalyzer() {
         return currentJSAnalyzer;
     }
     
     /**
-     * Format Java/Groovy code using the full Java analysis system.
+     * Get inferred JS variable types (for autocomplete).
      */
-    private List<ScriptLine.Mark> formatJava() {
-        // Phase 1: Find excluded regions (strings/comments)
+    public Map<String, String> getJSVariableTypes() {
+        return new HashMap<>(jsVariableTypes);
+    }
+    
+    /**
+     * Get JS function parameter types.
+     */
+    public Map<String, Map<String, String>> getJSFunctionParams() {
+        return new HashMap<>(jsFunctionParams);
+    }
+    
+    /**
+     * Unified format method - single pipeline for both Java and JavaScript.
+     * The methods called here are language-aware and handle both cases.
+     */
+    private List<ScriptLine.Mark> formatUnified() {
+        // Phase 1: Find excluded regions (strings/comments) - same for both
         findExcludedRanges();
 
-        // Phase 2: Parse imports
+        // Phase 2: Parse imports (Java only, JS skips this)
         parseImports();
 
-        // Phase 3: Parse structure (script types, methods, fields, locals)
+        // Phase 3: Parse structure (methods, fields, locals) - language aware
         parseStructure();
 
-        // Phase 4: Build marks and assign to lines
+        // Phase 4: Build marks - language aware
         return buildMarks();
+    }
+    
+    /**
+     * @deprecated Use formatUnified() instead. Kept for compatibility.
+     */
+    @Deprecated
+    private List<ScriptLine.Mark> formatJavaScript() {
+        // Delegate to unified pipeline
+        currentJSAnalyzer = new JSScriptAnalyzer(this);
+        return currentJSAnalyzer.analyze();
+    }
+    
+    /**
+     * @deprecated Use formatUnified() instead. Kept for compatibility.
+     */
+    @Deprecated  
+    private List<ScriptLine.Mark> formatJava() {
+        return formatUnified();
     }
 
     // ==================== PHASE 1: EXCLUDED RANGES ====================
@@ -377,6 +411,11 @@ public class ScriptDocument {
     // ==================== PHASE 2: IMPORTS ====================
 
     private void parseImports() {
+        // JavaScript doesn't use Java-style imports
+        if (isJavaScript()) {
+            return;
+        }
+        
         Matcher m = IMPORT_PATTERN.matcher(text);
         while (m.find()) {
             if (isExcluded(m.start()))
@@ -418,28 +457,37 @@ public class ScriptDocument {
             imp.clearReferences();
         }
         
-        // Parse script-defined types (classes, interfaces, enums)
-        parseScriptTypes();
+        // Parse script-defined types (classes, interfaces, enums) - Java only
+        if (!isJavaScript()) {
+            parseScriptTypes();
+        }
         
-        // Parse methods
+        // Parse methods/functions - language aware
         parseMethodDeclarations();
 
-        // Parse local variables inside methods
+        // Parse local variables inside methods/functions - language aware
         parseLocalVariables();
 
-        // Parse global fields (outside methods)
-        parseGlobalFields();
+        // Parse global fields (outside methods) - Java only
+        if (!isJavaScript()) {
+            parseGlobalFields();
+        }
         
-        // Parse and validate assignments (reassignments) - stores in FieldInfo
-        parseAssignments();
+        // Parse and validate assignments (reassignments) - Java only
+        if (!isJavaScript()) {
+            parseAssignments();
+        }
 
-        // Detect method overrides and interface implementations for script types
-        detectMethodInheritance();
+        // Detect method overrides and interface implementations for script types - Java only
+        if (!isJavaScript()) {
+            detectMethodInheritance();
+        }
     }
 
     /**
      * Parse class, interface, and enum declarations defined in the script.
      * Creates ScriptTypeInfo instances and stores them for later resolution.
+     * Java only - JavaScript doesn't use class declarations in the same way.
      */
     private void parseScriptTypes() {
         // Pattern: [modifiers] (class|interface|enum) ClassName [optional ()] [extends Parent] [implements I1, I2...] { ... }
@@ -626,6 +674,97 @@ public class ScriptDocument {
     }
 
     private void parseMethodDeclarations() {
+        if (isJavaScript()) {
+            parseJSFunctions();
+        } else {
+            parseJavaMethods();
+        }
+    }
+    
+    /**
+     * Parse JavaScript function declarations and infer parameter types from hooks.
+     */
+    private void parseJSFunctions() {
+        // Pattern: function funcName(params) { ... }
+        Pattern funcPattern = Pattern.compile("function\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+        Matcher m = funcPattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String funcName = m.group(1);
+            String paramList = m.group(2);
+            
+            int nameStart = m.start(1);
+            int nameEnd = m.end(1);
+            int bodyStart = text.indexOf('{', m.end() - 1);
+            int bodyEnd = findMatchingBrace(bodyStart);
+            if (bodyEnd < 0) bodyEnd = text.length();
+            
+            // Check if this is a known hook function
+            List<FieldInfo> params = new ArrayList<>();
+            TypeInfo returnType = TypeInfo.fromPrimitive("void");
+            String documentation = null;
+            
+            if (typeResolver.isJSHook(funcName)) {
+                List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
+                if (!sigs.isEmpty()) {
+                    JSTypeRegistry.HookSignature sig = sigs.get(0);
+                    documentation = sig.doc;
+                    
+                    // Infer parameter types from hook signature
+                    if (paramList != null && !paramList.trim().isEmpty()) {
+                        String[] paramNames = paramList.split(",");
+                        if (paramNames.length > 0) {
+                            String paramName = paramNames[0].trim();
+                            String paramTypeName = sig.paramType;
+                            TypeInfo paramType = typeResolver.resolveJSType(paramTypeName);
+                            
+                            // Store in tracking maps for later use
+                            Map<String, String> funcParams = new HashMap<>();
+                            funcParams.put(paramName, paramTypeName);
+                            jsFunctionParams.put(funcName, funcParams);
+                            jsVariableTypes.put(paramName, paramTypeName);
+                            
+                            // Create parameter with proper type
+                            int paramStart = m.start(2) + paramList.indexOf(paramName);
+                            params.add(FieldInfo.parameter(paramName, paramType, paramStart, null));
+                        }
+                    }
+                }
+            } else {
+                // Non-hook function - parameters have no type
+                if (paramList != null && !paramList.trim().isEmpty()) {
+                    int paramOffset = m.start(2);
+                    for (String p : paramList.split(",")) {
+                        String pn = p.trim();
+                        if (!pn.isEmpty()) {
+                            int paramStart = paramOffset + paramList.indexOf(pn);
+                            params.add(FieldInfo.parameter(pn, TypeInfo.fromPrimitive("any"), paramStart, null));
+                            
+                            // Track as untyped parameter
+                            Map<String, String> funcParams = jsFunctionParams.computeIfAbsent(funcName, k -> new HashMap<>());
+                            funcParams.put(pn, "any");
+                        }
+                    }
+                }
+            }
+            
+            // Create MethodInfo for the function
+            MethodInfo methodInfo = MethodInfo.declaration(
+                funcName, null, returnType, params,
+                m.start(), nameStart, nameStart,
+                bodyStart, bodyEnd, 0, documentation
+            );
+            
+            methods.add(methodInfo);
+        }
+    }
+    
+    /**
+     * Parse Java method declarations.
+     */
+    private void parseJavaMethods() {
         Pattern methodWithBody = Pattern.compile(
                 "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
 
@@ -699,25 +838,6 @@ public class ScriptDocument {
 
         // Check for duplicate method declarations
         checkDuplicateMethods();
-
-        // Also parse JS-style functions
-        Matcher funcM = FUNC_PARAMS_PATTERN.matcher(text);
-        while (funcM.find()) {
-            if (isExcluded(funcM.start()))
-                continue;
-            // JS functions don't have explicit return types
-            String paramList = funcM.group(1);
-            List<FieldInfo> params = new ArrayList<>();
-            if (paramList != null && !paramList.trim().isEmpty()) {
-                for (String p : paramList.split(",")) {
-                    String pn = p.trim();
-                    if (!pn.isEmpty()) {
-                        params.add(FieldInfo.parameter(pn, null, funcM.start(), null));
-                    }
-                }
-            }
-            // We don't need to store JS functions in methods list - just extract params
-        }
     }
 
     /**
@@ -876,6 +996,144 @@ public class ScriptDocument {
     }
 
     private void parseLocalVariables() {
+        if (isJavaScript()) {
+            parseJSVariables();
+        } else {
+            parseJavaLocalVariables();
+        }
+    }
+    
+    /**
+     * Parse JavaScript variable declarations (var/let/const).
+     */
+    private void parseJSVariables() {
+        // Pattern: var/let/const varName = expression; or var/let/const varName;
+        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*=\\s*([^;]+))?");
+        Matcher m = varPattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String varName = m.group(1);
+            String initializer = m.group(2);
+            
+            int varStart = m.start(1);
+            int varEnd = m.end(1);
+            
+            // Infer type from initializer
+            String inferredType = "any";
+            if (initializer != null) {
+                inferredType = inferJSTypeFromExpression(initializer.trim());
+            }
+            
+            // Store in tracking maps
+            jsVariableTypes.put(varName, inferredType);
+            
+            TypeInfo typeInfo = typeResolver.resolveJSType(inferredType);
+            
+            // Store as a global field (JS doesn't have method-scoped locals in the same way)
+            FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, varStart, null);
+            globalFields.put(varName, fieldInfo);
+        }
+    }
+    
+    /**
+     * Infer type from a JavaScript expression.
+     */
+    private String inferJSTypeFromExpression(String expr) {
+        if (expr == null || expr.isEmpty()) return "any";
+        
+        // String literal
+        if (expr.startsWith("\"") || expr.startsWith("'")) {
+            return "string";
+        }
+        
+        // Number literal
+        if (expr.matches("-?\\d+\\.?\\d*")) {
+            return "number";
+        }
+        
+        // Boolean literal
+        if (expr.equals("true") || expr.equals("false")) {
+            return "boolean";
+        }
+        
+        // Null/undefined
+        if (expr.equals("null")) return "null";
+        if (expr.equals("undefined")) return "undefined";
+        
+        // Array literal
+        if (expr.startsWith("[")) {
+            return "any[]";
+        }
+        
+        // Object literal
+        if (expr.startsWith("{")) {
+            return "object";
+        }
+        
+        // Method call chain: something.method() - infer from method return type
+        if (expr.contains(".") && expr.contains("(")) {
+            return inferJSTypeFromMethodCall(expr);
+        }
+        
+        // Variable reference
+        if (jsVariableTypes.containsKey(expr)) {
+            return jsVariableTypes.get(expr);
+        }
+        
+        return "any";
+    }
+    
+    /**
+     * Infer type from a JavaScript method call chain.
+     */
+    private String inferJSTypeFromMethodCall(String expr) {
+        // Remove trailing parentheses and args for analysis
+        int parenIndex = expr.indexOf('(');
+        if (parenIndex > 0) {
+            expr = expr.substring(0, parenIndex);
+        }
+        
+        String[] parts = expr.split("\\.");
+        if (parts.length < 2) return "any";
+        
+        // Start with the receiver type
+        String currentType = jsVariableTypes.get(parts[0]);
+        if (currentType == null) return "any";
+        
+        // Walk the chain
+        JSTypeRegistry registry = typeResolver.getJSTypeRegistry();
+        for (int i = 1; i < parts.length; i++) {
+            JSTypeInfo typeInfo = registry.getType(currentType);
+            if (typeInfo == null) return "any";
+            
+            String member = parts[i];
+            
+            // Check if it's a method
+            JSMethodInfo method = typeInfo.getMethod(member);
+            if (method != null) {
+                currentType = method.getReturnType();
+                continue;
+            }
+            
+            // Check if it's a field
+            JSFieldInfo field = typeInfo.getField(member);
+            if (field != null) {
+                currentType = field.getType();
+                continue;
+            }
+            
+            return "any"; // Unknown member
+        }
+        
+        return currentType;
+    }
+    
+    /**
+     * Parse Java local variables inside methods.
+     */
+    private void parseJavaLocalVariables() {
         for (MethodInfo method : getAllMethods()) {
             Map<String, FieldInfo> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
@@ -1450,12 +1708,28 @@ public class ScriptDocument {
     }
 
     public TypeInfo resolveType(String typeName) {
+        // Use language-appropriate resolution
+        if (isJavaScript()) {
+            return resolveJSTypeUnified(typeName);
+        }
         return resolveTypeAndTrackUsage(typeName);
+    }
+    
+    /**
+     * Resolve a JS type name to unified TypeInfo.
+     * Handles JS primitives, .d.ts defined types, and falls back to Java types.
+     */
+    private TypeInfo resolveJSTypeUnified(String typeName) {
+        if (typeName == null || typeName.isEmpty()) {
+            return TypeInfo.fromPrimitive("void");
+        }
+        return typeResolver.resolveJSType(typeName);
     }
     
     /**
      * Resolve a type and track the import usage for unused import detection.
      * Checks script-defined types first, then falls back to imported types.
+     * Used for Java/Groovy scripts.
      */
     private TypeInfo resolveTypeAndTrackUsage(String typeName) {
         if (typeName == null || typeName.isEmpty())
@@ -1514,10 +1788,311 @@ public class ScriptDocument {
     private List<ScriptLine.Mark> buildMarks() {
         List<ScriptLine.Mark> marks = new ArrayList<>();
 
-        // Comments and strings first (highest priority)
+        // Comments and strings first (highest priority) - same for both languages
         addPatternMarks(marks, COMMENT_PATTERN, TokenType.COMMENT);
         addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
+        
+        // Keywords - same for both languages (KEYWORD_PATTERN includes JS keywords)
+        addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
+        
+        // Numbers - same for both languages
+        addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
+        
+        // Language-specific marking
+        if (isJavaScript()) {
+            buildJSMarks(marks);
+        } else {
+            buildJavaMarks(marks);
+        }
 
+        return marks;
+    }
+    
+    /**
+     * Build marks specific to JavaScript/ECMAScript.
+     */
+    private void buildJSMarks(List<ScriptLine.Mark> marks) {
+        // Mark function declarations
+        markJSFunctionDeclarations(marks);
+        
+        // Mark variable declarations
+        markJSVariableDeclarations(marks);
+        
+        // Mark member accesses with type validation
+        markJSMemberAccesses(marks);
+        
+        // Mark method calls
+        markJSMethodCalls(marks);
+        
+        // Mark standalone identifiers (parameters and variables in function bodies)
+        markJSIdentifiers(marks);
+    }
+    
+    /**
+     * Mark JavaScript function declarations.
+     */
+    private void markJSFunctionDeclarations(List<ScriptLine.Mark> marks) {
+        Pattern funcPattern = Pattern.compile("function\\s+(\\w+)\\s*\\(([^)]*)\\)");
+        Matcher m = funcPattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String funcName = m.group(1);
+            String params = m.group(2);
+            int nameStart = m.start(1);
+            int nameEnd = m.end(1);
+            
+            // Check if this is a known hook
+            if (typeResolver.isJSHook(funcName)) {
+                List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
+                if (!sigs.isEmpty()) {
+                    JSTypeRegistry.HookSignature sig = sigs.get(0);
+                    
+                    // Create unified MethodInfo for hover info
+                    TypeInfo paramTypeInfo = typeResolver.resolveJSType(sig.paramType);
+                    List<FieldInfo> methodParams = new ArrayList<>();
+                    methodParams.add(FieldInfo.reflectionParam(sig.paramName, paramTypeInfo));
+                    
+                    MethodInfo hookMethod = MethodInfo.declaration(
+                        funcName, null, TypeInfo.fromPrimitive("void"), methodParams,
+                        nameStart, nameStart, nameStart, -1, -1, 0, sig.doc
+                    );
+                    
+                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, hookMethod));
+                    
+                    // Mark parameters with inferred types
+                    if (params != null && !params.isEmpty()) {
+                        String[] paramNames = params.split(",");
+                        if (paramNames.length > 0) {
+                            String paramName = paramNames[0].trim();
+                            int paramStart = m.start(2) + params.indexOf(paramName);
+                            int paramEnd = paramStart + paramName.length();
+                            
+                            FieldInfo paramFieldInfo = FieldInfo.parameter(
+                                paramName, paramTypeInfo, paramStart, hookMethod
+                            );
+                            marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.PARAMETER, paramFieldInfo));
+                        }
+                    }
+                    continue;
+                }
+            }
+            
+            // Non-hook function
+            marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, funcName));
+            
+            // Mark parameters without type info
+            if (params != null && !params.isEmpty()) {
+                int paramOffset = m.start(2);
+                for (String p : params.split(",")) {
+                    String pn = p.trim();
+                    if (!pn.isEmpty()) {
+                        int paramStart = paramOffset + params.indexOf(pn);
+                        int paramEnd = paramStart + pn.length();
+                        marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.PARAMETER));
+                    }
+                }
+            }
+        }
+    }
+    
+    /**
+     * Mark JavaScript variable declarations.
+     */
+    private void markJSVariableDeclarations(List<ScriptLine.Mark> marks) {
+        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)");
+        Matcher m = varPattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String varName = m.group(1);
+            int varStart = m.start(1);
+            int varEnd = m.end(1);
+            
+            String inferredType = jsVariableTypes.getOrDefault(varName, "any");
+            TypeInfo typeInfo = typeResolver.resolveJSType(inferredType);
+            FieldInfo varFieldInfo = FieldInfo.localField(varName, typeInfo, varStart, null);
+            
+            marks.add(new ScriptLine.Mark(varStart, varEnd, TokenType.LOCAL_FIELD, varFieldInfo));
+        }
+    }
+    
+    /**
+     * Mark JavaScript member accesses (x.y.z) with type validation.
+     */
+    private void markJSMemberAccesses(List<ScriptLine.Mark> marks) {
+        Pattern memberPattern = Pattern.compile("(\\w+)(?:\\.(\\w+))+");
+        Matcher m = memberPattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String fullAccess = m.group(0);
+            String[] parts = fullAccess.split("\\.");
+            
+            if (parts.length < 2) continue;
+            
+            // Get receiver type
+            String receiverName = parts[0];
+            String currentType = jsVariableTypes.get(receiverName);
+            
+            int pos = m.start();
+            
+            // Mark receiver with unified FieldInfo
+            if (currentType != null) {
+                TypeInfo unifiedType = typeResolver.resolveJSType(currentType);
+                FieldInfo receiverField = FieldInfo.localField(receiverName, unifiedType, pos, null);
+                marks.add(new ScriptLine.Mark(pos, pos + receiverName.length(), TokenType.LOCAL_FIELD, receiverField));
+            }
+            
+            pos += receiverName.length() + 1; // +1 for the dot
+            
+            // Walk the chain and mark each member
+            JSTypeRegistry registry = typeResolver.getJSTypeRegistry();
+            for (int i = 1; i < parts.length; i++) {
+                String member = parts[i];
+                int memberStart = pos;
+                int memberEnd = pos + member.length();
+                
+                if (currentType != null) {
+                    JSTypeInfo jsTypeInfo = registry.getType(currentType);
+                    if (jsTypeInfo != null) {
+                        TypeInfo unifiedContainingType = TypeInfo.fromJSTypeInfo(jsTypeInfo);
+                        
+                        // Check method first
+                        JSMethodInfo jsMethod = jsTypeInfo.getMethod(member);
+                        if (jsMethod != null) {
+                            MethodInfo unifiedMethod = MethodInfo.fromJSMethod(jsMethod, unifiedContainingType);
+                            marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.METHOD_CALL, unifiedMethod));
+                            currentType = jsMethod.getReturnType();
+                        } else {
+                            // Check field
+                            JSFieldInfo jsField = jsTypeInfo.getField(member);
+                            if (jsField != null) {
+                                FieldInfo unifiedField = FieldInfo.fromJSField(jsField, unifiedContainingType);
+                                marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.GLOBAL_FIELD, unifiedField));
+                                currentType = jsField.getType();
+                            } else {
+                                // Unknown member - mark as undefined
+                                marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.UNDEFINED_VAR,
+                                    "Unknown member '" + member + "' on type " + jsTypeInfo.getFullName()));
+                                currentType = null;
+                            }
+                        }
+                    } else {
+                        currentType = null;
+                    }
+                }
+                
+                pos = memberEnd + 1; // +1 for the next dot
+            }
+        }
+    }
+    
+    /**
+     * Mark JavaScript method calls.
+     */
+    private void markJSMethodCalls(List<ScriptLine.Mark> marks) {
+        Pattern callPattern = Pattern.compile("(\\w+)\\s*\\(");
+        Matcher m = callPattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String callExpr = m.group(1);
+            int nameStart = m.start(1);
+            int nameEnd = m.end(1);
+            
+            // Skip if it's preceded by a dot (handled by markJSMemberAccesses)
+            if (nameStart > 0 && text.charAt(nameStart - 1) == '.') continue;
+            
+            // Skip keywords that look like function calls
+            if (callExpr.equals("if") || callExpr.equals("while") || callExpr.equals("for") ||
+                callExpr.equals("switch") || callExpr.equals("catch") || callExpr.equals("function")) {
+                continue;
+            }
+            
+            if (typeResolver.isJSHook(callExpr)) {
+                List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(callExpr);
+                if (!sigs.isEmpty()) {
+                    JSTypeRegistry.HookSignature sig = sigs.get(0);
+                    TypeInfo paramTypeInfo = typeResolver.resolveJSType(sig.paramType);
+                    List<FieldInfo> methodParams = new ArrayList<>();
+                    methodParams.add(FieldInfo.reflectionParam(sig.paramName, paramTypeInfo));
+                    
+                    MethodInfo hookMethod = MethodInfo.declaration(
+                        callExpr, null, TypeInfo.fromPrimitive("void"), methodParams,
+                        nameStart, nameStart, nameStart, -1, -1, 0, sig.doc
+                    );
+                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, hookMethod));
+                }
+            }
+        }
+    }
+    
+    /**
+     * Mark standalone JavaScript identifiers (parameters and variables in function bodies).
+     */
+    private void markJSIdentifiers(List<ScriptLine.Mark> marks) {
+        // Build set of positions already marked
+        Set<Integer> markedPositions = new HashSet<>();
+        for (ScriptLine.Mark mark : marks) {
+            for (int i = mark.start; i < mark.end; i++) {
+                markedPositions.add(i);
+            }
+        }
+        
+        // Find all identifiers
+        Pattern identPattern = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
+        Matcher matcher = identPattern.matcher(text);
+        
+        while (matcher.find()) {
+            if (isExcluded(matcher.start())) continue;
+            
+            int start = matcher.start();
+            int end = matcher.end();
+            
+            // Skip if already marked
+            boolean alreadyMarked = false;
+            for (int i = start; i < end; i++) {
+                if (markedPositions.contains(i)) {
+                    alreadyMarked = true;
+                    break;
+                }
+            }
+            if (alreadyMarked) continue;
+            
+            String identifier = matcher.group();
+            
+            // Check if it's a parameter
+            boolean isParameter = false;
+            for (Map<String, String> params : jsFunctionParams.values()) {
+                if (params.containsKey(identifier)) {
+                    isParameter = true;
+                    break;
+                }
+            }
+            
+            if (isParameter) {
+                marks.add(new ScriptLine.Mark(start, end, TokenType.PARAMETER));
+                for (int i = start; i < end; i++) {
+                    markedPositions.add(i);
+                }
+            } else if (jsVariableTypes.containsKey(identifier)) {
+                marks.add(new ScriptLine.Mark(start, end, TokenType.LOCAL_FIELD));
+                for (int i = start; i < end; i++) {
+                    markedPositions.add(i);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Build marks specific to Java/Groovy.
+     */
+    private void buildJavaMarks(List<ScriptLine.Mark> marks) {
         // Import statements
         markImports(marks);
 
@@ -1527,8 +2102,7 @@ public class ScriptDocument {
         // Enum constants (must be after class declarations so enums are known)
         markEnumConstants(marks);
 
-        // Keywords and modifiers
-        addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
+        // Modifiers
         addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
 
         // Type declarations and usages
@@ -1536,9 +2110,6 @@ public class ScriptDocument {
 
         // Methods
         markMethodDeclarations(marks);
-
-        // Numbers and othe
-        addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
 
         // Method calls (parse before variables so we can attach context)
         markMethodCalls(marks);
@@ -1560,8 +2131,6 @@ public class ScriptDocument {
         
         // Final pass: Mark any remaining unmarked identifiers as undefined
         markUndefinedIdentifiers(marks);
-
-        return marks;
     }
     
     /**
@@ -4745,6 +5314,46 @@ public class ScriptDocument {
     }
 
     FieldInfo resolveVariable(String name, int position) {
+        // For JavaScript, use the JS variable tracking
+        if (isJavaScript()) {
+            return resolveJSVariable(name, position);
+        }
+        
+        return resolveJavaVariable(name, position);
+    }
+    
+    /**
+     * Resolve a JavaScript variable by name.
+     */
+    private FieldInfo resolveJSVariable(String name, int position) {
+        // Check if it's a parameter
+        for (Map.Entry<String, Map<String, String>> entry : jsFunctionParams.entrySet()) {
+            if (entry.getValue().containsKey(name)) {
+                String typeName = entry.getValue().get(name);
+                TypeInfo typeInfo = typeResolver.resolveJSType(typeName);
+                return FieldInfo.parameter(name, typeInfo, position, null);
+            }
+        }
+        
+        // Check if it's a tracked variable
+        if (jsVariableTypes.containsKey(name)) {
+            String typeName = jsVariableTypes.get(name);
+            TypeInfo typeInfo = typeResolver.resolveJSType(typeName);
+            return FieldInfo.localField(name, typeInfo, position, null);
+        }
+        
+        // Check global fields (variables declared with var/let/const)
+        if (globalFields.containsKey(name)) {
+            return globalFields.get(name);
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Resolve a Java variable by name.
+     */
+    private FieldInfo resolveJavaVariable(String name, int position) {
         // Find containing method
         MethodInfo containingMethod = findMethodAtPosition(position);
         

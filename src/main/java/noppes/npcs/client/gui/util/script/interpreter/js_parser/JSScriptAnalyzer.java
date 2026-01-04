@@ -14,7 +14,18 @@ import java.util.regex.*;
 /**
  * Analyzes JavaScript scripts to produce syntax highlighting marks and type information.
  * Uses the JSTypeRegistry to resolve types and validate member access.
+ * 
+ * @deprecated This class is deprecated. All JavaScript analysis is now handled by the
+ * unified pipeline in {@link ScriptDocument}. The functionality has been merged into:
+ * <ul>
+ *   <li>{@link ScriptDocument#parseJSFunctions()} - for function parsing</li>
+ *   <li>{@link ScriptDocument#parseJSVariables()} - for variable parsing</li>
+ *   <li>{@link ScriptDocument#buildJSMarks(List)} - for mark building</li>
+ * </ul>
+ * Use {@link ScriptDocument#getJSVariableTypes()} and {@link ScriptDocument#getJSFunctionParams()}
+ * to access inferred type information.
  */
+@Deprecated
 public class JSScriptAnalyzer {
     
     private final ScriptDocument document;
@@ -87,6 +98,9 @@ public class JSScriptAnalyzer {
         
         // Mark method calls
         markMethodCalls(marks);
+        
+        // Mark standalone identifiers (parameters and variables in function bodies)
+        markIdentifiers(marks);
         
         return marks;
     }
@@ -471,5 +485,68 @@ public class JSScriptAnalyzer {
         
         // Fallback: unresolved type
         return TypeInfo.unresolved(jsTypeName, jsTypeName);
+    }
+    
+    /**
+     * Mark all identifiers in the script - variables and parameters.
+     * This ensures consistent coloring for parameters throughout function bodies.
+     */
+    private void markIdentifiers(List<ScriptLine.Mark> marks) {
+        // Build set of positions already marked
+        Set<Integer> markedPositions = new HashSet<>();
+        for (ScriptLine.Mark mark : marks) {
+            for (int i = mark.start; i < mark.end; i++) {
+                markedPositions.add(i);
+            }
+        }
+        
+        // Find all identifiers
+        Matcher matcher = IDENTIFIER_PATTERN.matcher(text);
+        while (matcher.find()) {
+            if (isExcluded(matcher.start())) {
+                continue;
+            }
+            
+            int start = matcher.start();
+            int end = matcher.end();
+            
+            // Skip if already marked
+            boolean alreadyMarked = false;
+            for (int i = start; i < end; i++) {
+                if (markedPositions.contains(i)) {
+                    alreadyMarked = true;
+                    break;
+                }
+            }
+            if (alreadyMarked) {
+                continue;
+            }
+            
+            String identifier = matcher.group();
+            
+            // Check if it's a parameter
+            boolean isParameter = false;
+            for (Map<String, String> params : functionParams.values()) {
+                if (params.containsKey(identifier)) {
+                    isParameter = true;
+                    break;
+                }
+            }
+            
+            if (isParameter) {
+                marks.add(new ScriptLine.Mark(start, end, TokenType.PARAMETER));
+                // Mark this position as used
+                for (int i = start; i < end; i++) {
+                    markedPositions.add(i);
+                }
+            } else if (variableTypes.containsKey(identifier)) {
+                // It's a local variable
+                marks.add(new ScriptLine.Mark(start, end, TokenType.LOCAL_FIELD));
+                // Mark this position as used
+                for (int i = start; i < end; i++) {
+                    markedPositions.add(i);
+                }
+            }
+        }
     }
 }
