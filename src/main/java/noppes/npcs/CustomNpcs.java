@@ -61,6 +61,7 @@ import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.VaultHelper;
 import noppes.npcs.controllers.CurrencyController;
 import noppes.npcs.controllers.AuctionBlacklist;
+import noppes.npcs.controllers.AuctionController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
@@ -310,6 +311,7 @@ public class CustomNpcs {
         new VaultHelper();
         new CurrencyController();
         new AuctionBlacklist();
+        new AuctionController();
         RecipeController.Instance.load();
         new BankController();
         DialogController.Instance.load();

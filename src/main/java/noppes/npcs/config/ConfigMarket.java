@@ -40,12 +40,22 @@ public class ConfigMarket {
     public static double ListingFeePercent = 0.0;
     public static double SalesTaxPercent = 0.05;
     public static boolean RequireAuctioneerNPC = true;
-    public static String AvailableDurations = "2,12,24,48";
-    public static int DefaultDurationHours = 24;
     public static int ClaimExpirationDays = 30;
     public static double MinBidIncrementPercent = 0.05;
     public static int SnipeProtectionMinutes = 5;
     public static int SnipeProtectionThreshold = 5;
+
+    // Auction Duration Settings (in hours)
+    public static int AuctionDurationShort = 2;
+    public static int AuctionDurationMedium = 12;
+    public static int AuctionDurationLong = 24;
+    public static int AuctionDurationVeryLong = 48;
+
+    // Auction Duration Fees (flat currency amount)
+    public static long AuctionFeeShort = 0;
+    public static long AuctionFeeMedium = 0;
+    public static long AuctionFeeLong = 0;
+    public static long AuctionFeeVeryLong = 0;
 
     // =========================================
     // Trader Settings
@@ -108,12 +118,6 @@ public class ConfigMarket {
             RequireAuctioneerNPC = config.get(AUCTION, "Require Auctioneer NPC", true,
                 "Require an Auctioneer NPC to access auction house").getBoolean(true);
 
-            AvailableDurations = config.get(AUCTION, "Available Durations", "2,12,24,48",
-                "Available auction durations in hours (comma-separated)").getString();
-
-            DefaultDurationHours = config.get(AUCTION, "Default Duration Hours", 24,
-                "Default auction duration in hours").getInt(24);
-
             ClaimExpirationDays = config.get(AUCTION, "Claim Expiration Days", 30,
                 "Claim expiration in days (claims auto-expire after this period, 0 = never)").getInt(30);
 
@@ -125,6 +129,32 @@ public class ConfigMarket {
 
             SnipeProtectionThreshold = config.get(AUCTION, "Snipe Protection Threshold", 5,
                 "How many minutes before end triggers snipe protection").getInt(5);
+
+            // Duration settings
+            AuctionDurationShort = config.get(AUCTION, "Duration Short Hours", 2,
+                "Short auction duration in hours").getInt(2);
+
+            AuctionDurationMedium = config.get(AUCTION, "Duration Medium Hours", 12,
+                "Medium auction duration in hours").getInt(12);
+
+            AuctionDurationLong = config.get(AUCTION, "Duration Long Hours", 24,
+                "Long auction duration in hours").getInt(24);
+
+            AuctionDurationVeryLong = config.get(AUCTION, "Duration Very Long Hours", 48,
+                "Very long auction duration in hours").getInt(48);
+
+            // Duration fees
+            AuctionFeeShort = config.get(AUCTION, "Fee Short Duration", 0,
+                "Flat fee for short duration auctions").getInt(0);
+
+            AuctionFeeMedium = config.get(AUCTION, "Fee Medium Duration", 0,
+                "Flat fee for medium duration auctions").getInt(0);
+
+            AuctionFeeLong = config.get(AUCTION, "Fee Long Duration", 0,
+                "Flat fee for long duration auctions").getInt(0);
+
+            AuctionFeeVeryLong = config.get(AUCTION, "Fee Very Long Duration", 0,
+                "Flat fee for very long duration auctions").getInt(0);
 
             // =========================================
             // Trader Settings
@@ -157,12 +187,18 @@ public class ConfigMarket {
                 "Listing Fee Percent",
                 "Sales Tax Percent",
                 "Require Auctioneer NPC",
-                "Available Durations",
-                "Default Duration Hours",
                 "Claim Expiration Days",
                 "Min Bid Increment Percent",
                 "Snipe Protection Minutes",
-                "Snipe Protection Threshold"
+                "Snipe Protection Threshold",
+                "Duration Short Hours",
+                "Duration Medium Hours",
+                "Duration Long Hours",
+                "Duration Very Long Hours",
+                "Fee Short Duration",
+                "Fee Medium Duration",
+                "Fee Long Duration",
+                "Fee Very Long Duration"
             )));
 
             config.setCategoryPropertyOrder(TRADER, new ArrayList<>(Arrays.asList(
@@ -197,21 +233,5 @@ public class ConfigMarket {
                 config.save();
             }
         }
-    }
-
-    /**
-     * Parse available durations from config string
-     */
-    public static int[] getAvailableDurationsArray() {
-        String[] parts = AvailableDurations.split(",");
-        int[] durations = new int[parts.length];
-        for (int i = 0; i < parts.length; i++) {
-            try {
-                durations[i] = Integer.parseInt(parts[i].trim());
-            } catch (NumberFormatException e) {
-                durations[i] = 24; // Default to 24 hours if parsing fails
-            }
-        }
-        return durations;
     }
 }
