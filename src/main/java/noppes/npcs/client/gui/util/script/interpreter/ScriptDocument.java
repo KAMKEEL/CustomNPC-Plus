@@ -238,20 +238,17 @@ public class ScriptDocument {
     }
 
     // ==================== TOKENIZATION ====================
-    
-    // JS-specific: Function parameter types (funcName -> paramName -> typeName)
-    private final Map<String, Map<String, String>> jsFunctionParams = new HashMap<>();
-    
-    // JS-specific: Inferred variable types (varName -> typeName)  
-    private final Map<String, String> jsVariableTypes = new HashMap<>();
 
     /**
      * Main tokenization entry point.
      * Performs complete analysis and builds tokens for all lines.
-     * Uses a UNIFIED pipeline for both Java and JavaScript.
+     * Uses the SAME unified pipeline for both Java and JavaScript.
+     * 
+     * All data structures (methods, globalFields, methodLocals, methodCalls, 
+     * fieldAccesses, etc.) are shared between languages.
      */
     public void formatCodeText() {
-        // Clear previous state (common for both languages)
+        // Clear previous state (same for both languages)
         imports.clear();
         methods.clear();
         globalFields.clear();
@@ -262,8 +259,6 @@ public class ScriptDocument {
         methodCalls.clear();
         externalFieldAssignments.clear();
         declarationErrors.clear();
-        jsFunctionParams.clear();
-        jsVariableTypes.clear();
         
         // Unified pipeline for both languages
         List<ScriptLine.Mark> marks = formatUnified();
@@ -280,12 +275,12 @@ public class ScriptDocument {
         computeIndentGuides(marks);
     }
 
-    // Store the last JS analyzer for autocomplete (deprecated - use getJSVariableTypes instead)
+    // Store the last JS analyzer for autocomplete (deprecated - use methods/globalFields/methodLocals instead)
     @Deprecated
     private JSScriptAnalyzer currentJSAnalyzer;
     
     /**
-     * @deprecated Use the unified pipeline. Variable types are now in jsVariableTypes.
+     * @deprecated Use the unified pipeline. Access methods/globalFields/methodLocals directly.
      */
     @Deprecated
     public JSScriptAnalyzer getJSAnalyzer() {
@@ -293,22 +288,8 @@ public class ScriptDocument {
     }
     
     /**
-     * Get inferred JS variable types (for autocomplete).
-     */
-    public Map<String, String> getJSVariableTypes() {
-        return new HashMap<>(jsVariableTypes);
-    }
-    
-    /**
-     * Get JS function parameter types.
-     */
-    public Map<String, Map<String, String>> getJSFunctionParams() {
-        return new HashMap<>(jsFunctionParams);
-    }
-    
-    /**
      * Unified format method - single pipeline for both Java and JavaScript.
-     * The methods called here are language-aware and handle both cases.
+     * ALL methods called here handle BOTH languages using the SAME data structures.
      */
     private List<ScriptLine.Mark> formatUnified() {
         // Phase 1: Find excluded regions (strings/comments) - same for both
@@ -451,6 +432,10 @@ public class ScriptDocument {
 
     // ==================== PHASE 3: STRUCTURE ====================
 
+    /**
+     * Parse the script structure - methods, fields, variables.
+     * Uses the SAME logic and data structures for both Java and JavaScript.
+     */
     private void parseStructure() {
         // Clear import references before re-parsing
         for (ImportData imp : imports) {
@@ -462,21 +447,17 @@ public class ScriptDocument {
             parseScriptTypes();
         }
         
-        // Parse methods/functions - language aware
+        // Parse methods/functions - UNIFIED for both languages
         parseMethodDeclarations();
 
-        // Parse local variables inside methods/functions - language aware
+        // Parse local variables inside methods/functions - UNIFIED for both languages
         parseLocalVariables();
 
-        // Parse global fields (outside methods) - Java only
-        if (!isJavaScript()) {
-            parseGlobalFields();
-        }
+        // Parse global fields (outside methods) - UNIFIED for both languages
+        parseGlobalFields();
         
-        // Parse and validate assignments (reassignments) - Java only
-        if (!isJavaScript()) {
-            parseAssignments();
-        }
+        // Parse and validate assignments (reassignments) - UNIFIED for both languages
+        parseAssignments();
 
         // Detect method overrides and interface implementations for script types - Java only
         if (!isJavaScript()) {
@@ -673,171 +654,148 @@ public class ScriptDocument {
         return false;
     }
 
+    /**
+     * Parse method/function declarations - UNIFIED for both Java and JavaScript.
+     * Stores results in the shared 'methods' list.
+     * 
+     * For Java: Parses "ReturnType methodName(params) { ... }"
+     * For JavaScript: Parses "function funcName(params) { ... }" with hook type inference
+     */
     private void parseMethodDeclarations() {
         if (isJavaScript()) {
-            parseJSFunctions();
-        } else {
-            parseJavaMethods();
-        }
-    }
-    
-    /**
-     * Parse JavaScript function declarations and infer parameter types from hooks.
-     */
-    private void parseJSFunctions() {
-        // Pattern: function funcName(params) { ... }
-        Pattern funcPattern = Pattern.compile("function\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
-        Matcher m = funcPattern.matcher(text);
-        
-        while (m.find()) {
-            if (isExcluded(m.start())) continue;
+            // JavaScript: function funcName(params) { ... }
+            Pattern funcPattern = Pattern.compile("function\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*\\{");
+            Matcher m = funcPattern.matcher(text);
             
-            String funcName = m.group(1);
-            String paramList = m.group(2);
-            
-            int nameStart = m.start(1);
-            int nameEnd = m.end(1);
-            int bodyStart = text.indexOf('{', m.end() - 1);
-            int bodyEnd = findMatchingBrace(bodyStart);
-            if (bodyEnd < 0) bodyEnd = text.length();
-            
-            // Check if this is a known hook function
-            List<FieldInfo> params = new ArrayList<>();
-            TypeInfo returnType = TypeInfo.fromPrimitive("void");
-            String documentation = null;
-            
-            if (typeResolver.isJSHook(funcName)) {
-                List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
-                if (!sigs.isEmpty()) {
-                    JSTypeRegistry.HookSignature sig = sigs.get(0);
-                    documentation = sig.doc;
-                    
-                    // Infer parameter types from hook signature
+            while (m.find()) {
+                if (isExcluded(m.start())) continue;
+                
+                String funcName = m.group(1);
+                String paramList = m.group(2);
+                
+                int nameStart = m.start(1);
+                int bodyStart = text.indexOf('{', m.end() - 1);
+                int bodyEnd = findMatchingBrace(bodyStart);
+                if (bodyEnd < 0) bodyEnd = text.length();
+                
+                // For JS hooks, infer parameter types from registry
+                List<FieldInfo> params = new ArrayList<>();
+                TypeInfo returnType = TypeInfo.fromPrimitive("void");
+                String documentation = null;
+                
+                if (typeResolver.isJSHook(funcName)) {
+                    List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
+                    if (!sigs.isEmpty()) {
+                        JSTypeRegistry.HookSignature sig = sigs.get(0);
+                        documentation = sig.doc;
+                        
+                        // Infer parameter types from hook signature
+                        if (paramList != null && !paramList.trim().isEmpty()) {
+                            String[] paramNames = paramList.split(",");
+                            if (paramNames.length > 0) {
+                                String paramName = paramNames[0].trim();
+                                TypeInfo paramType = typeResolver.resolveJSType(sig.paramType);
+                                int paramStart = m.start(2) + paramList.indexOf(paramName);
+                                params.add(FieldInfo.parameter(paramName, paramType, paramStart, null));
+                            }
+                        }
+                    }
+                } else {
+                    // Non-hook function - params with 'any' type
                     if (paramList != null && !paramList.trim().isEmpty()) {
-                        String[] paramNames = paramList.split(",");
-                        if (paramNames.length > 0) {
-                            String paramName = paramNames[0].trim();
-                            String paramTypeName = sig.paramType;
-                            TypeInfo paramType = typeResolver.resolveJSType(paramTypeName);
-                            
-                            // Store in tracking maps for later use
-                            Map<String, String> funcParams = new HashMap<>();
-                            funcParams.put(paramName, paramTypeName);
-                            jsFunctionParams.put(funcName, funcParams);
-                            jsVariableTypes.put(paramName, paramTypeName);
-                            
-                            // Create parameter with proper type
-                            int paramStart = m.start(2) + paramList.indexOf(paramName);
-                            params.add(FieldInfo.parameter(paramName, paramType, paramStart, null));
+                        int paramOffset = m.start(2);
+                        for (String p : paramList.split(",")) {
+                            String pn = p.trim();
+                            if (!pn.isEmpty()) {
+                                int paramStart = paramOffset + paramList.indexOf(pn);
+                                params.add(FieldInfo.parameter(pn, TypeInfo.fromClass(Object.class), paramStart, null));
+                            }
                         }
                     }
                 }
-            } else {
-                // Non-hook function - parameters have no type
-                if (paramList != null && !paramList.trim().isEmpty()) {
-                    int paramOffset = m.start(2);
-                    for (String p : paramList.split(",")) {
-                        String pn = p.trim();
-                        if (!pn.isEmpty()) {
-                            int paramStart = paramOffset + paramList.indexOf(pn);
-                            params.add(FieldInfo.parameter(pn, TypeInfo.fromPrimitive("any"), paramStart, null));
-                            
-                            // Track as untyped parameter
-                            Map<String, String> funcParams = jsFunctionParams.computeIfAbsent(funcName, k -> new HashMap<>());
-                            funcParams.put(pn, "any");
-                        }
-                    }
-                }
-            }
-            
-            // Create MethodInfo for the function
-            MethodInfo methodInfo = MethodInfo.declaration(
-                funcName, null, returnType, params,
-                m.start(), nameStart, nameStart,
-                bodyStart, bodyEnd, 0, documentation
-            );
-            
-            methods.add(methodInfo);
-        }
-    }
-    
-    /**
-     * Parse Java method declarations.
-     */
-    private void parseJavaMethods() {
-        Pattern methodWithBody = Pattern.compile(
-                "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
-
-        Matcher m = methodWithBody.matcher(text);
-        while (m.find()) {
-            if (isExcluded(m.start()))
-                continue;
-
-            String returnType = m.group(1);
-
-            if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") ||returnType.equals("new")) {
-                continue;
-            }
-            
-            String methodName = m.group(2);
-            String paramList = m.group(3);
-            String delimiter = m.group(4);
-            boolean hasBody = delimiter.equals("{");
-
-            int bodyStart = !hasBody ? m.end() : text.indexOf('{', m.end() - 1);
-            int bodyEnd = !hasBody ? m.end() : findMatchingBrace(bodyStart);
-            if (bodyEnd < 0)
-                bodyEnd = text.length();
-
-
-            // Extract documentation before this method
-            String documentation = extractDocumentationBefore(m.start());
-
-            // Extract modifiers by scanning backwards from match start
-            int modifiers = extractModifiersBackwards(m.start() - 1, text);
-            
-            // Calculate offset positions
-            int typeOffset = m.start(1);        // Start of return type
-            int nameOffset = m.start(2);        // Start of method name
-            int fullDeclOffset = findFullDeclarationStart(m.start(1), text); // Start including modifiers
-
-            ScriptTypeInfo scriptType = null;
-            for (ScriptTypeInfo type : scriptTypes.values())
-                if (type.containsPosition(bodyStart)) {
-                    scriptType = type;
-                    break;
-                }
-            
-            // Parse parameters with their actual positions
-            List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
-
-            MethodInfo methodInfo = MethodInfo.declaration(
-                    methodName,
-                    scriptType,
-                    resolveType(returnType),
-                    params,
-                    fullDeclOffset,
-                    typeOffset,
-                    nameOffset,
-                    bodyStart,
-                    bodyEnd,
-                    modifiers,
-                    documentation
-            );
-
-
-            if (scriptType != null) {
-                scriptType.addMethod(methodInfo);
-            } else
+                
+                // Create MethodInfo and add to shared methods list
+                MethodInfo methodInfo = MethodInfo.declaration(
+                    funcName, null, returnType, params,
+                    m.start(), nameStart, nameStart,
+                    bodyStart, bodyEnd, 0, documentation
+                );
                 methods.add(methodInfo);
+            }
+        } else {
+            // Java: ReturnType methodName(params) { ... } or { ; }
+            Pattern methodWithBody = Pattern.compile(
+                    "\\b([a-zA-Z_][a-zA-Z0-9_<>\\[\\]]*)\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*\\(([^)]*)\\)\\s*(\\{|;)");
 
-            // Validate the method (return statements, parameters) with type resolution
-            String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";
-            methodInfo.validate(methodBodyText, hasBody, (expr, pos) -> resolveExpressionType(expr, pos));
+            Matcher m = methodWithBody.matcher(text);
+            while (m.find()) {
+                if (isExcluded(m.start()))
+                    continue;
+
+                String returnType = m.group(1);
+
+                if (returnType.equals("class") || returnType.equals("interface") || returnType.equals("enum") || returnType.equals("new")) {
+                    continue;
+                }
+                
+                String methodName = m.group(2);
+                String paramList = m.group(3);
+                String delimiter = m.group(4);
+                boolean hasBody = delimiter.equals("{");
+
+                int bodyStart = !hasBody ? m.end() : text.indexOf('{', m.end() - 1);
+                int bodyEnd = !hasBody ? m.end() : findMatchingBrace(bodyStart);
+                if (bodyEnd < 0)
+                    bodyEnd = text.length();
+
+                // Extract documentation before this method
+                String documentation = extractDocumentationBefore(m.start());
+
+                // Extract modifiers by scanning backwards from match start
+                int modifiers = extractModifiersBackwards(m.start() - 1, text);
+                
+                // Calculate offset positions
+                int typeOffset = m.start(1);
+                int nameOffset = m.start(2);
+                int fullDeclOffset = findFullDeclarationStart(m.start(1), text);
+
+                ScriptTypeInfo scriptType = null;
+                for (ScriptTypeInfo type : scriptTypes.values())
+                    if (type.containsPosition(bodyStart)) {
+                        scriptType = type;
+                        break;
+                    }
+                
+                // Parse parameters with their actual positions
+                List<FieldInfo> params = parseParametersWithPositions(paramList, m.start(3));
+
+                MethodInfo methodInfo = MethodInfo.declaration(
+                        methodName,
+                        scriptType,
+                        resolveType(returnType),
+                        params,
+                        fullDeclOffset,
+                        typeOffset,
+                        nameOffset,
+                        bodyStart,
+                        bodyEnd,
+                        modifiers,
+                        documentation
+                );
+
+                if (scriptType != null) {
+                    scriptType.addMethod(methodInfo);
+                } else
+                    methods.add(methodInfo);
+
+                // Validate the method (return statements, parameters) with type resolution
+                String methodBodyText = bodyEnd > bodyStart + 1 ? text.substring(bodyStart + 1, bodyEnd) : "";
+                methodInfo.validate(methodBodyText, hasBody, (expr, pos) -> resolveExpressionType(expr, pos));
+            }
+
+            // Check for duplicate method declarations
+            checkDuplicateMethods();
         }
-
-        // Check for duplicate method declarations
-        checkDuplicateMethods();
     }
 
     /**
@@ -995,145 +953,14 @@ public class ScriptDocument {
         return params;
     }
 
+    /**
+     * Parse local variables inside methods/functions - UNIFIED for both Java and JavaScript.
+     * Stores results in the shared 'methodLocals' map (methodOffset -> varName -> FieldInfo).
+     * 
+     * For Java: Parses "Type varName = expr;" or "Type varName;"
+     * For JavaScript: Parses "var/let/const varName = expr;" with type inference
+     */
     private void parseLocalVariables() {
-        if (isJavaScript()) {
-            parseJSVariables();
-        } else {
-            parseJavaLocalVariables();
-        }
-    }
-    
-    /**
-     * Parse JavaScript variable declarations (var/let/const).
-     */
-    private void parseJSVariables() {
-        // Pattern: var/let/const varName = expression; or var/let/const varName;
-        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*=\\s*([^;]+))?");
-        Matcher m = varPattern.matcher(text);
-        
-        while (m.find()) {
-            if (isExcluded(m.start())) continue;
-            
-            String varName = m.group(1);
-            String initializer = m.group(2);
-            
-            int varStart = m.start(1);
-            int varEnd = m.end(1);
-            
-            // Infer type from initializer
-            String inferredType = "any";
-            if (initializer != null) {
-                inferredType = inferJSTypeFromExpression(initializer.trim());
-            }
-            
-            // Store in tracking maps
-            jsVariableTypes.put(varName, inferredType);
-            
-            TypeInfo typeInfo = typeResolver.resolveJSType(inferredType);
-            
-            // Store as a global field (JS doesn't have method-scoped locals in the same way)
-            FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, varStart, null);
-            globalFields.put(varName, fieldInfo);
-        }
-    }
-    
-    /**
-     * Infer type from a JavaScript expression.
-     */
-    private String inferJSTypeFromExpression(String expr) {
-        if (expr == null || expr.isEmpty()) return "any";
-        
-        // String literal
-        if (expr.startsWith("\"") || expr.startsWith("'")) {
-            return "string";
-        }
-        
-        // Number literal
-        if (expr.matches("-?\\d+\\.?\\d*")) {
-            return "number";
-        }
-        
-        // Boolean literal
-        if (expr.equals("true") || expr.equals("false")) {
-            return "boolean";
-        }
-        
-        // Null/undefined
-        if (expr.equals("null")) return "null";
-        if (expr.equals("undefined")) return "undefined";
-        
-        // Array literal
-        if (expr.startsWith("[")) {
-            return "any[]";
-        }
-        
-        // Object literal
-        if (expr.startsWith("{")) {
-            return "object";
-        }
-        
-        // Method call chain: something.method() - infer from method return type
-        if (expr.contains(".") && expr.contains("(")) {
-            return inferJSTypeFromMethodCall(expr);
-        }
-        
-        // Variable reference
-        if (jsVariableTypes.containsKey(expr)) {
-            return jsVariableTypes.get(expr);
-        }
-        
-        return "any";
-    }
-    
-    /**
-     * Infer type from a JavaScript method call chain.
-     */
-    private String inferJSTypeFromMethodCall(String expr) {
-        // Remove trailing parentheses and args for analysis
-        int parenIndex = expr.indexOf('(');
-        if (parenIndex > 0) {
-            expr = expr.substring(0, parenIndex);
-        }
-        
-        String[] parts = expr.split("\\.");
-        if (parts.length < 2) return "any";
-        
-        // Start with the receiver type
-        String currentType = jsVariableTypes.get(parts[0]);
-        if (currentType == null) return "any";
-        
-        // Walk the chain
-        JSTypeRegistry registry = typeResolver.getJSTypeRegistry();
-        for (int i = 1; i < parts.length; i++) {
-            JSTypeInfo typeInfo = registry.getType(currentType);
-            if (typeInfo == null) return "any";
-            
-            String member = parts[i];
-            
-            // Check if it's a method
-            JSMethodInfo method = typeInfo.getMethod(member);
-            if (method != null) {
-                currentType = method.getReturnType();
-                continue;
-            }
-            
-            // Check if it's a field
-            JSFieldInfo field = typeInfo.getField(member);
-            if (field != null) {
-                currentType = field.getType();
-                continue;
-            }
-            
-            return "any"; // Unknown member
-        }
-        
-        return currentType;
-    }
-    
-    /**
-     * Parse Java local variables inside methods.
-     */
-    private void parseJavaLocalVariables() {
         for (MethodInfo method : getAllMethods()) {
             Map<String, FieldInfo> locals = new HashMap<>();
             methodLocals.put(method.getDeclarationOffset(), locals);
@@ -1144,74 +971,102 @@ public class ScriptDocument {
 
             String bodyText = text.substring(bodyStart, Math.min(bodyEnd, text.length()));
             
-            // Pattern for local variable declarations: Type varName = or Type varName;
-            // Allows capital var names like "Minecraft Capital = new Minecraft();"
-            // Use [ \t] instead of \s to prevent matching across newlines
-        
-            Matcher m = FIELD_DECL_PATTERN.matcher(bodyText);
-            while (m.find()) {
-                String typeName = m.group(1);
-                String varName = m.group(2);
-                String delimiter = m.group(3);
+            if (isJavaScript()) {
+                // JavaScript: var/let/const varName = expr;
+                Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*=\\s*([^;\\n]+))?");
+                Matcher m = varPattern.matcher(bodyText);
                 
-                // Skip if the variable name itself is excluded
-                int absPos = bodyStart + m.start(2);
-                if (isExcluded(absPos)) continue;
-                
-                // Skip if it looks like a method call or control flow
-                if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
-                    typeName.equals("for") || typeName.equals("switch") || typeName.equals("catch") ||
-                    typeName.equals("new") || typeName.equals("throw")) {
-                    continue;
-                }
-
-                // Parse modifiers from the raw type declaration
-                int modifiers = parseModifiers(typeName);
-
-                TypeInfo typeInfo;
-                
-                // For var/let/const, infer type from the right-hand side expression
-                if ((typeName.equals("var") || typeName.equals("let") || typeName.equals("const")) 
-                        && delimiter.equals("=")) {
-                    // Find the right-hand side expression
-                    int rhsStart = bodyStart + m.end();
-                    typeInfo = inferTypeFromExpression(rhsStart);
-                } else {
-                    typeInfo = resolveType(typeName);
-                }
-                
-                // Extract initialization range if there's an '=' delimiter
-                int initStart = -1;
-                int initEnd = -1;
-                if ("=".equals(delimiter)) {
-                    initStart = bodyStart + m.start(3); // Absolute position of '='
-                    // Find the semicolon or comma that ends this declaration
-                    int searchPos = bodyStart + m.end(3);
-                    int depth = 0; // Track nested parens/brackets/braces
-                    while (searchPos < text.length()) {
-                        char c = text.charAt(searchPos);
-                        if (c == '(' || c == '[' || c == '{') depth++;
-                        else if (c == ')' || c == ']' || c == '}') depth--;
-                        else if ((c == ';' || c == ',') && depth == 0) {
-                            initEnd = searchPos; // Position of ';' or ',' (exclusive)
-                            break;
-                        }
-                        searchPos++;
+                while (m.find()) {
+                    int absPos = bodyStart + m.start(1);
+                    if (isExcluded(absPos)) continue;
+                    
+                    String varName = m.group(1);
+                    String initializer = m.group(2);
+                    
+                    // Infer type from initializer using resolveExpressionType
+                    TypeInfo typeInfo = null;
+                    if (initializer != null && !initializer.trim().isEmpty()) {
+                        typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(2));
+                    }
+                    if (typeInfo == null) {
+                        typeInfo = TypeInfo.fromClass(Object.class); // Default to Object for unresolved
+                    }
+                    
+                    int initStart = -1, initEnd = -1;
+                    if (initializer != null) {
+                        initStart = bodyStart + m.start(2);
+                        initEnd = bodyStart + m.end(2);
+                    }
+                    
+                    FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, absPos, method, initStart, initEnd, 0);
+                    
+                    // Check for duplicate
+                    if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
+                        AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                            varName, absPos, absPos + varName.length(),
+                            "Variable '" + varName + "' is already defined in the scope");
+                        declarationErrors.add(dupError);
+                    } else {
+                        locals.put(varName, fieldInfo);
                     }
                 }
-                
-                int declPos = bodyStart + m.start(2);
-                FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd, modifiers);
+            } else {
+                // Java: Type varName = expr; or Type varName;
+                Matcher m = FIELD_DECL_PATTERN.matcher(bodyText);
+                while (m.find()) {
+                    String typeName = m.group(1);
+                    String varName = m.group(2);
+                    String delimiter = m.group(3);
+                    
+                    int absPos = bodyStart + m.start(2);
+                    if (isExcluded(absPos)) continue;
+                    
+                    // Skip control flow keywords
+                    if (typeName.equals("return") || typeName.equals("if") || typeName.equals("while") ||
+                        typeName.equals("for") || typeName.equals("switch") || typeName.equals("catch") ||
+                        typeName.equals("new") || typeName.equals("throw")) {
+                        continue;
+                    }
 
-                // Check for duplicate declaration (in locals or globals)
-                if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
-                    // Create a declaration error for this duplicate
-                    AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                    int modifiers = parseModifiers(typeName);
+
+                    TypeInfo typeInfo;
+                    if ((typeName.equals("var") || typeName.equals("let") || typeName.equals("const")) 
+                            && delimiter.equals("=")) {
+                        int rhsStart = bodyStart + m.end();
+                        typeInfo = inferTypeFromExpression(rhsStart);
+                    } else {
+                        typeInfo = resolveType(typeName);
+                    }
+                    
+                    int initStart = -1, initEnd = -1;
+                    if ("=".equals(delimiter)) {
+                        initStart = bodyStart + m.start(3);
+                        int searchPos = bodyStart + m.end(3);
+                        int depth = 0;
+                        while (searchPos < text.length()) {
+                            char c = text.charAt(searchPos);
+                            if (c == '(' || c == '[' || c == '{') depth++;
+                            else if (c == ')' || c == ']' || c == '}') depth--;
+                            else if ((c == ';' || c == ',') && depth == 0) {
+                                initEnd = searchPos;
+                                break;
+                            }
+                            searchPos++;
+                        }
+                    }
+                    
+                    int declPos = bodyStart + m.start(2);
+                    FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, declPos, method, initStart, initEnd, modifiers);
+
+                    if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
+                        AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
                             varName, declPos, declPos + varName.length(),
                             "Variable '" + varName + "' is already defined in the scope");
-                    declarationErrors.add(dupError);
-                } else if (!locals.containsKey(varName))
-                    locals.put(varName, fieldInfo);
+                        declarationErrors.add(dupError);
+                    } else if (!locals.containsKey(varName))
+                        locals.put(varName, fieldInfo);
+                }
             }
         }
     }
@@ -1402,66 +1257,115 @@ public class ScriptDocument {
         return currentType;
     }
 
+    /**
+     * Parse global fields/variables (outside methods) - UNIFIED for both Java and JavaScript.
+     * Stores results in the shared 'globalFields' map.
+     * 
+     * For Java: Parses "[modifiers] Type fieldName [= expr];"
+     * For JavaScript: Parses "var/let/const varName [= expr];" outside of functions
+     */
     private void parseGlobalFields() {
-        Matcher m = FIELD_DECL_PATTERN.matcher(text);
-        while (m.find()) {
-            String typeNameRaw = m.group(1);
-            String fieldName = m.group(2);
-            String delimiter = m.group(3);
-            int position = m.start(2);
+        if (isJavaScript()) {
+            // JavaScript: var/let/const varName = expr; (outside functions)
+            Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*=\\s*([^;\\n]+))?");
+            Matcher m = varPattern.matcher(text);
             
-            // Skip if the field name itself is excluded
-            if (isExcluded(position))
-                continue;
-
-            // Parse modifiers from the raw type declaration
-            int modifiers = parseModifiers(typeNameRaw);
-
-            // Strip modifiers (public, private, protected, static, final, etc.) from type name
-            String typeName = stripModifiers(typeNameRaw);
-
-            ScriptTypeInfo containingScriptType = null;
-            for (ScriptTypeInfo scriptType : scriptTypes.values())
-                if (scriptType.containsPosition(position)) {
-                    containingScriptType = scriptType;
-                    break;
-                }
-
-            // Check if inside a method - if so, it's a local, not global
-            boolean insideMethod = false;
-            if (containingScriptType != null && isInsideNestedMethod(position, containingScriptType.getBodyStart(),
-                    containingScriptType.getBodyEnd()))
-                insideMethod = true;
-            else {
+            while (m.find()) {
+                int position = m.start(1);
+                if (isExcluded(position)) continue;
+                
+                // Check if inside a function - if so, skip (handled by parseLocalVariables)
+                boolean insideMethod = false;
                 for (MethodInfo method : getAllMethods()) {
                     if (method.containsPosition(position)) {
                         insideMethod = true;
                         break;
                     }
                 }
+                if (insideMethod) continue;
+                
+                String varName = m.group(1);
+                String initializer = m.group(2);
+                
+                // Infer type from initializer
+                TypeInfo typeInfo = null;
+                if (initializer != null && !initializer.trim().isEmpty()) {
+                    typeInfo = resolveExpressionType(initializer.trim(), m.start(2));
+                }
+                if (typeInfo == null) {
+                    typeInfo = TypeInfo.fromClass(Object.class);
+                }
+                
+                int initStart = -1, initEnd = -1;
+                if (initializer != null) {
+                    initStart = m.start(2);
+                    initEnd = m.end(2);
+                }
+                
+                FieldInfo fieldInfo = FieldInfo.globalField(varName, typeInfo, position, null, initStart, initEnd, 0);
+                
+                if (globalFields.containsKey(varName)) {
+                    AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
+                        varName, position, position + varName.length(),
+                        "Variable '" + varName + "' is already defined in the scope");
+                    declarationErrors.add(dupError);
+                } else {
+                    globalFields.put(varName, fieldInfo);
+                }
             }
+        } else {
+            // Java: [modifiers] Type fieldName [= expr];
+            Matcher m = FIELD_DECL_PATTERN.matcher(text);
+            while (m.find()) {
+                String typeNameRaw = m.group(1);
+                String fieldName = m.group(2);
+                String delimiter = m.group(3);
+                int position = m.start(2);
+                
+                if (isExcluded(position))
+                    continue;
 
+                int modifiers = parseModifiers(typeNameRaw);
+                String typeName = stripModifiers(typeNameRaw);
 
-            if (insideMethod)
-                continue;
-            
-                // Extract documentation before this field
+                ScriptTypeInfo containingScriptType = null;
+                for (ScriptTypeInfo scriptType : scriptTypes.values())
+                    if (scriptType.containsPosition(position)) {
+                        containingScriptType = scriptType;
+                        break;
+                    }
+
+                // Check if inside a method - if so, it's a local, not global
+                boolean insideMethod = false;
+                if (containingScriptType != null && isInsideNestedMethod(position, containingScriptType.getBodyStart(),
+                        containingScriptType.getBodyEnd()))
+                    insideMethod = true;
+                else {
+                    for (MethodInfo method : getAllMethods()) {
+                        if (method.containsPosition(position)) {
+                            insideMethod = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (insideMethod)
+                    continue;
+                
                 String documentation = extractDocumentationBefore(m.start());
                 
-                // Extract initialization range if there's an '=' delimiter
                 int initStart = -1;
                 int initEnd = -1;
                 if ("=".equals(delimiter)) {
-                    initStart = m.start(3); // Position of '='
-                    // Find the semicolon that ends this declaration
+                    initStart = m.start(3);
                     int searchPos = m.end(3);
-                    int depth = 0; // Track nested parens/brackets/braces
+                    int depth = 0;
                     while (searchPos < text.length()) {
                         char c = text.charAt(searchPos);
                         if (c == '(' || c == '[' || c == '{') depth++;
                         else if (c == ')' || c == ']' || c == '}') depth--;
                         else if (c == ';' && depth == 0) {
-                            initEnd = searchPos; // Position of ';' (exclusive)
+                            initEnd = searchPos;
                             break;
                         }
                         searchPos++;
@@ -1471,19 +1375,17 @@ public class ScriptDocument {
                 TypeInfo typeInfo = resolveType(typeName);
                 FieldInfo fieldInfo = FieldInfo.globalField(fieldName, typeInfo, position, documentation, initStart, initEnd, modifiers);
 
-
-            if (containingScriptType != null) {
-                containingScriptType.addField(fieldInfo);
-                // Check for duplicate declaration
-            } else if (globalFields.containsKey(fieldName)) {
-                    // Create a declaration error for this duplicate
+                if (containingScriptType != null) {
+                    containingScriptType.addField(fieldInfo);
+                } else if (globalFields.containsKey(fieldName)) {
                     AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
-                            fieldName, position, position + fieldName.length(),
-                            "Variable '" + fieldName + "' is already defined in the scope");
+                        fieldName, position, position + fieldName.length(),
+                        "Variable '" + fieldName + "' is already defined in the scope");
                     declarationErrors.add(dupError);
                 } else {
                     globalFields.put(fieldName, fieldInfo);
                 }
+            }
         }
     }
 
@@ -1785,6 +1687,10 @@ public class ScriptDocument {
 
     // ==================== PHASE 4: BUILD MARKS ====================
 
+    /**
+     * Build syntax highlighting marks - UNIFIED for both Java and JavaScript.
+     * Uses the SAME mark methods for both languages since they share data structures.
+     */
     private List<ScriptLine.Mark> buildMarks() {
         List<ScriptLine.Mark> marks = new ArrayList<>();
 
@@ -1792,345 +1698,56 @@ public class ScriptDocument {
         addPatternMarks(marks, COMMENT_PATTERN, TokenType.COMMENT);
         addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
         
-        // Keywords - same for both languages (KEYWORD_PATTERN includes JS keywords)
+        // Keywords - same for both languages (KEYWORD_PATTERN includes JS keywords like function, var, let, const)
         addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
         
         // Numbers - same for both languages
         addPatternMarks(marks, NUMBER_PATTERN, TokenType.LITERAL);
         
-        // Language-specific marking
-        if (isJavaScript()) {
-            buildJSMarks(marks);
-        } else {
-            buildJavaMarks(marks);
+        // Import statements - Java only
+        if (!isJavaScript()) {
+            markImports(marks);
         }
 
-        return marks;
-    }
-    
-    /**
-     * Build marks specific to JavaScript/ECMAScript.
-     */
-    private void buildJSMarks(List<ScriptLine.Mark> marks) {
-        // Mark function declarations
-        markJSFunctionDeclarations(marks);
-        
-        // Mark variable declarations
-        markJSVariableDeclarations(marks);
-        
-        // Mark member accesses with type validation
-        markJSMemberAccesses(marks);
-        
-        // Mark method calls
-        markJSMethodCalls(marks);
-        
-        // Mark standalone identifiers (parameters and variables in function bodies)
-        markJSIdentifiers(marks);
-    }
-    
-    /**
-     * Mark JavaScript function declarations.
-     */
-    private void markJSFunctionDeclarations(List<ScriptLine.Mark> marks) {
-        Pattern funcPattern = Pattern.compile("function\\s+(\\w+)\\s*\\(([^)]*)\\)");
-        Matcher m = funcPattern.matcher(text);
-        
-        while (m.find()) {
-            if (isExcluded(m.start())) continue;
-            
-            String funcName = m.group(1);
-            String params = m.group(2);
-            int nameStart = m.start(1);
-            int nameEnd = m.end(1);
-            
-            // Check if this is a known hook
-            if (typeResolver.isJSHook(funcName)) {
-                List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
-                if (!sigs.isEmpty()) {
-                    JSTypeRegistry.HookSignature sig = sigs.get(0);
-                    
-                    // Create unified MethodInfo for hover info
-                    TypeInfo paramTypeInfo = typeResolver.resolveJSType(sig.paramType);
-                    List<FieldInfo> methodParams = new ArrayList<>();
-                    methodParams.add(FieldInfo.reflectionParam(sig.paramName, paramTypeInfo));
-                    
-                    MethodInfo hookMethod = MethodInfo.declaration(
-                        funcName, null, TypeInfo.fromPrimitive("void"), methodParams,
-                        nameStart, nameStart, nameStart, -1, -1, 0, sig.doc
-                    );
-                    
-                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, hookMethod));
-                    
-                    // Mark parameters with inferred types
-                    if (params != null && !params.isEmpty()) {
-                        String[] paramNames = params.split(",");
-                        if (paramNames.length > 0) {
-                            String paramName = paramNames[0].trim();
-                            int paramStart = m.start(2) + params.indexOf(paramName);
-                            int paramEnd = paramStart + paramName.length();
-                            
-                            FieldInfo paramFieldInfo = FieldInfo.parameter(
-                                paramName, paramTypeInfo, paramStart, hookMethod
-                            );
-                            marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.PARAMETER, paramFieldInfo));
-                        }
-                    }
-                    continue;
-                }
-            }
-            
-            // Non-hook function
-            marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, funcName));
-            
-            // Mark parameters without type info
-            if (params != null && !params.isEmpty()) {
-                int paramOffset = m.start(2);
-                for (String p : params.split(",")) {
-                    String pn = p.trim();
-                    if (!pn.isEmpty()) {
-                        int paramStart = paramOffset + params.indexOf(pn);
-                        int paramEnd = paramStart + pn.length();
-                        marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.PARAMETER));
-                    }
-                }
-            }
+        // Class/interface/enum declarations - Java only
+        if (!isJavaScript()) {
+            markClassDeclarations(marks);
+            markEnumConstants(marks);
         }
-    }
-    
-    /**
-     * Mark JavaScript variable declarations.
-     */
-    private void markJSVariableDeclarations(List<ScriptLine.Mark> marks) {
-        Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)");
-        Matcher m = varPattern.matcher(text);
-        
-        while (m.find()) {
-            if (isExcluded(m.start())) continue;
-            
-            String varName = m.group(1);
-            int varStart = m.start(1);
-            int varEnd = m.end(1);
-            
-            String inferredType = jsVariableTypes.getOrDefault(varName, "any");
-            TypeInfo typeInfo = typeResolver.resolveJSType(inferredType);
-            FieldInfo varFieldInfo = FieldInfo.localField(varName, typeInfo, varStart, null);
-            
-            marks.add(new ScriptLine.Mark(varStart, varEnd, TokenType.LOCAL_FIELD, varFieldInfo));
-        }
-    }
-    
-    /**
-     * Mark JavaScript member accesses (x.y.z) with type validation.
-     */
-    private void markJSMemberAccesses(List<ScriptLine.Mark> marks) {
-        Pattern memberPattern = Pattern.compile("(\\w+)(?:\\.(\\w+))+");
-        Matcher m = memberPattern.matcher(text);
-        
-        while (m.find()) {
-            if (isExcluded(m.start())) continue;
-            
-            String fullAccess = m.group(0);
-            String[] parts = fullAccess.split("\\.");
-            
-            if (parts.length < 2) continue;
-            
-            // Get receiver type
-            String receiverName = parts[0];
-            String currentType = jsVariableTypes.get(receiverName);
-            
-            int pos = m.start();
-            
-            // Mark receiver with unified FieldInfo
-            if (currentType != null) {
-                TypeInfo unifiedType = typeResolver.resolveJSType(currentType);
-                FieldInfo receiverField = FieldInfo.localField(receiverName, unifiedType, pos, null);
-                marks.add(new ScriptLine.Mark(pos, pos + receiverName.length(), TokenType.LOCAL_FIELD, receiverField));
-            }
-            
-            pos += receiverName.length() + 1; // +1 for the dot
-            
-            // Walk the chain and mark each member
-            JSTypeRegistry registry = typeResolver.getJSTypeRegistry();
-            for (int i = 1; i < parts.length; i++) {
-                String member = parts[i];
-                int memberStart = pos;
-                int memberEnd = pos + member.length();
-                
-                if (currentType != null) {
-                    JSTypeInfo jsTypeInfo = registry.getType(currentType);
-                    if (jsTypeInfo != null) {
-                        TypeInfo unifiedContainingType = TypeInfo.fromJSTypeInfo(jsTypeInfo);
-                        
-                        // Check method first
-                        JSMethodInfo jsMethod = jsTypeInfo.getMethod(member);
-                        if (jsMethod != null) {
-                            MethodInfo unifiedMethod = MethodInfo.fromJSMethod(jsMethod, unifiedContainingType);
-                            marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.METHOD_CALL, unifiedMethod));
-                            currentType = jsMethod.getReturnType();
-                        } else {
-                            // Check field
-                            JSFieldInfo jsField = jsTypeInfo.getField(member);
-                            if (jsField != null) {
-                                FieldInfo unifiedField = FieldInfo.fromJSField(jsField, unifiedContainingType);
-                                marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.GLOBAL_FIELD, unifiedField));
-                                currentType = jsField.getType();
-                            } else {
-                                // Unknown member - mark as undefined
-                                marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.UNDEFINED_VAR,
-                                    "Unknown member '" + member + "' on type " + jsTypeInfo.getFullName()));
-                                currentType = null;
-                            }
-                        }
-                    } else {
-                        currentType = null;
-                    }
-                }
-                
-                pos = memberEnd + 1; // +1 for the next dot
-            }
-        }
-    }
-    
-    /**
-     * Mark JavaScript method calls.
-     */
-    private void markJSMethodCalls(List<ScriptLine.Mark> marks) {
-        Pattern callPattern = Pattern.compile("(\\w+)\\s*\\(");
-        Matcher m = callPattern.matcher(text);
-        
-        while (m.find()) {
-            if (isExcluded(m.start())) continue;
-            
-            String callExpr = m.group(1);
-            int nameStart = m.start(1);
-            int nameEnd = m.end(1);
-            
-            // Skip if it's preceded by a dot (handled by markJSMemberAccesses)
-            if (nameStart > 0 && text.charAt(nameStart - 1) == '.') continue;
-            
-            // Skip keywords that look like function calls
-            if (callExpr.equals("if") || callExpr.equals("while") || callExpr.equals("for") ||
-                callExpr.equals("switch") || callExpr.equals("catch") || callExpr.equals("function")) {
-                continue;
-            }
-            
-            if (typeResolver.isJSHook(callExpr)) {
-                List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(callExpr);
-                if (!sigs.isEmpty()) {
-                    JSTypeRegistry.HookSignature sig = sigs.get(0);
-                    TypeInfo paramTypeInfo = typeResolver.resolveJSType(sig.paramType);
-                    List<FieldInfo> methodParams = new ArrayList<>();
-                    methodParams.add(FieldInfo.reflectionParam(sig.paramName, paramTypeInfo));
-                    
-                    MethodInfo hookMethod = MethodInfo.declaration(
-                        callExpr, null, TypeInfo.fromPrimitive("void"), methodParams,
-                        nameStart, nameStart, nameStart, -1, -1, 0, sig.doc
-                    );
-                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, hookMethod));
-                }
-            }
-        }
-    }
-    
-    /**
-     * Mark standalone JavaScript identifiers (parameters and variables in function bodies).
-     */
-    private void markJSIdentifiers(List<ScriptLine.Mark> marks) {
-        // Build set of positions already marked
-        Set<Integer> markedPositions = new HashSet<>();
-        for (ScriptLine.Mark mark : marks) {
-            for (int i = mark.start; i < mark.end; i++) {
-                markedPositions.add(i);
-            }
-        }
-        
-        // Find all identifiers
-        Pattern identPattern = Pattern.compile("\\b([a-zA-Z_][a-zA-Z0-9_]*)\\b");
-        Matcher matcher = identPattern.matcher(text);
-        
-        while (matcher.find()) {
-            if (isExcluded(matcher.start())) continue;
-            
-            int start = matcher.start();
-            int end = matcher.end();
-            
-            // Skip if already marked
-            boolean alreadyMarked = false;
-            for (int i = start; i < end; i++) {
-                if (markedPositions.contains(i)) {
-                    alreadyMarked = true;
-                    break;
-                }
-            }
-            if (alreadyMarked) continue;
-            
-            String identifier = matcher.group();
-            
-            // Check if it's a parameter
-            boolean isParameter = false;
-            for (Map<String, String> params : jsFunctionParams.values()) {
-                if (params.containsKey(identifier)) {
-                    isParameter = true;
-                    break;
-                }
-            }
-            
-            if (isParameter) {
-                marks.add(new ScriptLine.Mark(start, end, TokenType.PARAMETER));
-                for (int i = start; i < end; i++) {
-                    markedPositions.add(i);
-                }
-            } else if (jsVariableTypes.containsKey(identifier)) {
-                marks.add(new ScriptLine.Mark(start, end, TokenType.LOCAL_FIELD));
-                for (int i = start; i < end; i++) {
-                    markedPositions.add(i);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Build marks specific to Java/Groovy.
-     */
-    private void buildJavaMarks(List<ScriptLine.Mark> marks) {
-        // Import statements
-        markImports(marks);
 
-        // Class/interface/enum declarations
-        markClassDeclarations(marks);
+        // Modifiers - Java only
+        if (!isJavaScript()) {
+            addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
+        }
 
-        // Enum constants (must be after class declarations so enums are known)
-        markEnumConstants(marks);
+        // Type declarations and usages - Java only (JS doesn't have explicit types)
+        if (!isJavaScript()) {
+            markTypeDeclarations(marks);
+        }
 
-        // Modifiers
-        addPatternMarks(marks, MODIFIER_PATTERN, TokenType.MODIFIER);
-
-        // Type declarations and usages
-        markTypeDeclarations(marks);
-
-        // Methods
+        // Methods/functions - UNIFIED (uses shared 'methods' list)
         markMethodDeclarations(marks);
 
-        // Method calls (parse before variables so we can attach context)
+        // Method calls - UNIFIED (stores in shared 'methodCalls' list)
         markMethodCalls(marks);
 
-        // Variables and fields
+        // Variables and fields - UNIFIED (uses shared globalFields, methodLocals)
         markVariables(marks);
 
-        // Chained field accesses (e.g., mc.player.world, this.field)
+        // Chained field accesses - UNIFIED (uses resolveVariable which handles both)
         markChainedFieldAccesses(marks);
         
-        // Cast type expressions (e.g., (EntityPlayer) entity)
-        markCastTypes(marks);
-        
-        // Imported class usages
-        markImportedClassUsages(marks);
-        
-        // Mark unused imports (after all other marks are built)
-        markUnusedImports(marks);
+        // Java-specific final passes
+        if (!isJavaScript()) {
+            markCastTypes(marks);
+            markImportedClassUsages(marks);
+            markUnusedImports(marks);
+        }
         
         // Final pass: Mark any remaining unmarked identifiers as undefined
         markUndefinedIdentifiers(marks);
+
+        return marks;
     }
     
     /**
@@ -5313,48 +4930,12 @@ public class ScriptDocument {
         return accessInfo;
     }
 
+    /**
+     * Resolve a variable by name at a given position.
+     * Works for BOTH Java and JavaScript using unified data structures.
+     */
     FieldInfo resolveVariable(String name, int position) {
-        // For JavaScript, use the JS variable tracking
-        if (isJavaScript()) {
-            return resolveJSVariable(name, position);
-        }
-        
-        return resolveJavaVariable(name, position);
-    }
-    
-    /**
-     * Resolve a JavaScript variable by name.
-     */
-    private FieldInfo resolveJSVariable(String name, int position) {
-        // Check if it's a parameter
-        for (Map.Entry<String, Map<String, String>> entry : jsFunctionParams.entrySet()) {
-            if (entry.getValue().containsKey(name)) {
-                String typeName = entry.getValue().get(name);
-                TypeInfo typeInfo = typeResolver.resolveJSType(typeName);
-                return FieldInfo.parameter(name, typeInfo, position, null);
-            }
-        }
-        
-        // Check if it's a tracked variable
-        if (jsVariableTypes.containsKey(name)) {
-            String typeName = jsVariableTypes.get(name);
-            TypeInfo typeInfo = typeResolver.resolveJSType(typeName);
-            return FieldInfo.localField(name, typeInfo, position, null);
-        }
-        
-        // Check global fields (variables declared with var/let/const)
-        if (globalFields.containsKey(name)) {
-            return globalFields.get(name);
-        }
-        
-        return null;
-    }
-    
-    /**
-     * Resolve a Java variable by name.
-     */
-    private FieldInfo resolveJavaVariable(String name, int position) {
-        // Find containing method
+        // Find containing method/function
         MethodInfo containingMethod = findMethodAtPosition(position);
         
         if (containingMethod != null) {
@@ -5363,7 +4944,7 @@ public class ScriptDocument {
                 return containingMethod.getParameter(name);
             }
             
-            // Check local variables
+            // Check local variables (methodLocals stores both Java locals and JS var/let/const inside functions)
             Map<String, FieldInfo> locals = methodLocals.get(containingMethod.getDeclarationOffset());
             if (locals != null && locals.containsKey(name)) {
                 FieldInfo localInfo = locals.get(name);
@@ -5373,13 +4954,15 @@ public class ScriptDocument {
             }
         }
         
-        // Check if we're inside a script type and look for fields there
-        ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
-        if (enclosingType != null && enclosingType.hasField(name)) {
-            return enclosingType.getFieldInfo(name);
+        // For Java only: Check if we're inside a script type and look for fields there
+        if (!isJavaScript()) {
+            ScriptTypeInfo enclosingType = findEnclosingScriptType(position);
+            if (enclosingType != null && enclosingType.hasField(name)) {
+                return enclosingType.getFieldInfo(name);
+            }
         }
         
-        // Check global fields
+        // Check global fields (stores both Java global fields and JS global var/let/const)
         if (globalFields.containsKey(name)) {
             return globalFields.get(name);
         }

@@ -16,14 +16,16 @@ import java.util.regex.*;
  * Uses the JSTypeRegistry to resolve types and validate member access.
  * 
  * @deprecated This class is deprecated. All JavaScript analysis is now handled by the
- * unified pipeline in {@link ScriptDocument}. The functionality has been merged into:
+ * unified pipeline in {@link ScriptDocument}. JavaScript and Java scripts now use the
+ * same methods and data structures:
  * <ul>
- *   <li>{@link ScriptDocument#parseJSFunctions()} - for function parsing</li>
- *   <li>{@link ScriptDocument#parseJSVariables()} - for variable parsing</li>
- *   <li>{@link ScriptDocument#buildJSMarks(List)} - for mark building</li>
+ *   <li>{@link ScriptDocument#parseMethodDeclarations()} - for both Java methods and JS functions</li>
+ *   <li>{@link ScriptDocument#parseLocalVariables()} - for both Java and JS local variables</li>
+ *   <li>{@link ScriptDocument#parseGlobalFields()} - for both Java and JS global variables</li>
+ *   <li>{@link ScriptDocument#buildMarks(List)} - for mark building (both languages)</li>
  * </ul>
- * Use {@link ScriptDocument#getJSVariableTypes()} and {@link ScriptDocument#getJSFunctionParams()}
- * to access inferred type information.
+ * Type information is available via the unified data structures: {@code getMethods()}, 
+ * {@code getMethodLocals()}, and {@code getGlobalFields()}.
  */
 @Deprecated
 public class JSScriptAnalyzer {
