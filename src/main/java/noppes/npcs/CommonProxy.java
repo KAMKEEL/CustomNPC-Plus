@@ -15,6 +15,7 @@ import noppes.npcs.api.IWorld;
 import noppes.npcs.blocks.tiles.TileNpcContainer;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.ContainerAnvilRepair;
+import noppes.npcs.containers.ContainerAuction;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -130,6 +131,9 @@ public class CommonProxy implements IGuiHandler {
 
         if (gui == EnumGuiType.CompanionInv)
             return new ContainerNPCCompanion(npc, player);
+
+        if (gui == EnumGuiType.PlayerAuction)
+            return new ContainerAuction(npc, player);
 
         return null;
     }

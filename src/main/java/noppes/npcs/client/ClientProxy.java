@@ -104,6 +104,7 @@ import noppes.npcs.client.gui.player.GuiCrate;
 import noppes.npcs.client.gui.player.GuiMailbox;
 import noppes.npcs.client.gui.player.GuiMailmanWrite;
 import noppes.npcs.client.gui.player.GuiNPCBankChest;
+import noppes.npcs.client.gui.player.GuiAuction;
 import noppes.npcs.client.gui.player.GuiNPCTrader;
 import noppes.npcs.client.gui.player.GuiNpcAnvil;
 import noppes.npcs.client.gui.player.GuiNpcCarpentryBench;
@@ -177,6 +178,7 @@ import noppes.npcs.config.ConfigMain;
 import noppes.npcs.config.StringCache;
 import noppes.npcs.constants.EnumGuiType;
 import noppes.npcs.containers.ContainerAnvilRepair;
+import noppes.npcs.containers.ContainerAuction;
 import noppes.npcs.containers.ContainerCarpentryBench;
 import noppes.npcs.containers.ContainerCrate;
 import noppes.npcs.containers.ContainerCustomGui;
@@ -567,6 +569,9 @@ public class ClientProxy extends CommonProxy {
 
         else if (gui == EnumGuiType.MagicBook)
             return new GuiNpcMagicBook();
+
+        else if (gui == EnumGuiType.PlayerAuction)
+            return new GuiAuction(npc, (ContainerAuction) container);
 
         else if (gui == EnumGuiType.GlobalRemote)
             return new GuiNPCGlobalMainMenu(null);
