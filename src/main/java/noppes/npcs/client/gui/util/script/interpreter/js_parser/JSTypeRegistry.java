@@ -94,7 +94,7 @@ public class JSTypeRegistry {
                         sb.append(line).append("\n");
                     }
                     parser.parseDefinitionFile(sb.toString(), fileName);
-                }
+                } 
             }
         } catch (Exception e) {
             // File might not exist, that's ok

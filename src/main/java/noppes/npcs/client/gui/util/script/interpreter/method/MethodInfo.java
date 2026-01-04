@@ -2,6 +2,9 @@ package noppes.npcs.client.gui.util.script.interpreter.method;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
@@ -158,6 +161,84 @@ public final class MethodInfo {
         }
         
         return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, true, modifiers, null, null);
+    }
+
+    /**
+     * Create a MethodInfo from a JSMethodInfo (parsed from .d.ts files).
+     * Used when resolving method calls on JavaScript types.
+     * 
+     * @param jsMethod The JavaScript method info from the type registry
+     * @param containingType The TypeInfo that owns this method
+     * @return A MethodInfo representing the JavaScript method
+     */
+    public static MethodInfo fromJSMethod(JSMethodInfo jsMethod, TypeInfo containingType) {
+        String name = jsMethod.getName();
+        
+        // Resolve the return type from the JS type registry
+        TypeInfo returnType = resolveJSType(jsMethod.getReturnType());
+        
+        // Convert JS parameters to FieldInfo
+        List<FieldInfo> params = new ArrayList<>();
+        List<JSMethodInfo.JSParameterInfo> jsParams = jsMethod.getParameters();
+        
+        for (JSMethodInfo.JSParameterInfo param : jsParams) {
+            String paramName = param.getName();
+            String paramTypeName = param.getType();
+            TypeInfo paramType = resolveJSType(paramTypeName);
+            params.add(FieldInfo.reflectionParam(paramName, paramType));
+        }
+        
+        // JS methods are always public (no access modifiers in .d.ts)
+        int modifiers = Modifier.PUBLIC;
+        
+        // Use the documentation from the method if available
+        String documentation = jsMethod.getDocumentation();
+        
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, documentation, null);
+    }
+    
+    /**
+     * Resolves a JavaScript type name to a TypeInfo.
+     * Handles primitives, mapped types, and custom types from the registry.
+     */
+    private static TypeInfo resolveJSType(String jsTypeName) {
+        if (jsTypeName == null || jsTypeName.isEmpty() || "void".equals(jsTypeName)) {
+            return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Handle JS primitives
+        switch (jsTypeName) {
+            case "string":
+                return TypeInfo.fromClass(String.class);
+            case "number":
+                return TypeInfo.fromClass(double.class);
+            case "boolean":
+                return TypeInfo.fromClass(boolean.class);
+            case "any":
+                return TypeInfo.fromClass(Object.class);
+            case "void":
+                return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Handle array types
+        if (jsTypeName.endsWith("[]")) {
+            String elementType = jsTypeName.substring(0, jsTypeName.length() - 2);
+            TypeInfo elementTypeInfo = resolveJSType(elementType);
+            // For arrays, we create an array type representation
+            return TypeInfo.arrayOf(elementTypeInfo);
+        }
+        
+        // Try to resolve from the JS type registry
+        JSTypeRegistry registry = JSTypeRegistry.getInstance();
+        if (registry != null) {
+            JSTypeInfo jsTypeInfo = registry.getType(jsTypeName);
+            if (jsTypeInfo != null) {
+                return TypeInfo.fromJSTypeInfo(jsTypeInfo);
+            }
+        }
+        
+        // Fallback: unresolved type
+        return TypeInfo.unresolved(jsTypeName, jsTypeName);
     }
 
     // Getters

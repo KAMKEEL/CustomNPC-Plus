@@ -2,7 +2,10 @@ package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.ScriptLine;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import scala.annotation.meta.field;
 
 import java.util.*;
@@ -127,32 +130,48 @@ public class JSScriptAnalyzer {
             
             // Check if this is a known hook
             if (registry.isHook(funcName)) {
-                marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, 
-                    new JSHoverInfo.FunctionInfo(funcName, registry.getHookSignatures(funcName))));
-                
-                // Infer parameter types from hook
+                // Create a unified MethodInfo for the hook
                 List<JSTypeRegistry.HookSignature> sigs = registry.getHookSignatures(funcName);
-                if (!sigs.isEmpty() && !params.isEmpty()) {
-                    // Parse parameter names from function
-                    String[] paramNames = params.split(",");
-                    if (paramNames.length > 0) {
-                        String paramName = paramNames[0].trim();
-                        // Use first hook signature's type
-                        String paramType = sigs.get(0).paramType;
-                        
-                        // Store in function params and variable types
-                        Map<String, String> funcParamMap = new HashMap<>();
-                        funcParamMap.put(paramName, paramType);
-                        functionParams.put(funcName, funcParamMap);
-                        variableTypes.put(paramName, paramType);
-                        
-                        // Mark the parameter
-                        int paramStart = m.start(2) + params.indexOf(paramName);
-                        int paramEnd = paramStart + paramName.length();
-                        JSTypeInfo typeInfo = registry.getType(paramType);
-                        marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.PARAMETER,
-                            new JSHoverInfo.VariableInfo(paramName, paramType, typeInfo)));
+                if (!sigs.isEmpty()) {
+                    JSTypeRegistry.HookSignature sig = sigs.get(0);
+                    
+                    // Create unified MethodInfo for hover info
+                    TypeInfo paramTypeInfo = resolveJSType(sig.paramType);
+                    List<FieldInfo> methodParams = new ArrayList<>();
+                    methodParams.add(FieldInfo.reflectionParam(sig.paramName, paramTypeInfo));
+                    
+                    MethodInfo hookMethod = MethodInfo.declaration(
+                        funcName, null, TypeInfo.fromPrimitive("void"), methodParams,
+                        nameStart, nameStart, nameStart, -1, -1, 0, sig.doc
+                    );
+                    
+                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, hookMethod));
+                    
+                    // Infer parameter types from hook
+                    if (!params.isEmpty()) {
+                        // Parse parameter names from function
+                        String[] paramNames = params.split(",");
+                        if (paramNames.length > 0) {
+                            String paramName = paramNames[0].trim();
+                            String paramType = sig.paramType;
+                            
+                            // Store in function params and variable types
+                            Map<String, String> funcParamMap = new HashMap<>();
+                            funcParamMap.put(paramName, paramType);
+                            functionParams.put(funcName, funcParamMap);
+                            variableTypes.put(paramName, paramType);
+                            
+                            // Mark the parameter with unified FieldInfo
+                            int paramStart = m.start(2) + params.indexOf(paramName);
+                            int paramEnd = paramStart + paramName.length();
+                            FieldInfo paramFieldInfo = FieldInfo.parameter(
+                                paramName, paramTypeInfo, paramStart, hookMethod
+                            );
+                            marks.add(new ScriptLine.Mark(paramStart, paramEnd, TokenType.PARAMETER, paramFieldInfo));
+                        }
                     }
+                } else {
+                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, funcName));
                 }
             } else {
                 marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_DECL, funcName));
@@ -181,12 +200,12 @@ public class JSScriptAnalyzer {
                 variableTypes.put(varName, inferredType);
             }
             
-            // Mark variable declaration
+            // Mark variable declaration with unified FieldInfo
             int varStart = m.start(1);
             int varEnd = m.end(1);
-            JSTypeInfo typeInfo = inferredType != null ? registry.getType(inferredType) : null;
-            marks.add(new ScriptLine.Mark(varStart, varEnd, TokenType.LOCAL_FIELD,
-                new JSHoverInfo.VariableInfo(varName, inferredType != null ? inferredType : "any", typeInfo)));
+            TypeInfo typeInfo = resolveJSType(inferredType != null ? inferredType : "any");
+            FieldInfo varFieldInfo = FieldInfo.localField(varName, typeInfo, varStart, null);
+            marks.add(new ScriptLine.Mark(varStart, varEnd, TokenType.LOCAL_FIELD, varFieldInfo));
         }
     }
     
@@ -270,9 +289,9 @@ public class JSScriptAnalyzer {
             }
             
             // Check if it's a field
-            JSFieldInfo field = typeInfo.getField(member);
-            if (field != null) {
-                currentType = field.getType();
+            JSFieldInfo f = typeInfo.getField(member);
+            if (f != null) {
+                currentType = f.getType();
                 continue;
             }
             
@@ -301,11 +320,11 @@ public class JSScriptAnalyzer {
             
             int pos = m.start();
             
-            // Mark receiver
+            // Mark receiver with unified FieldInfo
             if (currentType != null) {
-                JSTypeInfo typeInfo = registry.getType(currentType);
-                marks.add(new ScriptLine.Mark(pos, pos + receiverName.length(), TokenType.LOCAL_FIELD,
-                    new JSHoverInfo.VariableInfo(receiverName, currentType, typeInfo)));
+                TypeInfo unifiedType = resolveJSType(currentType);
+                FieldInfo receiverField = FieldInfo.localField(receiverName, unifiedType, pos, null);
+                marks.add(new ScriptLine.Mark(pos, pos + receiverName.length(), TokenType.LOCAL_FIELD, receiverField));
             }
             
             pos += receiverName.length() + 1; // +1 for the dot
@@ -317,25 +336,29 @@ public class JSScriptAnalyzer {
                 int memberEnd = pos + member.length();
                 
                 if (currentType != null) {
-                    JSTypeInfo typeInfo = registry.getType(currentType);
-                    if (typeInfo != null) {
+                    JSTypeInfo jsTypeInfo = registry.getType(currentType);
+                    if (jsTypeInfo != null) {
+                        TypeInfo unifiedContainingType = TypeInfo.fromJSTypeInfo(jsTypeInfo);
+                        
                         // Check method first
-                        JSMethodInfo method = typeInfo.getMethod(member);
-                        if (method != null) {
-                            marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.METHOD_CALL,
-                                new JSHoverInfo.MethodInfo(method, typeInfo)));
-                            currentType = method.getReturnType();
+                        JSMethodInfo jsMethod = jsTypeInfo.getMethod(member);
+                        if (jsMethod != null) {
+                            // Convert to unified MethodInfo
+                            MethodInfo unifiedMethod = MethodInfo.fromJSMethod(jsMethod, unifiedContainingType);
+                            marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.METHOD_CALL, unifiedMethod));
+                            currentType = jsMethod.getReturnType();
                         } else {
                             // Check field
-                            JSFieldInfo field = typeInfo.getField(member);
-                            if (field != null) {
-                                marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.GLOBAL_FIELD,
-                                    new JSHoverInfo.FieldInfo(field, typeInfo)));
-                                currentType = field.getType();
+                            JSFieldInfo jsField = jsTypeInfo.getField(member);
+                            if (jsField != null) {
+                                // Convert to unified FieldInfo
+                                FieldInfo unifiedField = FieldInfo.fromJSField(jsField, unifiedContainingType);
+                                marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.GLOBAL_FIELD, unifiedField));
+                                currentType = jsField.getType();
                             } else {
                                 // Unknown member - mark as undefined
                                 marks.add(new ScriptLine.Mark(memberStart, memberEnd, TokenType.UNDEFINED_VAR,
-                                    "Unknown member '" + member + "' on type " + typeInfo.getFullName()));
+                                    "Unknown member '" + member + "' on type " + jsTypeInfo.getFullName()));
                                 currentType = null;
                             }
                         }
@@ -364,9 +387,20 @@ public class JSScriptAnalyzer {
                 int nameEnd = m.end(1);
                 
                 if (registry.isHook(callExpr)) {
-                    // It's a known hook being called
-                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL,
-                        new JSHoverInfo.FunctionInfo(callExpr, registry.getHookSignatures(callExpr))));
+                    // It's a known hook being called - create unified MethodInfo
+                    List<JSTypeRegistry.HookSignature> sigs = registry.getHookSignatures(callExpr);
+                    if (!sigs.isEmpty()) {
+                        JSTypeRegistry.HookSignature sig = sigs.get(0);
+                        TypeInfo paramTypeInfo = resolveJSType(sig.paramType);
+                        List<FieldInfo> methodParams = new ArrayList<>();
+                        methodParams.add(FieldInfo.reflectionParam(sig.paramName, paramTypeInfo));
+                        
+                        MethodInfo hookMethod = MethodInfo.declaration(
+                            callExpr, null, TypeInfo.fromPrimitive("void"), methodParams,
+                            nameStart, nameStart, nameStart, -1, -1, 0, sig.doc
+                        );
+                        marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, hookMethod));
+                    }
                 }
             }
             // Chained calls are handled in markMemberAccesses
@@ -395,5 +429,47 @@ public class JSScriptAnalyzer {
      */
     public Map<String, String> getVariableTypes() {
         return new HashMap<>(variableTypes);
+    }
+    
+    /**
+     * Resolves a JavaScript type name to a unified TypeInfo.
+     * Handles primitives, mapped types, and custom types from the registry.
+     */
+    private TypeInfo resolveJSType(String jsTypeName) {
+        if (jsTypeName == null || jsTypeName.isEmpty() || "void".equals(jsTypeName)) {
+            return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Handle JS primitives
+        switch (jsTypeName) {
+            case "string":
+                return TypeInfo.fromClass(String.class);
+            case "number":
+                return TypeInfo.fromClass(double.class);
+            case "boolean":
+                return TypeInfo.fromClass(boolean.class);
+            case "any":
+                return TypeInfo.fromClass(Object.class);
+            case "void":
+                return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Handle array types
+        if (jsTypeName.endsWith("[]")) {
+            String elementType = jsTypeName.substring(0, jsTypeName.length() - 2);
+            TypeInfo elementTypeInfo = resolveJSType(elementType);
+            return TypeInfo.arrayOf(elementTypeInfo);
+        }
+        
+        // Try to resolve from the JS type registry
+        if (registry != null) {
+            JSTypeInfo jsTypeInfo = registry.getType(jsTypeName);
+            if (jsTypeInfo != null) {
+                return TypeInfo.fromJSTypeInfo(jsTypeInfo);
+            }
+        }
+        
+        // Fallback: unresolved type
+        return TypeInfo.unresolved(jsTypeName, jsTypeName);
     }
 }

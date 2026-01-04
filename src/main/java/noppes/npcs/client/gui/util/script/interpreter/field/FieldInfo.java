@@ -1,5 +1,8 @@
 package noppes.npcs.client.gui.util.script.interpreter.field;
 
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -141,6 +144,75 @@ public final class FieldInfo {
         }
         
         return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, null, -1, -1, field.getModifiers(), field);
+    }
+
+    /**
+     * Create a FieldInfo from a JSFieldInfo (parsed from .d.ts files).
+     * Used when resolving field access on JavaScript types.
+     * 
+     * @param jsField The JavaScript field info from the type registry
+     * @param containingType The TypeInfo that owns this field
+     * @return A FieldInfo representing the JavaScript field
+     */
+    public static FieldInfo fromJSField(JSFieldInfo jsField, TypeInfo containingType) {
+        String name = jsField.getName();
+        
+        // Resolve the type from the JS type registry
+        TypeInfo type = resolveJSType(jsField.getType());
+        
+        // JS fields are public by default, readonly maps to final
+        int modifiers = Modifier.PUBLIC;
+        if (jsField.isReadonly()) {
+            modifiers |= Modifier.FINAL;
+        }
+        
+        // Use documentation if available
+        String documentation = jsField.getDocumentation();
+        
+        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, documentation, -1, -1, modifiers, null);
+    }
+    
+    /**
+     * Resolves a JavaScript type name to a TypeInfo.
+     * Handles primitives, mapped types, and custom types from the registry.
+     */
+    private static TypeInfo resolveJSType(String jsTypeName) {
+        if (jsTypeName == null || jsTypeName.isEmpty() || "void".equals(jsTypeName)) {
+            return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Handle JS primitives
+        switch (jsTypeName) {
+            case "string":
+                return TypeInfo.fromClass(String.class);
+            case "number":
+                return TypeInfo.fromClass(double.class);
+            case "boolean":
+                return TypeInfo.fromClass(boolean.class);
+            case "any":
+                return TypeInfo.fromClass(Object.class);
+            case "void":
+                return TypeInfo.fromPrimitive("void");
+        }
+        
+        // Handle array types
+        if (jsTypeName.endsWith("[]")) {
+            String elementType = jsTypeName.substring(0, jsTypeName.length() - 2);
+            TypeInfo elementTypeInfo = resolveJSType(elementType);
+            return TypeInfo.arrayOf(elementTypeInfo);
+        }
+        
+        // Try to resolve from the JS type registry
+        JSTypeRegistry registry = JSTypeRegistry.getInstance();
+        if (registry != null) {
+            JSTypeInfo jsTypeInfo = registry.getType(jsTypeName);
+            if (jsTypeInfo != null) {
+                return TypeInfo.fromJSTypeInfo(jsTypeInfo);
+            }
+        }
+        
+        // Fallback: unresolved type
+        return TypeInfo.unresolved(jsTypeName, jsTypeName);
     }
     
     /**

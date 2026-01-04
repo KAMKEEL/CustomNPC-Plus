@@ -2,6 +2,9 @@ package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
@@ -11,7 +14,14 @@ import java.util.List;
 
 /**
  * Represents resolved type information for a class/interface/enum.
- * Base class for type metadata. Extended by ScriptTypeInfo for script-defined types.
+ * 
+ * This is the unified type system that supports:
+ * - Java types (via Class<?> reflection)
+ * - Script-defined types (via ScriptTypeInfo subclass)
+ * - JavaScript/TypeScript types (via JSTypeInfo bridge)
+ * 
+ * For JavaScript types, the jsTypeInfo field holds the parsed .d.ts data,
+ * and methods like hasMethod/getMethodInfo delegate to it.
  */
 public class TypeInfo {
     
@@ -21,17 +31,31 @@ public class TypeInfo {
         ENUM,
         UNKNOWN
     }
+    
+    /**
+     * Singleton constant for the void type.
+     */
+    public static final TypeInfo VOID = fromPrimitive("void");
 
     private final String simpleName;       // e.g., "List", "ColorType"
     private final String fullName;         // e.g., "java.util.List", "kamkeel...IOverlay$ColorType"
     private final String packageName;      // e.g., "java.util", "kamkeel.npcdbc.api.client.overlay"
     private final Kind kind;               // CLASS, INTERFACE, ENUM
-    private final Class<?> javaClass;      // The actual resolved Java class (null if unresolved)
+    private final Class<?> javaClass;      // The actual resolved Java class (null if unresolved or JS type)
     private final boolean resolved;        // Whether this type was successfully resolved
     private final TypeInfo enclosingType;  // For inner classes, the outer type (null if top-level)
+    
+    // JavaScript/TypeScript type info (for types from .d.ts files)
+    private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
 
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
+        this(simpleName, fullName, packageName, kind, javaClass, resolved, enclosingType, null);
+    }
+    
+    private TypeInfo(String simpleName, String fullName, String packageName, 
+                     Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType,
+                     JSTypeInfo jsTypeInfo) {
         this.simpleName = simpleName;
         this.fullName = fullName;
         this.packageName = packageName;
@@ -39,6 +63,7 @@ public class TypeInfo {
         this.javaClass = javaClass;
         this.resolved = resolved;
         this.enclosingType = enclosingType;
+        this.jsTypeInfo = jsTypeInfo;
     }
     
     // Protected constructor for subclasses (like ScriptTypeInfo)
@@ -52,6 +77,7 @@ public class TypeInfo {
         this.javaClass = javaClass;
         this.resolved = resolved;
         this.enclosingType = enclosingType;
+        this.jsTypeInfo = null;
     }
 
     // Factory methods
@@ -122,6 +148,67 @@ public class TypeInfo {
         }
         return new TypeInfo(typeName, typeName, "", Kind.CLASS, primitiveClass, true, null);
     }
+    
+    /**
+     * Create a TypeInfo from a JavaScript/TypeScript type.
+     * This bridges JS types parsed from .d.ts files into the unified type system.
+     * 
+     * @param jsType The parsed JS type info
+     * @return A TypeInfo wrapping the JS type
+     */
+    public static TypeInfo fromJSTypeInfo(JSTypeInfo jsType) {
+        if (jsType == null) return null;
+        
+        String simpleName = jsType.getSimpleName();
+        String fullName = jsType.getFullName();
+        String namespace = jsType.getNamespace();
+        
+        // JS interfaces are always Kind.INTERFACE
+        return new TypeInfo(simpleName, fullName, namespace != null ? namespace : "", 
+                           Kind.INTERFACE, null, true, null, jsType);
+    }
+    
+    /**
+     * Create an array type wrapping the given element type.
+     * 
+     * @param elementType The type of elements in the array
+     * @return A TypeInfo representing the array type
+     */
+    public static TypeInfo arrayOf(TypeInfo elementType) {
+        if (elementType == null) {
+            return fromClass(Object[].class);
+        }
+        
+        String simpleName = elementType.getSimpleName() + "[]";
+        String fullName = elementType.getFullName() + "[]";
+        String pkg = elementType.getPackageName();
+        
+        // Try to get the actual array class if we have a Java class
+        Class<?> arrayClass = null;
+        if (elementType.getJavaClass() != null) {
+            try {
+                arrayClass = java.lang.reflect.Array.newInstance(elementType.getJavaClass(), 0).getClass();
+            } catch (Exception e) {
+                // Fallback to Object array if we can't create the specific array type
+            }
+        }
+        
+        return new TypeInfo(simpleName, fullName, pkg, Kind.CLASS, arrayClass, true, null);
+    }
+    
+    /**
+     * Check if this is a JavaScript type (backed by JSTypeInfo).
+     */
+    public boolean isJSType() {
+        return jsTypeInfo != null;
+    }
+    
+    /**
+     * Get the underlying JSTypeInfo if this is a JS type.
+     */
+    public JSTypeInfo getJSTypeInfo() {
+        return jsTypeInfo;
+    }
 
     // Getters
     public String getSimpleName() { return simpleName; }
@@ -160,6 +247,11 @@ public class TypeInfo {
      * Check if this type has a method with the given name.
      */
     public boolean hasMethod(String methodName) {
+        // Check JS type first
+        if (jsTypeInfo != null) {
+            return jsTypeInfo.hasMethod(methodName);
+        }
+        
         if (javaClass == null) return false;
         try {
             for (java.lang.reflect.Method m : javaClass.getMethods()) {
@@ -177,6 +269,17 @@ public class TypeInfo {
      * Check if this type has a method with the given name and parameter count.
      */
     public boolean hasMethod(String methodName, int paramCount) {
+        // Check JS type first
+        if (jsTypeInfo != null) {
+            List<JSMethodInfo> overloads = jsTypeInfo.getMethodOverloads(methodName);
+            for (JSMethodInfo m : overloads) {
+                if (m.getParameterCount() == paramCount) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
         if (javaClass == null) return false;
         try {
             for (java.lang.reflect.Method m : javaClass.getMethods()) {
@@ -274,6 +377,11 @@ public class TypeInfo {
      * Check if this type has a field with the given name.
      */
     public boolean hasField(String fieldName) {
+        // Check JS type first
+        if (jsTypeInfo != null) {
+            return jsTypeInfo.hasField(fieldName);
+        }
+        
         if (javaClass == null) return false;
         try {
             for (java.lang.reflect.Field f : javaClass.getFields()) {
@@ -320,9 +428,18 @@ public class TypeInfo {
 
     /**
      * Get MethodInfo for a method by name. Returns null if not found.
-     * Creates a synthetic MethodInfo based on reflection data.
+     * Creates a synthetic MethodInfo based on reflection data or JS type data.
      */
     public MethodInfo getMethodInfo(String methodName) {
+        // Check JS type first
+        if (jsTypeInfo != null) {
+            JSMethodInfo jsMethod = jsTypeInfo.getMethod(methodName);
+            if (jsMethod != null) {
+                return MethodInfo.fromJSMethod(jsMethod, this);
+            }
+            return null;
+        }
+        
         if (javaClass == null) return null;
         try {
             for (java.lang.reflect.Method m : javaClass.getMethods()) {
@@ -343,6 +460,15 @@ public class TypeInfo {
      */
     public java.util.List<MethodInfo> getAllMethodOverloads(String methodName) {
         java.util.List<MethodInfo> overloads = new java.util.ArrayList<>();
+        
+        // Check JS type first
+        if (jsTypeInfo != null) {
+            for (JSMethodInfo jsMethod : jsTypeInfo.getMethodOverloads(methodName)) {
+                overloads.add(MethodInfo.fromJSMethod(jsMethod, this));
+            }
+            return overloads;
+        }
+        
         if (javaClass == null) return overloads;
         try {
             for (java.lang.reflect.Method m : javaClass.getMethods()) {
@@ -507,9 +633,18 @@ public class TypeInfo {
 
     /**
      * Get FieldInfo for a field by name. Returns null if not found.
-     * Creates a synthetic FieldInfo based on reflection data.
+     * Creates a synthetic FieldInfo based on reflection data or JS type data.
      */
     public FieldInfo getFieldInfo(String fieldName) {
+        // Check JS type first
+        if (jsTypeInfo != null) {
+            JSFieldInfo jsField = jsTypeInfo.getField(fieldName);
+            if (jsField != null) {
+                return FieldInfo.fromJSField(jsField, this);
+            }
+            return null;
+        }
+        
         if (javaClass == null) return null;
         try {
             for (java.lang.reflect.Field f : javaClass.getFields()) {
