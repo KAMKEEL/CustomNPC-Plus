@@ -356,27 +356,20 @@ public class JSTypeRegistry {
     
     /**
      * Resolve inheritance relationships between types.
+     * For each type, walks up the parent chain and resolves all ancestors.
+     * Efficient O(n) approach - each type's chain is walked once.
      */
-    private void resolveInheritance() {
-        int totalInheritance = 0;
-        int resolvedInheritance = 0;
-        
+    public void resolveInheritance() {
         for (JSTypeInfo type : types.values()) {
-            String extendsType = type.getExtendsType();
-            if (extendsType != null) {
-                totalInheritance++;
-                JSTypeInfo parent = getType(extendsType);
+            JSTypeInfo child = type;
+            while (child != null && child.getExtendsType() != null && child.getResolvedParent() == null) {
+                JSTypeInfo parent = getType(child.getExtendsType());
                 if (parent != null) {
-                    type.setResolvedParent(parent);
-                    resolvedInheritance++;
-                    System.out.println("[JSTypeRegistry] Resolved " + type.getSimpleName() + " extends " + parent.getSimpleName());
-                } else {
-                    System.err.println("[JSTypeRegistry] FAILED to resolve parent type '" + extendsType + "' for " + type.getFullName());
+                    child.setResolvedParent(parent);
                 }
+                child = parent;
             }
         }
-        
-        System.out.println("[JSTypeRegistry] Inheritance resolution: " + resolvedInheritance + "/" + totalInheritance + " successful");
     }
     
     /**
