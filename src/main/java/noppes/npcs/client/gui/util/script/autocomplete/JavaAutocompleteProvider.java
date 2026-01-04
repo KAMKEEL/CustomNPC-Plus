@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
@@ -232,25 +233,30 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         for (MethodInfo method : document.getAllMethods()) {
             items.add(AutocompleteItem.fromMethod(method));
         }
-        
-        // Add imported types
-        for (TypeInfo type : document.getImportedTypes()) {
-            items.add(AutocompleteItem.fromType(type));
-        }
-        
-        // Add script-defined types
-        for (ScriptTypeInfo scriptType : document.getScriptTypesMap().values()) {
-            items.add(AutocompleteItem.fromType(scriptType));
-        }
-        
-        // Add unimported classes that match the prefix (for auto-import)
-        if (context.prefix != null && context.prefix.length() >= 2 && Character.isUpperCase(context.prefix.charAt(0))) {
-            addUnimportedClassSuggestions(context.prefix, items);
-        }
+
+        addLanguageUniqueSuggestions(context, items);
         
         // Add keywords
         addKeywords(items);
     }
+
+    protected void addLanguageUniqueSuggestions(Context context, List<AutocompleteItem> items) {
+        // Add imported types
+        for (TypeInfo type : document.getImportedTypes()) {
+            items.add(AutocompleteItem.fromType(type));
+        }
+
+        // Add script-defined types
+        for (ScriptTypeInfo scriptType : document.getScriptTypesMap().values()) {
+            items.add(AutocompleteItem.fromType(scriptType));
+        }
+
+        // Add unimported classes that match the prefix (for auto-import)
+        if (context.prefix != null && context.prefix.length() >= 2 && Character.isUpperCase(context.prefix.charAt(0))) {
+            addUnimportedClassSuggestions(context.prefix, items);
+        }
+    }
+    
     
     /**
      * Add suggestions for unimported classes that match the prefix.
@@ -313,18 +319,13 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Add Java keywords.
      */
     protected void addKeywords(List<AutocompleteItem> items) {
-        String[] keywords = {
-            "if", "else", "for", "while", "do", "switch", "case", "break", "continue",
-            "return", "try", "catch", "finally", "throw", "throws", "new", "this", "super",
-            "true", "false", "null", "instanceof", "import", "class", "interface", "enum",
-            "extends", "implements", "public", "private", "protected", "static", "final",
-            "abstract", "synchronized", "volatile", "transient", "native", "void",
-            "boolean", "byte", "short", "int", "long", "float", "double", "char"
-        };
-        
-        for (String keyword : keywords) {
+        for (String keyword : getKeywords()) {
             items.add(AutocompleteItem.keyword(keyword));
         }
+    }
+
+    public String[] getKeywords() {
+        return TypeChecker.getJavaKeywords();
     }
     
     /**
@@ -349,9 +350,11 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         TypeInfo typeCheck = document.resolveType(receiverExpr);
         return typeCheck != null && typeCheck.isResolved();
     }
+    
     protected  UsageTracker getUsageTracker() {
         return UsageTracker.getJavaInstance();
     }
+    
     /**
      * Filter items by prefix, calculate match scores, apply usage boosts, and penalize static members in instance contexts.
      */

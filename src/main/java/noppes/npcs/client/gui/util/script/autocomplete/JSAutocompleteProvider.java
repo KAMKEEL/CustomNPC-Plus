@@ -4,6 +4,7 @@ import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.*;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
 import java.util.*;
@@ -28,40 +29,6 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         return document != null && document.isJavaScript();
     }
     
-    @Override
-    public List<AutocompleteItem> getSuggestions(Context context) {
-        List<AutocompleteItem> items = new ArrayList<>();
-
-        // Resolve owner type for usage tracking using ScriptDocument's unified type resolution
-        String ownerFullName = null;
-        if (context.isMemberAccess && context.receiverExpression != null) {
-            TypeInfo receiverType = document.resolveExpressionType(context.receiverExpression, context.prefixStart);
-            if (receiverType != null && receiverType.isResolved()) {
-                ownerFullName = receiverType.getFullName();
-            }
-        }
-        
-        if (context.isMemberAccess) {
-            // Member access: resolve type of receiver and get its members
-            addMemberSuggestions(context, items);
-        } else {
-            // Identifier context: show variables, functions, types in scope
-            addScopeSuggestions(context, items);
-        }
-        
-        // Filter and score by prefix, then apply usage boosts
-        filterAndScore(items, context.prefix, context.isMemberAccess, false, ownerFullName);
-        
-        // Sort by score
-        Collections.sort(items);
-        
-        // Limit results
-        if (items.size() > 50) {
-            items = items.subList(0, 50);
-        }
-        
-        return items;
-    }
     
     /**
      * Add suggestions for member access (after dot).
@@ -80,7 +47,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         }
 
         // For JS types, check JSTypeRegistry
-        JSTypeInfo jsTypeInfo = registry.getType(receiverType.getSimpleName());
+        JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
         if (jsTypeInfo != null) {
             // Add methods
             addMethodsFromType(jsTypeInfo, items, new HashSet<>());
@@ -168,72 +135,18 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             addFieldsFromType(type.getResolvedParent(), items, added);
         }
     }
-    
-    /**
-     * Add suggestions based on current scope (not after a dot).
-     * Uses ScriptDocument's unified data structures for variables and functions.
-     */
-    protected void addScopeSuggestions(Context context, List<AutocompleteItem> items) {
 
-        int pos = context.cursorPosition;
-
-        // Find containing method
-        MethodInfo containingMethod = document.findContainingMethod(pos);
-
-        // Add local variables
-        if (containingMethod != null) {
-            Map<String, FieldInfo> locals = document.getLocalsForMethod(containingMethod);
-            if (locals != null) {
-                for (FieldInfo local : locals.values()) {
-                    if (local.isVisibleAt(pos)) {
-                        items.add(AutocompleteItem.fromField(local));
-                    }
-                }
-            }
-
-            // Add method parameters
-            for (FieldInfo param : containingMethod.getParameters()) {
-                items.add(AutocompleteItem.fromField(param));
-            }
-        }
-
-        // Add global fields
-        for (FieldInfo globalField : document.getGlobalFields().values()) {
-            if (globalField.isVisibleAt(pos)) {
-                items.add(AutocompleteItem.fromField(globalField));
-            }
-        }
-
-        // Add script-defined methods
-        for (MethodInfo method : document.getAllMethods()) {
-            items.add(AutocompleteItem.fromMethod(method));
-            
-        }
-        
-        // Add JavaScript keywords
-        addKeywords(items);
-    }
-    
-
-    
-    /**
-     * Add JavaScript keywords.
-     */
-    protected void addKeywords(List<AutocompleteItem> items) {
-        String[] keywords = {
-            "function", "var", "let", "const", "if", "else", "for", "while", "do",
-            "switch", "case", "break", "continue", "return", "try", "catch", "finally",
-            "throw", "new", "typeof", "instanceof", "in", "of", "this", "null",
-            "undefined", "true", "false", "async", "await", "yield", "class", "extends",
-            "import", "export", "default"
-        };
-        
-        for (String keyword : keywords) {
-            items.add(AutocompleteItem.keyword(keyword));
-        }
+    protected void addUnimportedClassSuggestions(String prefix, List<AutocompleteItem> items) {
+        // For JavaScript, we typically don't suggest unimported classes
+        // as imports are handled differently. This can be customized
+        // if needed to suggest global JS types.
     }
 
     protected UsageTracker getUsageTracker() {
         return UsageTracker.getJSInstance();
+    }
+
+    public String[] getKeywords() {
+        return TypeChecker.getJaveScriptKeywords();
     }
 }

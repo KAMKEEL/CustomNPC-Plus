@@ -312,5 +312,30 @@ public final class TypeChecker {
         if (primitive == double.class) return Double.class;
         return null;
     }
+
+    public static String[] getJavaKeywords() {
+        String[] keywords = {
+                "if", "else", "for", "while", "do", "switch", "case", "break", "continue",
+                "return", "try", "catch", "finally", "throw", "throws", "new", "this", "super",
+                "true", "false", "null", "instanceof", "import", "class", "interface", "enum",
+                "extends", "implements", "public", "private", "protected", "static", "final",
+                "abstract", "synchronized", "volatile", "transient", "native", "void",
+                "boolean", "byte", "short", "int", "long", "float", "double", "char"
+        };
+        return keywords;
+    }
+
+    public static String[] getJaveScriptKeywords() {
+        String[] keywords = {
+                "function", "var", "let", "const", "if", "else", "for", "while", "do",
+                "switch", "case", "break", "continue", "return", "try", "catch", "finally",
+                "throw", "new", "typeof", "instanceof", "in", "of", "this", "null",
+                "undefined", "true", "false", "async", "await", "yield", "class", "extends",
+                "import", "export", "default"
+        };
+        
+        
+        return keywords;
+    }
 }
 
