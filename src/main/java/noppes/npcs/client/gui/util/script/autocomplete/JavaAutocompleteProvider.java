@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
 import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
+import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
@@ -150,6 +151,11 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
                 continue;
             }
             items.add(AutocompleteItem.fromField(field));
+        }
+        
+        // Add enum constants (getEnumConstants returns Map<String, EnumConstantInfo>)
+        for (EnumConstantInfo enumConstant : scriptType.getEnumConstants().values()) {
+            items.add(AutocompleteItem.fromField(enumConstant.getFieldInfo()));
         }
         
         // Add parent class members
