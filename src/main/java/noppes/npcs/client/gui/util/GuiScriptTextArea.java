@@ -47,6 +47,8 @@ import static net.minecraft.client.gui.GuiScreen.isCtrlKeyDown;
  * - CursorNavigation: cursor movement logic
  */
 public class GuiScriptTextArea extends GuiNpcTextField {
+
+    private GuiScriptInterface parent;
     
     // ==================== DIMENSIONS & POSITION ====================
     public int x;
@@ -129,6 +131,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public GuiScriptTextArea(GuiScreen guiScreen, int id, int x, int y, int width, int height, String text) {
         super(id, guiScreen, x, y, width, height, null);
         init(x, y, width, height, text);
+
+        if (guiScreen instanceof GuiScriptInterface)
+            this.parent = (GuiScriptInterface) guiScreen;
     }
 
     public void init(int x, int y, int width, int height, String text) {
@@ -961,6 +966,9 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             drawRect(posX, posY, posX + 5, posY + sbSize + 2, 0xFFe0e0e0);
         }
 
+        if (parent != null)
+            parent.fullscreenButton.draw(xMouse, yMouse);
+        
         // Draw search/replace bar (overlays viewport)
         searchBar.draw(xMouse, yMouse);
         
@@ -2496,7 +2504,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      * Check if a click position is within the bounds of the autocomplete menu.
      * Returns false if autocomplete is not visible.
      */
-    public boolean isClickInAutocompleteMenu(int mouseX, int mouseY) {
+    public boolean isPointOnAutocompleteMenu(int mouseX, int mouseY) {
         if (autocompleteManager == null || !autocompleteManager.isVisible()) {
             return false;
         }

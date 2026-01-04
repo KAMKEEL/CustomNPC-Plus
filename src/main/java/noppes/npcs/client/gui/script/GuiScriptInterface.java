@@ -6,7 +6,6 @@ import net.minecraft.client.gui.GuiYesNo;
 import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
@@ -30,7 +29,6 @@ import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -71,7 +69,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     /** Fullscreen toggle button drawn at top-right of viewport */
-    private final FullscreenButton fullscreenButton = new FullscreenButton();
+    public final FullscreenButton fullscreenButton = new FullscreenButton();
     
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;
@@ -270,28 +268,24 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
-
-        // Draw fullscreen button on top of everything when on script editor tab
-        if (this.activeTab > 0) {
-            fullscreenButton.draw(mouseX, mouseY);
-        }
     }
 
     // ==================== MOUSE HANDLING ====================
 
     @Override
-    @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         // Check if click is within autocomplete menu bounds and consume it if so
         GuiScriptTextArea activeArea = getActiveScriptArea();
-        if (activeArea != null && activeArea.isClickInAutocompleteMenu(mouseX, mouseY)) {
+        boolean isOverAutocomplete = activeArea != null
+                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
+        if (isOverAutocomplete) {
             activeArea.mouseClicked(mouseX, mouseY, mouseButton);
             return;
         }
         
         // Check fullscreen button first when on script editor tab
         // BUT only if autocomplete is not visible (don't let clicks pass through autocomplete menu)
-        if (this.activeTab > 0 && (activeArea == null || !activeArea.isAutocompleteVisible()) 
+        if (this.activeTab > 0 && !isOverAutocomplete
             && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
             return;
         }
