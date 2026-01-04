@@ -58,6 +58,8 @@ import noppes.npcs.controllers.GlobalDataController;
 import noppes.npcs.controllers.LinkedItemController;
 import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.MagicController;
+import noppes.npcs.controllers.VaultHelper;
+import noppes.npcs.controllers.CurrencyController;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
@@ -304,6 +306,8 @@ public class CustomNpcs {
     //Loading items in the about to start event was corrupting items with a damage value
     @EventHandler
     public void started(FMLServerStartedEvent event) {
+        new VaultHelper();
+        new CurrencyController();
         RecipeController.Instance.load();
         new BankController();
         DialogController.Instance.load();

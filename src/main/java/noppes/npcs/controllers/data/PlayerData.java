@@ -59,6 +59,9 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
 
+    // Currency data - NOT slot-bound, shared across all profile slots
+    public PlayerCurrencyData currencyData = new PlayerCurrencyData();
+
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
 
@@ -443,6 +446,69 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             data = getNBT();
         }
         setNBT(data);
+
+        // Load currency data separately (not slot-bound)
+        loadCurrency();
+    }
+
+    /**
+     * Load currency data from separate file (shared across profile slots)
+     */
+    public void loadCurrency() {
+        if (player == null) return;
+
+        File saveDir = PlayerDataController.Instance.getSaveDir();
+        String filename = player.getPersistentID().toString() + "_currency";
+
+        try {
+            File file = new File(saveDir, filename + ".json");
+            if (file.exists()) {
+                NBTTagCompound compound = NBTJsonUtil.LoadFile(file);
+                currencyData.readFromNBT(compound);
+                return;
+            }
+
+            // Try dat format
+            file = new File(saveDir, filename + ".dat");
+            if (file.exists()) {
+                NBTTagCompound compound = NBTJsonUtil.loadNBTData(file);
+                currencyData.readFromNBT(compound);
+                return;
+            }
+
+            // No currency file exists, use defaults (new player)
+            currencyData = new PlayerCurrencyData();
+        } catch (Exception e) {
+            LogWriter.error("Error loading currency data for " + player.getCommandSenderName(), e);
+            currencyData = new PlayerCurrencyData();
+        }
+    }
+
+    /**
+     * Save currency data to separate file (shared across profile slots)
+     */
+    public synchronized void saveCurrency() {
+        if (uuid == null || uuid.isEmpty()) return;
+
+        final NBTTagCompound compound = new NBTTagCompound();
+        currencyData.writeToNBT(compound);
+
+        final String filename = uuid + "_currency.json";
+
+        CustomNPCsThreader.customNPCThread.execute(() -> {
+            try {
+                File saveDir = PlayerDataController.Instance.getSaveDir();
+                File file = new File(saveDir, filename + "_new");
+                File file1 = new File(saveDir, filename);
+                NBTJsonUtil.SaveFile(file, compound);
+                if (file1.exists()) {
+                    file1.delete();
+                }
+                file.renameTo(file1);
+            } catch (Exception e) {
+                LogWriter.except(e);
+            }
+        });
     }
 
     public static PlayerData get(EntityPlayer player) {
