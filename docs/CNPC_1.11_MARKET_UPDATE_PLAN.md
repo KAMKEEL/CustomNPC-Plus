@@ -17,12 +17,14 @@ This document outlines the implementation plan for the CustomNPC+ 1.11 update, f
 - Players can manage their bids from claims
 - If auction ends while player is offline, they can claim their money later
 - This keeps the flow consistent with item claims
+- **Modify Bid Feature**: Players can use a "Modify Bid" button that auto-reclaims their money and applies it to a higher bid amount
 
 ### 2. Permission System
 **Decision:** Use the **existing CustomNPC+ permission system** used for Profiles.
 - Pattern: `customnpcs.auction.slots.X` where X is the max slot count
 - Implementation mirrors `ProfileController.allowSlotPermission()` approach
 - Uses `CustomNpcsPermissions.hasCustomPermission(player, permissionString)`
+- **Default**: 5 auction slots per player (configurable)
 
 ### 3. Virtual Currency Storage
 **Decision:** Currency is **NOT profile slot bound** - all profile slots share the same currency pool per player.
@@ -43,9 +45,9 @@ This document outlines the implementation plan for the CustomNPC+ 1.11 update, f
 
 ### 6. Item Trading Restrictions
 **Decision:** Implement the following restrictions for auction listings:
-- **Untradeable Attribute**: New item attribute that prevents auction listing
-- **SlotBound Items**: Cannot be listed (needs to be implemented)
-- **SoulBound Items**: Cannot be listed (needs to be implemented)
+- **Untradeable Attribute**: New item attribute (`CNPC_Untradeable`) that prevents auction listing
+- **ProfileSlot Bound Items**: Use existing `cnpc_profile_slot` NBT tag (from `ProfileSlotRequirement.java`)
+- **Soulbound Items**: Use existing `cnpc_soulbind` NBT tag (from `SoulbindRequirement.java`)
 - **Auction House Blacklist**: Configurable list of items that cannot be auctioned
 
 ### 7. Admin Auction Management
@@ -53,6 +55,15 @@ This document outlines the implementation plan for the CustomNPC+ 1.11 update, f
 - Admins can modify, remove, and edit auction listings in real-time
 - Accessible via special admin GUI
 - Permission-gated for server operators
+
+### 8. Auction Timing & Bidding Rules
+**Decision:** Configurable auction timing with snipe protection.
+- **Claim Expiration**: 30 days by default (configurable) - claims auto-expire after this period
+- **Bid Increment**: Percentage-based minimum increment (configurable, e.g., 5%)
+- **Snipe Protection**: When a bid is placed near auction end, extend time TO 5 minutes remaining (never higher)
+  - Extension amount is configurable
+  - Example: If 2 minutes left and bid placed, extend to 5 minutes. If 10 minutes left, no extension.
+- **Auction Durations**: Configurable default options (2h, 12h, 24h, 48h)
 
 ---
 
@@ -65,9 +76,10 @@ This document outlines the implementation plan for the CustomNPC+ 1.11 update, f
 5. [Feature 3: Auction House](#feature-3-auction-house)
 6. [Feature 4: Item Attributes & Restrictions](#feature-4-item-attributes--restrictions)
 7. [Feature 5: Admin Auction Management](#feature-5-admin-auction-management)
-8. [Implementation Order](#implementation-order)
-9. [File Summary](#file-summary)
-10. [Testing Strategy](#testing-strategy)
+8. [Configuration Reference](#configuration-reference)
+9. [Implementation Order](#implementation-order)
+10. [File Summary](#file-summary)
+11. [Testing Strategy](#testing-strategy)
 
 ---
 
@@ -1775,9 +1787,16 @@ public void onServerTick(TickEvent.ServerTickEvent event) {
 
 Implement item attribute system to control which items can be traded/auctioned. Items with certain attributes will be blocked from the auction house.
 
-### 4.2 New Item Attributes
+### 4.2 Existing Item Requirements (Reuse)
 
-#### 4.2.1 Untradeable Attribute
+The codebase already has requirement types that we can leverage:
+
+| Requirement | NBT Key | File | Purpose |
+|-------------|---------|------|---------|
+| ProfileSlot Bound | `cnpc_profile_slot` | `ProfileSlotRequirement.java` | Item bound to specific profile slot |
+| Soulbound | `cnpc_soulbind` | `SoulbindRequirement.java` | Item bound to specific player UUID |
+
+### 4.3 New Untradeable Attribute
 
 A new NBT-based item attribute that marks items as untradeable.
 
@@ -1786,27 +1805,35 @@ A new NBT-based item attribute that marks items as untradeable.
 ```java
 package kamkeel.npcs.controllers.data.attribute;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
 public class ItemTradeAttribute {
+    // New untradeable attribute
     public static final String TAG_UNTRADEABLE = "CNPC_Untradeable";
-    public static final String TAG_SLOT_BOUND = "CNPC_SlotBound";
-    public static final String TAG_SOUL_BOUND = "CNPC_SoulBound";
+
+    // Existing requirement keys (from ProfileSlotRequirement and SoulbindRequirement)
+    public static final String TAG_PROFILE_SLOT = "cnpc_profile_slot";
+    public static final String TAG_SOULBIND = "cnpc_soulbind";
 
     /**
      * Check if item can be traded/auctioned
      */
-    public static boolean canTrade(ItemStack item) {
+    public static boolean canTrade(ItemStack item, EntityPlayer player) {
         if (item == null || !item.hasTagCompound()) {
             return true;
         }
         NBTTagCompound tag = item.getTagCompound();
 
-        // Check all trade-blocking attributes
+        // Check untradeable flag
         if (tag.getBoolean(TAG_UNTRADEABLE)) return false;
-        if (tag.getBoolean(TAG_SLOT_BOUND)) return false;
-        if (tag.getBoolean(TAG_SOUL_BOUND)) return false;
+
+        // Check profile slot bound (item tied to specific profile slot)
+        if (tag.hasKey(TAG_PROFILE_SLOT)) return false;
+
+        // Check soulbound (item tied to specific player)
+        if (tag.hasKey(TAG_SOULBIND)) return false;
 
         return true;
     }
@@ -1819,7 +1846,11 @@ public class ItemTradeAttribute {
         if (!item.hasTagCompound()) {
             item.setTagCompound(new NBTTagCompound());
         }
-        item.getTagCompound().setBoolean(TAG_UNTRADEABLE, untradeable);
+        if (untradeable) {
+            item.getTagCompound().setBoolean(TAG_UNTRADEABLE, true);
+        } else {
+            item.getTagCompound().removeTag(TAG_UNTRADEABLE);
+        }
     }
 
     public static boolean isUntradeable(ItemStack item) {
@@ -1827,14 +1858,14 @@ public class ItemTradeAttribute {
         return item.getTagCompound().getBoolean(TAG_UNTRADEABLE);
     }
 
-    public static boolean isSlotBound(ItemStack item) {
+    public static boolean isProfileSlotBound(ItemStack item) {
         if (item == null || !item.hasTagCompound()) return false;
-        return item.getTagCompound().getBoolean(TAG_SLOT_BOUND);
+        return item.getTagCompound().hasKey(TAG_PROFILE_SLOT);
     }
 
-    public static boolean isSoulBound(ItemStack item) {
+    public static boolean isSoulbound(ItemStack item) {
         if (item == null || !item.hasTagCompound()) return false;
-        return item.getTagCompound().getBoolean(TAG_SOUL_BOUND);
+        return item.getTagCompound().hasKey(TAG_SOULBIND);
     }
 
     /**
@@ -1845,15 +1876,15 @@ public class ItemTradeAttribute {
         NBTTagCompound tag = item.getTagCompound();
 
         if (tag.getBoolean(TAG_UNTRADEABLE)) return "gui.auction.untradeable";
-        if (tag.getBoolean(TAG_SLOT_BOUND)) return "gui.auction.slotbound";
-        if (tag.getBoolean(TAG_SOUL_BOUND)) return "gui.auction.soulbound";
+        if (tag.hasKey(TAG_PROFILE_SLOT)) return "gui.auction.profileslotbound";
+        if (tag.hasKey(TAG_SOULBIND)) return "gui.auction.soulbound";
 
         return null;
     }
 }
 ```
 
-### 4.3 Auction House Item Blacklist
+### 4.4 Auction House Item Blacklist
 
 A configurable system to blacklist specific items from being auctioned.
 
@@ -1980,7 +2011,7 @@ public class AuctionBlacklist {
 }
 ```
 
-### 4.4 Integration with Auction Listing
+### 4.5 Integration with Auction Listing
 
 Modify `AuctionController.createListing()` to check restrictions:
 
@@ -2196,6 +2227,115 @@ The Admin GUI can be accessed via:
 
 ---
 
+## Configuration Reference
+
+All auction and market settings will be added to the configuration system.
+
+### Auction Configuration
+
+**File: `config/customnpcs/auction.cfg`** (or section in existing config)
+
+```properties
+# ===========================================
+# Auction House Configuration
+# ===========================================
+
+# General Settings
+# ----------------
+# Enable/disable the auction house system
+B:AuctionEnabled=true
+
+# Default maximum auction listings per player (without permission override)
+I:DefaultMaxListings=5
+
+# Listing fee as percentage of starting price (0.0 = no fee)
+D:ListingFeePercent=0.0
+
+# Sales tax as percentage taken from final sale price (0.05 = 5%)
+D:SalesTaxPercent=0.05
+
+# Require an Auctioneer NPC to access auction house
+B:RequireAuctioneerNPC=true
+
+# Timing Settings
+# ---------------
+# Available auction durations in hours (comma-separated)
+S:AvailableDurations=2,12,24,48
+
+# Default auction duration in hours
+I:DefaultDurationHours=24
+
+# Claim expiration in days (claims auto-expire after this period, 0 = never)
+I:ClaimExpirationDays=30
+
+# Bidding Rules
+# -------------
+# Minimum bid increment as percentage (0.05 = 5% minimum increase)
+D:MinBidIncrementPercent=0.05
+
+# Snipe protection: extend auction TO this many minutes when bid placed near end
+# Set to 0 to disable snipe protection
+I:SnipeProtectionMinutes=5
+
+# How many minutes before end triggers snipe protection
+# (bids placed with less than this remaining will extend the auction)
+I:SnipeProtectionThreshold=5
+
+# Permissions
+# -----------
+# Permission pattern for auction slot limits: customnpcs.auction.slots.X
+# Players without any permission get DefaultMaxListings
+# Example: Player with customnpcs.auction.slots.10 can have 10 listings
+```
+
+### Currency Configuration
+
+```properties
+# ===========================================
+# Currency System Configuration
+# ===========================================
+
+# Use VaultAPI if available on Bukkit hybrid servers
+B:UseVaultIfAvailable=true
+
+# Fallback currency item (registry name) when Vault unavailable
+# Leave empty to disable fallback currency
+S:FallbackCurrencyItem=customnpcs:npcCoinGold
+
+# Conversion ratio: 1 fallback item = X virtual currency
+D:FallbackItemRatio=1.0
+```
+
+### Trader Stock Configuration
+
+```properties
+# ===========================================
+# Trader Stock Configuration
+# ===========================================
+
+# Enable stock system by default for new traders
+B:EnableStockByDefault=false
+
+# Default stock reset type (NONE, MCDAILY, MCWEEKLY, RLDAILY, RLWEEKLY)
+S:DefaultResetType=NONE
+```
+
+### Permission Nodes
+
+| Permission | Description | Default |
+|------------|-------------|---------|
+| `customnpcs.auction.use` | Access auction house | true |
+| `customnpcs.auction.sell` | Create auction listings | true |
+| `customnpcs.auction.buy` | Bid and buyout auctions | true |
+| `customnpcs.auction.slots.X` | Have X maximum listings | - |
+| `customnpcs.auction.admin` | Access admin management | op |
+| `customnpcs.auction.manage` | Modify/cancel any listing | op |
+| `customnpcs.auction.blacklist` | Manage item blacklist | op |
+| `customnpcs.auction.bypass.fee` | Bypass listing fees | op |
+| `customnpcs.auction.bypass.tax` | Bypass sales tax | op |
+
+---
+
 ## Implementation Order
 
 The features should be implemented in this order due to dependencies:
@@ -2400,17 +2540,21 @@ This implementation plan provides a comprehensive roadmap for the CustomNPC+ 1.1
 
 1. **Currency System** provides the foundation for monetary transactions (shared across profile slots)
 2. **Trader Enhancements** modernize the existing trader with stock, currency support, and reset timer banners
-3. **Item Attributes & Restrictions** control which items can be traded via Untradeable, SlotBound, SoulBound attributes and blacklists
-4. **Auction House** creates a global marketplace with claims-based refunds and permission-based slot limits
+3. **Item Attributes & Restrictions** control which items can be traded via Untradeable, ProfileSlot Bound, and Soulbound attributes plus blacklists
+4. **Auction House** creates a global marketplace with claims-based refunds, bid modification, and permission-based slot limits
 5. **Admin Management** provides comprehensive tools for server operators to manage the auction house in real-time
 
-The implementation follows existing codebase patterns (permission system from Profiles, gold coin from CustomItems) and can be developed incrementally, with each phase building on the previous one.
+The implementation follows existing codebase patterns (permission system from Profiles, gold coin from CustomItems, existing requirement types) and can be developed incrementally, with each phase building on the previous one.
 
 ### Key Design Decisions Summary
-- Outbid refunds → Claims (not direct to balance)
+- Outbid refunds → Claims (not direct to balance) with **Modify Bid** feature
 - Currency → Shared across all profile slots per player
-- Permissions → Uses existing CustomNPC+ permission pattern
+- Permissions → Uses existing CustomNPC+ permission pattern (default: 5 slots)
 - Display icon → Existing `CustomItems.coinGold`
 - Stock reset timer → Banner displayed ABOVE the trader GUI
-- Trade restrictions → Untradeable attribute + SlotBound/SoulBound + Blacklist system
+- Trade restrictions → New Untradeable + existing ProfileSlotRequirement/SoulbindRequirement + Blacklist
+- Claim expiration → 30 days default (configurable)
+- Bid increment → Percentage-based minimum (configurable, e.g., 5%)
+- Snipe protection → Extend TO 5 minutes when bid placed near end (configurable)
+- Auction durations → 2h, 12h, 24h, 48h (configurable)
 - Admin tools → Full management GUI with audit logging
