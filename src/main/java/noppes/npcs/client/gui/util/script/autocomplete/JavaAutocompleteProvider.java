@@ -392,6 +392,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
      * Apply penalty to static members when accessed in a non-static (instance) context.
      * This matches IntelliJ's behavior where static members are deprioritized when
      * accessing through an instance (e.g., Minecraft.getMinecraft().getMinecraft()).
+     * However, if the item is a very strong match (exact prefix), don't penalize as much.
      */
     private void applyStaticPenalty(AutocompleteItem item, boolean isMemberAccess, boolean isStaticContext) {
         // Only apply penalty in member access contexts (after dot)
@@ -416,7 +417,16 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         
         // Apply penalty to static members in instance context
         if (isStatic) {
-            item.addScoreBoost(-item.getMatchScore()); // Significant penalty to push static members down
+            int matchScore = item.getMatchScore();
+            // Strong prefix matches (score >= 800) get a lighter penalty
+            // Weaker matches get pushed down more aggressively
+            if (matchScore >= 800) {
+                // Light penalty for exact prefix matches - just deprioritize slightly
+                item.addScoreBoost(-200);
+            } else {
+                // Heavy penalty for fuzzy/substring matches - push to bottom
+                item.addScoreBoost(-matchScore);
+            }
         }
     }
     
