@@ -13,7 +13,7 @@ public class TypeScriptDefinitionParser {
     
     // Patterns for parsing .d.ts content
     private static final Pattern INTERFACE_PATTERN = Pattern.compile(
-        "export\\s+interface\\s+(\\w+)(?:\\s+extends\\s+([\\w.]+))?\\s*\\{");
+        "export\\s+interface\\s+(\\w+)(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
     
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile(
         "export\\s+namespace\\s+(\\w+)\\s*\\{");
@@ -155,10 +155,19 @@ public class TypeScriptDefinitionParser {
         Matcher interfaceMatcher = INTERFACE_PATTERN.matcher(content);
         while (interfaceMatcher.find()) {
             String interfaceName = interfaceMatcher.group(1);
-            String extendsType = interfaceMatcher.group(2);
+            String extendsClause = interfaceMatcher.group(2);
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, parentNamespace);
-            if (extendsType != null) {
+            if (extendsClause != null) {
+                // Handle multiple extends (e.g., "IEntityLivingBase<T>, IAnimatable")
+                // Take the first one, stripping generics
+                String extendsType = extendsClause.trim();
+                // Remove generic parameters like <T>
+                extendsType = extendsType.replaceAll("<[^>]*>", "");
+                // If multiple types (comma-separated), take the first one
+                if (extendsType.contains(",")) {
+                    extendsType = extendsType.substring(0, extendsType.indexOf(',')).trim();
+                }
                 typeInfo.setExtends(extendsType);
             }
             
