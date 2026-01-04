@@ -60,6 +60,7 @@ import noppes.npcs.controllers.LinkedNpcController;
 import noppes.npcs.controllers.MagicController;
 import noppes.npcs.controllers.VaultHelper;
 import noppes.npcs.controllers.CurrencyController;
+import noppes.npcs.controllers.AuctionBlacklist;
 import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
@@ -308,6 +309,7 @@ public class CustomNpcs {
     public void started(FMLServerStartedEvent event) {
         new VaultHelper();
         new CurrencyController();
+        new AuctionBlacklist();
         RecipeController.Instance.load();
         new BankController();
         DialogController.Instance.load();
