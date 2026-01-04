@@ -86,8 +86,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         }
         insertText.append(")");
         
-        String returnType = method.getReturnType() != null ? 
-            method.getReturnType().getSimpleName() : "void";
+        String returnType = method.getReturnType() != null ?
+                getName(method.getReturnType()) : "void";
         
         String signature = buildMethodSignature(method);
         
@@ -97,8 +97,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         for (int i = 0; i < method.getParameterCount(); i++) {
             if (i > 0) displayName.append(", ");
             FieldInfo param = method.getParameters().get(i);
-            String paramType = param.getTypeInfo() != null ? 
-                param.getTypeInfo().getSimpleName() : "?";
+            String paramType = param.getTypeInfo() != null ?
+                    getName(param.getTypeInfo()) : "?";
             displayName.append(paramType);
             if (param.getName() != null && !param.getName().isEmpty()) {
                 displayName.append(" ").append(param.getName());
@@ -125,8 +125,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a Java FieldInfo.
      */
     public static AutocompleteItem fromField(FieldInfo field) {
-        String typeLabel = field.getTypeInfo() != null ? 
-            field.getTypeInfo().getSimpleName() : "?";
+        String typeLabel = field.getTypeInfo() != null ?
+                getName(field.getTypeInfo()) : "?";
         
         Kind kind;
         switch (field.getScope()) {
@@ -173,11 +173,11 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             default:
                 kind = Kind.CLASS;
         }
-        
+        String name = getName(type);
         return new AutocompleteItem(
-            type.getSimpleName(),
-            type.getSimpleName(),  // searchName same as display name for types
-            type.getSimpleName(),
+                name,
+                name,  // searchName same as display name for types
+                name,
             kind,
             type.getPackageName(),
             type.getFullName(),
@@ -259,15 +259,15 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     
     private static String buildMethodSignature(MethodInfo method) {
         StringBuilder sb = new StringBuilder();
-        String returnType = method.getReturnType() != null ? 
-            method.getReturnType().getSimpleName() : "void";
+        String returnType = method.getReturnType() != null ?
+                getName(method.getReturnType()) : "void";
         sb.append(returnType).append(" ").append(method.getName()).append("(");
         
         for (int i = 0; i < method.getParameterCount(); i++) {
             if (i > 0) sb.append(", ");
             FieldInfo param = method.getParameters().get(i);
-            String paramType = param.getTypeInfo() != null ? 
-                param.getTypeInfo().getSimpleName() : "?";
+            String paramType = param.getTypeInfo() != null ?
+                    getName(param.getTypeInfo()) : "?";
             sb.append(paramType).append(" ").append(param.getName());
         }
         
@@ -396,6 +396,10 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public int getMatchScore() { return matchScore; }
     public int[] getMatchIndices() { return matchIndices; }
 
+    public static String getName(TypeInfo type) {
+        return type.isJSType() ? type.getFullName() : type.getSimpleName();
+    }
+    
     public int getParameterCount() {
         if (sourceData instanceof MethodInfo) {
             return ((MethodInfo) sourceData).getParameterCount();
