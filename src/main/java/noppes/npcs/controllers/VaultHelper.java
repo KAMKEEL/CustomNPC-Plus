@@ -157,7 +157,7 @@ public class VaultHelper {
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         boolean success = data.currencyData.deposit(amount);
         if (success) {
-            data.saveCurrency();
+            data.save();
         }
         return success;
     }
@@ -201,7 +201,7 @@ public class VaultHelper {
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         boolean success = data.currencyData.withdraw(amount);
         if (success) {
-            data.saveCurrency();
+            data.save();
         }
         return success;
     }
@@ -253,7 +253,7 @@ public class VaultHelper {
 
         PlayerData data = PlayerDataController.Instance.getPlayerData(player);
         data.currencyData.setBalance(amount);
-        data.saveCurrency();
+        data.save();
     }
 
     /**
