@@ -36,7 +36,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         }
     }
     
-    private final String name;              // Display name (e.g., "getPlayer")
+    private final String name;              // Display name (e.g., "getPlayer" or "getPlayer(UUID id)" for methods)
+    private final String searchName;        // Name to search against (just the identifier, e.g., "getPlayer")
     private final String insertText;        // Text to insert (e.g., "getPlayer()")
     private final Kind kind;                // Type of completion
     private final String typeLabel;         // Type label (e.g., "IPlayer", "void")
@@ -53,10 +54,11 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     private int matchScore = 0;             // How well this matches the query
     private int[] matchIndices;             // Indices of matched characters for highlighting
     
-    private AutocompleteItem(String name, String insertText, Kind kind, String typeLabel,
+    private AutocompleteItem(String name, String searchName, String insertText, Kind kind, String typeLabel,
                              String signature, String documentation, Object sourceData, boolean deprecated,
                              boolean requiresImport, String importPath) {
         this.name = name;
+        this.searchName = searchName != null ? searchName : name;  // Default to name if not provided
         this.insertText = insertText;
         this.kind = kind;
         this.typeLabel = typeLabel;
@@ -106,6 +108,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         return new AutocompleteItem(
             displayName.toString(),
+            name,  // Search against just the method name, not the params
             insertText.toString(),
             Kind.METHOD,
             returnType,
@@ -142,6 +145,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         return new AutocompleteItem(
             field.getName(),
+            field.getName(),  // searchName same as display name for fields
             field.getName(),
             kind,
             typeLabel,
@@ -172,6 +176,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         return new AutocompleteItem(
             type.getSimpleName(),
+            type.getSimpleName(),  // searchName same as display name for types
             type.getSimpleName(),
             kind,
             type.getPackageName(),
@@ -199,6 +204,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         return new AutocompleteItem(
             displayName,
+            name,  // Search against just the method name
             insertText.toString(),
             Kind.METHOD,
             method.getReturnType(),
@@ -217,6 +223,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public static AutocompleteItem fromJSField(JSFieldInfo field) {
         return new AutocompleteItem(
             field.getName(),
+            field.getName(),  // searchName same as display name
             field.getName(),
             Kind.FIELD,
             field.getType(),
@@ -235,6 +242,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public static AutocompleteItem keyword(String keyword) {
         return new AutocompleteItem(
             keyword,
+            keyword,  // searchName same as display name
             keyword,
             Kind.KEYWORD,
             "keyword",
@@ -272,15 +280,18 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     /**
      * Calculate fuzzy match score against a query string.
      * Returns -1 if no match, or a positive score (higher = better match).
+     * 
+     * @param query The search query
+     * @param requirePrefix If true, only match items that start with the query (no fuzzy/contains matching)
      */
-    public int calculateMatchScore(String query) {
+    public int calculateMatchScore(String query, boolean requirePrefix) {
         if (query == null || query.isEmpty()) {
             matchScore = 100; // Everything matches empty query
             matchIndices = new int[0];
             return matchScore;
         }
         
-        String lowerName = name.toLowerCase();
+        String lowerName = searchName.toLowerCase();
         String lowerQuery = query.toLowerCase();
         
         // Exact prefix match is best
@@ -290,6 +301,13 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             for (int i = 0; i < query.length(); i++) {
                 matchIndices[i] = i;
             }
+            return matchScore;
+        }
+        
+        // If requirePrefix is true, stop here - no fuzzy/substring matching
+        if (requirePrefix) {
+            matchScore = -1;
+            matchIndices = new int[0];
             return matchScore;
         }
         
@@ -312,8 +330,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         int consecutiveBonus = 0;
         int lastMatchIdx = -2;
         
-        while (queryIdx < query.length() && nameIdx < name.length()) {
-            if (Character.toLowerCase(name.charAt(nameIdx)) == lowerQuery.charAt(queryIdx)) {
+        while (queryIdx < query.length() && nameIdx < searchName.length()) {
+            if (Character.toLowerCase(searchName.charAt(nameIdx)) == lowerQuery.charAt(queryIdx)) {
                 indices[queryIdx] = nameIdx;
                 
                 // Bonus for consecutive matches
@@ -322,9 +340,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
                 }
                 
                 // Bonus for matching at word boundaries (camelCase)
-                if (nameIdx == 0 || !Character.isLetterOrDigit(name.charAt(nameIdx - 1)) ||
-                    (Character.isUpperCase(name.charAt(nameIdx)) && nameIdx > 0 && 
-                     Character.isLowerCase(name.charAt(nameIdx - 1)))) {
+                if (nameIdx == 0 || !Character.isLetterOrDigit(searchName.charAt(nameIdx - 1)) ||
+                    (Character.isUpperCase(searchName.charAt(nameIdx)) && nameIdx > 0 && 
+                     Character.isLowerCase(searchName.charAt(nameIdx - 1)))) {
                     consecutiveBonus += 20;
                 }
                 
@@ -346,6 +364,13 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         matchScore = 100 + consecutiveBonus - gaps;
         matchIndices = indices;
         return matchScore;
+    }
+    
+    /**
+     * Backward compatibility overload - defaults to fuzzy matching (no prefix requirement).
+     */
+    public int calculateMatchScore(String query) {
+        return calculateMatchScore(query, false);
     }
     
     // ==================== GETTERS ====================
@@ -423,6 +448,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      */
     public static class Builder {
         private String name;
+        private String searchName;
         private String insertText;
         private Kind kind = Kind.FIELD;
         private String typeLabel = "";
@@ -435,6 +461,11 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         
         public Builder name(String name) {
             this.name = name;
+            return this;
+        }
+        
+        public Builder searchName(String searchName) {
+            this.searchName = searchName;
             return this;
         }
         
@@ -487,7 +518,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             if (insertText == null) {
                 insertText = name;
             }
-            return new AutocompleteItem(name, insertText, kind, typeLabel, 
+            return new AutocompleteItem(name, searchName, insertText, kind, typeLabel, 
                 signature, documentation, sourceData, deprecated, requiresImport, importPath);
         }
     }

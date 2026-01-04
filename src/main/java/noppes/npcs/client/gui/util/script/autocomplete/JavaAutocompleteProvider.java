@@ -46,7 +46,7 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
         }
         
         // Filter and score by prefix
-        filterAndScore(items, context.prefix);
+        filterAndScore(items, context.prefix, context.isMemberAccess);
         
         // Sort by score
         Collections.sort(items);
@@ -240,9 +240,8 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     private void addUnimportedClassSuggestions(String prefix, List<AutocompleteItem> items) {
         // Get the type resolver
         TypeResolver resolver = TypeResolver.getInstance();
-        
         // Find classes matching this prefix (not just exact matches)
-        List<String> matchingClasses = resolver.findClassesByPrefix(prefix, 15);
+        List<String> matchingClasses = resolver.findClassesByPrefix(prefix, -1);
         
         // Track what's already imported to avoid duplicates
         Set<String> importedFullNames = new HashSet<>();
@@ -335,20 +334,24 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     /**
      * Filter items by prefix and calculate match scores.
      */
-    private void filterAndScore(List<AutocompleteItem> items, String prefix) {
+    private void filterAndScore(List<AutocompleteItem> items, String prefix, boolean isMemberAccess) {
         if (prefix == null || prefix.isEmpty()) {
             // No filtering needed, all items get a base score
             for (AutocompleteItem item : items) {
-                item.calculateMatchScore("");
+                item.calculateMatchScore("", false);
             }
             return;
         }
+        
+        // For non-member access (first word), require strict prefix matching
+        // For member access (after dot), allow fuzzy/contains matching
+        boolean requirePrefix = !isMemberAccess;
         
         // Filter and score
         Iterator<AutocompleteItem> iter = items.iterator();
         while (iter.hasNext()) {
             AutocompleteItem item = iter.next();
-            int score = item.calculateMatchScore(prefix);
+            int score = item.calculateMatchScore(prefix, requirePrefix);
             if (score < 0) {
                 iter.remove();
             }

@@ -166,7 +166,7 @@ public class ClassIndex {
                 for (Class<?> clazz : entry.getValue()) {
                     results.add(clazz.getName());
                     
-                    if (results.size() >= maxResults) {
+                    if (maxResults != -1 && results.size() >= maxResults) {
                         return results;
                     }
                 }
