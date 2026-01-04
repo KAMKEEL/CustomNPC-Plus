@@ -4,11 +4,13 @@ import foxz.utils.Market;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.NBTTags;
 import noppes.npcs.NoppesUtilPlayer;
 import noppes.npcs.NoppesUtilServer;
 import noppes.npcs.NpcMiscInventory;
 import noppes.npcs.constants.EnumGuiType;
+import noppes.npcs.controllers.data.TraderStock;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashMap;
@@ -29,6 +31,13 @@ public class RoleTrader extends RoleInterface {
     public int[] disableSlot;
     public HashMap<String, int[]> playerPurchases;
     public HashMap<String, int[]> playerDisableSlot;
+
+    // Stock system
+    public TraderStock stock = new TraderStock();
+
+    // Currency system
+    public boolean useCurrency = false;       // Use virtual currency instead of items
+    public long[] slotPrices = new long[18];  // Currency prices per slot
 
     public RoleTrader(EntityNPCInterface npc) {
         super(npc);
@@ -59,6 +68,20 @@ public class RoleTrader extends RoleInterface {
             nbttagcompound.setIntArray("Purchases", purchases);
             nbttagcompound.setTag("PlayerPurchases", NBTTags.nbtStringIntegerArrayMap(playerPurchases));
         }
+
+        // Stock system
+        nbttagcompound.setTag("Stock", stock.writeToNBT(new NBTTagCompound()));
+
+        // Currency system
+        nbttagcompound.setBoolean("UseCurrency", useCurrency);
+        NBTTagList priceList = new NBTTagList();
+        for (long price : slotPrices) {
+            NBTTagCompound priceTag = new NBTTagCompound();
+            priceTag.setLong("Price", price);
+            priceList.appendTag(priceTag);
+        }
+        nbttagcompound.setTag("SlotPrices", priceList);
+
         return nbttagcompound;
     }
 
@@ -94,10 +117,39 @@ public class RoleTrader extends RoleInterface {
             disableSlot = new int[18];
             for (int i = 0; i < disableSlot.length; ++i) disableSlot[i] = 0;
         }
+
+        // Stock system
+        if (nbttagcompound.hasKey("Stock")) {
+            stock.readFromNBT(nbttagcompound.getCompoundTag("Stock"));
+        }
+
+        // Currency system
+        useCurrency = nbttagcompound.getBoolean("UseCurrency");
+        if (nbttagcompound.hasKey("SlotPrices")) {
+            NBTTagList priceList = nbttagcompound.getTagList("SlotPrices", 10);
+            for (int i = 0; i < priceList.tagCount() && i < 18; i++) {
+                slotPrices[i] = priceList.getCompoundTagAt(i).getLong("Price");
+            }
+        }
     }
 
     @Override
     public void interact(EntityPlayer player) {
+        // Check for stock reset before opening GUI
+        if (stock.enableStock) {
+            long currentTime = stock.resetType.isRealTime()
+                ? System.currentTimeMillis()
+                : player.worldObj.getTotalWorldTime();
+
+            if (stock.shouldReset(currentTime)) {
+                stock.resetStock(currentTime);
+                // Save to market if using shared market
+                if (!marketName.isEmpty()) {
+                    Market.save(this, marketName);
+                }
+            }
+        }
+
         npc.say(player, npc.advanced.getInteractLine());
         try {
             Market.getMarket(this, marketName);
@@ -138,4 +190,78 @@ public class RoleTrader extends RoleInterface {
         return map.get(name);
     }
 
+    // ==================== Stock System Methods ====================
+
+    /**
+     * Check if there is stock available for a slot
+     */
+    public boolean hasStock(int slot, String playerName, int amount) {
+        if (!stock.enableStock) {
+            return true;  // Stock system disabled, always available
+        }
+        return stock.hasStock(slot, playerName, amount);
+    }
+
+    /**
+     * Get available stock for a slot
+     */
+    public int getAvailableStock(int slot, String playerName) {
+        if (!stock.enableStock) {
+            return Integer.MAX_VALUE;  // Unlimited
+        }
+        return stock.getAvailableStock(slot, playerName);
+    }
+
+    /**
+     * Consume stock after purchase
+     */
+    public boolean consumeStock(int slot, String playerName, int amount) {
+        if (!stock.enableStock) {
+            return true;  // Stock system disabled
+        }
+        boolean consumed = stock.consumeStock(slot, playerName, amount);
+        if (consumed && !marketName.isEmpty()) {
+            Market.save(this, marketName);
+        }
+        return consumed;
+    }
+
+    /**
+     * Get time until stock reset formatted for display
+     */
+    public String getTimeUntilResetFormatted() {
+        if (!stock.enableStock || stock.resetType == noppes.npcs.constants.EnumStockReset.NONE) {
+            return "";
+        }
+        long currentTime = stock.resetType.isRealTime()
+            ? System.currentTimeMillis()
+            : (npc != null && npc.worldObj != null ? npc.worldObj.getTotalWorldTime() : 0);
+        return stock.getTimeUntilResetFormatted(currentTime);
+    }
+
+    // ==================== Currency System Methods ====================
+
+    /**
+     * Get the currency price for a slot
+     */
+    public long getSlotPrice(int slot) {
+        if (slot < 0 || slot >= 18) return 0;
+        return slotPrices[slot];
+    }
+
+    /**
+     * Set the currency price for a slot
+     */
+    public void setSlotPrice(int slot, long price) {
+        if (slot >= 0 && slot < 18) {
+            slotPrices[slot] = Math.max(0, price);
+        }
+    }
+
+    /**
+     * Check if a slot has a currency price set
+     */
+    public boolean hasSlotPrice(int slot) {
+        return useCurrency && slot >= 0 && slot < 18 && slotPrices[slot] > 0;
+    }
 }

@@ -4,6 +4,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import noppes.npcs.NoppesUtilPlayer;
+import noppes.npcs.controllers.CurrencyController;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.roles.RoleTrader;
 
@@ -61,17 +62,43 @@ public class ContainerNPCTrader extends ContainerNpcInterface {
         ItemStack item = slot.getStack();
         if (!canGivePlayer(item, entityplayer))
             return null;
-        if (!canBuy(i, entityplayer))
-            return null;
         if (!isSlotEnabled(i, entityplayer))
             return null;
-        NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i), role.ignoreDamage, role.ignoreNBT);
-        NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i + 18), role.ignoreDamage, role.ignoreNBT);
+
+        // Check stock availability
+        String playerName = entityplayer.getCommandSenderName();
+        if (!role.hasStock(i, playerName, 1)) {
+            return null;  // Out of stock
+        }
+
+        // Handle currency-based purchase
+        if (role.hasSlotPrice(i)) {
+            long price = role.getSlotPrice(i);
+            if (CurrencyController.Instance == null) {
+                return null;  // Currency system not available
+            }
+            if (!CurrencyController.Instance.canAfford(entityplayer, price)) {
+                return null;  // Can't afford
+            }
+            // Withdraw currency
+            if (!CurrencyController.Instance.withdraw(entityplayer, price)) {
+                return null;  // Withdrawal failed
+            }
+        } else {
+            // Item-based currency - existing logic
+            if (!canBuy(i, entityplayer))
+                return null;
+            NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i), role.ignoreDamage, role.ignoreNBT);
+            NoppesUtilPlayer.consumeItem(entityplayer, role.inventoryCurrency.getStackInSlot(i + 18), role.ignoreDamage, role.ignoreNBT);
+        }
+
+        // Consume stock
+        role.consumeStock(i, playerName, 1);
+
         ItemStack soldItem = item.copy();
         givePlayer(soldItem, entityplayer);
         role.addPurchase(i, entityplayer.getDisplayName());
         return soldItem;
-
     }
 
     public boolean isSlotEnabled(int slot, EntityPlayer player) {
