@@ -1,7 +1,6 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
-import noppes.npcs.constants.EnumAuctionCategory;
 import noppes.npcs.constants.EnumAuctionSort;
 
 /**
@@ -12,9 +11,6 @@ public class AuctionFilter {
 
     /** Search text to match against item names */
     public String searchText = "";
-
-    /** Category to filter by (ALL for no category filter) */
-    public EnumAuctionCategory category = EnumAuctionCategory.ALL;
 
     /** How to sort results */
     public EnumAuctionSort sortOrder = EnumAuctionSort.ENDING_SOON;
@@ -56,15 +52,6 @@ public class AuctionFilter {
     }
 
     /**
-     * Create a filter with category
-     */
-    public static AuctionFilter category(EnumAuctionCategory category) {
-        AuctionFilter filter = new AuctionFilter();
-        filter.category = category;
-        return filter;
-    }
-
-    /**
      * Create a filter for a specific seller
      */
     public static AuctionFilter seller(String sellerUUID) {
@@ -77,11 +64,6 @@ public class AuctionFilter {
 
     public AuctionFilter withSearch(String text) {
         this.searchText = text != null ? text : "";
-        return this;
-    }
-
-    public AuctionFilter withCategory(EnumAuctionCategory category) {
-        this.category = category;
         return this;
     }
 
@@ -135,11 +117,6 @@ public class AuctionFilter {
             }
         }
 
-        // Category filter
-        if (category != EnumAuctionCategory.ALL && listing.category != category) {
-            return false;
-        }
-
         // Price range filter (uses current bid or starting price)
         long price = listing.currentBid > 0 ? listing.currentBid : listing.startingPrice;
         if (minPrice > 0 && price < minPrice) {
@@ -180,7 +157,6 @@ public class AuctionFilter {
      */
     public void reset() {
         searchText = "";
-        category = EnumAuctionCategory.ALL;
         sortOrder = EnumAuctionSort.ENDING_SOON;
         minPrice = 0;
         maxPrice = 0;
@@ -196,7 +172,6 @@ public class AuctionFilter {
      */
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setString("SearchText", searchText);
-        compound.setInteger("Category", category.ordinal());
         compound.setInteger("SortOrder", sortOrder.ordinal());
         compound.setLong("MinPrice", minPrice);
         compound.setLong("MaxPrice", maxPrice);
@@ -214,11 +189,6 @@ public class AuctionFilter {
      */
     public void readFromNBT(NBTTagCompound compound) {
         searchText = compound.getString("SearchText");
-
-        int catOrdinal = compound.getInteger("Category");
-        if (catOrdinal >= 0 && catOrdinal < EnumAuctionCategory.values().length) {
-            category = EnumAuctionCategory.values()[catOrdinal];
-        }
 
         int sortOrdinal = compound.getInteger("SortOrder");
         if (sortOrdinal >= 0 && sortOrdinal < EnumAuctionSort.values().length) {
@@ -240,7 +210,6 @@ public class AuctionFilter {
     public String toString() {
         return "AuctionFilter{" +
             "search='" + searchText + '\'' +
-            ", category=" + category +
             ", sort=" + sortOrder +
             ", price=" + minPrice + "-" + maxPrice +
             ", buyoutOnly=" + buyoutOnly +

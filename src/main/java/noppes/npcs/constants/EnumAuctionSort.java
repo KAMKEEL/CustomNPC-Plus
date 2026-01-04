@@ -1,66 +1,37 @@
 package noppes.npcs.constants;
 
+import net.minecraft.util.StatCollector;
+
 /**
  * Sorting options for auction listings.
  */
 public enum EnumAuctionSort {
-    /** Default - newest listings first */
-    NEWEST_FIRST("Newest First"),
+    NEWEST_FIRST("auction.sort.newest"),
+    OLDEST_FIRST("auction.sort.oldest"),
+    PRICE_HIGH_TO_LOW("auction.sort.priceHigh"),
+    PRICE_LOW_TO_HIGH("auction.sort.priceLow"),
+    ENDING_SOON("auction.sort.endingSoon"),
+    MOST_TIME_LEFT("auction.sort.mostTime"),
+    NAME_A_TO_Z("auction.sort.nameAZ"),
+    NAME_Z_TO_A("auction.sort.nameZA"),
+    MOST_BIDS("auction.sort.mostBids"),
+    LEAST_BIDS("auction.sort.leastBids");
 
-    /** Oldest listings first */
-    OLDEST_FIRST("Oldest First"),
+    private final String langKey;
 
-    /** Highest current price first */
-    PRICE_HIGH_TO_LOW("Most Expensive"),
-
-    /** Lowest current price first */
-    PRICE_LOW_TO_HIGH("Least Expensive"),
-
-    /** Buyout price high to low (listings without buyout at end) */
-    BUYOUT_HIGH_TO_LOW("Buyout: High to Low"),
-
-    /** Buyout price low to high (listings without buyout at end) */
-    BUYOUT_LOW_TO_HIGH("Buyout: Low to High"),
-
-    /** Ending soonest first */
-    ENDING_SOON("Ending Soon"),
-
-    /** Most time remaining first */
-    MOST_TIME_LEFT("Most Time Left"),
-
-    /** Alphabetical by item name A-Z */
-    NAME_A_TO_Z("Name: A to Z"),
-
-    /** Alphabetical by item name Z-A */
-    NAME_Z_TO_A("Name: Z to A"),
-
-    /** Most bids first */
-    MOST_BIDS("Most Bids"),
-
-    /** Least bids first */
-    LEAST_BIDS("Least Bids");
-
-    private final String displayName;
-
-    EnumAuctionSort(String displayName) {
-        this.displayName = displayName;
+    EnumAuctionSort(String langKey) {
+        this.langKey = langKey;
     }
 
     public String getDisplayName() {
-        return displayName;
+        return StatCollector.translateToLocal(langKey);
     }
 
-    /**
-     * Get next sort option (for cycling through in GUI)
-     */
     public EnumAuctionSort next() {
         EnumAuctionSort[] values = values();
         return values[(this.ordinal() + 1) % values.length];
     }
 
-    /**
-     * Get previous sort option
-     */
     public EnumAuctionSort previous() {
         EnumAuctionSort[] values = values();
         return values[(this.ordinal() - 1 + values.length) % values.length];

@@ -1,20 +1,21 @@
 package noppes.npcs.controllers;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.LogWriter;
 import noppes.npcs.config.ConfigMarket;
-import noppes.npcs.constants.EnumAuctionCategory;
 import noppes.npcs.constants.EnumAuctionDuration;
 import noppes.npcs.constants.EnumAuctionSort;
 import noppes.npcs.constants.EnumAuctionStatus;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,10 +26,10 @@ import java.util.stream.Collectors;
 
 /**
  * Controller for the global auction house.
- * Manages all auction listings, bidding, and claims.
+ * Manages all auction listings, bidding, claims, notifications, and logging.
  */
 public class AuctionController {
-    private static final Logger logger = LogManager.getLogger(CustomNpcs.class);
+    private static final String LOG_PREFIX = "[Auction] ";
 
     public static AuctionController Instance;
 
@@ -41,6 +42,9 @@ public class AuctionController {
     // Indices for fast lookup
     private Map<UUID, List<Integer>> listingsBySeller = new ConcurrentHashMap<>();
     private Map<UUID, List<Integer>> listingsByBidder = new ConcurrentHashMap<>();
+
+    // Pending notifications for offline players
+    private Map<UUID, List<String>> pendingNotifications = new ConcurrentHashMap<>();
 
     public AuctionController() {
         Instance = this;
@@ -59,7 +63,7 @@ public class AuctionController {
         // Validate item
         String validation = AuctionListing.validateItem(item);
         if (validation != null) {
-            logger.warn("Auction listing validation failed: " + validation);
+            LogWriter.info(LOG_PREFIX + "Listing validation failed: " + validation);
             return null;
         }
 
@@ -67,8 +71,6 @@ public class AuctionController {
         int currentListings = getActiveListingsCount(seller.getUniqueID());
         int maxListings = getMaxListings(seller);
         if (currentListings >= maxListings) {
-            logger.info("Player {} has reached max listings ({}/{})",
-                seller.getCommandSenderName(), currentListings, maxListings);
             return null;
         }
 
@@ -85,8 +87,6 @@ public class AuctionController {
         long listingFee = listing.getListingFee();
         if (listingFee > 0) {
             if (!CurrencyController.Instance.canAfford(seller, listingFee)) {
-                logger.info("Player {} cannot afford listing fee of {}",
-                    seller.getCommandSenderName(), listingFee);
                 return null;
             }
             CurrencyController.Instance.withdraw(seller, listingFee);
@@ -100,12 +100,11 @@ public class AuctionController {
         addToSellerIndex(seller.getUniqueID(), listing.id);
 
         save();
-        logger.info("Created auction listing {} by {} for {}",
-            listing.id, seller.getCommandSenderName(),
-            item.getDisplayName());
 
-        // Log to CNPC+ auction history
-        AuctionLogger.logListingCreated(listing);
+        // Log to CNPC+
+        logEvent("LISTING_CREATED", String.format("ID=%d, Seller=%s, Item=%s x%d, StartPrice=%d, Buyout=%s",
+            listing.id, listing.sellerName, item.getDisplayName(), item.stackSize,
+            listing.startingPrice, listing.buyoutPrice > 0 ? listing.buyoutPrice : "None"));
 
         return listing;
     }
@@ -128,18 +127,6 @@ public class AuctionController {
     }
 
     /**
-     * Get active listings by category
-     */
-    public List<AuctionListing> getActiveListings(EnumAuctionCategory category) {
-        if (category == EnumAuctionCategory.ALL) {
-            return getActiveListings();
-        }
-        return getActiveListings().stream()
-            .filter(l -> l.category == category)
-            .collect(Collectors.toList());
-    }
-
-    /**
      * Search listings by item name
      */
     public List<AuctionListing> searchListings(String query) {
@@ -153,7 +140,6 @@ public class AuctionController {
 
     /**
      * Get filtered and sorted auction listings.
-     * This is the main method for GUI queries.
      * @param filter The filter criteria
      * @return FilterResult containing matching listings and metadata
      */
@@ -171,7 +157,7 @@ public class AuctionController {
 
         // Calculate pagination
         int totalResults = results.size();
-        int totalPages = (int) Math.ceil((double) totalResults / filter.pageSize);
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalResults / filter.pageSize));
         int startIndex = filter.page * filter.pageSize;
         int endIndex = Math.min(startIndex + filter.pageSize, totalResults);
 
@@ -180,7 +166,7 @@ public class AuctionController {
         if (startIndex >= totalResults) {
             pageResults = new ArrayList<>();
         } else {
-            pageResults = results.subList(startIndex, endIndex);
+            pageResults = new ArrayList<>(results.subList(startIndex, endIndex));
         }
 
         return new FilterResult(pageResults, totalResults, filter.page, totalPages);
@@ -200,88 +186,41 @@ public class AuctionController {
             case NEWEST_FIRST:
                 comparator = Comparator.comparingLong(l -> -l.listingTime);
                 break;
-
             case OLDEST_FIRST:
                 comparator = Comparator.comparingLong(l -> l.listingTime);
                 break;
-
             case PRICE_HIGH_TO_LOW:
                 comparator = Comparator.comparingLong((AuctionListing l) ->
                     -(l.currentBid > 0 ? l.currentBid : l.startingPrice));
                 break;
-
             case PRICE_LOW_TO_HIGH:
                 comparator = Comparator.comparingLong(l ->
                     l.currentBid > 0 ? l.currentBid : l.startingPrice);
                 break;
-
-            case BUYOUT_HIGH_TO_LOW:
-                // Listings with buyout first, sorted high to low
-                comparator = Comparator
-                    .comparingInt((AuctionListing l) -> l.buyoutPrice > 0 ? 0 : 1)
-                    .thenComparingLong(l -> -l.buyoutPrice);
-                break;
-
-            case BUYOUT_LOW_TO_HIGH:
-                // Listings with buyout first, sorted low to high
-                comparator = Comparator
-                    .comparingInt((AuctionListing l) -> l.buyoutPrice > 0 ? 0 : 1)
-                    .thenComparingLong(l -> l.buyoutPrice);
-                break;
-
             case ENDING_SOON:
                 comparator = Comparator.comparingLong(l -> l.expirationTime);
                 break;
-
             case MOST_TIME_LEFT:
                 comparator = Comparator.comparingLong(l -> -l.expirationTime);
                 break;
-
             case NAME_A_TO_Z:
-                comparator = Comparator.comparing(l ->
-                    l.item.getDisplayName().toLowerCase());
+                comparator = Comparator.comparing(l -> l.item.getDisplayName().toLowerCase());
                 break;
-
             case NAME_Z_TO_A:
                 comparator = Comparator.comparing((AuctionListing l) ->
                     l.item.getDisplayName().toLowerCase()).reversed();
                 break;
-
             case MOST_BIDS:
                 comparator = Comparator.comparingInt(l -> -l.bidCount);
                 break;
-
             case LEAST_BIDS:
                 comparator = Comparator.comparingInt(l -> l.bidCount);
                 break;
-
             default:
                 comparator = Comparator.comparingLong(l -> l.expirationTime);
         }
 
         listings.sort(comparator);
-    }
-
-    /**
-     * Quick search with default sorting (ending soon)
-     */
-    public List<AuctionListing> quickSearch(String searchText, EnumAuctionCategory category, int limit) {
-        AuctionFilter filter = new AuctionFilter()
-            .withSearch(searchText)
-            .withCategory(category)
-            .withSort(EnumAuctionSort.ENDING_SOON)
-            .withPage(0, limit);
-
-        return getFilteredListings(filter).listings;
-    }
-
-    /**
-     * Get listings sorted by a specific order
-     */
-    public List<AuctionListing> getListingsSorted(EnumAuctionSort sortOrder) {
-        List<AuctionListing> results = new ArrayList<>(getActiveListings());
-        sortListings(results, sortOrder);
-        return results;
     }
 
     /**
@@ -315,7 +254,7 @@ public class AuctionController {
     }
 
     /**
-     * Get all listings by a seller (all statuses)
+     * Get all listings by a seller
      */
     public List<AuctionListing> getListingsBySeller(UUID sellerUUID) {
         List<Integer> ids = listingsBySeller.get(sellerUUID);
@@ -354,7 +293,6 @@ public class AuctionController {
 
     /**
      * Get listings that need claiming by a player
-     * (items won, sales proceeds, cancelled/expired items)
      */
     public List<AuctionListing> getClaimableListings(UUID playerUUID) {
         List<AuctionListing> claimable = new ArrayList<>();
@@ -391,7 +329,6 @@ public class AuctionController {
 
     /**
      * Place a bid on an auction
-     * @return true if bid was successful
      */
     public boolean placeBid(int listingId, EntityPlayer bidder, long amount) {
         AuctionListing listing = listings.get(listingId);
@@ -399,61 +336,51 @@ public class AuctionController {
             return false;
         }
 
-        // Check if bidder can afford
         if (!CurrencyController.Instance.canAfford(bidder, amount)) {
             return false;
         }
 
-        // Store previous bidder for refund and notification
+        // Store previous bidder for refund
         UUID previousBidder = listing.highBidderUUID;
         String previousBidderName = listing.highBidderName;
         long previousBidAmount = listing.currentBid;
 
-        // Try to place bid
         if (!listing.placeBid(bidder.getUniqueID(), bidder.getCommandSenderName(), amount)) {
             return false;
         }
 
-        // Withdraw bid amount from new bidder
         CurrencyController.Instance.withdraw(bidder, amount);
 
-        // Refund previous bidder via claims system and notify
+        // Refund previous bidder
         if (previousBidder != null) {
-            CurrencyController.Instance.addClaim(
-                previousBidder,
-                previousBidAmount,
-                "Auction Outbid",
-                String.valueOf(listingId)
-            );
+            CurrencyController.Instance.addClaim(previousBidder, previousBidAmount,
+                "Auction Outbid", String.valueOf(listingId));
 
-            // Notify previous bidder they were outbid
-            if (AuctionNotificationController.Instance != null) {
-                AuctionNotificationController.Instance.notifyOutbid(
-                    listing, previousBidder, previousBidderName, previousBidAmount, amount);
-            }
+            // Notify outbid player
+            notifyPlayer(previousBidder, EnumChatFormatting.RED +
+                "You have been outbid on " + EnumChatFormatting.WHITE + listing.item.getDisplayName() +
+                EnumChatFormatting.RED + "! New bid: " + formatCurrency(amount));
 
-            // Log refund
-            AuctionLogger.logBidRefunded(listing, previousBidderName, previousBidAmount);
+            logEvent("OUTBID", String.format("ID=%d, OutbidPlayer=%s, PrevBid=%d, NewBid=%d",
+                listingId, previousBidderName, previousBidAmount, amount));
         }
 
-        // Notify seller of new bid
-        if (AuctionNotificationController.Instance != null) {
-            AuctionNotificationController.Instance.notifyNewBid(listing, bidder.getCommandSenderName(), amount);
-        }
+        // Notify seller
+        notifyPlayer(listing.sellerUUID, EnumChatFormatting.AQUA +
+            bidder.getCommandSenderName() + " placed a bid of " + formatCurrency(amount) +
+            " on your " + listing.item.getDisplayName() + "!");
 
-        // Update bidder index
         addToBidderIndex(bidder.getUniqueID(), listingId);
-
         save();
-        logger.info("Bid placed on listing {} by {} for {}",
-            listingId, bidder.getCommandSenderName(), amount);
+
+        logEvent("BID_PLACED", String.format("ID=%d, Bidder=%s, Amount=%d",
+            listingId, bidder.getCommandSenderName(), amount));
 
         return true;
     }
 
     /**
      * Execute buyout on an auction
-     * @return true if buyout was successful
      */
     public boolean buyout(int listingId, EntityPlayer buyer) {
         AuctionListing listing = listings.get(listingId);
@@ -461,66 +388,50 @@ public class AuctionController {
             return false;
         }
 
-        // Check if buyer can afford
         if (!CurrencyController.Instance.canAfford(buyer, listing.buyoutPrice)) {
             return false;
         }
 
-        // Store previous bidder for refund and notification
         UUID previousBidder = listing.highBidderUUID;
         String previousBidderName = listing.highBidderName;
         long previousBidAmount = listing.currentBid;
 
-        // Execute buyout
         if (!listing.buyout(buyer.getUniqueID(), buyer.getCommandSenderName())) {
             return false;
         }
 
-        // Withdraw buyout amount from buyer
         CurrencyController.Instance.withdraw(buyer, listing.buyoutPrice);
 
-        // Refund previous bidder via claims system and notify
+        // Refund previous bidder
         if (previousBidder != null) {
-            CurrencyController.Instance.addClaim(
-                previousBidder,
-                previousBidAmount,
-                "Auction Outbid (Buyout)",
-                String.valueOf(listingId)
-            );
+            CurrencyController.Instance.addClaim(previousBidder, previousBidAmount,
+                "Auction Outbid (Buyout)", String.valueOf(listingId));
 
-            // Notify previous bidder they were outbid
-            if (AuctionNotificationController.Instance != null) {
-                AuctionNotificationController.Instance.notifyOutbid(
-                    listing, previousBidder, previousBidderName, previousBidAmount, listing.buyoutPrice);
-            }
-
-            // Log refund
-            AuctionLogger.logBidRefunded(listing, previousBidderName, previousBidAmount);
+            notifyPlayer(previousBidder, EnumChatFormatting.RED +
+                "Your bid on " + EnumChatFormatting.WHITE + listing.item.getDisplayName() +
+                EnumChatFormatting.RED + " was outbid by a buyout. Your " +
+                formatCurrency(previousBidAmount) + " has been refunded.");
         }
 
-        // Update bidder index
         addToBidderIndex(buyer.getUniqueID(), listingId);
-
         save();
-        logger.info("Buyout executed on listing {} by {} for {}",
-            listingId, buyer.getCommandSenderName(), listing.buyoutPrice);
 
-        // Log buyout and send notifications
-        AuctionLogger.logBuyout(listing, buyer.getCommandSenderName());
+        // Notify buyer and seller
+        notifyPlayer(buyer.getUniqueID(), EnumChatFormatting.GREEN +
+            "Buyout successful! Claim your " + listing.item.getDisplayName() + " from an Auctioneer.");
 
-        if (AuctionNotificationController.Instance != null) {
-            // Notify buyer they won
-            AuctionNotificationController.Instance.notifyAuctionWon(listing);
-            // Notify seller their item sold
-            AuctionNotificationController.Instance.notifyAuctionSold(listing);
-        }
+        notifyPlayer(listing.sellerUUID, EnumChatFormatting.GREEN +
+            "Your " + listing.item.getDisplayName() + " was bought out for " +
+            formatCurrency(listing.buyoutPrice) + "! Claim your proceeds.");
+
+        logEvent("BUYOUT", String.format("ID=%d, Buyer=%s, Price=%d, Seller=%s",
+            listingId, buyer.getCommandSenderName(), listing.buyoutPrice, listing.sellerName));
 
         return true;
     }
 
     /**
      * Cancel an auction listing
-     * @return true if cancellation was successful
      */
     public boolean cancelListing(int listingId, EntityPlayer requester) {
         AuctionListing listing = listings.get(listingId);
@@ -535,14 +446,15 @@ public class AuctionController {
         }
 
         save();
-        logger.info("Listing {} cancelled by {}",
-            listingId, requester.getCommandSenderName());
 
-        // Log and notify
-        AuctionLogger.logAuctionCancelled(listing, byAdmin);
-        if (AuctionNotificationController.Instance != null) {
-            AuctionNotificationController.Instance.notifyAuctionCancelled(listing, byAdmin);
+        if (byAdmin) {
+            notifyPlayer(listing.sellerUUID, EnumChatFormatting.RED +
+                "Your auction for " + listing.item.getDisplayName() +
+                " was cancelled by an administrator.");
         }
+
+        logEvent("CANCELLED", String.format("ID=%d, CancelledBy=%s, ByAdmin=%b",
+            listingId, requester.getCommandSenderName(), byAdmin));
 
         return true;
     }
@@ -551,27 +463,14 @@ public class AuctionController {
 
     /**
      * Claim seller proceeds from a sold auction
-     * @return true if claim was successful
      */
     public boolean claimSellerProceeds(int listingId, EntityPlayer seller) {
         AuctionListing listing = listings.get(listingId);
-        if (listing == null) {
+        if (listing == null || !listing.sellerUUID.equals(seller.getUniqueID()) ||
+            listing.status != EnumAuctionStatus.SOLD || listing.sellerClaimed) {
             return false;
         }
 
-        if (!listing.sellerUUID.equals(seller.getUniqueID())) {
-            return false;  // Not the seller
-        }
-
-        if (listing.status != EnumAuctionStatus.SOLD) {
-            return false;  // Not sold
-        }
-
-        if (listing.sellerClaimed) {
-            return false;  // Already claimed
-        }
-
-        // Deposit proceeds to seller
         long proceeds = listing.getSellerProceeds();
         CurrencyController.Instance.deposit(seller, proceeds);
 
@@ -579,95 +478,58 @@ public class AuctionController {
         checkAndMarkClaimed(listing);
         save();
 
-        logger.info("Seller {} claimed {} from listing {}",
-            seller.getCommandSenderName(), proceeds, listingId);
-
-        // Log the currency claim
-        AuctionLogger.logCurrencyClaimed(listing, seller.getCommandSenderName(), proceeds);
+        logEvent("PROCEEDS_CLAIMED", String.format("ID=%d, Seller=%s, Amount=%d",
+            listingId, seller.getCommandSenderName(), proceeds));
 
         return true;
     }
 
     /**
      * Claim item from won auction
-     * @return The item if successful, null otherwise
      */
     public ItemStack claimBuyerItem(int listingId, EntityPlayer buyer) {
         AuctionListing listing = listings.get(listingId);
-        if (listing == null) {
+        if (listing == null || listing.highBidderUUID == null ||
+            !listing.highBidderUUID.equals(buyer.getUniqueID()) ||
+            listing.status != EnumAuctionStatus.SOLD || listing.buyerClaimed) {
             return null;
-        }
-
-        if (listing.highBidderUUID == null ||
-            !listing.highBidderUUID.equals(buyer.getUniqueID())) {
-            return null;  // Not the buyer
-        }
-
-        if (listing.status != EnumAuctionStatus.SOLD) {
-            return null;  // Not sold
-        }
-
-        if (listing.buyerClaimed) {
-            return null;  // Already claimed
         }
 
         listing.buyerClaimed = true;
         checkAndMarkClaimed(listing);
         save();
 
-        logger.info("Buyer {} claimed item from listing {}",
-            buyer.getCommandSenderName(), listingId);
-
-        // Log the item claim
-        AuctionLogger.logItemClaimed(listing, buyer.getCommandSenderName(), false);
+        logEvent("ITEM_CLAIMED", String.format("ID=%d, Buyer=%s, Item=%s",
+            listingId, buyer.getCommandSenderName(), listing.item.getDisplayName()));
 
         return listing.item.copy();
     }
 
     /**
-     * Claim item from cancelled or expired auction (seller reclaiming)
-     * @return The item if successful, null otherwise
+     * Claim item from cancelled or expired auction
      */
     public ItemStack claimExpiredItem(int listingId, EntityPlayer seller) {
         AuctionListing listing = listings.get(listingId);
-        if (listing == null) {
+        if (listing == null || !listing.sellerUUID.equals(seller.getUniqueID()) ||
+            (listing.status != EnumAuctionStatus.CANCELLED && listing.status != EnumAuctionStatus.EXPIRED) ||
+            listing.sellerClaimed) {
             return null;
-        }
-
-        if (!listing.sellerUUID.equals(seller.getUniqueID())) {
-            return null;  // Not the seller
-        }
-
-        if (listing.status != EnumAuctionStatus.CANCELLED &&
-            listing.status != EnumAuctionStatus.EXPIRED) {
-            return null;  // Not claimable
-        }
-
-        if (listing.sellerClaimed) {
-            return null;  // Already claimed
         }
 
         listing.sellerClaimed = true;
         listing.status = EnumAuctionStatus.CLAIMED;
         save();
 
-        logger.info("Seller {} reclaimed item from listing {}",
-            seller.getCommandSenderName(), listingId);
-
-        // Log the item reclaim
-        AuctionLogger.logItemClaimed(listing, seller.getCommandSenderName(), true);
+        logEvent("ITEM_RECLAIMED", String.format("ID=%d, Seller=%s, Item=%s",
+            listingId, seller.getCommandSenderName(), listing.item.getDisplayName()));
 
         return listing.item.copy();
     }
 
-    /**
-     * Mark listing as fully claimed if both parties have claimed
-     */
     private void checkAndMarkClaimed(AuctionListing listing) {
-        if (listing.status == EnumAuctionStatus.SOLD) {
-            if (listing.sellerClaimed && listing.buyerClaimed) {
-                listing.status = EnumAuctionStatus.CLAIMED;
-            }
+        if (listing.status == EnumAuctionStatus.SOLD &&
+            listing.sellerClaimed && listing.buyerClaimed) {
+            listing.status = EnumAuctionStatus.CLAIMED;
         }
     }
 
@@ -675,58 +537,49 @@ public class AuctionController {
 
     /**
      * Process all expired auctions
-     * Call this periodically (e.g., every minute)
      */
     public void processExpiredAuctions() {
         boolean changed = false;
-        int expiredCount = 0;
-        int soldCount = 0;
 
         for (AuctionListing listing : listings.values()) {
             if (listing.status == EnumAuctionStatus.ACTIVE && listing.isExpired()) {
                 listing.finalize();
                 changed = true;
 
-                // If sold, add proceeds to seller's claims
                 if (listing.status == EnumAuctionStatus.SOLD) {
-                    soldCount++;
-                    // Proceeds will be claimed manually, no automatic deposit
-                    logger.info("Auction {} ended with sale to {} for {}",
-                        listing.id, listing.highBidderName, listing.currentBid);
+                    // Notify winner and seller
+                    notifyPlayer(listing.highBidderUUID, EnumChatFormatting.GREEN +
+                        "You won the auction for " + listing.item.getDisplayName() +
+                        " for " + formatCurrency(listing.currentBid) + "! Claim your item.");
 
-                    // Send notifications
-                    if (AuctionNotificationController.Instance != null) {
-                        AuctionNotificationController.Instance.notifyAuctionWon(listing);
-                        AuctionNotificationController.Instance.notifyAuctionSold(listing);
-                    }
+                    notifyPlayer(listing.sellerUUID, EnumChatFormatting.GREEN +
+                        "Your " + listing.item.getDisplayName() + " sold for " +
+                        formatCurrency(listing.currentBid) + "! Claim your proceeds.");
+
+                    logEvent("AUCTION_SOLD", String.format("ID=%d, Winner=%s, Price=%d, Seller=%s",
+                        listing.id, listing.highBidderName, listing.currentBid, listing.sellerName));
                 } else {
-                    expiredCount++;
-                    logger.info("Auction {} expired without bids", listing.id);
+                    notifyPlayer(listing.sellerUUID, EnumChatFormatting.GRAY +
+                        "Your auction for " + listing.item.getDisplayName() +
+                        " has expired with no bids. Claim your item.");
 
-                    // Notify seller about expiration
-                    if (AuctionNotificationController.Instance != null) {
-                        AuctionNotificationController.Instance.notifyAuctionExpired(listing);
-                    }
+                    logEvent("AUCTION_EXPIRED", String.format("ID=%d, Item=%s, Seller=%s",
+                        listing.id, listing.item.getDisplayName(), listing.sellerName));
                 }
             }
         }
 
         if (changed) {
             save();
-            // Log processing tick if anything happened
-            AuctionLogger.logProcessingTick(expiredCount, soldCount);
         }
     }
 
     /**
      * Clean up old claimed listings
-     * Call this periodically (e.g., daily)
      */
     public void cleanupOldListings() {
         long claimExpirationMs = ConfigMarket.ClaimExpirationDays * 24L * 60L * 60L * 1000L;
-        if (claimExpirationMs <= 0) {
-            return;  // No expiration
-        }
+        if (claimExpirationMs <= 0) return;
 
         long cutoffTime = System.currentTimeMillis() - claimExpirationMs;
         List<Integer> toRemove = new ArrayList<>();
@@ -750,8 +603,69 @@ public class AuctionController {
 
         if (!toRemove.isEmpty()) {
             save();
-            logger.info("Cleaned up {} old auction listings", toRemove.size());
+            logEvent("CLEANUP", "Removed " + toRemove.size() + " old listings");
         }
+    }
+
+    // ==================== Notifications ====================
+
+    /**
+     * Send notification to player (or queue if offline)
+     */
+    private void notifyPlayer(UUID playerUUID, String message) {
+        if (playerUUID == null) return;
+
+        EntityPlayerMP player = getOnlinePlayer(playerUUID);
+        String fullMessage = EnumChatFormatting.YELLOW + "[Auction] " + message;
+
+        if (player != null) {
+            player.addChatMessage(new ChatComponentText(fullMessage));
+        } else {
+            pendingNotifications.computeIfAbsent(playerUUID, k -> new ArrayList<>()).add(fullMessage);
+            // Limit queue size
+            List<String> queue = pendingNotifications.get(playerUUID);
+            while (queue.size() > 50) {
+                queue.remove(0);
+            }
+        }
+    }
+
+    /**
+     * Send pending notifications on player login
+     */
+    public void onPlayerLogin(EntityPlayerMP player) {
+        UUID uuid = player.getUniqueID();
+
+        List<String> notifications = pendingNotifications.remove(uuid);
+        if (notifications != null && !notifications.isEmpty()) {
+            player.addChatMessage(new ChatComponentText(
+                EnumChatFormatting.YELLOW + "[Auction] " + EnumChatFormatting.WHITE +
+                "You have " + notifications.size() + " auction notification(s):"));
+
+            for (String msg : notifications) {
+                player.addChatMessage(new ChatComponentText(msg));
+            }
+        }
+
+        // Check claimable items
+        int claimableCount = getClaimableListings(uuid).size();
+        if (claimableCount > 0) {
+            player.addChatMessage(new ChatComponentText(
+                EnumChatFormatting.YELLOW + "[Auction] " + EnumChatFormatting.GREEN +
+                "You have " + claimableCount + " item(s) waiting to be claimed!"));
+        }
+    }
+
+    private EntityPlayerMP getOnlinePlayer(UUID uuid) {
+        if (CustomNpcs.getServer() == null) return null;
+
+        for (Object obj : CustomNpcs.getServer().getConfigurationManager().playerEntityList) {
+            EntityPlayerMP player = (EntityPlayerMP) obj;
+            if (player.getUniqueID().equals(uuid)) {
+                return player;
+            }
+        }
+        return null;
     }
 
     // ==================== Index Management ====================
@@ -790,24 +704,25 @@ public class AuctionController {
         }
     }
 
-    // ==================== Permission Helpers ====================
+    // ==================== Helpers ====================
 
-    /**
-     * Get maximum listings allowed for a player
-     */
     public int getMaxListings(EntityPlayer player) {
-        // TODO: Check for permission-based overrides
-        // e.g., CustomNpcsPermissions.hasCustomPermission(player, "cnpc.auction.slots.10")
         return ConfigMarket.DefaultMaxListings;
+    }
+
+    private String formatCurrency(long amount) {
+        return String.format("%,d %s", amount, ConfigMarket.CurrencyName);
+    }
+
+    private void logEvent(String event, String details) {
+        LogWriter.info(LOG_PREFIX + event + ": " + details);
     }
 
     // ==================== Persistence ====================
 
     public void save() {
         File saveDir = CustomNpcs.getWorldSaveDirectory();
-        if (saveDir == null) {
-            return;
-        }
+        if (saveDir == null) return;
 
         try {
             NBTTagCompound compound = new NBTTagCompound();
@@ -823,9 +738,7 @@ public class AuctionController {
             File backup = new File(saveDir, "auctions.dat_old");
 
             if (file.exists()) {
-                if (backup.exists()) {
-                    backup.delete();
-                }
+                if (backup.exists()) backup.delete();
                 file.renameTo(backup);
             }
 
@@ -835,15 +748,13 @@ public class AuctionController {
             fos.close();
 
         } catch (Exception e) {
-            logger.error("Error saving auctions", e);
+            LogWriter.error(LOG_PREFIX + "Error saving auctions", e);
         }
     }
 
     public void load() {
         File saveDir = CustomNpcs.getWorldSaveDirectory();
-        if (saveDir == null) {
-            return;
-        }
+        if (saveDir == null) return;
 
         listings.clear();
 
@@ -851,9 +762,7 @@ public class AuctionController {
             File file = new File(saveDir, "auctions.dat");
             if (!file.exists()) {
                 file = new File(saveDir, "auctions.dat_old");
-                if (!file.exists()) {
-                    return;
-                }
+                if (!file.exists()) return;
             }
 
             FileInputStream fis = new FileInputStream(file);
@@ -861,9 +770,7 @@ public class AuctionController {
             fis.close();
 
             nextId = compound.getInteger("NextId");
-            if (nextId < 1) {
-                nextId = 1;
-            }
+            if (nextId < 1) nextId = 1;
 
             NBTTagList listingList = compound.getTagList("Listings", 10);
             for (int i = 0; i < listingList.tagCount(); i++) {
@@ -874,42 +781,22 @@ public class AuctionController {
 
             rebuildIndices();
 
-            logger.info("Loaded {} auction listings", listings.size());
-
-            // Log system startup
-            int activeCount = getActiveListingCount();
-            int pendingClaims = 0;
-            for (AuctionListing listing : listings.values()) {
-                if (!listing.sellerClaimed || !listing.buyerClaimed) {
-                    if (listing.status == EnumAuctionStatus.SOLD ||
-                        listing.status == EnumAuctionStatus.EXPIRED ||
-                        listing.status == EnumAuctionStatus.CANCELLED) {
-                        pendingClaims++;
-                    }
-                }
-            }
-            AuctionLogger.logSystemStartup(activeCount, pendingClaims);
+            logEvent("SYSTEM_STARTUP", String.format("Loaded %d listings, %d active",
+                listings.size(), getActiveListingCount()));
 
         } catch (Exception e) {
-            logger.error("Error loading auctions", e);
-            AuctionLogger.logError("Loading auctions", e);
+            LogWriter.error(LOG_PREFIX + "Error loading auctions", e);
         }
     }
 
     // ==================== Statistics ====================
 
-    /**
-     * Get total number of active listings
-     */
     public int getActiveListingCount() {
         return (int) listings.values().stream()
             .filter(l -> l.status == EnumAuctionStatus.ACTIVE)
             .count();
     }
 
-    /**
-     * Get total number of all listings
-     */
     public int getTotalListingCount() {
         return listings.size();
     }

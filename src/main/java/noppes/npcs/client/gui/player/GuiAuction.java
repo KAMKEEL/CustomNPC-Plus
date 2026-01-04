@@ -3,17 +3,13 @@ package noppes.npcs.client.gui.player;
 import kamkeel.npcs.network.packets.player.AuctionActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.CustomNpcResourceListener;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.util.*;
-import noppes.npcs.config.ConfigMarket;
-import noppes.npcs.constants.EnumAuctionCategory;
-import noppes.npcs.constants.EnumAuctionSort;
-import noppes.npcs.constants.EnumAuctionStatus;
 import noppes.npcs.containers.ContainerAuction;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
@@ -26,12 +22,10 @@ import java.util.List;
 
 /**
  * Main auction house browse GUI.
- * Displays listings with search, filter, sort, and pagination.
+ * Displays listings with search, sort, and pagination.
  */
 public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         ICustomScrollListener, NoppesUtil.IAuctionData {
-
-    private static final ResourceLocation background = new ResourceLocation("customnpcs", "textures/gui/auction.png");
 
     // GUI Components
     private GuiNpcTextField searchField;
@@ -56,7 +50,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
 
     public GuiAuction(EntityNPCInterface npc, ContainerAuction container) {
         super(npc, container);
-        this.title = "Auction House";
+        this.title = "";
         this.xSize = 256;
         this.ySize = 222;
         this.closeOnEsc = true;
@@ -71,68 +65,48 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         super.initGui();
 
         // Tab buttons at top
-        addTopButton(new GuiMenuTopButton(0, guiLeft + 4, guiTop - 17, "Browse"));
-        addTopButton(new GuiMenuTopButton(1, guiLeft + 54, guiTop - 17, "My Listings"));
-        addTopButton(new GuiMenuTopButton(2, guiLeft + 114, guiTop - 17, "My Bids"));
-        addTopButton(new GuiMenuTopButton(3, guiLeft + 164, guiTop - 17, "Claims"));
-        addTopButton(new GuiMenuTopButton(4, guiLeft + 214, guiTop - 17, "Sell"));
+        addTopButton(new GuiMenuTopButton(0, guiLeft + 4, guiTop - 17, StatCollector.translateToLocal("auction.browse")));
+        addTopButton(new GuiMenuTopButton(1, guiLeft + 54, guiTop - 17, StatCollector.translateToLocal("auction.myListings")));
+        addTopButton(new GuiMenuTopButton(2, guiLeft + 114, guiTop - 17, StatCollector.translateToLocal("auction.myBids")));
+        addTopButton(new GuiMenuTopButton(3, guiLeft + 164, guiTop - 17, StatCollector.translateToLocal("auction.claims")));
+        addTopButton(new GuiMenuTopButton(4, guiLeft + 214, guiTop - 17, StatCollector.translateToLocal("auction.sell")));
         getTopButton(currentTab).setEnabled(false);
 
         // Search field
-        searchField = new GuiNpcTextField(10, this, guiLeft + 8, guiTop + 6, 120, 14, currentFilter.searchText);
+        searchField = new GuiNpcTextField(10, this, guiLeft + 8, guiTop + 6, 140, 14, currentFilter.searchText);
         searchField.setMaxStringLength(50);
         addTextField(searchField);
 
         // Search button
-        addButton(new GuiNpcButton(11, guiLeft + 130, guiTop + 5, 30, 16, "Search"));
+        addButton(new GuiNpcButton(11, guiLeft + 150, guiTop + 5, 40, 16, StatCollector.translateToLocal("auction.search")));
 
-        // Category buttons (simplified row)
-        String[] categories = {"All", "Weapons", "Armor", "Tools", "Potions", "Blocks", "Other"};
-        for (int i = 0; i < categories.length; i++) {
-            GuiNpcButton btn = new GuiNpcButton(20 + i, guiLeft + 8 + i * 35, guiTop + 24, 33, 14, categories[i]);
-            btn.setEnabled(currentFilter.category.ordinal() != getCategoryOrdinal(i));
-            addButton(btn);
-        }
-
-        // Sort dropdown button
-        addButton(new GuiNpcButton(30, guiLeft + 170, guiTop + 5, 78, 16, currentFilter.sortOrder.getDisplayName()));
+        // Sort button
+        addButton(new GuiNpcButton(30, guiLeft + 8, guiTop + 24, 120, 16, currentFilter.sortOrder.getDisplayName()));
 
         // Listing scroll area
         listingScroll = new GuiCustomScroll(this, 0);
         listingScroll.guiLeft = guiLeft + 8;
-        listingScroll.guiTop = guiTop + 42;
-        listingScroll.setSize(160, 130);
+        listingScroll.guiTop = guiTop + 44;
+        listingScroll.setSize(160, 128);
         addScroll(listingScroll);
         updateListingDisplay();
 
         // Pagination buttons
-        addButton(new GuiNpcButton(40, guiLeft + 8, guiTop + 176, 40, 16, "< Prev"));
+        addButton(new GuiNpcButton(40, guiLeft + 8, guiTop + 176, 40, 16, StatCollector.translateToLocal("auction.prevPage")));
         addLabel(new GuiNpcLabel(41, getPageLabel(), guiLeft + 90, guiTop + 180, CustomNpcResourceListener.DefaultTextColor));
-        addButton(new GuiNpcButton(42, guiLeft + 128, guiTop + 176, 40, 16, "Next >"));
+        addButton(new GuiNpcButton(42, guiLeft + 128, guiTop + 176, 40, 16, StatCollector.translateToLocal("auction.nextPage")));
 
         // Action buttons (right side)
-        addButton(new GuiNpcButton(50, guiLeft + 175, guiTop + 50, 73, 20, "View Details"));
-        addButton(new GuiNpcButton(51, guiLeft + 175, guiTop + 75, 73, 20, "Place Bid"));
-        addButton(new GuiNpcButton(52, guiLeft + 175, guiTop + 100, 73, 20, "Buyout"));
-        addButton(new GuiNpcButton(53, guiLeft + 175, guiTop + 125, 73, 20, "Refresh"));
+        addButton(new GuiNpcButton(50, guiLeft + 175, guiTop + 50, 73, 20, StatCollector.translateToLocal("auction.viewDetails")));
+        addButton(new GuiNpcButton(51, guiLeft + 175, guiTop + 75, 73, 20, StatCollector.translateToLocal("auction.placeBid")));
+        addButton(new GuiNpcButton(52, guiLeft + 175, guiTop + 100, 73, 20, StatCollector.translateToLocal("auction.buyout")));
+        addButton(new GuiNpcButton(53, guiLeft + 175, guiTop + 125, 73, 20, StatCollector.translateToLocal("auction.refresh")));
 
         // Balance display
-        addLabel(new GuiNpcLabel(60, "Balance: " + formatCurrency(playerBalance),
+        addLabel(new GuiNpcLabel(60, String.format(StatCollector.translateToLocal("auction.balance"), formatCurrency(playerBalance)),
             guiLeft + 175, guiTop + 155, 0x00AA00));
 
         updateButtonStates();
-    }
-
-    private int getCategoryOrdinal(int buttonIndex) {
-        switch (buttonIndex) {
-            case 0: return EnumAuctionCategory.ALL.ordinal();
-            case 1: return EnumAuctionCategory.WEAPONS.ordinal();
-            case 2: return EnumAuctionCategory.ARMOR.ordinal();
-            case 3: return EnumAuctionCategory.TOOLS.ordinal();
-            case 4: return EnumAuctionCategory.POTIONS.ordinal();
-            case 5: return EnumAuctionCategory.BLOCKS.ordinal();
-            default: return EnumAuctionCategory.MISC.ordinal();
-        }
     }
 
     @Override
@@ -159,10 +133,6 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         // Search button
         else if (id == 11) {
             performSearch();
-        }
-        // Category buttons
-        else if (id >= 20 && id <= 26) {
-            setCategory(getCategoryOrdinal(id - 20));
         }
         // Sort button
         else if (id == 30) {
@@ -216,14 +186,6 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         currentFilter.page = 0;
         currentPage = 0;
         AuctionActionPacket.QueryListings(currentFilter);
-    }
-
-    private void setCategory(int categoryOrdinal) {
-        currentFilter.category = EnumAuctionCategory.values()[categoryOrdinal];
-        currentFilter.page = 0;
-        currentPage = 0;
-        AuctionActionPacket.QueryListings(currentFilter);
-        initGui();
     }
 
     private void cycleSortOrder() {
@@ -321,7 +283,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     }
 
     private String formatTimeRemaining(long millis) {
-        if (millis <= 0) return "Ended";
+        if (millis <= 0) return StatCollector.translateToLocal("auction.ended");
 
         long seconds = millis / 1000;
         long minutes = seconds / 60;
@@ -350,9 +312,9 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
 
     private String getPageLabel() {
         if (totalPages == 0) {
-            return "No results";
+            return StatCollector.translateToLocal("auction.noResults");
         }
-        return "Page " + (currentPage + 1) + " of " + totalPages;
+        return String.format(StatCollector.translateToLocal("auction.page"), currentPage + 1, totalPages);
     }
 
     private void updateButtonStates() {
@@ -378,7 +340,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         drawDefaultBackground();
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
-        // Draw background (using a standard size, can be customized)
+        // Draw background
         mc.renderEngine.bindTexture(new ResourceLocation("customnpcs", "textures/gui/bgfilled.png"));
         drawTexturedModalRect(guiLeft, guiTop, 0, 0, xSize, ySize);
 
@@ -413,17 +375,18 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             CustomNpcResourceListener.DefaultTextColor);
 
         // Results count
-        fontRendererObj.drawString(totalResults + " listings", 175, 42, 0x666666);
+        String listingsLabel = String.format(StatCollector.translateToLocal("auction.listings"), totalResults);
+        fontRendererObj.drawString(listingsLabel, 175, 42, 0x666666);
     }
 
     private String getTabTitle() {
         switch (currentTab) {
-            case 0: return "Browse Auctions";
-            case 1: return "My Listings";
-            case 2: return "My Active Bids";
-            case 3: return "Claim Items";
-            case 4: return "Create Listing";
-            default: return "Auction House";
+            case 0: return StatCollector.translateToLocal("auction.browseTitle");
+            case 1: return StatCollector.translateToLocal("auction.myListingsTitle");
+            case 2: return StatCollector.translateToLocal("auction.myBidsTitle");
+            case 3: return StatCollector.translateToLocal("auction.claimsTitle");
+            case 4: return StatCollector.translateToLocal("auction.sellTitle");
+            default: return StatCollector.translateToLocal("auction.title");
         }
     }
 
@@ -443,13 +406,13 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         // Handled above
     }
 
-    // IGuiData - Receive NBT data from server
+    // IGuiData
     @Override
     public void setGuiData(NBTTagCompound compound) {
         // This can be used for initial setup data
     }
 
-    // IAuctionData - Receive auction listing data
+    // IAuctionData
     @Override
     public void onAuctionDataReceived(int dataType, NBTTagCompound data,
                                        int totalResults, int currentPage, int totalPages,
@@ -478,7 +441,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             getLabel(41).label = getPageLabel();
         }
         if (getLabel(60) != null) {
-            getLabel(60).label = "Balance: " + formatCurrency(playerBalance);
+            getLabel(60).label = String.format(StatCollector.translateToLocal("auction.balance"), formatCurrency(playerBalance));
         }
     }
 

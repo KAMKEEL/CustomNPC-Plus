@@ -1,5 +1,6 @@
 package noppes.npcs.constants;
 
+import net.minecraft.util.StatCollector;
 import noppes.npcs.config.ConfigMarket;
 
 /**
@@ -7,10 +8,16 @@ import noppes.npcs.config.ConfigMarket;
  * Values are configurable via ConfigMarket.
  */
 public enum EnumAuctionDuration {
-    SHORT,      // Default: 2 hours
-    MEDIUM,     // Default: 12 hours
-    LONG,       // Default: 24 hours
-    VERY_LONG;  // Default: 48 hours
+    SHORT("auction.duration.short"),
+    MEDIUM("auction.duration.medium"),
+    LONG("auction.duration.long"),
+    VERY_LONG("auction.duration.veryLong");
+
+    private final String langKey;
+
+    EnumAuctionDuration(String langKey) {
+        this.langKey = langKey;
+    }
 
     /**
      * Get duration in milliseconds
@@ -31,21 +38,28 @@ public enum EnumAuctionDuration {
     }
 
     /**
+     * Get duration in hours
+     */
+    public int getHours() {
+        switch (this) {
+            case SHORT:
+                return ConfigMarket.AuctionDurationShort;
+            case MEDIUM:
+                return ConfigMarket.AuctionDurationMedium;
+            case LONG:
+                return ConfigMarket.AuctionDurationLong;
+            case VERY_LONG:
+                return ConfigMarket.AuctionDurationVeryLong;
+            default:
+                return 24;
+        }
+    }
+
+    /**
      * Get display name for GUI
      */
     public String getDisplayName() {
-        switch (this) {
-            case SHORT:
-                return ConfigMarket.AuctionDurationShort + " Hours";
-            case MEDIUM:
-                return ConfigMarket.AuctionDurationMedium + " Hours";
-            case LONG:
-                return ConfigMarket.AuctionDurationLong + " Hours";
-            case VERY_LONG:
-                return ConfigMarket.AuctionDurationVeryLong + " Hours";
-            default:
-                return "Unknown";
-        }
+        return StatCollector.translateToLocal(langKey);
     }
 
     /**

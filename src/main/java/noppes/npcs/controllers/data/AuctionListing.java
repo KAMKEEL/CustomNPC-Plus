@@ -4,7 +4,6 @@ import kamkeel.npcs.controllers.data.attribute.ItemTradeAttribute;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.config.ConfigMarket;
-import noppes.npcs.constants.EnumAuctionCategory;
 import noppes.npcs.constants.EnumAuctionDuration;
 import noppes.npcs.constants.EnumAuctionStatus;
 import noppes.npcs.controllers.AuctionBlacklist;
@@ -48,9 +47,6 @@ public class AuctionListing {
     // Status
     public EnumAuctionStatus status = EnumAuctionStatus.ACTIVE;
 
-    // Category for filtering
-    public EnumAuctionCategory category = EnumAuctionCategory.MISC;
-
     // Claim tracking
     public boolean sellerClaimed = false;   // Has seller claimed their proceeds?
     public boolean buyerClaimed = false;    // Has buyer claimed their item?
@@ -87,7 +83,6 @@ public class AuctionListing {
         this.duration = duration;
         this.listingTime = System.currentTimeMillis();
         this.expirationTime = listingTime + duration.getMillis();
-        this.category = EnumAuctionCategory.categorize(item);
         this.status = EnumAuctionStatus.ACTIVE;
     }
 
@@ -351,7 +346,6 @@ public class AuctionListing {
         compound.setLong("ExpirationTime", expirationTime);
         compound.setInteger("Duration", duration.ordinal());
         compound.setInteger("Status", status.ordinal());
-        compound.setInteger("Category", category.ordinal());
         compound.setBoolean("SellerClaimed", sellerClaimed);
         compound.setBoolean("BuyerClaimed", buyerClaimed);
         compound.setInteger("BidCount", bidCount);
@@ -394,13 +388,6 @@ public class AuctionListing {
             status = EnumAuctionStatus.values()[statusOrdinal];
         } else {
             status = EnumAuctionStatus.ACTIVE;
-        }
-
-        int categoryOrdinal = compound.getInteger("Category");
-        if (categoryOrdinal >= 0 && categoryOrdinal < EnumAuctionCategory.values().length) {
-            category = EnumAuctionCategory.values()[categoryOrdinal];
-        } else {
-            category = EnumAuctionCategory.MISC;
         }
 
         sellerClaimed = compound.getBoolean("SellerClaimed");
