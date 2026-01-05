@@ -272,6 +272,7 @@ public class AnimationData implements IAnimationData {
             newAnim.currentFrame = 0;
             newAnim.currentFrameTime = 0;
             newAnim.parent = this;
+            newAnim.takeTasksFrom((Animation) animation);
         }
 
 

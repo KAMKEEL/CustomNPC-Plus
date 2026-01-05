@@ -39,9 +39,9 @@ public class Animation implements IAnimation {
 
     protected final Map<String, Object> dataStore = new HashMap<>();
 
-    public Consumer<Animation> onAnimationStart;
-    public BiConsumer<Integer, Animation> onAnimationFrame;
-    public Consumer<Animation> onAnimationEnd;
+    public Consumer<IAnimation> onAnimationStart;
+    public BiConsumer<Integer, IAnimation> onAnimationFrame;
+    public Consumer<IAnimation> onAnimationEnd;
 
     public Animation() {
     }
@@ -318,17 +318,20 @@ public class Animation implements IAnimation {
         }
     }
 
-    public IAnimation onStart(Consumer<Animation> task) {
+    @Override
+    public IAnimation onStart(Consumer<IAnimation> task) {
         this.onAnimationStart = task;
         return this;
     }
-
-    public IAnimation onFrame(BiConsumer<Integer, Animation> task) {
+    
+    @Override
+    public IAnimation onFrame(BiConsumer<Integer, IAnimation> task) {
         this.onAnimationFrame = task;
         return this;
     }
-
-    public IAnimation onEnd(Consumer<Animation> task) {
+    
+    @Override
+    public IAnimation onEnd(Consumer<IAnimation> task) {
         this.onAnimationEnd = task;
         return this;
     }
@@ -349,6 +352,22 @@ public class Animation implements IAnimation {
         if (this.onAnimationEnd != null) {
             this.onAnimationEnd.accept(this);
         }
+    }
+
+    /**
+     * Only called on setAnimation, to transfer tasks from 
+     * this global instance stored in AnimationController
+     * to the new local instance on entity's AnimationData,
+     * and clear them from the global instance.
+     */
+    public void takeTasksFrom(Animation animation) {
+        this.onAnimationStart = animation.onAnimationStart;
+        this.onAnimationFrame = animation.onAnimationFrame;
+        this.onAnimationEnd = animation.onAnimationEnd;
+
+        animation.onAnimationEnd = null;
+        animation.onAnimationFrame = null;
+        animation.onAnimationStart = null;
     }
     
     
