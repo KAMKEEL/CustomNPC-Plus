@@ -8,23 +8,18 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
-import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
-import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSScriptAnalyzer;
-import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParser;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodSignature;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenErrorMessage;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
-import noppes.npcs.client.gui.util.script.interpreter.type.ImportData;
-import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
-import scala.annotation.meta.field;
+import noppes.npcs.client.gui.util.script.interpreter.type.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -120,6 +115,9 @@ public class ScriptDocument {
 
     // Type resolver
     private final TypeResolver typeResolver;
+    
+    // JSDoc parser for extracting type information from JSDoc comments
+    private final JSDocParser jsDocParser = new JSDocParser(this);
     
     // Script language: "ECMAScript", "Groovy", etc.
     private String language = "ECMAScript";
@@ -678,12 +676,15 @@ public class ScriptDocument {
                 int bodyEnd = findMatchingBrace(bodyStart);
                 if (bodyEnd < 0) bodyEnd = text.length();
                 
+                // Extract documentation before this method
+                String documentation = extractDocumentationBefore(m.start());
+                
+                // Check for JSDoc before the function declaration
+                JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
+                
                 // For JS hooks, infer parameter types from registry
                 List<FieldInfo> params = new ArrayList<>();
                 TypeInfo returnType = TypeInfo.fromPrimitive("void");
-                // Extract documentation before this method
-                String documentation = extractDocumentationBefore(m.start());
-
 
                 if (typeResolver.isJSHook(funcName)) {
                     List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
@@ -703,16 +704,31 @@ public class ScriptDocument {
                         }
                     }
                 } else {
-                    // Non-hook function - params with 'any' type
+                    // Non-hook function - use JSDoc param types if available, else 'any' type
                     if (paramList != null && !paramList.trim().isEmpty()) {
                         int paramOffset = m.start(2);
                         for (String p : paramList.split(",")) {
                             String pn = p.trim();
                             if (!pn.isEmpty()) {
                                 int paramStart = paramOffset + paramList.indexOf(pn);
-                                params.add(FieldInfo.parameter(pn, TypeInfo.fromClass(Object.class), paramStart, null));
+                                
+                                // Check if JSDoc has a @param tag for this parameter
+                                TypeInfo paramType = TypeInfo.fromClass(Object.class);
+                                if (jsDoc != null) {
+                                    JSDocParamTag paramTag = jsDoc.getParamTag(pn);
+                                    if (paramTag != null && paramTag.getTypeInfo() != null) {
+                                        paramType = paramTag.getTypeInfo();
+                                    }
+                                }
+                                
+                                params.add(FieldInfo.parameter(pn, paramType, paramStart, null));
                             }
                         }
+                    }
+                    
+                    // Use JSDoc @return type if available
+                    if (jsDoc != null && jsDoc.hasReturnTag() && jsDoc.getReturnType() != null) {
+                        returnType = jsDoc.getReturnType();
                     }
                 }
                 
@@ -986,13 +1002,24 @@ public class ScriptDocument {
                     String varName = m.group(1);
                     String initializer = m.group(3);
                     
-                    // Infer type from initializer using resolveExpressionType
+                    // Check for JSDoc type annotation before the declaration
+                    int absStart = bodyStart + m.start();
+                    JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, absStart);
+                    
                     TypeInfo typeInfo = null;
-                    if (initializer != null && !initializer.trim().isEmpty()) {
+                    
+                    // Priority 1: JSDoc @type takes precedence
+                    if (jsDoc != null && jsDoc.hasTypeTag()) {
+                        typeInfo = jsDoc.getDeclaredType();
+                    }
+                    
+                    // Priority 2: Infer type from initializer if no JSDoc type
+                    if (typeInfo == null && initializer != null && !initializer.trim().isEmpty()) {
                         typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(3));
                     }
+                    
+                    // Priority 3: Use "any" type for uninitialized variables
                     if (typeInfo == null) {
-                        // Use "any" type for uninitialized variables in JavaScript
                         typeInfo = TypeInfo.ANY;
                     }
                     
@@ -1292,13 +1319,24 @@ public class ScriptDocument {
                 String varName = m.group(1);
                 String initializer = m.group(3);
                 
-                // Infer type from initializer
+                // First, check for JSDoc type annotation
+                String documentation = extractDocumentationBefore(m.start());
+                JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
+                
                 TypeInfo typeInfo = null;
-                if (initializer != null && !initializer.trim().isEmpty()) {
+                
+                // Priority 1: JSDoc @type takes precedence
+                if (jsDoc != null && jsDoc.hasTypeTag()) {
+                    typeInfo = jsDoc.getDeclaredType();
+                }
+                
+                // Priority 2: Infer from initializer if no JSDoc type
+                if (typeInfo == null && initializer != null && !initializer.trim().isEmpty()) {
                     typeInfo = resolveExpressionType(initializer.trim(), m.start(3));
                 }
+                
+                // Priority 3: Use "any" type for uninitialized variables
                 if (typeInfo == null) {
-                    // Use "any" type for uninitialized variables in JavaScript
                     typeInfo = TypeInfo.ANY;
                 }
                 
@@ -1309,7 +1347,6 @@ public class ScriptDocument {
                     initEnd = m.end(3);
                 }
 
-                String documentation = extractDocumentationBefore(m.start());
                 FieldInfo fieldInfo = FieldInfo.globalField(varName, typeInfo, position, documentation, initStart, initEnd, 0);
                 
                 if (globalFields.containsKey(varName)) {
@@ -1702,9 +1739,14 @@ public class ScriptDocument {
     private List<ScriptLine.Mark> buildMarks() {
         List<ScriptLine.Mark> marks = new ArrayList<>();
 
-        // Comments and strings first (highest priority) - same for both languages
-        addPatternMarks(marks, COMMENT_PATTERN, TokenType.COMMENT);
+        // Strings first to protect their content
         addPatternMarks(marks, STRING_PATTERN, TokenType.STRING);
+        
+        // JSDoc comments with fragmented marking (avoids conflicts with @tags and {Type})
+        markJSDocElements(marks);
+        
+        // Regular comments (non-JSDoc)
+        markNonJSDocComments(marks);
         
         // Keywords - same for both languages (KEYWORD_PATTERN includes JS keywords like function, var, let, const)
         addPatternMarks(marks, KEYWORD_PATTERN, TokenType.KEYWORD);
@@ -2308,6 +2350,149 @@ public class ScriptDocument {
                 }
             }
         }
+    }
+
+    /**
+     * Mark JSDoc elements within comments for syntax highlighting.
+     * Adds marks for @tags (like @param, @return, @type) and {Type} references.
+     */
+    private void markJSDocElements(List<ScriptLine.Mark> marks) {
+        // Find all JSDoc comments (/** ... */)
+        Pattern jsDocPattern = Pattern.compile("/\\*\\*([\\s\\S]*?)\\*/");
+        Matcher jsDocMatcher = jsDocPattern.matcher(text);
+        
+        while (jsDocMatcher.find()) {
+            int commentStart = jsDocMatcher.start();
+            int commentEnd = jsDocMatcher.end();
+            
+            // Skip if this JSDoc is inside a string
+            boolean insideString = false;
+            for (ScriptLine.Mark mark : marks) {
+                if (mark.type == TokenType.STRING && 
+                    commentStart >= mark.start && commentEnd <= mark.end) {
+                    insideString = true;
+                    break;
+                }
+            }
+            if (insideString) {
+                continue;
+            }
+            
+            String commentContent = jsDocMatcher.group(0);
+            
+            // Collect all special element positions (@tags and {Type}s) that should NOT be gray
+            java.util.List<int[]> specialRanges = new java.util.ArrayList<>();
+            
+            // Find @tags
+            Pattern tagPattern = Pattern.compile("@(\\w+)");
+            Matcher tagMatcher = tagPattern.matcher(commentContent);
+            while (tagMatcher.find()) {
+                int tagStart = commentStart + tagMatcher.start();
+                int tagEnd = commentStart + tagMatcher.end();
+                specialRanges.add(new int[]{tagStart, tagEnd});
+                // Mark the @tag itself
+                marks.add(new ScriptLine.Mark(tagStart, tagEnd, TokenType.JSDOC_TAG, null));
+            }
+            
+            // Find {Type} references
+            Pattern typePattern = Pattern.compile("\\{([^}]+)\\}");
+            Matcher typeMatcher = typePattern.matcher(commentContent);
+            while (typeMatcher.find()) {
+                int braceStart = commentStart + typeMatcher.start();
+                int braceEnd = commentStart + typeMatcher.end();
+                specialRanges.add(new int[]{braceStart, braceEnd});
+                
+                // Mark braces
+                marks.add(new ScriptLine.Mark(braceStart, braceStart + 1, TokenType.JSDOC_TYPE, null)); // {
+                marks.add(new ScriptLine.Mark(braceEnd - 1, braceEnd, TokenType.JSDOC_TYPE, null)); // }
+                
+                // Mark the type name inside braces
+                String typeName = typeMatcher.group(1).trim();
+                int typeStart = commentStart + typeMatcher.start(1);
+                int typeEnd = commentStart + typeMatcher.end(1);
+                
+                // Try to resolve the type for hover info
+                TypeInfo resolvedType = resolveType(typeName);
+                marks.add(new ScriptLine.Mark(typeStart, typeEnd, resolvedType != null? resolvedType.getTokenType() : TokenType.UNDEFINED_VAR, resolvedType));
+            }
+            
+            // Sort special ranges by start position
+            specialRanges.sort((a, b) -> Integer.compare(a[0], b[0]));
+            
+            // Mark the comment in FRAGMENTS between special elements
+            int lastPos = commentStart;
+            for (int[] range : specialRanges) {
+                // Mark from lastPos to start of special element
+                if (lastPos < range[0]) {
+                    marks.add(new ScriptLine.Mark(lastPos, range[0], TokenType.COMMENT, null));
+                }
+                lastPos = range[1]; // Move past the special element
+            }
+            // Mark from last special element to end of comment
+            if (lastPos < commentEnd) {
+                marks.add(new ScriptLine.Mark(lastPos, commentEnd, TokenType.COMMENT, null));
+            }
+        }
+    }
+    
+    /**
+     * Mark all comments EXCEPT JSDoc comments (slash-star-star style).
+     * JSDoc comments are handled separately in markJSDocElements.
+     */
+    private void markNonJSDocComments(List<ScriptLine.Mark> marks) {
+        // Match: /* ... */ (but not /**), // ..., # ...
+        Matcher m = COMMENT_PATTERN.matcher(text);
+        while (m.find()) {
+            int start = m.start();
+            int end = m.end();
+            String comment = m.group();
+            
+            // Skip JSDoc comments (/** style) - they're handled separately
+            if (comment.startsWith("/**")) {
+                continue;
+            }
+            
+            marks.add(new ScriptLine.Mark(start, end, TokenType.COMMENT, null));
+        }
+    }
+    
+    /**
+     * Resolve a type name from JSDoc to a TypeInfo.
+     */
+    private TypeInfo resolveJSDocType(String typeName) {
+        if (typeName == null || typeName.isEmpty()) {
+            return null;
+        }
+        
+        // Handle union types - use first type
+        if (typeName.contains("|")) {
+            typeName = typeName.split("\\|")[0].trim();
+        }
+        
+        // Handle nullable
+        typeName = typeName.replace("?", "").trim();
+        
+        // Map JSDoc types to Java types
+        switch (typeName.toLowerCase()) {
+            case "string":
+                return TypeInfo.fromClass(String.class);
+            case "number":
+            case "int":
+            case "integer":
+                return isJavaScript() ? TypeInfo.fromClass(double.class) : TypeInfo.fromClass(int.class);
+            case "boolean":
+            case "bool":
+                return TypeInfo.fromClass(boolean.class);
+            case "void":
+                return TypeInfo.fromPrimitive("void");
+            case "any":
+            case "object":
+            case "*":
+                return TypeInfo.ANY;
+        }
+        
+        // Try through the type resolver
+        return resolveType(typeName);
     }
 
     private void markMethodDeclarations(List<ScriptLine.Mark> marks) {

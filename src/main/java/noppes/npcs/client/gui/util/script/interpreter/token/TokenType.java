@@ -9,8 +9,13 @@ import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
  */
 public enum TokenType {
     // Comments and strings have highest priority - they override everything inside them
-    COMMENT(0x777777, 130),
-    STRING(0xCC8855, 120),
+    COMMENT(0x777777, 140),
+    STRING(0xCC8855, 130),
+    
+    // JSDoc elements - lower priority but will fill gaps left by fragmented comment marking
+    JSDOC_TAG(0xCC9933, 125),           // @param, @type, @return etc. (gold/orange)
+    JSDOC_TYPE(0x00AAAA, 124),          // {TypeName} in JSDoc (aqua like types)
+    
     UNUSED_IMPORT(0x666666, 119),       // unused import statements (gray)
     
     // Keywords and modifiers
@@ -104,6 +109,10 @@ public enum TokenType {
                 return '7'; // gray
             case STRING:
                 return '5'; // purple
+            case JSDOC_TAG:
+                return '6'; // gold
+            case JSDOC_TYPE:
+                return '3'; // dark aqua (like types)
             case CLASS_KEYWORD:
             case KEYWORD:
                 return 'c'; // red

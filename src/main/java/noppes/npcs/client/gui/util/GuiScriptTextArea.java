@@ -1615,11 +1615,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
                     }
                 }
                 
-                // Generate properly indented javadoc block
-                String javadocStub = "\n" + indent + " * \n" + indent + " */";
+                // Look ahead for a function declaration to generate smart JSDoc
+                String after = getSelectionAfterText();
+                String javadocStub = generateJSDocStub(after, indent);
                 addText(javadocStub);
                 
-                // Position cursor after " * " on the middle line
+                // Position cursor after " * " on the description line
                 int newCursorPos = before.length() + 1 + indent.length() + 3; // +1 for \n, +3 for " * "
                 selection.reset(newCursorPos);
                 scrollToCursor();
@@ -1701,6 +1702,98 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         }
 
         return false;
+    }
+    
+    /**
+     * Generates a JSDoc stub for a function declaration.
+     * Looks at the text after the cursor to find function signature and generates
+     * appropriate @param and @return tags.
+     * 
+     * @param after Text after the /** to search for function
+     * @param indent Current line indentation
+     * @return The JSDoc stub string including newlines
+     */
+    private String generateJSDocStub(String after, String indent) {
+        StringBuilder stub = new StringBuilder();
+        stub.append("\n").append(indent).append(" * ");  // Description line
+        
+        // Try to find a function/method declaration following the JSDoc
+        // Patterns:
+        // Java: [modifiers] ReturnType methodName(params) {
+        // JS: function funcName(params) { or var funcName = function(params) { or funcName(params) {
+        
+        // Skip whitespace and newlines
+        String trimmed = after.replaceFirst("^[\\s\\n\\r]*", "");
+        
+        // Pattern for Java/JS method/function
+        java.util.regex.Pattern funcPattern = java.util.regex.Pattern.compile(
+            // Group 1: Optional return type (Java) or 'function' keyword (JS)
+            "^(?:(\\w+(?:<[^>]+>)?|function)\\s+)?" +
+            // Group 2: Method/function name  
+            "(\\w+)\\s*" +
+            // Group 3: Parameters inside parentheses
+            "\\(([^)]*)\\)"
+        );
+        
+        java.util.regex.Matcher m = funcPattern.matcher(trimmed);
+        if (m.find()) {
+            String returnOrKeyword = m.group(1);
+            String funcName = m.group(2);
+            String paramsStr = m.group(3) != null ? m.group(3).trim() : "";
+            
+            // Determine if this is JavaScript (function keyword or no return type)
+            boolean isJS = "function".equals(returnOrKeyword) || returnOrKeyword == null ||
+                (container != null && container.getDocument() != null && container.getDocument().isJavaScript());
+            
+            // Parse parameters
+            if (!paramsStr.isEmpty()) {
+                String[] params = paramsStr.split(",");
+                for (String param : params) {
+                    param = param.trim();
+                    if (param.isEmpty()) continue;
+                    
+                    String paramName;
+                    String paramType = "any";
+                    
+                    // Split on whitespace to get type and name
+                    String[] parts = param.split("\\s+");
+                    if (parts.length >= 2) {
+                        // Java style: Type name
+                        paramType = parts[parts.length - 2];
+                        paramName = parts[parts.length - 1];
+                    } else {
+                        // JS style: just name
+                        paramName = parts[0];
+                    }
+                    
+                    // Remove any trailing array brackets or varargs
+                    paramName = paramName.replaceAll("[\\[\\]\\.]", "");
+                    
+                    if (isJS) {
+                        stub.append("\n").append(indent).append(" * @param {").append(paramType).append("} ").append(paramName);
+                    } else {
+                        stub.append("\n").append(indent).append(" * @param ").append(paramName);
+                    }
+                }
+            }
+            
+            // Add @return/@returns tag if applicable
+            if (returnOrKeyword != null && !"function".equals(returnOrKeyword) && !"void".equals(returnOrKeyword)) {
+                if (isJS) {
+                    stub.append("\n").append(indent).append(" * @returns {").append(returnOrKeyword).append("}");
+                } else {
+                    stub.append("\n").append(indent).append(" * @return");
+                }
+            } else if (isJS) {
+                // For JS functions without explicit return type, add empty @returns
+                stub.append("\n").append(indent).append(" * @returns {any}");
+            }
+        }
+        
+        // Close the JSDoc block
+        stub.append("\n").append(indent).append(" */");
+        
+        return stub.toString();
     }
 
     /**
