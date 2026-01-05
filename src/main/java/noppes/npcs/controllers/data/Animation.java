@@ -353,6 +353,22 @@ public class Animation implements IAnimation {
             this.onAnimationEnd.accept(this);
         }
     }
+
+    /**
+     * Only called on setAnimation, to transfer tasks from 
+     * this global instance stored in AnimationController
+     * to the new local instance on entity's AnimationData,
+     * and clear them from the global instance.
+     */
+    public void takeTasksFrom(Animation animation) {
+        this.onAnimationStart = animation.onAnimationStart;
+        this.onAnimationFrame = animation.onAnimationFrame;
+        this.onAnimationEnd = animation.onAnimationEnd;
+
+        animation.onAnimationEnd = null;
+        animation.onAnimationFrame = null;
+        animation.onAnimationStart = null;
+    }
     
     
 }
