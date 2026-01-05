@@ -2351,6 +2351,15 @@ public class ScriptDocument {
             if (isInImportOrPackage(nameStart))
                 continue;
 
+            boolean skip = false;
+            for (MethodInfo decl : methods)
+                if (decl.getNameOffset() == nameStart)
+                    // This is a method declaration, not a call
+                    skip = true;
+            
+            if (skip)
+                continue;
+
             // Find the opening parenthesis by scanning forward from the method name end
             // The regex includes \( but we scan manually to be safe
             int openParen = nameEnd;
