@@ -13,10 +13,11 @@ public class JSDocTypeTag extends JSDocTag {
         super("type", atSignOffset, tagNameStart, tagNameEnd);
     }
 
-    public static JSDocTypeTag create(int atSignOffset, int tagNameStart, int tagNameEnd,
-                                       String typeName, TypeInfo typeInfo, int typeStart, int typeEnd) {
+    public static JSDocTypeTag create(int atSignOffset, int tagNameStart, int tagNameEnd, String typeName,
+                                      TypeInfo typeInfo, int typeStart, int typeEnd, String description) {
         JSDocTypeTag tag = new JSDocTypeTag(atSignOffset, tagNameStart, tagNameEnd);
         tag.setType(typeName, typeInfo, typeStart, typeEnd);
+        tag.setDescription(description);
         return tag;
     }
 

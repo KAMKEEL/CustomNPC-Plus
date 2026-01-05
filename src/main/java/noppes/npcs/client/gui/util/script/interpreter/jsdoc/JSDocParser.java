@@ -18,13 +18,13 @@ public class JSDocParser {
             "/\\*\\*([\\s\\S]*?)\\*/", Pattern.MULTILINE);
 
     private static final Pattern TYPE_TAG_PATTERN = Pattern.compile(
-            "@(type)\\s*\\{([^}]+)\\}", Pattern.CASE_INSENSITIVE);
+            "@(type)\\s*\\{([^}]+)\\}(?:\\s*-?\\s*([^@\\n]*))?", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern PARAM_TAG_PATTERN = Pattern.compile(
-            "@(param)\\s*(?:\\{([^}]+)\\})?\\s*(\\w+)(?:\\s*-?\\s*(.*))?", Pattern.CASE_INSENSITIVE);
+            "@(param)\\s*(?:\\{([^}]+)\\})?\\s*(\\w+)(?:\\s*-?\\s*([^@\\n]*))?", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern RETURN_TAG_PATTERN = Pattern.compile(
-            "@(returns?)\\s*(?:\\{([^}]+)\\})?(?:\\s*-?\\s*(.*))?", Pattern.CASE_INSENSITIVE);
+            "@(returns?)\\s*(?:\\{([^}]+)\\})?(?:\\s*-?\\s*([^@\\n]*))?", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern ANY_TAG_PATTERN = Pattern.compile(
             "@(\\w+)", Pattern.CASE_INSENSITIVE);
@@ -105,6 +105,7 @@ public class JSDocParser {
             int tagNameEnd = contentOffset + m.end(1);
 
             String typeName = m.group(2).trim();
+            String description = m.group(3);
 
             int braceStart = content.indexOf('{', m.start());
             int braceEnd = content.indexOf('}', braceStart);
@@ -114,7 +115,7 @@ public class JSDocParser {
             TypeInfo typeInfo = resolveType(typeName);
 
             JSDocTypeTag tag = JSDocTypeTag.create(atSignOffset, tagNameStart, tagNameEnd,
-                    typeName, typeInfo, typeStart, typeEnd);
+                    typeName, typeInfo, typeStart, typeEnd, description != null ? description.trim() : null);
             info.setTypeTag(tag);
         }
     }
