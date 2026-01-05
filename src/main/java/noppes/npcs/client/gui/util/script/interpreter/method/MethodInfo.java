@@ -362,7 +362,7 @@ public final class MethodInfo {
         if (cachedSignature == null) {
             List<TypeInfo> paramTypes = new ArrayList<>();
             for (FieldInfo param : parameters)
-                paramTypes.add(param.getDeclaredType());
+                paramTypes.add(param.getTypeInfo());
             cachedSignature = new MethodSignature(name, paramTypes);
         }
         return cachedSignature;
@@ -584,7 +584,7 @@ public final class MethodInfo {
             }
             
             // Check for unresolved parameter types
-            TypeInfo paramType = param.getDeclaredType();
+            TypeInfo paramType = param.getTypeInfo();
             if (paramType == null || !paramType.isResolved()) {
                 String typeName = paramType != null ? paramType.getSimpleName() : "unknown";
                 addParameterError(param, i, ErrorType.PARAMETER_UNDEFINED,

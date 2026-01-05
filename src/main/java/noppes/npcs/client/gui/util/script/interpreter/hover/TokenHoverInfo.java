@@ -719,7 +719,7 @@ public class TokenHoverInfo {
             }
         }
 
-        TypeInfo declaredType = fieldInfo.getDeclaredType();
+        TypeInfo declaredType = fieldInfo.getTypeInfo();
 
         // Try to get modifiers from Java reflection if this is a chained field
         boolean foundModifiers = false;
@@ -825,7 +825,7 @@ public class TokenHoverInfo {
             }
         }
         
-        TypeInfo declaredType = fieldInfo.getDeclaredType();
+        TypeInfo declaredType = fieldInfo.getTypeInfo();
         if (declaredType != null) {
             int typeColor = getColorForTypeInfo(declaredType);
             addSegment(getName(declaredType), typeColor);
@@ -873,7 +873,7 @@ public class TokenHoverInfo {
             }
         }
         
-        TypeInfo declaredType = fieldInfo.getDeclaredType();
+        TypeInfo declaredType = fieldInfo.getTypeInfo();
         if (declaredType != null) {
             int typeColor = getColorForTypeInfo(declaredType);
             addSegment(getName(declaredType), typeColor);
@@ -928,7 +928,7 @@ public class TokenHoverInfo {
         for (int i = 0; i < params.size(); i++) {
             if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
             FieldInfo param = params.get(i);
-            TypeInfo paramType = param.getDeclaredType();
+            TypeInfo paramType = param.getTypeInfo();
             if (paramType != null) {
                 int paramTypeColor = getColorForTypeInfo(paramType);
                 addSegment(getName(paramType), paramTypeColor);
@@ -1025,7 +1025,7 @@ public class TokenHoverInfo {
         for (int i = 0; i < params.size(); i++) {
             if (i > 0) addSegment(", ", TokenType.DEFAULT.getHexColor());
             FieldInfo param = params.get(i);
-            TypeInfo paramType = param.getDeclaredType();
+            TypeInfo paramType = param.getTypeInfo();
             if (paramType != null) {
                 int paramTypeColor = getColorForTypeInfo(paramType);
                 addSegment(getName(paramType), paramTypeColor);

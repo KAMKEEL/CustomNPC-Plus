@@ -910,7 +910,7 @@ public class ScriptTypeInfo extends TypeInfo {
             return false;
 
         for (int i = 0; i < params.size(); i++) {
-            TypeInfo paramType = params.get(i).getDeclaredType();
+            TypeInfo paramType = params.get(i).getTypeInfo();
             if (paramType == null)
                 continue; // Unresolved param, skip check
 

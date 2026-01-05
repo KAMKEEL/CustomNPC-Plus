@@ -362,7 +362,7 @@ public class MethodCallInfo {
             FieldInfo para = resolvedMethod.getParameters().get(i);
 
             TypeInfo argType = arg.getResolvedType();
-            TypeInfo paramType = para.getDeclaredType();
+            TypeInfo paramType = para.getTypeInfo();
             if (argType != null && paramType != null) {
                 if (!TypeChecker.isTypeCompatible(paramType, argType)) {
                     setArgTypeError(i, "Expected " + paramType.getSimpleName() +

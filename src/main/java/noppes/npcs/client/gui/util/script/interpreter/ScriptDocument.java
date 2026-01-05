@@ -4480,7 +4480,7 @@ public class ScriptDocument {
             // Simple variable
             targetField = resolveVariable(targetName, lhsStart);
             if (targetField != null) {
-                targetType = targetField.getDeclaredType();
+                targetType = targetField.getTypeInfo();
                 reflectionField = targetField.getReflectionField();
             }
         }
@@ -4492,6 +4492,16 @@ public class ScriptDocument {
             sourceType = resolveExpressionType(rhs, equalsPos + 1);
         } finally {
             ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = null;
+        }
+        
+        // Type inference: If the target field has "any" type and no inferred type yet,
+        // set the inferred type from the resolved source type (first assignment wins)
+        if (targetField != null && targetField.canInferType() && targetField.getInferredType() == null 
+                && sourceType != null && sourceType.isResolved()) {
+            // Don't infer "any" type - that doesn't refine anything
+            if (!"any".equals(sourceType.getFullName())) {
+                targetField.setInferredType(sourceType);
+            }
         }
         
         // Determine if this is a script-defined field or external field
@@ -4590,7 +4600,7 @@ public class ScriptDocument {
             return; // Field doesn't exist, can't attach assignment
         }
         
-        TypeInfo targetType = targetField.getDeclaredType();
+        TypeInfo targetType = targetField.getTypeInfo();
 
         // Resolve the source type with expected type context
         TypeInfo sourceType;
@@ -4599,6 +4609,15 @@ public class ScriptDocument {
             sourceType = resolveExpressionType(rhs, rhsStart);
         } finally {
             ExpressionTypeResolver.CURRENT_EXPECTED_TYPE = null;
+        }
+        
+        // Type inference: If the target field has "any" type and no inferred type yet,
+        // set the inferred type from the resolved source type
+        if (targetField.canInferType() && targetField.getInferredType() == null && sourceType != null && sourceType.isResolved()) {
+            // Don't infer "any" type - that doesn't refine anything
+            if (!"any".equals(sourceType.getFullName())) {
+                targetField.setInferredType(sourceType);
+            }
         }
         
         // Create the assignment info
@@ -5575,14 +5594,14 @@ public class ScriptDocument {
             if (locals != null && locals.containsKey(varName)) {
                 FieldInfo field = locals.get(varName);
                 if (field.isVisibleAt(position)) {
-                    return field.getDeclaredType();
+                    return field.getTypeInfo();
                 }
             }
         }
 
         // Check global fields
         if (globalFields.containsKey(varName)) {
-            return globalFields.get(varName).getDeclaredType();
+            return globalFields.get(varName).getTypeInfo();
         }
 
         return null;

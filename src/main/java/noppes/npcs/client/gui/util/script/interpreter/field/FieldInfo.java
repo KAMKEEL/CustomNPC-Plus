@@ -57,6 +57,11 @@ public final class FieldInfo {
     // Enum constant specific info
     private EnumConstantInfo enumConstantInfo;
     
+    // Type inference support (for JavaScript "any" typed variables)
+    // When a variable is declared without type (var x;), it starts as "any" but can be
+    // refined through assignments or JSDoc comments
+    private TypeInfo inferredType;
+    
     private FieldInfo(String name, Scope scope, TypeInfo declaredType, 
                       int declarationOffset, boolean resolved, MethodInfo containingMethod,
                       String documentation, int initStart, int initEnd, int modifiers,
@@ -411,12 +416,53 @@ public final class FieldInfo {
         return reflectionField;
     }
 
+    // ==================== TYPE INFERENCE ====================
+    
+    /**
+     * Get the inferred type for this field.
+     * This is set when a variable declared as "any" has its type refined through
+     * assignment analysis or JSDoc comments.
+     */
+    public TypeInfo getInferredType() {
+        return inferredType;
+    }
+    
+    /**
+     * Set the inferred type for this field.
+     * Used when type inference determines a more specific type than the declared type.
+     * @param inferredType The refined type based on assignments or JSDoc
+     */
+    public void setInferredType(TypeInfo inferredType) {
+        this.inferredType = inferredType;
+    }
+    
+    /**
+     * Check if this field has a type that can be refined (currently "any" type).
+     */
+    public boolean canInferType() {
+        return declaredType != null && "any".equals(declaredType.getFullName());
+    }
+    
+    /**
+     * Get the effective type for this field, considering inference.
+     * Returns inferredType if available, otherwise declaredType.
+     */
+    public TypeInfo getEffectiveType() {
+        if (inferredType != null) {
+            return inferredType;
+        }
+        return declaredType;
+    }
+
     // ==================== BASIC GETTERS ====================
     
     public String getName() { return name; }
     public Scope getScope() { return scope; }
     public TypeInfo getDeclaredType() { return declaredType; }
-    public TypeInfo getTypeInfo() { return declaredType; }  // Alias for getDeclaredType
+    public TypeInfo getTypeInfo() { 
+        // Return the effective type (inferred if available, otherwise declared)
+        return getEffectiveType(); 
+    }
     public int getDeclarationOffset() { return declarationOffset; }
     public boolean isResolved() { return resolved; }
     public MethodInfo getContainingMethod() { return containingMethod; }

@@ -98,7 +98,7 @@ public class FieldAccessInfo {
 
         // Check return type compatibility with expected type (e.g., assignment LHS)
         if (expectedType != null && resolvedField != null) {
-            TypeInfo fieldType = resolvedField.getDeclaredType();
+            TypeInfo fieldType = resolvedField.getTypeInfo();
             if (fieldType != null && !TypeChecker.isTypeCompatible(expectedType, fieldType)) {
                 //extra space is necessary for alignment
                 //setError(ErrorType.TYPE_MISMATCH,  "Provided type:      " + fieldType.getSimpleName()+
