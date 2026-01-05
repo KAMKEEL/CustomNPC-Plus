@@ -1717,15 +1717,11 @@ public class GuiScriptTextArea extends GuiNpcTextField {
         StringBuilder stub = new StringBuilder();
         stub.append("\n").append(indent).append(" * ");  // Description line
         
-        // Try to find a function/method declaration following the JSDoc
-        // Patterns:
-        // Java: [modifiers] ReturnType methodName(params) {
-        // JS: function funcName(params) { or var funcName = function(params) { or funcName(params) {
-        
+        // Try to find a function/method declaration or field declaration following the JSDoc
         // Skip whitespace and newlines
         String trimmed = after.replaceFirst("^[\\s\\n\\r]*", "");
         
-        // Pattern for Java/JS method/function
+        // First, try to match function/method pattern
         java.util.regex.Pattern funcPattern = java.util.regex.Pattern.compile(
             // Group 1: Optional return type (Java) or 'function' keyword (JS)
             "^(?:(\\w+(?:<[^>]+>)?|function)\\s+)?" +
@@ -1735,11 +1731,12 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             "\\(([^)]*)\\)"
         );
         
-        java.util.regex.Matcher m = funcPattern.matcher(trimmed);
-        if (m.find()) {
-            String returnOrKeyword = m.group(1);
-            String funcName = m.group(2);
-            String paramsStr = m.group(3) != null ? m.group(3).trim() : "";
+        java.util.regex.Matcher funcMatcher = funcPattern.matcher(trimmed);
+        if (funcMatcher.find()) {
+            // Handle function/method
+            String returnOrKeyword = funcMatcher.group(1);
+            String funcName = funcMatcher.group(2);
+            String paramsStr = funcMatcher.group(3) != null ? funcMatcher.group(3).trim() : "";
             
             // Determine if this is JavaScript (function keyword or no return type)
             boolean isJS = "function".equals(returnOrKeyword) || returnOrKeyword == null ||
@@ -1787,6 +1784,27 @@ public class GuiScriptTextArea extends GuiNpcTextField {
             } else if (isJS) {
                 // For JS functions without explicit return type, add empty @returns
                 stub.append("\n").append(indent).append(" * @returns {any}");
+            }
+        } else {
+            // Try to match field declaration: [modifiers] Type name or var/let/const name
+            java.util.regex.Pattern fieldPattern = java.util.regex.Pattern.compile(
+                "^(?:(?:public|private|protected|static|final|var|let|const)\\s+)*" + // Optional modifiers
+                "(\\w+(?:<[^>]+>)?)\\s+" +  // Type (Group 1)
+                "(\\w+)" +                     // Field name (Group 2)
+                "(?:\\s*=|\\s*;)"              // Followed by = or ;
+            );
+            
+            java.util.regex.Matcher fieldMatcher = fieldPattern.matcher(trimmed);
+            if (fieldMatcher.find()) {
+                String fieldType = fieldMatcher.group(1);
+                
+                // Check if this is JavaScript
+                boolean isJS = container != null && container.getDocument() != null && container.getDocument().isJavaScript();
+                
+                if (isJS && fieldType != null) {
+                    // For JS fields, add @type annotation
+                    stub.append("\n").append(indent).append(" * @type {").append("any").append("}");
+                }
             }
         }
         
