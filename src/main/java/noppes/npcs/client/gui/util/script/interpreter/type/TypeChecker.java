@@ -18,6 +18,11 @@ public final class TypeChecker {
         if (expected == null) return true; // void can accept anything (shouldn't happen)
         if (actual == null) return true; // Can't verify, assume compatible
         
+        // Handle "any" type - universally compatible (JavaScript/TypeScript)
+        if ("any".equals(expected.getFullName()) || "any".equals(actual.getFullName())) {
+            return true;
+        }
+        
         // Handle null literal - null is compatible with any reference type (non-primitive)
         if ("<null>".equals(actual.getFullName())) {
             Class<?> expectedClass = expected.getJavaClass();

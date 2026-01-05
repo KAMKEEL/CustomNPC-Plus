@@ -36,6 +36,13 @@ public class TypeInfo {
      * Singleton constant for the void type.
      */
     public static final TypeInfo VOID = fromPrimitive("void");
+    
+    /**
+     * Singleton constant for the "any" type (used in JavaScript/TypeScript).
+     * The "any" type is universally compatible - it can be assigned to anything
+     * and anything can be assigned to it.
+     */
+    public static final TypeInfo ANY = new TypeInfo("any", "any", "", Kind.CLASS, null, true, null);
 
     private final String simpleName;       // e.g., "List", "ColorType"
     private final String fullName;         // e.g., "java.util.List", "kamkeel...IOverlay$ColorType"

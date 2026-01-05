@@ -992,7 +992,8 @@ public class ScriptDocument {
                         typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(3));
                     }
                     if (typeInfo == null) {
-                        typeInfo = TypeInfo.fromClass(Object.class); // Default to Object for unresolved
+                        // Use "any" type for uninitialized variables in JavaScript
+                        typeInfo = TypeInfo.ANY;
                     }
                     
                     int initStart = -1, initEnd = -1;
@@ -1297,7 +1298,8 @@ public class ScriptDocument {
                     typeInfo = resolveExpressionType(initializer.trim(), m.start(3));
                 }
                 if (typeInfo == null) {
-                    typeInfo = TypeInfo.fromClass(Object.class);
+                    // Use "any" type for uninitialized variables in JavaScript
+                    typeInfo = TypeInfo.ANY;
                 }
                 
                 int initStart = -1, initEnd = -1;

@@ -80,6 +80,9 @@ public enum TokenType {
     public static TokenType getByType(TypeInfo typeInfo) {
         if (typeInfo == null || !typeInfo.isResolved())
             return TokenType.UNDEFINED_VAR;
+
+        if ("any".equals(typeInfo.getFullName()))
+            return TokenType.KEYWORD;
         
         // Use the TypeInfo's own token type, which handles ScriptTypeInfo correctly
         return typeInfo.getTokenType();
