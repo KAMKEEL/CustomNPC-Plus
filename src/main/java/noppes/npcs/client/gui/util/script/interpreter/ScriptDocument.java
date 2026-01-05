@@ -2380,19 +2380,70 @@ public class ScriptDocument {
             }
             
             String commentContent = jsDocMatcher.group(0);
+
+            // Find the method that this JSDoc belongs to, for parameter validation
+            MethodInfo associatedMethod = findMethodAfterPosition(commentEnd);
+            Set<String> methodParamNames = new HashSet<>();
+            if (associatedMethod != null) {
+                for (FieldInfo param : associatedMethod.getParameters()) {
+                    methodParamNames.add(param.getName());
+                }
+            }
             
             // Collect all special element positions (@tags and {Type}s) that should NOT be gray
             java.util.List<int[]> specialRanges = new java.util.ArrayList<>();
-            
-            // Find @tags
+
+            // Find @tags and process @param and @type specially
             Pattern tagPattern = Pattern.compile("@(\\w+)");
             Matcher tagMatcher = tagPattern.matcher(commentContent);
             while (tagMatcher.find()) {
                 int tagStart = commentStart + tagMatcher.start();
                 int tagEnd = commentStart + tagMatcher.end();
                 specialRanges.add(new int[]{tagStart, tagEnd});
-                // Mark the @tag itself
-                marks.add(new ScriptLine.Mark(tagStart, tagEnd, TokenType.JSDOC_TAG, null));
+                
+                String tagName = tagMatcher.group(1);
+                
+                // For @type tag, resolve the type and attach it for hover
+                TypeInfo tagTypeInfo = null;
+                if ("type".equals(tagName)) {
+                    // Look for {Type} after @type
+                    int afterTag = tagMatcher.end();
+                    String afterTagText = commentContent.substring(afterTag);
+                    Pattern typeRefPattern = Pattern.compile("^\\s*\\{([^}]+)\\}");
+                    Matcher typeRefMatcher = typeRefPattern.matcher(afterTagText);
+                    if (typeRefMatcher.find()) {
+                        String typeName = typeRefMatcher.group(1).trim();
+                        tagTypeInfo = resolveType(typeName);
+                    }
+                }
+                
+                // Mark the @tag itself (with TypeInfo for @type)
+                marks.add(new ScriptLine.Mark(tagStart, tagEnd, TokenType.JSDOC_TAG, tagTypeInfo));
+
+                // If this is @param, look for parameter name after the type
+                if ("param".equals(tagName)) {
+                    // Look for: @param {Type} paramName or @param paramName
+                    int afterTag = tagMatcher.end();
+                    String afterTagText = commentContent.substring(afterTag);
+
+                    // Pattern to match optional {Type} followed by parameter name
+                    Pattern paramNamePattern = Pattern.compile("^\\s*(?:\\{[^}]*\\}\\s*)?([a-zA-Z_][a-zA-Z0-9_]*)");
+                    Matcher paramNameMatcher = paramNamePattern.matcher(afterTagText);
+                    if (paramNameMatcher.find()) {
+                        String paramName = paramNameMatcher.group(1);
+                        int paramNameStart = commentStart + afterTag + paramNameMatcher.start(1);
+                        int paramNameEnd = commentStart + afterTag + paramNameMatcher.end(1);
+
+                        // Check if this parameter exists in the method
+                        boolean paramExists = methodParamNames.contains(paramName);
+                        TokenType paramTokenType = paramExists ? TokenType.PARAMETER : TokenType.UNDEFINED_VAR;
+
+                        // Add to special ranges to exclude from comment marking
+                        specialRanges.add(new int[]{paramNameStart, paramNameEnd});
+                        // Mark the parameter name
+                        marks.add(new ScriptLine.Mark(paramNameStart, paramNameEnd, paramTokenType, null));
+                    }
+                }
             }
             
             // Find {Type} references
@@ -2434,6 +2485,65 @@ public class ScriptDocument {
                 marks.add(new ScriptLine.Mark(lastPos, commentEnd, TokenType.COMMENT, null));
             }
         }
+    }
+
+    /**
+     * Find the method declaration that immediately follows the given position.
+     * Used to associate JSDoc comments with their methods for parameter validation.
+     */
+    private MethodInfo findMethodAfterPosition(int position) {
+        // Skip whitespace after position
+        int searchStart = position;
+        while (searchStart < text.length() && Character.isWhitespace(text.charAt(searchStart))) {
+            searchStart++;
+        }
+
+        // Find the method with the smallest offset that is >= searchStart
+        MethodInfo closestMethod = null;
+        int closestDistance = Integer.MAX_VALUE;
+
+        for (MethodInfo method : methods) {
+            if (!method.isDeclaration())
+                continue;
+            int methodStart = method.getFullDeclarationOffset();
+            if (methodStart < 0)
+                methodStart = method.getNameOffset();
+            if (methodStart < 0)
+                continue;
+
+            // Check if this method starts at or after our search position
+            // but within a reasonable distance (e.g., 200 chars to account for modifiers)
+            if (methodStart >= position && methodStart < position + 200) {
+                int distance = methodStart - position;
+                if (distance < closestDistance) {
+                    closestDistance = distance;
+                    closestMethod = method;
+                }
+            }
+        }
+
+        // Also check methods inside script types
+        for (ScriptTypeInfo scriptType : scriptTypes.values()) {
+            for (MethodInfo method : scriptType.getAllMethodsFlat()) {
+                if (!method.isDeclaration())
+                    continue;
+                int methodStart = method.getFullDeclarationOffset();
+                if (methodStart < 0)
+                    methodStart = method.getNameOffset();
+                if (methodStart < 0)
+                    continue;
+
+                if (methodStart >= position && methodStart < position + 200) {
+                    int distance = methodStart - position;
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestMethod = method;
+                    }
+                }
+            }
+        }
+
+        return closestMethod;
     }
     
     /**
