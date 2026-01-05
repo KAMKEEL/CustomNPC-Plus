@@ -34,6 +34,10 @@ public class RenameRefactorHandler {
     private List<int[]> allOccurrences = new ArrayList<>();
     private ScopeInfo scope = null;
     
+    // For parameter renaming: track containing method to find JSDoc
+    private boolean isParameterRename = false;
+    private MethodBlock containingMethodBlock = null;
+    
     // For global scope, track positions that have local shadowing (to exclude them)
     private List<int[]> localShadowedPositions = new ArrayList<>();
 
@@ -145,13 +149,28 @@ public class RenameRefactorHandler {
         // Determine scope for this identifier - MUST check if local shadows global
         scope = determineScope(text, wordBounds[0], originalWord, callback.getContainer());
         
+        // Track if this is a parameter rename and store the containing method
+        isParameterRename = false;
+        containingMethodBlock = null;
+        if (scope != null && "parameter".equals(scope.scopeType)) {
+            isParameterRename = true;
+            // Find the containing method block
+            List<MethodBlock> methods = MethodBlock.collectMethodBlocks(text);
+            for (MethodBlock method : methods) {
+                if (method.containsPosition(wordBounds[0])) {
+                    containingMethodBlock = method;
+                    break;
+                }
+            }
+        }
+        
         // If global scope, find all positions where local variables shadow this name
         localShadowedPositions.clear();
         if (scope != null && scope.isGlobal) {
             findLocalShadowedPositions(text, originalWord);
         }
 
-        // Find all occurrences within scope
+        // Find all occurrences within scope (including JSDoc if it's a parameter)
         findOccurrences(text, originalWord);
 
         if (allOccurrences.isEmpty())
@@ -231,6 +250,8 @@ public class RenameRefactorHandler {
         allOccurrences.clear();
         localShadowedPositions.clear();
         scope = null;
+        isParameterRename = false;
+        containingMethodBlock = null;
         originalText = "";
         originalCursorPos = 0;
     }
@@ -442,6 +463,23 @@ public class RenameRefactorHandler {
         // Update tracking for current word (only when non-empty)
         originalWord = currentWord;
 
+        // For parameter renames, update the containing method block position
+        if (isParameterRename && containingMethodBlock != null) {
+            // Calculate how much the method shifted
+            int methodShift = 0;
+            for (int[] occ : allOccurrences) {
+                if (occ[1] <= containingMethodBlock.startOffset) {
+                    methodShift += lengthDiff;
+                }
+            }
+            // Update method block position for next JSDoc search
+            containingMethodBlock = new MethodBlock(
+                containingMethodBlock.startOffset + methodShift,
+                containingMethodBlock.endOffset + methodShift + (allOccurrences.size() * lengthDiff) - methodShift,
+                containingMethodBlock.text
+            );
+        }
+
         // Recalculate occurrences based on the new word
         findOccurrences(newText, currentWord);
 
@@ -535,6 +573,62 @@ public class RenameRefactorHandler {
             } else if (scope.containsPosition(start)) {
                 allOccurrences.add(new int[]{start, end});
             }
+        }
+        
+        // If this is a parameter rename, also look for JSDoc @param occurrences
+        if (isParameterRename && containingMethodBlock != null) {
+            findJSDocParamOccurrences(text, word);
+        }
+    }
+    
+    /**
+     * Find JSDoc @param occurrences for a parameter name.
+     * Looks for JSDoc comments immediately before the method's scope and finds @param tags.
+     */
+    private void findJSDocParamOccurrences(String text, String paramName) {
+        if (containingMethodBlock == null) return;
+        
+        // Look backwards from the method start for a JSDoc comment
+        int methodStart = containingMethodBlock.startOffset;
+        
+        // Find JSDoc comment ending just before the method
+        // JSDoc pattern: /** ... */
+        Pattern jsDocPattern = Pattern.compile("/\\*\\*([\\s\\S]*?)\\*/");
+        Matcher jsDocMatcher = jsDocPattern.matcher(text);
+        
+        int jsDocStart = -1;
+        String jsDocContent = null;
+        
+        while (jsDocMatcher.find()) {
+            int end = jsDocMatcher.end();
+            // Check if this JSDoc is right before the method (within 200 chars, allowing for whitespace/function keywords)
+            if (end <= methodStart && methodStart - end < 200) {
+                // Check if there's no other code between JSDoc and method 
+                // For JavaScript: allow "function", "async", "var/let/const name = ", etc.
+                String between = text.substring(end, methodStart).trim();
+                // Allow empty, or typical JS function declaration patterns
+                if (between.isEmpty() || 
+                    between.matches("^(?:async\\s+)?(?:function\\s+\\w*)?\\s*$") ||
+                    between.matches("^(?:var|let|const)\\s+\\w+\\s*=\\s*(?:async\\s+)?(?:function)?\\s*$") ||
+                    between.matches("^\\w+\\s*[=:]\\s*(?:async\\s+)?(?:function)?\\s*$") ||
+                    between.matches("^(?:public|private|protected|static|final|abstract|synchronized|native|transient|volatile|\\s)+$")) {
+                    jsDocStart = jsDocMatcher.start();
+                    jsDocContent = jsDocMatcher.group(0);
+                }
+            }
+        }
+        
+        if (jsDocContent == null) return;
+        
+        // Find @param paramName in the JSDoc
+        // Pattern: @param (optional {Type}) paramName
+        Pattern paramPattern = Pattern.compile("@param\\s+(?:\\{[^}]*\\}\\s+)?(" + Pattern.quote(paramName) + ")(?:\\s|$|-)");
+        Matcher paramMatcher = paramPattern.matcher(jsDocContent);
+        
+        while (paramMatcher.find()) {
+            int paramNameStart = jsDocStart + paramMatcher.start(1);
+            int paramNameEnd = jsDocStart + paramMatcher.end(1);
+            allOccurrences.add(new int[]{paramNameStart, paramNameEnd});
         }
     }
     
