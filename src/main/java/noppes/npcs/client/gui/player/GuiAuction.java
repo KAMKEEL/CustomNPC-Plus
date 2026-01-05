@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.player;
 import kamkeel.npcs.network.packets.player.AuctionActionPacket;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.inventory.Slot;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.item.ItemStack;
@@ -14,6 +15,7 @@ import noppes.npcs.client.gui.util.*;
 import noppes.npcs.config.ConfigMarket;
 import noppes.npcs.containers.ContainerAuction;
 import noppes.npcs.constants.EnumAuctionDuration;
+import noppes.npcs.constants.EnumAuctionStatus;
 import noppes.npcs.controllers.data.AuctionFilter;
 import noppes.npcs.controllers.data.AuctionListing;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -22,6 +24,7 @@ import org.lwjgl.opengl.GL12;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Main auction house browse GUI.
@@ -69,6 +72,12 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     // Countdown update timer
     private long lastCountdownUpdate = 0;
 
+    private enum ActionMode {
+        BID,
+        CANCEL,
+        CLAIM
+    }
+
     public GuiAuction(EntityNPCInterface npc, ContainerAuction container) {
         super(npc, container);
         this.title = "";
@@ -89,6 +98,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         int rightX = guiLeft + RIGHT_PANEL_X;
         int actionY = guiTop + 44;
         boolean isCreateTab = currentTab == 4;
+        boolean isBrowseTab = currentTab == 0;
 
         updateListingSlotPosition(isCreateTab);
 
@@ -108,17 +118,19 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         if (isCreateTab) {
             addCreateControls(leftX, rightX);
         } else {
-            // Search field
-            searchField = new GuiNpcTextField(10, this, leftX, guiTop + 6, SEARCH_FIELD_WIDTH, 14, currentFilter.searchText);
-            searchField.setMaxStringLength(50);
-            addTextField(searchField);
+            if (isBrowseTab) {
+                // Search field
+                searchField = new GuiNpcTextField(10, this, leftX, guiTop + 6, SEARCH_FIELD_WIDTH, 14, currentFilter.searchText);
+                searchField.setMaxStringLength(50);
+                addTextField(searchField);
 
-            // Search button
-            addButton(new GuiNpcButton(11, leftX + SEARCH_FIELD_WIDTH + 4, guiTop + 5, SEARCH_BUTTON_WIDTH, 16,
-                StatCollector.translateToLocal("auction.search")));
+                // Search button
+                addButton(new GuiNpcButton(11, leftX + SEARCH_FIELD_WIDTH + 4, guiTop + 5, SEARCH_BUTTON_WIDTH, 16,
+                    StatCollector.translateToLocal("auction.search")));
 
-            // Sort button
-            addButton(new GuiNpcButton(30, leftX, guiTop + 24, LEFT_PANEL_WIDTH, 16, currentFilter.sortOrder.getDisplayName()));
+                // Sort button
+                addButton(new GuiNpcButton(30, leftX, guiTop + 24, LEFT_PANEL_WIDTH, 16, currentFilter.sortOrder.getDisplayName()));
+            }
 
             // Listing scroll area
             listingScroll = new GuiCustomScroll(this, 0);
@@ -128,18 +140,17 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             addScroll(listingScroll);
             updateListingDisplay();
 
-            // Pagination buttons
-            addButton(new GuiNpcButton(40, leftX, guiTop + 148, PAGE_BUTTON_WIDTH, 16,
-                StatCollector.translateToLocal("auction.prevPage")));
-            addLabel(new GuiNpcLabel(41, getPageLabel(), leftX + 70, guiTop + 152, CustomNpcResourceListener.DefaultTextColor));
-            addButton(new GuiNpcButton(42, leftX + LEFT_PANEL_WIDTH - PAGE_BUTTON_WIDTH, guiTop + 148, PAGE_BUTTON_WIDTH, 16,
-                StatCollector.translateToLocal("auction.nextPage")));
+            if (isBrowseTab) {
+                // Pagination buttons
+                addButton(new GuiNpcButton(40, leftX, guiTop + 148, PAGE_BUTTON_WIDTH, 16,
+                    StatCollector.translateToLocal("auction.prevPage")));
+                addLabel(new GuiNpcLabel(41, getPageLabel(), leftX + 70, guiTop + 152, CustomNpcResourceListener.DefaultTextColor));
+                addButton(new GuiNpcButton(42, leftX + LEFT_PANEL_WIDTH - PAGE_BUTTON_WIDTH, guiTop + 148, PAGE_BUTTON_WIDTH, 16,
+                    StatCollector.translateToLocal("auction.nextPage")));
+            }
 
             // Action buttons (right side)
-            addButton(new GuiNpcButton(50, rightX, actionY, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.viewDetails")));
-            addButton(new GuiNpcButton(51, rightX, actionY + 24, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.placeBid")));
-            addButton(new GuiNpcButton(52, rightX, actionY + 48, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.buyout")));
-            addButton(new GuiNpcButton(53, rightX, actionY + 72, ACTION_BUTTON_WIDTH, 20, StatCollector.translateToLocal("auction.refresh")));
+            addActionButtons(rightX, actionY);
 
             // Balance display
             addLabel(new GuiNpcLabel(60, String.format(StatCollector.translateToLocal("auction.balance"), formatCurrency(playerBalance)),
@@ -195,25 +206,42 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         }
         // Search button
         else if (id == 11) {
-            performSearch();
+            if (currentTab == 0) {
+                performSearch();
+            }
         }
         // Sort button
         else if (id == 30) {
-            cycleSortOrder();
+            if (currentTab == 0) {
+                cycleSortOrder();
+            }
         }
         // Pagination
         else if (id == 40) {
-            previousPage();
+            if (currentTab == 0) {
+                previousPage();
+            }
         } else if (id == 42) {
-            nextPage();
+            if (currentTab == 0) {
+                nextPage();
+            }
         }
         // Actions
         else if (id == 50) {
             viewDetails();
         } else if (id == 51) {
-            placeBid();
+            ActionMode mode = getActionMode();
+            if (mode == ActionMode.BID) {
+                placeBid();
+            } else if (mode == ActionMode.CANCEL) {
+                cancelListing();
+            } else if (mode == ActionMode.CLAIM) {
+                claimListing();
+            }
         } else if (id == 52) {
-            buyout();
+            if (getActionMode() == ActionMode.BID) {
+                buyout();
+            }
         } else if (id == 53) {
             refresh();
         } else if (id == 70) {
@@ -229,6 +257,7 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     private void switchTab(int tab) {
         currentTab = tab;
         currentPage = 0;
+        selectedListingIndex = -1;
 
         switch (tab) {
             case 0: // Browse
@@ -340,6 +369,9 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
 
         if (selectedListingIndex >= 0 && selectedListingIndex < displayList.size()) {
             listingScroll.selected = selectedListingIndex;
+        } else {
+            selectedListingIndex = -1;
+            listingScroll.selected = -1;
         }
     }
 
@@ -395,25 +427,34 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
     }
 
     private void updateButtonStates() {
+        ActionMode mode = getActionMode();
+        AuctionListing listing = getSelectedListing();
+        boolean hasSelection = listing != null;
+
         // Pagination buttons
         if (getButton(40) != null) getButton(40).setEnabled(currentPage > 0);
         if (getButton(42) != null) getButton(42).setEnabled(currentPage < totalPages - 1);
 
         // Action buttons based on selection
-        boolean hasSelection = selectedListingIndex >= 0 && selectedListingIndex < listings.size();
-        if (hasSelection && listings.get(selectedListingIndex).item == null) {
-            hasSelection = false;
-        }
         if (getButton(50) != null) getButton(50).setEnabled(hasSelection);
-        if (getButton(51) != null) getButton(51).setEnabled(hasSelection);
+        if (getButton(51) != null) {
+            if (!hasSelection) {
+                getButton(51).setEnabled(false);
+            } else if (mode == ActionMode.BID) {
+                getButton(51).setEnabled(canPlaceBid(listing));
+            } else if (mode == ActionMode.CANCEL) {
+                getButton(51).setEnabled(canCancelListing(listing));
+            } else {
+                getButton(51).setEnabled(getClaimAction(listing) != ClaimAction.NONE);
+            }
+        }
 
-        if (hasSelection && getButton(52) != null) {
-            AuctionListing listing = listings.get(selectedListingIndex);
-            getButton(52).setEnabled(listing.item != null &&
-                listing.buyoutPrice > 0 &&
-                playerBalance >= listing.buyoutPrice);
-        } else if (getButton(52) != null) {
-            getButton(52).setEnabled(false);
+        if (getButton(52) != null) {
+            if (!hasSelection || mode != ActionMode.BID) {
+                getButton(52).setEnabled(false);
+            } else {
+                getButton(52).setEnabled(canBuyout(listing));
+            }
         }
     }
 
@@ -430,23 +471,26 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
             for (int row = 0; row < 3; row++) {
                 for (int col = 0; col < 9; col++) {
                     int slotIndex = 1 + col + row * 9;
-                    container.inventorySlots.get(slotIndex).xDisplayPosition = INVENTORY_START_X + col * 18;
-                    container.inventorySlots.get(slotIndex).yDisplayPosition = INVENTORY_START_Y + row * 18;
+                    Slot slot = (Slot) container.inventorySlots.get(slotIndex);
+                    slot.xDisplayPosition = INVENTORY_START_X + col * 18;
+                    slot.yDisplayPosition = INVENTORY_START_Y + row * 18;
                 }
             }
 
             for (int col = 0; col < 9; col++) {
                 int slotIndex = 28 + col;
-                container.inventorySlots.get(slotIndex).xDisplayPosition = INVENTORY_START_X + col * 18;
-                container.inventorySlots.get(slotIndex).yDisplayPosition = INVENTORY_START_Y + HOTBAR_Y_OFFSET;
+                Slot slot = (Slot) container.inventorySlots.get(slotIndex);
+                slot.xDisplayPosition = INVENTORY_START_X + col * 18;
+                slot.yDisplayPosition = INVENTORY_START_Y + HOTBAR_Y_OFFSET;
             }
         } else {
             container.listingSlot.xDisplayPosition = HIDDEN_SLOT_POSITION;
             container.listingSlot.yDisplayPosition = HIDDEN_SLOT_POSITION;
 
             for (int slotIndex = 1; slotIndex < container.inventorySlots.size(); slotIndex++) {
-                container.inventorySlots.get(slotIndex).xDisplayPosition = HIDDEN_SLOT_POSITION;
-                container.inventorySlots.get(slotIndex).yDisplayPosition = HIDDEN_SLOT_POSITION;
+                Slot slot = (Slot) container.inventorySlots.get(slotIndex);
+                slot.xDisplayPosition = HIDDEN_SLOT_POSITION;
+                slot.yDisplayPosition = HIDDEN_SLOT_POSITION;
             }
         }
     }
@@ -523,6 +567,149 @@ public class GuiAuction extends GuiContainerNPCInterface implements IGuiData,
         AuctionActionPacket.CreateListing(item, startingPrice, buyoutPrice, duration);
         container.clearListingSlot();
         switchTab(0);
+    }
+
+    private void cancelListing() {
+        AuctionListing listing = getSelectedListing();
+        if (!canCancelListing(listing)) {
+            return;
+        }
+
+        AuctionActionPacket.CancelListing(listing.id);
+        refresh();
+    }
+
+    private void claimListing() {
+        AuctionListing listing = getSelectedListing();
+        if (listing == null) {
+            return;
+        }
+
+        ClaimAction action = getClaimAction(listing);
+        if (action == ClaimAction.ITEM) {
+            AuctionActionPacket.ClaimItem(listing.id);
+        } else if (action == ClaimAction.PROCEEDS) {
+            AuctionActionPacket.ClaimProceeds(listing.id);
+        } else {
+            return;
+        }
+
+        refresh();
+    }
+
+    private ActionMode getActionMode() {
+        if (currentTab == 1) {
+            return ActionMode.CANCEL;
+        }
+        if (currentTab == 3) {
+            return ActionMode.CLAIM;
+        }
+        return ActionMode.BID;
+    }
+
+    private String getPrimaryActionLabel(ActionMode mode) {
+        if (mode == ActionMode.CANCEL) {
+            return StatCollector.translateToLocal("auction.cancel");
+        }
+        if (mode == ActionMode.CLAIM) {
+            return StatCollector.translateToLocal("auction.claim");
+        }
+        return StatCollector.translateToLocal("auction.placeBid");
+    }
+
+    private void addActionButtons(int rightX, int actionY) {
+        ActionMode mode = getActionMode();
+        addButton(new GuiNpcButton(50, rightX, actionY, ACTION_BUTTON_WIDTH, 20,
+            StatCollector.translateToLocal("auction.viewDetails")));
+        addButton(new GuiNpcButton(51, rightX, actionY + 24, ACTION_BUTTON_WIDTH, 20,
+            getPrimaryActionLabel(mode)));
+        if (mode == ActionMode.BID) {
+            addButton(new GuiNpcButton(52, rightX, actionY + 48, ACTION_BUTTON_WIDTH, 20,
+                StatCollector.translateToLocal("auction.buyout")));
+            addButton(new GuiNpcButton(53, rightX, actionY + 72, ACTION_BUTTON_WIDTH, 20,
+                StatCollector.translateToLocal("auction.refresh")));
+        } else {
+            addButton(new GuiNpcButton(53, rightX, actionY + 48, ACTION_BUTTON_WIDTH, 20,
+                StatCollector.translateToLocal("auction.refresh")));
+        }
+    }
+
+    private AuctionListing getSelectedListing() {
+        if (selectedListingIndex < 0 || selectedListingIndex >= listings.size()) {
+            return null;
+        }
+        AuctionListing listing = listings.get(selectedListingIndex);
+        if (listing == null || listing.item == null) {
+            return null;
+        }
+        return listing;
+    }
+
+    private boolean canPlaceBid(AuctionListing listing) {
+        if (listing == null || !listing.isActive()) {
+            return false;
+        }
+        if (isPlayerSeller(listing)) {
+            return false;
+        }
+        return playerBalance >= listing.getMinimumBid();
+    }
+
+    private boolean canBuyout(AuctionListing listing) {
+        if (listing == null || !listing.isActive()) {
+            return false;
+        }
+        if (listing.buyoutPrice <= 0) {
+            return false;
+        }
+        if (isPlayerSeller(listing)) {
+            return false;
+        }
+        return playerBalance >= listing.buyoutPrice;
+    }
+
+    private boolean canCancelListing(AuctionListing listing) {
+        if (listing == null || listing.item == null) {
+            return false;
+        }
+        return listing.status == EnumAuctionStatus.ACTIVE && !listing.hasBids();
+    }
+
+    private boolean isPlayerSeller(AuctionListing listing) {
+        if (mc == null || mc.thePlayer == null || listing == null || listing.sellerUUID == null) {
+            return false;
+        }
+        UUID playerId = mc.thePlayer.getUniqueID();
+        return listing.sellerUUID.equals(playerId);
+    }
+
+    private enum ClaimAction {
+        ITEM,
+        PROCEEDS,
+        NONE
+    }
+
+    private ClaimAction getClaimAction(AuctionListing listing) {
+        if (listing == null || mc == null || mc.thePlayer == null) {
+            return ClaimAction.NONE;
+        }
+
+        UUID playerId = mc.thePlayer.getUniqueID();
+        if (listing.sellerUUID != null && listing.sellerUUID.equals(playerId) && !listing.sellerClaimed) {
+            if (listing.status == EnumAuctionStatus.SOLD) {
+                return ClaimAction.PROCEEDS;
+            }
+            if (listing.status == EnumAuctionStatus.CANCELLED || listing.status == EnumAuctionStatus.EXPIRED) {
+                return ClaimAction.ITEM;
+            }
+        }
+
+        if (listing.highBidderUUID != null && listing.highBidderUUID.equals(playerId)
+            && listing.status == EnumAuctionStatus.SOLD && !listing.buyerClaimed) {
+            return ClaimAction.ITEM;
+        }
+
+        return ClaimAction.NONE;
     }
 
     private long parsePrice(GuiNpcTextField field, long defaultValue) {
