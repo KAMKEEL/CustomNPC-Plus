@@ -360,7 +360,7 @@ public class Animation implements IAnimation {
      * to the new local instance on entity's AnimationData,
      * and clear them from the global instance.
      */
-    public void takeTasksFrom(Animation animation) {
+    public void moveFromGlobalToLocal(Animation animation) {
         this.onAnimationStart = animation.onAnimationStart;
         this.onAnimationFrame = animation.onAnimationFrame;
         this.onAnimationEnd = animation.onAnimationEnd;
@@ -368,6 +368,9 @@ public class Animation implements IAnimation {
         animation.onAnimationEnd = null;
         animation.onAnimationFrame = null;
         animation.onAnimationStart = null;
+
+        this.dataStore.putAll(animation.dataStore);
+        animation.dataStore.clear();
     }
     
     
