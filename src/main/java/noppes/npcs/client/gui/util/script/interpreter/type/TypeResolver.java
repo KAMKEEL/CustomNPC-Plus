@@ -136,18 +136,35 @@ public class TypeResolver {
         if (jsTypeName == null || jsTypeName.isEmpty()) {
             return TypeInfo.fromPrimitive("void");
         }
+
+        // Handle union types - use first type
+        if (jsTypeName.contains("|")) {
+            jsTypeName = jsTypeName.split("\\|")[0].trim();
+        }
+
+        // Handle nullable
+        jsTypeName = jsTypeName.replace("?", "").trim();
         
         // Strip array brackets for base type resolution
         boolean isArray = jsTypeName.endsWith("[]");
         String baseName = isArray ? jsTypeName.substring(0, jsTypeName.length() - 2) : jsTypeName;
-        
-        // Check JS primitives first
-        if (JS_PRIMITIVE_TO_JAVA.containsKey(baseName)) {
-            String javaType = JS_PRIMITIVE_TO_JAVA.get(baseName);
-            TypeInfo baseType = TypeResolver.isPrimitiveType(javaType) 
-                ? TypeInfo.fromPrimitive(javaType)
-                : resolveFullName("java.lang." + javaType);
-            return isArray ? TypeInfo.arrayOf(baseType) : baseType;
+
+        switch (baseName.toLowerCase()) {
+            case "string":
+                return TypeInfo.STRING;
+            case "number":
+            case "int":
+            case "integer":
+                return  TypeInfo.NUMBER;
+            case "boolean":
+            case "bool":
+                return TypeInfo.BOOLEAN;
+            case "void":
+                return TypeInfo.VOID;
+            case "any":
+            case "object":
+            case "*":
+                return TypeInfo.ANY;
         }
         
         // Check JS type registry

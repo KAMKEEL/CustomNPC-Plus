@@ -1655,22 +1655,14 @@ public class ScriptDocument {
     }
 
     public TypeInfo resolveType(String typeName) {
-        // Use language-appropriate resolution
-        if (isJavaScript()) {
-            return resolveJSTypeUnified(typeName);
-        }
+        /**
+         * Resolve a JS type name to unified TypeInfo.
+         * Handles JS primitives, .d.ts defined types, and falls back to Java types.
+         */
+        if (isJavaScript()) 
+            return typeResolver.resolveJSType(typeName);
+        
         return resolveTypeAndTrackUsage(typeName);
-    }
-    
-    /**
-     * Resolve a JS type name to unified TypeInfo.
-     * Handles JS primitives, .d.ts defined types, and falls back to Java types.
-     */
-    private TypeInfo resolveJSTypeUnified(String typeName) {
-        if (typeName == null || typeName.isEmpty()) {
-            return TypeInfo.fromPrimitive("void");
-        }
-        return typeResolver.resolveJSType(typeName);
     }
     
     /**
@@ -2454,45 +2446,6 @@ public class ScriptDocument {
             
             marks.add(new ScriptLine.Mark(start, end, TokenType.COMMENT, null));
         }
-    }
-    
-    /**
-     * Resolve a type name from JSDoc to a TypeInfo.
-     */
-    private TypeInfo resolveJSDocType(String typeName) {
-        if (typeName == null || typeName.isEmpty()) {
-            return null;
-        }
-        
-        // Handle union types - use first type
-        if (typeName.contains("|")) {
-            typeName = typeName.split("\\|")[0].trim();
-        }
-        
-        // Handle nullable
-        typeName = typeName.replace("?", "").trim();
-        
-        // Map JSDoc types to Java types
-        switch (typeName.toLowerCase()) {
-            case "string":
-                return TypeInfo.fromClass(String.class);
-            case "number":
-            case "int":
-            case "integer":
-                return isJavaScript() ? TypeInfo.fromClass(double.class) : TypeInfo.fromClass(int.class);
-            case "boolean":
-            case "bool":
-                return TypeInfo.fromClass(boolean.class);
-            case "void":
-                return TypeInfo.fromPrimitive("void");
-            case "any":
-            case "object":
-            case "*":
-                return TypeInfo.ANY;
-        }
-        
-        // Try through the type resolver
-        return resolveType(typeName);
     }
 
     private void markMethodDeclarations(List<ScriptLine.Mark> marks) {

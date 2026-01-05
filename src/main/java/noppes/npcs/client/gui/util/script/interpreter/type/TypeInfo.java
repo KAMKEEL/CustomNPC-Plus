@@ -37,13 +37,19 @@ public class TypeInfo {
      */
     public static final TypeInfo VOID = fromPrimitive("void");
     
+    public static final TypeInfo BOOLEAN = fromPrimitive("boolean");
+    
+    public static final TypeInfo STRING = TypeInfo.fromClass(String.class);
+    
     /**
      * Singleton constant for the "any" type (used in JavaScript/TypeScript).
      * The "any" type is universally compatible - it can be assigned to anything
      * and anything can be assigned to it.
      */
     public static final TypeInfo ANY = new TypeInfo("any", "any", "", Kind.CLASS, null, true, null);
-
+    public static final TypeInfo NUMBER = new TypeInfo("number", "number", "", Kind.CLASS, double.class, true, null);
+    
+    
     private final String simpleName;       // e.g., "List", "ColorType"
     private final String fullName;         // e.g., "java.util.List", "kamkeel...IOverlay$ColorType"
     private final String packageName;      // e.g., "java.util", "kamkeel.npcdbc.api.client.overlay"
