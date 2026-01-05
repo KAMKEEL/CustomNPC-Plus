@@ -123,8 +123,12 @@ public class NoppesUtilPlayer {
     }
 
     public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, int dimension) {
+        // Dismount from NPC mount before teleportation to prevent mount desync
+        if (player.ridingEntity instanceof EntityNPCInterface) {
+            player.mountEntity(null);
+        }
+
         if (player.dimension != dimension) {
-            int dim = player.dimension;
             MinecraftServer server = MinecraftServer.getServer();
             WorldServer wor = server.worldServerForDimension(dimension);
             if (wor == null) {
@@ -144,8 +148,12 @@ public class NoppesUtilPlayer {
     }
 
     public static void teleportPlayer(EntityPlayerMP player, double posX, double posY, double posZ, float yaw, float pitch, int dimension) {
+        // Dismount from NPC mount before teleportation to prevent mount desync
+        if (player.ridingEntity instanceof EntityNPCInterface) {
+            player.mountEntity(null);
+        }
+
         if (player.dimension != dimension) {
-            int dim = player.dimension;
             MinecraftServer server = MinecraftServer.getServer();
             WorldServer wor = server.worldServerForDimension(dimension);
             if (wor == null) {

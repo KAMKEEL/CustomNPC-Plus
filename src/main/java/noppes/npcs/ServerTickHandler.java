@@ -10,6 +10,7 @@ import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.world.WorldServer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.PlayerData;
+import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.controllers.data.action.ActionManager;
 
 public class ServerTickHandler {
@@ -65,6 +66,11 @@ public class ServerTickHandler {
 
     @SubscribeEvent
     public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
+        // Dismount player from NPC mount before logout to prevent orphaned mount state
+        if (event.player.ridingEntity instanceof EntityNPCInterface) {
+            event.player.mountEntity(null);
+        }
+
         PlayerData playerData = PlayerData.get(event.player);
         if (playerData != null) {
             playerData.onLogout();

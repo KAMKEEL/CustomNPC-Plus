@@ -12,7 +12,10 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
-
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class Animation implements IAnimation {
     public AnimationData parent; //Client-sided only
@@ -33,6 +36,12 @@ public class Animation implements IAnimation {
 
     //Client-sided
     public boolean paused;
+
+    protected final Map<String, Object> dataStore = new HashMap<>();
+
+    public Consumer<Animation> onAnimationStart;
+    public BiConsumer<Integer, Animation> onAnimationFrame;
+    public Consumer<Animation> onAnimationEnd;
 
     public Animation() {
     }
@@ -175,6 +184,18 @@ public class Animation implements IAnimation {
         return time;
     }
 
+    @Override
+    public boolean hasData(String key) {return dataStore.containsKey(key);}
+    
+    @Override
+    public Object getData(String key) {return dataStore.get(key);}
+
+    @Override
+    public IAnimation setData(String key, Object v) {dataStore.put(key, v);return this;}
+
+    @Override
+    public IAnimation removeData(String key) {dataStore.remove(key);return this;}
+
     public void readFromNBT(NBTTagCompound compound) {
         if (compound.hasKey("ID")) {
             id = compound.getInteger("ID");
@@ -254,8 +275,10 @@ public class Animation implements IAnimation {
 
             if (this.currentFrame() != null) {
                 EventHooks.onAnimationFrameEntered(this, this.currentFrame());
+                fireFrameTask(this.currentFrame);
             } else {
                 EventHooks.onAnimationEnded(this);
+                fireEndTask();
             }
 
             if (nextFrame != null) {
@@ -294,4 +317,39 @@ public class Animation implements IAnimation {
             }
         }
     }
+
+    public IAnimation onStart(Consumer<Animation> task) {
+        this.onAnimationStart = task;
+        return this;
+    }
+
+    public IAnimation onFrame(BiConsumer<Integer, Animation> task) {
+        this.onAnimationFrame = task;
+        return this;
+    }
+
+    public IAnimation onEnd(Consumer<Animation> task) {
+        this.onAnimationEnd = task;
+        return this;
+    }
+
+    protected void fireStartTask() {
+        if (this.onAnimationStart != null) {
+            this.onAnimationStart.accept(this);
+        }
+    }
+
+    protected void fireFrameTask(int frame) {
+        if (this.onAnimationFrame != null) {
+            this.onAnimationFrame.accept(frame, this);
+        }
+    }
+
+    protected void fireEndTask() {
+        if (this.onAnimationEnd != null) {
+            this.onAnimationEnd.accept(this);
+        }
+    }
+    
+    
 }

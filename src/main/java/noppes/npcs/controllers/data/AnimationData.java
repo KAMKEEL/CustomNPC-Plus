@@ -98,15 +98,18 @@ public class AnimationData implements IAnimationData {
             this.isClientAnimating = this.allowAnimation && this.animation != null;
             if (prevIsClientAnimating && (!this.isClientAnimating || this.animation != this.currentClientAnimation)) {
                 EventHooks.onAnimationEnded(this.currentClientAnimation);
+                this.currentClientAnimation.fireEndTask();
             }
             if (this.isClientAnimating) {
                 this.currentClientAnimation = this.animation;
             }
 
             if (this.animation != null && this.allowAnimation) {
+                this.animation.fireStartTask();
                 if (EventHooks.onAnimationStarted(this.animation))
                     return;
                 EventHooks.onAnimationFrameEntered(this.animation, this.animation.currentFrame());
+                this.animation.fireFrameTask(this.animation.currentFrame);
             }
 
             List<EntityPlayer> entities = sendingEntity.worldObj.getEntitiesWithinAABB(EntityPlayer.class, AxisAlignedBB.getBoundingBox(

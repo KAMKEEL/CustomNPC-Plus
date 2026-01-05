@@ -92,7 +92,7 @@ public final class LinkedItemScriptPacket extends AbstractPacket {
         } else {
             data.saveScript(in);
             if (ConfigDebug.PlayerLogging && FMLCommonHandler.instance().getEffectiveSide() == Side.SERVER) {
-                LogWriter.script(String.format("[%s] (Player) %s SAVED EFFECT %s [%s]", "LINKED ITEM SCRIPTS", player.getCommandSenderName(), linkedItem.getName()));
+                LogWriter.script(String.format("[%s] (Player) %s SAVED LINKED ITEM [%s]", "LINKED ITEM SCRIPTS", player.getCommandSenderName(), linkedItem.getName()));
             }
         }
     }

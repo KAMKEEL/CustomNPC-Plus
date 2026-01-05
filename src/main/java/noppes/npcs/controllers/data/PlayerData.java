@@ -84,6 +84,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public ScreenSize screenSize = new ScreenSize(-1, -1);
 
     public int profileSlot = 0;
+    private boolean specialKeyDown = false;
 
     public void onLogin() {
         // Continue playing animation for self when re-logging
@@ -265,6 +266,14 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
 
     public boolean getGUIOpen() {
         return this.isGUIOpen;
+    }
+
+    public boolean isSpecialKeyDown() {
+        return specialKeyDown;
+    }
+
+    public void setSpecialKeyDown(boolean specialKeyDown) {
+        this.specialKeyDown = specialKeyDown;
     }
 
     public ScreenSize getScreenSize() {
