@@ -681,8 +681,10 @@ public class ScriptDocument {
                 // For JS hooks, infer parameter types from registry
                 List<FieldInfo> params = new ArrayList<>();
                 TypeInfo returnType = TypeInfo.fromPrimitive("void");
-                String documentation = null;
-                
+                // Extract documentation before this method
+                String documentation = extractDocumentationBefore(m.start());
+
+
                 if (typeResolver.isJSHook(funcName)) {
                     List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
                     if (!sigs.isEmpty()) {
@@ -1301,8 +1303,9 @@ public class ScriptDocument {
                     initStart = m.start(2);
                     initEnd = m.end(2);
                 }
-                
-                FieldInfo fieldInfo = FieldInfo.globalField(varName, typeInfo, position, null, initStart, initEnd, 0);
+
+                String documentation = extractDocumentationBefore(m.start());
+                FieldInfo fieldInfo = FieldInfo.globalField(varName, typeInfo, position, documentation, initStart, initEnd, 0);
                 
                 if (globalFields.containsKey(varName)) {
                     AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
