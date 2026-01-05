@@ -5,6 +5,10 @@ import noppes.npcs.client.gui.util.script.interpreter.field.AssignmentInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.EnumConstantInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocReturnTag;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocTypeTag;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.Token;
@@ -46,6 +50,9 @@ public class TokenHoverInfo {
     
     /** Javadoc/documentation comment lines */
     private List<String> documentation = new ArrayList<>();
+
+    /** JSDoc-formatted documentation with colored segments (sections like Params, Returns) */
+    private List<DocumentationLine> jsDocLines = new ArrayList<>();
     
     /** Error messages (shown in red) */
     private List<String> errors = new ArrayList<>();
@@ -55,6 +62,32 @@ public class TokenHoverInfo {
     
     /** The token this info was built from */
     private final Token token;
+
+    // ==================== DOCUMENTATION LINE ====================
+
+    /**
+     * A line of documentation that may contain colored segments.
+     * Used for JSDoc-style rendering with "Params:", parameter names, etc.
+     */
+    public static class DocumentationLine {
+        public final List<TextSegment> segments;
+
+        public DocumentationLine() {
+            this.segments = new ArrayList<>();
+        }
+
+        public void addSegment(String text, int color) {
+            segments.add(new TextSegment(text, color));
+        }
+
+        public void addText(String text) {
+            segments.add(new TextSegment(text, TextSegment.COLOR_DEFAULT));
+        }
+
+        public boolean isEmpty() {
+            return segments.isEmpty() || segments.stream().allMatch(s -> s.text == null || s.text.isEmpty());
+        }
+    }
 
     // ==================== TEXT SEGMENT ====================
     
@@ -712,7 +745,10 @@ public class TokenHoverInfo {
         iconIndicator = "f";
 
         // Add documentation if available
-        if (fieldInfo.getDocumentation() != null && !fieldInfo.getDocumentation().isEmpty()) {
+        JSDocInfo jsDoc = fieldInfo.getJSDocInfo();
+        if (jsDoc != null) {
+            formatJSDocumentation(jsDoc, null);
+        } else if (fieldInfo.getDocumentation() != null && !fieldInfo.getDocumentation().isEmpty()) {
             String[] docLines = fieldInfo.getDocumentation().split("\n");
             for (String line : docLines) {
                 documentation.add(line);
@@ -1035,14 +1071,128 @@ public class TokenHoverInfo {
         }
         addSegment(")", TokenType.DEFAULT.getHexColor());
 
-        // Add documentation if available
-        if (methodInfo.getDocumentation() != null && !methodInfo.getDocumentation().isEmpty()) {
+        // Add documentation if available - use JSDoc formatting if we have JSDocInfo
+        JSDocInfo jsDoc = methodInfo.getJSDocInfo();
+        if (jsDoc != null) {
+            formatJSDocumentation(jsDoc, methodInfo.getParameters());
+        } else if (methodInfo.getDocumentation() != null && !methodInfo.getDocumentation().isEmpty()) {
+            // Fallback to raw documentation
             String[] docLines = methodInfo.getDocumentation().split("\n");
             for (String line : docLines) {
                 documentation.add(line);
             }
         }
 
+    }
+
+    /**
+     * Format JSDoc information in IntelliJ-style with "Params:" and "Returns:" sections.
+     * Creates colored documentation lines with parameter names highlighted.
+     */
+    private void formatJSDocumentation(JSDocInfo jsDoc, List<FieldInfo> methodParams) {
+        // Add description if available (without @tags)
+        String description = jsDoc.getDescription();
+        if (description != null && !description.isEmpty()) {
+            // Clean up the description - remove leading/trailing whitespace and asterisks
+            String[] descLines = description.split("\n");
+            for (String line : descLines) {
+                line = line.trim();
+                if (line.startsWith("*")) {
+                    line = line.substring(1).trim();
+                }
+                if (!line.isEmpty() && !line.startsWith("@")) {
+                    documentation.add(line);
+                }
+            }
+        }
+
+        // Add Returns section if there's a @return tag
+        JSDocTypeTag typeTag = jsDoc.getTypeTag();
+        if (typeTag != null) {
+            // "Type:" header
+            DocumentationLine typeLine = new DocumentationLine();
+            typeLine.addSegment("Type:", TokenType.JSDOC_TAG.getHexColor());
+
+            // Type if available
+            if (typeTag.hasType()) {
+                typeLine.addText(" ");
+                typeLine.addSegment("{", TokenType.JSDOC_TYPE.getHexColor());
+                typeLine.addSegment(typeTag.getTypeName(), TokenType.getColor(typeTag.getTypeInfo()));
+                typeLine.addSegment("}", TokenType.JSDOC_TYPE.getHexColor());
+            }
+
+            // Description if available
+            String typeDesc = typeTag.getDescription();
+            if (typeDesc != null && !typeDesc.isEmpty()) {
+                typeLine.addText(" - ");
+                typeLine.addText(typeDesc.trim());
+            }
+
+            jsDocLines.add(typeLine);
+        }
+
+        // Add Params section if there are @param tags
+        List<JSDocParamTag> paramTags = jsDoc.getParamTags();
+        if (paramTags != null && !paramTags.isEmpty()) {
+            //  "Params:" header
+            DocumentationLine paramsHeader = new DocumentationLine();
+            paramsHeader.addSegment("Params:", TokenType.JSDOC_TAG.getHexColor());
+            jsDocLines.add(paramsHeader);
+
+            // Add each parameter
+            for (JSDocParamTag paramTag : paramTags) {
+                DocumentationLine paramLine = new DocumentationLine();
+
+                // Indent and parameter name
+                String paramName = paramTag.getParamName();
+                boolean paramExists = methodParams != null && methodParams.stream()
+                                                                          .anyMatch(p -> p.getName().equals(paramName));
+                paramLine.addSegment(paramName,
+                        paramExists ? TokenType.PARAMETER.getHexColor() : TokenType.UNDEFINED_VAR.getHexColor());
+
+                // Type if available
+                if (paramTag.hasType()) {
+                    paramLine.addSegment(" {", TokenType.JSDOC_TYPE.getHexColor());
+                    paramLine.addSegment(paramTag.getTypeName(), TokenType.getColor(paramTag.getTypeInfo()));
+                    paramLine.addSegment("}", TokenType.JSDOC_TYPE.getHexColor());
+                }
+
+                // Description if available
+                String paramDesc = paramTag.getDescription();
+                if (paramDesc != null && !paramDesc.isEmpty()) {
+                    paramLine.addText(" - ");
+                    paramLine.addText(paramDesc.trim());
+                }
+
+                jsDocLines.add(paramLine);
+            }
+        }
+
+        // Add Returns section if there's a @return tag
+        JSDocReturnTag returnTag = jsDoc.getReturnTag();
+        if (returnTag != null) {
+            DocumentationLine returnLine = new DocumentationLine();
+            
+            //"Returns:" header
+            returnLine.addSegment("Returns:", TokenType.JSDOC_TAG.getHexColor());
+
+            // Type if available
+            if (returnTag.hasType()) {
+                returnLine.addText(" ");
+                returnLine.addSegment("{", TokenType.JSDOC_TYPE.getHexColor());
+                returnLine.addSegment(returnTag.getTypeName(), TokenType.getColor(returnTag.getTypeInfo()));
+                returnLine.addSegment("}", TokenType.JSDOC_TYPE.getHexColor());
+            }
+
+            // Description if available
+            String returnDesc = returnTag.getDescription();
+            if (returnDesc != null && !returnDesc.isEmpty()) {
+                returnLine.addText(" - ");
+                returnLine.addText(returnDesc.trim());
+            }
+
+            jsDocLines.add(returnLine);
+        }
     }
     
     private void extractJavadoc(Method method) {
@@ -1242,12 +1392,20 @@ public class TokenHoverInfo {
         return declaration;
     }
     public List<String> getDocumentation() { return documentation; }
+
+    public List<DocumentationLine> getJSDocLines() {
+        return jsDocLines;
+    }
     public List<String> getErrors() { return errors; }
     public List<String> getAdditionalInfo() { return additionalInfo; }
     public Token getToken() { return token; }
     
     public boolean hasContent() {
-        return !declaration.isEmpty() || !errors.isEmpty() || !documentation.isEmpty();
+        return !declaration.isEmpty() || !errors.isEmpty() || !documentation.isEmpty() || !jsDocLines.isEmpty();
+    }
+
+    public boolean hasJSDocContent() {
+        return !jsDocLines.isEmpty();
     }
     
     public boolean hasErrors() {

@@ -203,7 +203,8 @@ public class TokenHoverRenderer {
             currentY = drawWrappedSegments(textX, currentY, wrapWidth, declaration);
             currentY += LINE_SPACING;
         }
-        // Draw documentation
+        
+        // Draw documentation (plain text)
         if (!docs.isEmpty()) {
             // Draw separator line before documentation
             Gui.drawRect(textX, currentY, x + boxWidth - PADDING, currentY + SEPARATOR_HEIGHT, BORDER_COLOR);
@@ -212,6 +213,26 @@ public class TokenHoverRenderer {
                 List<String> wrappedLines = wrapText(doc, wrapWidth);
                 for (String line : wrappedLines) {
                     drawText(textX, currentY, line, DOC_COLOR);
+                    currentY += lineHeight + LINE_SPACING;
+                }
+            }
+        }
+        
+        // Draw JSDoc-formatted documentation with colored segments
+        List<TokenHoverInfo.DocumentationLine> jsDocLines = info.getJSDocLines();
+        if (!jsDocLines.isEmpty()) {
+            // Draw separator line if there was plain documentation or declaration
+            if (docs.isEmpty() && !declaration.isEmpty()) {
+                Gui.drawRect(textX, currentY, x + boxWidth - PADDING, currentY + SEPARATOR_HEIGHT, BORDER_COLOR);
+                currentY += SEPARATOR_HEIGHT + SEPARATOR_SPACING;
+            }
+            
+            for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
+                if (!docLine.isEmpty()) {
+                    currentY = drawWrappedSegments(textX, currentY, wrapWidth, docLine.segments);
+                    currentY += LINE_SPACING;
+                } else {
+                    // Empty line - just add spacing
                     currentY += lineHeight + LINE_SPACING;
                 }
             }
@@ -368,6 +389,17 @@ public class TokenHoverRenderer {
             }
         }
         
+        // JSDoc-formatted documentation lines
+        List<TokenHoverInfo.DocumentationLine> jsDocLines = info.getJSDocLines();
+        if (jsDocLines != null) {
+            for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
+                if (!docLine.isEmpty()) {
+                    int lineLongest = calculateSegmentsLongestLine(maxWidth, docLine.segments);
+                    longestLineWidth = Math.max(longestLineWidth, lineLongest);
+                }
+            }
+        }
+        
         // Additional info
         for (String line : info.getAdditionalInfo()) {
             List<String> wrappedLines = wrapText(line, maxWidth);
@@ -391,6 +423,7 @@ public class TokenHoverRenderer {
         String packageName = info.getPackageName();
         List<TokenHoverInfo.TextSegment> declaration = info.getDeclaration();
         List<String> docs = info.getDocumentation();
+        List<TokenHoverInfo.DocumentationLine> jsDocLines = info.getJSDocLines();
         List<String> additionalInfo = info.getAdditionalInfo();
 
         // Errors
@@ -402,7 +435,7 @@ public class TokenHoverRenderer {
             }
 
             boolean onlyErrors = errors != null && !errors.isEmpty() && (packageName == null || packageName.isEmpty()) && (declaration == null ||
-                    declaration.isEmpty()) && (docs == null || docs.isEmpty()) && (additionalInfo == null || additionalInfo.isEmpty());
+                    declaration.isEmpty()) && (docs == null || docs.isEmpty()) && (jsDocLines == null || jsDocLines.isEmpty()) && (additionalInfo == null || additionalInfo.isEmpty());
             
             if (!onlyErrors) //Add error separator height
                 totalHeight += (SEPARATOR_SPACING + SEPARATOR_HEIGHT) * 2 - 5;
@@ -423,13 +456,31 @@ public class TokenHoverRenderer {
             totalHeight += LINE_SPACING;
         }
         
-        // Documentation
+        // Documentation (plain text)
         if (!docs.isEmpty()) {
             // Add space for separator line and spacing
             totalHeight += SEPARATOR_SPACING + SEPARATOR_HEIGHT;
             for (String doc : docs) {
                 List<String> wrappedLines = wrapText(doc, contentWidth);
                 totalHeight += wrappedLines.size() * (lineHeight + LINE_SPACING);
+            }
+        }
+        
+        // JSDoc-formatted documentation lines
+        if (jsDocLines != null && !jsDocLines.isEmpty()) {
+            // Add separator if there was plain documentation or declaration but no plain docs
+            if (docs.isEmpty() && !declaration.isEmpty()) {
+               // totalHeight += SEPARATOR_SPACING + SEPARATOR_HEIGHT;
+            }
+            
+            for (TokenHoverInfo.DocumentationLine docLine : jsDocLines) {
+                if (!docLine.isEmpty()) {
+                    totalHeight += calculateSegmentsHeight(contentWidth, docLine.segments);
+                   //. totalHeight += LINE_SPACING;
+                } else {
+                    // Empty line
+                   // totalHeight += lineHeight + LINE_SPACING;
+                }
             }
         }
         
