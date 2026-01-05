@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.util.script.interpreter.field;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodCallInfo;
@@ -34,7 +35,8 @@ public final class FieldInfo {
     private final int declarationOffset;     // Where this field was declared in the source
     private final boolean resolved;
     private final String documentation;      // Javadoc/comment documentation for this field
-    
+    private JSDocInfo jsDocInfo;        // Parsed JSDoc info for this method (may be null)
+
     // Initialization value range (for displaying "= value" in hover info)
     private final int initStart;             // Position of '=' or -1 if no initializer
     private final int initEnd;               // Position after initializer (before ';') or -1
@@ -467,6 +469,8 @@ public final class FieldInfo {
     public boolean isResolved() { return resolved; }
     public MethodInfo getContainingMethod() { return containingMethod; }
     public String getDocumentation() { return documentation; }
+    public JSDocInfo getJSDocInfo() { return jsDocInfo; }
+    public void setJSDocInfo(JSDocInfo jsDocInfo) { this.jsDocInfo = jsDocInfo; }
     public int getInitStart() { return initStart; }
     public int getInitEnd() { return initEnd; }
     public boolean hasInitializer() { return initStart >= 0 && initEnd > initStart; }

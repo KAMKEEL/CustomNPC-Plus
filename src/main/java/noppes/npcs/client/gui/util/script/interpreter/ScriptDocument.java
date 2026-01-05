@@ -738,6 +738,10 @@ public class ScriptDocument {
                     m.start(), nameStart, nameStart,
                     bodyStart, bodyEnd, 0, documentation
                 );
+                
+                if(jsDoc!=null)
+                    methodInfo.setJSDocInfo(jsDoc);
+                
                 methods.add(methodInfo);
             }
         } else {
@@ -1032,6 +1036,8 @@ public class ScriptDocument {
                     
                     FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, absPos, method, initStart, initEnd, 0);
                     
+                    if(jsDoc != null)
+                        fieldInfo.setJSDocInfo(jsDoc);
                     // Check for duplicate
                     if (locals.containsKey(varName) || globalFields.containsKey(varName)) {
                         AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(
@@ -1348,6 +1354,9 @@ public class ScriptDocument {
                 }
 
                 FieldInfo fieldInfo = FieldInfo.globalField(varName, typeInfo, position, documentation, initStart, initEnd, 0);
+                
+                if(jsDoc != null)
+                    fieldInfo.setJSDocInfo(jsDoc);
                 
                 if (globalFields.containsKey(varName)) {
                     AssignmentInfo dupError = AssignmentInfo.duplicateDeclaration(

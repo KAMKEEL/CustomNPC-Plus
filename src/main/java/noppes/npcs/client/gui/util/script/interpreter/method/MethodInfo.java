@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.method;
 
 import noppes.npcs.client.gui.util.script.interpreter.*;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
@@ -59,6 +60,7 @@ public final class MethodInfo {
     private final boolean isDeclaration;      // true if this is a declaration, false if it's a call
     private final int modifiers;              // Java Modifier flags (e.g., Modifier.PUBLIC | Modifier.STATIC)
     private final String documentation;       // Javadoc/comment documentation for this method
+    private JSDocInfo jsDocInfo;        // Parsed JSDoc info for this method (may be null)
     private final java.lang.reflect.Method javaMethod;  // The Java reflection Method, if this was created from reflection
 
     // Error tracking for method declarations
@@ -269,6 +271,8 @@ public final class MethodInfo {
     public boolean isPrivate() { return Modifier.isPrivate(modifiers); }
     public boolean isProtected() { return Modifier.isProtected(modifiers); }
     public String getDocumentation() { return documentation; }
+    public JSDocInfo getJSDocInfo() { return jsDocInfo; }
+    public void setJSDocInfo(JSDocInfo jsDocInfo) { this.jsDocInfo = jsDocInfo; }
     
     // ==================== OVERRIDE/IMPLEMENTS GETTERS/SETTERS ====================
     
