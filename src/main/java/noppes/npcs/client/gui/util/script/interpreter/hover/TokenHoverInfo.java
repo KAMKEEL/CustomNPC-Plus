@@ -632,7 +632,7 @@ public class TokenHoverInfo {
         } else {
             // Unresolved type
             iconIndicator = "?";
-            addSegment(getName(typeInfo), TokenType.IMPORTED_CLASS.getHexColor());
+            addSegment(getName(typeInfo), token.getType().getHexColor());
             if (!typeInfo.isResolved()) {
                 errors.add("Cannot resolve class '" + getName(typeInfo) + "'");
             }
