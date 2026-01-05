@@ -795,9 +795,10 @@ public class ScriptDocument {
                 methodInfo.validate(methodBodyText, hasBody, (expr, pos) -> resolveExpressionType(expr, pos));
             }
 
-            // Check for duplicate method declarations
-            checkDuplicateMethods();
+           
         }
+        // Check for duplicate method declarations
+        checkDuplicateMethods();
     }
 
     /**
