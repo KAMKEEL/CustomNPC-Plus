@@ -975,7 +975,7 @@ public class ScriptDocument {
             
             if (isJavaScript()) {
                 // JavaScript: var/let/const varName = expr;
-                Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*=\\s*([^;\\n]+))?");
+                Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
                 Matcher m = varPattern.matcher(bodyText);
                 
                 while (m.find()) {
@@ -983,21 +983,22 @@ public class ScriptDocument {
                     if (isExcluded(absPos)) continue;
                     
                     String varName = m.group(1);
-                    String initializer = m.group(2);
+                    String initializer = m.group(3);
                     
                     // Infer type from initializer using resolveExpressionType
                     TypeInfo typeInfo = null;
                     if (initializer != null && !initializer.trim().isEmpty()) {
-                        typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(2));
+                        typeInfo = resolveExpressionType(initializer.trim(), bodyStart + m.start(3));
                     }
                     if (typeInfo == null) {
                         typeInfo = TypeInfo.fromClass(Object.class); // Default to Object for unresolved
                     }
                     
                     int initStart = -1, initEnd = -1;
-                    if (initializer != null) {
+                    if (m.group(2) != null) {
+                        // Include the = sign in initStart
                         initStart = bodyStart + m.start(2);
-                        initEnd = bodyStart + m.end(2);
+                        initEnd = bodyStart + m.end(3);
                     }
                     
                     FieldInfo fieldInfo = FieldInfo.localField(varName, typeInfo, absPos, method, initStart, initEnd, 0);
@@ -1269,7 +1270,7 @@ public class ScriptDocument {
     private void parseGlobalFields() {
         if (isJavaScript()) {
             // JavaScript: var/let/const varName = expr; (outside functions)
-            Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*=\\s*([^;\\n]+))?");
+            Pattern varPattern = Pattern.compile("(?:var|let|const)\\s+(\\w+)(?:\\s*(=)\\s*([^;\\n]+))?");
             Matcher m = varPattern.matcher(text);
             
             while (m.find()) {
@@ -1287,21 +1288,22 @@ public class ScriptDocument {
                 if (insideMethod) continue;
                 
                 String varName = m.group(1);
-                String initializer = m.group(2);
+                String initializer = m.group(3);
                 
                 // Infer type from initializer
                 TypeInfo typeInfo = null;
                 if (initializer != null && !initializer.trim().isEmpty()) {
-                    typeInfo = resolveExpressionType(initializer.trim(), m.start(2));
+                    typeInfo = resolveExpressionType(initializer.trim(), m.start(3));
                 }
                 if (typeInfo == null) {
                     typeInfo = TypeInfo.fromClass(Object.class);
                 }
                 
                 int initStart = -1, initEnd = -1;
-                if (initializer != null) {
+                if (m.group(2) != null) {
+                    // Include the = sign in initStart
                     initStart = m.start(2);
-                    initEnd = m.end(2);
+                    initEnd = m.end(3);
                 }
 
                 String documentation = extractDocumentationBefore(m.start());
