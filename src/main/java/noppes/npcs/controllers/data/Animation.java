@@ -12,7 +12,8 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
-
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class Animation implements IAnimation {
     public AnimationData parent; //Client-sided only
@@ -33,6 +34,10 @@ public class Animation implements IAnimation {
 
     //Client-sided
     public boolean paused;
+
+    public Consumer<Animation> onAnimationStart;
+    public BiConsumer<Integer, Animation> onAnimationFrame;
+    public Consumer<Animation> onAnimationEnd;
 
     public Animation() {
     }
@@ -254,8 +259,10 @@ public class Animation implements IAnimation {
 
             if (this.currentFrame() != null) {
                 EventHooks.onAnimationFrameEntered(this, this.currentFrame());
+                fireFrameTask(this.currentFrame);
             } else {
                 EventHooks.onAnimationEnded(this);
+                fireEndTask();
             }
 
             if (nextFrame != null) {
@@ -294,4 +301,39 @@ public class Animation implements IAnimation {
             }
         }
     }
+
+    public IAnimation onStart(Consumer<Animation> task) {
+        this.onAnimationStart = task;
+        return this;
+    }
+
+    public IAnimation onFrame(BiConsumer<Integer, Animation> task) {
+        this.onAnimationFrame = task;
+        return this;
+    }
+
+    public IAnimation onEnd(Consumer<Animation> task) {
+        this.onAnimationEnd = task;
+        return this;
+    }
+
+    protected void fireStartTask() {
+        if (this.onAnimationStart != null) {
+            this.onAnimationStart.accept(this);
+        }
+    }
+
+    protected void fireFrameTask(int frame) {
+        if (this.onAnimationFrame != null) {
+            this.onAnimationFrame.accept(frame, this);
+        }
+    }
+
+    protected void fireEndTask() {
+        if (this.onAnimationEnd != null) {
+            this.onAnimationEnd.accept(this);
+        }
+    }
+    
+    
 }
