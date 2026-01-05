@@ -318,16 +318,19 @@ public class Animation implements IAnimation {
         }
     }
 
+    @Override
     public IAnimation onStart(Consumer<Animation> task) {
         this.onAnimationStart = task;
         return this;
     }
-
+    
+    @Override
     public IAnimation onFrame(BiConsumer<Integer, Animation> task) {
         this.onAnimationFrame = task;
         return this;
     }
-
+    
+    @Override
     public IAnimation onEnd(Consumer<Animation> task) {
         this.onAnimationEnd = task;
         return this;
