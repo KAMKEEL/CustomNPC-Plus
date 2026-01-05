@@ -50,13 +50,16 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     private final boolean requiresImport;   // Whether selecting this item requires adding an import
     private final String importPath;        // Full path for import (e.g., "net.minecraft.client.Minecraft")
     
+    // Inheritance tracking (for JS types)
+    private final int inheritanceDepth;     // Depth in inheritance tree (0 = child, 1 = parent, 2 = grandparent, etc.)
+    
     // Match scoring
     private int matchScore = 0;             // How well this matches the query
     private int[] matchIndices;             // Indices of matched characters for highlighting
     
     private AutocompleteItem(String name, String searchName, String insertText, Kind kind, String typeLabel,
                              String signature, String documentation, Object sourceData, boolean deprecated,
-                             boolean requiresImport, String importPath) {
+                             boolean requiresImport, String importPath, int inheritanceDepth) {
         this.name = name;
         this.searchName = searchName != null ? searchName : name;  // Default to name if not provided
         this.insertText = insertText;
@@ -68,6 +71,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         this.deprecated = deprecated;
         this.requiresImport = requiresImport;
         this.importPath = importPath;
+        this.inheritanceDepth = inheritanceDepth;
     }
     
     // ==================== FACTORY METHODS ====================
@@ -117,7 +121,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             method,
             false, // TODO: Check for @Deprecated annotation
             false, // Methods don't require imports
-            null
+            null,
+            -1 // Java methods don't use inheritance depth sorting
         );
     }
     
@@ -154,7 +159,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field,
             false,
             false, // Fields don't require imports
-            null
+            null,
+             -1// Java fields don't use inheritance depth sorting
         );
     }
     
@@ -185,7 +191,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             type,
             false,
             false, // Will be overridden for unimported types
-            null
+            null,
+            -1 // Java types don't use inheritance depth sorting
         );
     }
     
@@ -193,6 +200,15 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a JavaScript JSMethodInfo.
      */
     public static AutocompleteItem fromJSMethod(JSMethodInfo method) {
+        return fromJSMethod(method, 0);
+    }
+    
+    /**
+     * Create from a JavaScript JSMethodInfo with inheritance depth.
+     * @param method The method info
+     * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
+     */
+    public static AutocompleteItem fromJSMethod(JSMethodInfo method, int inheritanceDepth) {
         String name = method.getName();
         StringBuilder insertText = new StringBuilder(name);
         insertText.append("(");
@@ -217,7 +233,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             method,
             false,
             false,
-            null
+            null,
+            inheritanceDepth
         );
     }
     
@@ -225,6 +242,15 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a JavaScript JSFieldInfo.
      */
     public static AutocompleteItem fromJSField(JSFieldInfo field) {
+        return fromJSField(field, 0);
+    }
+    
+    /**
+     * Create from a JavaScript JSFieldInfo with inheritance depth.
+     * @param field The field info
+     * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
+     */
+    public static AutocompleteItem fromJSField(JSFieldInfo field, int inheritanceDepth) {
         return new AutocompleteItem(
             field.getName(),
             field.getName(),  // searchName same as display name
@@ -236,7 +262,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field,
             false,
             false,
-            null
+            null,
+            inheritanceDepth
         );
     }
     
@@ -255,7 +282,8 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             null,
             false,
             false,
-            null
+            null,
+            -1 // Keywords don't use inheritance depth sorting
         );
     }
     
@@ -526,6 +554,14 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             return this.kind.getPriority() - other.kind.getPriority();
         }
         
+        // For JS types, prioritize by inheritance depth (child class members first)
+        // Only apply if both items have valid inheritance depth (>= 0)
+        if (this.inheritanceDepth >= 0 && other.inheritanceDepth >= 0) {
+            if (this.inheritanceDepth != other.inheritanceDepth) {
+                return this.inheritanceDepth - other.inheritanceDepth; // Lower depth = closer to child = higher priority
+            }
+        }
+        
         // Finally alphabetically
         return this.name.compareToIgnoreCase(other.name);
     }
@@ -613,7 +649,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
                 insertText = name;
             }
             return new AutocompleteItem(name, searchName, insertText, kind, typeLabel, 
-                signature, documentation, sourceData, deprecated, requiresImport, importPath);
+                signature, documentation, sourceData, deprecated, requiresImport, importPath, -1);
         }
     }
 }
