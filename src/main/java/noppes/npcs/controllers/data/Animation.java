@@ -39,9 +39,9 @@ public class Animation implements IAnimation {
 
     protected final Map<String, Object> dataStore = new HashMap<>();
 
-    public Consumer<Animation> onAnimationStart;
-    public BiConsumer<Integer, Animation> onAnimationFrame;
-    public Consumer<Animation> onAnimationEnd;
+    public Consumer<IAnimation> onAnimationStart;
+    public BiConsumer<Integer, IAnimation> onAnimationFrame;
+    public Consumer<IAnimation> onAnimationEnd;
 
     public Animation() {
     }
@@ -319,19 +319,19 @@ public class Animation implements IAnimation {
     }
 
     @Override
-    public IAnimation onStart(Consumer<Animation> task) {
+    public IAnimation onStart(Consumer<IAnimation> task) {
         this.onAnimationStart = task;
         return this;
     }
     
     @Override
-    public IAnimation onFrame(BiConsumer<Integer, Animation> task) {
+    public IAnimation onFrame(BiConsumer<Integer, IAnimation> task) {
         this.onAnimationFrame = task;
         return this;
     }
     
     @Override
-    public IAnimation onEnd(Consumer<Animation> task) {
+    public IAnimation onEnd(Consumer<IAnimation> task) {
         this.onAnimationEnd = task;
         return this;
     }
