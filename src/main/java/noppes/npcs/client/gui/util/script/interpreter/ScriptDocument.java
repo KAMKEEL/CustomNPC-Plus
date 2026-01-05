@@ -2465,7 +2465,7 @@ public class ScriptDocument {
             int methodDeclStart = m.start();
             MethodInfo methodInfo = null;
             for (MethodInfo method : getAllMethods()) {
-                if (method.getDeclarationOffset() == methodDeclStart) {
+                if (method.getFullDeclarationOffset() == methodDeclStart) {
                     methodInfo = method;
                     break;
                 }
