@@ -12,6 +12,8 @@ import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.controllers.AnimationController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -34,6 +36,8 @@ public class Animation implements IAnimation {
 
     //Client-sided
     public boolean paused;
+
+    protected final Map<String, Object> dataStore = new HashMap<>();
 
     public Consumer<Animation> onAnimationStart;
     public BiConsumer<Integer, Animation> onAnimationFrame;
@@ -179,6 +183,18 @@ public class Animation implements IAnimation {
         }
         return time;
     }
+
+    @Override
+    public boolean hasData(String key) {return dataStore.containsKey(key);}
+    
+    @Override
+    public Object getData(String key) {return dataStore.get(key);}
+
+    @Override
+    public IAnimation setData(String key, Object v) {dataStore.put(key, v);return this;}
+
+    @Override
+    public IAnimation removeData(String key) {dataStore.remove(key);return this;}
 
     public void readFromNBT(NBTTagCompound compound) {
         if (compound.hasKey("ID")) {
