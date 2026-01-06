@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.ResourceLocation;
+import noppes.npcs.scripted.NpcAPI;
 
 import java.io.*;
 import java.net.URL;
@@ -29,6 +30,10 @@ public class JSTypeRegistry {
     // Hook function signatures: functionName -> list of (paramName, paramType) pairs
     // Multiple entries for overloaded hooks
     private final Map<String, List<HookSignature>> hooks = new LinkedHashMap<>();
+
+    // Global object instances: name -> type (e.g., "API" -> "AbstractNpcAPI")
+    // These are treated as instance objects, not static classes
+    private final Map<String, String> globalEngineObjects = new LinkedHashMap<>();
     
     // Primitive types
     private static final Set<String> PRIMITIVES = new HashSet<>(Arrays.asList(
@@ -79,6 +84,8 @@ public class JSTypeRegistry {
             }
             
             resolveInheritance();
+            registerEngineGlobalObjects();
+            
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from resources");
         } catch (Exception e) {
@@ -318,6 +325,12 @@ public class JSTypeRegistry {
             }
         }
         
+        // Check global engine objects
+        if (globalEngineObjects.containsKey(baseName)) {
+            String typeName = globalEngineObjects.get(baseName);
+            return getType(typeName, visited);
+        }
+        
         return null;
     }
     
@@ -399,6 +412,85 @@ public class JSTypeRegistry {
     public Map<String, List<HookSignature>> getAllHooks() {
         return hooks;
     }
+
+    /**
+     * Register a global object instance (like API, DBCAPI from NpcAPI.engineObjects).
+     * These are treated as instance objects, not static classes.
+     * @param name The global variable name (e.g., "API")
+     * @param typeName The type name (e.g., "AbstractNpcAPI")
+     */
+    public void registerGlobalObject(String name, String typeName) {
+        globalEngineObjects.put(name, typeName);
+    }
+
+    /**
+     * Get the type name for a global object.
+     * @param name The global variable name
+     * @return The type name, or null if not a registered global object
+     */
+    public String getGlobalObjectType(String name) {
+        return globalEngineObjects.get(name);
+    }
+
+    /**
+     * Check if a name is a registered global object instance.
+     */
+    public boolean isGlobalObject(String name) {
+        return globalEngineObjects.containsKey(name);
+    }
+
+    /**
+     * Get all registered global objects.
+     */
+    public Map<String, String> getGlobalEngineObjects() {
+        return Collections.unmodifiableMap(globalEngineObjects);
+    }
+
+    /**
+     * Registers global objects from NpcAPI.engineObjects into JSTypeRegistry.
+     * This allows the IDE to recognize API, DBCAPI, etc. as instance objects with autocomplete.
+     */
+    private void registerEngineGlobalObjects() {
+        Map<String, Object> engineObjects = new HashMap<>(NpcAPI.engineObjects);
+        engineObjects.put("API", NpcAPI.Instance()); //default API object
+
+        if (engineObjects != null) {
+            for (Map.Entry<String, Object> entry : engineObjects.entrySet()) {
+                String name = entry.getKey(); // e.g., "API", "DBCAPI"
+                Object obj = entry.getValue(); // e.g., AbstractNpcAPI instance
+
+                if (obj != null) {
+                    // Get the actual class name
+                    String concreteClassName = obj.getClass().getSimpleName();
+
+                    // Map concrete implementation classes to their abstract interface names
+                    // (because .d.ts files define the abstract interfaces, not the implementations)
+                    String typeName = mapConcreteToAbstractClassName(concreteClassName);
+
+                    // Register as global object (instance, not static)
+                    registerGlobalObject(name, typeName);
+                }
+            }
+        }
+    }
+
+    /**
+     * Maps concrete implementation class names to their abstract interface names.
+     * For example: "NpcAPI" -> "AbstractNpcAPI", "DBCAPI" -> "AbstractDBCAPI"
+     */
+    private String mapConcreteToAbstractClassName(String concreteClassName) {
+        // Check if the type exists in the registry as-is
+        if (types.containsKey(concreteClassName))
+            return concreteClassName;
+
+        // Try prepending "Abstract" if it doesn't exist
+        String abstractName = "Abstract" + concreteClassName;
+        if (types.containsKey(abstractName))
+            return abstractName;
+
+        // Default: return the original name
+        return concreteClassName;
+    }
     
     /**
      * Check if initialized.
@@ -414,6 +506,7 @@ public class JSTypeRegistry {
         types.clear();
         typeAliases.clear();
         hooks.clear();
+        globalEngineObjects.clear();
         initialized = false;
     }
     

@@ -1787,11 +1787,11 @@ public class ScriptDocument {
 
         // Chained field accesses - UNIFIED (uses resolveVariable which handles both)
         markChainedFieldAccesses(marks);
-        
+        markImportedClassUsages(marks);
+
         // Java-specific final passes
         if (!isJavaScript()) {
             markCastTypes(marks);
-            markImportedClassUsages(marks);
             markUnusedImports(marks);
         }
         
@@ -4338,6 +4338,21 @@ public class ScriptDocument {
                 }
             }
 
+            if (isJavaScript()) {
+                // check if a variable in global objects 
+                JSTypeRegistry registry = JSTypeRegistry.getInstance();
+                String globalObjectType = registry.getGlobalObjectType(name);
+                if (globalObjectType != null) {
+                    // Resolve the type and create a FieldInfo for it
+                    FieldInfo fieldInfo = resolveVariable(name, position);
+                    if (fieldInfo != null && fieldInfo.isResolved()) {
+                        Object metadata = callInfo != null ? new FieldInfo.ArgInfo(fieldInfo, callInfo) : fieldInfo;
+                        marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.GLOBAL_FIELD, metadata));
+                        continue;
+                    }
+                }
+            }
+
             // Skip uppercase if not a known field - type handling will deal with it
             if (isUppercase)
                 continue;
@@ -5258,6 +5273,20 @@ public class ScriptDocument {
         // Check global fields (stores both Java global fields and JS global var/let/const)
         if (globalFields.containsKey(name)) {
             return globalFields.get(name);
+        }
+
+        //  Check JS global objects from JSTypeRegistry (like API, DBCAPI)
+        if (isJavaScript()) {
+            JSTypeRegistry registry = JSTypeRegistry.getInstance();
+            String globalObjectType = registry.getGlobalObjectType(name);
+            if (globalObjectType != null) {
+                // Resolve the type and create a FieldInfo for it
+                TypeInfo typeInfo = resolveType(globalObjectType);
+                if (typeInfo != null && typeInfo.isResolved()) {
+                    // Create a global field for this object with GLOBAL scope
+                    return FieldInfo.globalField(name, typeInfo, -1);
+                }
+            }
         }
         
         return null;
