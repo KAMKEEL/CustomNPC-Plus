@@ -16,6 +16,10 @@ public class TypeScriptDefinitionParser {
     private static final Pattern INTERFACE_PATTERN = Pattern.compile(
         "export\\s+interface\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
     
+    // Pattern for nested interfaces without export keyword
+    private static final Pattern NESTED_INTERFACE_PATTERN = Pattern.compile(
+        "(?<!export\\s)\\binterface\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+    
     // Similar pattern for classes
     private static final Pattern CLASS_PATTERN = Pattern.compile(
         "export\\s+class\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
@@ -23,8 +27,9 @@ public class TypeScriptDefinitionParser {
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile(
         "export\\s+namespace\\s+(\\w+)\\s*\\{");
     
+    // Make semicolon optional for type aliases (TypeScript doesn't require them)
     private static final Pattern TYPE_ALIAS_PATTERN = Pattern.compile(
-        "export\\s+type\\s+(\\w+)\\s*=\\s*([^;]+);");
+        "export\\s+type\\s+(\\w+)\\s*=\\s*([^;\\n]+);?");
     
     private static final Pattern METHOD_PATTERN = Pattern.compile(
         "^\\s*(\\w+)\\s*\\(([^)]*)\\)\\s*:\\s*([^;]+);", Pattern.MULTILINE);
@@ -156,7 +161,7 @@ public class TypeScriptDefinitionParser {
      * Parse interface and class definitions from content.
      */
     private void parseInterfaceFile(String content, String parentNamespace) {
-        // Find interfaces
+        // Find exported interfaces
         Matcher interfaceMatcher = INTERFACE_PATTERN.matcher(content);
         while (interfaceMatcher.find()) {
             String interfaceName = interfaceMatcher.group(1);
@@ -180,6 +185,39 @@ public class TypeScriptDefinitionParser {
             
             // Find the body of this interface
             int bodyStart = interfaceMatcher.end();
+            int bodyEnd = findMatchingBrace(content, bodyStart - 1);
+            if (bodyEnd > bodyStart) {
+                String body = content.substring(bodyStart, bodyEnd);
+                parseInterfaceBody(body, typeInfo);
+                
+                // Parse nested interfaces and type aliases within this interface body
+                String fullNamespace = parentNamespace != null ? 
+                    parentNamespace + "." + interfaceName : interfaceName;
+                parseNestedTypes(body, fullNamespace);
+            }
+            
+            registry.registerType(typeInfo);
+        }
+        
+        // Find nested interfaces (without export keyword)
+        Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(content);
+        while (nestedInterfaceMatcher.find()) {
+            String interfaceName = nestedInterfaceMatcher.group(1);
+            String extendsClause = nestedInterfaceMatcher.group(2);
+            
+            JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, parentNamespace);
+            if (extendsClause != null) {
+                String extendsType = extendsClause.trim();
+                extendsType = extendsType.replaceAll("<[^>]*>", "");
+                if (extendsType.contains(",")) {
+                    extendsType = extendsType.substring(0, extendsType.indexOf(',')).trim();
+                }
+                extendsType = cleanType(extendsType);
+                typeInfo.setExtends(extendsType);
+            }
+            
+            // Find the body of this nested interface
+            int bodyStart = nestedInterfaceMatcher.end();
             int bodyEnd = findMatchingBrace(content, bodyStart - 1);
             if (bodyEnd > bodyStart) {
                 String body = content.substring(bodyStart, bodyEnd);
@@ -228,13 +266,11 @@ public class TypeScriptDefinitionParser {
             if (bodyEnd > bodyStart) {
                 String body = content.substring(bodyStart, bodyEnd);
                 
-                // Recursively parse inner types with namespace prefix
+                // Parse inner types (both exported and nested) with namespace prefix
                 String fullNamespace = parentNamespace != null ? 
                     parentNamespace + "." + namespaceName : namespaceName;
                 parseInterfaceFile(body, fullNamespace);
-                
-                // Also handle type aliases within namespace
-                parseTypeAliases(body, fullNamespace);
+                parseNestedTypes(body, fullNamespace);
             }
         }
         
@@ -242,6 +278,42 @@ public class TypeScriptDefinitionParser {
         if (parentNamespace == null) {
             parseTypeAliases(content, null);
         }
+    }
+    
+    /**
+     * Parse nested types (interfaces and type aliases) within a parent type or namespace.
+     */
+    private void parseNestedTypes(String content, String namespace) {
+        // Parse nested interfaces
+        Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(content);
+        while (nestedInterfaceMatcher.find()) {
+            String interfaceName = nestedInterfaceMatcher.group(1);
+            String extendsClause = nestedInterfaceMatcher.group(2);
+            
+            JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, namespace);
+            if (extendsClause != null) {
+                String extendsType = extendsClause.trim();
+                extendsType = extendsType.replaceAll("<[^>]*>", "");
+                if (extendsType.contains(",")) {
+                    extendsType = extendsType.substring(0, extendsType.indexOf(',')).trim();
+                }
+                extendsType = cleanType(extendsType);
+                typeInfo.setExtends(extendsType);
+            }
+            
+            // Find the body of this nested interface
+            int bodyStart = nestedInterfaceMatcher.end();
+            int bodyEnd = findMatchingBrace(content, bodyStart - 1);
+            if (bodyEnd > bodyStart) {
+                String body = content.substring(bodyStart, bodyEnd);
+                parseInterfaceBody(body, typeInfo);
+            }
+            
+            registry.registerType(typeInfo);
+        }
+        
+        // Parse type aliases within this context
+        parseTypeAliases(content, namespace);
     }
     
     /**
