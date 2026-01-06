@@ -10,6 +10,7 @@
 .project
 /bin/
 /config/
+/copilot/
 /crash-reports/
 /logs/
 options.txt
