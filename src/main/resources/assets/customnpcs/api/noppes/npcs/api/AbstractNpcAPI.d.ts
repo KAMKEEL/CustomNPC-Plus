@@ -5,14 +5,9 @@
 
 export class AbstractNpcAPI {
 
-    // Fields
-    instance: import('./AbstractNpcAPI').AbstractNpcAPI;
-    instance: any;
-    null: any;
-    c: any;
-    instance: any;
-
     // Methods
+    Instance(): AbstractNpcAPI;
+    IsAvailable(): boolean;
     getTempData(key: string): any;
     setTempData(key: string, value: any): void;
     hasTempData(key: string): boolean;
@@ -30,14 +25,14 @@ export class AbstractNpcAPI {
     addGlobalObject(key: string, obj: any): void;
     removeGlobalObject(key: string): void;
     hasGlobalObject(key: string): boolean;
-    getEngineObjects(): object<string,any;
+    getEngineObjects(): Record<string, any>;
     sizeOfObject(obj: any): number;
     stopServer(): void;
     getCurrentPlayerCount(): number;
     getMaxPlayers(): number;
     kickAllPlayers(): void;
     isHardcore(): boolean;
-    getFile(path: string): File;
+    getFile(path: string): import('../../../java/io/File').File;
     getServerOwner(): string;
     getFactions(): import('./handler/IFactionHandler').IFactionHandler;
     getRecipes(): import('./handler/IRecipeHandler').IRecipeHandler;
@@ -52,43 +47,45 @@ export class AbstractNpcAPI {
     getLocations(): import('./handler/ITransportHandler').ITransportHandler;
     getAnimations(): import('./handler/IAnimationHandler').IAnimationHandler;
     getAllBiomeNames(): string[];
-    getChunkLoadingNPCs(): INpc[];
-    getLoadedEntities(): [];
+    createNPC(world: import('./IWorld').IWorld): import('./entity/ICustomNpc').ICustomNpc;
+    spawnNPC(world: import('./IWorld').IWorld, x: number, y: number, z: number): import('./entity/ICustomNpc').ICustomNpc;
+    spawnNPC(world: import('./IWorld').IWorld, pos: import('./IPos').IPos): import('./entity/ICustomNpc').ICustomNpc;
+    getIEntity(entity: any): import('./entity/IEntity').IEntity;
+    getPlayer(username: string): import('./entity/IPlayer').IPlayer;
+    getChunkLoadingNPCs(): import('./entity/ICustomNpc').ICustomNpc[];
+    getLoadedEntities(): import('./entity/IEntity').IEntity[];
     getIBlock(world: import('./IWorld').IWorld, x: number, y: number, z: number): import('./IBlock').IBlock;
     getIBlock(world: import('./IWorld').IWorld, pos: import('./IPos').IPos): import('./IBlock').IBlock;
     getITileEntity(world: import('./IWorld').IWorld, pos: import('./IPos').IPos): import('./ITileEntity').ITileEntity;
     getITileEntity(world: import('./IWorld').IWorld, x: number, y: number, z: number): import('./ITileEntity').ITileEntity;
-    getITileEntity(tileEntity: TileEntity): import('./ITileEntity').ITileEntity;
-    getIPos(pos: import('../../../net/minecraft/util/math/BlockPos').BlockPos): import('./IPos').IPos;
-    getIPos(x: number, y: number, z: number): import('./IPos').IPos;
-    getIPos(x: number, y: number, z: number): import('./IPos').IPos;
+    getITileEntity(tileEntity: any): import('./ITileEntity').ITileEntity;
+    getIPos(pos: any): import('./IPos').IPos;
     getIPos(x: number, y: number, z: number): import('./IPos').IPos;
     getIPos(serializedPos: number): import('./IPos').IPos;
     getAllInBox(from: import('./IPos').IPos, to: import('./IPos').IPos, sortByDistance: boolean): import('./IPos').IPos[];
     getAllInBox(from: import('./IPos').IPos, to: import('./IPos').IPos): import('./IPos').IPos[];
-    getIContainer(var1: IInventory): import('./IContainer').IContainer;
-    getIContainer(var1: Container): import('./IContainer').IContainer;
-    getIItemStack(var1: ItemStack): import('./item/IItemStack').IItemStack;
-    getIWorld(var1: World): import('./IWorld').IWorld;
-    getIWorld(var1: number): import('./IWorld').IWorld;
-    getIWorldLoad(var1: number): import('./IWorld').IWorld;
+    getIContainer(inventory: any): import('./IContainer').IContainer;
+    getIItemStack(itemStack: any): import('./item/IItemStack').IItemStack;
+    getIWorld(world: any): import('./IWorld').IWorld;
+    getIWorld(dimensionId: number): import('./IWorld').IWorld;
+    getIWorldLoad(dimensionId: number): import('./IWorld').IWorld;
     getActionManager(): import('./handler/IActionManager').IActionManager;
     getIWorlds(): import('./IWorld').IWorld[];
-    getIDamageSource(var1: DamageSource): import('./IDamageSource').IDamageSource;
-    getIDamageSource(entity: IEntity<?): import('./IDamageSource').IDamageSource;
-    events(): EventBus;
-    getGlobalDir(): File;
-    getWorldDir(): File;
-    executeCommand(var1: import('./IWorld').IWorld, var2: string): void;
+    getIDamageSource(damageSource: any): import('./IDamageSource').IDamageSource;
+    getIDamageSource(entity: import('./entity/IEntity').IEntity): import('./IDamageSource').IDamageSource;
+    events(): import('../../../cpw/mods/fml/common/eventhandler/EventBus').EventBus;
+    getGlobalDir(): import('../../../java/io/File').File;
+    getWorldDir(): import('../../../java/io/File').File;
+    executeCommand(world: import('./IWorld').IWorld, command: string): void;
     getRandomName(dictionary: number, gender: number): string;
-    getINbt(nbtTagCompound: NBTTagCompound): import('./INbt').INbt;
+    getINbt(nbt: any): import('./INbt').INbt;
     stringToNbt(str: string): import('./INbt').INbt;
-    getAllServerPlayers(): [];
+    getAllServerPlayers(): import('./entity/IPlayer').IPlayer[];
     getPlayerNames(): string[];
     createItemFromNBT(nbt: import('./INbt').INbt): import('./item/IItemStack').IItemStack;
     createItem(id: string, damage: number, size: number): import('./item/IItemStack').IItemStack;
-    playSoundAtEntity(entity: IEntity<?, sound: string, volume: number, pitch: number): void;
-    playSoundToNearExcept(player: IPlayer<?, sound: string, volume: number, pitch: number): void;
+    playSoundAtEntity(entity: import('./entity/IEntity').IEntity, sound: string, volume: number, pitch: number): void;
+    playSoundToNearExcept(player: import('./entity/IPlayer').IPlayer, sound: string, volume: number, pitch: number): void;
     getMOTD(): string;
     setMOTD(motd: string): void;
     createParticle(directory: string): import('./IParticle').IParticle;
@@ -113,14 +110,14 @@ export class AbstractNpcAPI {
     millisToTime(millis: number): string;
     ticksToTime(ticks: number): string;
     createAnimation(name: string): import('./handler/data/IAnimation').IAnimation;
-    createAnimation(name: string, speed: number, smooth: byte): import('./handler/data/IAnimation').IAnimation;
+    createAnimation(name: string, speed: number, smooth: number): import('./handler/data/IAnimation').IAnimation;
     createFrame(duration: number): import('./handler/data/IFrame').IFrame;
-    createFrame(duration: number, speed: number, smooth: byte): import('./handler/data/IFrame').IFrame;
+    createFrame(duration: number, speed: number, smooth: number): import('./handler/data/IFrame').IFrame;
     createPart(name: string): import('./handler/data/IFramePart').IFramePart;
     createPart(name: string, rotation: number[], pivot: number[]): import('./handler/data/IFramePart').IFramePart;
-    createPart(name: string, rotation: number[], pivot: number[], speed: number, smooth: byte): import('./handler/data/IFramePart').IFramePart;
+    createPart(name: string, rotation: number[], pivot: number[], speed: number, smooth: number): import('./handler/data/IFramePart').IFramePart;
     createPart(partId: number): import('./handler/data/IFramePart').IFramePart;
     createPart(partId: number, rotation: number[], pivot: number[]): import('./handler/data/IFramePart').IFramePart;
-    createPart(partId: number, rotation: number[], pivot: number[], speed: number, smooth: byte): import('./handler/data/IFramePart').IFramePart;
+    createPart(partId: number, rotation: number[], pivot: number[], speed: number, smooth: number): import('./handler/data/IFramePart').IFramePart;
 
 }
