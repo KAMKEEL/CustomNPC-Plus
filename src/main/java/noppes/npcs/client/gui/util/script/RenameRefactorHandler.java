@@ -1,8 +1,13 @@
 package noppes.npcs.client.gui.util.script;
 
 import net.minecraft.client.gui.GuiScreen;
-import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptTextContainer;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocInfo;
+import noppes.npcs.client.gui.util.script.interpreter.jsdoc.JSDocParamTag;
+import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import org.lwjgl.input.Keyboard;
 
 import java.util.ArrayList;
@@ -36,7 +41,7 @@ public class RenameRefactorHandler {
     
     // For parameter renaming: track containing method to find JSDoc
     private boolean isParameterRename = false;
-    private MethodBlock containingMethodBlock = null;
+    private MethodInfo containingMethod = null;
     
     // For global scope, track positions that have local shadowing (to exclude them)
     private List<int[]> localShadowedPositions = new ArrayList<>();
@@ -87,7 +92,7 @@ public class RenameRefactorHandler {
 
         void scrollToPosition(int pos);
 
-        JavaTextContainer getContainer();
+        ScriptTextContainer getContainer();
 
         int getViewportWidth();  // For determining if clicks are in rename box
     }
@@ -149,17 +154,35 @@ public class RenameRefactorHandler {
         // Determine scope for this identifier - MUST check if local shadows global
         scope = determineScope(text, wordBounds[0], originalWord, callback.getContainer());
         
-        // Track if this is a parameter rename and store the containing method
+        // Track if this is a parameter rename by checking if position is in any method's parameter declaration
         isParameterRename = false;
-        containingMethodBlock = null;
-        if (scope != null && "parameter".equals(scope.scopeType)) {
-            isParameterRename = true;
-            // Find the containing method block
-            List<MethodBlock> methods = MethodBlock.collectMethodBlocks(text);
-            for (MethodBlock method : methods) {
-                if (method.containsPosition(wordBounds[0])) {
-                    containingMethodBlock = method;
-                    break;
+        containingMethod = null;
+        
+        ScriptTextContainer container = callback.getContainer();
+        if (container != null && container.getDocument() != null) {
+            ScriptDocument document = container.getDocument();
+            List<MethodInfo> methods = document.getAllMethods();
+            
+            // Check if the word at cursor position is a parameter of any method
+            // A rename is a parameter rename if:
+            // 1. The word matches a parameter name
+            // 2. The cursor is within that method's declaration or body
+            for (MethodInfo method : methods) {
+                // Check if cursor is within this method's range
+                int methodStart = method.getFullDeclarationOffset();
+                int methodEnd = method.getBodyEnd();
+                if (methodStart < 0 || methodEnd < 0) continue;  // External method
+                
+                if (wordBounds[0] >= methodStart && wordBounds[0] <= methodEnd) {
+                    // Check if the word matches any parameter of this method
+                    for (FieldInfo param : method.getParameters()) {
+                        if (param.getName().equals(originalWord)) {
+                            isParameterRename = true;
+                            containingMethod = method;
+                            break;
+                        }
+                    }
+                    if (isParameterRename) break;
                 }
             }
         }
@@ -251,7 +274,7 @@ public class RenameRefactorHandler {
         localShadowedPositions.clear();
         scope = null;
         isParameterRename = false;
-        containingMethodBlock = null;
+        containingMethod = null;
         originalText = "";
         originalCursorPos = 0;
     }
@@ -463,23 +486,6 @@ public class RenameRefactorHandler {
         // Update tracking for current word (only when non-empty)
         originalWord = currentWord;
 
-        // For parameter renames, update the containing method block position
-        if (isParameterRename && containingMethodBlock != null) {
-            // Calculate how much the method shifted
-            int methodShift = 0;
-            for (int[] occ : allOccurrences) {
-                if (occ[1] <= containingMethodBlock.startOffset) {
-                    methodShift += lengthDiff;
-                }
-            }
-            // Update method block position for next JSDoc search
-            containingMethodBlock = new MethodBlock(
-                containingMethodBlock.startOffset + methodShift,
-                containingMethodBlock.endOffset + methodShift + (allOccurrences.size() * lengthDiff) - methodShift,
-                containingMethodBlock.text
-            );
-        }
-
         // Recalculate occurrences based on the new word
         findOccurrences(newText, currentWord);
 
@@ -576,58 +582,65 @@ public class RenameRefactorHandler {
         }
         
         // If this is a parameter rename, also look for JSDoc @param occurrences
-        if (isParameterRename && containingMethodBlock != null) {
+        if (isParameterRename && containingMethod != null) {
             findJSDocParamOccurrences(text, word);
         }
     }
     
     /**
      * Find JSDoc @param occurrences for a parameter name.
-     * Looks for JSDoc comments immediately before the method's scope and finds @param tags.
+     * Uses the JSDocInfo stored in the MethodInfo to locate the JSDoc comment,
+     * then searches for the parameter name pattern in the current text.
      */
     private void findJSDocParamOccurrences(String text, String paramName) {
-        if (containingMethodBlock == null) return;
+        if (containingMethod == null) return;
         
-        // Look backwards from the method start for a JSDoc comment
-        int methodStart = containingMethodBlock.startOffset;
+        // Get the JSDocInfo from the method to verify it has a @param for our parameter
+        JSDocInfo jsDocInfo = containingMethod.getJSDocInfo();
+        if (jsDocInfo == null) return;
         
-        // Find JSDoc comment ending just before the method
-        // JSDoc pattern: /** ... */
-        Pattern jsDocPattern = Pattern.compile("/\\*\\*([\\s\\S]*?)\\*/");
-        Matcher jsDocMatcher = jsDocPattern.matcher(text);
+        // Check that this parameter has a JSDoc @param tag (using initial word to find the tag definition)
+        JSDocParamTag paramTag = jsDocInfo.getParamTag(initialWord);
+        if (paramTag == null) return;
         
-        int jsDocStart = -1;
-        String jsDocContent = null;
+        // Get the approximate JSDoc location from the original document
+        int originalJsDocStart = jsDocInfo.getStartOffset();
+        int originalJsDocEnd = jsDocInfo.getEndOffset();
+        if (originalJsDocStart < 0 || originalJsDocEnd < 0) return;
         
-        while (jsDocMatcher.find()) {
-            int end = jsDocMatcher.end();
-            // Check if this JSDoc is right before the method (within 200 chars, allowing for whitespace/function keywords)
-            if (end <= methodStart && methodStart - end < 200) {
-                // Check if there's no other code between JSDoc and method 
-                // For JavaScript: allow "function", "async", "var/let/const name = ", etc.
-                String between = text.substring(end, methodStart).trim();
-                // Allow empty, or typical JS function declaration patterns
-                if (between.isEmpty() || 
-                    between.matches("^(?:async\\s+)?(?:function\\s+\\w*)?\\s*$") ||
-                    between.matches("^(?:var|let|const)\\s+\\w+\\s*=\\s*(?:async\\s+)?(?:function)?\\s*$") ||
-                    between.matches("^\\w+\\s*[=:]\\s*(?:async\\s+)?(?:function)?\\s*$") ||
-                    between.matches("^(?:public|private|protected|static|final|abstract|synchronized|native|transient|volatile|\\s)+$")) {
-                    jsDocStart = jsDocMatcher.start();
-                    jsDocContent = jsDocMatcher.group(0);
-                }
+        // Calculate how much positions have shifted due to renames before the JSDoc
+        // Count occurrences that are currently in the text before the original JSDoc start
+        int shiftBeforeJsDoc = 0;
+        int lengthDiff = paramName.length() - initialWord.length();
+        
+        // The occurrences we've already found (code occurrences) - count how many are before the JSDoc
+        for (int[] occ : allOccurrences) {
+            // Map current position back to approximate original position
+            int approxOriginalPos = occ[0] - shiftBeforeJsDoc;
+            if (approxOriginalPos < originalJsDocStart) {
+                shiftBeforeJsDoc += lengthDiff;
             }
         }
         
-        if (jsDocContent == null) return;
+        // Now search for the @param pattern in the current text around where the JSDoc should be
+        int adjustedJsDocStart = originalJsDocStart + shiftBeforeJsDoc;
+        int adjustedJsDocEnd = originalJsDocEnd + shiftBeforeJsDoc;
         
-        // Find @param paramName in the JSDoc
-        // Pattern: @param (optional {Type}) paramName
-        Pattern paramPattern = Pattern.compile("@param\\s+(?:\\{[^}]*\\}\\s+)?(" + Pattern.quote(paramName) + ")(?:\\s|$|-)");
-        Matcher paramMatcher = paramPattern.matcher(jsDocContent);
+        // Clamp to text bounds
+        adjustedJsDocStart = Math.max(0, adjustedJsDocStart);
+        adjustedJsDocEnd = Math.min(text.length(), adjustedJsDocEnd + 50); // Add some buffer for expanded text
         
-        while (paramMatcher.find()) {
-            int paramNameStart = jsDocStart + paramMatcher.start(1);
-            int paramNameEnd = jsDocStart + paramMatcher.end(1);
+        if (adjustedJsDocStart >= adjustedJsDocEnd) return;
+        
+        String jsDocRegion = text.substring(adjustedJsDocStart, adjustedJsDocEnd);
+        
+        // Search for @param {Type} paramName or @param paramName pattern
+        Pattern pattern = Pattern.compile("@param\\s+(?:\\{[^}]*\\}\\s+)?(" + Pattern.quote(paramName) + ")(?:\\s|$|-)");
+        Matcher m = pattern.matcher(jsDocRegion);
+        
+        while (m.find()) {
+            int paramNameStart = adjustedJsDocStart + m.start(1);
+            int paramNameEnd = adjustedJsDocStart + m.end(1);
             allOccurrences.add(new int[]{paramNameStart, paramNameEnd});
         }
     }

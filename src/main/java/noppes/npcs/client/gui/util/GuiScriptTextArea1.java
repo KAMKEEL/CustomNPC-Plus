@@ -417,7 +417,7 @@ public class GuiScriptTextArea1 extends GuiNpcTextField {
             }
 
             @Override
-            public JavaTextContainer getContainer() {
+            public ScriptTextContainer getContainer() {
                 return container;
             }
 
