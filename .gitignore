@@ -11,6 +11,7 @@
 /bin/
 /config/
 /copilot/
+/buildSrc/build/
 /crash-reports/
 /logs/
 options.txt
