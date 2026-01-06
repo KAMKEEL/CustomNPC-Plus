@@ -324,13 +324,6 @@ public class JSTypeRegistry {
                 return type;
             }
         }
-        
-        // Check global engine objects
-        if (globalEngineObjects.containsKey(baseName)) {
-            String typeName = globalEngineObjects.get(baseName);
-            return getType(typeName, visited);
-        }
-        
         return null;
     }
     
