@@ -101,19 +101,13 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * Recursively add methods from a type and its parents.
      */
     protected void addMethodsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added) {
-        addMethodsFromType(type, items, added, 0, new HashSet<>());
+        addMethodsFromType(type, items, added, 0);
     }
     
     /**
-     * Recursively add methods from a type and its parents with inheritance depth tracking and cycle detection.
+     * Recursively add methods from a type and its parents with inheritance depth tracking.
      */
-    private void addMethodsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added, int depth, Set<String> visited) {
-        // Prevent infinite recursion from circular inheritance
-        if (visited.contains(type.getFullName())) {
-            return;
-        }
-        visited.add(type.getFullName());
-        
+    private void addMethodsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added, int depth) {
         for (JSMethodInfo method : type.getMethods().values()) {
             String name = method.getName();
             // Skip overload markers (name$1, name$2, etc.)
@@ -128,7 +122,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         
         // Add from parent type with incremented depth
         if (type.getResolvedParent() != null) {
-            addMethodsFromType(type.getResolvedParent(), items, added, depth + 1, visited);
+            addMethodsFromType(type.getResolvedParent(), items, added, depth + 1);
         }
     }
     
@@ -136,19 +130,13 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
      * Recursively add fields from a type and its parents.
      */
     protected void addFieldsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added) {
-        addFieldsFromType(type, items, added, 0, new HashSet<>());
+        addFieldsFromType(type, items, added, 0);
     }
     
     /**
-     * Recursively add fields from a type and its parents with inheritance depth tracking and cycle detection.
+     * Recursively add fields from a type and its parents with inheritance depth tracking.
      */
-    private void addFieldsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added, int depth, Set<String> visited) {
-        // Prevent infinite recursion from circular inheritance
-        if (visited.contains(type.getFullName())) {
-            return;
-        }
-        visited.add(type.getFullName());
-        
+    private void addFieldsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added, int depth) {
         for (JSFieldInfo field : type.getFields().values()) {
             if (!added.contains(field.getName())) {
                 added.add(field.getName());
@@ -158,7 +146,7 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         
         // Add from parent type with incremented depth
         if (type.getResolvedParent() != null) {
-            addFieldsFromType(type.getResolvedParent(), items, added, depth + 1, visited);
+            addFieldsFromType(type.getResolvedParent(), items, added, depth + 1);
         }
     }
 
