@@ -1,6 +1,14 @@
-
 pluginManagement {
+    resolutionStrategy {
+        eachPlugin {
+            if(requested.id.toString() == "dts.typescript-generator") {
+                useModule("com.github.bigguy345:dts-gradle-plugin:95b8ab4")
+            }
+        }
+    }
+   
     repositories {
+        maven { url "https://jitpack.io"}
         maven {
             // RetroFuturaGradle
             name "GTNH Maven"
