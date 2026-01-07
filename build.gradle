@@ -51,7 +51,7 @@ sourceSets.main.java {
 tasks.named("generateTypeScriptDefinitions").configure {
     sourceDirectories = ['src/api/java']
     outputDirectory = "src/main/resources/assets/${project.property("modId")}/api"
-    apiPackages = ['noppes.npcs.api'] as Set
+    apiPackages = ['noppes.npcs.api', 'net.minecraft'] as Set
     cleanOutputFirst = true  // Clean old generated files before regenerating
 }
 
