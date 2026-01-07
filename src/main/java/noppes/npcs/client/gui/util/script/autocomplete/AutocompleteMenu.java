@@ -145,23 +145,71 @@ public class AutocompleteMenu extends Gui {
         }
         menuWidth = Math.min(maxItemWidth + 20, MAX_WIDTH); // +20 for scrollbar
         
-        // Calculate height
+        // Calculate initial height
         int visibleItems = Math.min(items.size(), MAX_VISIBLE_ITEMS);
         int menuHeight = visibleItems * ITEM_HEIGHT + HINT_HEIGHT + PADDING * 2;
         
-        // Position below cursor, or above if not enough space
-        this.x = cursorX;
-        this.y = cursorY;
+        // Line height estimation (cursor position is typically at baseline)
+        int lineHeight = 20;
         
-        // Check if menu would go off-screen to the right
-        if (x + menuWidth > viewportWidth - 10) {
-            x = viewportWidth - menuWidth - 10;
+        // Calculate available space
+        int spaceBelow = viewportHeight - cursorY - 10; // Space below cursor
+        int spaceAbove = cursorY - lineHeight - 10;     // Space above current line
+        
+        // Determine if we should use horizontal positioning
+        // Use horizontal if both vertical positions would be cramped or block the cursor line
+        boolean useHorizontalPosition = false;
+        if (spaceBelow < menuHeight && spaceAbove < menuHeight) {
+            // Check if horizontal positioning would work better
+            int spaceRight = viewportWidth - (cursorX + 50) - 10; // 50 = offset from cursor
+            if (spaceRight >= menuWidth && viewportHeight > menuHeight + 20) {
+                useHorizontalPosition = true;
+            } else {
+                // Reduce height to fit in the best available vertical space
+                int availableVerticalSpace = Math.max(spaceBelow, spaceAbove);
+                if (availableVerticalSpace < menuHeight) {
+                    // Calculate how many items we can show in available space
+                    int maxItemsForSpace = (availableVerticalSpace - HINT_HEIGHT - PADDING * 2) / ITEM_HEIGHT;
+                    maxItemsForSpace = Math.max(3, Math.min(maxItemsForSpace, items.size())); // At least 3 items
+                    visibleItems = maxItemsForSpace;
+                    menuHeight = visibleItems * ITEM_HEIGHT + HINT_HEIGHT + PADDING * 2;
+                }
+            }
         }
         
-        // Check if menu would go off-screen to the bottom
-        if (y + menuHeight > viewportHeight - 10) {
-            // Show above cursor instead
-            y = cursorY - menuHeight - 20; // 20 for line height
+        // Position the menu
+        if (useHorizontalPosition) {
+            // Position to the right of the cursor
+            this.x = cursorX + 50;
+            this.y = cursorY - lineHeight; // Align with current line
+            
+            // Ensure doesn't go off bottom
+            if (y + menuHeight > viewportHeight - 10) {
+                y = viewportHeight - menuHeight - 10;
+            }
+        } else {
+            // Standard vertical positioning
+            this.x = cursorX;
+            
+            // Try below first
+            if (spaceBelow >= menuHeight) {
+                this.y = cursorY ;
+            } else if (spaceAbove >= menuHeight) {
+                // Show above cursor line
+                this.y = cursorY - menuHeight - lineHeight;
+            } else {
+                // Use the larger space
+                if (spaceBelow >= spaceAbove) {
+                    this.y = cursorY;
+                } else {
+                    this.y = cursorY - menuHeight - lineHeight;
+                }
+            }
+            
+            // Check if menu would go off-screen to the right
+            if (x + menuWidth > viewportWidth - 10) {
+                x = viewportWidth - menuWidth - 10;
+            }
         }
         
         // Ensure not off-screen to the left or top
