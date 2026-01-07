@@ -12,17 +12,21 @@ import java.util.zip.*;
 public class TypeScriptDefinitionParser {
     
     // Patterns for parsing .d.ts content
-    // Updated to handle generic type parameters like: export interface IEntityLivingBase<T> extends IEntity {
+    // Updated to capture generic type parameters like: export interface IEntity<T extends Entity /* net.minecraft.entity.Entity */>
     private static final Pattern INTERFACE_PATTERN = Pattern.compile(
-        "export\\s+interface\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+        "export\\s+interface\\s+(\\w+)(?:<([^>]*)>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
     
     // Pattern for nested interfaces without export keyword
     private static final Pattern NESTED_INTERFACE_PATTERN = Pattern.compile(
-        "(?<!export\\s)\\binterface\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+        "(?<!export\\s)\\binterface\\s+(\\w+)(?:<([^>]*)>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
     
     // Similar pattern for classes
     private static final Pattern CLASS_PATTERN = Pattern.compile(
-        "export\\s+class\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+        "export\\s+class\\s+(\\w+)(?:<([^>]*)>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
+    
+    // Pattern to parse individual type parameters like: T extends EntityPlayerMP /* net.minecraft.entity.player.EntityPlayerMP */
+    private static final Pattern TYPE_PARAM_PATTERN = Pattern.compile(
+        "(\\w+)(?:\\s+extends\\s+(\\w+)(?:\\s*/\\*\\s*([\\w.]+)\\s*\\*/)?)?");
     
     // Match both "export namespace" and plain "namespace" (for declare global blocks)
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile(
@@ -166,9 +170,16 @@ public class TypeScriptDefinitionParser {
         Matcher interfaceMatcher = INTERFACE_PATTERN.matcher(content);
         while (interfaceMatcher.find()) {
             String interfaceName = interfaceMatcher.group(1);
-            String extendsClause = interfaceMatcher.group(2);
+            String typeParamsStr = interfaceMatcher.group(2);  // e.g., "T extends EntityPlayerMP /* net.minecraft.entity.player.EntityPlayerMP */"
+            String extendsClause = interfaceMatcher.group(3);
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, parentNamespace);
+            
+            // Parse type parameters
+            if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
+                parseTypeParameters(typeParamsStr, typeInfo);
+            }
+            
             if (extendsClause != null) {
                 // Handle multiple extends (e.g., "IEntityLivingBase<T>, IAnimatable")
                 // Take the first one, stripping generics
@@ -204,9 +215,16 @@ public class TypeScriptDefinitionParser {
         Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(content);
         while (nestedInterfaceMatcher.find()) {
             String interfaceName = nestedInterfaceMatcher.group(1);
-            String extendsClause = nestedInterfaceMatcher.group(2);
+            String typeParamsStr = nestedInterfaceMatcher.group(2);
+            String extendsClause = nestedInterfaceMatcher.group(3);
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, parentNamespace);
+            
+            // Parse type parameters
+            if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
+                parseTypeParameters(typeParamsStr, typeInfo);
+            }
+            
             if (extendsClause != null) {
                 String extendsType = extendsClause.trim();
                 extendsType = extendsType.replaceAll("<[^>]*>", "");
@@ -232,9 +250,16 @@ public class TypeScriptDefinitionParser {
         Matcher classMatcher = CLASS_PATTERN.matcher(content);
         while (classMatcher.find()) {
             String className = classMatcher.group(1);
-            String extendsClause = classMatcher.group(2);
+            String typeParamsStr = classMatcher.group(2);
+            String extendsClause = classMatcher.group(3);
             
             JSTypeInfo typeInfo = new JSTypeInfo(className, parentNamespace);
+            
+            // Parse type parameters
+            if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
+                parseTypeParameters(typeParamsStr, typeInfo);
+            }
+            
             if (extendsClause != null) {
                 String extendsType = extendsClause.trim();
                 extendsType = extendsType.replaceAll("<[^>]*>", "");
@@ -284,6 +309,28 @@ public class TypeScriptDefinitionParser {
     }
     
     /**
+     * Parse type parameters from a string like "T extends EntityPlayerMP /* net.minecraft.entity.player.EntityPlayerMP *`/".
+     * Handles multiple parameters separated by commas.
+     */
+    private void parseTypeParameters(String typeParamsStr, JSTypeInfo typeInfo) {
+        // Split by comma, but be careful with nested generics (shouldn't happen at this level, but be safe)
+        String[] params = typeParamsStr.split(",");
+        for (String param : params) {
+            param = param.trim();
+            if (param.isEmpty()) continue;
+            
+            Matcher m = TYPE_PARAM_PATTERN.matcher(param);
+            if (m.find()) {
+                String name = m.group(1);
+                String boundType = m.group(2);
+                String fullBoundType = m.group(3);
+                
+                typeInfo.addTypeParam(new JSTypeInfo.TypeParamInfo(name, boundType, fullBoundType));
+            }
+        }
+    }
+    
+    /**
      * Parse nested types (interfaces and type aliases) within a parent type or namespace.
      */
     private void parseNestedTypes(String content, String namespace) {
@@ -291,9 +338,16 @@ public class TypeScriptDefinitionParser {
         Matcher nestedInterfaceMatcher = NESTED_INTERFACE_PATTERN.matcher(content);
         while (nestedInterfaceMatcher.find()) {
             String interfaceName = nestedInterfaceMatcher.group(1);
-            String extendsClause = nestedInterfaceMatcher.group(2);
+            String typeParamsStr = nestedInterfaceMatcher.group(2);
+            String extendsClause = nestedInterfaceMatcher.group(3);
             
             JSTypeInfo typeInfo = new JSTypeInfo(interfaceName, namespace);
+            
+            // Parse type parameters
+            if (typeParamsStr != null && !typeParamsStr.isEmpty()) {
+                parseTypeParameters(typeParamsStr, typeInfo);
+            }
+            
             if (extendsClause != null) {
                 String extendsType = extendsClause.trim();
                 extendsType = extendsType.replaceAll("<[^>]*>", "");

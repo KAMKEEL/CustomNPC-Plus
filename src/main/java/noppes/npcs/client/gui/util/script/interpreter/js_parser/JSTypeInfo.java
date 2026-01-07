@@ -8,9 +8,40 @@ import java.util.*;
  */
 public class JSTypeInfo {
     
+    /**
+     * Represents a generic type parameter like "T extends Entity".
+     * Stores the parameter name, the bound type, and optionally the full Java class name.
+     */
+    public static class TypeParamInfo {
+        private final String name;           // e.g., "T"
+        private final String boundType;      // e.g., "EntityPlayerMP" 
+        private final String fullBoundType;  // e.g., "net.minecraft.entity.player.EntityPlayerMP"
+        
+        public TypeParamInfo(String name, String boundType, String fullBoundType) {
+            this.name = name;
+            this.boundType = boundType;
+            this.fullBoundType = fullBoundType;
+        }
+        
+        public String getName() { return name; }
+        public String getBoundType() { return boundType; }
+        public String getFullBoundType() { return fullBoundType; }
+        
+        @Override
+        public String toString() {
+            if (boundType != null) {
+                return name + " extends " + boundType + (fullBoundType != null ? " (" + fullBoundType + ")" : "");
+            }
+            return name;
+        }
+    }
+    
     private final String simpleName;      // e.g., "InteractEvent"
     private final String fullName;        // e.g., "IPlayerEvent.InteractEvent"
     private final String namespace;       // e.g., "IPlayerEvent" (parent namespace, null for top-level)
+    
+    // Type parameters (generics)
+    private final List<TypeParamInfo> typeParams = new ArrayList<>();
     
     // Members
     private final Map<String, JSMethodInfo> methods = new LinkedHashMap<>();
@@ -72,6 +103,10 @@ public class JSTypeInfo {
         this.resolvedParent = parent;
     }
     
+    public void addTypeParam(TypeParamInfo param) {
+        typeParams.add(param);
+    }
+    
     // Getters
     public String getSimpleName() { return simpleName; }
     public String getFullName() { return fullName; }
@@ -80,10 +115,37 @@ public class JSTypeInfo {
     public JSTypeInfo getResolvedParent() { return resolvedParent; }
     public String getDocumentation() { return documentation; }
     public JSTypeInfo getParentType() { return parentType; }
+    public List<TypeParamInfo> getTypeParams() { return typeParams; }
     
     public Map<String, JSMethodInfo> getMethods() { return methods; }
     public Map<String, JSFieldInfo> getFields() { return fields; }
     public Map<String, JSTypeInfo> getInnerTypes() { return innerTypes; }
+    
+    /**
+     * Get the type parameter info for a given parameter name (e.g., "T").
+     * @return TypeParamInfo or null if not found
+     */
+    public TypeParamInfo getTypeParam(String name) {
+        for (TypeParamInfo param : typeParams) {
+            if (param.getName().equals(name)) {
+                return param;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Resolves a type parameter to its bound type.
+     * For example, if this type has "T extends EntityPlayerMP", resolveTypeParam("T") returns "EntityPlayerMP".
+     * If no type parameter is found with that name, returns the input.
+     */
+    public String resolveTypeParam(String typeName) {
+        TypeParamInfo param = getTypeParam(typeName);
+        if (param != null && param.getBoundType() != null) {
+            return param.getBoundType();
+        }
+        return typeName;
+    }
     
     /**
      * Get a method by name, including inherited methods.
