@@ -368,7 +368,16 @@ public class JSTypeRegistry {
     public void resolveInheritance() {
         for (JSTypeInfo type : types.values()) {
             JSTypeInfo child = type;
+            Set<String> visited = new HashSet<>();
             while (child != null && child.getExtendsType() != null && child.getResolvedParent() == null) {
+                // Prevent circular inheritance
+                if (visited.contains(child.getFullName())) {
+                    System.out.println("WARNING: Circular inheritance detected: " + child.getFullName() + 
+                                 " extends " + child.getExtendsType());
+                    break;
+                }
+                visited.add(child.getFullName());
+                
                 JSTypeInfo parent = getType(child.getExtendsType());
                 if (parent != null) {
                     child.setResolvedParent(parent);

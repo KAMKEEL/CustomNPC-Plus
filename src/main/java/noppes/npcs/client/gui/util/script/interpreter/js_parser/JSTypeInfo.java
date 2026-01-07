@@ -89,12 +89,25 @@ public class JSTypeInfo {
      * Get a method by name, including inherited methods.
      */
     public JSMethodInfo getMethod(String name) {
+        return getMethod(name, new HashSet<>());
+    }
+    
+    /**
+     * Internal method to get method with cycle detection.
+     */
+    private JSMethodInfo getMethod(String name, Set<String> visited) {
+        // Prevent infinite recursion from circular inheritance
+        if (visited.contains(this.fullName)) {
+            return null;
+        }
+        visited.add(this.fullName);
+        
         JSMethodInfo method = methods.get(name);
         if (method != null) return method;
         
         // Check parent
         if (resolvedParent != null) {
-            return resolvedParent.getMethod(name);
+            return resolvedParent.getMethod(name, visited);
         }
         return null;
     }
@@ -103,7 +116,20 @@ public class JSTypeInfo {
      * Get all methods with a given name (for overloads).
      */
     public List<JSMethodInfo> getMethodOverloads(String name) {
+        return getMethodOverloads(name, new HashSet<>());
+    }
+    
+    /**
+     * Internal method to get method overloads with cycle detection.
+     */
+    private List<JSMethodInfo> getMethodOverloads(String name, Set<String> visited) {
         List<JSMethodInfo> overloads = new ArrayList<>();
+        
+        // Prevent infinite recursion from circular inheritance
+        if (visited.contains(this.fullName)) {
+            return overloads;
+        }
+        visited.add(this.fullName);
         
         // Get from this type
         if (methods.containsKey(name)) {
@@ -118,7 +144,7 @@ public class JSTypeInfo {
         
         // Get from parent
         if (resolvedParent != null) {
-            overloads.addAll(resolvedParent.getMethodOverloads(name));
+            overloads.addAll(resolvedParent.getMethodOverloads(name, visited));
         }
         
         return overloads;
@@ -135,12 +161,25 @@ public class JSTypeInfo {
      * Get a field by name, including inherited fields.
      */
     public JSFieldInfo getField(String name) {
+        return getField(name, new HashSet<>());
+    }
+    
+    /**
+     * Internal method to get field with cycle detection.
+     */
+    private JSFieldInfo getField(String name, Set<String> visited) {
+        // Prevent infinite recursion from circular inheritance
+        if (visited.contains(this.fullName)) {
+            return null;
+        }
+        visited.add(this.fullName);
+        
         JSFieldInfo field = fields.get(name);
         if (field != null) return field;
         
         // Check parent
         if (resolvedParent != null) {
-            return resolvedParent.getField(name);
+            return resolvedParent.getField(name, visited);
         }
         return null;
     }
