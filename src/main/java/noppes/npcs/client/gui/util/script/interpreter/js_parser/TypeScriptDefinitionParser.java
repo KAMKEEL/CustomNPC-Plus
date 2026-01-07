@@ -24,8 +24,9 @@ public class TypeScriptDefinitionParser {
     private static final Pattern CLASS_PATTERN = Pattern.compile(
         "export\\s+class\\s+(\\w+)(?:<[^>]*>)?(?:\\s+extends\\s+([^{]+?))?\\s*\\{");
     
+    // Match both "export namespace" and plain "namespace" (for declare global blocks)
     private static final Pattern NAMESPACE_PATTERN = Pattern.compile(
-        "export\\s+namespace\\s+(\\w+)\\s*\\{");
+        "(?:export\\s+)?namespace\\s+(\\w+)\\s*\\{");
     
     // Make semicolon optional for type aliases (TypeScript doesn't require them)
     private static final Pattern TYPE_ALIAS_PATTERN = Pattern.compile(
@@ -266,11 +267,13 @@ public class TypeScriptDefinitionParser {
             if (bodyEnd > bodyStart) {
                 String body = content.substring(bodyStart, bodyEnd);
                 
-                // Parse inner types (both exported and nested) with namespace prefix
+                // Parse inner types with namespace prefix
+                // Namespaces contain exported types, so use parseInterfaceFile
                 String fullNamespace = parentNamespace != null ? 
                     parentNamespace + "." + namespaceName : namespaceName;
                 parseInterfaceFile(body, fullNamespace);
-                parseNestedTypes(body, fullNamespace);
+                // Don't call parseNestedTypes here - namespace members are all exported
+                // and will be caught by parseInterfaceFile's INTERFACE_PATTERN
             }
         }
         
