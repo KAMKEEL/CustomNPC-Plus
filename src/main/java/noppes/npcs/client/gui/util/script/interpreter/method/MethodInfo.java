@@ -175,9 +175,19 @@ public final class MethodInfo {
      */
     public static MethodInfo fromJSMethod(JSMethodInfo jsMethod, TypeInfo containingType) {
         String name = jsMethod.getName();
+        noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver resolver = noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver.getInstance();
         
-        // Resolve the return type from the JS type registry
-        TypeInfo returnType = resolveJSType(jsMethod.getReturnType());
+        // Resolve the return type - first from TypeResolver, then check for type parameters
+        String returnTypeName = jsMethod.getReturnType();
+        TypeInfo returnType = resolver.resolveJSType(returnTypeName);
+        
+        // If not resolved and containingType has type parameters, try to resolve as type parameter
+        if (containingType != null && !returnType.isResolved()) {
+            TypeInfo paramResolution = containingType.resolveTypeParamToTypeInfo(returnTypeName);
+            if (paramResolution != null) {
+                returnType = paramResolution;
+            }
+        }
         
         // Convert JS parameters to FieldInfo
         List<FieldInfo> params = new ArrayList<>();
@@ -186,7 +196,18 @@ public final class MethodInfo {
         for (JSMethodInfo.JSParameterInfo param : jsParams) {
             String paramName = param.getName();
             String paramTypeName = param.getType();
-            TypeInfo paramType = resolveJSType(paramTypeName);
+            
+            // Resolve parameter type - first from TypeResolver, then check for type parameters
+            TypeInfo paramType = resolver.resolveJSType(paramTypeName);
+            
+            // If not resolved and containingType has type parameters, try to resolve as type parameter
+            if (containingType != null && !paramType.isResolved()) {
+                TypeInfo paramResolution = containingType.resolveTypeParamToTypeInfo(paramTypeName);
+                if (paramResolution != null) {
+                    paramType = paramResolution;
+                }
+            }
+            
             params.add(FieldInfo.reflectionParam(paramName, paramType));
         }
         
@@ -199,49 +220,7 @@ public final class MethodInfo {
         return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, documentation, null);
     }
     
-    /**
-     * Resolves a JavaScript type name to a TypeInfo.
-     * Handles primitives, mapped types, and custom types from the registry.
-     */
-    private static TypeInfo resolveJSType(String jsTypeName) {
-        if (jsTypeName == null || jsTypeName.isEmpty() || "void".equals(jsTypeName)) {
-            return TypeInfo.fromPrimitive("void");
-        }
-        
-        // Handle JS primitives
-        switch (jsTypeName) {
-            case "string":
-                return TypeInfo.fromClass(String.class);
-            case "number":
-                return TypeInfo.fromClass(double.class);
-            case "boolean":
-                return TypeInfo.fromClass(boolean.class);
-            case "any":
-                return TypeInfo.fromClass(Object.class);
-            case "void":
-                return TypeInfo.fromPrimitive("void");
-        }
-        
-        // Handle array types
-        if (jsTypeName.endsWith("[]")) {
-            String elementType = jsTypeName.substring(0, jsTypeName.length() - 2);
-            TypeInfo elementTypeInfo = resolveJSType(elementType);
-            // For arrays, we create an array type representation
-            return TypeInfo.arrayOf(elementTypeInfo);
-        }
-        
-        // Try to resolve from the JS type registry
-        JSTypeRegistry registry = JSTypeRegistry.getInstance();
-        if (registry != null) {
-            JSTypeInfo jsTypeInfo = registry.getType(jsTypeName);
-            if (jsTypeInfo != null) {
-                return TypeInfo.fromJSTypeInfo(jsTypeInfo);
-            }
-        }
-        
-        // Fallback: unresolved type
-        return TypeInfo.unresolved(jsTypeName, jsTypeName);
-    }
+
 
     // Getters
     public String getName() { return name; }

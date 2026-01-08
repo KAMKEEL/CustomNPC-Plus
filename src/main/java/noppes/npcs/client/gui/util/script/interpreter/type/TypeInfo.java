@@ -481,8 +481,8 @@ public class TypeInfo {
         // Check JS type first
         if (jsTypeInfo != null) {
             for (JSMethodInfo jsMethod : jsTypeInfo.getMethodOverloads(methodName)) {
-                // Pass jsTypeInfo as context for type parameter resolution
-                overloads.add(MethodInfo.fromJSMethod(jsMethod, this, jsTypeInfo));
+                // Type parameter resolution now happens inside fromJSMethod using this TypeInfo
+                overloads.add(MethodInfo.fromJSMethod(jsMethod, this));
             }
             return overloads;
         }
