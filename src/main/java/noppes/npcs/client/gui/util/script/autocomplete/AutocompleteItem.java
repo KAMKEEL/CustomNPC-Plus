@@ -224,24 +224,26 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         insertText.append("(");
         insertText.append(")");
 
-        // Extract display name from signature: remove return type prefix and keep only name(params)
-        String displayName = name;
-        String sig = method.getSignature();
-        int returnIndex = sig.lastIndexOf(":"); 
-        if (returnIndex != -1) //remove ":ReturnType"
-            displayName = sig.substring(0, returnIndex);
-        
-        // Resolve type parameters for display (e.g., T → EntityPlayerMP)
-        String returnType = method.getReturnType();
-        if (contextType != null) {
-            TypeInfo resolved = contextType.resolveTypeParamToTypeInfo(returnType);
-            if (resolved != null && resolved.isResolved()) 
-                returnType = getName(resolved);
+        // Build display name with resolved parameter types
+        StringBuilder displayName = new StringBuilder(name);
+        displayName.append("(");
+        for (int i = 0; i < method.getParameters().size(); i++) {
+            if (i > 0) displayName.append(", ");
+            JSMethodInfo.JSParameterInfo param = method.getParameters().get(i);
             
+            // Use resolved type
+            TypeInfo paramType = param.getResolvedType(contextType);
+            String paramTypeName = paramType.isResolved() ? paramType.getSimpleName() : param.getType();
+            displayName.append(paramTypeName).append(" ").append(param.getName());
         }
+        displayName.append(")");
+        
+        // Get return type using the new method
+        TypeInfo returnTypeInfo = method.getResolvedReturnType(contextType);
+        String returnType = returnTypeInfo.isResolved() ? returnTypeInfo.getSimpleName() : method.getReturnType();
         
         return new AutocompleteItem(
-            displayName,
+            displayName.toString(),
             name,  // Search against just the method name
             insertText.toString(),
             Kind.METHOD,
@@ -279,14 +281,9 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
      */
     public static AutocompleteItem fromJSField(JSFieldInfo field, TypeInfo contextType, int inheritanceDepth) {
-        // Resolve type parameters for display (e.g., T → EntityPlayerMP)
-        String fieldType = field.getType();
-        if (contextType != null) {
-            TypeInfo resolved = contextType.resolveTypeParamToTypeInfo(fieldType);
-            if (resolved != null && resolved.isResolved()) 
-                fieldType = getName(resolved);
-            
-        }
+        // Get field type using the new method
+        TypeInfo fieldTypeInfo = field.getResolvedType(contextType);
+        String fieldType = fieldTypeInfo.isResolved() ? fieldTypeInfo.getSimpleName() : field.getType();
         
         return new AutocompleteItem(
             field.getName(),
