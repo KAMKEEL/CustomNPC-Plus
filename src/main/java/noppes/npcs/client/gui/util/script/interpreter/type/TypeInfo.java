@@ -5,6 +5,7 @@ import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.js_parser.TypeParamInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 
@@ -60,6 +61,9 @@ public class TypeInfo {
     
     // JavaScript/TypeScript type info (for types from .d.ts files)
     private final JSTypeInfo jsTypeInfo;   // The JS type info (null if Java type)
+    
+    // Type parameters (generics)
+    private final List<TypeParamInfo> typeParams = new ArrayList<>();
 
     private TypeInfo(String simpleName, String fullName, String packageName, 
                      Kind kind, Class<?> javaClass, boolean resolved, TypeInfo enclosingType) {
@@ -477,7 +481,8 @@ public class TypeInfo {
         // Check JS type first
         if (jsTypeInfo != null) {
             for (JSMethodInfo jsMethod : jsTypeInfo.getMethodOverloads(methodName)) {
-                overloads.add(MethodInfo.fromJSMethod(jsMethod, this));
+                // Pass jsTypeInfo as context for type parameter resolution
+                overloads.add(MethodInfo.fromJSMethod(jsMethod, this, jsTypeInfo));
             }
             return overloads;
         }
@@ -678,6 +683,79 @@ public class TypeInfo {
      */
     public void validate() {
         // Default: no validation for Java types
+    }
+    
+    // ==================== Type Parameter Methods ====================
+    
+    /**
+     * Add a type parameter to this type.
+     * Used during parsing/construction of types with generics.
+     */
+    public void addTypeParam(TypeParamInfo param) {
+        // If this is a JS type, delegate to JSTypeInfo
+        if (jsTypeInfo != null) {
+            jsTypeInfo.addTypeParam(param);
+        } else {
+            typeParams.add(param);
+        }
+    }
+    
+    /**
+     * Get all type parameters for this type.
+     * @return List of type parameters (empty if none)
+     */
+    public List<TypeParamInfo> getTypeParams() {
+        // If this is a JS type, delegate to JSTypeInfo
+        if (jsTypeInfo != null) {
+            return jsTypeInfo.getTypeParams();
+        }
+        return typeParams;
+    }
+    
+    /**
+     * Resolve all type parameters for this type.
+     * Called during Phase 2 after all types are loaded into the registry.
+     */
+    public void resolveTypeParameters() {
+        // If this is a JS type, delegate to JSTypeInfo
+        if (jsTypeInfo != null) {
+            jsTypeInfo.resolveTypeParameters();
+        } else {
+            for (TypeParamInfo param : typeParams) {
+                param.resolveBoundType();
+            }
+        }
+    }
+    
+    /**
+     * Get the type parameter info for a given parameter name (e.g., "T").
+     * @return TypeParamInfo or null if not found
+     */
+    public TypeParamInfo getTypeParam(String name) {
+        // If this is a JS type, delegate to JSTypeInfo
+        if (jsTypeInfo != null) {
+            return jsTypeInfo.getTypeParam(name);
+        }
+        
+        for (TypeParamInfo param : typeParams) {
+            if (param.getName().equals(name)) {
+                return param;
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * Resolves a type parameter to its bound TypeInfo.
+     * For example, if this type has "T extends EntityPlayerMP", resolveTypeParamToTypeInfo("T") returns the TypeInfo for EntityPlayerMP.
+     * If no type parameter is found with that name, returns null.
+     */
+    public TypeInfo resolveTypeParamToTypeInfo(String typeName) {
+        TypeParamInfo param = getTypeParam(typeName);
+        if (param != null) {
+            return param.getBoundTypeInfo();
+        }
+        return null;
     }
 
     @Override

@@ -311,6 +311,7 @@ public class TypeScriptDefinitionParser {
     /**
      * Parse type parameters from a string like "T extends EntityPlayerMP /* net.minecraft.entity.player.EntityPlayerMP *`/".
      * Handles multiple parameters separated by commas.
+     * Stores strings only - resolution happens in Phase 2 after all types are loaded.
      */
     private void parseTypeParameters(String typeParamsStr, JSTypeInfo typeInfo) {
         // Split by comma, but be careful with nested generics (shouldn't happen at this level, but be safe)
@@ -322,10 +323,11 @@ public class TypeScriptDefinitionParser {
             Matcher m = TYPE_PARAM_PATTERN.matcher(param);
             if (m.find()) {
                 String name = m.group(1);
-                String boundType = m.group(2);
-                String fullBoundType = m.group(3);
+                String boundType = m.group(2);          // Simple name like "EntityPlayerMP"
+                String fullBoundType = m.group(3);      // Full name like "net.minecraft.entity.player.EntityPlayerMP"
                 
-                typeInfo.addTypeParam(new JSTypeInfo.TypeParamInfo(name, boundType, fullBoundType));
+                // Store strings only - resolution happens in Phase 2
+                typeInfo.addTypeParam(new TypeParamInfo(name, boundType, fullBoundType));
             }
         }
     }

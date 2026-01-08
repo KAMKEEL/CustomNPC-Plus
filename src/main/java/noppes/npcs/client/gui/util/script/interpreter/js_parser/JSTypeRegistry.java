@@ -83,6 +83,9 @@ public class JSTypeRegistry {
                 }
             }
             
+            // Phase 2: Resolve all type parameters now that all types are loaded
+            resolveAllTypeParameters();
+            
             resolveInheritance();
             registerEngineGlobalObjects();
             
@@ -223,6 +226,7 @@ public class JSTypeRegistry {
         try {
             TypeScriptDefinitionParser parser = new TypeScriptDefinitionParser(this);
             parser.parseDirectory(directory);
+            resolveAllTypeParameters();
             resolveInheritance();
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks");
@@ -241,6 +245,7 @@ public class JSTypeRegistry {
         try {
             TypeScriptDefinitionParser parser = new TypeScriptDefinitionParser(this);
             parser.parseVsixArchive(vsixFile);
+            resolveAllTypeParameters();
             resolveInheritance();
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from VSIX");
@@ -358,6 +363,17 @@ public class JSTypeRegistry {
             return sigs.get(0).paramType;
         }
         return null;
+    }
+    
+    /**
+     * Resolve all type parameters for all types.
+     * Called after all .d.ts files are loaded (Phase 2).
+     * This ensures that type parameters can reference any type in the registry.
+     */
+    public void resolveAllTypeParameters() {
+        for (JSTypeInfo type : types.values()) {
+            type.resolveTypeParameters();
+        }
     }
     
     /**

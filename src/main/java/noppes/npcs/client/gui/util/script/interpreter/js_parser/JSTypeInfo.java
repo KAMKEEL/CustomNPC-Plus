@@ -1,5 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+
 import java.util.*;
 
 /**
@@ -7,34 +9,6 @@ import java.util.*;
  * This is the JS equivalent of TypeInfo for Java types.
  */
 public class JSTypeInfo {
-    
-    /**
-     * Represents a generic type parameter like "T extends Entity".
-     * Stores the parameter name, the bound type, and optionally the full Java class name.
-     */
-    public static class TypeParamInfo {
-        private final String name;           // e.g., "T"
-        private final String boundType;      // e.g., "EntityPlayerMP" 
-        private final String fullBoundType;  // e.g., "net.minecraft.entity.player.EntityPlayerMP"
-        
-        public TypeParamInfo(String name, String boundType, String fullBoundType) {
-            this.name = name;
-            this.boundType = boundType;
-            this.fullBoundType = fullBoundType;
-        }
-        
-        public String getName() { return name; }
-        public String getBoundType() { return boundType; }
-        public String getFullBoundType() { return fullBoundType; }
-        
-        @Override
-        public String toString() {
-            if (boundType != null) {
-                return name + " extends " + boundType + (fullBoundType != null ? " (" + fullBoundType + ")" : "");
-            }
-            return name;
-        }
-    }
     
     private final String simpleName;      // e.g., "InteractEvent"
     private final String fullName;        // e.g., "IPlayerEvent.InteractEvent"
@@ -102,11 +76,7 @@ public class JSTypeInfo {
     public void setResolvedParent(JSTypeInfo parent) {
         this.resolvedParent = parent;
     }
-    
-    public void addTypeParam(TypeParamInfo param) {
-        typeParams.add(param);
-    }
-    
+
     // Getters
     public String getSimpleName() { return simpleName; }
     public String getFullName() { return fullName; }
@@ -133,16 +103,43 @@ public class JSTypeInfo {
         }
         return null;
     }
+
+    public void addTypeParam(TypeParamInfo param) {
+        typeParams.add(param);
+    }
+
+    /**
+     * Resolve all type parameters for this type.
+     * Called during Phase 2 after all types are loaded into the registry.
+     */
+    public void resolveTypeParameters() {
+        for (TypeParamInfo param : typeParams) {
+            param.resolveBoundType();
+        }
+    }
     
     /**
-     * Resolves a type parameter to its bound type.
-     * For example, if this type has "T extends EntityPlayerMP", resolveTypeParam("T") returns "EntityPlayerMP".
-     * If no type parameter is found with that name, returns the input.
+     * Resolves a type parameter to its bound TypeInfo.
+     * For example, if this type has "T extends EntityPlayerMP", resolveTypeParam("T") returns the TypeInfo for EntityPlayerMP.
+     * If no type parameter is found with that name, returns null.
      */
+    public TypeInfo resolveTypeParamToTypeInfo(String typeName) {
+        TypeParamInfo param = getTypeParam(typeName);
+        if (param != null) {
+            return param.getBoundTypeInfo();
+        }
+        return null;
+    }
+
+    /**
+     * Resolves a type parameter to its bound type name (for backward compatibility).
+     * @deprecated Use resolveTypeParamToTypeInfo instead
+     */
+    @Deprecated
     public String resolveTypeParam(String typeName) {
         TypeParamInfo param = getTypeParam(typeName);
-        if (param != null && param.getBoundType() != null) {
-            return param.getBoundType();
+        if (param != null && param.getBoundTypeInfo() != null) {
+            return param.getBoundTypeInfo().getSimpleName();
         }
         return typeName;
     }
