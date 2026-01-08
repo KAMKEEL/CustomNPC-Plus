@@ -241,6 +241,13 @@ public class TypeInfo {
     public boolean isPrimitive() {return javaClass != null && javaClass.isPrimitive();}
     
     /**
+     * Returns true if this TypeInfo represents a Class reference (not an instance).
+     * For example, Java.type("java.io.File") returns a Class reference.
+     * Override in ClassTypeInfo to return true.
+     */
+    public boolean isClassReference() { return false; }
+    
+    /**
      * Get the appropriate TokenType for highlighting this type.
      */
     public TokenType getTokenType() {

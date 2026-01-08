@@ -197,6 +197,29 @@ public class MethodCallInfo {
         this.expectedType = expectedType;
     }
     
+    // Dynamically resolved return type (e.g., for Java.type() which returns ClassTypeInfo)
+    private TypeInfo resolvedReturnType;
+    
+    /**
+     * Get the resolved return type of this method call.
+     * This may differ from resolvedMethod.getReturnType() for methods with dynamic return types.
+     * @return The resolved return type, or the method's declared return type if not dynamically resolved
+     */
+    public TypeInfo getResolvedReturnType() {
+        if (resolvedReturnType != null) {
+            return resolvedReturnType;
+        }
+        return resolvedMethod != null ? resolvedMethod.getReturnType() : null;
+    }
+    
+    /**
+     * Set a dynamically resolved return type.
+     * Used for methods like Java.type() where the return type depends on the arguments.
+     */
+    public void setResolvedReturnType(TypeInfo returnType) {
+        this.resolvedReturnType = returnType;
+    }
+    
     public boolean isConstructor() {
         return isConstructor;
     }

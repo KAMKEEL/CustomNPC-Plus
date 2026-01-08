@@ -128,6 +128,15 @@ public final class MethodInfo {
     }
 
     /**
+     * Create a MethodInfo for a synthetic/external method.
+     * Used for built-in types like Nashorn's Java object.
+     */
+    public static MethodInfo external(String name, TypeInfo returnType, TypeInfo containingType, 
+                                       List<FieldInfo> params, int modifiers, String documentation) {
+        return new MethodInfo(name, returnType, containingType, params, -1, -1, -1, -1, -1, true, false, modifiers, documentation, null);
+    }
+
+    /**
      * Create a MethodInfo from reflection data.
      * Used when resolving method calls on known types.
      */

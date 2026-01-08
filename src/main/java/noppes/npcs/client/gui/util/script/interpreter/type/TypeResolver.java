@@ -1,11 +1,12 @@
 package noppes.npcs.client.gui.util.script.interpreter.type;
 
 import noppes.npcs.client.gui.util.script.PackageFinder;
-import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
-import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
+import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSTypeRegistry;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticType;
 
 import java.util.*;
 
@@ -28,6 +29,9 @@ public class TypeResolver {
     
     // JavaScript type registry (lazily initialized)
     private JSTypeRegistry jsTypeRegistry;
+
+    // Synthetic type registry (e.g., Nashorn built-ins)
+    private final Map<String, SyntheticType> syntheticTypes = new LinkedHashMap<>();
 
     // Auto-imported java.lang classes
     public static final Set<String> JAVA_LANG_CLASSES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
@@ -70,6 +74,60 @@ public class TypeResolver {
         validPackages.add("java.lang");
         validPackages.add("java.util");
         validPackages.add("java.io");
+
+        // Initialize built-in synthetic types
+        initializeSyntheticTypes();
+    }
+
+    /**
+     * Initialize built-in synthetic types (e.g., Nashorn built-ins).
+     */
+    private void initializeSyntheticTypes() {
+        // Register all Nashorn built-in types (Java, etc.)
+        for (SyntheticType type : NashornBuiltins.getInstance().getAllBuiltinTypes()) {
+            syntheticTypes.put(type.getName(), type);
+        }
+
+        // Register all Nashorn global functions (print, load, etc.)
+        Map<String, SyntheticType> nashornGlobals = NashornBuiltins.getInstance().getAllGlobalFunctions();
+        syntheticTypes.putAll(nashornGlobals);
+    }
+
+    // ==================== SYNTHETIC TYPE REGISTRY ====================
+
+    /**
+     * Register a synthetic type for use in scripts.
+     * @param name The type name (e.g., "Java", "MyCustomType")
+     * @param type The synthetic type definition
+     */
+    public void registerSyntheticType(String name, SyntheticType type) {
+        syntheticTypes.put(name, type);
+    }
+
+    /**
+     * Check if a name is a known synthetic type.
+     * @param name The type name to check
+     * @return true if the name is a registered synthetic type
+     */
+    public boolean isSyntheticType(String name) {
+        return syntheticTypes.containsKey(name);
+    }
+
+    /**
+     * Get a synthetic type by name.
+     * @param name The type name
+     * @return The synthetic type, or null if not found
+     */
+    public SyntheticType getSyntheticType(String name) {
+        return syntheticTypes.get(name);
+    }
+
+    /**
+     * Get all registered synthetic types.
+     * @return Collection of all synthetic types
+     */
+    public Collection<SyntheticType> getAllSyntheticTypes() {
+        return syntheticTypes.values();
     }
     
     // ==================== JS TYPE REGISTRY ACCESS ====================
@@ -124,6 +182,34 @@ public class TypeResolver {
     }
     
     // ==================== UNIFIED TYPE RESOLUTION ====================
+
+    /**
+     * General-purpose type resolution.
+     * Tries JS types first, then falls back to Java types.
+     *
+     * @param typeName The type name (can be simple or fully-qualified)
+     * @return TypeInfo for the resolved type, or null if not found
+     */
+    public TypeInfo resolve(String typeName) {
+        if (typeName == null || typeName.isEmpty()) {
+            return null;
+        }
+
+        // Try JS resolution first (handles primitives, .d.ts types)
+        TypeInfo jsType = resolveJSType(typeName);
+        if (jsType != null && jsType.isResolved()) {
+            return jsType;
+        }
+
+        // Try full name resolution
+        TypeInfo fullType = resolveFullName(typeName);
+        if (fullType != null && fullType.isResolved()) {
+            return fullType;
+        }
+
+        // Return unresolved or null
+        return jsType; // Will be unresolved TypeInfo or null
+    }
     
     /**
      * Resolve a type name for JavaScript context.
@@ -148,6 +234,12 @@ public class TypeResolver {
         // Strip array brackets for base type resolution
         boolean isArray = jsTypeName.endsWith("[]");
         String baseName = isArray ? jsTypeName.substring(0, jsTypeName.length() - 2) : jsTypeName;
+
+        // Check synthetic types (Nashorn built-ins, custom types, etc.)
+        if (isSyntheticType(baseName)) {
+            SyntheticType syntheticType = getSyntheticType(baseName);
+            return syntheticType.getTypeInfo();
+        }
         
         // Handle "Java." prefix - convert to actual Java type
         // e.g., "Java.java.io.File" -> "java.io.File"

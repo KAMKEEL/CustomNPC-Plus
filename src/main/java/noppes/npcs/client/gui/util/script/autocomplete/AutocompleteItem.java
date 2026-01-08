@@ -5,6 +5,9 @@ import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSFieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.JSMethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticField;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticMethod;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticParameter;
 
 /**
  * Represents a single autocomplete suggestion.
@@ -318,6 +321,79 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             false,
             null,
             -1 // Keywords don't use inheritance depth sorting
+        );
+    }
+    
+    /**
+     * Create from a synthetic method (e.g., Nashorn built-in like Java.type).
+     */
+    public static AutocompleteItem fromSyntheticMethod(
+            SyntheticMethod method,
+            TypeInfo containingType) {
+        String name = method.name;
+        StringBuilder insertText = new StringBuilder(name);
+        insertText.append("(");
+        insertText.append(")");
+
+        // Build display name with parameters - use simple names for types
+        StringBuilder displayName = new StringBuilder(name);
+        displayName.append("(");
+        for (int i = 0; i < method.parameters.size(); i++) {
+            if (i > 0) displayName.append(", ");
+            SyntheticParameter param = 
+                method.parameters.get(i);
+            // Use simple name for display (e.g., "Class" instead of "java.lang.Class")
+            String simpleTypeName = getSimpleTypeName(param.typeName);
+            displayName.append(simpleTypeName).append(" ").append(param.name);
+        }
+        displayName.append(")");
+        
+        // Use simple name for return type display too
+        String simpleReturnType = getSimpleTypeName(method.returnType);
+        
+        return new AutocompleteItem(
+            displayName.toString(),
+            name,  // Search against just the method name
+            insertText.toString(),
+            Kind.METHOD,
+            simpleReturnType,
+            method.getSignature(),
+            method.documentation,
+            method,
+            false,
+            false,
+            null,
+            0  // Synthetic types are at depth 0
+        );
+    }
+    
+    /**
+     * Get simple name from a fully-qualified type name.
+     */
+    private static String getSimpleTypeName(String typeName) {
+        if (typeName == null) return "void";
+        int lastDot = typeName.lastIndexOf('.');
+        return lastDot >= 0 ? typeName.substring(lastDot + 1) : typeName;
+    }
+    
+    /**
+     * Create from a synthetic field (e.g., Nashorn built-in).
+     */
+    public static AutocompleteItem fromSyntheticField(
+          SyntheticField field) {
+        return new AutocompleteItem(
+            field.name,
+            field.name,  // searchName same as display name
+            field.name,
+            Kind.FIELD,
+            field.typeName,
+            field.typeName + " " + field.name,
+            field.documentation,
+            field,
+            false,
+            false,
+            null,
+            0  // Synthetic types are at depth 0
         );
     }
     

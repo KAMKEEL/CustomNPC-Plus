@@ -20,6 +20,9 @@ import noppes.npcs.client.gui.util.script.interpreter.token.Token;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenErrorMessage;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
 import noppes.npcs.client.gui.util.script.interpreter.type.*;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticField;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticMethod;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticType;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -2661,7 +2664,39 @@ public class ScriptDocument {
             MethodInfo resolvedMethod = null;
 
             if (receiverType != null) {
-                // Check for method existence using hierarchy search if it's a ScriptTypeInfo
+                // Check for synthetic types first (JavaScript only)
+                SyntheticType syntheticType = null;
+                if (isJavaScript()) {
+                    syntheticType = typeResolver.getSyntheticType(receiverType.getSimpleName());
+                }
+
+                if (syntheticType != null && syntheticType.hasMethod(methodName)) {
+                    // Synthetic type method call (e.g., Java.type())
+                    resolvedMethod = syntheticType.getMethodInfo(methodName);
+
+                    // Check for dynamic return type resolution (like Java.type("className"))
+                    SyntheticMethod synMethod = syntheticType.getMethod(methodName);
+                    TypeInfo dynamicReturnType = null;
+                    if (synMethod != null && synMethod.returnTypeResolver != null) {
+                        String argsText = text.substring(openParen + 1, closeParen);
+                        String[] strArgs = TypeResolver.parseStringArguments(argsText);
+                        dynamicReturnType = synMethod.returnTypeResolver.resolve(strArgs);
+                    }
+
+                    MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
+                            closeParen, arguments, receiverType, resolvedMethod, false);
+
+                    // Set the actual resolved return type for downstream type resolution
+                    if (dynamicReturnType != null) {
+                        callInfo.setResolvedReturnType(dynamicReturnType);
+                    }
+
+                    callInfo.validate();
+                    methodCalls.add(callInfo);
+                    marks.add(new ScriptLine.Mark(nameStart, nameEnd, TokenType.METHOD_CALL, callInfo));
+                    continue;
+                }
+                // Regular type - check for method existence using hierarchy search if it's a ScriptTypeInfo
                 boolean hasMethod = false;
                 if (receiverType instanceof ScriptTypeInfo) {
                     hasMethod = ((ScriptTypeInfo) receiverType).hasMethodInHierarchy(methodName);
@@ -3495,6 +3530,42 @@ public class ScriptDocument {
             return null;
         }
     }
+
+    /**
+     * Resolve a chain segment on a synthetic type (like Nashorn's Java object).
+     */
+    /**
+     * Resolve a chain segment for a synthetic type (method call or field access).
+     * Handles dynamic return type resolution for methods like Java.type().
+     */
+    private TypeInfo resolveSyntheticChainSegment(SyntheticType syntheticType, ChainSegment segment) {
+        if (segment.isMethodCall) {
+            SyntheticMethod method = syntheticType.getMethod(segment.name);
+            if (method != null) {
+                // For methods with dynamic return type resolvers (like Java.type),
+                // extract string arguments and resolve
+                if (method.returnTypeResolver != null && segment.arguments != null) {
+                    String[] args = TypeResolver.parseStringArguments(segment.arguments);
+                    TypeInfo resolved = method.returnTypeResolver.resolve(args);
+                    if (resolved != null) {
+                        return resolved;
+                    }
+                }
+                // Fall back to static return type
+                TypeInfo returnType = typeResolver.resolve(method.returnType);
+                return returnType != null ? returnType : TypeInfo.unresolved(method.returnType, method.returnType);
+            }
+        } else {
+            SyntheticField field = syntheticType.getField(segment.name);
+            if (field != null) {
+                TypeInfo fieldType = typeResolver.resolve(field.typeName);
+                return fieldType != null ? fieldType : TypeInfo.unresolved(field.typeName, field.typeName);
+            }
+        }
+        return null;
+    }
+    
+
 
     // ==================== OPERATOR EXPRESSION RESOLUTION ====================
     
@@ -5023,6 +5094,16 @@ public class ScriptDocument {
             if (isInImportOrPackage(start))
                 continue;
 
+            // For JavaScript, first check synthetic types (Nashorn built-ins like Java, print, etc.)
+            if (isJavaScript() && typeResolver.isSyntheticType(className)) {
+                SyntheticType syntheticType = typeResolver.getSyntheticType(className);
+                // Mark as IMPORTED_CLASS since it's a type reference
+                // Pass the TypeInfo (which the hover system can display)
+                marks.add(new ScriptLine.Mark(m.start(1), m.end(1), TokenType.IMPORTED_CLASS,
+                        syntheticType.getTypeInfo()));
+                continue;
+            }
+            
             // Try to resolve the class
             TypeInfo info = resolveType(className);
             if (info != null && info.isResolved()) {

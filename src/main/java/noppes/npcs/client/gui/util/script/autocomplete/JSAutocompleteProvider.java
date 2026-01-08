@@ -1,9 +1,7 @@
 package noppes.npcs.client.gui.util.script.autocomplete;
 
-import noppes.npcs.client.gui.util.script.interpreter.ScriptDocument;
-import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.js_parser.*;
-import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeChecker;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 
@@ -46,6 +44,14 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             return;
         }
 
+        // Check for synthetic types first (e.g., Nashorn Java object, custom types)
+        SyntheticType syntheticType = 
+            document.getTypeResolver().getSyntheticType(receiverType.getSimpleName());
+        if (syntheticType != null) {
+            addSyntheticTypeSuggestions(syntheticType, items);
+            return;
+        }
+
         // If this is a Java type (has a Java class), delegate to parent's Java handling
         // This preserves static/instance context, modifiers, and all Java-specific behavior
         Class<?> javaClass = receiverType.getJavaClass();
@@ -60,6 +66,23 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             // Pass both: jsTypeInfo (current type in hierarchy) and receiverType (context for type params)
             addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
             addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
+        }
+    }
+    
+    /**
+     * Add autocomplete suggestions for a synthetic type's methods and fields.
+     */
+    private void addSyntheticTypeSuggestions(SyntheticType syntheticType, List<AutocompleteItem> items) {
+        // Add methods
+        for (SyntheticMethod method : syntheticType.getMethods()) {
+            AutocompleteItem item = AutocompleteItem.fromSyntheticMethod(method, syntheticType.getTypeInfo());
+            items.add(item);
+        }
+        
+        // Add fields
+        for (SyntheticField field : syntheticType.getFields()) {
+            AutocompleteItem item = AutocompleteItem.fromSyntheticField(field);
+            items.add(item);
         }
     }
     

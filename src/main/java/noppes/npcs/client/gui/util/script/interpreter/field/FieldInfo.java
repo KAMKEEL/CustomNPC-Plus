@@ -136,6 +136,14 @@ public final class FieldInfo {
     }
 
     /**
+     * Create a FieldInfo for a synthetic/external field.
+     * Used for built-in types like Nashorn's Java object.
+     */
+    public static FieldInfo external(String name, TypeInfo type, String documentation, int modifiers) {
+        return new FieldInfo(name, Scope.GLOBAL, type, -1, true, null, documentation, -1, -1, modifiers, null);
+    }
+
+    /**
      * Create a FieldInfo from reflection data for a class field.
      */
     public static FieldInfo fromReflection(Field field, TypeInfo containingType) {
