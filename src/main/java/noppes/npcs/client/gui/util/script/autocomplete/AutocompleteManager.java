@@ -663,6 +663,19 @@ public class AutocompleteManager {
                 } else {
                     break;
                 }
+            } else if (c == '"' || c == '\'') {
+                // Skip over string literals
+                char quote = c;
+                start--;
+                while (start > 0) {
+                    char strChar = text.charAt(start - 1);
+                    if (strChar == quote && (start < 2 || text.charAt(start - 2) != '\\')) {
+                        // Found unescaped closing quote
+                        start--;
+                        break;
+                    }
+                    start--;
+                }
             } else if (Character.isJavaIdentifierPart(c) || c == '.') {
                 start--;
             } else if (Character.isWhitespace(c)) {
