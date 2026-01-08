@@ -668,4 +668,117 @@ public class TypeResolver {
             return typeInfo.getTokenType();
         }
     }
+
+    /**
+     * Check if an expression represents static access (accessing a Class, not an instance).
+     * This checks if the expression STRING resolves to a TYPE name.
+     *
+     * Examples:
+     * - "String" -> true (it's a class name)
+     * - "myVar" -> false (it's a variable, even if myVar holds a ClassTypeInfo)
+     * - "Java" -> true (it's a synthetic type)
+     *
+     * Note: This is different from checking if a variable's TYPE is ClassTypeInfo.
+     * For variables holding ClassTypeInfo (like `var File = Java.type("File")`),
+     * the receiver type itself should be checked separately.
+     *
+     * @param typeInfo The resolved TypeInfo (can be null)
+     * @param wasResolvedAsType true if this was resolved as a type name (not a variable)
+     * @return true if this represents static access (direct class reference)
+     */
+    public static boolean isStaticAccess(TypeInfo typeInfo, boolean wasResolvedAsType) {
+        // If explicitly resolved as a type name, it's static access
+        if (wasResolvedAsType)
+            return true;
+
+        if (typeInfo == null)
+            return false;
+
+        // If the typeInfo itself is a ClassTypeInfo (e.g., result of Java.type()),
+        // then accessing members on it should be static
+        if (typeInfo.isClassReference())
+            return true;
+
+        return false;
+    }
+
+    /**
+     * Unified static access checker for expressions.
+     * Determines if an identifier represents static access (type name) or instance access (variable).
+     *
+     * This method is used by ScriptDocument, JavaAutocompleteProvider, and FieldChainMarker.
+     *
+     * @param identifier The identifier to check (e.g., "String", "myVar", "Java")
+     * @param position The position in the document for context
+     * @param document The script document for resolution
+     * @return true if this represents static access
+     */
+    public static boolean isStaticAccessExpression(String identifier, int position, ScriptDocument document) {
+        if (identifier == null || identifier.isEmpty() || document == null) {
+            return false;
+        }
+
+        // First check if it's a variable/field (instance access)
+        FieldInfo fieldInfo = document.resolveVariable(identifier, position);
+        if (fieldInfo != null && fieldInfo.isResolved()) {
+            // It's a variable - check if its type is a ClassTypeInfo
+            return isStaticAccess(fieldInfo.getTypeInfo(), false);
+        }
+
+        // Not a variable - check if it's a type name
+        TypeInfo typeCheck = document.resolveExpressionType(identifier,position);
+        boolean isType = typeCheck != null && typeCheck.isResolved();
+        return isStaticAccess(typeCheck, isType);
+    }
+
+    /**
+     * Parse string literal arguments from a method call.
+     * Used for resolving dynamic return types like Java.type("className").
+     *
+     * @param argumentsStr The arguments string (e.g., "\"java.io.File\", 123")
+     * @return Array of parsed arguments
+     */
+    public static String[] parseStringArguments(String argumentsStr) {
+        if (argumentsStr == null || argumentsStr.isEmpty()) {
+            return new String[0];
+        }
+
+        List<String> args = new ArrayList<>();
+        StringBuilder current = new StringBuilder();
+        int depth = 0;
+        boolean inString = false;
+        char stringChar = 0;
+
+        for (int i = 0; i < argumentsStr.length(); i++) {
+            char c = argumentsStr.charAt(i);
+
+            if (inString) {
+                current.append(c);
+                if (c == stringChar && (i == 0 || argumentsStr.charAt(i - 1) != '\\')) {
+                    inString = false;
+                }
+            } else if (c == '"' || c == '\'') {
+                current.append(c);
+                inString = true;
+                stringChar = c;
+            } else if (c == '(' || c == '[' || c == '{') {
+                depth++;
+                current.append(c);
+            } else if (c == ')' || c == ']' || c == '}') {
+                depth--;
+                current.append(c);
+            } else if (c == ',' && depth == 0) {
+                args.add(current.toString().trim());
+                current = new StringBuilder();
+            } else {
+                current.append(c);
+            }
+        }
+
+        if (current.length() > 0) {
+            args.add(current.toString().trim());
+        }
+
+        return args.toArray(new String[0]);
+    }
 }

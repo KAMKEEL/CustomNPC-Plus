@@ -343,12 +343,11 @@ public class JavaAutocompleteProvider implements AutocompleteProvider {
     
     /**
      * Check if the receiver expression represents static access (class type).
-     * Similar logic to FieldChainMarker.isStaticContext().
+     * Returns true if the expression is a TYPE NAME (not a variable).
      */
     protected boolean isStaticAccess(String receiverExpr, int position) {
-        // Try to resolve the receiver expression as a type
-        TypeInfo typeCheck = document.resolveType(receiverExpr);
-        return typeCheck != null && typeCheck.isResolved();
+        // Use unified static access checker
+        return TypeResolver.isStaticAccessExpression(receiverExpr, position, document);
     }
     
     protected  UsageTracker getUsageTracker() {

@@ -2789,6 +2789,10 @@ public class ScriptDocument {
      * Check if a method call is a static access (Class.method() style).
      * Returns true if the immediate receiver before the dot is a class name (uppercase).
      */
+    /**
+     * Check if a method call at the given position is static access.
+     * Walks backward from the method name to analyze the receiver.
+     */
     private boolean isStaticAccessCall(int methodNameStart) {
         // Walk backward to find the dot
         int pos = methodNameStart - 1;
@@ -2813,7 +2817,8 @@ public class ScriptDocument {
         
         char c = text.charAt(pos);
         if (c == ')' || c == ']') {
-            // Method call or array - this is instance access
+            // Method call or array - would need complex expression resolution
+            // For now, conservatively treat as instance access
             return false;
         }
         
@@ -2828,24 +2833,20 @@ public class ScriptDocument {
         
         String ident = text.substring(identStart, identEnd);
         
-        // Check if this is a class name (starts with uppercase)
-        // AND check if there's no dot before it (making it a direct class reference)
-        // If there's a chain like "obj.SomeClass.method()", we need to check further
-        
         // Skip whitespace before the identifier
         while (pos >= 0 && Character.isWhitespace(text.charAt(pos)))
             pos--;
-        
-        // If preceded by a dot, this might be part of a longer chain
-        // In that case, it's not a direct static access
+
+        // If preceded by a dot, this is part of a chain - treat as instance for now
         if (pos >= 0 && text.charAt(pos) == '.') {
             return false;
         }
-        
-        // It's static access if the identifier resolves to a type
+
+        // Direct identifier - check if it resolves to a type (static) or variable (instance)
         if (ident.isEmpty()) return false;
-        TypeInfo typeCheck = resolveType(ident);
-        return typeCheck != null && typeCheck.isResolved();
+
+        // Use unified static access checker
+        return TypeResolver.isStaticAccessExpression(ident, identStart, this);
     }
 
     /**
@@ -3486,6 +3487,14 @@ public class ScriptDocument {
         if (currentType == null || !currentType.isResolved()) {
             return null;
         }
+
+        // Check if current type is a synthetic type
+                if (isJavaScript()) {
+                    SyntheticType syntheticType = typeResolver.getSyntheticType(currentType.getSimpleName());
+                    if (syntheticType != null) {
+                        return resolveSyntheticChainSegment(syntheticType, segment);
+                    }
+                }
         
         if (segment.isMethodCall) {
             // Method call - get return type with argument-based overload resolution
@@ -5323,7 +5332,7 @@ public class ScriptDocument {
      * Resolve a variable by name at a given position.
      * Works for BOTH Java and JavaScript using unified data structures.
      */
-    FieldInfo resolveVariable(String name, int position) {
+    public FieldInfo resolveVariable(String name, int position) {
         // Find containing method/function
         MethodInfo containingMethod = findMethodAtPosition(position);
         

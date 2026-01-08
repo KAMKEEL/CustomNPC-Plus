@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter;
 
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 import noppes.npcs.client.gui.util.script.interpreter.type.ScriptTypeInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldAccessInfo;
@@ -477,9 +478,9 @@ public class FieldChainMarker {
             return false;
 
         String previousSegment = ctx.chain.segments.get(ctx.currentIndex - 1);
-
-        // Try to resolve the previous segment as a type
-        TypeInfo typeCheck = document.resolveType(previousSegment);
-        return typeCheck != null && typeCheck.isResolved();
+        int prevPos = ctx.chain.positions.get(ctx.currentIndex - 1)[0];
+        
+        // Use unified static access checker
+        return TypeResolver.isStaticAccessExpression(previousSegment, prevPos, document);
     }
 }
