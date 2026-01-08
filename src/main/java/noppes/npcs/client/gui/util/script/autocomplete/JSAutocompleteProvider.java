@@ -46,53 +46,20 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             return;
         }
 
-        // For JS types, check JSTypeRegistry
+        // If this is a Java type (has a Java class), delegate to parent's Java handling
+        // This preserves static/instance context, modifiers, and all Java-specific behavior
+        Class<?> javaClass = receiverType.getJavaClass();
+        if (javaClass != null) {
+            super.addMemberSuggestions(context, items);
+            return;
+        }
+
+        // For pure JS types, check JSTypeRegistry
         JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
         if (jsTypeInfo != null) {
             // Pass both: jsTypeInfo (current type in hierarchy) and receiverType (context for type params)
             addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
             addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
-            return;
-        }
-
-        // For Java types with Java class, use reflection to get members
-        Class<?> javaClass = receiverType.getJavaClass();
-        if (javaClass != null) {
-            try {
-                // Add methods from Java reflection
-                for (java.lang.reflect.Method method : javaClass.getMethods()) {
-                    String methodName = method.getName();
-                    StringBuilder signature = new StringBuilder();
-                    signature.append(methodName).append("(");
-                    Class<?>[] params = method.getParameterTypes();
-                    for (int i = 0; i < params.length; i++) {
-                        if (i > 0)
-                            signature.append(", ");
-                        signature.append(params[i].getSimpleName());
-                    }
-                    signature.append(")");
-
-                    items.add(new AutocompleteItem.Builder()
-                            .name(methodName)
-                            .insertText(methodName)
-                            .kind(AutocompleteItem.Kind.METHOD)
-                            .typeLabel(method.getReturnType().getSimpleName())
-                            .signature(signature.toString())
-                            .build());
-                }
-
-                // Add fields from Java reflection
-                for (java.lang.reflect.Field field : javaClass.getFields()) {
-                    items.add(new AutocompleteItem.Builder()
-                            .name(field.getName())
-                            .insertText(field.getName())
-                            .kind(AutocompleteItem.Kind.FIELD)
-                            .typeLabel(field.getType().getSimpleName())
-                            .build());
-                }
-            } catch (SecurityException e) {
-                // Can't access members, skip
-            }
         }
     }
     
