@@ -200,7 +200,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a JavaScript JSMethodInfo.
      */
     public static AutocompleteItem fromJSMethod(JSMethodInfo method) {
-        return fromJSMethod(method, 0);
+        return fromJSMethod(method, null, 0);
     }
     
     /**
@@ -209,6 +209,16 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
      */
     public static AutocompleteItem fromJSMethod(JSMethodInfo method, int inheritanceDepth) {
+        return fromJSMethod(method, null, inheritanceDepth);
+    }
+    
+    /**
+     * Create from a JavaScript JSMethodInfo with type parameter resolution for display.
+     * @param method The method info
+     * @param contextType The TypeInfo context for resolving type parameters (e.g., IPlayer to resolve T → EntityPlayerMP)
+     * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
+     */
+    public static AutocompleteItem fromJSMethod(JSMethodInfo method, TypeInfo contextType, int inheritanceDepth) {
         String name = method.getName();
         StringBuilder insertText = new StringBuilder(name);
         insertText.append("(");
@@ -220,14 +230,22 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
         int returnIndex = sig.lastIndexOf(":"); 
         if (returnIndex != -1) //remove ":ReturnType"
             displayName = sig.substring(0, returnIndex);
-      
+        
+        // Resolve type parameters for display (e.g., T → EntityPlayerMP)
+        String returnType = method.getReturnType();
+        if (contextType != null) {
+            TypeInfo resolved = contextType.resolveTypeParamToTypeInfo(returnType);
+            if (resolved != null && resolved.isResolved()) 
+                returnType = getName(resolved);
+            
+        }
         
         return new AutocompleteItem(
             displayName,
             name,  // Search against just the method name
             insertText.toString(),
             Kind.METHOD,
-            method.getReturnType(),
+            returnType,
             method.getSignature(),
             method.getDocumentation(),
             method,
@@ -242,7 +260,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * Create from a JavaScript JSFieldInfo.
      */
     public static AutocompleteItem fromJSField(JSFieldInfo field) {
-        return fromJSField(field, 0);
+        return fromJSField(field, null, 0);
     }
     
     /**
@@ -251,12 +269,31 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
      * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
      */
     public static AutocompleteItem fromJSField(JSFieldInfo field, int inheritanceDepth) {
+        return fromJSField(field, null, inheritanceDepth);
+    }
+    
+    /**
+     * Create from a JavaScript JSFieldInfo with type parameter resolution for display.
+     * @param field The field info
+     * @param contextType The TypeInfo context for resolving type parameters
+     * @param inheritanceDepth Depth in inheritance tree (0 = child, 1 = parent, etc.)
+     */
+    public static AutocompleteItem fromJSField(JSFieldInfo field, TypeInfo contextType, int inheritanceDepth) {
+        // Resolve type parameters for display (e.g., T → EntityPlayerMP)
+        String fieldType = field.getType();
+        if (contextType != null) {
+            TypeInfo resolved = contextType.resolveTypeParamToTypeInfo(fieldType);
+            if (resolved != null && resolved.isResolved()) 
+                fieldType = getName(resolved);
+            
+        }
+        
         return new AutocompleteItem(
             field.getName(),
             field.getName(),  // searchName same as display name
             field.getName(),
             Kind.FIELD,
-            field.getType(),
+            fieldType,
             field.toString(),
             field.getDocumentation(),
             field,

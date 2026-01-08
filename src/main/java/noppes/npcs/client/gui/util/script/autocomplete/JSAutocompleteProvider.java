@@ -49,10 +49,9 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
         // For JS types, check JSTypeRegistry
         JSTypeInfo jsTypeInfo = receiverType.getJSTypeInfo();
         if (jsTypeInfo != null) {
-            // Add methods
-            addMethodsFromType(jsTypeInfo, items, new HashSet<>());
-            // Add fields
-            addFieldsFromType(jsTypeInfo, items, new HashSet<>());
+            // Pass both: jsTypeInfo (current type in hierarchy) and receiverType (context for type params)
+            addMethodsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
+            addFieldsFromType(jsTypeInfo, receiverType, items, new HashSet<>());
             return;
         }
 
@@ -99,15 +98,19 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
     
     /**
      * Recursively add methods from a type and its parents.
+     * @param type The current JS type to get methods from (changes as we walk up inheritance)
+     * @param contextType The original TypeInfo context for resolving type parameters (stays constant)
      */
-    protected void addMethodsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added) {
-        addMethodsFromType(type, items, added, 0);
+    protected void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added) {
+        addMethodsFromType(type, contextType, items, added, 0);
     }
     
     /**
      * Recursively add methods from a type and its parents with inheritance depth tracking.
+     * @param type The current JS type in inheritance chain
+     * @param contextType The original TypeInfo context for resolving type parameters (e.g., IPlayer with T → EntityPlayerMP)
      */
-    private void addMethodsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added, int depth) {
+    private void addMethodsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth) {
         for (JSMethodInfo method : type.getMethods().values()) {
             String name = method.getName();
             // Skip overload markers (name$1, name$2, etc.)
@@ -116,37 +119,43 @@ public class JSAutocompleteProvider extends JavaAutocompleteProvider {
             }
             if (!added.contains(name)) {
                 added.add(name);
-                items.add(AutocompleteItem.fromJSMethod(method, depth));
+                // Pass contextType (original receiver) for type parameter resolution, not current type
+                items.add(AutocompleteItem.fromJSMethod(method, contextType, depth));
             }
         }
         
-        // Add from parent type with incremented depth
+        // Add from parent type with incremented depth - keep same contextType
         if (type.getResolvedParent() != null) {
-            addMethodsFromType(type.getResolvedParent(), items, added, depth + 1);
+            addMethodsFromType(type.getResolvedParent(), contextType, items, added, depth + 1);
         }
     }
     
     /**
      * Recursively add fields from a type and its parents.
+     * @param type The current JS type to get fields from (changes as we walk up inheritance)
+     * @param contextType The original TypeInfo context for resolving type parameters (stays constant)
      */
-    protected void addFieldsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added) {
-        addFieldsFromType(type, items, added, 0);
+    protected void addFieldsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added) {
+        addFieldsFromType(type, contextType, items, added, 0);
     }
     
     /**
      * Recursively add fields from a type and its parents with inheritance depth tracking.
+     * @param type The current JS type in inheritance chain
+     * @param contextType The original TypeInfo context for resolving type parameters
      */
-    private void addFieldsFromType(JSTypeInfo type, List<AutocompleteItem> items, Set<String> added, int depth) {
+    private void addFieldsFromType(JSTypeInfo type, TypeInfo contextType, List<AutocompleteItem> items, Set<String> added, int depth) {
         for (JSFieldInfo field : type.getFields().values()) {
             if (!added.contains(field.getName())) {
                 added.add(field.getName());
-                items.add(AutocompleteItem.fromJSField(field, depth));
+                // Pass contextType (original receiver) for type parameter resolution, not current type
+                items.add(AutocompleteItem.fromJSField(field, contextType, depth));
             }
         }
         
-        // Add from parent type with incremented depth
+        // Add from parent type with incremented depth - keep same contextType
         if (type.getResolvedParent() != null) {
-            addFieldsFromType(type.getResolvedParent(), items, added, depth + 1);
+            addFieldsFromType(type.getResolvedParent(), contextType, items, added, depth + 1);
         }
     }
 
