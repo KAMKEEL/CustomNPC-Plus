@@ -129,7 +129,7 @@ public class TypeResolver {
      * Resolve a type name for JavaScript context.
      * Handles JS primitives, .d.ts types, and falls back to Java types.
      * 
-     * @param jsTypeName The JS type name (e.g., "IPlayer", "string", "number")
+     * @param jsTypeName The JS type name (e.g., "IPlayer", "string", "number", "Java.java.io.File")
      * @return TypeInfo for the resolved type, or unresolved TypeInfo if not found
      */
     public TypeInfo resolveJSType(String jsTypeName) {
@@ -148,6 +148,18 @@ public class TypeResolver {
         // Strip array brackets for base type resolution
         boolean isArray = jsTypeName.endsWith("[]");
         String baseName = isArray ? jsTypeName.substring(0, jsTypeName.length() - 2) : jsTypeName;
+        
+        // Handle "Java." prefix - convert to actual Java type
+        // e.g., "Java.java.io.File" -> "java.io.File"
+        if (baseName.startsWith("Java.")) {
+            String javaFullName = baseName.substring(5); // Remove "Java."
+            TypeInfo javaType = resolveFullName(javaFullName);
+            if (javaType != null && javaType.isResolved()) {
+                return isArray ? TypeInfo.arrayOf(javaType) : javaType;
+            }
+            // Still return unresolved with the cleaned-up name
+            return TypeInfo.unresolved(javaFullName.substring(javaFullName.lastIndexOf('.') + 1), javaFullName);
+        }
 
         switch (baseName.toLowerCase()) {
             case "string":

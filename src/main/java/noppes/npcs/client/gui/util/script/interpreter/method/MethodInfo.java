@@ -175,19 +175,9 @@ public final class MethodInfo {
      */
     public static MethodInfo fromJSMethod(JSMethodInfo jsMethod, TypeInfo containingType) {
         String name = jsMethod.getName();
-        noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver resolver = noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver.getInstance();
         
-        // Resolve the return type - first from TypeResolver, then check for type parameters
-        String returnTypeName = jsMethod.getReturnType();
-        TypeInfo returnType = resolver.resolveJSType(returnTypeName);
-        
-        // If not resolved and containingType has type parameters, try to resolve as type parameter
-        if (containingType != null && !returnType.isResolved()) {
-            TypeInfo paramResolution = containingType.resolveTypeParamToTypeInfo(returnTypeName);
-            if (paramResolution != null) {
-                returnType = paramResolution;
-            }
-        }
+        // Use the new getResolvedReturnType method
+        TypeInfo returnType = jsMethod.getResolvedReturnType(containingType);
         
         // Convert JS parameters to FieldInfo
         List<FieldInfo> params = new ArrayList<>();
@@ -195,18 +185,9 @@ public final class MethodInfo {
         
         for (JSMethodInfo.JSParameterInfo param : jsParams) {
             String paramName = param.getName();
-            String paramTypeName = param.getType();
             
-            // Resolve parameter type - first from TypeResolver, then check for type parameters
-            TypeInfo paramType = resolver.resolveJSType(paramTypeName);
-            
-            // If not resolved and containingType has type parameters, try to resolve as type parameter
-            if (containingType != null && !paramType.isResolved()) {
-                TypeInfo paramResolution = containingType.resolveTypeParamToTypeInfo(paramTypeName);
-                if (paramResolution != null) {
-                    paramType = paramResolution;
-                }
-            }
+            // Use the new getResolvedType method
+            TypeInfo paramType = param.getResolvedType(containingType);
             
             params.add(FieldInfo.reflectionParam(paramName, paramType));
         }

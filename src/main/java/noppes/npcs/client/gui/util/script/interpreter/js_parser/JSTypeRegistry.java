@@ -86,6 +86,9 @@ public class JSTypeRegistry {
             // Phase 2: Resolve all type parameters now that all types are loaded
             resolveAllTypeParameters();
             
+            // Phase 2b: Resolve member types (return types, field types, param types)
+            resolveAllMemberTypes();
+            
             resolveInheritance();
             registerEngineGlobalObjects();
             
@@ -227,6 +230,7 @@ public class JSTypeRegistry {
             TypeScriptDefinitionParser parser = new TypeScriptDefinitionParser(this);
             parser.parseDirectory(directory);
             resolveAllTypeParameters();
+            resolveAllMemberTypes();
             resolveInheritance();
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks");
@@ -246,6 +250,7 @@ public class JSTypeRegistry {
             TypeScriptDefinitionParser parser = new TypeScriptDefinitionParser(this);
             parser.parseVsixArchive(vsixFile);
             resolveAllTypeParameters();
+            resolveAllMemberTypes();
             resolveInheritance();
             initialized = true;
             System.out.println("[JSTypeRegistry] Loaded " + types.size() + " types, " + hooks.size() + " hooks from VSIX");
@@ -374,6 +379,16 @@ public class JSTypeRegistry {
         for (JSTypeInfo type : types.values()) {
             type.resolveTypeParameters();
         }
+    }
+    
+    /**
+     * Resolve all member types (return types, field types, parameter types) for all types.
+     * Called after resolveAllTypeParameters (Phase 2b).
+     * This resolves types like "Java.java.io.File" to proper TypeInfo objects.
+     */
+    public void resolveAllMemberTypes() {
+        for (JSTypeInfo type : types.values()) 
+            type.resolveMemberTypes();
     }
     
     /**

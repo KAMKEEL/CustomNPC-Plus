@@ -1,6 +1,7 @@
 package noppes.npcs.client.gui.util.script.interpreter.js_parser;
 
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
 import java.util.*;
 
@@ -50,6 +51,7 @@ public class JSTypeInfo {
     }
     
     public void addMethod(JSMethodInfo method) {
+        method.setContainingType(this);
         // Handle overloads - store with index if name already exists
         String key = method.getName();
         if (methods.containsKey(key)) {
@@ -65,6 +67,7 @@ public class JSTypeInfo {
     }
     
     public void addField(JSFieldInfo field) {
+        field.setContainingType(this);
         fields.put(field.getName(), field);
     }
     
@@ -115,6 +118,33 @@ public class JSTypeInfo {
     public void resolveTypeParameters() {
         for (TypeParamInfo param : typeParams) {
             param.resolveBoundType();
+        }
+    }
+    
+    /**
+     * Resolve all member types (return types, field types, parameter types).
+     * Called during Phase 2 after all types are loaded into the registry.
+     * This resolves types like "Java.java.io.File" to proper TypeInfo objects.
+     */
+    public void resolveMemberTypes() {
+        TypeResolver resolver = TypeResolver.getInstance();
+        
+        // Resolve method return types and parameter types
+        for (JSMethodInfo method : methods.values()) {
+            TypeInfo returnTypeInfo = resolver.resolveJSType(method.getReturnType());
+            method.setReturnTypeInfo(returnTypeInfo);
+            
+            // Resolve parameter types
+            for (JSMethodInfo.JSParameterInfo param : method.getParameters()) {
+                TypeInfo paramTypeInfo = resolver.resolveJSType(param.getType());
+                param.setTypeInfo(paramTypeInfo);
+            }
+        }
+        
+        // Resolve field types
+        for (JSFieldInfo field : fields.values()) {
+            TypeInfo fieldTypeInfo = resolver.resolveJSType(field.getType());
+            field.setTypeInfo(fieldTypeInfo);
         }
     }
     
