@@ -53,6 +53,7 @@ public class AutocompleteMenu extends Gui {
     private int x, y;
     private int width, height;
     private int menuWidth;
+    private int visibleItemsCount; // Actual number of items that fit in the menu
     
     // ==================== FONT ====================
     private final FontRenderer font;
@@ -176,6 +177,9 @@ public class AutocompleteMenu extends Gui {
                 }
             }
         }
+        
+        // Store the calculated visible items count
+        this.visibleItemsCount = visibleItems;
         
         // Position the menu
         if (useHorizontalPosition) {
@@ -304,9 +308,8 @@ public class AutocompleteMenu extends Gui {
         
         // Draw items
         int itemY = y + PADDING;
-        int visibleItems = Math.min(items.size(), MAX_VISIBLE_ITEMS);
         
-        for (int i = 0; i < visibleItems; i++) {
+        for (int i = 0; i < visibleItemsCount; i++) {
             int itemIndex = scrollOffset + i;
             if (itemIndex >= items.size()) break;
             
@@ -319,7 +322,7 @@ public class AutocompleteMenu extends Gui {
         }
         
         // Draw scrollbar if needed
-        if (items.size() > MAX_VISIBLE_ITEMS) {
+        if (items.size() > visibleItemsCount) {
             drawScrollbar(mouseX, mouseY);
         }
         
