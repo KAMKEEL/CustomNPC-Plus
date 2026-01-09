@@ -378,19 +378,10 @@ public class AutocompleteMenu extends Gui {
         }
         
         // Determine text color - gray for inherited Object methods
-        int textColor;
-        if (item.isInheritedObjectMethod()) {
-            textColor = DIM_TEXT_COLOR;
-        } else if (item.isDeprecated()) {
-            textColor = DIM_TEXT_COLOR;
-        } else {
-            textColor = TEXT_COLOR;
-        }
-        
-        // Draw name with match highlighting and parameter coloring for methods
+        int textColor = getColor(item);
         if (item.getKind() == AutocompleteItem.Kind.METHOD) {
-            drawMethodNameTruncated(item.getName(), item.getMatchIndices(), textX, textY, 
-                textColor, availableWidth);
+            drawMethodNameTruncated(item.getName(), item.getMatchIndices(), textX, textY,
+                    textColor, availableWidth);
         } else {
             drawHighlightedTextTruncated(item.getName(), item.getMatchIndices(), textX, textY, 
                 textColor, availableWidth);
@@ -405,6 +396,28 @@ public class AutocompleteMenu extends Gui {
             TypeInfo type = item.getTypeInfo();
             int col = type != null ? type.getTokenType().getHexColor() : DIM_TEXT_COLOR;
             font.drawString(typeLabel, typeLabelX, textY, col);
+        }
+    }
+
+    public int getColor(AutocompleteItem item) {
+        if (item.isInheritedObjectMethod() || item.isDeprecated())
+            return DIM_TEXT_COLOR;
+
+        switch (item.getKind()) {
+            case METHOD:
+                return TokenType.METHOD_CALL.getHexColor();
+            case FIELD:
+                return TokenType.GLOBAL_FIELD.getHexColor();
+            case ENUM_CONSTANT:
+                return TokenType.ENUM_CONSTANT.getHexColor();
+            case CLASS:
+                return TokenType.getColor(item.getTypeInfo());
+            case VARIABLE:
+                return TokenType.LOCAL_FIELD.getHexColor();
+            case KEYWORD:
+                return TokenType.KEYWORD.getHexColor();
+            default:
+                return TEXT_COLOR;
         }
     }
     
