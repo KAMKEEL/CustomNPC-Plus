@@ -227,7 +227,7 @@ public class AbilityCharge extends Ability {
      */
     @Override
     public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
-        if (!showTelegraph) {
+        if (!isShowTelegraph() || getTelegraphType() == TelegraphType.NONE) {
             return null;
         }
 

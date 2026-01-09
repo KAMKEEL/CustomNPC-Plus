@@ -1426,10 +1426,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     public void subGuiClosed(SubGuiInterface subgui) {
         if (subgui instanceof SubGuiColorSelector) {
             SubGuiColorSelector colorSelector = (SubGuiColorSelector) subgui;
+            // Color selector returns RGB without alpha, so we need to add appropriate alpha
+            // Wind up color uses 0x80 alpha (semi-transparent), active uses 0xC0 (more opaque)
+            int rgb = colorSelector.color & 0x00FFFFFF;
             if (editingColorId == 22) {
-                windUpColor = colorSelector.color;
+                windUpColor = 0x80000000 | rgb;
             } else if (editingColorId == 24) {
-                activeColor = colorSelector.color;
+                activeColor = 0xC0000000 | rgb;
             }
             editingColorId = 0;
             initGui();

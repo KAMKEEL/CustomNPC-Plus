@@ -122,7 +122,7 @@ public class AbilitySlam extends Ability {
 
     /**
      * Calculate ballistic arc and launch NPC toward target.
-     * Uses simple physics: fixed flight time, calculate velocities to reach destination.
+     * Accounts for Minecraft's drag physics to actually reach the destination.
      */
     private void launchTowardTarget(EntityNPCInterface npc) {
         double dx = targetX - npc.posX;
@@ -152,29 +152,44 @@ public class AbilitySlam extends Ability {
             targetZ = npc.posZ + dz;
         }
 
-        // Simple physics: choose a flight time based on distance
-        // Shorter distances = faster, longer distances = more time
-        int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 2, 35));
+        // Choose flight time based on distance - shorter distances = faster
+        int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 1.5, 30));
 
-        // Horizontal velocity = distance / time
-        double vHorizontal = horizontalDist / flightTicks;
+        // Minecraft applies drag of 0.91 per tick to horizontal motion in air
+        // Total distance traveled with initial velocity v0 over n ticks:
+        // distance = v0 * (1 - drag^n) / (1 - drag)
+        // Solving for v0: v0 = distance * (1 - drag) / (1 - drag^n)
+        double drag = 0.91;
+        double dragPowN = Math.pow(drag, flightTicks);
+        double vHorizontal = horizontalDist * (1.0 - drag) / (1.0 - dragPowN);
+
+        // Scale by leap speed
+        vHorizontal *= leapSpeed;
 
         // Vertical velocity calculation:
-        // We want to create an arc that peaks at (arcHeight) above start and lands at target
-        // Using kinematic equation: final_y = initial_y + vy*t - 0.5*g*t^2
-        // Rearranging: vy = (dy + 0.5*g*t^2) / t
-        // Add extra height for a nice arc
-        double gravity = 0.08; // Minecraft gravity per tick (before drag)
-        double arcHeight = Math.max(4.0, horizontalDist * 0.4) * leapSpeed;
+        // Minecraft gravity is 0.08 per tick, with 0.98 drag on vertical motion
+        // For a nice arc, we want to peak roughly in the middle of the flight
+        double gravity = 0.08;
+        double verticalDrag = 0.98;
 
-        // Account for drag (0.98 per tick) - gravity effect is reduced over time
-        // Approximate effective gravity considering drag
-        double effectiveGravity = gravity * 0.7;
+        // Calculate required upward velocity to create a nice arc and land at target height
+        // Peak height should be proportional to horizontal distance for visual appeal
+        double arcHeight = Math.max(3.0, horizontalDist * 0.3) * leapSpeed;
 
-        double vy = (dy + arcHeight + 0.5 * effectiveGravity * flightTicks * flightTicks) / flightTicks;
+        // Approximate the required initial vertical velocity
+        // Account for gravity and drag - use a simplified model
+        double peakTicks = flightTicks * 0.4; // Peak around 40% through flight
+        double vy = (arcHeight * 2.0 / peakTicks) + (gravity * peakTicks * 0.5);
+
+        // Adjust for height difference
+        if (dy > 0) {
+            vy += dy / flightTicks * 1.5; // Going up - need more velocity
+        } else if (dy < 0) {
+            vy += dy / flightTicks * 0.3; // Going down - gravity helps
+        }
 
         // Ensure minimum upward velocity for visible jump
-        vy = Math.max(vy, 0.5 * leapSpeed);
+        vy = Math.max(vy, 0.6 * leapSpeed);
 
         // Normalize horizontal direction and apply velocity
         double dirX = dx / horizontalDist;
@@ -327,6 +342,11 @@ public class AbilitySlam extends Ability {
 
     @Override
     public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+        // Check if telegraph should be shown
+        if (!isShowTelegraph() || getTelegraphType() == TelegraphType.NONE) {
+            return null;
+        }
+
         // Telegraph shows at landing zone
         if (targetingMode == TargetingMode.AOE_SELF) {
             // AOE_SELF: telegraph at NPC position, does NOT follow
