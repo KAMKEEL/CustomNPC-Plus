@@ -17,7 +17,7 @@ public class AdvancedClassFilter implements LoadClassCondition {
 
     public AdvancedClassFilter() {
         addClasses("java.io.Serializable", "java.util.Iterator");
-        addRegexes("java\\.lang\\..");
+        addRegexes("java\\.lang\\..*");
     }
 
     public AdvancedClassFilter addRegexes(String... classRegexes) {
