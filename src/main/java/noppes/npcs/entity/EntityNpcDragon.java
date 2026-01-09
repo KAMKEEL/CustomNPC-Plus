@@ -94,6 +94,7 @@ public class EntityNpcDragon extends EntityNPCInterface {
             field_40172_ax += f1 * 0.5F;
         }
         super.onLivingUpdate();
+        this.isFlying = isNpcFlying();
     }
 
     //    public float ticks = 0.0f;

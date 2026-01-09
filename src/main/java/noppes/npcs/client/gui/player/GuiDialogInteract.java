@@ -75,6 +75,12 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
      */
     private boolean sentClosePacket = false;
 
+    /**
+     * Tracks the dialog sound that was played, so we can stop only this sound
+     * on close without affecting Bard music or other sounds.
+     */
+    private String dialogSound = null;
+
     public GuiDialogInteract(EntityNPCInterface npc, Dialog dialog) {
         super(npc);
         this.dialog = dialog;
@@ -671,8 +677,13 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
         this.options = new ArrayList<Integer>();
 
         if (dialog.sound != null && !dialog.sound.isEmpty()) {
+            // Stop any previous dialog sound before playing new one
+            if (this.dialogSound != null) {
+                MusicController.Instance.stopSound(this.dialogSound);
+            }
             MusicController.Instance.stopMusic();
             MusicController.Instance.playSound(dialog.sound, (float) npc.posX, (float) npc.posY, (float) npc.posZ);
+            this.dialogSound = dialog.sound;
         }
 
         if (!dialog.showPreviousBlocks) {
@@ -707,7 +718,11 @@ public class GuiDialogInteract extends GuiNPCInterface implements IGuiClose {
         super.close();
         if (parent != null)
             NoppesUtil.openGUI(player, parent);
-        MusicController.Instance.stopAllSounds();
+        // Only stop the dialog sound, not Bard music or other sounds
+        if (this.dialogSound != null) {
+            MusicController.Instance.stopSound(this.dialogSound);
+            this.dialogSound = null;
+        }
     }
 
     @Override

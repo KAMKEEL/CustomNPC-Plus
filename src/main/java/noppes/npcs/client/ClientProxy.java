@@ -223,6 +223,7 @@ import java.util.Random;
 
 public class ClientProxy extends CommonProxy {
     public static KeyBinding NPCButton;
+    public static KeyBinding SpecialKey;
     public static final Random RAND = new Random();
     public static FontContainer Font;
 
@@ -289,8 +290,10 @@ public class ClientProxy extends CommonProxy {
         Minecraft mc = Minecraft.getMinecraft();
 
         NPCButton = new KeyBinding("NPC Inventory", Keyboard.KEY_N, "key.categories.customnpc");
+        SpecialKey = new KeyBinding("key.customnpcs.special", Keyboard.KEY_C, "key.categories.customnpc");
 
         ClientRegistry.registerKeyBinding(NPCButton);
+        ClientRegistry.registerKeyBinding(SpecialKey);
 
         new PresetController(CustomNpcs.Dir);
 

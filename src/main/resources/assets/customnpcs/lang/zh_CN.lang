@@ -1244,10 +1244,11 @@ hitbox.height=身高比例
 
 key.npcInventory=NPC物品栏
 role.mount=Mount
-role.mount.offsetx=Seat Offset X
-role.mount.offsety=Seat Offset Y
-role.mount.offsetz=Seat Offset Z
-role.mount.jumpheight=Jump Strength
-role.mount.sprint=Allow Sprinting
+role.mount.offsetx=Seat X
+role.mount.offsety=Seat Y
+role.mount.offsetz=Seat Z
+role.mount.jumpheight=Jump
+role.mount.sprint=Sprint
 role.mount.reset=Reset Position
-role.mount.walkspeed=Walking speed: %s
+role.mount.walkspeed=Walk Speed: %s
+key.customnpcs.special=Special Key

@@ -8,6 +8,7 @@ import cpw.mods.fml.common.gameevent.TickEvent.Phase;
 import kamkeel.npcs.network.PacketClient;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.InputDevicePacket;
+import kamkeel.npcs.network.packets.player.SpecialKeyStatePacket;
 import kamkeel.npcs.network.packets.player.ScreenSizePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
@@ -23,9 +24,12 @@ import noppes.npcs.client.gui.hud.EnumHudComponent;
 import noppes.npcs.client.gui.hud.HudComponent;
 import noppes.npcs.client.gui.player.inventory.GuiCNPCInventory;
 import noppes.npcs.client.renderer.RenderNPCInterface;
+import noppes.npcs.constants.EnumRoleType;
 import noppes.npcs.constants.MarkType;
 import noppes.npcs.controllers.data.MarkData;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.roles.RoleMount;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import tconstruct.client.tabs.InventoryTabCustomNpc;
@@ -42,6 +46,7 @@ public class ClientTickHandler {
     private int buttonPressed = -1;
     private long buttonTime = 0L;
     private final int[] ignoreKeys = new int[]{157, 29, 54, 42, 184, 56, 220, 219};
+    private boolean lastSpecialKeyDown = false;
 
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public void onClientTick(TickEvent.ClientTickEvent event) {
@@ -51,6 +56,30 @@ public class ClientTickHandler {
                 ClientCacheHandler.clearCache();
             }
             this.prevWorld = mc.theWorld;
+        }
+        if (event.phase == Phase.START) {
+            EntityPlayer player = mc.thePlayer;
+            if (player != null) {
+                boolean specialKeyDown = ClientProxy.SpecialKey != null && Keyboard.isKeyDown(ClientProxy.SpecialKey.getKeyCode());
+                if (specialKeyDown != lastSpecialKeyDown) {
+                    PlayerData data = CustomNpcs.proxy.getPlayerData(player);
+                    if (data != null) {
+                        data.setSpecialKeyDown(specialKeyDown);
+                    }
+                    SpecialKeyStatePacket.send(specialKeyDown);
+                    lastSpecialKeyDown = specialKeyDown;
+                }
+
+                if (player.ridingEntity instanceof EntityNPCInterface) {
+                    EntityNPCInterface mount = (EntityNPCInterface) player.ridingEntity;
+                    if (mount.advanced.role == EnumRoleType.Mount && mount.roleInterface instanceof RoleMount) {
+                        RoleMount role = (RoleMount) mount.roleInterface;
+                        if (!role.isSprintAllowed() && player.isSprinting()) {
+                            player.setSprinting(false);
+                        }
+                    }
+                }
+            }
         }
         if (event.phase == Phase.END) {
             if (mc.thePlayer != null && mc.theWorld != null && !mc.isGamePaused() && ClientEventHandler.hasOverlays(mc.thePlayer)) {

@@ -36,6 +36,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     public int digSpeed = 1;
     public int armorType = -2; //-2: Fits in no armor slot,  -1: Fits in all slots, 0 - 4: Fits in Head -> Boots slot respectively
     public int enchantability;
+    public int attackSpeed = 10;
 
     public long lastInited = -1;
 
@@ -228,6 +229,18 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         return this.enchantability;
     }
 
+    public int getAttackSpeed() {
+        return this.attackSpeed;
+    }
+
+    public void setAttackSpeed(int speed) {
+        if(speed <= 0) {
+            speed = 10;
+        }
+        this.attackSpeed = speed;
+        saveItemData();
+    }
+
     public void setEnchantability(int enchantability) {
         this.enchantability = enchantability;
         saveItemData();
@@ -270,6 +283,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         compound.setInteger("DigSpeed", this.digSpeed);
         compound.setInteger("ArmorType", this.armorType);
         compound.setInteger("Enchantability", this.enchantability);
+        compound.setInteger("AttackSpeed", this.attackSpeed);
 
         compound.setInteger("MaxItemUseDuration", this.maxItemUseDuration);
         compound.setInteger("ItemUseAction", this.itemUseAction);
@@ -286,6 +300,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         this.digSpeed = compound.getInteger("DigSpeed");
         this.armorType = compound.getInteger("ArmorType");
         this.enchantability = compound.getInteger("Enchantability");
+        setAttackSpeed(compound.getInteger("AttackSpeed"));
 
         this.maxItemUseDuration = compound.getInteger("MaxItemUseDuration");
         this.itemUseAction = compound.getInteger("ItemUseAction");

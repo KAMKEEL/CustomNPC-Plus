@@ -706,10 +706,8 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             if (!questCatSearch.equals(newText)) {
                 questCatSearch = newText;
                 if (questCatScroll != null) {
-                    if (selectedQuestCategory.isEmpty())
-                        questCatScroll.setList(new ArrayList<>());
-                    else
-                        questCatScroll.setList(filterList(questCatData, questCatSearch));
+                    questCatScroll.setList(filterList(questCatData, questCatSearch));
+                    questCatScroll.resetScroll();
                 }
             }
         }
@@ -718,12 +716,14 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!questFinishedSearch.equals(newText)) {
                 questFinishedSearch = newText;
-                if (questFinishedScroll != null)
+                if (questFinishedScroll != null) {
                     questFinishedScroll.setList(
                         selectedQuestCategory.isEmpty() ?
                             new ArrayList<>() :
                             filterAndTrimListByCategory(questFinishedData, selectedQuestCategory, questFinishedSearch)
                     );
+                    questFinishedScroll.resetScroll();
+                }
             }
         }
         tf = getTextField(activeFieldId);
@@ -731,12 +731,14 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!questActiveSearch.equals(newText)) {
                 questActiveSearch = newText;
-                if (questActiveScroll != null)
+                if (questActiveScroll != null) {
                     questActiveScroll.setList(
                         selectedQuestCategory.isEmpty() ?
                             new ArrayList<>() :
                             filterAndTrimListByCategory(questActiveData, selectedQuestCategory, questActiveSearch)
                     );
+                    questActiveScroll.resetScroll();
+                }
             }
         }
     }
@@ -747,8 +749,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!questFinishedSearch.equals(newText)) {
                 questFinishedSearch = newText;
-                if (questFinishedScroll != null)
+                if (questFinishedScroll != null) {
                     questFinishedScroll.setList(filterList(questFinishedData, questFinishedSearch));
+                    questFinishedScroll.resetScroll();
+                }
             }
         }
         tf = getTextField(activeFieldId);
@@ -756,8 +760,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!questActiveSearch.equals(newText)) {
                 questActiveSearch = newText;
-                if (questActiveScroll != null)
+                if (questActiveScroll != null) {
                     questActiveScroll.setList(filterList(questActiveData, questActiveSearch));
+                    questActiveScroll.resetScroll();
+                }
             }
         }
     }
@@ -768,12 +774,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!dialogCatSearch.equals(newText)) {
                 dialogCatSearch = newText;
-                if (dialogCatScroll != null)
-                    dialogCatScroll.setList(
-                        selectedDialogCategory.isEmpty() ?
-                            new ArrayList<>() :
-                            filterList(dialogCatData, dialogCatSearch)
-                    );
+                if (dialogCatScroll != null) {
+                    dialogCatScroll.setList(filterList(dialogCatData, dialogCatSearch));
+                    dialogCatScroll.resetScroll();
+                }
             }
         }
         tf = getTextField(readFieldId);
@@ -781,12 +785,14 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!dialogReadSearch.equals(newText)) {
                 dialogReadSearch = newText;
-                if (dialogReadScroll != null)
+                if (dialogReadScroll != null) {
                     dialogReadScroll.setList(
                         selectedDialogCategory.isEmpty() ?
                             new ArrayList<>() :
                             filterAndTrimListByCategory(dialogReadData, selectedDialogCategory, dialogReadSearch)
                     );
+                    dialogReadScroll.resetScroll();
+                }
             }
         }
     }
@@ -797,8 +803,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!dialogCompactSearch.equals(newText)) {
                 dialogCompactSearch = newText;
-                if (dialogCompactScroll != null)
+                if (dialogCompactScroll != null) {
                     dialogCompactScroll.setList(filterList(dialogReadData, dialogCompactSearch));
+                    dialogCompactScroll.resetScroll();
+                }
             }
         }
     }
@@ -809,12 +817,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!transCatSearch.equals(newText)) {
                 transCatSearch = newText;
-                if (transCatScroll != null)
-                    transCatScroll.setList(
-                        selectedTransCategory.isEmpty() ?
-                            new ArrayList<>() :
-                            filterList(transCatData, transCatSearch)
-                    );
+                if (transCatScroll != null) {
+                    transCatScroll.setList(filterList(transCatData, transCatSearch));
+                    transCatScroll.resetScroll();
+                }
             }
         }
         tf = getTextField(locFieldId);
@@ -822,12 +828,14 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!transLocSearch.equals(newText)) {
                 transLocSearch = newText;
-                if (transLocScroll != null)
+                if (transLocScroll != null) {
                     transLocScroll.setList(
                         selectedTransCategory.isEmpty() ?
                             new ArrayList<>() :
                             filterAndTrimListByCategory(transLocData, selectedTransCategory, transLocSearch)
                     );
+                    transLocScroll.resetScroll();
+                }
             }
         }
     }
@@ -838,8 +846,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!transCompactSearch.equals(newText)) {
                 transCompactSearch = newText;
-                if (transCompactScroll != null)
+                if (transCompactScroll != null) {
                     transCompactScroll.setList(filterList(transLocData, transCompactSearch));
+                    transCompactScroll.resetScroll();
+                }
             }
         }
     }
@@ -850,8 +860,10 @@ public class SubGuiPlayerData extends SubGuiInterface implements IPlayerDataInfo
             String newText = tf.getText().toLowerCase();
             if (!singleSearch.equals(newText)) {
                 singleSearch = newText;
-                if (singleScroll != null)
+                if (singleScroll != null) {
                     singleScroll.setList(filterList(currentTab == 13 ? bankData : factionData, singleSearch));
+                    singleScroll.resetScroll();
+                }
             }
         }
     }

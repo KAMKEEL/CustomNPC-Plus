@@ -262,6 +262,7 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
     public void setSelected(String selected) {
     }
 
+    @Override
     public void closeSubGui(SubGuiInterface gui) {
         super.closeSubGui(gui);
         if (gui instanceof GuiNpcMobSpawnerSelector && this.spawnEntryScroll.hasSelected()) {
@@ -269,6 +270,9 @@ public class GuiNpcNaturalSpawns extends GuiNPCInterface2 implements IGuiData, I
             int selected = Integer.parseInt(this.spawnEntryScroll.getSelected());
             this.spawn.spawnCompounds.put(selected, selector.getCompound());
             initGui();
+        }
+        if (gui instanceof SubGuiNpcBiomes || gui instanceof SubGuiNpcDimensions || gui instanceof SubGuiSpawningOptions) {
+            save();
         }
     }
 

@@ -30,6 +30,7 @@ public abstract class ScriptCustomizableItem extends ScriptItemStack implements 
 
     public abstract int getEnchantability();
 
+    public abstract int getAttackSpeed();
 
     public String getTexture() {
         return this.itemDisplay.texture == null ? "" : this.itemDisplay.texture;
