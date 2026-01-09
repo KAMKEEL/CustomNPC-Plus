@@ -5,6 +5,7 @@ import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
 import noppes.npcs.client.gui.util.script.interpreter.token.TokenType;
+import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
 import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
@@ -400,7 +401,10 @@ public class AutocompleteMenu extends Gui {
             String typeLabel = item.getTypeLabel();
             int typeLabelWidth = font.getStringWidth(typeLabel);
             int typeLabelX = itemX + itemWidth - typeLabelWidth - PADDING;
-            font.drawString(typeLabel, typeLabelX, textY, DIM_TEXT_COLOR);
+
+            TypeInfo type = item.getTypeInfo();
+            int col = type != null ? type.getTokenType().getHexColor() : DIM_TEXT_COLOR;
+            font.drawString(typeLabel, typeLabelX, textY, col);
         }
     }
     

@@ -44,6 +44,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     private final String insertText;        // Text to insert (e.g., "getPlayer()")
     private final Kind kind;                // Type of completion
     private final String typeLabel;         // Type label (e.g., "IPlayer", "void")
+    private final TypeInfo typeInfo;  // TypeInfo for the typeLabel
     private final String signature;         // Full signature for methods
     private final String documentation;     // Documentation/description
     private final Object sourceData;        // Original source (MethodInfo, FieldInfo, etc.)
@@ -61,13 +62,14 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     private int[] matchIndices;             // Indices of matched characters for highlighting
     
     private AutocompleteItem(String name, String searchName, String insertText, Kind kind, String typeLabel,
-                             String signature, String documentation, Object sourceData, boolean deprecated,
-                             boolean requiresImport, String importPath, int inheritanceDepth) {
+                             TypeInfo typeLabelTypeInfo, String signature, String documentation, Object sourceData, 
+                             boolean deprecated, boolean requiresImport, String importPath, int inheritanceDepth) {
         this.name = name;
         this.searchName = searchName != null ? searchName : name;  // Default to name if not provided
         this.insertText = insertText;
         this.kind = kind;
         this.typeLabel = typeLabel;
+        this.typeInfo = typeLabelTypeInfo;
         this.signature = signature;
         this.documentation = documentation;
         this.sourceData = sourceData;
@@ -119,6 +121,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             insertText.toString(),
             Kind.METHOD,
             returnType,
+            method.getReturnType(),  // TypeInfo for return type
             signature,
             method.getDocumentation(),
             method,
@@ -157,6 +160,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field.getName(),
             kind,
             typeLabel,
+            field.getTypeInfo(),  // TypeInfo for field type
             typeLabel + " " + field.getName(),
             null,
             field,
@@ -189,6 +193,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
                 name,
             kind,
             type.getPackageName(),
+            type,  // TypeInfo for package name
             type.getFullName(),
             null,
             type,
@@ -251,6 +256,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             insertText.toString(),
             Kind.METHOD,
             returnType,
+            returnTypeInfo,  // TypeInfo for return type
             method.getSignature(),
             method.getDocumentation(),
             method,
@@ -294,6 +300,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field.getName(),
             Kind.FIELD,
             fieldType,
+            fieldTypeInfo,  // TypeInfo for field type
             field.toString(),
             field.getDocumentation(),
             field,
@@ -314,6 +321,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             keyword,
             Kind.KEYWORD,
             "keyword",
+            null,  // TypeInfo for keyword
             null,
             null,
             null,
@@ -357,6 +365,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             insertText.toString(),
             Kind.METHOD,
             simpleReturnType,
+            null,  // TypeInfo for return type - would need to resolve from TypeResolver
             method.getSignature(),
             method.documentation,
             method,
@@ -387,6 +396,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field.name,
             Kind.FIELD,
             field.typeName,
+            null,  // TypeInfo for field type - would need to resolve from TypeResolver
             field.typeName + " " + field.name,
             field.documentation,
             field,
@@ -529,6 +539,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
     public String getInsertText() { return insertText; }
     public Kind getKind() { return kind; }
     public String getTypeLabel() { return typeLabel; }
+    public TypeInfo getTypeInfo() { return typeInfo; }
     public String getSignature() { return signature; }
     public String getDocumentation() { return documentation; }
     public Object getSourceData() { return sourceData; }
@@ -759,7 +770,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
                 insertText = name;
             }
             return new AutocompleteItem(name, searchName, insertText, kind, typeLabel, 
-                signature, documentation, sourceData, deprecated, requiresImport, importPath, -1);
+                null, signature, documentation, sourceData, deprecated, requiresImport, importPath, -1);
         }
     }
 }
