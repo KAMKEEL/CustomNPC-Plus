@@ -1,0 +1,300 @@
+package kamkeel.npcs.controllers.data.ability.type;
+
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.Vec3;
+import net.minecraft.world.World;
+import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Charge ability: Rush attack where NPC charges in a line, damaging all targets hit.
+ */
+public class AbilityCharge extends Ability {
+
+    // Type-specific parameters
+    private float chargeSpeed = 0.8f;
+    private float damage = 15.0f;
+    private float knockback = 3.0f;
+    private float knockbackUp = 0.3f;
+    private float maxDistance = 20.0f;
+    private float hitRadius = 1.5f;
+
+    // Runtime state (transient)
+    private transient double startX, startY, startZ;
+    private transient Vec3 chargeDirection;
+    private transient Set<Integer> hitEntities = new HashSet<>();
+    private transient float lockedYaw;
+
+    public AbilityCharge() {
+        this.typeId = "cnpc:charge";
+        this.name = "Charge";
+        this.targetingMode = TargetingMode.AGGRO_TARGET;
+        this.maxRange = 20.0f;
+        this.minRange = 4.0f;
+        this.lockMovement = false; // Movement IS the ability
+        this.cooldownTicks = 80;
+        this.windUpTicks = 20;
+        this.activeTicks = 40;
+        this.recoveryTicks = 20;
+        // LINE telegraph showing charge path
+        this.telegraphType = TelegraphType.LINE;
+        this.showTelegraph = true;
+    }
+
+    @Override
+    public boolean hasTypeSettings() { return true; }
+
+    @Override
+    public boolean isTargetingModeLocked() { return true; }
+
+    @Override
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[] { TargetingMode.AGGRO_TARGET };
+    }
+
+    @Override
+    public boolean hasAbilityMovement() {
+        return true; // This ability moves the NPC
+    }
+
+    /**
+     * Called on the first tick of windup - lock direction here so it matches telegraph.
+     */
+    @Override
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        if (tick == 1) {
+            // Lock direction on first windup tick (same time telegraph is created)
+            lockChargeDirection(npc, target);
+        }
+        // Keep NPC facing the locked direction during windup
+        enforceLockedRotation(npc);
+    }
+
+    /**
+     * Locks the charge direction based on current target position.
+     * Called once at windup start - direction won't change even if target moves.
+     */
+    private void lockChargeDirection(EntityNPCInterface npc, EntityLivingBase target) {
+        if (target != null) {
+            double dx = target.posX - npc.posX;
+            double dz = target.posZ - npc.posZ;
+            double len = Math.sqrt(dx * dx + dz * dz);
+            if (len > 0) {
+                chargeDirection = Vec3.createVectorHelper(dx / len, 0, dz / len);
+            } else {
+                float yaw = (float) Math.toRadians(npc.rotationYaw);
+                chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
+            }
+        } else {
+            float yaw = (float) Math.toRadians(npc.rotationYaw);
+            chargeDirection = Vec3.createVectorHelper(-Math.sin(yaw), 0, Math.cos(yaw));
+        }
+        lockedYaw = (float) Math.toDegrees(Math.atan2(-chargeDirection.xCoord, chargeDirection.zCoord));
+    }
+
+    @Override
+    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+        // Initialize charge - direction was already locked during windup
+        startX = npc.posX;
+        startY = npc.posY;
+        startZ = npc.posZ;
+        hitEntities.clear();
+
+        // If direction wasn't set during windup (shouldn't happen), set it now
+        if (chargeDirection == null) {
+            lockChargeDirection(npc, target);
+        }
+
+        enforceLockedRotation(npc);
+    }
+
+    private void enforceLockedRotation(EntityNPCInterface npc) {
+        npc.rotationYaw = lockedYaw;
+        npc.rotationYawHead = lockedYaw;
+        npc.prevRotationYaw = lockedYaw;
+        npc.prevRotationYawHead = lockedYaw;
+        npc.renderYawOffset = lockedYaw;
+        npc.prevRenderYawOffset = lockedYaw;
+    }
+
+    @Override
+    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        if (chargeDirection == null) return;
+
+        // Enforce rotation every tick
+        enforceLockedRotation(npc);
+
+        // Calculate distance traveled
+        double distanceTraveled = Math.sqrt(
+            Math.pow(npc.posX - startX, 2) +
+            Math.pow(npc.posZ - startZ, 2)
+        );
+
+        // Check if reached max distance
+        if (distanceTraveled >= maxDistance) {
+            npc.motionX = 0;
+            npc.motionZ = 0;
+            npc.velocityChanged = true;
+            return;
+        }
+
+        // Move NPC
+        npc.motionX = chargeDirection.xCoord * chargeSpeed;
+        npc.motionY = 0;
+        npc.motionZ = chargeDirection.zCoord * chargeSpeed;
+        npc.velocityChanged = true;
+
+        // Server-side collision damage
+        if (!world.isRemote) {
+            AxisAlignedBB hitBox = npc.boundingBox.expand(hitRadius, hitRadius * 0.5, hitRadius);
+
+            @SuppressWarnings("unchecked")
+            List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
+
+            for (Entity entity : entities) {
+                if (!(entity instanceof EntityLivingBase)) continue;
+                if (entity == npc) continue;
+                if (hitEntities.contains(entity.getEntityId())) continue;
+
+                EntityLivingBase livingEntity = (EntityLivingBase) entity;
+
+                // Hit this entity
+                hitEntities.add(entity.getEntityId());
+
+                // Apply damage with scripted event support
+                boolean wasHit = applyAbilityDamageWithDirection(npc, livingEntity, damage, knockback, knockbackUp,
+                    chargeDirection.xCoord, chargeDirection.zCoord);
+
+                // Play impact sound if hit wasn't cancelled
+                if (wasHit) {
+                    world.playSoundAtEntity(livingEntity, "random.explode", 0.5f, 1.2f);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+        stopMomentum(npc);
+        super.onComplete(npc, target);
+    }
+
+    @Override
+    public void onInterrupt(EntityNPCInterface npc, net.minecraft.util.DamageSource source, float damage) {
+        stopMomentum(npc);
+        super.onInterrupt(npc, source, damage);
+    }
+
+    private void stopMomentum(EntityNPCInterface npc) {
+        npc.motionX = 0;
+        npc.motionZ = 0;
+        npc.velocityChanged = true;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        chargeDirection = null;
+        hitEntities.clear();
+    }
+
+    @Override
+    public float getTelegraphLength() {
+        return maxDistance;
+    }
+
+    @Override
+    public float getTelegraphWidth() {
+        return hitRadius * 2;
+    }
+
+    /**
+     * Creates a LINE telegraph from NPC position towards target.
+     * Telegraph follows NPC during windup (so NPC can reposition before charging).
+     * Direction is locked at creation based on target position.
+     */
+    @Override
+    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+        if (!showTelegraph) {
+            return null;
+        }
+
+        // Calculate direction to target at this moment (locked)
+        float yaw;
+        if (target != null) {
+            double dx = target.posX - npc.posX;
+            double dz = target.posZ - npc.posZ;
+            yaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
+        } else {
+            yaw = npc.rotationYaw;
+        }
+
+        // Create LINE telegraph
+        Telegraph telegraph = Telegraph.line(getTelegraphLength(), getTelegraphWidth());
+        telegraph.setDurationTicks(windUpTicks);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        // Position at NPC ground level, direction towards target
+        double groundY = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
+        TelegraphInstance instance = new TelegraphInstance(telegraph, npc.posX, groundY, npc.posZ, yaw);
+        instance.setCasterEntityId(npc.getEntityId());
+        // Telegraph follows NPC during windup - allows NPC to reposition
+        instance.setEntityIdToFollow(npc.getEntityId());
+
+        return instance;
+    }
+
+    @Override
+    public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setFloat("chargeSpeed", chargeSpeed);
+        nbt.setFloat("damage", damage);
+        nbt.setFloat("knockback", knockback);
+        nbt.setFloat("knockbackUp", knockbackUp);
+        nbt.setFloat("maxDistance", maxDistance);
+        nbt.setFloat("hitRadius", hitRadius);
+    }
+
+    @Override
+    public void readTypeNBT(NBTTagCompound nbt) {
+        this.chargeSpeed = nbt.hasKey("chargeSpeed") ? nbt.getFloat("chargeSpeed") : 0.8f;
+        this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
+        this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 3.0f;
+        this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.3f;
+        this.maxDistance = nbt.hasKey("maxDistance") ? nbt.getFloat("maxDistance") : 20.0f;
+        this.hitRadius = nbt.hasKey("hitRadius") ? nbt.getFloat("hitRadius") : 1.5f;
+    }
+
+    // Getters & Setters
+    public float getChargeSpeed() { return chargeSpeed; }
+    public void setChargeSpeed(float chargeSpeed) { this.chargeSpeed = chargeSpeed; }
+
+    public float getDamage() { return damage; }
+    public void setDamage(float damage) { this.damage = damage; }
+
+    public float getKnockback() { return knockback; }
+    public void setKnockback(float knockback) { this.knockback = knockback; }
+
+    public float getKnockbackUp() { return knockbackUp; }
+    public void setKnockbackUp(float knockbackUp) { this.knockbackUp = knockbackUp; }
+
+    public float getMaxDistance() { return maxDistance; }
+    public void setMaxDistance(float maxDistance) { this.maxDistance = maxDistance; }
+
+    public float getHitRadius() { return hitRadius; }
+    public void setHitRadius(float hitRadius) { this.hitRadius = hitRadius; }
+}

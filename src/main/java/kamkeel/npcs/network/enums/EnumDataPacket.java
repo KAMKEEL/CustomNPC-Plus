@@ -58,4 +58,8 @@ public enum EnumDataPacket {
     SWING_PLAYER_ARM,
     DISABLE_MOUSE_INPUT,
     LOGIN,
+
+    // Ability System
+    TELEGRAPH_SPAWN,
+    TELEGRAPH_REMOVE,
 }

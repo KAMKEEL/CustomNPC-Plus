@@ -68,6 +68,7 @@ import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.enchants.EnchantInterface;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import noppes.npcs.entity.EntityChairMount;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityMagicProjectile;
@@ -268,6 +269,8 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
+        new AbilityController();
+        AbilityController.Instance.load();
 
         LinkedItemController.getInstance().load();
 

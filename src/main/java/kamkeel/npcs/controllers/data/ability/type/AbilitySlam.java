@@ -1,0 +1,413 @@
+package kamkeel.npcs.controllers.data.ability.type;
+
+import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.TargetingMode;
+import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
+import noppes.npcs.entity.EntityNPCInterface;
+
+import java.util.List;
+
+/**
+ * Slam ability: NPC leaps toward target in an arc and slams down, dealing AOE damage on landing.
+ *
+ * Phases:
+ * - WINDUP: NPC prepares to leap, telegraph shows landing zone
+ * - ACTIVE: NPC is in the air, traveling in arc toward destination
+ * - Landing: When NPC hits ground, deal AOE damage
+ * - RECOVERY: Landing recovery animation
+ */
+public class AbilitySlam extends Ability {
+
+    // Type-specific config
+    private float damage = 20.0f;
+    private float radius = 5.0f;
+    private float knockbackStrength = 1.5f;
+    private float leapSpeed = 1.0f;
+    private float minLeapDistance = 2.0f;
+    private float maxLeapDistance = 15.0f;
+
+    // Runtime state
+    private transient double targetX, targetY, targetZ;
+    private transient boolean hasLaunched = false;
+    private transient boolean hasLanded = false;
+    private transient int airTicks = 0;
+    private transient int maxAirTicks = 60; // Timeout to prevent stuck in air
+
+    public AbilitySlam() {
+        this.typeId = "cnpc:slam";
+        this.name = "Slam";
+        this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
+        this.windUpTicks = 30;
+        this.activeTicks = 60; // Max time in air + landing
+        this.recoveryTicks = 20;
+        this.cooldownTicks = 100;
+        this.lockMovement = true;
+        this.minRange = 2.0f;
+        this.maxRange = 15.0f;
+        this.telegraphType = TelegraphType.CIRCLE;
+    }
+
+    @Override
+    public boolean hasTypeSettings() { return true; }
+
+    /**
+     * Slam can be AOE_SELF (jump in place) or AOE_TARGET (leap to target).
+     */
+    @Override
+    public boolean isTargetingModeLocked() {
+        return false;
+    }
+
+    @Override
+    public TargetingMode[] getAllowedTargetingModes() {
+        return new TargetingMode[] { TargetingMode.AOE_SELF, TargetingMode.AOE_TARGET };
+    }
+
+    @Override
+    public boolean hasAbilityMovement() {
+        return true; // This ability moves the NPC
+    }
+
+    @Override
+    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        // Update target position during windup
+        if (targetingMode == TargetingMode.AOE_SELF) {
+            // AOE_SELF: slam at NPC's current position
+            targetX = npc.posX;
+            targetY = npc.posY;
+            targetZ = npc.posZ;
+        } else if (targetingMode == TargetingMode.AOE_TARGET && target != null && !target.isDead) {
+            // AOE_TARGET: telegraph follows target via setEntityIdToFollow
+            targetX = target.posX;
+            targetY = target.posY;
+            targetZ = target.posZ;
+        }
+    }
+
+    @Override
+    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+        // Lock in the destination at moment of launch
+        if (targetingMode == TargetingMode.AOE_SELF) {
+            // AOE_SELF: slam in place (just jump up)
+            targetX = npc.posX;
+            targetY = npc.posY;
+            targetZ = npc.posZ;
+        } else if (targetingMode == TargetingMode.AOE_TARGET && target != null && !target.isDead) {
+            // AOE_TARGET: leap to target's current position
+            targetX = target.posX;
+            targetY = target.posY;
+            targetZ = target.posZ;
+        } else {
+            // Fallback: slam in place
+            targetX = npc.posX;
+            targetY = npc.posY;
+            targetZ = npc.posZ;
+        }
+
+        hasLaunched = false;
+        hasLanded = false;
+        airTicks = 0;
+
+        // Calculate and apply leap velocity
+        launchTowardTarget(npc);
+    }
+
+    /**
+     * Calculate ballistic arc and launch NPC toward target.
+     * Uses simple physics: fixed flight time, calculate velocities to reach destination.
+     */
+    private void launchTowardTarget(EntityNPCInterface npc) {
+        double dx = targetX - npc.posX;
+        double dy = targetY - npc.posY;
+        double dz = targetZ - npc.posZ;
+        double horizontalDist = Math.sqrt(dx * dx + dz * dz);
+
+        // For AOE_SELF or very close targets, just hop in place
+        if (horizontalDist < 0.5) {
+            npc.motionX = 0;
+            npc.motionZ = 0;
+            npc.motionY = 0.8 * leapSpeed;
+            hasLaunched = true;
+            npc.setNpcJumpingState(true);
+            npc.velocityChanged = true;
+            npc.worldObj.playSoundAtEntity(npc, "mob.irongolem.throw", 0.8f, 0.8f);
+            return;
+        }
+
+        // Cap the distance if too far
+        if (horizontalDist > maxLeapDistance) {
+            double scale = maxLeapDistance / horizontalDist;
+            dx *= scale;
+            dz *= scale;
+            horizontalDist = maxLeapDistance;
+            targetX = npc.posX + dx;
+            targetZ = npc.posZ + dz;
+        }
+
+        // Simple physics: choose a flight time based on distance
+        // Shorter distances = faster, longer distances = more time
+        int flightTicks = (int) Math.max(15, Math.min(horizontalDist * 2, 35));
+
+        // Horizontal velocity = distance / time
+        double vHorizontal = horizontalDist / flightTicks;
+
+        // Vertical velocity calculation:
+        // We want to create an arc that peaks at (arcHeight) above start and lands at target
+        // Using kinematic equation: final_y = initial_y + vy*t - 0.5*g*t^2
+        // Rearranging: vy = (dy + 0.5*g*t^2) / t
+        // Add extra height for a nice arc
+        double gravity = 0.08; // Minecraft gravity per tick (before drag)
+        double arcHeight = Math.max(4.0, horizontalDist * 0.4) * leapSpeed;
+
+        // Account for drag (0.98 per tick) - gravity effect is reduced over time
+        // Approximate effective gravity considering drag
+        double effectiveGravity = gravity * 0.7;
+
+        double vy = (dy + arcHeight + 0.5 * effectiveGravity * flightTicks * flightTicks) / flightTicks;
+
+        // Ensure minimum upward velocity for visible jump
+        vy = Math.max(vy, 0.5 * leapSpeed);
+
+        // Normalize horizontal direction and apply velocity
+        double dirX = dx / horizontalDist;
+        double dirZ = dz / horizontalDist;
+
+        npc.motionX = dirX * vHorizontal;
+        npc.motionZ = dirZ * vHorizontal;
+        npc.motionY = vy;
+
+        hasLaunched = true;
+        npc.setNpcJumpingState(true);
+        npc.velocityChanged = true;
+
+        // Face the target
+        float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
+        npc.rotationYaw = targetYaw;
+        npc.rotationYawHead = targetYaw;
+
+        // Play launch sound
+        npc.worldObj.playSoundAtEntity(npc, "mob.irongolem.throw", 0.8f, 0.8f);
+    }
+
+    @Override
+    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+        if (!hasLaunched) return;
+        if (hasLanded) return;
+
+        airTicks++;
+
+        // Check for landing
+        if (npc.onGround && airTicks > 3) {
+            // Landed!
+            onLanding(npc, world);
+            return;
+        }
+
+        // Timeout protection - force landing after max air time
+        if (airTicks >= maxAirTicks) {
+            onLanding(npc, world);
+            return;
+        }
+
+        // While in air, face toward target
+        double dx = targetX - npc.posX;
+        double dz = targetZ - npc.posZ;
+        float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
+        npc.rotationYaw = targetYaw;
+        npc.rotationYawHead = targetYaw;
+    }
+
+    /**
+     * Called when NPC lands - deal AOE damage.
+     */
+    private void onLanding(EntityNPCInterface npc, World world) {
+        hasLanded = true;
+        npc.setNpcJumpingState(false);
+
+        // Stop horizontal momentum
+        npc.motionX = 0;
+        npc.motionZ = 0;
+        npc.velocityChanged = true;
+
+        if (world.isRemote) return;
+
+        // Find all entities in radius
+        @SuppressWarnings("unchecked")
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
+            npc, npc.boundingBox.expand(radius, radius / 2, radius));
+
+        for (Entity entity : entities) {
+            if (entity instanceof EntityLivingBase && entity != npc) {
+                EntityLivingBase livingTarget = (EntityLivingBase) entity;
+
+                // Check if actually within radius (bounding box is a cube, we want a circle)
+                double dx = livingTarget.posX - npc.posX;
+                double dz = livingTarget.posZ - npc.posZ;
+                if (dx * dx + dz * dz <= radius * radius) {
+                    // Apply damage with scripted event support (0.3f is the upward knockback boost)
+                    applyAbilityDamage(npc, livingTarget, damage, knockbackStrength, 0.3f);
+                }
+            }
+        }
+
+        // Play impact sound
+        world.playSoundAtEntity(npc, "random.explode", 0.5f, 1.2f);
+
+        // Spawn particles
+        spawnSlamParticles(world, npc.posX, npc.posY, npc.posZ);
+    }
+
+    /**
+     * Spawn visual particles for the slam effect.
+     */
+    private void spawnSlamParticles(World world, double x, double y, double z) {
+        // Spawn explosion particles in a ring
+        for (int i = 0; i < 20; i++) {
+            double angle = (i / 20.0) * Math.PI * 2;
+            double px = x + Math.cos(angle) * radius * 0.8;
+            double pz = z + Math.sin(angle) * radius * 0.8;
+            world.spawnParticle("explode", px, y + 0.5, pz, 0, 0.1, 0);
+        }
+
+        // Spawn smoke at center
+        for (int i = 0; i < 10; i++) {
+            world.spawnParticle("smoke", x, y + 0.2, z,
+                (world.rand.nextDouble() - 0.5) * 0.3,
+                world.rand.nextDouble() * 0.2,
+                (world.rand.nextDouble() - 0.5) * 0.3);
+        }
+
+        // Ground crack particles - check if block is valid
+        net.minecraft.block.Block groundBlock = world.getBlock((int)x, (int)y - 1, (int)z);
+        if (groundBlock != null && groundBlock.getMaterial().isSolid()) {
+            int blockId = net.minecraft.block.Block.getIdFromBlock(groundBlock);
+            if (blockId > 0) {
+                for (int i = 0; i < 15; i++) {
+                    double angle = world.rand.nextDouble() * Math.PI * 2;
+                    double dist = world.rand.nextDouble() * radius * 0.6;
+                    double px = x + Math.cos(angle) * dist;
+                    double pz = z + Math.sin(angle) * dist;
+                    world.spawnParticle("blockcrack_" + blockId + "_0", px, y + 0.1, pz, 0, 0.2, 0);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+        npc.setNpcJumpingState(false);
+        hasLaunched = false;
+        hasLanded = false;
+        airTicks = 0;
+    }
+
+    @Override
+    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+        npc.setNpcJumpingState(false);
+        hasLaunched = false;
+        hasLanded = false;
+        airTicks = 0;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        hasLaunched = false;
+        hasLanded = false;
+        airTicks = 0;
+    }
+
+    @Override
+    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+        // Telegraph shows at landing zone
+        if (targetingMode == TargetingMode.AOE_SELF) {
+            // AOE_SELF: telegraph at NPC position, does NOT follow
+            targetX = npc.posX;
+            targetY = npc.posY;
+            targetZ = npc.posZ;
+        } else if (targetingMode == TargetingMode.AOE_TARGET && target != null) {
+            // AOE_TARGET: telegraph at target position, follows target during windup
+            targetX = target.posX;
+            targetY = target.posY;
+            targetZ = target.posZ;
+        } else {
+            // Fallback to NPC position
+            targetX = npc.posX;
+            targetY = npc.posY;
+            targetZ = npc.posZ;
+        }
+
+        // Create telegraph at the appropriate position
+        double groundY = findGroundLevel(npc.worldObj, targetX, targetY, targetZ);
+
+        Telegraph telegraph = Telegraph.circle(radius);
+        telegraph.setDurationTicks(windUpTicks);
+        telegraph.setColor(windUpColor);
+        telegraph.setWarningColor(activeColor);
+        telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
+        telegraph.setHeightOffset(telegraphHeightOffset);
+
+        TelegraphInstance instance = new TelegraphInstance(telegraph, targetX, groundY, targetZ, npc.rotationYaw);
+        instance.setCasterEntityId(npc.getEntityId());
+
+        // AOE_TARGET: telegraph follows target during windup
+        if (targetingMode == TargetingMode.AOE_TARGET && target != null) {
+            instance.setEntityIdToFollow(target.getEntityId());
+        }
+        // AOE_SELF: telegraph stays at NPC position, no follow
+
+        return instance;
+    }
+
+    @Override
+    public float getTelegraphRadius() {
+        return radius;
+    }
+
+    @Override
+    public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setFloat("damage", damage);
+        nbt.setFloat("radius", radius);
+        nbt.setFloat("knockback", knockbackStrength);
+        nbt.setFloat("leapSpeed", leapSpeed);
+        nbt.setFloat("minLeapDistance", minLeapDistance);
+        nbt.setFloat("maxLeapDistance", maxLeapDistance);
+    }
+
+    @Override
+    public void readTypeNBT(NBTTagCompound nbt) {
+        damage = nbt.getFloat("damage");
+        radius = nbt.getFloat("radius");
+        knockbackStrength = nbt.getFloat("knockback");
+        leapSpeed = nbt.hasKey("leapSpeed") ? nbt.getFloat("leapSpeed") : 1.0f;
+        minLeapDistance = nbt.hasKey("minLeapDistance") ? nbt.getFloat("minLeapDistance") : 2.0f;
+        maxLeapDistance = nbt.hasKey("maxLeapDistance") ? nbt.getFloat("maxLeapDistance") : 15.0f;
+    }
+
+    // Getters & Setters
+    public float getDamage() { return damage; }
+    public void setDamage(float damage) { this.damage = damage; }
+
+    public float getRadius() { return radius; }
+    public void setRadius(float radius) { this.radius = radius; }
+
+    public float getKnockbackStrength() { return knockbackStrength; }
+    public void setKnockbackStrength(float knockbackStrength) { this.knockbackStrength = knockbackStrength; }
+
+    public float getLeapSpeed() { return leapSpeed; }
+    public void setLeapSpeed(float leapSpeed) { this.leapSpeed = leapSpeed; }
+
+    public float getMinLeapDistance() { return minLeapDistance; }
+    public void setMinLeapDistance(float minLeapDistance) { this.minLeapDistance = minLeapDistance; }
+
+    public float getMaxLeapDistance() { return maxLeapDistance; }
+    public void setMaxLeapDistance(float maxLeapDistance) { this.maxLeapDistance = maxLeapDistance; }
+}

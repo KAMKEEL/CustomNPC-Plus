@@ -5,5 +5,6 @@ public enum EnumScrollData {
     MAGIC,
     MAGIC_CYCLES,
     DIALOG_GROUP,
-    QUEST_GROUP
+    QUEST_GROUP,
+    ABILITY_TYPES
 }

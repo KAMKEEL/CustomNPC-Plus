@@ -49,6 +49,8 @@ import kamkeel.npcs.network.packets.data.npc.WeaponNpcPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayClosePacket;
 import kamkeel.npcs.network.packets.data.script.ScriptOverlayDataPacket;
 import kamkeel.npcs.network.packets.data.script.ScriptedParticlePacket;
+import kamkeel.npcs.network.packets.data.ability.TelegraphSpawnPacket;
+import kamkeel.npcs.network.packets.data.ability.TelegraphRemovePacket;
 import kamkeel.npcs.network.packets.player.BankActionPacket;
 import kamkeel.npcs.network.packets.player.CheckPlayerValue;
 import kamkeel.npcs.network.packets.player.CompanionActionPacket;
@@ -138,6 +140,9 @@ import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
+import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
+import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
+import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleRemovePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleSavePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
@@ -486,6 +491,11 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new MagicNpcGetPacket());
         REQUEST_PACKET.registerPacket(new MagicNpcSavePacket());
 
+        // Ability Packets
+        REQUEST_PACKET.registerPacket(new AbilitiesGetAllPacket());
+        REQUEST_PACKET.registerPacket(new AbilitiesNpcGetPacket());
+        REQUEST_PACKET.registerPacket(new AbilitiesNpcSavePacket());
+
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());
         REQUEST_PACKET.registerPacket(new GuiRequestPacket());
@@ -550,6 +560,10 @@ public class PacketHandler {
         DATA_PACKET.registerPacket(new SyncEffectPacket());
         DATA_PACKET.registerPacket(new GuiDataPacket());
         DATA_PACKET.registerPacket(new PartyDataPacket());
+
+        // Data | Ability Packets
+        DATA_PACKET.registerPacket(new TelegraphSpawnPacket());
+        DATA_PACKET.registerPacket(new TelegraphRemovePacket());
     }
 
     public void registerPlayerPackets() {

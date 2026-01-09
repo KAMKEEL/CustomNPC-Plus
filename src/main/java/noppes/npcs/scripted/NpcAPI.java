@@ -60,6 +60,7 @@ import noppes.npcs.api.entity.IEntity;
 import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.api.gui.ICustomGui;
 import noppes.npcs.api.handler.IActionManager;
+import noppes.npcs.api.handler.IAbilityHandler;
 import noppes.npcs.api.handler.IAnimationHandler;
 import noppes.npcs.api.handler.IAttributeHandler;
 import noppes.npcs.api.handler.ICloneHandler;
@@ -83,6 +84,7 @@ import noppes.npcs.compat.PixelmonHelper;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumAnimationPart;
 import noppes.npcs.containers.ContainerNpcInterface;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.ChunkController;
 import noppes.npcs.controllers.CustomEffectController;
@@ -354,6 +356,12 @@ public class NpcAPI extends AbstractNpcAPI {
     public IAnimationHandler getAnimations() {
         this.checkWorld();
         return AnimationController.Instance;
+    }
+
+    @Override
+    public IAbilityHandler getAbilities() {
+        this.checkWorld();
+        return AbilityController.Instance;
     }
 
     @Override

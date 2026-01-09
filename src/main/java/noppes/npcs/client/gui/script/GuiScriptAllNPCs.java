@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.script;
 import kamkeel.npcs.network.packets.request.script.GlobalNPCScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.GlobalNPCDataScript;
 
@@ -12,23 +13,30 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
     private final GlobalNPCDataScript script = new GlobalNPCDataScript(null);
 
     public GuiScriptAllNPCs() {
-        hookList.add("init");
-        hookList.add("tick");
-        hookList.add("interact");
-        hookList.add("dialog");
-        hookList.add("damaged");
-        hookList.add("killed");
-        hookList.add("meleeAttack");
-        hookList.add("meleeSwing");
-        hookList.add("rangedLaunched");
-        hookList.add("target");
-        hookList.add("collide");
-        hookList.add("kills");
-        hookList.add("dialogClose");
-        hookList.add("timer");
-        hookList.add("targetLost");
-        hookList.add("projectileTick");
-        hookList.add("projectileImpact");
+        hookList.add(EnumScriptType.INIT.function);
+        hookList.add(EnumScriptType.TICK.function);
+        hookList.add(EnumScriptType.INTERACT.function);
+        hookList.add(EnumScriptType.DIALOG.function);
+        hookList.add(EnumScriptType.DAMAGED.function);
+        hookList.add(EnumScriptType.KILLED.function);
+        hookList.add(EnumScriptType.ATTACK_MELEE.function);
+        hookList.add(EnumScriptType.ATTACK_SWING.function);
+        hookList.add(EnumScriptType.RANGED_LAUNCHED.function);
+        hookList.add(EnumScriptType.TARGET.function);
+        hookList.add(EnumScriptType.COLLIDE.function);
+        hookList.add(EnumScriptType.KILLS.function);
+        hookList.add(EnumScriptType.DIALOG_CLOSE.function);
+        hookList.add(EnumScriptType.TIMER.function);
+        hookList.add(EnumScriptType.TARGET_LOST.function);
+        hookList.add(EnumScriptType.PROJECTILE_TICK.function);
+        hookList.add(EnumScriptType.PROJECTILE_IMPACT.function);
+        // Ability hooks
+        hookList.add(EnumScriptType.ABILITY_START.function);
+        hookList.add(EnumScriptType.ABILITY_EXECUTE.function);
+        hookList.add(EnumScriptType.ABILITY_INTERRUPT.function);
+        hookList.add(EnumScriptType.ABILITY_COMPLETE.function);
+        hookList.add(EnumScriptType.ABILITY_HIT.function);
+        hookList.add(EnumScriptType.ABILITY_TICK.function);
 
         this.handler = this.script;
         GlobalNPCScriptPacket.Get();

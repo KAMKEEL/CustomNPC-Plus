@@ -47,7 +47,8 @@ public class CustomNpcsPermissions {
     public static final Permission NPC_ADVANCED_TRANSPORT = new Permission("customnpcs.npc.advanced.transport");
     public static final Permission NPC_ADVANCED_TRANSFORM = new Permission("customnpcs.npc.advanced.transform");
     public static final Permission NPC_ADVANCED_LINKED = new Permission("customnpcs.npc.advanced.linked");
-    public static final Permission NPC_ADVANCED_MAGIC = new Permission("customnpcs.npc.advanced.linked");
+    public static final Permission NPC_ADVANCED_MAGIC = new Permission("customnpcs.npc.advanced.magic");
+    public static final Permission NPC_ADVANCED_ABILITIES = new Permission("customnpcs.npc.advanced.abilities");
     public static final Permission NPC_ADVANCED_TAGS = new Permission("customnpcs.npc.advanced.tags");
 
     public static final Permission GLOBAL_REMOTE = new Permission("customnpcs.global.remote");

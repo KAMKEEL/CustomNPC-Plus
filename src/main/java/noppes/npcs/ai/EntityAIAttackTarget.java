@@ -50,6 +50,11 @@ public class EntityAIAttackTarget extends EntityAIBase {
             return false;
         }
 
+        // Don't start pathfinding if ability is controlling movement
+        if (this.npc.abilities.isAbilityControllingMovement()) {
+            return false;
+        }
+
         double var2 = this.npc.getDistanceSq(entitylivingbase.posX, entitylivingbase.boundingBox.minY, entitylivingbase.posZ);
         double var3 = this.npc.ais.distanceToMelee * this.npc.ais.distanceToMelee;
 
@@ -115,12 +120,17 @@ public class EntityAIAttackTarget extends EntityAIBase {
     public void updateTask() {
         this.npc.getLookHelper().setLookPositionWithEntity(this.entityTarget, 30.0F, 30.0F);
 
-
-        if (!navOverride && --this.field_75445_i <= 0) {
+        // Skip pathfinding updates if ability is controlling movement
+        if (!navOverride && !this.npc.abilities.isAbilityControllingMovement() && --this.field_75445_i <= 0) {
             this.field_75445_i = 4 + this.npc.getRNG().nextInt(7);
             this.npc.getNavigator().tryMoveToEntityLiving(this.entityTarget, 1.3f);
         }
         this.attackTick = Math.max(this.attackTick - 1, 0);
+
+        // Skip attacks if ability is blocking them
+        if (this.npc.abilities.shouldBlockAttack()) {
+            return;
+        }
 
         double distance = this.npc.getDistanceSq(this.entityTarget.posX, this.entityTarget.boundingBox.minY, this.entityTarget.posZ);
         double range = npc.stats.attackRange * npc.stats.attackRange + entityTarget.width;
