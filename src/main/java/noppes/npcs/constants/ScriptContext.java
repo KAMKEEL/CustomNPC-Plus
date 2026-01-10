@@ -1,5 +1,7 @@
 package noppes.npcs.constants;
 
+import noppes.npcs.api.event.*;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -30,35 +32,34 @@ public class ScriptContext {
     // ==================== BUILT-IN CONTEXTS ====================
 
     public static final ScriptContext NPC = register("NPC",
-        "INpcEvent",
-        "IProjectileEvent"
+       INpcEvent.class,
+       IProjectileEvent.class
     );
 
     public static final ScriptContext PLAYER = register("PLAYER",
-        "IPlayerEvent",
-        "IAnimationEvent",
-        "IPartyEvent",
-        "IDialogEvent",
-        "IQuestEvent",
-        "IFactionEvent",
-        "ICustomGuiEvent",
-        "IEffectEvent"
+       IPlayerEvent.class,
+       IAnimationEvent.class,
+       IPartyEvent.class,
+       IDialogEvent.class,
+       IQuestEvent.class,
+       IFactionEvent.class,
+       ICustomGuiEvent.class
     );
 
     public static final ScriptContext BLOCK = register("BLOCK",
-        "IBlockEvent"
+       IBlockEvent.class
     );
 
     public static final ScriptContext ITEM = register("ITEM",
-        "IItemEvent"
+       IItemEvent.class
     );
 
     public static final ScriptContext FORGE = register("FORGE",
-        "IForgeEvent"
+       IForgeEvent.class
     );
 
     public static final ScriptContext GLOBAL = register("GLOBAL",
-        "Global"
+        "Global"  // Special case: Global namespace doesn't have a corresponding event class
     );
 
     // ==================== INSTANCE FIELDS ====================
@@ -132,6 +133,25 @@ public class ScriptContext {
         ScriptContext context = new ScriptContext(id, namespaces);
         REGISTRY.put(id, context);
         return context;
+    }
+
+    /**
+     * Register a new script context using event interface classes.
+     * Automatically extracts the simple name from each class.
+     *
+     * Example:
+     *   ScriptContext.register("NPC", INpcEvent.class, IProjectileEvent.class);
+     *
+     * @param id Unique identifier (e.g., "DBC", "CUSTOM")
+     * @param eventClasses The event interface classes (simple names will be extracted)
+     * @return The registered ScriptContext
+     */
+    public static ScriptContext register(String id, Class<?>... eventClasses) {
+        String[] namespaces = new String[eventClasses.length];
+        for (int i = 0; i < eventClasses.length; i++) {
+            namespaces[i] = eventClasses[i].getSimpleName();
+        }
+        return register(id, namespaces);
     }
 
     /**
