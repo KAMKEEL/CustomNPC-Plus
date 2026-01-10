@@ -1,0 +1,50 @@
+plugins {
+    id 'groovy-gradle-plugin'
+    id 'maven-publish'
+}
+
+group = 'dts'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation gradleApi()
+    implementation localGroovy()
+}
+
+// Configure source sets if building as standalone
+sourceSets {
+    main {
+        groovy {
+            srcDirs = ['src/main/groovy']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+}
+
+gradlePlugin {
+    plugins {
+        typescriptGenerator {
+            id = 'dts.typescript-generator'
+            implementationClass = 'dts.TypeScriptGeneratorPlugin'
+            displayName = 'TypeScript Definition Generator'
+            description = 'Generates TypeScript definition files from Java API sources'
+        }
+    }
+}
+
+publishing {
+    repositories {
+        mavenLocal()
+    }
+}
+
+// Handle duplicate resources
+tasks.processResources {
+    duplicatesStrategy = 'include'
+}

@@ -1,12 +1,12 @@
 pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            if(requested.id.toString() == "dts.typescript-generator") {
-                useModule("com.github.bigguy345:dts-gradle-plugin:95b8ab4")
-            }
-        }
-    }
-   
+//    resolutionStrategy {
+//        eachPlugin {
+//            if(requested.id.toString() == "dts.typescript-generator") {
+//                useModule("com.github.bigguy345:dts-gradle-plugin:95b8ab4")
+//            }
+//        }
+//    }
+//   
     repositories {
         maven { url "https://jitpack.io"}
         maven {
@@ -27,3 +27,6 @@ pluginManagement {
 plugins {
     id 'com.gtnewhorizons.gtnhsettingsconvention' version '1.0.27'
 }
+
+// Include the local gradle-plugins composite build so plugin is resolved locally
+includeBuild 'gradle-plugins'
