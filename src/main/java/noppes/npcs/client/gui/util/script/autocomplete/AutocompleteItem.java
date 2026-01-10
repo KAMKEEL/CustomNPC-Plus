@@ -365,7 +365,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             insertText.toString(),
             Kind.METHOD,
             simpleReturnType,
-            null,  // TypeInfo for return type - would need to resolve from TypeResolver
+            method.getReturnTypeInfo(),  // TypeInfo for return type - would need to resolve from TypeResolver
             method.getSignature(),
             method.documentation,
             method,
@@ -396,7 +396,7 @@ public class AutocompleteItem implements Comparable<AutocompleteItem> {
             field.name,
             Kind.FIELD,
             field.typeName,
-            null,  // TypeInfo for field type - would need to resolve from TypeResolver
+            field.getTypeInfo(),  // TypeInfo for field type - would need to resolve from TypeResolver
             field.typeName + " " + field.name,
             field.documentation,
             field,
