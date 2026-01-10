@@ -58,6 +58,13 @@ public class AbilitySlam extends Ability {
     @Override
     public boolean hasTypeSettings() { return true; }
 
+    @Override
+    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
+    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
+            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
+        return new noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam(this, callback);
+    }
+
     /**
      * Slam can be AOE_SELF (jump in place) or AOE_TARGET (leap to target).
      */

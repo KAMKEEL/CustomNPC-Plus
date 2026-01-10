@@ -242,6 +242,22 @@ public abstract class Ability implements IAbility {
     public int getTypeSettingsRowCount() { return 0; }
 
     /**
+     * Creates the GUI for configuring this ability.
+     * Override this method to provide a custom GUI subclass for type-specific settings.
+     *
+     * Third-party mods can extend SubGuiAbilityConfig and override initTypeTab(),
+     * handleTypeButton(), and handleTypeTextField() to provide custom type settings.
+     *
+     * @param callback The callback to notify when the ability is saved
+     * @return A SubGuiAbilityConfig instance (or subclass) for configuring this ability
+     */
+    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
+    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
+            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
+        return new noppes.npcs.client.gui.advanced.SubGuiAbilityConfig(this, callback);
+    }
+
+    /**
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *

@@ -1,10 +1,8 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import kamkeel.npcs.controllers.data.ability.AbilityController;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
-import kamkeel.npcs.controllers.data.ability.type.*;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
@@ -13,62 +11,79 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.util.*;
 
 /**
- * SubGui for editing ability configuration with tabbed interface.
- * Tabs: General, Type (if has type settings), Timing, Effects, Telegraph (if supported)
+ * Base SubGui for editing ability configuration with tabbed interface.
+ * Uses GuiMenuTopButton for navigation tabs.
+ *
+ * Tabs: General, Type (if hasTypeSettings), Timing, Effects, Telegraph (if supported)
+ *
+ * Subclasses should override initTypeTab() and handleTypeButton()/handleTypeTextField()
+ * to provide type-specific settings UI.
  */
 public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldListener, ISubGuiListener {
 
-    private static final int TAB_GENERAL = 0;
-    private static final int TAB_TYPE = 1;
-    private static final int TAB_TIMING = 2;
-    private static final int TAB_EFFECTS = 3;
-    private static final int TAB_TELEGRAPH = 4;
+    // Tab constants
+    protected static final int TAB_GENERAL = 0;
+    protected static final int TAB_TYPE = 1;
+    protected static final int TAB_TIMING = 2;
+    protected static final int TAB_EFFECTS = 3;
+    protected static final int TAB_TELEGRAPH = 4;
 
-    private final Ability ability;
-    private final IAbilityConfigCallback parent;
-    private int activeTab = TAB_GENERAL;
+    // Core references
+    protected final Ability ability;
+    protected final IAbilityConfigCallback callback;
+    protected int activeTab = TAB_GENERAL;
 
-    // Cached values - General
-    private String name;
-    private boolean enabled;
-    private int weight;
-    private float minRange;
-    private float maxRange;
-    private TargetingMode targetingMode;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CACHED VALUES - General
+    // ═══════════════════════════════════════════════════════════════════════════
+    protected String name;
+    protected boolean enabled;
+    protected int weight;
+    protected float minRange;
+    protected float maxRange;
+    protected TargetingMode targetingMode;
 
-    // Cached values - Timing
-    private int cooldownTicks;
-    private int windUpTicks;
-    private int activeTicks;
-    private int recoveryTicks;
-    private boolean interruptible;
-    private float interruptThreshold;
-    private boolean lockMovement;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CACHED VALUES - Timing
+    // ═══════════════════════════════════════════════════════════════════════════
+    protected int cooldownTicks;
+    protected int windUpTicks;
+    protected int activeTicks;
+    protected int recoveryTicks;
+    protected boolean interruptible;
+    protected float interruptThreshold;
+    protected boolean lockMovement;
 
-    // Cached values - Telegraph
-    private boolean showTelegraph;
-    private int windUpColor;
-    private int activeColor;
-    private int editingColorId = 0; // Track which color button was clicked (22=windUp, 24=active)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CACHED VALUES - Telegraph
+    // ═══════════════════════════════════════════════════════════════════════════
+    protected boolean showTelegraph;
+    protected int windUpColor;
+    protected int activeColor;
+    protected int editingColorId = 0;
 
-    // Cached values - Effects (sounds/animations)
-    private String windUpSound;
-    private String activeSound;
-    private int windUpAnimationId;
-    private int activeAnimationId;
-    private String windUpAnimationName = null;  // Cached name from selector
-    private String activeAnimationName = null;  // Cached name from selector
-    private int editingSoundId = 0;      // Track which sound button was clicked (30=windUp, 31=active)
-    private int editingAnimationId = 0;  // Track which animation button was clicked (32=windUp, 33=active)
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CACHED VALUES - Effects
+    // ═══════════════════════════════════════════════════════════════════════════
+    protected String windUpSound;
+    protected String activeSound;
+    protected int windUpAnimationId;
+    protected int activeAnimationId;
+    protected String windUpAnimationName = null;
+    protected String activeAnimationName = null;
+    protected int editingSoundId = 0;
+    protected int editingAnimationId = 0;
 
-    // Ability type features
-    private final boolean supportsTelegraph;
-    private final boolean targetingModeLocked;
-    private final boolean hasTypeSettings;
+    // ═══════════════════════════════════════════════════════════════════════════
+    // ABILITY TYPE FEATURES
+    // ═══════════════════════════════════════════════════════════════════════════
+    protected final boolean supportsTelegraph;
+    protected final boolean targetingModeLocked;
+    protected final boolean hasTypeSettings;
 
-    public SubGuiAbilityConfig(Ability ability, IAbilityConfigCallback parent) {
+    public SubGuiAbilityConfig(Ability ability, IAbilityConfigCallback callback) {
         this.ability = ability;
-        this.parent = parent;
+        this.callback = callback;
 
         // Cache values from ability
         this.name = ability.getName() != null ? ability.getName() : "";
@@ -110,70 +125,79 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     public void initGui() {
         super.initGui();
 
-        int y = guiTop + 4;
-        int tabWidth = 60;
-        int tabX = guiLeft + 4;
+        // ═══════════════════════════════════════════════════════════════════════
+        // TOP TABS using GuiMenuTopButton
+        // ═══════════════════════════════════════════════════════════════════════
+        GuiMenuTopButton generalTab = new GuiMenuTopButton(90, guiLeft + 4, guiTop - 17, "ability.tab.general");
+        generalTab.active = (activeTab == TAB_GENERAL);
+        addTopButton(generalTab);
 
-        // Tab buttons at top - dynamically sized based on available tabs
-        addButton(new GuiNpcButton(90, tabX, y, tabWidth, 20, "ability.tab.general"));
-        tabX += tabWidth + 2;
+        GuiMenuTopButton lastTab = generalTab;
 
         if (hasTypeSettings) {
-            addButton(new GuiNpcButton(91, tabX, y, tabWidth, 20, "ability.tab.type"));
-            tabX += tabWidth + 2;
+            GuiMenuTopButton typeTab = new GuiMenuTopButton(91, lastTab, "ability.tab.type");
+            typeTab.active = (activeTab == TAB_TYPE);
+            addTopButton(typeTab);
+            lastTab = typeTab;
         }
 
-        addButton(new GuiNpcButton(92, tabX, y, tabWidth, 20, "ability.tab.timing"));
-        tabX += tabWidth + 2;
+        GuiMenuTopButton timingTab = new GuiMenuTopButton(92, lastTab, "ability.tab.timing");
+        timingTab.active = (activeTab == TAB_TIMING);
+        addTopButton(timingTab);
+        lastTab = timingTab;
 
-        addButton(new GuiNpcButton(94, tabX, y, tabWidth, 20, "ability.tab.effects"));
-        tabX += tabWidth + 2;
+        GuiMenuTopButton effectsTab = new GuiMenuTopButton(94, lastTab, "ability.tab.effects");
+        effectsTab.active = (activeTab == TAB_EFFECTS);
+        addTopButton(effectsTab);
+        lastTab = effectsTab;
 
         if (supportsTelegraph) {
-            addButton(new GuiNpcButton(93, tabX, y, tabWidth, 20, "ability.tab.telegraph"));
+            GuiMenuTopButton telegraphTab = new GuiMenuTopButton(93, lastTab, "ability.tab.telegraph");
+            telegraphTab.active = (activeTab == TAB_TELEGRAPH);
+            addTopButton(telegraphTab);
         }
 
-        // Highlight active tab
-        getButton(90).setEnabled(activeTab != TAB_GENERAL);
-        if (hasTypeSettings) {
-            getButton(91).setEnabled(activeTab != TAB_TYPE);
-        }
-        getButton(92).setEnabled(activeTab != TAB_TIMING);
-        getButton(94).setEnabled(activeTab != TAB_EFFECTS);
-        if (supportsTelegraph) {
-            getButton(93).setEnabled(activeTab != TAB_TELEGRAPH);
-        }
+        // Close button on top right
+        GuiMenuTopButton closeBtn = new GuiMenuTopButton(67, guiLeft + xSize - 22, guiTop - 17, "X");
+        addTopButton(closeBtn);
 
-        y += 24;
+        int contentY = guiTop + 4;
 
-        // Draw content based on active tab
+        // ═══════════════════════════════════════════════════════════════════════
+        // TAB CONTENT
+        // ═══════════════════════════════════════════════════════════════════════
         switch (activeTab) {
             case TAB_GENERAL:
-                initGeneralTab(y);
+                initGeneralTab(contentY);
                 break;
             case TAB_TYPE:
-                initTypeTab(y);
+                initTypeTab(contentY);
                 break;
             case TAB_TIMING:
-                initTimingTab(y);
+                initTimingTab(contentY);
                 break;
             case TAB_EFFECTS:
-                initEffectsTab(y);
+                initEffectsTab(contentY);
                 break;
             case TAB_TELEGRAPH:
-                initTelegraphTab(y);
+                initTelegraphTab(contentY);
                 break;
         }
 
-        // Bottom row - Enabled on left, Done/Cancel on right
+        // ═══════════════════════════════════════════════════════════════════════
+        // BOTTOM ROW - Enabled toggle and Done button
+        // ═══════════════════════════════════════════════════════════════════════
         addLabel(new GuiNpcLabel(99, "gui.enabled", guiLeft + 8, guiTop + ySize - 19));
         GuiNpcButton enabledBtn = new GuiNpcButton(2, guiLeft + 55, guiTop + ySize - 24, 50, 20, new String[]{"gui.no", "gui.yes"}, enabled ? 1 : 0);
         enabledBtn.setTextColor(enabled ? 0x00FF00 : 0xFF0000);
         addButton(enabledBtn);
 
-        addButton(new GuiNpcButton(66, guiLeft + xSize - 130, guiTop + ySize - 24, 60, 20, "gui.done"));
-        addButton(new GuiNpcButton(67, guiLeft + xSize - 65, guiTop + ySize - 24, 60, 20, "gui.cancel"));
+        addButton(new GuiNpcButton(66, guiLeft + xSize - 65, guiTop + ySize - 24, 60, 20, "gui.done"));
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // GENERAL TAB
+    // ═══════════════════════════════════════════════════════════════════════════
 
     private void initGeneralTab(int startY) {
         int y = startY;
@@ -218,10 +242,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         }
     }
 
-    /**
-     * Get available targeting modes for the current ability.
-     * Some abilities restrict which modes can be used.
-     */
     private String[] getAvailableTargetingModes() {
         TargetingMode[] modes = ability.getAllowedTargetingModes();
         if (modes == null) {
@@ -234,9 +254,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         return result;
     }
 
-    /**
-     * Get the index of current targeting mode in the allowed modes array.
-     */
     private int getTargetingModeIndex(TargetingMode mode) {
         TargetingMode[] modes = ability.getAllowedTargetingModes();
         if (modes == null) {
@@ -248,602 +265,42 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         return 0;
     }
 
-    private void initTypeTab(int startY) {
-        // Delegate to type-specific rendering
-        if (ability instanceof AbilitySlam) {
-            initSlamSettings(startY, (AbilitySlam) ability);
-        } else if (ability instanceof AbilityCharge) {
-            initChargeSettings(startY, (AbilityCharge) ability);
-        } else if (ability instanceof AbilityHeavyHit) {
-            initHeavyHitSettings(startY, (AbilityHeavyHit) ability);
-        } else if (ability instanceof AbilityCutter) {
-            initCutterSettings(startY, (AbilityCutter) ability);
-        } else if (ability instanceof AbilityOrb) {
-            initOrbSettings(startY, (AbilityOrb) ability);
-        } else if (ability instanceof AbilityVortex) {
-            initVortexSettings(startY, (AbilityVortex) ability);
-        } else if (ability instanceof AbilityShockwave) {
-            initShockwaveSettings(startY, (AbilityShockwave) ability);
-        } else if (ability instanceof AbilityDash) {
-            initDashSettings(startY, (AbilityDash) ability);
-        } else if (ability instanceof AbilityTeleport) {
-            initTeleportSettings(startY, (AbilityTeleport) ability);
-        } else if (ability instanceof AbilityProjectile) {
-            initProjectileSettings(startY, (AbilityProjectile) ability);
-        } else if (ability instanceof AbilityBeam) {
-            initBeamSettings(startY, (AbilityBeam) ability);
-        } else if (ability instanceof AbilityGuard) {
-            initGuardSettings(startY, (AbilityGuard) ability);
-        } else if (ability instanceof AbilityHeal) {
-            initHealSettings(startY, (AbilityHeal) ability);
-        } else if (ability instanceof AbilityHazard) {
-            initHazardSettings(startY, (AbilityHazard) ability);
-        } else if (ability instanceof AbilityTrap) {
-            initTrapSettings(startY, (AbilityTrap) ability);
-        }
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════
-    // TYPE-SPECIFIC SETTINGS
+    // TYPE TAB - Override in subclasses for type-specific settings
     // ═══════════════════════════════════════════════════════════════════════════
 
-    private void initSlamSettings(int startY, AbilitySlam slam) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Damage + Radius
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, slam.getDamage()));
-
-        addLabel(new GuiNpcLabel(101, "ability.radius", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, slam.getRadius()));
-
-        y += 24;
-
-        // Row 2: Knockback + Leap Speed
-        addLabel(new GuiNpcLabel(102, "ability.knockback", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, slam.getKnockbackStrength()));
-
-        addLabel(new GuiNpcLabel(103, "ability.leapSpeed", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, slam.getLeapSpeed()));
-
-        y += 24;
-
-        // Row 3: Min/Max Leap Distance
-        addLabel(new GuiNpcLabel(104, "ability.minDist", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, slam.getMinLeapDistance()));
-
-        addLabel(new GuiNpcLabel(105, "ability.maxDist", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, slam.getMaxLeapDistance()));
+    /**
+     * Override this method to render type-specific settings in the Type tab.
+     * Use the helper methods createFloatField(), createIntField(), etc.
+     * Button/TextField IDs should start at 100.
+     *
+     * @param startY The Y position to start rendering from
+     */
+    protected void initTypeTab(int startY) {
+        // Default: show message that no type settings are available
+        addLabel(new GuiNpcLabel(100, "ability.noTypeSettings", guiLeft + 8, startY + 5));
     }
 
-    private void initChargeSettings(int startY, AbilityCharge charge) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Damage + Speed
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, charge.getDamage()));
-
-        addLabel(new GuiNpcLabel(101, "ability.speed", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, charge.getChargeSpeed()));
-
-        y += 24;
-
-        // Row 2: Knockback + Knockback Up
-        addLabel(new GuiNpcLabel(102, "ability.knockback", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, charge.getKnockback()));
-
-        addLabel(new GuiNpcLabel(103, "ability.knockbackUp", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, charge.getKnockbackUp()));
-
-        y += 24;
-
-        // Row 3: Max Distance + Hit Radius
-        addLabel(new GuiNpcLabel(104, "ability.maxDist", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, charge.getMaxDistance()));
-
-        addLabel(new GuiNpcLabel(105, "ability.hitRadius", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, charge.getHitRadius()));
+    /**
+     * Override this method to handle button clicks for type-specific buttons.
+     * Button IDs 100+ are reserved for type-specific use.
+     *
+     * @param id The button ID
+     * @param button The button that was clicked
+     */
+    protected void handleTypeButton(int id, GuiNpcButton button) {
+        // Default: no-op
     }
 
-    private void initHeavyHitSettings(int startY, AbilityHeavyHit hit) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Damage + Knockback
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, hit.getDamage()));
-
-        addLabel(new GuiNpcLabel(101, "ability.knockback", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, hit.getKnockback()));
-
-        y += 24;
-
-        // Row 2: Knockback Up + Stun Ticks
-        addLabel(new GuiNpcLabel(102, "ability.knockbackUp", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, hit.getKnockbackUp()));
-
-        addLabel(new GuiNpcLabel(103, "ability.stunTicks", col2LabelX, y + 5));
-        addTextField(createIntField(103, col2FieldX, y, 50, hit.getStunTicks()));
-    }
-
-    private void initCutterSettings(int startY, AbilityCutter cutter) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Arc Angle + Range
-        addLabel(new GuiNpcLabel(100, "ability.arcAngle", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, cutter.getArcAngle()));
-
-        addLabel(new GuiNpcLabel(101, "ability.range", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, cutter.getRange()));
-
-        y += 24;
-
-        // Row 2: Damage + Knockback
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, cutter.getDamage()));
-
-        addLabel(new GuiNpcLabel(103, "ability.knockback", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, cutter.getKnockback()));
-
-        y += 24;
-
-        // Row 3: Sweep Waves + Wave Interval
-        addLabel(new GuiNpcLabel(104, "ability.sweepWaves", labelX, y + 5));
-        addTextField(createIntField(104, fieldX, y, 50, cutter.getSweepWaves()));
-
-        addLabel(new GuiNpcLabel(105, "ability.waveInterval", col2LabelX, y + 5));
-        addTextField(createIntField(105, col2FieldX, y, 50, cutter.getWaveInterval()));
-
-        y += 24;
-
-        // Row 4: Rotation Speed + Piercing
-        addLabel(new GuiNpcLabel(106, "ability.rotSpeed", labelX, y + 5));
-        addTextField(createFloatField(106, fieldX, y, 50, cutter.getRotationSpeed()));
-
-        addLabel(new GuiNpcLabel(107, "ability.piercing", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, cutter.isPiercing() ? 1 : 0));
-    }
-
-    private void initOrbSettings(int startY, AbilityOrb orb) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Speed + Size
-        addLabel(new GuiNpcLabel(100, "ability.orbSpeed", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, orb.getOrbSpeed()));
-
-        addLabel(new GuiNpcLabel(101, "ability.orbSize", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, orb.getOrbSize()));
-
-        y += 24;
-
-        // Row 2: Damage + Knockback
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, orb.getDamage()));
-
-        addLabel(new GuiNpcLabel(103, "ability.knockback", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, orb.getKnockback()));
-
-        y += 24;
-
-        // Row 3: Max Distance + Max Lifetime
-        addLabel(new GuiNpcLabel(104, "ability.maxDist", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, orb.getMaxDistance()));
-
-        addLabel(new GuiNpcLabel(105, "ability.lifetime", col2LabelX, y + 5));
-        addTextField(createIntField(105, col2FieldX, y, 50, orb.getMaxLifetime()));
-
-        y += 24;
-
-        // Row 4: Homing + Explosive
-        addLabel(new GuiNpcLabel(106, "ability.homing", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, orb.isHoming() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(107, "ability.explosive", col2LabelX, y + 5));
-        GuiNpcButton explosiveBtn = new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, orb.isExplosive() ? 1 : 0);
-        explosiveBtn.setHoverText("ability.explosive.noBlockDamage");
-        addButton(explosiveBtn);
-
-        y += 24;
-
-        // Row 5: Explosion Radius (only shown when explosive)
-        if (orb.isExplosive()) {
-            addLabel(new GuiNpcLabel(108, "ability.explRadius", labelX, y + 5));
-            addTextField(createFloatField(108, fieldX, y, 50, orb.getExplosionRadius()));
-        }
-    }
-
-    private void initVortexSettings(int startY, AbilityVortex pull) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Pull Radius + Pull Strength
-        addLabel(new GuiNpcLabel(100, "ability.pullRadius", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, pull.getPullRadius()));
-
-        addLabel(new GuiNpcLabel(101, "ability.pullStrength", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, pull.getPullStrength()));
-
-        y += 24;
-
-        // Row 2: Damage + Pull To Distance
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, pull.getDamage()));
-
-        addLabel(new GuiNpcLabel(103, "ability.pullTo", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, pull.getPullToDistance()));
-
-        y += 24;
-
-        // Row 3: Stun Duration + Root Duration
-        addLabel(new GuiNpcLabel(104, "ability.stunDur", labelX, y + 5));
-        addTextField(createIntField(104, fieldX, y, 50, pull.getStunDuration()));
-
-        addLabel(new GuiNpcLabel(105, "ability.rootDur", col2LabelX, y + 5));
-        addTextField(createIntField(105, col2FieldX, y, 50, pull.getRootDuration()));
-
-        y += 24;
-
-        // Row 4: AOE + Max Targets
-        addLabel(new GuiNpcLabel(106, "ability.aoe", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, pull.isAoe() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(107, "ability.maxTargets", col2LabelX, y + 5));
-        addTextField(createIntField(107, col2FieldX, y, 50, pull.getMaxTargets()));
-    }
-
-    private void initShockwaveSettings(int startY, AbilityShockwave shock) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Push Radius + Push Strength
-        addLabel(new GuiNpcLabel(100, "ability.pushRadius", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, shock.getPushRadius()));
-
-        addLabel(new GuiNpcLabel(101, "ability.pushStrength", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, shock.getPushStrength()));
-
-        y += 24;
-
-        // Row 2: Damage + Push Up
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, shock.getDamage()));
-
-        addLabel(new GuiNpcLabel(103, "ability.knockbackUp", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, shock.getPushUp()));
-
-        y += 24;
-
-        // Row 3: Stun Duration + Max Targets
-        addLabel(new GuiNpcLabel(104, "ability.stunDur", labelX, y + 5));
-        addTextField(createIntField(104, fieldX, y, 50, shock.getStunDuration()));
-
-        addLabel(new GuiNpcLabel(105, "ability.maxTargets", col2LabelX, y + 5));
-        addTextField(createIntField(105, col2FieldX, y, 50, shock.getMaxTargets()));
-    }
-
-    private void initDashSettings(int startY, AbilityDash dash) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Dash Mode
-        addLabel(new GuiNpcLabel(100, "ability.dashMode", labelX, y + 5));
-        String[] modes = new String[]{"ability.dash.aggressive", "ability.dash.defensive"};
-        addButton(new GuiNpcButton(100, fieldX, y, 90, 20, modes, dash.getDashMode().ordinal()));
-
-        y += 24;
-
-        // Row 2: Distance + Speed
-        addLabel(new GuiNpcLabel(101, "ability.distance", labelX, y + 5));
-        addTextField(createFloatField(101, fieldX, y, 50, dash.getDashDistance()));
-
-        addLabel(new GuiNpcLabel(102, "ability.speed", col2LabelX, y + 5));
-        addTextField(createFloatField(102, col2FieldX, y, 50, dash.getDashSpeed()));
-    }
-
-    private void initTeleportSettings(int startY, AbilityTeleport tp) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Blink Count + Blink Delay
-        addLabel(new GuiNpcLabel(100, "ability.blinkCount", labelX, y + 5));
-        addTextField(createIntField(100, fieldX, y, 50, tp.getBlinkCount()));
-
-        addLabel(new GuiNpcLabel(101, "ability.blinkDelay", col2LabelX, y + 5));
-        addTextField(createIntField(101, col2FieldX, y, 50, tp.getBlinkDelayTicks()));
-
-        y += 24;
-
-        // Row 2: Blink Radius + Min Radius
-        addLabel(new GuiNpcLabel(102, "ability.blinkRadius", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, tp.getBlinkRadius()));
-
-        addLabel(new GuiNpcLabel(103, "ability.minRadius", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, tp.getMinBlinkRadius()));
-
-        y += 24;
-
-        // Row 3: Damage + Damage Radius
-        addLabel(new GuiNpcLabel(104, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, tp.getDamage()));
-
-        addLabel(new GuiNpcLabel(105, "ability.dmgRadius", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, tp.getDamageRadius()));
-
-        y += 24;
-
-        // Row 4: Line of Sight + Damage At Start
-        addLabel(new GuiNpcLabel(106, "ability.lineOfSight", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, tp.isRequireLineOfSight() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(107, "ability.dmgAtStart", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, tp.isDamageAtStart() ? 1 : 0));
-    }
-
-    private void initProjectileSettings(int startY, AbilityProjectile proj) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Damage + Speed
-        addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, proj.getDamage()));
-
-        addLabel(new GuiNpcLabel(101, "ability.speed", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, proj.getSpeed()));
-
-        y += 24;
-
-        // Row 2: Knockback + Explosion Radius
-        addLabel(new GuiNpcLabel(102, "ability.knockback", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, proj.getKnockback()));
-
-        addLabel(new GuiNpcLabel(103, "ability.explRadius", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, proj.getExplosionRadius()));
-
-        y += 24;
-
-        // Row 3: Explosive + Homing
-        addLabel(new GuiNpcLabel(104, "ability.explosive", labelX, y + 5));
-        GuiNpcButton projExplosiveBtn = new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, proj.isExplosive() ? 1 : 0);
-        projExplosiveBtn.setHoverText("ability.explosive.noBlockDamage");
-        addButton(projExplosiveBtn);
-
-        addLabel(new GuiNpcLabel(105, "ability.homing", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, proj.isHoming() ? 1 : 0));
-    }
-
-    private void initBeamSettings(int startY, AbilityBeam beam) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Length + Width
-        addLabel(new GuiNpcLabel(100, "ability.beamLength", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, beam.getBeamLength()));
-
-        addLabel(new GuiNpcLabel(101, "ability.beamWidth", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, beam.getBeamWidth()));
-
-        y += 24;
-
-        // Row 2: Damage + Damage Interval
-        addLabel(new GuiNpcLabel(102, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, beam.getDamage()));
-
-        addLabel(new GuiNpcLabel(103, "ability.dmgInterval", col2LabelX, y + 5));
-        addTextField(createIntField(103, col2FieldX, y, 50, beam.getDamageInterval()));
-
-        y += 24;
-
-        // Row 3: Sweep Angle + Sweep Speed
-        addLabel(new GuiNpcLabel(104, "ability.sweepAngle", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, beam.getSweepAngle()));
-
-        addLabel(new GuiNpcLabel(105, "ability.sweepSpeed", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, beam.getSweepSpeed()));
-
-        y += 24;
-
-        // Row 4: Piercing + Lock On Target
-        addLabel(new GuiNpcLabel(106, "ability.piercing", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isPiercing() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(107, "ability.lockTarget", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, beam.isLockOnTarget() ? 1 : 0));
-    }
-
-    private void initGuardSettings(int startY, AbilityGuard guard) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Damage Reduction + Counter Damage
-        addLabel(new GuiNpcLabel(100, "ability.dmgReduce", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, guard.getDamageReduction()));
-
-        addLabel(new GuiNpcLabel(101, "ability.counterDmg", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, guard.getCounterDamage()));
-
-        y += 24;
-
-        // Row 2: Can Counter + Counter Chance
-        addLabel(new GuiNpcLabel(102, "ability.canCounter", labelX, y + 5));
-        addButton(new GuiNpcButton(102, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, guard.isCanCounter() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(103, "ability.counterChance", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, guard.getCounterChance()));
-    }
-
-    private void initHealSettings(int startY, AbilityHeal heal) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Heal Amount + Heal Percent
-        addLabel(new GuiNpcLabel(100, "ability.healAmount", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, heal.getHealAmount()));
-
-        addLabel(new GuiNpcLabel(101, "ability.healPercent", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, heal.getHealPercent()));
-
-        y += 24;
-
-        // Row 2: Heal Radius + Instant Heal
-        addLabel(new GuiNpcLabel(102, "ability.healRadius", labelX, y + 5));
-        addTextField(createFloatField(102, fieldX, y, 50, heal.getHealRadius()));
-
-        addLabel(new GuiNpcLabel(103, "ability.instant", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(103, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isInstantHeal() ? 1 : 0));
-
-        y += 24;
-
-        // Row 3: Heal Self + Heal Allies
-        addLabel(new GuiNpcLabel(104, "ability.healSelf", labelX, y + 5));
-        addButton(new GuiNpcButton(104, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isHealSelf() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(105, "ability.healAllies", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, heal.isHealAllies() ? 1 : 0));
-    }
-
-    private void initHazardSettings(int startY, AbilityHazard hazard) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Radius + Damage Per Tick
-        addLabel(new GuiNpcLabel(100, "ability.radius", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, hazard.getRadius()));
-
-        addLabel(new GuiNpcLabel(101, "ability.dmgPerTick", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, hazard.getDamagePerTick()));
-
-        y += 24;
-
-        // Row 2: Damage Interval + Debuff Duration
-        addLabel(new GuiNpcLabel(102, "ability.dmgInterval", labelX, y + 5));
-        addTextField(createIntField(102, fieldX, y, 50, hazard.getDamageInterval()));
-
-        addLabel(new GuiNpcLabel(103, "ability.debuffDur", col2LabelX, y + 5));
-        addTextField(createIntField(103, col2FieldX, y, 50, hazard.getDebuffDuration()));
-
-        y += 24;
-
-        // Row 3: Shape + Placement
-        addLabel(new GuiNpcLabel(104, "ability.shape", labelX, y + 5));
-        String[] shapes = new String[]{"ability.shape.circle", "ability.shape.ring", "ability.shape.cone"};
-        addButton(new GuiNpcButton(104, fieldX, y, 60, 20, shapes, hazard.getShape().ordinal()));
-
-        addLabel(new GuiNpcLabel(105, "ability.placement", col2LabelX, y + 5));
-        String[] placements = new String[]{"ability.place.caster", "ability.place.target", "ability.place.followCaster", "ability.place.followTarget"};
-        addButton(new GuiNpcButton(105, col2FieldX, y, 60, 20, placements, hazard.getPlacement().ordinal()));
-
-        y += 24;
-
-        // Row 4: Affects Caster + Ignore Invuln Frames
-        addLabel(new GuiNpcLabel(106, "ability.affectsCaster", labelX, y + 5));
-        addButton(new GuiNpcButton(106, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isAffectsCaster() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(107, "ability.ignoreInvuln", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, hazard.isIgnoreInvulnFrames() ? 1 : 0));
-    }
-
-    private void initTrapSettings(int startY, AbilityTrap trap) {
-        int y = startY;
-        int labelX = guiLeft + 8;
-        int fieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 145;
-        int col2FieldX = guiLeft + 205;
-
-        // Row 1: Trigger Radius + Damage
-        addLabel(new GuiNpcLabel(100, "ability.triggerRadius", labelX, y + 5));
-        addTextField(createFloatField(100, fieldX, y, 50, trap.getTriggerRadius()));
-
-        addLabel(new GuiNpcLabel(101, "ability.damage", col2LabelX, y + 5));
-        addTextField(createFloatField(101, col2FieldX, y, 50, trap.getDamage()));
-
-        y += 24;
-
-        // Row 2: Arm Time + Max Triggers
-        addLabel(new GuiNpcLabel(102, "ability.armTime", labelX, y + 5));
-        addTextField(createIntField(102, fieldX, y, 50, trap.getArmTime()));
-
-        addLabel(new GuiNpcLabel(103, "ability.maxTriggers", col2LabelX, y + 5));
-        addTextField(createIntField(103, col2FieldX, y, 50, trap.getMaxTriggers()));
-
-        y += 24;
-
-        // Row 3: Knockback + Root Duration
-        addLabel(new GuiNpcLabel(104, "ability.knockback", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, trap.getKnockback()));
-
-        addLabel(new GuiNpcLabel(105, "ability.rootDur", col2LabelX, y + 5));
-        addTextField(createIntField(105, col2FieldX, y, 50, trap.getRootDuration()));
-
-        y += 24;
-
-        // Row 4: Placement + Visible
-        addLabel(new GuiNpcLabel(106, "ability.placement", labelX, y + 5));
-        String[] placements = new String[]{"ability.place.caster", "ability.place.target", "ability.place.ahead"};
-        addButton(new GuiNpcButton(106, fieldX, y, 60, 20, placements, trap.getPlacement().ordinal()));
-
-        addLabel(new GuiNpcLabel(107, "ability.visible", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(107, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, trap.isVisible() ? 1 : 0));
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // HELPER METHODS FOR FIELD CREATION
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    private GuiNpcTextField createFloatField(int id, int x, int y, int width, float value) {
-        GuiNpcTextField field = new GuiNpcTextField(id, this, fontRendererObj, x, y, width, 20, String.format("%.1f", value));
-        return field;
-    }
-
-    private GuiNpcTextField createIntField(int id, int x, int y, int width, int value) {
-        GuiNpcTextField field = new GuiNpcTextField(id, this, fontRendererObj, x, y, width, 20, String.valueOf(value));
-        field.setIntegersOnly();
-        return field;
+    /**
+     * Override this method to handle text field changes for type-specific fields.
+     * Field IDs 100+ are reserved for type-specific use.
+     *
+     * @param id The field ID
+     * @param field The text field that changed
+     */
+    protected void handleTypeTextField(int id, GuiNpcTextField field) {
+        // Default: no-op
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -906,7 +363,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    // EFFECTS TAB (Sounds & Animations)
+    // EFFECTS TAB
     // ═══════════════════════════════════════════════════════════════════════════
 
     private void initEffectsTab(int startY) {
@@ -949,7 +406,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     private String truncateString(String str, int maxLen) {
         if (str == null) return "";
         if (str.length() <= maxLen) return str;
-        // Try to show the end part (more useful for resource paths)
         int lastSlash = str.lastIndexOf('/');
         if (lastSlash >= 0 && str.length() - lastSlash <= maxLen) {
             return "..." + str.substring(lastSlash);
@@ -959,7 +415,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     private String getAnimationName(int animId, boolean isWindUp) {
         if (animId < 0) return "None";
-        // Use cached name if available
         String cachedName = isWindUp ? windUpAnimationName : activeAnimationName;
         if (cachedName != null && !cachedName.isEmpty()) {
             return cachedName;
@@ -1051,7 +506,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Enabled button (bottom left)
         if (id == 2) {
             enabled = ((GuiNpcButton) guibutton).getValue() == 1;
-            initGui(); // Refresh to update button color
+            initGui();
         }
         // Targeting mode
         else if (id == 4) {
@@ -1064,7 +519,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
         }
 
-        // Timing tab
+        // Timing tab buttons
         else if (id == 14) {
             interruptible = ((GuiNpcButton) guibutton).getValue() == 1;
             initGui();
@@ -1072,17 +527,15 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             lockMovement = ((GuiNpcButton) guibutton).getValue() == 1;
         }
 
-        // Telegraph tab
+        // Telegraph tab buttons
         else if (id == 20) {
             showTelegraph = ((GuiNpcButton) guibutton).getValue() == 1;
             initGui();
         }
-        // Wind Up color button - open color selector
         else if (id == 22) {
             editingColorId = 22;
             setSubGui(new SubGuiColorSelector(windUpColor));
         }
-        // Active color button - open color selector
         else if (id == 24) {
             editingColorId = 24;
             setSubGui(new SubGuiColorSelector(activeColor));
@@ -1127,19 +580,137 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             initGui();
         }
 
-        // Type-specific buttons (100+)
+        // Type-specific buttons (100+) - delegate to subclass
         else if (id >= 100) {
             handleTypeButton(id, (GuiNpcButton) guibutton);
         }
 
-        // Done/Cancel
+        // Done button
         else if (id == 66) {
             applyToAbility();
-            parent.onAbilitySaved(ability);
-            close();
-        } else if (id == 67) {
+            callback.onAbilitySaved(ability);
             close();
         }
+        // Close button (X in top right)
+        else if (id == 67) {
+            close();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // TEXT FIELD EVENTS
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Override
+    public void unFocused(GuiNpcTextField textField) {
+        int id = textField.id;
+
+        // General tab
+        if (id == 1) {
+            name = textField.getText();
+        } else if (id == 3) {
+            weight = textField.getInteger();
+        } else if (id == 5) {
+            minRange = textField.getInteger();
+        } else if (id == 6) {
+            maxRange = textField.getInteger();
+        }
+
+        // Timing tab
+        else if (id == 10) {
+            cooldownTicks = textField.getInteger();
+        } else if (id == 11) {
+            windUpTicks = textField.getInteger();
+        } else if (id == 12) {
+            activeTicks = textField.getInteger();
+        } else if (id == 13) {
+            recoveryTicks = textField.getInteger();
+        } else if (id == 15) {
+            interruptThreshold = textField.getInteger();
+        }
+
+        // Type-specific fields (100+) - delegate to subclass
+        else if (id >= 100) {
+            handleTypeTextField(id, textField);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SUBGUI CLOSED HANDLER
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Override
+    public void subGuiClosed(SubGuiInterface subgui) {
+        if (subgui instanceof SubGuiColorSelector) {
+            SubGuiColorSelector colorSelector = (SubGuiColorSelector) subgui;
+            int rgb = colorSelector.color & 0x00FFFFFF;
+            if (editingColorId == 22) {
+                windUpColor = 0x80000000 | rgb;
+            } else if (editingColorId == 24) {
+                activeColor = 0xC0000000 | rgb;
+            }
+            editingColorId = 0;
+            initGui();
+        } else if (subgui instanceof GuiSoundSelection) {
+            GuiSoundSelection soundSelector = (GuiSoundSelection) subgui;
+            if (soundSelector.selectedResource != null) {
+                String sound = soundSelector.selectedResource.toString();
+                if (editingSoundId == 30) {
+                    windUpSound = sound;
+                } else if (editingSoundId == 31) {
+                    activeSound = sound;
+                }
+            }
+            editingSoundId = 0;
+            initGui();
+        } else if (subgui instanceof GuiAnimationSelection) {
+            GuiAnimationSelection animSelector = (GuiAnimationSelection) subgui;
+            if (editingAnimationId == 32) {
+                windUpAnimationId = animSelector.selectedAnimationId;
+                windUpAnimationName = animSelector.getSelectedName();
+            } else if (editingAnimationId == 33) {
+                activeAnimationId = animSelector.selectedAnimationId;
+                activeAnimationName = animSelector.getSelectedName();
+            }
+            editingAnimationId = 0;
+            initGui();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // APPLY TO ABILITY
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    protected void applyToAbility() {
+        // General
+        ability.setName(name);
+        ability.setEnabled(enabled);
+        ability.setWeight(weight);
+        ability.setMinRange(minRange);
+        ability.setMaxRange(maxRange);
+        ability.setTargetingMode(targetingMode);
+
+        // Timing
+        ability.setCooldownTicks(cooldownTicks);
+        ability.setWindUpTicks(windUpTicks);
+        ability.setActiveTicks(activeTicks);
+        ability.setRecoveryTicks(recoveryTicks);
+        ability.setInterruptible(interruptible);
+        ability.setInterruptThreshold(interruptThreshold);
+        ability.setLockMovement(lockMovement);
+
+        // Telegraph
+        ability.setShowTelegraph(showTelegraph);
+        ability.setWindUpColor(windUpColor);
+        ability.setActiveColor(activeColor);
+
+        // Effects
+        ability.setWindUpSound(windUpSound);
+        ability.setActiveSound(activeSound);
+        ability.setWindUpAnimationId(windUpAnimationId);
+        ability.setActiveAnimationId(activeAnimationId);
+
+        // Type-specific values are applied directly in handleTypeTextField and handleTypeButton
     }
 
     /**
@@ -1177,208 +748,31 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         initGui();
     }
 
-    private void handleTypeButton(int id, GuiNpcButton button) {
-        int value = button.getValue();
-
-        if (ability instanceof AbilityDash) {
-            AbilityDash dash = (AbilityDash) ability;
-            if (id == 100) dash.setDashMode(AbilityDash.DashMode.values()[value]);
-        } else if (ability instanceof AbilityCutter) {
-            AbilityCutter cutter = (AbilityCutter) ability;
-            if (id == 107) cutter.setPiercing(value == 1);
-        } else if (ability instanceof AbilityOrb) {
-            AbilityOrb orb = (AbilityOrb) ability;
-            if (id == 106) orb.setHoming(value == 1);
-            else if (id == 107) {
-                orb.setExplosive(value == 1);
-                initGui(); // Refresh to show/hide explosion radius field
-            }
-        } else if (ability instanceof AbilityVortex) {
-            AbilityVortex pull = (AbilityVortex) ability;
-            if (id == 106) pull.setAoe(value == 1);
-        } else if (ability instanceof AbilityTeleport) {
-            AbilityTeleport tp = (AbilityTeleport) ability;
-            if (id == 106) tp.setRequireLineOfSight(value == 1);
-            else if (id == 107) tp.setDamageAtStart(value == 1);
-        } else if (ability instanceof AbilityProjectile) {
-            AbilityProjectile proj = (AbilityProjectile) ability;
-            if (id == 104) proj.setExplosive(value == 1);
-            else if (id == 105) proj.setHoming(value == 1);
-        } else if (ability instanceof AbilityBeam) {
-            AbilityBeam beam = (AbilityBeam) ability;
-            if (id == 106) beam.setPiercing(value == 1);
-            else if (id == 107) beam.setLockOnTarget(value == 1);
-        } else if (ability instanceof AbilityGuard) {
-            AbilityGuard guard = (AbilityGuard) ability;
-            if (id == 102) guard.setCanCounter(value == 1);
-        } else if (ability instanceof AbilityHeal) {
-            AbilityHeal heal = (AbilityHeal) ability;
-            if (id == 103) heal.setInstantHeal(value == 1);
-            else if (id == 104) heal.setHealSelf(value == 1);
-            else if (id == 105) heal.setHealAllies(value == 1);
-        } else if (ability instanceof AbilityHazard) {
-            AbilityHazard hazard = (AbilityHazard) ability;
-            if (id == 104) hazard.setShape(AbilityHazard.HazardShape.values()[value]);
-            else if (id == 105) hazard.setPlacement(AbilityHazard.PlacementMode.values()[value]);
-            else if (id == 106) hazard.setAffectsCaster(value == 1);
-            else if (id == 107) hazard.setIgnoreInvulnFrames(value == 1);
-        } else if (ability instanceof AbilityTrap) {
-            AbilityTrap trap = (AbilityTrap) ability;
-            if (id == 106) trap.setPlacement(AbilityTrap.TrapPlacement.values()[value]);
-            else if (id == 107) trap.setVisible(value == 1);
-        }
-    }
-
     // ═══════════════════════════════════════════════════════════════════════════
-    // TEXT FIELD EVENTS
+    // HELPER METHODS FOR SUBCLASSES
     // ═══════════════════════════════════════════════════════════════════════════
 
-    @Override
-    public void unFocused(GuiNpcTextField textField) {
-        int id = textField.id;
-
-        // General tab
-        if (id == 1) {
-            name = textField.getText();
-        } else if (id == 3) {
-            weight = textField.getInteger();
-        } else if (id == 5) {
-            minRange = textField.getInteger();
-        } else if (id == 6) {
-            maxRange = textField.getInteger();
-        }
-
-        // Timing tab
-        else if (id == 10) {
-            cooldownTicks = textField.getInteger();
-        } else if (id == 11) {
-            windUpTicks = textField.getInteger();
-        } else if (id == 12) {
-            activeTicks = textField.getInteger();
-        } else if (id == 13) {
-            recoveryTicks = textField.getInteger();
-        } else if (id == 15) {
-            interruptThreshold = textField.getInteger();
-        }
-
-        // Type-specific fields (100+)
-        else if (id >= 100) {
-            handleTypeTextField(id, textField);
-        }
+    /**
+     * Creates a float text field for type-specific settings.
+     */
+    protected GuiNpcTextField createFloatField(int id, int x, int y, int width, float value) {
+        GuiNpcTextField field = new GuiNpcTextField(id, this, fontRendererObj, x, y, width, 20, String.format("%.1f", value));
+        return field;
     }
 
-    private void handleTypeTextField(int id, GuiNpcTextField field) {
-        if (ability instanceof AbilitySlam) {
-            AbilitySlam slam = (AbilitySlam) ability;
-            if (id == 100) slam.setDamage(parseFloat(field, slam.getDamage()));
-            else if (id == 101) slam.setRadius(parseFloat(field, slam.getRadius()));
-            else if (id == 102) slam.setKnockbackStrength(parseFloat(field, slam.getKnockbackStrength()));
-            else if (id == 103) slam.setLeapSpeed(parseFloat(field, slam.getLeapSpeed()));
-            else if (id == 104) slam.setMinLeapDistance(parseFloat(field, slam.getMinLeapDistance()));
-            else if (id == 105) slam.setMaxLeapDistance(parseFloat(field, slam.getMaxLeapDistance()));
-        } else if (ability instanceof AbilityCharge) {
-            AbilityCharge charge = (AbilityCharge) ability;
-            if (id == 100) charge.setDamage(parseFloat(field, charge.getDamage()));
-            else if (id == 101) charge.setChargeSpeed(parseFloat(field, charge.getChargeSpeed()));
-            else if (id == 102) charge.setKnockback(parseFloat(field, charge.getKnockback()));
-            else if (id == 103) charge.setKnockbackUp(parseFloat(field, charge.getKnockbackUp()));
-            else if (id == 104) charge.setMaxDistance(parseFloat(field, charge.getMaxDistance()));
-            else if (id == 105) charge.setHitRadius(parseFloat(field, charge.getHitRadius()));
-        } else if (ability instanceof AbilityHeavyHit) {
-            AbilityHeavyHit hit = (AbilityHeavyHit) ability;
-            if (id == 100) hit.setDamage(parseFloat(field, hit.getDamage()));
-            else if (id == 101) hit.setKnockback(parseFloat(field, hit.getKnockback()));
-            else if (id == 102) hit.setKnockbackUp(parseFloat(field, hit.getKnockbackUp()));
-            else if (id == 103) hit.setStunTicks(field.getInteger());
-        } else if (ability instanceof AbilityCutter) {
-            AbilityCutter cutter = (AbilityCutter) ability;
-            if (id == 100) cutter.setArcAngle(parseFloat(field, cutter.getArcAngle()));
-            else if (id == 101) cutter.setRange(parseFloat(field, cutter.getRange()));
-            else if (id == 102) cutter.setDamage(parseFloat(field, cutter.getDamage()));
-            else if (id == 103) cutter.setKnockback(parseFloat(field, cutter.getKnockback()));
-            else if (id == 104) cutter.setSweepWaves(field.getInteger());
-            else if (id == 105) cutter.setWaveInterval(field.getInteger());
-            else if (id == 106) cutter.setRotationSpeed(parseFloat(field, cutter.getRotationSpeed()));
-        } else if (ability instanceof AbilityOrb) {
-            AbilityOrb orb = (AbilityOrb) ability;
-            if (id == 100) orb.setOrbSpeed(parseFloat(field, orb.getOrbSpeed()));
-            else if (id == 101) orb.setOrbSize(parseFloat(field, orb.getOrbSize()));
-            else if (id == 102) orb.setDamage(parseFloat(field, orb.getDamage()));
-            else if (id == 103) orb.setKnockback(parseFloat(field, orb.getKnockback()));
-            else if (id == 104) orb.setMaxDistance(parseFloat(field, orb.getMaxDistance()));
-            else if (id == 105) orb.setMaxLifetime(field.getInteger());
-            else if (id == 108) orb.setExplosionRadius(parseFloat(field, orb.getExplosionRadius()));
-        } else if (ability instanceof AbilityVortex) {
-            AbilityVortex pull = (AbilityVortex) ability;
-            if (id == 100) pull.setPullRadius(parseFloat(field, pull.getPullRadius()));
-            else if (id == 101) pull.setPullStrength(parseFloat(field, pull.getPullStrength()));
-            else if (id == 102) pull.setDamage(parseFloat(field, pull.getDamage()));
-            else if (id == 103) pull.setPullToDistance(parseFloat(field, pull.getPullToDistance()));
-            else if (id == 104) pull.setStunDuration(field.getInteger());
-            else if (id == 105) pull.setRootDuration(field.getInteger());
-            else if (id == 107) pull.setMaxTargets(field.getInteger());
-        } else if (ability instanceof AbilityShockwave) {
-            AbilityShockwave shock = (AbilityShockwave) ability;
-            if (id == 100) shock.setPushRadius(parseFloat(field, shock.getPushRadius()));
-            else if (id == 101) shock.setPushStrength(parseFloat(field, shock.getPushStrength()));
-            else if (id == 102) shock.setDamage(parseFloat(field, shock.getDamage()));
-            else if (id == 103) shock.setPushUp(parseFloat(field, shock.getPushUp()));
-            else if (id == 104) shock.setStunDuration(field.getInteger());
-            else if (id == 105) shock.setMaxTargets(field.getInteger());
-        } else if (ability instanceof AbilityDash) {
-            AbilityDash dash = (AbilityDash) ability;
-            if (id == 101) dash.setDashDistance(parseFloat(field, dash.getDashDistance()));
-            else if (id == 102) dash.setDashSpeed(parseFloat(field, dash.getDashSpeed()));
-        } else if (ability instanceof AbilityTeleport) {
-            AbilityTeleport tp = (AbilityTeleport) ability;
-            if (id == 100) tp.setBlinkCount(field.getInteger());
-            else if (id == 101) tp.setBlinkDelayTicks(field.getInteger());
-            else if (id == 102) tp.setBlinkRadius(parseFloat(field, tp.getBlinkRadius()));
-            else if (id == 103) tp.setMinBlinkRadius(parseFloat(field, tp.getMinBlinkRadius()));
-            else if (id == 104) tp.setDamage(parseFloat(field, tp.getDamage()));
-            else if (id == 105) tp.setDamageRadius(parseFloat(field, tp.getDamageRadius()));
-        } else if (ability instanceof AbilityProjectile) {
-            AbilityProjectile proj = (AbilityProjectile) ability;
-            if (id == 100) proj.setDamage(parseFloat(field, proj.getDamage()));
-            else if (id == 101) proj.setSpeed(parseFloat(field, proj.getSpeed()));
-            else if (id == 102) proj.setKnockback(parseFloat(field, proj.getKnockback()));
-            else if (id == 103) proj.setExplosionRadius(parseFloat(field, proj.getExplosionRadius()));
-        } else if (ability instanceof AbilityBeam) {
-            AbilityBeam beam = (AbilityBeam) ability;
-            if (id == 100) beam.setBeamLength(parseFloat(field, beam.getBeamLength()));
-            else if (id == 101) beam.setBeamWidth(parseFloat(field, beam.getBeamWidth()));
-            else if (id == 102) beam.setDamage(parseFloat(field, beam.getDamage()));
-            else if (id == 103) beam.setDamageInterval(field.getInteger());
-            else if (id == 104) beam.setSweepAngle(parseFloat(field, beam.getSweepAngle()));
-            else if (id == 105) beam.setSweepSpeed(parseFloat(field, beam.getSweepSpeed()));
-        } else if (ability instanceof AbilityGuard) {
-            AbilityGuard guard = (AbilityGuard) ability;
-            if (id == 100) guard.setDamageReduction(parseFloat(field, guard.getDamageReduction()));
-            else if (id == 101) guard.setCounterDamage(parseFloat(field, guard.getCounterDamage()));
-            else if (id == 103) guard.setCounterChance(parseFloat(field, guard.getCounterChance()));
-        } else if (ability instanceof AbilityHeal) {
-            AbilityHeal heal = (AbilityHeal) ability;
-            if (id == 100) heal.setHealAmount(parseFloat(field, heal.getHealAmount()));
-            else if (id == 101) heal.setHealPercent(parseFloat(field, heal.getHealPercent()));
-            else if (id == 102) heal.setHealRadius(parseFloat(field, heal.getHealRadius()));
-        } else if (ability instanceof AbilityHazard) {
-            AbilityHazard hazard = (AbilityHazard) ability;
-            if (id == 100) hazard.setRadius(parseFloat(field, hazard.getRadius()));
-            else if (id == 101) hazard.setDamagePerTick(parseFloat(field, hazard.getDamagePerTick()));
-            else if (id == 102) hazard.setDamageInterval(field.getInteger());
-            else if (id == 103) hazard.setDebuffDuration(field.getInteger());
-        } else if (ability instanceof AbilityTrap) {
-            AbilityTrap trap = (AbilityTrap) ability;
-            if (id == 100) trap.setTriggerRadius(parseFloat(field, trap.getTriggerRadius()));
-            else if (id == 101) trap.setDamage(parseFloat(field, trap.getDamage()));
-            else if (id == 102) trap.setArmTime(field.getInteger());
-            else if (id == 103) trap.setMaxTriggers(field.getInteger());
-            else if (id == 104) trap.setKnockback(parseFloat(field, trap.getKnockback()));
-            else if (id == 105) trap.setRootDuration(field.getInteger());
-        }
+    /**
+     * Creates an integer text field for type-specific settings.
+     */
+    protected GuiNpcTextField createIntField(int id, int x, int y, int width, int value) {
+        GuiNpcTextField field = new GuiNpcTextField(id, this, fontRendererObj, x, y, width, 20, String.valueOf(value));
+        field.setIntegersOnly();
+        return field;
     }
 
-    private float parseFloat(GuiNpcTextField field, float defaultValue) {
+    /**
+     * Parses a float from a text field with a fallback default value.
+     */
+    protected float parseFloat(GuiNpcTextField field, float defaultValue) {
         try {
             return Float.parseFloat(field.getText());
         } catch (NumberFormatException e) {
@@ -1386,80 +780,10 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // APPLY TO ABILITY
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    private void applyToAbility() {
-        // General
-        ability.setName(name);
-        ability.setEnabled(enabled);
-        ability.setWeight(weight);
-        ability.setMinRange(minRange);
-        ability.setMaxRange(maxRange);
-        ability.setTargetingMode(targetingMode);
-
-        // Timing
-        ability.setCooldownTicks(cooldownTicks);
-        ability.setWindUpTicks(windUpTicks);
-        ability.setActiveTicks(activeTicks);
-        ability.setRecoveryTicks(recoveryTicks);
-        ability.setInterruptible(interruptible);
-        ability.setInterruptThreshold(interruptThreshold);
-        ability.setLockMovement(lockMovement);
-
-        // Telegraph
-        ability.setShowTelegraph(showTelegraph);
-        ability.setWindUpColor(windUpColor);
-        ability.setActiveColor(activeColor);
-
-        // Effects (sounds/animations)
-        ability.setWindUpSound(windUpSound);
-        ability.setActiveSound(activeSound);
-        ability.setWindUpAnimationId(windUpAnimationId);
-        ability.setActiveAnimationId(activeAnimationId);
-
-        // Type-specific values are applied directly in handleTypeTextField and handleTypeButton
-    }
-
-    @Override
-    public void subGuiClosed(SubGuiInterface subgui) {
-        if (subgui instanceof SubGuiColorSelector) {
-            SubGuiColorSelector colorSelector = (SubGuiColorSelector) subgui;
-            // Color selector returns RGB without alpha, so we need to add appropriate alpha
-            // Wind up color uses 0x80 alpha (semi-transparent), active uses 0xC0 (more opaque)
-            int rgb = colorSelector.color & 0x00FFFFFF;
-            if (editingColorId == 22) {
-                windUpColor = 0x80000000 | rgb;
-            } else if (editingColorId == 24) {
-                activeColor = 0xC0000000 | rgb;
-            }
-            editingColorId = 0;
-            initGui();
-        } else if (subgui instanceof GuiSoundSelection) {
-            GuiSoundSelection soundSelector = (GuiSoundSelection) subgui;
-            if (soundSelector.selectedResource != null) {
-                String sound = soundSelector.selectedResource.toString();
-                if (editingSoundId == 30) {
-                    windUpSound = sound;
-                } else if (editingSoundId == 31) {
-                    activeSound = sound;
-                }
-            }
-            editingSoundId = 0;
-            initGui();
-        } else if (subgui instanceof GuiAnimationSelection) {
-            GuiAnimationSelection animSelector = (GuiAnimationSelection) subgui;
-            // Update if user selected something or cleared
-            if (editingAnimationId == 32) {
-                windUpAnimationId = animSelector.selectedAnimationId;
-                windUpAnimationName = animSelector.getSelectedName();
-            } else if (editingAnimationId == 33) {
-                activeAnimationId = animSelector.selectedAnimationId;
-                activeAnimationName = animSelector.getSelectedName();
-            }
-            editingAnimationId = 0;
-            initGui();
-        }
+    /**
+     * Gets the ability being edited.
+     */
+    protected Ability getAbility() {
+        return ability;
     }
 }

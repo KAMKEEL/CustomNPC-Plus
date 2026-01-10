@@ -163,7 +163,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         // Edit ability
         if (id == 72) {
             if (selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-                setSubGui(new SubGuiAbilityConfig(npcAbilities.get(selectedAbilityIndex), this));
+                Ability ability = npcAbilities.get(selectedAbilityIndex);
+                setSubGui(ability.createConfigGui(this));
             }
             return;
         }
@@ -210,7 +211,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
                 Ability abilityToSave = npcAbilities.get(selectedAbilityIndex);
                 if (abilityToSave.getName() == null || abilityToSave.getName().isEmpty()) {
                     // Need a name to save - open edit dialog first
-                    setSubGui(new SubGuiAbilityConfig(abilityToSave, this));
+                    setSubGui(abilityToSave.createConfigGui(this));
                 } else {
                     setSubGui(new SubGuiAbilitySaveConfirm(abilityToSave));
                 }
@@ -429,7 +430,8 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
     @Override
     public void customScrollDoubleClicked(String selection, GuiCustomScroll scroll) {
         if (scroll == npcAbilitiesScroll && selectedAbilityIndex >= 0 && selectedAbilityIndex < npcAbilities.size()) {
-            setSubGui(new SubGuiAbilityConfig(npcAbilities.get(selectedAbilityIndex), this));
+            Ability ability = npcAbilities.get(selectedAbilityIndex);
+            setSubGui(ability.createConfigGui(this));
         }
     }
 

@@ -48,6 +48,13 @@ public class AbilityHeal extends Ability {
     public boolean hasTypeSettings() { return true; }
 
     @Override
+    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
+    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
+            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
+        return new noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal(this, callback);
+    }
+
+    @Override
     public boolean isTargetingModeLocked() { return true; }
 
     @Override

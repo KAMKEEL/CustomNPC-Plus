@@ -90,7 +90,7 @@ public class GuiNpcManageAbilities extends GuiNPCInterface2 implements ICustomSc
             // Edit
             Ability ability = AbilityController.Instance.getSavedAbility(selectedName);
             if (ability != null) {
-                setSubGui(new SubGuiAbilityConfig(ability, this));
+                setSubGui(ability.createConfigGui(this));
             }
         } else if (id == 2 && selectedName != null) {
             // Delete
@@ -118,7 +118,7 @@ public class GuiNpcManageAbilities extends GuiNPCInterface2 implements ICustomSc
             // Double-click to edit
             Ability ability = AbilityController.Instance.getSavedAbility(selection);
             if (ability != null) {
-                setSubGui(new SubGuiAbilityConfig(ability, this));
+                setSubGui(ability.createConfigGui(this));
             }
         }
     }
