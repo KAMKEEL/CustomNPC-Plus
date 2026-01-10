@@ -686,7 +686,12 @@ public class AutocompleteManager {
                     break;
                 }
             } else {
-                break;
+                // Within parentheses or brackets, allow any character (commas, operators, etc.)
+                if (parenDepth > 0 || bracketDepth > 0) {
+                    start--;
+                } else {
+                    break;
+                }
             }
         }
         
