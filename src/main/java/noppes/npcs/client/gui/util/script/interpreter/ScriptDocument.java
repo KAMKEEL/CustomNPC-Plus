@@ -1295,8 +1295,29 @@ public class ScriptDocument {
                     String argsText = text.substring(pos + 1, closeParen).trim();
                     TypeInfo[] argTypes = parseArgumentTypes(argsText, pos + 1);
                     
-                    MethodInfo methodInfo = currentType.getBestMethodOverload(segment, argTypes);
-                    currentType = (methodInfo != null) ? methodInfo.getReturnType() : null;
+                    // Check if this is a synthetic type with dynamic return type resolver (like Java.type())
+                    SyntheticType syntheticType = null;
+                    if (isJavaScript() && typeResolver.isSyntheticType(firstIdent)) {
+                        syntheticType = typeResolver.getSyntheticType(firstIdent);
+                    }
+                    
+                    if (syntheticType != null && syntheticType.hasMethod(segment)) {
+                        SyntheticMethod synMethod = syntheticType.getMethod(segment);
+                        if (synMethod != null) {
+                            // Try dynamic resolution first
+                            String[] strArgs = TypeResolver.parseStringArguments(argsText);
+                            TypeInfo dynamicType = synMethod.resolveReturnType(strArgs);
+                            if (dynamicType != null) {
+                                currentType = dynamicType;
+                            } else {
+                                // Fall back to static return type
+                                currentType = synMethod.getReturnTypeInfo();
+                            }
+                        }
+                    } else {
+                        MethodInfo methodInfo = currentType.getBestMethodOverload(segment, argTypes);
+                        currentType = (methodInfo != null) ? methodInfo.getReturnType() : null;
+                    }
                     
                     // Skip to after the closing paren
                     pos = closeParen + 1;
@@ -2231,6 +2252,11 @@ public class ScriptDocument {
     }
 
     private void markTypeDeclarations(List<ScriptLine.Mark> marks) {
+        // First, mark variables that hold Java.type() results
+        if (isJavaScript()) {
+            markJavaTypeVariables(marks);
+        }
+        
         // Pattern for type optionally followed by generics - we'll manually parse generics
         Pattern typeStart = Pattern.compile(
                 "(?:(?:public|private|protected|static|final|transient|volatile)\\s+)*" +
@@ -2315,6 +2341,37 @@ public class ScriptDocument {
 
 
 
+    /**
+     * Mark variables that hold Java.type() class references.
+     * Example: var File = Java.type("java.io.File");
+     */
+    private void markJavaTypeVariables(List<ScriptLine.Mark> marks) {
+        // Pattern: var/let/const varName = Java.type("className")
+        Pattern javaTypePattern = Pattern.compile(
+            "\\b(var|let|const)\\s+(\\w+)\\s*=\\s*Java\\.type\\s*\\(\\s*[\"']([^\"']+)[\"']\\s*\\)");
+        
+        Matcher m = javaTypePattern.matcher(text);
+        
+        while (m.find()) {
+            if (isExcluded(m.start())) continue;
+            
+            String varName = m.group(2);
+            String className = m.group(3);
+            int varStart = m.start(2);
+            int varEnd = m.end(2);
+            
+            // Resolve the class name
+            TypeInfo classType = typeResolver.resolveFullName(className);
+            if (classType != null && classType.isResolved()) {
+                // Create ClassTypeInfo to represent that this variable holds a Class reference
+                ClassTypeInfo classRef = new ClassTypeInfo(classType);
+                
+                // Mark the variable with the ClassTypeInfo for hover info
+                marks.add(new ScriptLine.Mark(varStart, varEnd, TokenType.LOCAL_FIELD, classRef));
+            }
+        }
+    }
+    
     /**
      * Recursively parse and mark generic type parameters.
      * Handles arbitrarily nested generics like Map<String, List<Map<String, String>>>.
@@ -3199,7 +3256,18 @@ public class ScriptDocument {
         if (expr.startsWith("new ")) {
             Matcher newMatcher = NEW_TYPE_PATTERN.matcher(expr);
             if (newMatcher.find()) {
-                return resolveType(newMatcher.group(1));
+                String typeName = newMatcher.group(1);
+                
+                // First check if it's a variable holding a ClassTypeInfo (like var File = Java.type("java.io.File"))
+                FieldInfo varInfo = resolveVariable(typeName, position);
+                if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
+                    // It's a variable holding a class reference, return the wrapped class
+                    ClassTypeInfo classRef = (ClassTypeInfo) varInfo.getTypeInfo();
+                    return classRef.getInstanceType();
+                }
+                
+                // Otherwise treat it as a type name
+                return resolveType(typeName);
             }
         }
         
@@ -3913,7 +3981,18 @@ public class ScriptDocument {
         if (expr.startsWith("new ")) {
             Matcher newMatcher = NEW_TYPE_PATTERN.matcher(expr);
             if (newMatcher.find()) {
-                return resolveType(newMatcher.group(1));
+                String typeName = newMatcher.group(1);
+                
+                // First check if it's a variable holding a ClassTypeInfo (like var File = Java.type("java.io.File"))
+                FieldInfo varInfo = resolveVariable(typeName, position);
+                if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
+                    // It's a variable holding a class reference, return the wrapped class
+                    ClassTypeInfo classRef = (ClassTypeInfo) varInfo.getTypeInfo();
+                    return classRef.getInstanceType();
+                }
+                
+                // Otherwise treat it as a type name
+                return resolveType(typeName);
             }
         }
         
@@ -5168,6 +5247,19 @@ public class ScriptDocument {
 
             // Try to resolve the class
             TypeInfo info = resolveType(className);
+            boolean isVariableHoldingClass = false;
+            
+            // If not a class name, check if it's a variable holding a ClassTypeInfo
+            if ((info == null || !info.isResolved()) && isJavaScript()) {
+                FieldInfo varInfo = resolveVariable(className, start);
+                if (varInfo != null && varInfo.getTypeInfo() instanceof ClassTypeInfo) {
+                    // Variable holds a class reference (like var File = Java.type("java.io.File"))
+                    ClassTypeInfo classRef = (ClassTypeInfo) varInfo.getTypeInfo();
+                    info = classRef.getInstanceType();
+                    isVariableHoldingClass = true;
+                }
+            }
+            
             if (info != null && info.isResolved()) {
                 boolean isNewCreation = newKeyword != null && newKeyword.trim().equals("new");
                 boolean isConstructorDecl = info instanceof ScriptTypeInfo && className.equals(info.getSimpleName());
@@ -5208,10 +5300,27 @@ public class ScriptDocument {
                             // Try to find matching constructor (may be null if not found)
                             MethodInfo constructor = info.hasConstructors() ? info.findConstructor(argTypes) : null;
                             
-                            // Create MethodCallInfo for constructor (even if null, so errors are tracked)
-                            MethodCallInfo ctorCall = MethodCallInfo.constructor(
-                                info, constructor, start, end, openParen, closeParen, arguments
-                            );
+                            // Create MethodCallInfo for constructor
+                            // Use the actual variable name (className) for variables, not the class's simple name
+                            MethodCallInfo ctorCall;
+                            if (isVariableHoldingClass) {
+                                // Use constructor directly with variable name
+                                ctorCall = new MethodCallInfo(
+                                    className,           // Use variable name, not class name
+                                    start, end,
+                                    openParen, closeParen,
+                                    arguments,
+                                    info,                // The actual class type
+                                    constructor,
+                                    false
+                                ).setConstructor(true);
+                            } else {
+                                // Use factory method for regular types
+                                ctorCall = MethodCallInfo.constructor(
+                                    info, constructor, start, end, openParen, closeParen, arguments
+                                );
+                            }
+                            
                             ctorCall.validate();
                             methodCalls.add(ctorCall);  // Add to methodCalls list for error tracking
                             marks.add(new ScriptLine.Mark(start, end, info.getTokenType(), ctorCall));
