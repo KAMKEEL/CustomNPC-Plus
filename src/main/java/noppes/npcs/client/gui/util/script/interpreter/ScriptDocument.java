@@ -23,6 +23,7 @@ import noppes.npcs.client.gui.util.script.interpreter.type.*;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticField;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticMethod;
 import noppes.npcs.client.gui.util.script.interpreter.type.synthetic.SyntheticType;
+import noppes.npcs.constants.ScriptContext;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -125,6 +126,10 @@ public class ScriptDocument {
     // Script language: "ECMAScript", "Groovy", etc.
     private String language = "ECMAScript";
 
+    // Script context: NPC, PLAYER, BLOCK, ITEM, etc.
+    // Determines which hooks and event types are available
+    private ScriptContext scriptContext = ScriptContext.GLOBAL;
+
     // Layout properties
     public int lineHeight = 13;
     public int totalHeight;
@@ -168,6 +173,25 @@ public class ScriptDocument {
      */
     public boolean isJavaScript() {
         return "ECMAScript".equalsIgnoreCase(language);
+    }
+
+    /**
+     * Set the script context (NPC, PLAYER, BLOCK, ITEM, etc.).
+     * This determines which hooks and event types are available for autocomplete.
+     *
+     * @param context The script context
+     */
+    public void setScriptContext(ScriptContext context) {
+        this.scriptContext = context != null ? context : ScriptContext.GLOBAL;
+    }
+
+    /**
+     * Get the current script context.
+     *
+     * @return The script context (NPC, PLAYER, BLOCK, ITEM, etc.)
+     */
+    public ScriptContext getScriptContext() {
+        return scriptContext;
     }
 
     // ==================== TEXT MANAGEMENT ====================
@@ -686,11 +710,13 @@ public class ScriptDocument {
                 JSDocInfo jsDoc = jsDocParser.extractJSDocBefore(text, m.start());
                 
                 // For JS hooks, infer parameter types from registry
+                // Use the script context's namespaces (e.g., ["IPlayerEvent", "IAnimationEvent"]) for lookup
                 List<FieldInfo> params = new ArrayList<>();
                 TypeInfo returnType = TypeInfo.fromPrimitive("void");
+                List<String> namespaces = scriptContext != null ? scriptContext.getNamespaces() : Collections.singletonList("Global");
 
-                if (typeResolver.isJSHook(funcName)) {
-                    List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(funcName);
+                if (typeResolver.isJSHook(namespaces, funcName)) {
+                    List<JSTypeRegistry.HookSignature> sigs = typeResolver.getJSHookSignatures(namespaces, funcName);
                     if (!sigs.isEmpty()) {
                         JSTypeRegistry.HookSignature sig = sigs.get(0);
                         documentation = sig.doc;

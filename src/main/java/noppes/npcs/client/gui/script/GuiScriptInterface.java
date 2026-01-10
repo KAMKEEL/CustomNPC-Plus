@@ -25,6 +25,7 @@ import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.item.ScriptCustomItem;
@@ -196,6 +197,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         
         // Set the scripting language for proper syntax highlighting
         activeArea.setLanguage(this.handler.getLanguage());
+
+        // Set the script context for context-aware hook autocomplete
+        activeArea.setScriptContext(getScriptContext());
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -511,6 +515,16 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         this.languages = languages;
         this.initGui();
+    }
+
+    /**
+     * Get the script context for this GUI.
+     * Override in subclasses to return the appropriate context.
+     *
+     * @return The script context (default: GLOBAL)
+     */
+    protected ScriptContext getScriptContext() {
+        return ScriptContext.GLOBAL;
     }
 
     public void save() {

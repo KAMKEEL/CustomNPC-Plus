@@ -27,9 +27,17 @@ public class JSTypeRegistry {
     // Type aliases (simple name -> full type name)
     private final Map<String, String> typeAliases = new HashMap<>();
     
-    // Hook function signatures: functionName -> list of (paramName, paramType) pairs
-    // Multiple entries for overloaded hooks
+    // Context-aware hook function signatures: namespace -> functionName -> list of signatures
+    // The namespace is the event interface name (e.g., "INpcEvent", "IPlayerEvent")
+    // This allows any mod to register hooks without modifying an enum
+    private final Map<String, Map<String, List<HookSignature>>> contextHooks = new LinkedHashMap<>();
+
+    // Legacy hook storage: functionName -> list of (paramName, paramType) pairs
+    // Kept for backward compatibility with code that doesn't use contexts
     private final Map<String, List<HookSignature>> hooks = new LinkedHashMap<>();
+
+    // Fallback namespace for hooks that don't match a specific context
+    private static final String GLOBAL_NAMESPACE = "Global";
 
     // Global object instances: name -> type (e.g., "API" -> "AbstractNpcAPI")
     // These are treated as instance objects, not static classes
@@ -275,11 +283,23 @@ public class JSTypeRegistry {
     }
     
     /**
-     * Register a hook function signature.
+     * Register a hook function signature with a namespace.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The hook function name (e.g., "interact", "damaged")
+     * @param paramName The parameter name (e.g., "event")
+     * @param paramType The parameter type (e.g., "INpcEvent.InteractEvent")
      */
-    public void registerHook(String functionName, String paramName, String paramType) {
-        hooks.computeIfAbsent(functionName, k -> new ArrayList<>())
-             .add(new HookSignature(paramName, paramType));
+    public void registerHook(String namespace, String functionName, String paramName, String paramType) {
+        HookSignature sig = new HookSignature(paramName, paramType, null, namespace);
+
+        // Add to context-specific map
+        contextHooks.computeIfAbsent(namespace, k -> new LinkedHashMap<>())
+                    .computeIfAbsent(functionName, k -> new ArrayList<>())
+                    .add(sig);
+
+        // Also add to legacy hooks map for backward compatibility
+        hooks.computeIfAbsent(functionName, k -> new ArrayList<>()).add(sig);
     }
     
     /**
@@ -369,7 +389,190 @@ public class JSTypeRegistry {
         }
         return null;
     }
-    
+
+    // ==================== Context-Aware Hook Methods ====================
+
+    /**
+     * Get hook signatures for a specific script context.
+     * Falls back to GLOBAL context if not found in the specified context.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The hook function name
+     * @return List of hook signatures, or empty list if not found
+     */
+    public List<HookSignature> getHookSignatures(String namespace, String functionName) {
+        // First try the specific namespace
+        Map<String, List<HookSignature>> namespaceMap = contextHooks.get(namespace);
+        if (namespaceMap != null) {
+            List<HookSignature> sigs = namespaceMap.get(functionName);
+            if (sigs != null && !sigs.isEmpty()) {
+                return sigs;
+            }
+        }
+
+        // Fall back to GLOBAL namespace
+        if (!GLOBAL_NAMESPACE.equals(namespace)) {
+            Map<String, List<HookSignature>> globalMap = contextHooks.get(GLOBAL_NAMESPACE);
+            if (globalMap != null) {
+                List<HookSignature> sigs = globalMap.get(functionName);
+                if (sigs != null && !sigs.isEmpty()) {
+                    return sigs;
+                }
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * Check if a function name is a known hook in a specific namespace.
+     *
+     * @param namespace The event interface namespace
+     * @param functionName The hook function name
+     * @return true if the hook exists in this namespace or GLOBAL
+     */
+    public boolean isHook(String namespace, String functionName) {
+        return !getHookSignatures(namespace, functionName).isEmpty();
+    }
+
+    /**
+     * Get the parameter type for a hook function in a specific namespace.
+     * Falls back to GLOBAL namespace if not found.
+     *
+     * @param namespace The event interface namespace
+     * @param functionName The hook function name
+     * @return The parameter type, or null if not found
+     */
+    public String getHookParameterType(String namespace, String functionName) {
+        List<HookSignature> sigs = getHookSignatures(namespace, functionName);
+        if (!sigs.isEmpty()) {
+            return sigs.get(0).paramType;
+        }
+        return null;
+    }
+
+    /**
+     * Get all hook names for a specific namespace.
+     *
+     * @param namespace The event interface namespace
+     * @return Set of hook function names available in this namespace
+     */
+    public Set<String> getHookNames(String namespace) {
+        Set<String> names = new HashSet<>();
+
+        // Add hooks from the specific namespace
+        Map<String, List<HookSignature>> namespaceMap = contextHooks.get(namespace);
+        if (namespaceMap != null) {
+            names.addAll(namespaceMap.keySet());
+        }
+
+        // Also add GLOBAL hooks
+        if (!GLOBAL_NAMESPACE.equals(namespace)) {
+            Map<String, List<HookSignature>> globalMap = contextHooks.get(GLOBAL_NAMESPACE);
+            if (globalMap != null) {
+                names.addAll(globalMap.keySet());
+            }
+        }
+
+        return names;
+    }
+
+    /**
+     * Get all hooks organized by namespace.
+     *
+     * @return Map of namespace -> hookName -> signatures
+     */
+    public Map<String, Map<String, List<HookSignature>>> getAllContextHooks() {
+        return Collections.unmodifiableMap(contextHooks);
+    }
+
+    // ==================== MULTI-NAMESPACE LOOKUP (for ScriptContext) ====================
+
+    /**
+     * Get hook signatures by searching through multiple namespaces.
+     * This is used when a ScriptContext has multiple event types (e.g., Player has
+     * IPlayerEvent, IAnimationEvent, IPartyEvent, etc.)
+     *
+     * @param namespaces List of namespaces to search (in priority order)
+     * @param functionName The hook function name
+     * @return List of hook signatures from the first matching namespace, or empty list
+     */
+    public List<HookSignature> getHookSignatures(List<String> namespaces, String functionName) {
+        // Search through all namespaces in order
+        for (String namespace : namespaces) {
+            Map<String, List<HookSignature>> namespaceMap = contextHooks.get(namespace);
+            if (namespaceMap != null) {
+                List<HookSignature> sigs = namespaceMap.get(functionName);
+                if (sigs != null && !sigs.isEmpty()) {
+                    return sigs;
+                }
+            }
+        }
+
+        // Fall back to GLOBAL namespace
+        Map<String, List<HookSignature>> globalMap = contextHooks.get(GLOBAL_NAMESPACE);
+        if (globalMap != null) {
+            List<HookSignature> sigs = globalMap.get(functionName);
+            if (sigs != null && !sigs.isEmpty()) {
+                return sigs;
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    /**
+     * Check if a function name is a known hook in any of the given namespaces.
+     *
+     * @param namespaces List of namespaces to search
+     * @param functionName The hook function name
+     * @return true if the hook exists in any namespace or GLOBAL
+     */
+    public boolean isHook(List<String> namespaces, String functionName) {
+        return !getHookSignatures(namespaces, functionName).isEmpty();
+    }
+
+    /**
+     * Get the parameter type for a hook function, searching through multiple namespaces.
+     *
+     * @param namespaces List of namespaces to search
+     * @param functionName The hook function name
+     * @return The parameter type, or null if not found
+     */
+    public String getHookParameterType(List<String> namespaces, String functionName) {
+        List<HookSignature> sigs = getHookSignatures(namespaces, functionName);
+        if (!sigs.isEmpty()) {
+            return sigs.get(0).paramType;
+        }
+        return null;
+    }
+
+    /**
+     * Get all hook names available in any of the given namespaces.
+     *
+     * @param namespaces List of namespaces to search
+     * @return Set of hook function names available in these namespaces
+     */
+    public Set<String> getHookNames(List<String> namespaces) {
+        Set<String> names = new HashSet<>();
+
+        // Add hooks from all specified namespaces
+        for (String namespace : namespaces) {
+            Map<String, List<HookSignature>> namespaceMap = contextHooks.get(namespace);
+            if (namespaceMap != null) {
+                names.addAll(namespaceMap.keySet());
+            }
+        }
+
+        // Also add GLOBAL hooks
+        Map<String, List<HookSignature>> globalMap = contextHooks.get(GLOBAL_NAMESPACE);
+        if (globalMap != null) {
+            names.addAll(globalMap.keySet());
+        }
+
+        return names;
+    }
+
     /**
      * Resolve all type parameters for all types.
      * Called after all .d.ts files are loaded (Phase 2).
@@ -530,31 +733,38 @@ public class JSTypeRegistry {
         types.clear();
         typeAliases.clear();
         hooks.clear();
+        contextHooks.clear();
         globalEngineObjects.clear();
         initialized = false;
     }
-    
+
     /**
-     * Represents a hook function signature.
+     * Represents a hook function signature with its namespace.
      */
     public static class HookSignature {
         public final String paramName;
         public final String paramType;
         public final String doc;
-        
+        public final String namespace;  // The event interface namespace (e.g., "INpcEvent")
+
         public HookSignature(String paramName, String paramType) {
-            this(paramName, paramType, null);
+            this(paramName, paramType, null, GLOBAL_NAMESPACE);
         }
-        
+
         public HookSignature(String paramName, String paramType, String doc) {
+            this(paramName, paramType, doc, GLOBAL_NAMESPACE);
+        }
+
+        public HookSignature(String paramName, String paramType, String doc, String namespace) {
             this.paramName = paramName;
             this.paramType = paramType;
             this.doc = doc;
+            this.namespace = namespace != null ? namespace : GLOBAL_NAMESPACE;
         }
-        
+
         @Override
         public String toString() {
-            return paramName + ": " + paramType;
+            return paramName + ": " + paramType + " [" + namespace + "]";
         }
     }
 }

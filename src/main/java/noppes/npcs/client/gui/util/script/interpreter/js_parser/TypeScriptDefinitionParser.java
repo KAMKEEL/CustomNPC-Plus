@@ -44,9 +44,15 @@ public class TypeScriptDefinitionParser {
     
     private static final Pattern GLOBAL_FUNCTION_PATTERN = Pattern.compile(
         "function\\s+(\\w+)\\s*\\(([^)]*)\\)\\s*:\\s*([^;]+);");
-    
+
     private static final Pattern GLOBAL_TYPE_ALIAS_PATTERN = Pattern.compile(
         "type\\s+(\\w+)\\s*=\\s*import\\(['\"]([^'\"]+)['\"]\\)\\.([\\w.]+);");
+
+    // Pattern for context-namespaced hooks like: declare namespace INpcEvent { ... }
+    // Matches any "declare namespace <Name> {" where Name starts with I and contains Event,
+    // or any other namespace pattern used for hooks
+    private static final Pattern HOOKS_NAMESPACE_PATTERN = Pattern.compile(
+        "declare\\s+namespace\\s+(I\\w*Event|\\w+)\\s*\\{", Pattern.MULTILINE);
     
     private final JSTypeRegistry registry;
     
@@ -129,21 +135,56 @@ public class TypeScriptDefinitionParser {
     
     /**
      * Parse hooks.d.ts to extract function signatures for JS hooks.
+     *
+     * Hooks are organized by their parent event interface, with the interface name
+     * used directly as the namespace. Any mod can register its own event interfaces
+     * and they will be automatically parsed:
+     *
+     *   declare namespace INpcEvent {
+     *       function interact(event: INpcEvent.InteractEvent): void;
+     *       function init(event: INpcEvent.InitEvent): void;
+     *   }
+     *
+     *   declare namespace IPlayerEvent {
+     *       function interact(event: IPlayerEvent.InteractEvent): void;
+     *   }
+     *
+     *   declare namespace IDBCEvent {
+     *       function customHook(event: IDBCEvent.CustomEvent): void;
+     *   }
+     *
+     * The namespace name is stored as a string, allowing dynamic registration
+     * without requiring enum modifications.
      */
     private void parseHooksFile(String content) {
-        Matcher m = GLOBAL_FUNCTION_PATTERN.matcher(content);
-        while (m.find()) {
-            String funcName = m.group(1);
-            String params = m.group(2);
-            String returnType = m.group(3).trim();
-            
-            // Parse parameter - format is "paramName: TypeName"
-            if (!params.isEmpty()) {
-                String[] parts = params.split(":\\s*", 2);
-                if (parts.length == 2) {
-                    String paramName = parts[0].trim();
-                    String paramType = parts[1].trim();
-                    registry.registerHook(funcName, paramName, paramType);
+        // Parse namespaced hooks (e.g., declare namespace INpcEvent { ... })
+        // The namespace name is used directly - any event interface can register hooks
+        Matcher namespaceMatcher = HOOKS_NAMESPACE_PATTERN.matcher(content);
+        while (namespaceMatcher.find()) {
+            String namespace = namespaceMatcher.group(1);  // e.g., "INpcEvent", "IPlayerEvent", "IDBCEvent"
+
+            // Find the body of this namespace
+            int bodyStart = namespaceMatcher.end();
+            int bodyEnd = findMatchingBrace(content, bodyStart - 1);
+            if (bodyEnd > bodyStart) {
+                String namespaceBody = content.substring(bodyStart, bodyEnd);
+
+                // Parse functions within this namespace
+                Matcher funcMatcher = GLOBAL_FUNCTION_PATTERN.matcher(namespaceBody);
+                while (funcMatcher.find()) {
+                    String funcName = funcMatcher.group(1);
+                    String params = funcMatcher.group(2);
+
+                    // Parse parameter - format is "paramName: TypeName"
+                    if (!params.isEmpty()) {
+                        String[] parts = params.split(":\\s*", 2);
+                        if (parts.length == 2) {
+                            String paramName = parts[0].trim();
+                            String paramType = parts[1].trim();
+                            // Register hook with the namespace string directly
+                            registry.registerHook(namespace, funcName, paramName, paramType);
+                        }
+                    }
                 }
             }
         }
