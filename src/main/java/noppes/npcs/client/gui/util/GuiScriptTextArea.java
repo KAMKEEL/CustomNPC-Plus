@@ -11,6 +11,7 @@ import noppes.npcs.client.gui.util.key.OverlayKeyPresetViewer;
 import noppes.npcs.client.gui.util.script.*;
 import noppes.npcs.client.gui.util.script.JavaTextContainer.LineData;
 import noppes.npcs.client.key.impl.ScriptEditorKeys;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.util.ValueUtil;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
@@ -2157,6 +2158,27 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public void enableCodeHighlighting() {
         this.enableCodeHighlighting = true;
         this.container.formatCodeText();
+    }
+
+    /**
+     * Set the script context (NPC, PLAYER, BLOCK, ITEM, etc.).
+     * This determines which hooks and event types are available for autocomplete.
+     *
+     * @param context The script context
+     */
+    public void setScriptContext(ScriptContext context) {
+        if (this.container != null) {
+            this.container.setScriptContext(context);
+        }
+    }
+
+    /**
+     * Get the current script context.
+     *
+     * @return The script context (NPC, PLAYER, BLOCK, ITEM, etc.)
+     */
+    public ScriptContext getScriptContext() {
+        return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
     }
 
     public void setListener(ITextChangeListener listener) {

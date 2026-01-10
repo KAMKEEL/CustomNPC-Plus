@@ -13,6 +13,7 @@ import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiNPCEventScripts;
 import noppes.npcs.client.gui.script.GuiScriptInterface;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
@@ -166,8 +167,10 @@ public class GuiScript extends GuiScriptInterface {
         int scrollbarOffset = activeArea.hasVerticalScrollbar() ? -8 : -2;
         fullscreenButton.initGui(editorX + editorWidth, editorY, scrollbarOffset);
 
-        // ==================== RIGHT PANEL BUTTONS (hidden in fullscreen) ====================
-        if (!isFullscreen) {
+            // Set language and script context for proper syntax highlighting and autocomplete
+            activeArea.setLanguage(script.getLanguage());
+            activeArea.setScriptContext(ScriptContext.NPC);
+
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
             addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
             addButton(new GuiNpcButton(100, guiLeft + 315, guiTop + 25, 50, 20, "gui.copy"));

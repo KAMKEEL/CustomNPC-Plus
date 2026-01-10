@@ -4,7 +4,8 @@ import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
-import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.IScriptUnit;
@@ -45,6 +46,11 @@ public class GuiScriptPlayers extends GuiScriptInterface {
             script.getScripts().set(tab, container);
             initGui();
         }
+    }
+
+    @Override
+    protected ScriptContext getScriptContext() {
+        return ScriptContext.PLAYER;
     }
 
     public void save() {

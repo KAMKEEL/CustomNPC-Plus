@@ -5,7 +5,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.constants.ScriptContext;
-import noppes.npcs.controllers.ScriptHookController;
 
 import java.util.ArrayList;
 
@@ -23,6 +22,11 @@ public class GuiScriptBlock extends GuiScriptInterface {
         this.tileScripted.setNBT(compound);
         super.setGuiData(compound);
         loaded = true;
+    }
+
+    @Override
+    protected ScriptContext getScriptContext() {
+        return ScriptContext.BLOCK;
     }
 
     public void save() {

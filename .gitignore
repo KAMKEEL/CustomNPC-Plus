@@ -6,10 +6,13 @@
 /out/
 /build/
 /eclipse/
+/gradle-plugins/
 .classpath
 .project
 /bin/
 /config/
+/copilot/
+/buildSrc/build/
 /crash-reports/
 /logs/
 options.txt
@@ -39,3 +42,4 @@ addon.late.local.gradle.kts
 layout.json
 out
 run
+src/main/resources/assets/customnpcs/api
