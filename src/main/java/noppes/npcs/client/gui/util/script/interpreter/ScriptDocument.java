@@ -2677,10 +2677,10 @@ public class ScriptDocument {
                     // Check for dynamic return type resolution (like Java.type("className"))
                     SyntheticMethod synMethod = syntheticType.getMethod(methodName);
                     TypeInfo dynamicReturnType = null;
-                    if (synMethod != null && synMethod.returnTypeResolver != null) {
+                    if (synMethod != null) {
                         String argsText = text.substring(openParen + 1, closeParen);
                         String[] strArgs = TypeResolver.parseStringArguments(argsText);
-                        dynamicReturnType = synMethod.returnTypeResolver.resolve(strArgs);
+                        dynamicReturnType = synMethod.resolveReturnType(strArgs);
                     }
 
                     MethodCallInfo callInfo = new MethodCallInfo(methodName, nameStart, nameEnd, openParen,
@@ -3553,9 +3553,9 @@ public class ScriptDocument {
             if (method != null) {
                 // For methods with dynamic return type resolvers (like Java.type),
                 // extract string arguments and resolve
-                if (method.returnTypeResolver != null && segment.arguments != null) {
+                if (segment.arguments != null) {
                     String[] args = TypeResolver.parseStringArguments(segment.arguments);
-                    TypeInfo resolved = method.returnTypeResolver.resolve(args);
+                    TypeInfo resolved = method.resolveReturnType(args);
                     if (resolved != null) {
                         return resolved;
                     }

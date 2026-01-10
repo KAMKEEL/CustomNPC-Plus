@@ -33,6 +33,30 @@ public class SyntheticMethod {
     }
 
     /**
+     * Get the return type as TypeInfo.
+     * @return The resolved TypeInfo for the return type, or unresolved if not found
+     */
+    public TypeInfo getReturnTypeInfo() {
+        TypeInfo returnTypeInfo = TypeResolver.getInstance().resolve(returnType);
+        if (returnTypeInfo == null) {
+            returnTypeInfo = TypeInfo.unresolved(returnType, returnType);
+        }
+        return returnTypeInfo;
+    }
+
+    /**
+     * Resolve the return type with dynamic arguments (for methods like Java.type).
+     * @param arguments The method call arguments
+     * @return The dynamically resolved TypeInfo, or static return type if no resolver
+     */
+    public TypeInfo resolveReturnType(String[] arguments) {
+        if (returnTypeResolver != null) {
+            return returnTypeResolver.resolve(arguments);
+        }
+        return getReturnTypeInfo();
+    }
+
+    /**
      * Create a MethodInfo from this synthetic method.
      */
     public MethodInfo toMethodInfo(TypeInfo containingType) {

@@ -19,6 +19,18 @@ public class SyntheticField {
         this.isStatic = isStatic;
     }
 
+    /**
+     * Get the field type as TypeInfo.
+     * @return The resolved TypeInfo for the field type, or unresolved if not found
+     */
+    public TypeInfo getTypeInfo() {
+        TypeInfo type = TypeResolver.getInstance().resolve(typeName);
+        if (type == null) {
+            type = TypeInfo.unresolved(typeName, typeName);
+        }
+        return type;
+    }
+
     public FieldInfo toFieldInfo() {
         TypeInfo type = TypeResolver.getInstance().resolve(typeName);
         if (type == null) {

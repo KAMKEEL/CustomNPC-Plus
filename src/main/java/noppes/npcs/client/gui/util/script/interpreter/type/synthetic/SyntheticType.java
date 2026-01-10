@@ -2,12 +2,8 @@ package noppes.npcs.client.gui.util.script.interpreter.type.synthetic;
 
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
 import noppes.npcs.client.gui.util.script.interpreter.type.TypeInfo;
-import noppes.npcs.client.gui.util.script.interpreter.type.TypeResolver;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Represents a fully-built synthetic type.
@@ -94,11 +90,6 @@ public class SyntheticType {
         if (method == null)
             return null;
 
-        if (method.returnTypeResolver != null) {
-            return method.returnTypeResolver.resolve(arguments);
-        }
-
-        // Fall back to static return type
-        return TypeResolver.getInstance().resolve(method.returnType);
+        return method.resolveReturnType(arguments);
     }
 }
