@@ -51,7 +51,6 @@ public abstract class Ability implements IAbility {
 
     // Interruption
     protected boolean interruptible = true;
-    protected float interruptThreshold = 10.0f;
 
     // Feedback
     protected boolean lockMovement = true;
@@ -451,9 +450,36 @@ public abstract class Ability implements IAbility {
         return phase != AbilityPhase.IDLE;
     }
 
-    /** Check if can be interrupted by this damage */
-    public boolean canInterrupt(float damage) {
-        return interruptible && damage >= interruptThreshold && phase == AbilityPhase.WINDUP;
+    /**
+     * Check if can be interrupted by this damage source.
+     * Only direct physical hits (not magic, fire, or other indirect damage) can interrupt.
+     * Interruption only occurs during WINDUP phase - if ability is already active, it completes.
+     *
+     * @param source The damage source
+     * @return true if the ability should be interrupted
+     */
+    public boolean canInterrupt(DamageSource source) {
+        if (!interruptible || phase != AbilityPhase.WINDUP) {
+            return false;
+        }
+
+        // Only direct physical hits can interrupt, not magic, fire, or other indirect damage
+        if (source == null) {
+            return false;
+        }
+
+        // Reject indirect damage types
+        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion()) {
+            return false;
+        }
+
+        // Reject damage without a direct attacker entity
+        if (source.getEntity() == null) {
+            return false;
+        }
+
+        // Direct hit from an entity - can interrupt
+        return true;
     }
 
     /** Reset all execution state (called on combat end) */
@@ -507,7 +533,6 @@ public abstract class Ability implements IAbility {
         nbt.setInteger("active", activeTicks);
         nbt.setInteger("recovery", recoveryTicks);
         nbt.setBoolean("interruptible", interruptible);
-        nbt.setFloat("interruptThreshold", interruptThreshold);
         nbt.setBoolean("lockMovement", lockMovement);
         nbt.setInteger("windUpColor", windUpColor);
         nbt.setInteger("activeColor", activeColor);
@@ -547,7 +572,6 @@ public abstract class Ability implements IAbility {
         activeTicks = nbt.getInteger("active");
         recoveryTicks = nbt.getInteger("recovery");
         interruptible = nbt.getBoolean("interruptible");
-        interruptThreshold = nbt.getFloat("interruptThreshold");
         lockMovement = nbt.getBoolean("lockMovement");
         // Support old telegraphColor key for backwards compatibility
         if (nbt.hasKey("windUpColor")) {
@@ -642,9 +666,6 @@ public abstract class Ability implements IAbility {
 
     public boolean isInterruptible() { return interruptible; }
     public void setInterruptible(boolean interruptible) { this.interruptible = interruptible; }
-
-    public float getInterruptThreshold() { return interruptThreshold; }
-    public void setInterruptThreshold(float interruptThreshold) { this.interruptThreshold = interruptThreshold; }
 
     public boolean isLockMovement() { return lockMovement; }
     public void setLockMovement(boolean lockMovement) { this.lockMovement = lockMovement; }

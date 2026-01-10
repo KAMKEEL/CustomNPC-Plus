@@ -442,7 +442,7 @@ public class DataAbilities {
             return false;
         }
 
-        if (currentAbility.canInterrupt(amount)) {
+        if (currentAbility.canInterrupt(source)) {
             interruptCurrentAbility(source, amount);
             return true;
         }
