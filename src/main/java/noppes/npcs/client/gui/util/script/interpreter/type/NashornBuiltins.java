@@ -90,7 +90,7 @@ public class NashornBuiltins {
                 
             .addMethod("from")
                 .parameter("javaArray", "Object", "A Java array or Collection")
-                .returns("Array")
+                .returns("Object[]")
                 .documentation("Converts a Java array or Collection to a JavaScript array.\n\n" +
                     "**Usage:**\n" +
                     "```javascript\n" +
@@ -102,8 +102,8 @@ public class NashornBuiltins {
                 .done()
                 
             .addMethod("to")
-                .parameter("jsArray", "Array", "A JavaScript array")
-                .parameter("javaType", "java.lang.Class", "The target Java array type")
+                .parameter("jsArray", "Object[]", "A JavaScript array")
+                .parameter("javaType", "Class", "The target Java array type")
                 .returns("Object")
                 .documentation("Converts a JavaScript array to a Java array of the specified type.\n\n" +
                     "**Usage:**\n" +
@@ -134,9 +134,9 @@ public class NashornBuiltins {
                 .done()
                 
             .addMethod("synchronized")
-                .parameter("func", "Function", "The function to synchronize")
+                .parameter("func", "java.util.function.Function", "The function to synchronize")
                 .parameter("lock", "Object", "The object to synchronize on")
-                .returns("Function")
+                .returns("java.util.function.Function")
                 .documentation("Wraps a function to execute synchronized on a given object.\n\n" +
                     "**Usage:**\n" +
                     "```javascript\n" +
