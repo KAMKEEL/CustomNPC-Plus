@@ -718,15 +718,25 @@ public class TypeResolver {
             return false;
         }
 
-        // First check if it's a variable/field (instance access)
+        // If the identifier contains dots, parentheses, brackets, or operators, it's a complex expression
+        // Complex expressions (method calls, field chains, arithmetic) are instance access by default
+        if (identifier.contains(".") || identifier.contains("(") || identifier.contains("[") || 
+            document.containsOperators(identifier)) {
+            // For complex expressions, resolve as expression and check the result type
+            TypeInfo exprType = document.resolveExpressionType(identifier, position);
+            // Only static if the expression result is itself a ClassTypeInfo (e.g., Java.type("File"))
+            return isStaticAccess(exprType, false);
+        }
+
+        // Simple identifier - check if it's a variable/field (instance access)
         FieldInfo fieldInfo = document.resolveVariable(identifier, position);
         if (fieldInfo != null && fieldInfo.isResolved()) {
             // It's a variable - check if its type is a ClassTypeInfo
             return isStaticAccess(fieldInfo.getTypeInfo(), false);
         }
 
-        // Not a variable - check if it's a type name
-        TypeInfo typeCheck = document.resolveExpressionType(identifier,position);
+        // Not a variable - check if it's a type name by trying to resolve as type
+        TypeInfo typeCheck = document.resolveType(identifier);
         boolean isType = typeCheck != null && typeCheck.isResolved();
         return isStaticAccess(typeCheck, isType);
     }

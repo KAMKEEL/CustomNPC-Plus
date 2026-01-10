@@ -3583,7 +3583,7 @@ public class ScriptDocument {
      * This is a quick heuristic check - it may have false positives for operators
      * inside strings, but those are handled by the full parser.
      */
-    private boolean containsOperators(String expr) {
+    public boolean containsOperators(String expr) {
         if (expr == null) return false;
         
         boolean inString = false;
