@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
@@ -12,6 +14,8 @@ import net.minecraft.world.World;
 import noppes.npcs.DataAbilities;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
+import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
@@ -251,10 +255,9 @@ public abstract class Ability implements IAbility {
      * @param callback The callback to notify when the ability is saved
      * @return A SubGuiAbilityConfig instance (or subclass) for configuring this ability
      */
-    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
-    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
-            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
-        return new noppes.npcs.client.gui.advanced.SubGuiAbilityConfig(this, callback);
+    @SideOnly(Side.CLIENT)
+    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
+        return new SubGuiAbilityConfig(this, callback);
     }
 
     /**

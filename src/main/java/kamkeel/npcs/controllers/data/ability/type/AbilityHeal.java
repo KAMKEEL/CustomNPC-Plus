@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
@@ -8,6 +10,9 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.ArrayList;
@@ -48,10 +53,9 @@ public class AbilityHeal extends Ability {
     public boolean hasTypeSettings() { return true; }
 
     @Override
-    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
-    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
-            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
-        return new noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal(this, callback);
+    @SideOnly(Side.CLIENT)
+    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
+        return new SubGuiAbilityHeal(this, callback);
     }
 
     @Override

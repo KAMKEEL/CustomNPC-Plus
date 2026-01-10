@@ -1,6 +1,12 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.entity.EntityLivingBase;
@@ -95,10 +101,10 @@ public class AbilityDash extends Ability {
     public boolean hasTypeSettings() { return true; }
 
     @Override
-    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
-    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
-            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
-        return new noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash(this, callback);
+    @SideOnly(Side.CLIENT)
+    public SubGuiAbilityConfig createConfigGui(
+            IAbilityConfigCallback callback) {
+        return new SubGuiAbilityDash(this, callback);
     }
 
     @Override

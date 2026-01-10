@@ -1,5 +1,7 @@
 package kamkeel.npcs.controllers.data.ability.type;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import kamkeel.npcs.controllers.data.ability.Ability;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
@@ -12,6 +14,9 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
+import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
+import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
 import noppes.npcs.entity.EntityNPCInterface;
 
 import java.util.HashSet;
@@ -57,10 +62,9 @@ public class AbilityCharge extends Ability {
     public boolean hasTypeSettings() { return true; }
 
     @Override
-    @cpw.mods.fml.relauncher.SideOnly(cpw.mods.fml.relauncher.Side.CLIENT)
-    public noppes.npcs.client.gui.advanced.SubGuiAbilityConfig createConfigGui(
-            noppes.npcs.client.gui.advanced.IAbilityConfigCallback callback) {
-        return new noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge(this, callback);
+    @SideOnly(Side.CLIENT)
+    public SubGuiAbilityConfig createConfigGui(IAbilityConfigCallback callback) {
+        return new SubGuiAbilityCharge(this, callback);
     }
 
     @Override
