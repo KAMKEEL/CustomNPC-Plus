@@ -4,6 +4,7 @@ import noppes.npcs.client.ClientProxy;
 import noppes.npcs.client.gui.util.script.JavaTextContainer;
 import noppes.npcs.client.gui.util.script.interpreter.field.FieldInfo;
 import noppes.npcs.client.gui.util.script.interpreter.method.MethodInfo;
+import noppes.npcs.constants.ScriptContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +32,12 @@ public class ScriptTextContainer extends JavaTextContainer {
     public static boolean USE_NEW_INTERPRETER = true;
 
     private ScriptDocument document;
-    
+
     /** The scripting language: "ECMAScript", "Groovy", etc. */
     private String language = "ECMAScript";
+
+    /** The script context: NPC, PLAYER, BLOCK, ITEM, etc. */
+    private ScriptContext scriptContext = ScriptContext.GLOBAL;
 
     public ScriptTextContainer(String text) {
         super(text);
@@ -66,6 +70,28 @@ public class ScriptTextContainer extends JavaTextContainer {
      */
     public String getLanguage() {
         return language;
+    }
+
+    /**
+     * Set the script context (NPC, PLAYER, BLOCK, ITEM, etc.).
+     * This determines which hooks and event types are available for autocomplete.
+     *
+     * @param context The script context
+     */
+    public void setScriptContext(ScriptContext context) {
+        this.scriptContext = context != null ? context : ScriptContext.GLOBAL;
+        if (document != null) {
+            document.setScriptContext(this.scriptContext);
+        }
+    }
+
+    /**
+     * Get the current script context.
+     *
+     * @return The script context (NPC, PLAYER, BLOCK, ITEM, etc.)
+     */
+    public ScriptContext getScriptContext() {
+        return scriptContext;
     }
 
     @Override
@@ -103,6 +129,7 @@ public class ScriptTextContainer extends JavaTextContainer {
         }
         
         document = new ScriptDocument(this.text, this.language);
+        document.setScriptContext(this.scriptContext);
         init(width, height);
     }
 

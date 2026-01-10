@@ -58,8 +58,10 @@ class JavaToTypeScriptConverter {
     private List<TypeInfo> generatedTypes = []
     
     // Track hooks for hooks.d.ts
+    // Hooks are organized by their parent event type (e.g., INpcEvent, IPlayerEvent)
+    // The namespace in hooks.d.ts matches the event type name directly
     private Map<String, List<HookInfo>> hooks = [:]
-    
+
     private Logger logger;
     
     JavaToTypeScriptConverter(File outputDir, Set<String> apiPackages) {
@@ -1005,40 +1007,100 @@ class JavaToTypeScriptConverter {
     }
     
     /**
-     * Collect hook information from event interfaces
+     * Extract @hookName value from a JSDoc comment.
+     *
+     * @param jsdoc The JSDoc comment string (may be null)
+     * @return The hook name if @hookName tag is present, null otherwise
+     */
+    private String extractHookNameFromJsDoc(String jsdoc) {
+        if (jsdoc == null || jsdoc.isEmpty()) return null
+
+        // Match @hookName followed by the hook name value
+        // Examples: @hookName animationStart, @hookName customGuiButton
+        def matcher = jsdoc =~ /@hookName\s+(\w+)/
+        if (matcher.find()) {
+            return matcher.group(1)
+        }
+        return null
+    }
+
+    /**
+     * Collect hook information from event interfaces.
+     *
      * Looks for interfaces that:
      * 1. End with 'Event' (e.g., IPlayerEvent, IDBCEvent)
      * 2. Are in an 'event' package
      * 3. Have nested types that are also events
+     *
+     * Hook names are determined by:
+     * 1. @hookName JSDoc tag if present (e.g., @hookName animationStart)
+     * 2. Otherwise derived from the event class name (e.g., InitEvent -> init)
+     *
+     * The parent event type name (e.g., "INpcEvent", "IPlayerEvent") is used directly
+     * as the namespace in hooks.d.ts. This allows any mod to register event interfaces
+     * and have them automatically organized by their type name.
      */
     private void collectHooks(ParsedJavaFile parsed) {
         boolean isEventPackage = parsed.packageName.contains('.event')
-        
+
         parsed.types.each { type ->
             // Check if this is an event interface:
             // - Must be an interface
             // - Either ends with 'Event' OR is in an event package
             boolean isEventType = type.isInterface && (
-                type.name.endsWith('Event') || type.name.endsWith('Events')||
+                type.name.endsWith('Event') || type.name.endsWith('Events') ||
                 isEventPackage
             )
-            
+
             if (isEventType && !type.nestedTypes.isEmpty()) {
-                type.nestedTypes.each { nested ->
-                    // Only process nested types that are interfaces and look like events
-                    if (nested.isInterface && (nested.name.endsWith('Event')|| nested.name.endsWith('Events') || isEventPackage)) {
-                        // Create hook entry
-                        String hookName = deriveHookName(nested.name)
-                        if (!hooks.containsKey(hookName)) {
-                            hooks[hookName] = []
-                        }
-                        hooks[hookName] << new HookInfo(
-                            eventType: type.name,
-                            subEvent: nested.name,
-                            fullType: "${type.name}.${nested.name}",
-                            packageName: parsed.packageName
-                        )
-                    }
+                collectHooksFromNestedTypes(type.nestedTypes, type.name, parsed.packageName, isEventPackage)
+            }
+        }
+    }
+
+    /**
+     * Recursively collect hooks from nested types.
+     * This handles deeply nested event types like IAnimationEvent.IFrameEvent.Entered
+     */
+    private void collectHooksFromNestedTypes(List<JavaType> nestedTypes, String parentTypeName, String packageName, boolean isEventPackage) {
+        nestedTypes.each { nested ->
+            // Check if this nested type should be processed as a hook
+            boolean isNestedEvent = nested.isInterface && (
+                nested.name.endsWith('Event') ||
+                nested.name.endsWith('Events') ||
+                isEventPackage ||
+                // Also include simple names like "Started", "Ended", "Entered", "Exited"
+                // if they're inside an event interface
+                parentTypeName.endsWith('Event')
+            )
+
+            if (isNestedEvent) {
+                // Check for @hookName in JSDoc first, otherwise derive from class name
+                String hookName = extractHookNameFromJsDoc(nested.jsdoc)
+                if (hookName == null) {
+                    hookName = deriveHookName(nested.name)
+                }
+
+                if (!hooks.containsKey(hookName)) {
+                    hooks[hookName] = []
+                }
+
+                // Use the root event type name as the namespace
+                // Extract the root type (e.g., "IAnimationEvent" from "IAnimationEvent.IFrameEvent")
+                String rootType = parentTypeName.contains('.') ?
+                    parentTypeName.substring(0, parentTypeName.indexOf('.')) : parentTypeName
+
+                hooks[hookName] << new HookInfo(
+                    eventType: rootType,
+                    subEvent: nested.name,
+                    fullType: "${parentTypeName}.${nested.name}",
+                    packageName: packageName,
+                    contextNamespace: rootType
+                )
+
+                // Recursively process any nested types within this nested type
+                if (!nested.nestedTypes.isEmpty()) {
+                    collectHooksFromNestedTypes(nested.nestedTypes, "${parentTypeName}.${nested.name}", packageName, isEventPackage)
                 }
             }
         }
@@ -1131,30 +1193,67 @@ class JavaToTypeScriptConverter {
     }
     
     /**
-     * Generate hooks.d.ts with event hook function declarations
+     * Generate hooks.d.ts with event hook function declarations.
+     *
+     * Hooks are organized by their parent event interface type, using the type name
+     * directly as the namespace. This provides context-aware autocomplete where
+     * the same hook name (e.g., "interact") can have different event types depending
+     * on the script context.
+     *
+     * Output format example:
+     *   declare namespace INpcEvent {
+     *       function interact(event: INpcEvent.InteractEvent): void;
+     *       function init(event: INpcEvent.InitEvent): void;
+     *   }
+     *
+     *   declare namespace IPlayerEvent {
+     *       function interact(event: IPlayerEvent.InteractEvent): void;
+     *       function init(event: IPlayerEvent.InitEvent): void;
+     *   }
+     *
+     * The namespace name matches the event interface type exactly, making it easy
+     * for the runtime parser to match hooks to their correct context.
      */
     private void generateHooksFile() {
         StringBuilder sb = new StringBuilder()
-        
+
         sb.append('/**\n')
-        sb.append(' * CustomNPC+ Event Hook Overloads\n')
-        sb.append(' * Auto-generated - do not edit manually.\n')
+        sb.append(' * CustomNPC+ Event Hook Declarations\n')
+        sb.append(' *\n')
+        sb.append(' * Hooks are organized by their parent event interface (e.g., INpcEvent, IPlayerEvent).\n')
+        sb.append(' * This allows the same hook name to have different event types per script context.\n')
+        sb.append(' *\n')
+        sb.append(' * Auto-generated from Java event interfaces - do not edit manually.\n')
         sb.append(' */\n\n')
-        
+
         sb.append("import './minecraft-raw.d.ts';\n")
         sb.append("import './forge-events-raw.d.ts';\n\n")
-        
-        sb.append('declare global {\n')
-        
+
+        // Group hooks by their parent event type (contextNamespace = type.name)
+        Map<String, Map<String, List<HookInfo>>> hooksByEventType = [:].withDefault { [:].withDefault { [] } }
+
         hooks.each { hookName, hookInfos ->
             hookInfos.each { info ->
-                sb.append("    function ${hookName}(${info.eventType}: ${info.fullType}): void;\n")
+                hooksByEventType[info.contextNamespace][hookName] << info
             }
         }
-        
-        sb.append('}\n\n')
+
+        // Output each event type as a namespace
+        hooksByEventType.sort { a, b -> a.key <=> b.key }.each { eventTypeName, eventHooks ->
+            sb.append("declare namespace ${eventTypeName} {\n")
+
+            // Output all hooks for this event type, sorted alphabetically
+            eventHooks.sort { a, b -> a.key <=> b.key }.each { hookName, hookInfos ->
+                hookInfos.each { info ->
+                    sb.append("    function ${hookName}(event: ${info.fullType}): void;\n")
+                }
+            }
+
+            sb.append('}\n\n')
+        }
+
         sb.append('export {};\n')
-        
+
         new File(outputDir, 'hooks.d.ts').text = sb.toString()
     }
     
@@ -1215,9 +1314,10 @@ class JavaToTypeScriptConverter {
     }
     
     static class HookInfo {
-        String eventType
-        String subEvent
-        String fullType
-        String packageName
+        String eventType        // Parent event interface name (e.g., "INpcEvent")
+        String subEvent         // Nested event type name (e.g., "InteractEvent")
+        String fullType         // Full type path (e.g., "INpcEvent.InteractEvent")
+        String packageName      // Java package (e.g., "noppes.npcs.api.event")
+        String contextNamespace // Namespace in hooks.d.ts (same as eventType, e.g., "INpcEvent")
     }
 }

@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.script;
 import kamkeel.npcs.network.packets.request.script.BlockScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.blocks.tiles.TileScripted;
+import noppes.npcs.constants.ScriptContext;
 
 
 public class GuiScriptBlock extends GuiScriptInterface {
@@ -31,6 +32,11 @@ public class GuiScriptBlock extends GuiScriptInterface {
         this.tileScripted.setNBT(compound);
         super.setGuiData(compound);
         loaded = true;
+    }
+
+    @Override
+    protected ScriptContext getScriptContext() {
+        return ScriptContext.BLOCK;
     }
 
     public void save() {

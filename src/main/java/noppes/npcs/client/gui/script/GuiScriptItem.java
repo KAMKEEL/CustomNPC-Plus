@@ -6,6 +6,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
 import noppes.npcs.NBTTags;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.util.Date;
@@ -46,6 +47,11 @@ public class GuiScriptItem extends GuiScriptInterface {
             super.setGuiData(compound);
             loaded = true;
         }
+    }
+
+    @Override
+    protected ScriptContext getScriptContext() {
+        return ScriptContext.ITEM;
     }
 
     public void save() {

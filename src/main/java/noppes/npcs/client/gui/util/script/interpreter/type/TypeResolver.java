@@ -166,6 +166,106 @@ public class TypeResolver {
         return getJSTypeRegistry().getHookSignatures(functionName);
     }
 
+    // ==================== CONTEXT-AWARE HOOK METHODS ====================
+
+    /**
+     * Check if a function name is a known JS hook in a specific script context.
+     * Falls back to GLOBAL context if not found in the specified context.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The function name to check
+     * @return true if it's a known hook in this namespace
+     */
+    public boolean isJSHook(String namespace, String functionName) {
+        return getJSTypeRegistry().isHook(namespace, functionName);
+    }
+
+    /**
+     * Get the parameter type for a JS hook function in a specific namespace.
+     * Falls back to "Global" namespace if not found in the specified namespace.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The hook function name
+     * @return The parameter type, or null if not a hook
+     */
+    public String getJSHookParameterType(String namespace, String functionName) {
+        return getJSTypeRegistry().getHookParameterType(namespace, functionName);
+    }
+
+    /**
+     * Get hook signatures for a JS function in a specific namespace.
+     * Falls back to "Global" namespace if not found in the specified namespace.
+     *
+     * @param namespace The event interface namespace (e.g., "INpcEvent", "IPlayerEvent")
+     * @param functionName The hook function name
+     * @return List of hook signatures
+     */
+    public List<JSTypeRegistry.HookSignature> getJSHookSignatures(String namespace, String functionName) {
+        return getJSTypeRegistry().getHookSignatures(namespace, functionName);
+    }
+
+    /**
+     * Get all hook names available in a specific namespace.
+     *
+     * @param namespace The event interface namespace
+     * @return Set of hook function names
+     */
+    public Set<String> getJSHookNames(String namespace) {
+        return getJSTypeRegistry().getHookNames(namespace);
+    }
+
+    // ==================== MULTI-NAMESPACE HOOK METHODS ====================
+
+    /**
+     * Check if a function name is a known JS hook in any of the provided namespaces.
+     * Checks namespaces in order, returning true on first match.
+     * Falls back to GLOBAL namespace if not found in any specified namespace.
+     *
+     * @param namespaces The list of event interface namespaces to search (e.g., ["IPlayerEvent", "IAnimationEvent"])
+     * @param functionName The function name to check
+     * @return true if it's a known hook in any of the namespaces
+     */
+    public boolean isJSHook(List<String> namespaces, String functionName) {
+        return getJSTypeRegistry().isHook(namespaces, functionName);
+    }
+
+    /**
+     * Get the parameter type for a JS hook function, searching multiple namespaces.
+     * Checks namespaces in order, returning the first match found.
+     * Falls back to "Global" namespace if not found in any specified namespace.
+     *
+     * @param namespaces The list of event interface namespaces to search
+     * @param functionName The hook function name
+     * @return The parameter type, or null if not a hook
+     */
+    public String getJSHookParameterType(List<String> namespaces, String functionName) {
+        return getJSTypeRegistry().getHookParameterType(namespaces, functionName);
+    }
+
+    /**
+     * Get hook signatures for a JS function, searching multiple namespaces.
+     * Checks namespaces in order, returning signatures from the first matching namespace.
+     * Falls back to "Global" namespace if not found in any specified namespace.
+     *
+     * @param namespaces The list of event interface namespaces to search
+     * @param functionName The hook function name
+     * @return List of hook signatures
+     */
+    public List<JSTypeRegistry.HookSignature> getJSHookSignatures(List<String> namespaces, String functionName) {
+        return getJSTypeRegistry().getHookSignatures(namespaces, functionName);
+    }
+
+    /**
+     * Get all hook names available in any of the provided namespaces.
+     * Combines hook names from all specified namespaces.
+     *
+     * @param namespaces The list of event interface namespaces
+     * @return Combined set of hook function names from all namespaces
+     */
+    public Set<String> getJSHookNames(List<String> namespaces) {
+        return getJSTypeRegistry().getHookNames(namespaces);
+    }
+
     // ==================== CACHE MANAGEMENT ====================
 
     /**

@@ -13,6 +13,7 @@ import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
 import noppes.npcs.client.gui.script.GuiNPCEventScripts;
 import noppes.npcs.client.gui.util.*;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.DataScript;
@@ -99,6 +100,10 @@ public class GuiScript extends GuiNPCInterface implements IGuiData, GuiYesNoCall
             } else {
                 activeArea.init(guiLeft + 74, guiTop + 4, 239, 208, container == null ? "" : container.script);
             }
+
+            // Set language and script context for proper syntax highlighting and autocomplete
+            activeArea.setLanguage(script.getLanguage());
+            activeArea.setScriptContext(ScriptContext.NPC);
 
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
             addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
