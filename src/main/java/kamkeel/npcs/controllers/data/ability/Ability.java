@@ -117,8 +117,15 @@ public abstract class Ability implements IAbility {
      * @param hitEntity The entity being hit
      * @param damage The damage amount
      * @param knockback The horizontal knockback
-     * @param knockbackUp The vertical knockback
      * @return true if damage was applied (not cancelled), false if cancelled
+     */
+    protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
+                                         float damage, float knockback) {
+        return applyAbilityDamage(npc, hitEntity, damage, knockback, 0.0f);
+    }
+
+    /**
+     * Backward-compatible signature (vertical knockback is ignored).
      */
     protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
                                          float damage, float knockback, float knockbackUp) {
@@ -133,7 +140,6 @@ public abstract class Ability implements IAbility {
         // Apply damage with potentially modified values
         float finalDamage = event.getDamage();
         float finalKnockback = event.getKnockback();
-        float finalKnockbackUp = event.getKnockbackUp();
 
         // Apply damage
         if (finalDamage > 0) {
@@ -141,18 +147,10 @@ public abstract class Ability implements IAbility {
         }
 
         // Apply knockback if any
-        if (finalKnockback > 0 || finalKnockbackUp > 0) {
+        if (finalKnockback > 0) {
             double dx = hitEntity.posX - npc.posX;
             double dz = hitEntity.posZ - npc.posZ;
-            double len = Math.sqrt(dx * dx + dz * dz);
-            if (len > 0 && finalKnockback > 0) {
-                dx /= len;
-                dz /= len;
-                hitEntity.motionX += dx * finalKnockback;
-                hitEntity.motionZ += dz * finalKnockback;
-            }
-            hitEntity.motionY += finalKnockbackUp;
-            hitEntity.velocityChanged = true;
+            applyNpcKnockback(hitEntity, dx, dz, finalKnockback);
         }
 
         return true;
@@ -166,17 +164,16 @@ public abstract class Ability implements IAbility {
      * @param hitEntity The entity being hit
      * @param damage The damage amount
      * @param knockback The horizontal knockback
-     * @param knockbackUp The vertical knockback
      * @param knockbackDirX The X component of knockback direction (normalized)
      * @param knockbackDirZ The Z component of knockback direction (normalized)
      * @return true if damage was applied (not cancelled), false if cancelled
      */
     protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
-                                                       float damage, float knockback, float knockbackUp,
+                                                       float damage, float knockback,
                                                        double knockbackDirX, double knockbackDirZ) {
         DataAbilities dataAbilities = npc.abilities;
         AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
-            this, currentTarget, hitEntity, damage, knockback, knockbackUp);
+            this, currentTarget, hitEntity, damage, knockback, 0.0f);
 
         if (event == null) {
             return false; // Cancelled
@@ -185,7 +182,6 @@ public abstract class Ability implements IAbility {
         // Apply damage with potentially modified values
         float finalDamage = event.getDamage();
         float finalKnockback = event.getKnockback();
-        float finalKnockbackUp = event.getKnockbackUp();
 
         // Apply damage
         if (finalDamage > 0) {
@@ -193,14 +189,22 @@ public abstract class Ability implements IAbility {
         }
 
         // Apply knockback in specified direction
-        if (finalKnockback > 0 || finalKnockbackUp > 0) {
-            hitEntity.motionX = knockbackDirX * finalKnockback;
-            hitEntity.motionY = finalKnockbackUp;
-            hitEntity.motionZ = knockbackDirZ * finalKnockback;
-            hitEntity.velocityChanged = true;
+        if (finalKnockback > 0) {
+            applyNpcKnockback(hitEntity, knockbackDirX, knockbackDirZ, finalKnockback);
         }
 
         return true;
+    }
+
+    private void applyNpcKnockback(EntityLivingBase hitEntity, double dirX, double dirZ, float knockback) {
+        double len = Math.sqrt(dirX * dirX + dirZ * dirZ);
+        if (len <= 0) {
+            return;
+        }
+        double x = (dirX / len) * knockback * 0.5;
+        double z = (dirZ / len) * knockback * 0.5;
+        hitEntity.addVelocity(x, 0.1D, z);
+        hitEntity.velocityChanged = true;
     }
     public float getTelegraphRadius() { return 5.0f; }
     public float getTelegraphLength() { return 5.0f; }

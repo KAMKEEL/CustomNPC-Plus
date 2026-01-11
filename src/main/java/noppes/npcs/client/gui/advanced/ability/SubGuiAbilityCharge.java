@@ -35,21 +35,16 @@ public class SubGuiAbilityCharge extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 2: Knockback + Knockback Up
+        // Row 2: Knockback
         addLabel(new GuiNpcLabel(102, "ability.knockback", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, charge.getKnockback()));
 
-        addLabel(new GuiNpcLabel(103, "ability.knockbackUp", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, charge.getKnockbackUp()));
-
         y += 24;
 
-        // Row 3: Max Distance + Hit Radius
-        addLabel(new GuiNpcLabel(104, "ability.maxDist", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, charge.getMaxDistance()));
+        // Row 3: Hit Width
+        addLabel(new GuiNpcLabel(104, "ability.hitWidth", labelX, y + 5));
+        addTextField(createFloatField(104, fieldX, y, 50, charge.getHitWidth()));
 
-        addLabel(new GuiNpcLabel(105, "ability.hitRadius", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, charge.getHitRadius()));
     }
 
     @Override
@@ -58,9 +53,7 @@ public class SubGuiAbilityCharge extends SubGuiAbilityConfig {
             case 100: charge.setDamage(parseFloat(field, charge.getDamage())); break;
             case 101: charge.setChargeSpeed(parseFloat(field, charge.getChargeSpeed())); break;
             case 102: charge.setKnockback(parseFloat(field, charge.getKnockback())); break;
-            case 103: charge.setKnockbackUp(parseFloat(field, charge.getKnockbackUp())); break;
-            case 104: charge.setMaxDistance(parseFloat(field, charge.getMaxDistance())); break;
-            case 105: charge.setHitRadius(parseFloat(field, charge.getHitRadius())); break;
+            case 104: charge.setHitWidth(parseFloat(field, charge.getHitWidth())); break;
         }
     }
 }

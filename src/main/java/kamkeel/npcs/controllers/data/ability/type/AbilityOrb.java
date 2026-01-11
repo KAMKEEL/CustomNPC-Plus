@@ -194,7 +194,7 @@ public class AbilityOrb extends Ability {
                 doExplosion(npc, world);
             } else {
                 // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback, 0.2f);
+                boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback);
                 if (wasHit) {
                     applyEffects(entity);
                 }
@@ -231,7 +231,7 @@ public class AbilityOrb extends Ability {
             if (dist <= explosionRadius) {
                 float falloff = 1.0f - (float)(dist / explosionRadius) * explosionDamageFalloff;
                 // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamage(npc, blastTarget, damage * falloff, knockback * falloff, 0.3f);
+                boolean wasHit = applyAbilityDamage(npc, blastTarget, damage * falloff, knockback * falloff);
                 if (wasHit) {
                     applyEffects(blastTarget);
                 }

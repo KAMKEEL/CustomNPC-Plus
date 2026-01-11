@@ -36,8 +36,7 @@ public class AbilitySlam extends Ability {
     private float radius = 5.0f;
     private float knockbackStrength = 1.5f;
     private float leapSpeed = 1.0f;
-    private float minLeapDistance = 2.0f;
-    private float maxLeapDistance = 15.0f;
+    private float leapHeight = 4.0f;
 
     // Runtime state
     private transient double targetX, targetY, targetZ;
@@ -58,6 +57,8 @@ public class AbilitySlam extends Ability {
         this.minRange = 2.0f;
         this.maxRange = 15.0f;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.windUpSound = "mob.irongolem.throw";
+        this.activeSound = "random.explode";
     }
 
     @Override
@@ -157,11 +158,11 @@ public class AbilitySlam extends Ability {
         }
 
         // Cap the distance if too far
-        if (horizontalDist > maxLeapDistance) {
-            double scale = maxLeapDistance / horizontalDist;
+        if (horizontalDist > maxRange) {
+            double scale = maxRange / horizontalDist;
             dx *= scale;
             dz *= scale;
-            horizontalDist = maxLeapDistance;
+            horizontalDist = maxRange;
             targetX = npc.posX + dx;
             targetZ = npc.posZ + dz;
         }
@@ -188,7 +189,7 @@ public class AbilitySlam extends Ability {
 
         // Calculate required upward velocity to create a nice arc and land at target height
         // Peak height should be proportional to horizontal distance for visual appeal
-        double arcHeight = Math.max(3.0, horizontalDist * 0.3) * leapSpeed;
+        double arcHeight = Math.max(1.0, leapHeight) * leapSpeed;
 
         // Approximate the required initial vertical velocity
         // Account for gravity and drag - use a simplified model
@@ -222,8 +223,6 @@ public class AbilitySlam extends Ability {
         npc.rotationYaw = targetYaw;
         npc.rotationYawHead = targetYaw;
 
-        // Play launch sound
-        npc.worldObj.playSoundAtEntity(npc, "mob.irongolem.throw", 0.8f, 0.8f);
     }
 
     @Override
@@ -287,14 +286,11 @@ public class AbilitySlam extends Ability {
                 double dx = livingTarget.posX - npc.posX;
                 double dz = livingTarget.posZ - npc.posZ;
                 if (dx * dx + dz * dz <= radius * radius) {
-                    // Apply damage with scripted event support (0.3f is the upward knockback boost)
-                    applyAbilityDamage(npc, livingTarget, damage, knockbackStrength, 0.3f);
+                    // Apply damage with scripted event support
+                    applyAbilityDamage(npc, livingTarget, damage, knockbackStrength);
                 }
             }
         }
-
-        // Play impact sound
-        world.playSoundAtEntity(npc, "random.explode", 0.5f, 1.2f);
 
         // Spawn particles
         spawnSlamParticles(world, npc.posX, npc.posY, npc.posZ);
@@ -418,8 +414,7 @@ public class AbilitySlam extends Ability {
         nbt.setFloat("radius", radius);
         nbt.setFloat("knockback", knockbackStrength);
         nbt.setFloat("leapSpeed", leapSpeed);
-        nbt.setFloat("minLeapDistance", minLeapDistance);
-        nbt.setFloat("maxLeapDistance", maxLeapDistance);
+        nbt.setFloat("leapHeight", leapHeight);
     }
 
     @Override
@@ -428,8 +423,7 @@ public class AbilitySlam extends Ability {
         radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 5.0f;
         knockbackStrength = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
         leapSpeed = nbt.hasKey("leapSpeed") ? nbt.getFloat("leapSpeed") : 1.0f;
-        minLeapDistance = nbt.hasKey("minLeapDistance") ? nbt.getFloat("minLeapDistance") : 2.0f;
-        maxLeapDistance = nbt.hasKey("maxLeapDistance") ? nbt.getFloat("maxLeapDistance") : 15.0f;
+        leapHeight = nbt.hasKey("leapHeight") ? nbt.getFloat("leapHeight") : 4.0f;
     }
 
     // Getters & Setters
@@ -445,9 +439,6 @@ public class AbilitySlam extends Ability {
     public float getLeapSpeed() { return leapSpeed; }
     public void setLeapSpeed(float leapSpeed) { this.leapSpeed = leapSpeed; }
 
-    public float getMinLeapDistance() { return minLeapDistance; }
-    public void setMinLeapDistance(float minLeapDistance) { this.minLeapDistance = minLeapDistance; }
-
-    public float getMaxLeapDistance() { return maxLeapDistance; }
-    public void setMaxLeapDistance(float maxLeapDistance) { this.maxLeapDistance = maxLeapDistance; }
+    public float getLeapHeight() { return leapHeight; }
+    public void setLeapHeight(float leapHeight) { this.leapHeight = leapHeight; }
 }

@@ -32,9 +32,7 @@ public class AbilityCharge extends Ability {
     private float chargeSpeed = 0.8f;
     private float damage = 15.0f;
     private float knockback = 3.0f;
-    private float knockbackUp = 0.3f;
-    private float maxDistance = 20.0f;
-    private float hitRadius = 1.5f;
+    private float hitWidth = 1.5f;
 
     // Runtime state (transient)
     private transient double startX, startY, startZ;
@@ -56,6 +54,8 @@ public class AbilityCharge extends Ability {
         // LINE telegraph showing charge path
         this.telegraphType = TelegraphType.LINE;
         this.showTelegraph = true;
+        this.windUpSound = "mob.zombie.wood";
+        this.activeSound = "mob.zombie.attack";
     }
 
     @Override
@@ -154,10 +154,15 @@ public class AbilityCharge extends Ability {
         );
 
         // Check if reached max distance
-        if (distanceTraveled >= maxDistance) {
+        if (distanceTraveled >= maxRange) {
             npc.motionX = 0;
             npc.motionZ = 0;
             npc.velocityChanged = true;
+            return;
+        }
+
+        if (isChargeBlocked(npc)) {
+            stopMomentum(npc);
             return;
         }
 
@@ -169,7 +174,7 @@ public class AbilityCharge extends Ability {
 
         // Server-side collision damage
         if (!world.isRemote) {
-            AxisAlignedBB hitBox = npc.boundingBox.expand(hitRadius, hitRadius * 0.5, hitRadius);
+            AxisAlignedBB hitBox = npc.boundingBox.expand(hitWidth, hitWidth * 0.5, hitWidth);
 
             @SuppressWarnings("unchecked")
             List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
@@ -185,7 +190,7 @@ public class AbilityCharge extends Ability {
                 hitEntities.add(entity.getEntityId());
 
                 // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamageWithDirection(npc, livingEntity, damage, knockback, knockbackUp,
+                boolean wasHit = applyAbilityDamageWithDirection(npc, livingEntity, damage, knockback,
                     chargeDirection.xCoord, chargeDirection.zCoord);
 
                 // Play impact sound if hit wasn't cancelled
@@ -214,6 +219,13 @@ public class AbilityCharge extends Ability {
         npc.velocityChanged = true;
     }
 
+    private boolean isChargeBlocked(EntityNPCInterface npc) {
+        double nextX = chargeDirection.xCoord * chargeSpeed;
+        double nextZ = chargeDirection.zCoord * chargeSpeed;
+        AxisAlignedBB nextBox = npc.boundingBox.copy().offset(nextX, 0, nextZ);
+        return !npc.worldObj.getCollidingBoundingBoxes(npc, nextBox).isEmpty();
+    }
+
     @Override
     public void reset() {
         super.reset();
@@ -223,7 +235,7 @@ public class AbilityCharge extends Ability {
 
     @Override
     public float getTelegraphLength() {
-        return maxDistance;
+        return maxRange;
     }
 
     @Override
@@ -275,9 +287,7 @@ public class AbilityCharge extends Ability {
         nbt.setFloat("chargeSpeed", chargeSpeed);
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
-        nbt.setFloat("knockbackUp", knockbackUp);
-        nbt.setFloat("maxDistance", maxDistance);
-        nbt.setFloat("hitRadius", hitRadius);
+        nbt.setFloat("hitWidth", hitWidth);
     }
 
     @Override
@@ -285,9 +295,13 @@ public class AbilityCharge extends Ability {
         this.chargeSpeed = nbt.hasKey("chargeSpeed") ? nbt.getFloat("chargeSpeed") : 0.8f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 3.0f;
-        this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.3f;
-        this.maxDistance = nbt.hasKey("maxDistance") ? nbt.getFloat("maxDistance") : 20.0f;
-        this.hitRadius = nbt.hasKey("hitRadius") ? nbt.getFloat("hitRadius") : 1.5f;
+        if (nbt.hasKey("hitWidth")) {
+            this.hitWidth = nbt.getFloat("hitWidth");
+        } else if (nbt.hasKey("hitRadius")) {
+            this.hitWidth = nbt.getFloat("hitRadius");
+        } else {
+            this.hitWidth = 1.5f;
+        }
     }
 
     // Getters & Setters
@@ -300,12 +314,6 @@ public class AbilityCharge extends Ability {
     public float getKnockback() { return knockback; }
     public void setKnockback(float knockback) { this.knockback = knockback; }
 
-    public float getKnockbackUp() { return knockbackUp; }
-    public void setKnockbackUp(float knockbackUp) { this.knockbackUp = knockbackUp; }
-
-    public float getMaxDistance() { return maxDistance; }
-    public void setMaxDistance(float maxDistance) { this.maxDistance = maxDistance; }
-
-    public float getHitRadius() { return hitRadius; }
-    public void setHitRadius(float hitRadius) { this.hitRadius = hitRadius; }
+    public float getHitWidth() { return hitWidth; }
+    public void setHitWidth(float hitWidth) { this.hitWidth = hitWidth; }
 }

@@ -95,6 +95,8 @@ public class AbilityDash extends Ability {
         // No telegraph for dash - it's a quick evasive move
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
+        this.windUpSound = "mob.bat.takeoff";
+        this.activeSound = "mob.endermen.portal";
     }
 
     @Override
@@ -152,8 +154,6 @@ public class AbilityDash extends Ability {
             Math.cos(yawRad)
         );
 
-        // Play dash sound
-        world.playSoundAtEntity(npc, "mob.endermen.portal", 0.5f, 1.5f);
     }
 
     @Override
@@ -168,6 +168,13 @@ public class AbilityDash extends Ability {
 
         // Check if reached max distance
         if (distanceTraveled >= dashDistance) {
+            npc.motionX = 0;
+            npc.motionZ = 0;
+            npc.velocityChanged = true;
+            return;
+        }
+
+        if (isDashBlocked(npc)) {
             npc.motionX = 0;
             npc.motionZ = 0;
             npc.velocityChanged = true;
@@ -200,6 +207,12 @@ public class AbilityDash extends Ability {
         npc.velocityChanged = true;
         dashDirection = null;
         chosenDirection = null;
+    }
+
+    private boolean isDashBlocked(EntityNPCInterface npc) {
+        double nextX = dashDirection.xCoord * dashSpeed;
+        double nextZ = dashDirection.zCoord * dashSpeed;
+        return !npc.worldObj.getCollidingBoundingBoxes(npc, npc.boundingBox.copy().offset(nextX, 0, nextZ)).isEmpty();
     }
 
     @Override

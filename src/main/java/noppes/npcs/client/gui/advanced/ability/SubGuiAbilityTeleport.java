@@ -27,55 +27,77 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 145;
         int col2FieldX = guiLeft + 205;
 
-        // Row 1: Pattern
-        addLabel(new GuiNpcLabel(100, "ability.pattern", labelX, y + 5));
-        String[] patterns = {"Random", "Toward", "Away", "Behind", "InFront", "Around", "ToTarget"};
-        addButton(new GuiNpcButton(100, fieldX, y, 80, 20, patterns, teleport.getPattern().ordinal()));
+        // Row 1: Mode
+        addLabel(new GuiNpcLabel(100, "ability.mode", labelX, y + 5));
+        String[] modes = {"Blink", "Behind", "Single"};
+        addButton(new GuiNpcButton(100, fieldX, y, 80, 20, modes, teleport.getMode().ordinal()));
 
         y += 24;
 
-        // Row 2: Blink Radius + Min Blink Radius
-        addLabel(new GuiNpcLabel(101, "ability.blinkRadius", labelX, y + 5));
-        addTextField(createFloatField(101, fieldX, y, 50, teleport.getBlinkRadius()));
+        switch (teleport.getMode()) {
+            case BLINK:
+                // Row 2: Blink Radius + Blink Count
+                addLabel(new GuiNpcLabel(101, "ability.blinkRadius", labelX, y + 5));
+                addTextField(createFloatField(101, fieldX, y, 50, teleport.getBlinkRadius()));
 
-        addLabel(new GuiNpcLabel(102, "ability.minBlinkRad", col2LabelX, y + 5));
-        addTextField(createFloatField(102, col2FieldX, y, 50, teleport.getMinBlinkRadius()));
+                addLabel(new GuiNpcLabel(102, "ability.blinkCount", col2LabelX, y + 5));
+                addTextField(createIntField(102, col2FieldX, y, 50, teleport.getBlinkCount()));
+
+                y += 24;
+
+                // Row 3: Blink Delay + Line of Sight
+                addLabel(new GuiNpcLabel(103, "ability.blinkDelay", labelX, y + 5));
+                addTextField(createIntField(103, fieldX, y, 50, teleport.getBlinkDelayTicks()));
+
+                addLabel(new GuiNpcLabel(105, "ability.lineOfSight", col2LabelX, y + 5));
+                addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0));
+                y += 24;
+                break;
+            case SINGLE:
+                // Row 2: Blink Radius + Line of Sight
+                addLabel(new GuiNpcLabel(101, "ability.blinkRadius", labelX, y + 5));
+                addTextField(createFloatField(101, fieldX, y, 50, teleport.getBlinkRadius()));
+
+                addLabel(new GuiNpcLabel(105, "ability.lineOfSight", col2LabelX, y + 5));
+                addButton(new GuiNpcButton(105, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isRequireLineOfSight() ? 1 : 0));
+                y += 24;
+                break;
+            case BEHIND:
+                // Row 2: Behind Distance
+                addLabel(new GuiNpcLabel(104, "ability.behindDistance", labelX, y + 5));
+                addTextField(createFloatField(104, fieldX, y, 50, teleport.getBehindDistance()));
+                y += 24;
+                break;
+        }
+
+        // Damage + Damage Radius
+        addLabel(new GuiNpcLabel(106, "ability.damage", labelX, y + 5));
+        addTextField(createFloatField(106, fieldX, y, 50, teleport.getDamage()));
+
+        addLabel(new GuiNpcLabel(107, "ability.dmgRadius", col2LabelX, y + 5));
+        addTextField(createFloatField(107, col2FieldX, y, 50, teleport.getDamageRadius()));
 
         y += 24;
 
-        // Row 3: Blink Count + Blink Delay
-        addLabel(new GuiNpcLabel(103, "ability.blinkCount", labelX, y + 5));
-        addTextField(createIntField(103, fieldX, y, 50, teleport.getBlinkCount()));
+        // Damage at Start/End
+        addLabel(new GuiNpcLabel(108, "ability.dmgAtStart", labelX, y + 5));
+        addButton(new GuiNpcButton(108, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtStart() ? 1 : 0));
 
-        addLabel(new GuiNpcLabel(104, "ability.blinkDelay", col2LabelX, y + 5));
-        addTextField(createIntField(104, col2FieldX, y, 50, teleport.getBlinkDelayTicks()));
-
-        y += 24;
-
-        // Row 4: Damage + Damage Radius
-        addLabel(new GuiNpcLabel(105, "ability.damage", labelX, y + 5));
-        addTextField(createFloatField(105, fieldX, y, 50, teleport.getDamage()));
-
-        addLabel(new GuiNpcLabel(106, "ability.dmgRadius", col2LabelX, y + 5));
-        addTextField(createFloatField(106, col2FieldX, y, 50, teleport.getDamageRadius()));
-
-        y += 24;
-
-        // Row 5: Damage at Start/End + Require LOS
-        addLabel(new GuiNpcLabel(107, "ability.dmgAtStart", labelX, y + 5));
-        addButton(new GuiNpcButton(107, fieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtStart() ? 1 : 0));
-
-        addLabel(new GuiNpcLabel(108, "ability.dmgAtEnd", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(108, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtEnd() ? 1 : 0));
+        addLabel(new GuiNpcLabel(109, "ability.dmgAtEnd", col2LabelX, y + 5));
+        addButton(new GuiNpcButton(109, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, teleport.isDamageAtEnd() ? 1 : 0));
     }
 
     @Override
     protected void handleTypeButton(int id, GuiNpcButton button) {
         int value = button.getValue();
         switch (id) {
-            case 100: teleport.setPattern(AbilityTeleport.TeleportPattern.values()[value]); break;
-            case 107: teleport.setDamageAtStart(value == 1); break;
-            case 108: teleport.setDamageAtEnd(value == 1); break;
+            case 100:
+                teleport.setMode(AbilityTeleport.TeleportMode.values()[value]);
+                initGui();
+                break;
+            case 105: teleport.setRequireLineOfSight(value == 1); break;
+            case 108: teleport.setDamageAtStart(value == 1); break;
+            case 109: teleport.setDamageAtEnd(value == 1); break;
         }
     }
 
@@ -83,11 +105,11 @@ public class SubGuiAbilityTeleport extends SubGuiAbilityConfig {
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
             case 101: teleport.setBlinkRadius(parseFloat(field, teleport.getBlinkRadius())); break;
-            case 102: teleport.setMinBlinkRadius(parseFloat(field, teleport.getMinBlinkRadius())); break;
-            case 103: teleport.setBlinkCount(field.getInteger()); break;
-            case 104: teleport.setBlinkDelayTicks(field.getInteger()); break;
-            case 105: teleport.setDamage(parseFloat(field, teleport.getDamage())); break;
-            case 106: teleport.setDamageRadius(parseFloat(field, teleport.getDamageRadius())); break;
+            case 102: teleport.setBlinkCount(field.getInteger()); break;
+            case 103: teleport.setBlinkDelayTicks(field.getInteger()); break;
+            case 104: teleport.setBehindDistance(parseFloat(field, teleport.getBehindDistance())); break;
+            case 106: teleport.setDamage(parseFloat(field, teleport.getDamage())); break;
+            case 107: teleport.setDamageRadius(parseFloat(field, teleport.getDamageRadius())); break;
         }
     }
 }

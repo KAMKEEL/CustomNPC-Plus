@@ -45,18 +45,18 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Knockback + Knockback Up
+        // Row 3: Knockback + Sweep Speed
         addLabel(new GuiNpcLabel(104, "ability.knockback", labelX, y + 5));
         addTextField(createFloatField(104, fieldX, y, 50, cutter.getKnockback()));
 
-        addLabel(new GuiNpcLabel(105, "ability.knockbackUp", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, cutter.getKnockbackUp()));
+        addLabel(new GuiNpcLabel(105, "ability.sweepSpeed", col2LabelX, y + 5));
+        addTextField(createFloatField(105, col2FieldX, y, 50, cutter.getSweepSpeed()));
 
         y += 24;
 
         // Row 4: Sweep Mode + Piercing
         addLabel(new GuiNpcLabel(106, "ability.sweepMode", labelX, y + 5));
-        String[] sweepModes = {"Instant", "Expanding", "Rotating"};
+        String[] sweepModes = {"Swipe", "Spin"};
         addButton(new GuiNpcButton(106, fieldX, y, 70, 20, sweepModes, cutter.getSweepMode().ordinal()));
 
         addLabel(new GuiNpcLabel(107, "ability.piercing", col2LabelX, y + 5));
@@ -64,12 +64,18 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 5: Stun Duration + Bleed Duration
+        // Row 5: Stun Duration + Poison Time
         addLabel(new GuiNpcLabel(108, "ability.stunDuration", labelX, y + 5));
         addTextField(createIntField(108, fieldX, y, 50, cutter.getStunDuration()));
 
-        addLabel(new GuiNpcLabel(109, "ability.bleedDuration", col2LabelX, y + 5));
-        addTextField(createIntField(109, col2FieldX, y, 50, cutter.getBleedDuration()));
+        addLabel(new GuiNpcLabel(109, "ability.poisonTime", col2LabelX, y + 5));
+        addTextField(createIntField(109, col2FieldX, y, 50, cutter.getPoisonDurationSeconds()));
+
+        y += 24;
+
+        // Row 6: Poison Level
+        addLabel(new GuiNpcLabel(110, "ability.poisonLvl", labelX, y + 5));
+        addTextField(createIntField(110, fieldX, y, 50, cutter.getPoisonLevel()));
     }
 
     @Override
@@ -89,9 +95,10 @@ public class SubGuiAbilityCutter extends SubGuiAbilityConfig {
             case 102: cutter.setArcAngle(parseFloat(field, cutter.getArcAngle())); break;
             case 103: cutter.setInnerRadius(parseFloat(field, cutter.getInnerRadius())); break;
             case 104: cutter.setKnockback(parseFloat(field, cutter.getKnockback())); break;
-            case 105: cutter.setKnockbackUp(parseFloat(field, cutter.getKnockbackUp())); break;
+            case 105: cutter.setSweepSpeed(parseFloat(field, cutter.getSweepSpeed())); break;
             case 108: cutter.setStunDuration(field.getInteger()); break;
-            case 109: cutter.setBleedDuration(field.getInteger()); break;
+            case 109: cutter.setPoisonDurationSeconds(field.getInteger()); break;
+            case 110: cutter.setPoisonLevel(field.getInteger()); break;
         }
     }
 }

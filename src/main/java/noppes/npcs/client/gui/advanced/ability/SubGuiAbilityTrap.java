@@ -64,12 +64,9 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 5: Knockback + Knockback Up
+        // Row 5: Knockback
         addLabel(new GuiNpcLabel(108, "ability.knockback", labelX, y + 5));
         addTextField(createFloatField(108, fieldX, y, 50, trap.getKnockback()));
-
-        addLabel(new GuiNpcLabel(109, "ability.knockbackUp", col2LabelX, y + 5));
-        addTextField(createFloatField(109, col2FieldX, y, 50, trap.getKnockbackUp()));
     }
 
     @Override
@@ -90,7 +87,6 @@ public class SubGuiAbilityTrap extends SubGuiAbilityConfig {
             case 106: trap.setRootDuration(field.getInteger()); break;
             case 107: trap.setStunDuration(field.getInteger()); break;
             case 108: trap.setKnockback(parseFloat(field, trap.getKnockback())); break;
-            case 109: trap.setKnockbackUp(parseFloat(field, trap.getKnockbackUp())); break;
         }
     }
 }

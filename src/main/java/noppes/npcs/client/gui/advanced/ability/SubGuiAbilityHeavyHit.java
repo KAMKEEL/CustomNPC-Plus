@@ -26,30 +26,37 @@ public class SubGuiAbilityHeavyHit extends SubGuiAbilityConfig {
         int col2LabelX = guiLeft + 145;
         int col2FieldX = guiLeft + 205;
 
-        // Row 1: Damage + Stun Ticks
+        // Row 1: Damage + Potion Time
         addLabel(new GuiNpcLabel(100, "ability.damage", labelX, y + 5));
         addTextField(createFloatField(100, fieldX, y, 50, heavyHit.getDamage()));
 
-        addLabel(new GuiNpcLabel(101, "ability.stunTicks", col2LabelX, y + 5));
-        addTextField(createIntField(101, col2FieldX, y, 50, heavyHit.getStunTicks()));
+        addLabel(new GuiNpcLabel(101, "ability.potionTime", col2LabelX, y + 5));
+        addTextField(createIntField(101, col2FieldX, y, 50, heavyHit.getPotionDurationSeconds()));
 
         y += 24;
 
-        // Row 2: Knockback + Knockback Up
+        // Row 2: Knockback + Slowness Level
         addLabel(new GuiNpcLabel(102, "ability.knockback", labelX, y + 5));
         addTextField(createFloatField(102, fieldX, y, 50, heavyHit.getKnockback()));
 
-        addLabel(new GuiNpcLabel(103, "ability.knockbackUp", col2LabelX, y + 5));
-        addTextField(createFloatField(103, col2FieldX, y, 50, heavyHit.getKnockbackUp()));
+        addLabel(new GuiNpcLabel(103, "ability.slownessLvl", col2LabelX, y + 5));
+        addTextField(createIntField(103, col2FieldX, y, 50, heavyHit.getSlownessLevel()));
+
+        y += 24;
+
+        // Row 3: Weakness Level
+        addLabel(new GuiNpcLabel(104, "ability.weaknessLvl", labelX, y + 5));
+        addTextField(createIntField(104, fieldX, y, 50, heavyHit.getWeaknessLevel()));
     }
 
     @Override
     protected void handleTypeTextField(int id, GuiNpcTextField field) {
         switch (id) {
             case 100: heavyHit.setDamage(parseFloat(field, heavyHit.getDamage())); break;
-            case 101: heavyHit.setStunTicks(field.getInteger()); break;
+            case 101: heavyHit.setPotionDurationSeconds(field.getInteger()); break;
             case 102: heavyHit.setKnockback(parseFloat(field, heavyHit.getKnockback())); break;
-            case 103: heavyHit.setKnockbackUp(parseFloat(field, heavyHit.getKnockbackUp())); break;
+            case 103: heavyHit.setSlownessLevel(field.getInteger()); break;
+            case 104: heavyHit.setWeaknessLevel(field.getInteger()); break;
         }
     }
 }

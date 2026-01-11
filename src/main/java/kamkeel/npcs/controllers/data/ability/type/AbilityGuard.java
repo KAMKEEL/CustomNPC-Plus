@@ -28,12 +28,21 @@ public class AbilityGuard extends Ability {
     // Type-specific parameters
     private float damageReduction = 0.5f;
     private boolean canCounter = false;
-    private float counterDamage = 10.0f;
+    private CounterType counterType = CounterType.FLAT;
+    private float counterValue = 10.0f;
     private float counterChance = 0.3f;
+    private String counterSound = "random.wood_click";
+    private int counterAnimationId = -1;
 
     // Runtime state
     private transient EntityLivingBase lastAttacker;
     private transient boolean counterTriggered;
+    private transient float lastDamageTaken;
+
+    public enum CounterType {
+        FLAT,
+        PERCENT
+    }
 
     public AbilityGuard() {
         this.typeId = "ability.cnpc.guard";
@@ -48,6 +57,8 @@ public class AbilityGuard extends Ability {
         // No telegraph for guard - it's a defensive stance
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
+        this.windUpSound = "random.anvil_use";
+        this.activeSound = "random.anvil_land";
     }
 
     @Override
@@ -72,22 +83,14 @@ public class AbilityGuard extends Ability {
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         lastAttacker = null;
         counterTriggered = false;
+        lastDamageTaken = 0.0f;
     }
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         // Counter attack logic if triggered
         if (canCounter && counterTriggered && lastAttacker != null && !world.isRemote) {
-            // Apply counter damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, lastAttacker, counterDamage, 0.5f, 0);
-
-            // Play counter sound if hit wasn't cancelled
-            if (wasHit) {
-                world.playSoundAtEntity(npc, "random.wood_click", 1.0f, 1.2f);
-            }
-
-            counterTriggered = false;
-            lastAttacker = null;
+            performCounter(npc, world);
         }
     }
 
@@ -98,11 +101,51 @@ public class AbilityGuard extends Ability {
      * @param attacker The entity that attacked
      * @param damage The damage amount (after reduction)
      */
-    public void onDamageTaken(EntityLivingBase attacker, float damage) {
-        if (attacker != null && canCounter && RANDOM.nextFloat() < counterChance) {
-            lastAttacker = attacker;
-            counterTriggered = true;
+    public void onDamageTaken(EntityNPCInterface npc, EntityLivingBase attacker, DamageSource source, float damage) {
+        if (!canCounter || attacker == null) return;
+        if (!isDirectHit(source)) return;
+        if (RANDOM.nextFloat() >= counterChance) return;
+
+        lastAttacker = attacker;
+        lastDamageTaken = damage;
+        counterTriggered = true;
+
+        if (interruptible) {
+            performCounter(npc, npc.worldObj);
+            npc.abilities.interruptCurrentAbility(source, damage);
         }
+    }
+
+    private void performCounter(EntityNPCInterface npc, World world) {
+        float counterDamage = counterType == CounterType.PERCENT
+            ? lastDamageTaken * (counterValue / 100.0f)
+            : counterValue;
+
+        boolean wasHit = applyAbilityDamage(npc, lastAttacker, counterDamage, 0.5f);
+        if (wasHit && counterSound != null && !counterSound.isEmpty()) {
+            world.playSoundAtEntity(npc, counterSound, 1.0f, 1.2f);
+        }
+        if (counterAnimationId >= 0) {
+            if (noppes.npcs.controllers.AnimationController.Instance != null) {
+                noppes.npcs.controllers.data.Animation animation =
+                    noppes.npcs.controllers.AnimationController.Instance.animations.get(counterAnimationId);
+                if (animation != null) {
+                    npc.display.animationData.setEnabled(true);
+                    npc.display.animationData.setAnimation(animation);
+                    npc.display.animationData.updateClient();
+                }
+            }
+        }
+
+        counterTriggered = false;
+        lastAttacker = null;
+        lastDamageTaken = 0.0f;
+    }
+
+    private boolean isDirectHit(DamageSource source) {
+        if (source == null) return false;
+        if (source.isMagicDamage() || source.isFireDamage() || source.isExplosion()) return false;
+        return source.getEntity() instanceof EntityLivingBase;
     }
 
     /**
@@ -128,6 +171,7 @@ public class AbilityGuard extends Ability {
         super.reset();
         lastAttacker = null;
         counterTriggered = false;
+        lastDamageTaken = 0.0f;
     }
 
     @Override
@@ -139,16 +183,32 @@ public class AbilityGuard extends Ability {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("damageReduction", damageReduction);
         nbt.setBoolean("canCounter", canCounter);
-        nbt.setFloat("counterDamage", counterDamage);
+        nbt.setString("counterType", counterType.name());
+        nbt.setFloat("counterValue", counterValue);
         nbt.setFloat("counterChance", counterChance);
+        nbt.setString("counterSound", counterSound);
+        nbt.setInteger("counterAnimationId", counterAnimationId);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.damageReduction = nbt.hasKey("damageReduction") ? nbt.getFloat("damageReduction") : 0.5f;
         this.canCounter = nbt.hasKey("canCounter") && nbt.getBoolean("canCounter");
-        this.counterDamage = nbt.hasKey("counterDamage") ? nbt.getFloat("counterDamage") : 10.0f;
+        try {
+            this.counterType = CounterType.valueOf(nbt.getString("counterType"));
+        } catch (Exception e) {
+            this.counterType = CounterType.FLAT;
+        }
+        if (nbt.hasKey("counterValue")) {
+            this.counterValue = nbt.getFloat("counterValue");
+        } else if (nbt.hasKey("counterDamage")) {
+            this.counterValue = nbt.getFloat("counterDamage");
+        } else {
+            this.counterValue = 10.0f;
+        }
         this.counterChance = nbt.hasKey("counterChance") ? nbt.getFloat("counterChance") : 0.3f;
+        this.counterSound = nbt.hasKey("counterSound") ? nbt.getString("counterSound") : "random.wood_click";
+        this.counterAnimationId = nbt.hasKey("counterAnimationId") ? nbt.getInteger("counterAnimationId") : -1;
     }
 
     // Getters & Setters
@@ -158,9 +218,18 @@ public class AbilityGuard extends Ability {
     public boolean isCanCounter() { return canCounter; }
     public void setCanCounter(boolean canCounter) { this.canCounter = canCounter; }
 
-    public float getCounterDamage() { return counterDamage; }
-    public void setCounterDamage(float counterDamage) { this.counterDamage = counterDamage; }
+    public CounterType getCounterType() { return counterType; }
+    public void setCounterType(CounterType counterType) { this.counterType = counterType; }
+
+    public float getCounterValue() { return counterValue; }
+    public void setCounterValue(float counterValue) { this.counterValue = counterValue; }
 
     public float getCounterChance() { return counterChance; }
     public void setCounterChance(float counterChance) { this.counterChance = counterChance; }
+
+    public String getCounterSound() { return counterSound; }
+    public void setCounterSound(String counterSound) { this.counterSound = counterSound; }
+
+    public int getCounterAnimationId() { return counterAnimationId; }
+    public void setCounterAnimationId(int counterAnimationId) { this.counterAnimationId = counterAnimationId; }
 }

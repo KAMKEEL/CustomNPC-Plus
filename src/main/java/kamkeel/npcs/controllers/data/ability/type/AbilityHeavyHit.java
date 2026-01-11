@@ -24,8 +24,9 @@ public class AbilityHeavyHit extends Ability {
 
     private float damage = 15.0f;
     private float knockback = 2.0f;
-    private float knockbackUp = 0.3f;
-    private int stunTicks = 40;
+    private int slownessLevel = 1;
+    private int weaknessLevel = 0;
+    private int potionDurationSeconds = 2;
 
     public AbilityHeavyHit() {
         this.typeId = "ability.cnpc.heavy_hit";
@@ -40,6 +41,8 @@ public class AbilityHeavyHit extends Ability {
         this.recoveryTicks = 20;
         this.telegraphType = TelegraphType.POINT;
         this.showTelegraph = false;
+        this.windUpSound = "random.anvil_use";
+        this.activeSound = "random.anvil_land";
     }
 
     @Override
@@ -65,12 +68,16 @@ public class AbilityHeavyHit extends Ability {
         if (world.isRemote || target == null) return;
 
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, target, damage, knockback, knockbackUp);
+        boolean wasHit = applyAbilityDamage(npc, target, damage, knockback);
 
-        // Apply stun (slowness + weakness) if the hit wasn't cancelled
-        if (wasHit && stunTicks > 0) {
-            target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunTicks, 10));
-            target.addPotionEffect(new PotionEffect(Potion.weakness.id, stunTicks, 2));
+        if (wasHit && potionDurationSeconds > 0) {
+            int durationTicks = potionDurationSeconds * 20;
+            if (slownessLevel >= 0) {
+                target.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, durationTicks, slownessLevel));
+            }
+            if (weaknessLevel >= 0) {
+                target.addPotionEffect(new PotionEffect(Potion.weakness.id, durationTicks, weaknessLevel));
+            }
         }
     }
 
@@ -83,16 +90,18 @@ public class AbilityHeavyHit extends Ability {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
-        nbt.setFloat("knockbackUp", knockbackUp);
-        nbt.setInteger("stunTicks", stunTicks);
+        nbt.setInteger("slownessLevel", slownessLevel);
+        nbt.setInteger("weaknessLevel", weaknessLevel);
+        nbt.setInteger("potionDurationSeconds", potionDurationSeconds);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 15.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 2.0f;
-        this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.3f;
-        this.stunTicks = nbt.hasKey("stunTicks") ? nbt.getInteger("stunTicks") : 40;
+        this.slownessLevel = nbt.hasKey("slownessLevel") ? nbt.getInteger("slownessLevel") : 1;
+        this.weaknessLevel = nbt.hasKey("weaknessLevel") ? nbt.getInteger("weaknessLevel") : 0;
+        this.potionDurationSeconds = nbt.hasKey("potionDurationSeconds") ? nbt.getInteger("potionDurationSeconds") : 2;
     }
 
     // Getters & Setters
@@ -102,9 +111,12 @@ public class AbilityHeavyHit extends Ability {
     public float getKnockback() { return knockback; }
     public void setKnockback(float knockback) { this.knockback = knockback; }
 
-    public float getKnockbackUp() { return knockbackUp; }
-    public void setKnockbackUp(float knockbackUp) { this.knockbackUp = knockbackUp; }
+    public int getSlownessLevel() { return slownessLevel; }
+    public void setSlownessLevel(int slownessLevel) { this.slownessLevel = slownessLevel; }
 
-    public int getStunTicks() { return stunTicks; }
-    public void setStunTicks(int stunTicks) { this.stunTicks = stunTicks; }
+    public int getWeaknessLevel() { return weaknessLevel; }
+    public void setWeaknessLevel(int weaknessLevel) { this.weaknessLevel = weaknessLevel; }
+
+    public int getPotionDurationSeconds() { return potionDurationSeconds; }
+    public void setPotionDurationSeconds(int potionDurationSeconds) { this.potionDurationSeconds = potionDurationSeconds; }
 }
