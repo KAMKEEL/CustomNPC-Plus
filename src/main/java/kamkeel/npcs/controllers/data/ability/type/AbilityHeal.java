@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal;
@@ -67,26 +68,30 @@ public class AbilityHeal extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         if (world.isRemote) return;
+
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         healedAllies.clear();
 
         if (instantHeal) {
             if (healSelf) {
-                healEntity(npc);
-                spawnHealParticles(world, npc);
+                healEntity(entity);
+                spawnHealParticles(world, entity);
             }
 
             if (healAllies && healRadius > 0) {
-                healAlliesInRadius(npc, world);
+                healAlliesInRadius(holder, world);
             }
         }
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (world.isRemote || instantHeal) return;
+
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         // Heal over time - distribute heal across active ticks
         if (tick % 10 == 0) {
@@ -97,9 +102,9 @@ public class AbilityHeal extends Ability {
                 float selfTickHeal = tickHeal;
                 // Add percentage-based heal portion
                 if (healPercent > 0) {
-                    selfTickHeal += (npc.getMaxHealth() * healPercent / (float) activeTicks) * 10;
+                    selfTickHeal += (entity.getMaxHealth() * healPercent / (float) activeTicks) * 10;
                 }
-                npc.heal(selfTickHeal);
+                entity.heal(selfTickHeal);
             }
 
             if (healAllies && healRadius > 0) {
@@ -125,24 +130,26 @@ public class AbilityHeal extends Ability {
         entity.heal(totalHeal);
     }
 
-    private void healAlliesInRadius(EntityNPCInterface npc, World world) {
+    private void healAlliesInRadius(IAbilityHolder holder, World world) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
-            npc.posX - healRadius, npc.posY - 2, npc.posZ - healRadius,
-            npc.posX + healRadius, npc.posY + 3, npc.posZ + healRadius
+            entity.posX - healRadius, entity.posY - 2, entity.posZ - healRadius,
+            entity.posX + healRadius, entity.posY + 3, entity.posZ + healRadius
         );
 
         @SuppressWarnings("unchecked")
         List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, aabb);
 
-        for (Entity entity : entities) {
-            if (!(entity instanceof EntityLivingBase)) continue;
-            if (entity == npc) continue;
+        for (Entity currentEntity : entities) {
+            if (!(currentEntity instanceof EntityLivingBase)) continue;
+            if (currentEntity == entity) continue;
 
-            EntityLivingBase living = (EntityLivingBase) entity;
+            EntityLivingBase living = (EntityLivingBase) currentEntity;
 
             // Only heal other NPCs (allies)
             if (living instanceof EntityNPCInterface) {
-                float dist = npc.getDistanceToEntity(living);
+                float dist = entity.getDistanceToEntity(living);
                 if (dist <= healRadius) {
                     healEntity(living);
                     healedAllies.add(living);

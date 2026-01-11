@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
@@ -61,11 +62,11 @@ public class AbilityHeavyHit extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         if (world.isRemote || target == null) return;
 
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, target, damage, knockback, knockbackUp);
+        boolean wasHit = applyAbilityDamage(holder, target, damage, knockback, knockbackUp);
 
         // Apply stun (slowness + weakness) if the hit wasn't cancelled
         if (wasHit && stunTicks > 0) {
@@ -75,7 +76,7 @@ public class AbilityHeavyHit extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         // Heavy Hit is instant, no active tick needed
     }
 

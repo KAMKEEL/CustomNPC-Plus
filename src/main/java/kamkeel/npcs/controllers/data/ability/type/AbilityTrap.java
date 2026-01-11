@@ -13,6 +13,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
@@ -101,9 +102,11 @@ public class AbilityTrap extends Ability {
     public float getTelegraphRadius() { return triggerRadius; }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
-        TelegraphInstance instance = super.createTelegraph(npc, target);
+    public TelegraphInstance createTelegraph(IAbilityHolder holder, EntityLivingBase target) {
+        TelegraphInstance instance = super.createTelegraph(holder, target);
         if (instance == null) return null;
+
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         // Control telegraph following based on placement mode
         switch (placement) {
@@ -112,14 +115,14 @@ public class AbilityTrap extends Ability {
                 // Telegraph at caster or ahead, no following
                 instance.setEntityIdToFollow(-1);
                 if (placement == TrapPlacement.AHEAD_OF_CASTER) {
-                    double yaw = Math.toRadians(npc.rotationYaw);
-                    instance.setX(npc.posX - Math.sin(yaw) * placementDistance);
-                    instance.setY(npc.posY);
-                    instance.setZ(npc.posZ + Math.cos(yaw) * placementDistance);
+                    double yaw = Math.toRadians(entity.rotationYaw);
+                    instance.setX(entity.posX - Math.sin(yaw) * placementDistance);
+                    instance.setY(entity.posY);
+                    instance.setZ(entity.posZ + Math.cos(yaw) * placementDistance);
                 } else {
-                    instance.setX(npc.posX);
-                    instance.setY(npc.posY);
-                    instance.setZ(npc.posZ);
+                    instance.setX(entity.posX);
+                    instance.setY(entity.posY);
+                    instance.setZ(entity.posZ);
                 }
                 break;
             case AT_TARGET:
@@ -158,20 +161,22 @@ public class AbilityTrap extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         armed = false;
         triggerCount = 0;
         ticksSinceLastTrigger = armTime;
         triggeredEntities.clear();
+
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         // Use telegraph position if available (for AT_TARGET, it was following target)
         TelegraphInstance telegraph = getTelegraphInstance();
 
         switch (placement) {
             case AT_CASTER:
-                trapX = npc.posX;
-                trapY = npc.posY;
-                trapZ = npc.posZ;
+                trapX = entity.posX;
+                trapY = entity.posY;
+                trapZ = entity.posZ;
                 break;
             case AT_TARGET:
                 // Use telegraph position with offset
@@ -186,22 +191,22 @@ public class AbilityTrap extends Ability {
                     trapY = pos[1];
                     trapZ = pos[2];
                 } else {
-                    trapX = npc.posX;
-                    trapY = npc.posY;
-                    trapZ = npc.posZ;
+                    trapX = entity.posX;
+                    trapY = entity.posY;
+                    trapZ = entity.posZ;
                 }
                 break;
             case AHEAD_OF_CASTER:
-                double yaw = Math.toRadians(npc.rotationYaw);
-                trapX = npc.posX - Math.sin(yaw) * placementDistance;
-                trapY = npc.posY;
-                trapZ = npc.posZ + Math.cos(yaw) * placementDistance;
+                double yaw = Math.toRadians(entity.rotationYaw);
+                trapX = entity.posX - Math.sin(yaw) * placementDistance;
+                trapY = entity.posY;
+                trapZ = entity.posZ + Math.cos(yaw) * placementDistance;
                 break;
         }
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (!armed) {
             if (tick >= armTime) {
                 armed = true;
@@ -219,6 +224,8 @@ public class AbilityTrap extends Ability {
             return;
         }
 
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
             trapX - triggerRadius, trapY - 1, trapZ - triggerRadius,
             trapX + triggerRadius, trapY + 2, trapZ + triggerRadius
@@ -227,28 +234,30 @@ public class AbilityTrap extends Ability {
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-        for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
-            if (entity.isDead) continue;
-            if (maxTriggers == 1 && triggeredEntities.contains(entity.getUniqueID())) continue;
+        for (EntityLivingBase currentEntity : entities) {
+            if (currentEntity == entity) continue;
+            if (currentEntity.isDead) continue;
+            if (maxTriggers == 1 && triggeredEntities.contains(currentEntity.getUniqueID())) continue;
 
-            double dx = entity.posX - trapX;
-            double dz = entity.posZ - trapZ;
+            double dx = currentEntity.posX - trapX;
+            double dz = currentEntity.posZ - trapZ;
             double dist = Math.sqrt(dx * dx + dz * dz);
 
             if (dist <= triggerRadius) {
-                triggerTrap(npc, entity, world);
+                triggerTrap(holder, currentEntity, world);
                 return;
             }
         }
     }
 
-    private void triggerTrap(EntityNPCInterface npc, EntityLivingBase triggerer, World world) {
+    private void triggerTrap(IAbilityHolder holder, EntityLivingBase triggerer, World world) {
         triggerCount++;
         ticksSinceLastTrigger = 0;
         triggeredEntities.add(triggerer.getUniqueID());
 
         Set<EntityLivingBase> affected = new HashSet<>();
+
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         if (damageRadius > 0) {
             AxisAlignedBB box = AxisAlignedBB.getBoundingBox(
@@ -259,54 +268,54 @@ public class AbilityTrap extends Ability {
             @SuppressWarnings("unchecked")
             List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
-            for (EntityLivingBase entity : entities) {
-                if (entity == npc) continue;
-                double dx = entity.posX - trapX;
-                double dz = entity.posZ - trapZ;
+            for (EntityLivingBase currentEntity : entities) {
+                if (currentEntity == entity) continue;
+                double dx = currentEntity.posX - trapX;
+                double dz = currentEntity.posZ - trapZ;
                 double dist = Math.sqrt(dx * dx + dz * dz);
                 if (dist <= damageRadius) {
-                    affected.add(entity);
+                    affected.add(currentEntity);
                 }
             }
         } else {
             affected.add(triggerer);
         }
 
-        for (EntityLivingBase entity : affected) {
+        for (EntityLivingBase currentEntity : affected) {
             // Apply damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback, knockbackUp);
+            boolean wasHit = applyAbilityDamage(holder, currentEntity, damage, knockback, knockbackUp);
 
             // Only apply effects if the hit wasn't cancelled
             if (wasHit) {
                 if (stunDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                    entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
                 }
 
                 if (rootDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, rootDuration, 127));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, rootDuration, 127));
                 }
 
                 if (slowDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, slowDuration, slowLevel));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, slowDuration, slowLevel));
                 }
 
                 if (poisonDuration > 0 && poisonLevel >= 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.poison.id, poisonDuration, poisonLevel));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.poison.id, poisonDuration, poisonLevel));
                 }
             }
         }
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
         armed = false;
         triggerCount = 0;
         triggeredEntities.clear();
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
         armed = false;
         triggerCount = 0;
         triggeredEntities.clear();

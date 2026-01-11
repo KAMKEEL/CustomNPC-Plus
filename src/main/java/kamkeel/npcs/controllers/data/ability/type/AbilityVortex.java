@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
@@ -81,23 +82,25 @@ public class AbilityVortex extends Ability {
     public float getTelegraphRadius() { return pullRadius; }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         pulledEntities.clear();
         pullComplete = false;
 
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         if (aoe) {
-            AxisAlignedBB box = npc.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
+            AxisAlignedBB box = entity.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
             @SuppressWarnings("unchecked")
             List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
             int count = 0;
-            for (EntityLivingBase entity : entities) {
-                if (entity == npc) continue;
-                if (entity.isDead) continue;
+            for (EntityLivingBase currentEntity : entities) {
+                if (currentEntity == entity) continue;
+                if (currentEntity.isDead) continue;
 
-                double dist = npc.getDistanceToEntity(entity);
+                double dist = entity.getDistanceToEntity(currentEntity);
                 if (dist <= pullRadius && dist > minPullDistance) {
-                    pulledEntities.add(entity.getUniqueID());
+                    pulledEntities.add(currentEntity.getUniqueID());
                     count++;
                     if (count >= maxTargets) break;
                 }
@@ -105,7 +108,7 @@ public class AbilityVortex extends Ability {
         } else {
             // Single target mode - still check pullRadius
             if (target != null && !target.isDead) {
-                double dist = npc.getDistanceToEntity(target);
+                double dist = entity.getDistanceToEntity(target);
                 if (dist <= pullRadius && dist > minPullDistance) {
                     pulledEntities.add(target.getUniqueID());
                 }
@@ -114,17 +117,19 @@ public class AbilityVortex extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (pullComplete || pulledEntities.isEmpty()) {
             return;
         }
 
-        double destX = npc.posX;
-        double destY = npc.posY;
-        double destZ = npc.posZ;
+        EntityLivingBase caster = (EntityLivingBase) holder;
+
+        double destX = caster.posX;
+        double destY = caster.posY;
+        double destZ = caster.posZ;
 
         if (pullToDistance > 0) {
-            double yaw = Math.toRadians(npc.rotationYaw);
+            double yaw = Math.toRadians(caster.rotationYaw);
             destX -= Math.sin(yaw) * pullToDistance;
             destZ += Math.cos(yaw) * pullToDistance;
         }
@@ -145,7 +150,7 @@ public class AbilityVortex extends Ability {
 
             if (dist <= minPullDistance) {
                 pulledEntities.remove(uuid);
-                onTargetArrived(npc, entity, world);
+                onTargetArrived(holder, entity, world);
                 continue;
             }
 
@@ -159,7 +164,7 @@ public class AbilityVortex extends Ability {
 
             if (damageOnPull && pullDamage > 0) {
                 // Apply damage with scripted event support (no knockback during pull)
-                applyAbilityDamage(npc, entity, pullDamage, 0, 0);
+                applyAbilityDamage(holder, entity, pullDamage, 0, 0);
             }
         }
 
@@ -168,12 +173,13 @@ public class AbilityVortex extends Ability {
         }
     }
 
-    private void onTargetArrived(EntityNPCInterface npc, EntityLivingBase entity, World world) {
+    private void onTargetArrived(IAbilityHolder holder, EntityLivingBase entity, World world) {
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback * 0.5f, 0);
+        boolean wasHit = applyAbilityDamage(holder, entity, damage, knockback * 0.5f, 0);
 
         // Only apply effects if hit wasn't cancelled
         if (wasHit) {
+
             if (stunDuration > 0) {
                 entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
                 entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
@@ -199,13 +205,13 @@ public class AbilityVortex extends Ability {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
         pulledEntities.clear();
         pullComplete = false;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
         pulledEntities.clear();
         pullComplete = false;
     }

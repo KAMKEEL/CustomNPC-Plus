@@ -10,8 +10,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
+import noppes.npcs.api.ability.IAbility;
+import noppes.npcs.api.ability.IAbilityHolder;
+import noppes.npcs.api.ability.IDataAbilities;
+import noppes.npcs.api.entity.IEntity;
+import noppes.npcs.api.entity.IPlayer;
 import noppes.npcs.controllers.AnimationController;
 import noppes.npcs.controllers.data.Animation;
+import noppes.npcs.controllers.data.PlayerData;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.event.AbilityEvent;
@@ -26,9 +32,9 @@ import java.util.Random;
  * Manages NPC abilities - storage, selection, execution, and cooldowns.
  * Follows the DataStats/DataAI pattern for NPC data management.
  */
-public class DataAbilities {
+public class DataAbilities implements IDataAbilities {
 
-    private final EntityNPCInterface npc;
+    private final IAbilityHolder parent;
     private final Random random = new Random();
 
     // ═══════════════════════════════════════════════════════════════════
@@ -67,8 +73,8 @@ public class DataAbilities {
     // CONSTRUCTOR
     // ═══════════════════════════════════════════════════════════════════
 
-    public DataAbilities(EntityNPCInterface npc) {
-        this.npc = npc;
+    public DataAbilities(IAbilityHolder parent) {
+        this.parent = parent;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -80,7 +86,11 @@ public class DataAbilities {
      * Should be called every tick from onLivingUpdate().
      */
     public void tick() {
-        if (!enabled || npc.worldObj.isRemote || npc.isKilled()) {
+        if (!enabled || getEntity().worldObj.isRemote) {
+            return;
+        }
+
+        if (isNpc() && getNpc().isKilled()) {
             return;
         }
 
@@ -99,7 +109,7 @@ public class DataAbilities {
      * Tick the currently executing ability.
      */
     private void tickCurrentAbility() {
-        EntityLivingBase target = lastTarget != null ? lastTarget : npc.getAttackTarget();
+        EntityLivingBase target = lastTarget != null ? lastTarget : getTarget();
         AbilityPhase oldPhase = currentAbility.getPhase();
 
         // Tick advances time and possibly changes phase
@@ -111,7 +121,7 @@ public class DataAbilities {
         // Handle phase-specific logic
         switch (currentAbility.getPhase()) {
             case WINDUP:
-                currentAbility.onWindUpTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
+                currentAbility.onWindUpTick(parent, target, getEntity().worldObj, currentAbility.getCurrentTick());
                 break;
 
             case ACTIVE:
@@ -132,16 +142,16 @@ public class DataAbilities {
 
                     // Fire execute event (cancelable)
                     AbilityEvent.ExecuteEvent executeEvent = new AbilityEvent.ExecuteEvent(
-                        npc.wrappedNPC, currentAbility, target);
+                        parent, currentAbility, target);
                     if (NpcAPI.EVENT_BUS.post(executeEvent)) {
                         // Event was cancelled - skip execution but continue to recovery
                         return;
                     }
 
                     // Call onExecute
-                    currentAbility.onExecute(npc, target, npc.worldObj);
+                    currentAbility.onExecute(parent, target, getEntity().worldObj);
                 }
-                currentAbility.onActiveTick(npc, target, npc.worldObj, currentAbility.getCurrentTick());
+                currentAbility.onActiveTick(parent, target, getEntity().worldObj, currentAbility.getCurrentTick());
                 break;
 
             case RECOVERY:
@@ -150,11 +160,11 @@ public class DataAbilities {
 
             case IDLE:
                 // Ability completed
-                currentAbility.onComplete(npc, target);
+                currentAbility.onComplete(parent, target);
 
                 // Fire complete event
                 AbilityEvent.CompleteEvent completeEvent = new AbilityEvent.CompleteEvent(
-                    npc.wrappedNPC, currentAbility, target);
+                    parent, currentAbility, target);
                 NpcAPI.EVENT_BUS.post(completeEvent);
 
                 onAbilityComplete();
@@ -166,13 +176,15 @@ public class DataAbilities {
         if (currentAbility != null && currentAbility.isExecuting()) {
             if (isAbilityControllingMovement()) {
                 // Clear navigator so AI doesn't fight with ability movement
-                npc.getNavigator().clearPathEntity();
+                if (isNpc()) {
+                    getNpc().getNavigator().clearPathEntity();
+                }
 
                 // Only zero motion if lockMovement is true AND ability doesn't have its own movement
                 // This allows stationary abilities to freeze the NPC, while movement abilities can set their own motion
                 if (currentAbility.isLockMovement() && !currentAbility.hasAbilityMovement()) {
-                    npc.motionX = 0;
-                    npc.motionZ = 0;
+                    getEntity().motionX = 0;
+                    getEntity().motionZ = 0;
                 }
             }
         }
@@ -288,14 +300,14 @@ public class DataAbilities {
 
         // Check range
         if (target != null) {
-            float distance = npc.getDistanceToEntity(target);
+            float distance = getEntity().getDistanceToEntity(target);
             if (distance < ability.getMinRange() || distance > ability.getMaxRange()) {
                 return false;
             }
         }
 
         // Check conditions
-        if (!ability.checkConditions(npc, target)) {
+        if (!ability.checkConditions(parent, target)) {
             return false;
         }
 
@@ -308,7 +320,7 @@ public class DataAbilities {
     private boolean startAbility(Ability ability, EntityLivingBase target) {
         // Fire start event (cancelable)
         AbilityEvent.StartEvent startEvent = new AbilityEvent.StartEvent(
-            npc.wrappedNPC, ability, target);
+            parent, ability, target);
         if (NpcAPI.EVENT_BUS.post(startEvent)) {
             // Event was cancelled - don't start the ability
             return false;
@@ -335,7 +347,7 @@ public class DataAbilities {
      */
     private void playAbilitySound(String sound) {
         if (sound != null && !sound.isEmpty()) {
-            npc.worldObj.playSoundAtEntity(npc, sound, 1.0f, 1.0f);
+            getEntity().worldObj.playSoundAtEntity(getEntity(), sound, 1.0f, 1.0f);
         }
     }
 
@@ -348,9 +360,17 @@ public class DataAbilities {
 
         Animation animation = AnimationController.Instance.animations.get(animationId);
         if (animation != null) {
-            npc.display.animationData.setEnabled(true);
-            npc.display.animationData.setAnimation(animation);
-            npc.display.animationData.updateClient();
+            if (isNpc()) {
+                getNpc().display.animationData.setEnabled(true);
+                getNpc().display.animationData.setAnimation(animation);
+                getNpc().display.animationData.updateClient();
+            }
+
+            if (isPlayer()) {
+                getPlayer().animationData.setEnabled(true);
+                getPlayer().animationData.setAnimation(animation);
+                getPlayer().animationData.updateClient();
+            }
         }
     }
 
@@ -358,19 +378,26 @@ public class DataAbilities {
      * Stop any currently playing ability animation.
      */
     private void stopAbilityAnimation() {
-        npc.display.animationData.setAnimation(null);
-        npc.display.animationData.updateClient();
+        if (isNpc()) {
+            getNpc().display.animationData.setAnimation(null);
+            getNpc().display.animationData.updateClient();
+        }
+
+        if (isPlayer()) {
+            getPlayer().animationData.setAnimation(null);
+            getPlayer().animationData.updateClient();
+        }
     }
 
     /**
      * Spawn and send telegraph for an ability.
      */
     private void spawnTelegraph(Ability ability, EntityLivingBase target) {
-        TelegraphInstance telegraph = ability.createTelegraph(npc, target);
+        TelegraphInstance telegraph = ability.createTelegraph(parent, target);
         if (telegraph != null) {
             ability.setTelegraphInstance(telegraph);
             // Send to all nearby players
-            TelegraphSpawnPacket.sendToTracking(telegraph, npc);
+            TelegraphSpawnPacket.sendToTracking(telegraph, getEntity());
         }
     }
 
@@ -380,7 +407,7 @@ public class DataAbilities {
     private void removeTelegraph(Ability ability) {
         TelegraphInstance telegraph = ability.getTelegraphInstance();
         if (telegraph != null) {
-            TelegraphRemovePacket.sendToTracking(telegraph.getInstanceId(), npc);
+            TelegraphRemovePacket.sendToTracking(telegraph.getInstanceId(), getEntity());
             ability.setTelegraphInstance(null);
         }
     }
@@ -397,14 +424,14 @@ public class DataAbilities {
         if (endTime == null) {
             return false;
         }
-        return npc.worldObj.getTotalWorldTime() < endTime;
+        return getEntity().worldObj.getTotalWorldTime() < endTime;
     }
 
     /**
      * Start cooldown for an ability.
      */
     private void startCooldown(Ability ability) {
-        long endTime = npc.worldObj.getTotalWorldTime() + ability.getCooldownTicks();
+        long endTime = getEntity().worldObj.getTotalWorldTime() + ability.getCooldownTicks();
         cooldowns.put(ability.getId(), endTime);
     }
 
@@ -413,14 +440,6 @@ public class DataAbilities {
      */
     public void resetCooldown(String abilityId) {
         cooldowns.remove(abilityId);
-    }
-
-    /**
-     * Reset all cooldowns.
-     */
-    public void resetAllCooldowns() {
-        cooldowns.clear();
-        globalCooldownTimer = 0;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -454,7 +473,7 @@ public class DataAbilities {
      * Record a hit for the hit count condition.
      */
     private void recordHit() {
-        recentHitTimes.add(npc.worldObj.getTotalWorldTime());
+        recentHitTimes.add(getEntity().worldObj.getTotalWorldTime());
     }
 
     /**
@@ -463,8 +482,9 @@ public class DataAbilities {
      * @param withinTicks The time window in ticks
      * @return Number of hits in that window
      */
+    @Override
     public int getRecentHitCount(int withinTicks) {
-        long currentTime = npc.worldObj.getTotalWorldTime();
+        long currentTime = getEntity().worldObj.getTotalWorldTime();
         long cutoff = currentTime - withinTicks;
 
         // Clean up old entries and count
@@ -491,10 +511,10 @@ public class DataAbilities {
 
             // Fire interrupt event
             AbilityEvent.InterruptEvent interruptEvent = new AbilityEvent.InterruptEvent(
-                npc.wrappedNPC, currentAbility, lastTarget, source, damage);
+                parent, currentAbility, lastTarget, source, damage);
             NpcAPI.EVENT_BUS.post(interruptEvent);
 
-            currentAbility.onInterrupt(npc, source, damage);
+            currentAbility.onInterrupt(parent, source, damage);
             currentAbility.interrupt();
             currentAbility = null;
             lastTarget = null;
@@ -523,7 +543,7 @@ public class DataAbilities {
      */
     private void fireTickEvent(Ability ability, EntityLivingBase target) {
         AbilityEvent.TickEvent event = new AbilityEvent.TickEvent(
-            npc.wrappedNPC, ability, target,
+            parent, ability, target,
             ability.getPhase().ordinal(), ability.getCurrentTick());
         NpcAPI.EVENT_BUS.post(event);
     }
@@ -544,7 +564,7 @@ public class DataAbilities {
                                               EntityLivingBase hitEntity, float damage,
                                               float knockback, float knockbackUp) {
         AbilityEvent.HitEvent event = new AbilityEvent.HitEvent(
-            npc.wrappedNPC, ability, target, hitEntity, damage, knockback, knockbackUp);
+            parent, ability, target, hitEntity, damage, knockback, knockbackUp);
         if (NpcAPI.EVENT_BUS.post(event)) {
             return null; // Cancelled
         }
@@ -554,8 +574,44 @@ public class DataAbilities {
     /**
      * Get the NPC this DataAbilities belongs to.
      */
-    public EntityNPCInterface getNpc() {
-        return npc;
+    public boolean isNpc() {
+        return parent instanceof EntityNPCInterface;
+    }
+
+    public boolean isPlayer() {
+        return parent instanceof PlayerData;
+    }
+
+    private EntityNPCInterface getNpc() {
+        return (EntityNPCInterface) parent;
+    }
+
+    private PlayerData getPlayer() {
+        return (PlayerData) parent;
+    }
+
+    public EntityLivingBase getEntity() {
+        if (isNpc())
+            return (EntityNPCInterface) parent;
+        if (isPlayer())
+            return ((PlayerData) parent).player;
+        return null;
+    }
+
+    private EntityLivingBase getTarget() {
+        if (isNpc())
+            return getNpc().getAttackTarget();
+
+        if (isPlayer() && currentAbility != null) {
+            IPlayer player = NoppesUtilServer.getIPlayer(getPlayer().player);
+
+            IEntity[] entities = player.getLookingAtEntities(Math.round(currentAbility.getMaxRange()), 1, 1);
+
+            if (entities.length > 0)
+                return (EntityLivingBase) entities[0];
+        }
+
+        return null;
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -568,7 +624,7 @@ public class DataAbilities {
      */
     public void reset() {
         stopCurrentAbility();
-        resetAllCooldowns();
+        resetCooldowns();
 
         // Reset execution state on all abilities
         for (Ability ability : abilities) {
@@ -580,12 +636,24 @@ public class DataAbilities {
     // ABILITY LIST MANAGEMENT
     // ═══════════════════════════════════════════════════════════════════
 
-    public List<Ability> getAbilities() {
-        return abilities;
+    @Override
+    public boolean isEnabled() {
+        return enabled;
     }
 
-    public void addAbility(Ability ability) {
-        abilities.add(ability);
+    @Override
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    @Override
+    public IAbility[] getAbilities() {
+        return this.abilities.toArray(new IAbility[]{});
+    }
+
+    @Override
+    public void addAbility(IAbility ability) {
+        abilities.add((Ability) ability);
     }
 
     public void removeAbility(int index) {
@@ -594,11 +662,13 @@ public class DataAbilities {
         }
     }
 
+    @Override
     public void removeAbility(String id) {
         abilities.removeIf(a -> a.getId().equals(id));
     }
 
-    public Ability getAbility(String id) {
+    @Override
+    public IAbility getAbility(String id) {
         for (Ability ability : abilities) {
             if (ability.getId().equals(id)) {
                 return ability;
@@ -607,6 +677,12 @@ public class DataAbilities {
         return null;
     }
 
+    @Override
+    public boolean hasAbility(String abilityId) {
+        return false;
+    }
+
+    @Override
     public void clearAbilities() {
         abilities.clear();
     }
@@ -626,9 +702,34 @@ public class DataAbilities {
         return currentAbility != null && currentAbility.isExecuting();
     }
 
+    @Override
+    public void interruptCurrentAbility() {
+
+    }
+
+    @Override
+    public int getGlobalCooldown() {
+        return 0;
+    }
+
+    @Override
+    public void setGlobalCooldown(int ticks) {
+
+    }
+
+    /**
+     * Reset all cooldowns.
+     */
+    @Override
+    public void resetCooldowns() {
+        cooldowns.clear();
+        globalCooldownTimer = 0;
+    }
+
     /**
      * Get the currently executing ability.
      */
+    @Override
     public Ability getCurrentAbility() {
         return currentAbility;
     }

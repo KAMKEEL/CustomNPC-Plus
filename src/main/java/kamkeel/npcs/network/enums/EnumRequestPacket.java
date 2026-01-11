@@ -137,6 +137,8 @@ public enum EnumRequestPacket {
     PlayerDataRemove,
     PlayerDataMapRegen,
     PlayerDataSave,
+    PlayerDataAbilitiesGet,
+    PlayerDataAbilitiesSave,
 
     JobSave,
     JobGet,

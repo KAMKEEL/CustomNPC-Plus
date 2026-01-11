@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
@@ -69,21 +70,21 @@ public class AbilityGuard extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         lastAttacker = null;
         counterTriggered = false;
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         // Counter attack logic if triggered
         if (canCounter && counterTriggered && lastAttacker != null && !world.isRemote) {
             // Apply counter damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, lastAttacker, counterDamage, 0.5f, 0);
+            boolean wasHit = applyAbilityDamage(holder, lastAttacker, counterDamage, 0.5f, 0);
 
             // Play counter sound if hit wasn't cancelled
             if (wasHit) {
-                world.playSoundAtEntity(npc, "random.wood_click", 1.0f, 1.2f);
+                world.playSoundAtEntity((EntityLivingBase) holder, "random.wood_click", 1.0f, 1.2f);
             }
 
             counterTriggered = false;

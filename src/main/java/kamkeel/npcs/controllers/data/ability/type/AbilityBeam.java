@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityBeam;
@@ -79,7 +80,7 @@ public class AbilityBeam extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         // Initialize beam
         currentSweepAngle = -sweepAngle / 2;
         sweepingRight = true;
@@ -88,9 +89,10 @@ public class AbilityBeam extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
+        EntityLivingBase entity = (EntityLivingBase) holder;
         hitThisTick.clear();
         ticksSinceDamage++;
 
@@ -117,12 +119,12 @@ public class AbilityBeam extends Ability {
         }
 
         // Calculate beam direction
-        float baseYaw = npc.rotationYaw;
+        float baseYaw = entity.rotationYaw;
 
         // If lock on target, point at target
         if (lockOnTarget && target != null) {
-            double dx = target.posX - npc.posX;
-            double dz = target.posZ - npc.posZ;
+            double dx = target.posX - entity.posX;
+            double dz = target.posZ - entity.posZ;
             baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         }
 
@@ -130,9 +132,9 @@ public class AbilityBeam extends Ability {
         float yawRad = (float) Math.toRadians(beamYaw);
 
         // Calculate beam start position
-        double startX = npc.posX;
-        double startY = npc.posY + npc.getEyeHeight() * 0.8;
-        double startZ = npc.posZ;
+        double startX = entity.posX;
+        double startY = entity.posY + entity.getEyeHeight() * 0.8;
+        double startZ = entity.posZ;
 
         double dirX = -Math.sin(yawRad);
         double dirZ = Math.cos(yawRad);
@@ -158,18 +160,18 @@ public class AbilityBeam extends Ability {
                 @SuppressWarnings("unchecked")
                 List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, checkBox);
 
-                for (Entity entity : entities) {
-                    if (!(entity instanceof EntityLivingBase)) continue;
-                    if (entity == npc) continue;
-                    if (hitThisTick.contains(entity.getEntityId())) continue;
+                for (Entity e : entities) {
+                    if (!(e instanceof EntityLivingBase)) continue;
+                    if (e == entity) continue;
+                    if (hitThisTick.contains(e.getEntityId())) continue;
 
-                    EntityLivingBase livingEntity = (EntityLivingBase) entity;
+                    EntityLivingBase livingEntity = (EntityLivingBase) e;
 
                     // Check if actually in beam path
                     if (isInBeamPath(livingEntity, startX, startY, startZ, dirX, dirZ)) {
-                        hitThisTick.add(entity.getEntityId());
+                        hitThisTick.add(e.getEntityId());
                         // Apply damage with scripted event support (no knockback for beam)
-                        applyAbilityDamage(npc, livingEntity, damage, 0, 0);
+                        applyAbilityDamage(holder, livingEntity, damage, 0, 0);
 
                         if (!piercing) {
                             return; // Stop at first hit

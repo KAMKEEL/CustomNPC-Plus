@@ -13,6 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam;
@@ -88,13 +89,14 @@ public class AbilitySlam extends Ability {
     }
 
     @Override
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onWindUpTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         // Update target position during windup
         if (targetingMode == TargetingMode.AOE_SELF) {
+            EntityLivingBase entity = (EntityLivingBase) holder;
             // AOE_SELF: slam at NPC's current position
-            targetX = npc.posX;
-            targetY = npc.posY;
-            targetZ = npc.posZ;
+            targetX = entity.posX;
+            targetY = entity.posY;
+            targetZ = entity.posZ;
         } else if (targetingMode == TargetingMode.AOE_TARGET && target != null && !target.isDead) {
             // AOE_TARGET: telegraph follows target via setEntityIdToFollow
             targetX = target.posX;
@@ -104,13 +106,14 @@ public class AbilitySlam extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         // Lock in the destination at moment of launch
+        EntityLivingBase entity = (EntityLivingBase) holder;
         if (targetingMode == TargetingMode.AOE_SELF) {
             // AOE_SELF: slam in place (just jump up)
-            targetX = npc.posX;
-            targetY = npc.posY;
-            targetZ = npc.posZ;
+            targetX = entity.posX;
+            targetY = entity.posY;
+            targetZ = entity.posZ;
         } else if (targetingMode == TargetingMode.AOE_TARGET && target != null && !target.isDead) {
             // AOE_TARGET: leap to target's current position
             targetX = target.posX;
@@ -118,9 +121,9 @@ public class AbilitySlam extends Ability {
             targetZ = target.posZ;
         } else {
             // Fallback: slam in place
-            targetX = npc.posX;
-            targetY = npc.posY;
-            targetZ = npc.posZ;
+            targetX = entity.posX;
+            targetY = entity.posY;
+            targetZ = entity.posZ;
         }
 
         hasLaunched = false;
@@ -128,31 +131,33 @@ public class AbilitySlam extends Ability {
         airTicks = 0;
 
         // Reset fall distance to prevent fall damage during slam
-        npc.fallDistance = 0;
+        entity.fallDistance = 0;
 
         // Calculate and apply leap velocity
-        launchTowardTarget(npc);
+        launchTowardTarget(holder);
     }
 
     /**
      * Calculate ballistic arc and launch NPC toward target.
      * Accounts for Minecraft's drag physics to actually reach the destination.
      */
-    private void launchTowardTarget(EntityNPCInterface npc) {
-        double dx = targetX - npc.posX;
-        double dy = targetY - npc.posY;
-        double dz = targetZ - npc.posZ;
+    private void launchTowardTarget(IAbilityHolder holder) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
+        double dx = targetX - entity.posX;
+        double dy = targetY - entity.posY;
+        double dz = targetZ - entity.posZ;
         double horizontalDist = Math.sqrt(dx * dx + dz * dz);
 
         // For AOE_SELF or very close targets, just hop in place
         if (horizontalDist < 0.5) {
-            npc.motionX = 0;
-            npc.motionZ = 0;
-            npc.motionY = 0.8 * leapSpeed;
+            entity.motionX = 0;
+            entity.motionZ = 0;
+            entity.motionY = 0.8 * leapSpeed;
             hasLaunched = true;
-            npc.setNpcJumpingState(true);
-            npc.velocityChanged = true;
-            npc.worldObj.playSoundAtEntity(npc, "mob.irongolem.throw", 0.8f, 0.8f);
+            setJumpState(holder, true);
+            entity.velocityChanged = true;
+            entity.worldObj.playSoundAtEntity(entity, "mob.irongolem.throw", 0.8f, 0.8f);
             return;
         }
 
@@ -162,8 +167,8 @@ public class AbilitySlam extends Ability {
             dx *= scale;
             dz *= scale;
             horizontalDist = maxLeapDistance;
-            targetX = npc.posX + dx;
-            targetZ = npc.posZ + dz;
+            targetX = entity.posX + dx;
+            targetZ = entity.posZ + dz;
         }
 
         // Choose flight time based on distance - shorter distances = faster
@@ -209,95 +214,99 @@ public class AbilitySlam extends Ability {
         double dirX = dx / horizontalDist;
         double dirZ = dz / horizontalDist;
 
-        npc.motionX = dirX * vHorizontal;
-        npc.motionZ = dirZ * vHorizontal;
-        npc.motionY = vy;
+        entity.motionX = dirX * vHorizontal;
+        entity.motionZ = dirZ * vHorizontal;
+        entity.motionY = vy;
 
         hasLaunched = true;
-        npc.setNpcJumpingState(true);
-        npc.velocityChanged = true;
+        setJumpState(holder, true);
+        entity.velocityChanged = true;
 
         // Face the target
         float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
-        npc.rotationYaw = targetYaw;
-        npc.rotationYawHead = targetYaw;
+        entity.rotationYaw = targetYaw;
+        entity.rotationYawHead = targetYaw;
 
         // Play launch sound
-        npc.worldObj.playSoundAtEntity(npc, "mob.irongolem.throw", 0.8f, 0.8f);
+        entity.worldObj.playSoundAtEntity(entity, "mob.irongolem.throw", 0.8f, 0.8f);
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (!hasLaunched) return;
         if (hasLanded) return;
 
         airTicks++;
 
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         // Continuously reset fall distance during slam to prevent fall damage
-        npc.fallDistance = 0;
+        entity.fallDistance = 0;
 
         // Check for landing
-        if (npc.onGround && airTicks > 3) {
+        if (entity.onGround && airTicks > 3) {
             // Landed!
-            onLanding(npc, world);
+            onLanding(holder, world);
             return;
         }
 
         // Timeout protection - force landing after max air time
         if (airTicks >= maxAirTicks) {
-            onLanding(npc, world);
+            onLanding(holder, world);
             return;
         }
 
         // While in air, face toward target
-        double dx = targetX - npc.posX;
-        double dz = targetZ - npc.posZ;
+        double dx = targetX - entity.posX;
+        double dz = targetZ - entity.posZ;
         float targetYaw = (float) (Math.atan2(-dx, dz) * 180.0D / Math.PI);
-        npc.rotationYaw = targetYaw;
-        npc.rotationYawHead = targetYaw;
+        entity.rotationYaw = targetYaw;
+        entity.rotationYawHead = targetYaw;
     }
 
     /**
      * Called when NPC lands - deal AOE damage.
      */
-    private void onLanding(EntityNPCInterface npc, World world) {
+    private void onLanding(IAbilityHolder holder, World world) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         hasLanded = true;
-        npc.setNpcJumpingState(false);
+        setJumpState(holder, false);
 
         // Reset fall distance to prevent fall damage on landing
-        npc.fallDistance = 0;
+        entity.fallDistance = 0;
 
         // Stop horizontal momentum
-        npc.motionX = 0;
-        npc.motionZ = 0;
-        npc.velocityChanged = true;
+        entity.motionX = 0;
+        entity.motionZ = 0;
+        entity.velocityChanged = true;
 
         if (world.isRemote) return;
 
         // Find all entities in radius
         @SuppressWarnings("unchecked")
         List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(
-            npc, npc.boundingBox.expand(radius, radius / 2, radius));
+            entity, entity.boundingBox.expand(radius, radius / 2, radius));
 
-        for (Entity entity : entities) {
-            if (entity instanceof EntityLivingBase && entity != npc) {
-                EntityLivingBase livingTarget = (EntityLivingBase) entity;
+        for (Entity currentEntity : entities) {
+            if (currentEntity instanceof EntityLivingBase && currentEntity != entity) {
+                EntityLivingBase livingTarget = (EntityLivingBase) currentEntity;
 
                 // Check if actually within radius (bounding box is a cube, we want a circle)
-                double dx = livingTarget.posX - npc.posX;
-                double dz = livingTarget.posZ - npc.posZ;
+                double dx = livingTarget.posX - entity.posX;
+                double dz = livingTarget.posZ - entity.posZ;
                 if (dx * dx + dz * dz <= radius * radius) {
                     // Apply damage with scripted event support (0.3f is the upward knockback boost)
-                    applyAbilityDamage(npc, livingTarget, damage, knockbackStrength, 0.3f);
+                    applyAbilityDamage(holder, livingTarget, damage, knockbackStrength, 0.3f);
                 }
             }
         }
 
         // Play impact sound
-        world.playSoundAtEntity(npc, "random.explode", 0.5f, 1.2f);
+        world.playSoundAtEntity(entity, "random.explode", 0.5f, 1.2f);
 
         // Spawn particles
-        spawnSlamParticles(world, npc.posX, npc.posY, npc.posZ);
+        spawnSlamParticles(world, entity.posX, entity.posY, entity.posZ);
     }
 
     /**
@@ -337,16 +346,16 @@ public class AbilitySlam extends Ability {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        npc.setNpcJumpingState(false);
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
+        setJumpState(holder, false);
         hasLaunched = false;
         hasLanded = false;
         airTicks = 0;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
-        npc.setNpcJumpingState(false);
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
+        setJumpState(holder, false);
         hasLaunched = false;
         hasLanded = false;
         airTicks = 0;
@@ -361,18 +370,20 @@ public class AbilitySlam extends Ability {
     }
 
     @Override
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(IAbilityHolder holder, EntityLivingBase target) {
         // Check if telegraph should be shown
         if (!isShowTelegraph() || getTelegraphType() == TelegraphType.NONE) {
             return null;
         }
 
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         // Telegraph shows at landing zone
         if (targetingMode == TargetingMode.AOE_SELF) {
             // AOE_SELF: telegraph at NPC position, does NOT follow
-            targetX = npc.posX;
-            targetY = npc.posY;
-            targetZ = npc.posZ;
+            targetX = entity.posX;
+            targetY = entity.posY;
+            targetZ = entity.posZ;
         } else if (targetingMode == TargetingMode.AOE_TARGET && target != null) {
             // AOE_TARGET: telegraph at target position, follows target during windup
             targetX = target.posX;
@@ -380,13 +391,13 @@ public class AbilitySlam extends Ability {
             targetZ = target.posZ;
         } else {
             // Fallback to NPC position
-            targetX = npc.posX;
-            targetY = npc.posY;
-            targetZ = npc.posZ;
+            targetX = entity.posX;
+            targetY = entity.posY;
+            targetZ = entity.posZ;
         }
 
         // Create telegraph at the appropriate position
-        double groundY = findGroundLevel(npc.worldObj, targetX, targetY, targetZ);
+        double groundY = findGroundLevel(entity.worldObj, targetX, targetY, targetZ);
 
         Telegraph telegraph = Telegraph.circle(radius);
         telegraph.setDurationTicks(windUpTicks);
@@ -395,8 +406,8 @@ public class AbilitySlam extends Ability {
         telegraph.setWarningStartTick(Math.max(5, windUpTicks / 4));
         telegraph.setHeightOffset(telegraphHeightOffset);
 
-        TelegraphInstance instance = new TelegraphInstance(telegraph, targetX, groundY, targetZ, npc.rotationYaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        TelegraphInstance instance = new TelegraphInstance(telegraph, targetX, groundY, targetZ, entity.rotationYaw);
+        instance.setCasterEntityId(entity.getEntityId());
 
         // AOE_TARGET: telegraph follows target during windup
         if (targetingMode == TargetingMode.AOE_TARGET && target != null) {
@@ -405,6 +416,16 @@ public class AbilitySlam extends Ability {
         // AOE_SELF: telegraph stays at NPC position, no follow
 
         return instance;
+    }
+
+    private boolean isNPC(IAbilityHolder holder) {
+        return holder instanceof EntityNPCInterface;
+    }
+
+    private void setJumpState(IAbilityHolder holder, boolean b) {
+        if (isNPC(holder)) {
+            ((EntityNPCInterface) holder).setNpcJumpingState(b);
+        }
     }
 
     @Override

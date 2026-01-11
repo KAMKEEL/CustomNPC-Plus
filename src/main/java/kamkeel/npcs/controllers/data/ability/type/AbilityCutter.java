@@ -12,6 +12,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCutter;
@@ -97,18 +98,18 @@ public class AbilityCutter extends Ability {
     public float getTelegraphAngle() { return arcAngle; }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         hitEntities.clear();
         currentWave = 0;
         currentRotation = startAngleOffset;
 
         if (sweepMode == SweepMode.INSTANT && !world.isRemote) {
-            performSweepDamage(npc, world, 0.0f, range);
+            performSweepDamage(holder, world, 0.0f, range);
         }
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (world.isRemote) return;
 
         switch (sweepMode) {
@@ -117,7 +118,7 @@ public class AbilityCutter extends Ability {
                     float waveProgress = (float)(currentWave + 1) / sweepWaves;
                     float waveInner = innerRadius + (range - innerRadius) * ((float)currentWave / sweepWaves);
                     float waveOuter = innerRadius + (range - innerRadius) * waveProgress;
-                    performSweepDamage(npc, world, waveInner, waveOuter);
+                    performSweepDamage(holder, world, waveInner, waveOuter);
                     currentWave++;
                 }
                 break;
@@ -125,7 +126,7 @@ public class AbilityCutter extends Ability {
             case ROTATING:
                 currentRotation += rotationSpeed;
                 hitEntities.clear();
-                performSweepDamage(npc, world, innerRadius, range);
+                performSweepDamage(holder, world, innerRadius, range);
                 break;
 
             case INSTANT:
@@ -133,46 +134,47 @@ public class AbilityCutter extends Ability {
         }
     }
 
-    private void performSweepDamage(EntityNPCInterface npc, World world, float minDist, float maxDist) {
-        float casterYaw = npc.rotationYaw + currentRotation;
+    private void performSweepDamage(IAbilityHolder holder, World world, float minDist, float maxDist) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+        float casterYaw = entity.rotationYaw + currentRotation;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
-            npc.posX - maxDist, npc.posY - 1, npc.posZ - maxDist,
-            npc.posX + maxDist, npc.posY + 3, npc.posZ + maxDist
+            entity.posX - maxDist, entity.posY - 1, entity.posZ - maxDist,
+            entity.posX + maxDist, entity.posY + 3, entity.posZ + maxDist
         );
 
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, searchBox);
 
-        for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
-            if (hitEntities.contains(entity.getEntityId())) continue;
-            // If not piercing, stop after hitting one entity this sweep
+        for (EntityLivingBase currentEntity : entities) {
+            if (currentEntity == entity) continue;
+            if (hitEntities.contains(currentEntity.getEntityId())) continue;
+            // If not piercing, stop after hitting one e this sweep
             if (!piercing && !hitEntities.isEmpty()) break;
 
-            double dx = entity.posX - npc.posX;
-            double dz = entity.posZ - npc.posZ;
+            double dx = currentEntity.posX - entity.posX;
+            double dz = currentEntity.posZ - entity.posZ;
             double dist = Math.sqrt(dx * dx + dz * dz);
 
             if (dist < minDist || dist > maxDist) continue;
             if (!isInArc(dx, dz, casterYaw, arcAngle)) continue;
 
-            hitEntities.add(entity.getEntityId());
+            hitEntities.add(currentEntity.getEntityId());
 
             float distFactor = 1.0f - ((float)dist / maxDist) * 0.3f;
             float actualDamage = damage * distFactor;
 
             // Apply damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, entity, actualDamage, knockback, knockbackUp);
+            boolean wasHit = applyAbilityDamage(holder, currentEntity, actualDamage, knockback, knockbackUp);
 
             // Only apply effects if hit wasn't cancelled
             if (wasHit) {
                 if (stunDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                    entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
                 }
                 if (bleedDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.wither.id, bleedDuration, bleedLevel));
+                    currentEntity.addPotionEffect(new PotionEffect(Potion.wither.id, bleedDuration, bleedLevel));
                 }
             }
         }
@@ -191,14 +193,14 @@ public class AbilityCutter extends Ability {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
         hitEntities.clear();
         currentWave = 0;
         currentRotation = startAngleOffset;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
         hitEntities.clear();
         currentWave = 0;
         currentRotation = startAngleOffset;

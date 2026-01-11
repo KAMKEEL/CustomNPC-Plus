@@ -6,6 +6,7 @@ import kamkeel.npcs.controllers.data.ability.telegraph.Telegraph;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphInstance;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
@@ -15,6 +16,7 @@ import noppes.npcs.DataAbilities;
 import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -90,10 +92,10 @@ public abstract class Ability implements IAbility {
     // ═══════════════════════════════════════════════════════════════════
 
     /** Called first tick of ACTIVE phase */
-    public abstract void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world);
+    public abstract void onExecute(IAbilityHolder entity, EntityLivingBase target, World world);
 
     /** Called every tick of ACTIVE phase */
-    public abstract void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick);
+    public abstract void onActiveTick(IAbilityHolder entity, EntityLivingBase target, World world, int tick);
 
     /** Write type-specific config to NBT */
     public abstract void writeTypeNBT(NBTTagCompound nbt);
@@ -105,24 +107,24 @@ public abstract class Ability implements IAbility {
     // OPTIONAL OVERRIDES
     // ═══════════════════════════════════════════════════════════════════
 
-    public void onWindUpTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {}
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {}
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {}
+    public void onWindUpTick(IAbilityHolder entity, EntityLivingBase target, World world, int tick) {}
+    public void onInterrupt(IAbilityHolder entity, DamageSource source, float damage) {}
+    public void onComplete(IAbilityHolder entity, EntityLivingBase target) {}
 
     /**
      * Apply damage to an entity with ability hit event support.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc The NPC executing the ability
+     * @param holder The entity executing the ability
      * @param hitEntity The entity being hit
      * @param damage The damage amount
      * @param knockback The horizontal knockback
      * @param knockbackUp The vertical knockback
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamage(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamage(IAbilityHolder holder, EntityLivingBase hitEntity,
                                          float damage, float knockback, float knockbackUp) {
-        DataAbilities dataAbilities = npc.abilities;
+        DataAbilities dataAbilities = (DataAbilities) holder.getAbilityData();
         AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
             this, currentTarget, hitEntity, damage, knockback, knockbackUp);
 
@@ -137,13 +139,14 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(new NpcDamageSource("mob", npc), finalDamage);
+            hitEntity.attackEntityFrom(new NpcDamageSource("mob", dataAbilities.getEntity()), finalDamage);
         }
 
         // Apply knockback if any
         if (finalKnockback > 0 || finalKnockbackUp > 0) {
-            double dx = hitEntity.posX - npc.posX;
-            double dz = hitEntity.posZ - npc.posZ;
+
+            double dx = hitEntity.posX - dataAbilities.getEntity().posX;
+            double dz = hitEntity.posZ - dataAbilities.getEntity().posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
             if (len > 0 && finalKnockback > 0) {
                 dx /= len;
@@ -162,7 +165,7 @@ public abstract class Ability implements IAbility {
      * Apply damage to an entity with ability hit event support and custom knockback direction.
      * Fires the abilityHit script event, allowing scripts to modify or cancel the damage.
      *
-     * @param npc The NPC executing the ability
+     * @param holder The entity executing the ability
      * @param hitEntity The entity being hit
      * @param damage The damage amount
      * @param knockback The horizontal knockback
@@ -171,10 +174,10 @@ public abstract class Ability implements IAbility {
      * @param knockbackDirZ The Z component of knockback direction (normalized)
      * @return true if damage was applied (not cancelled), false if cancelled
      */
-    protected boolean applyAbilityDamageWithDirection(EntityNPCInterface npc, EntityLivingBase hitEntity,
+    protected boolean applyAbilityDamageWithDirection(IAbilityHolder holder, EntityLivingBase hitEntity,
                                                        float damage, float knockback, float knockbackUp,
                                                        double knockbackDirX, double knockbackDirZ) {
-        DataAbilities dataAbilities = npc.abilities;
+        DataAbilities dataAbilities = (DataAbilities) holder.getAbilityData();
         AbilityEvent.HitEvent event = dataAbilities.fireHitEvent(
             this, currentTarget, hitEntity, damage, knockback, knockbackUp);
 
@@ -189,7 +192,7 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(DamageSource.causeMobDamage(npc), finalDamage);
+            hitEntity.attackEntityFrom(DamageSource.causeMobDamage(dataAbilities.getEntity()), finalDamage);
         }
 
         // Apply knockback in specified direction
@@ -264,37 +267,38 @@ public abstract class Ability implements IAbility {
      * Create a telegraph instance for this ability.
      * Override for custom telegraph shapes.
      *
-     * @param npc The caster
+     * @param holder The caster
      * @param target The target (for position calculation)
      * @return The telegraph instance, or null if no telegraph
      */
-    public TelegraphInstance createTelegraph(EntityNPCInterface npc, EntityLivingBase target) {
+    public TelegraphInstance createTelegraph(IAbilityHolder holder, EntityLivingBase target) {
         if (!showTelegraph || telegraphType == TelegraphType.NONE) {
             return null;
         }
 
+        Entity entity = (Entity) holder;
         Telegraph telegraph;
         double x, y, z;
-        float yaw = npc.rotationYaw;
+        float yaw = entity.rotationYaw;
 
         // Determine position based on targeting mode
-        boolean positionAtNpc = targetingMode == TargetingMode.AOE_SELF ||
+        boolean positionAtEntity = targetingMode == TargetingMode.AOE_SELF ||
                                 targetingMode == TargetingMode.SELF ||
                                 telegraphType == TelegraphType.LINE ||
                                 telegraphType == TelegraphType.CONE;
 
-        if (positionAtNpc) {
-            x = npc.posX;
-            y = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-            z = npc.posZ;
+        if (positionAtEntity) {
+            x = entity.posX;
+            y = findGroundLevel(entity.worldObj, entity.posX, entity.posY, entity.posZ);
+            z = entity.posZ;
         } else if (target != null) {
             x = target.posX;
-            y = findGroundLevel(npc.worldObj, target.posX, target.posY, target.posZ);
+            y = findGroundLevel(entity.worldObj, target.posX, target.posY, target.posZ);
             z = target.posZ;
         } else {
-            x = npc.posX;
-            y = findGroundLevel(npc.worldObj, npc.posX, npc.posY, npc.posZ);
-            z = npc.posZ;
+            x = entity.posX;
+            y = findGroundLevel(entity.worldObj, entity.posX, entity.posY, entity.posZ);
+            z = entity.posZ;
         }
 
         // Create telegraph based on type
@@ -325,12 +329,12 @@ public abstract class Ability implements IAbility {
         telegraph.setHeightOffset(telegraphHeightOffset);
 
         TelegraphInstance instance = new TelegraphInstance(telegraph, x, y, z, yaw);
-        instance.setCasterEntityId(npc.getEntityId());
+        instance.setCasterEntityId(entity.getEntityId());
 
         // Set entity to follow based on targeting mode
-        if (positionAtNpc) {
+        if (positionAtEntity) {
             // AOE_SELF abilities: telegraph follows NPC during windup
-            instance.setEntityIdToFollow(npc.getEntityId());
+            instance.setEntityIdToFollow(entity.getEntityId());
         } else if (target != null) {
             // AOE_TARGET abilities: telegraph follows target during windup
             instance.setEntityIdToFollow(target.getEntityId());
@@ -496,23 +500,23 @@ public abstract class Ability implements IAbility {
     // CONDITION CHECKING
     // ═══════════════════════════════════════════════════════════════════
 
-    public boolean checkConditions(EntityNPCInterface npc, EntityLivingBase target) {
+    public boolean checkConditions(IAbilityHolder holder, EntityLivingBase target) {
         for (Condition c : conditions) {
-            if (!c.check(npc, target)) return false;
+            if (!c.check(holder, target)) return false;
         }
         return true;
     }
 
     /** Full eligibility check */
-    public boolean canUse(EntityNPCInterface npc, EntityLivingBase target) {
+    public boolean canUse(IAbilityHolder holder, EntityLivingBase target) {
         if (!enabled) return false;
         if (isOnCooldown()) return false;
         if (isExecuting()) return false;
 
-        float distance = npc.getDistanceToEntity(target);
+        float distance = ((Entity) holder).getDistanceToEntity(target);
         if (distance < minRange || distance > maxRange) return false;
 
-        return checkConditions(npc, target);
+        return checkConditions(holder, target);
     }
 
     // ═══════════════════════════════════════════════════════════════════

@@ -4,6 +4,8 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import net.minecraft.util.DamageSource;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
@@ -121,10 +123,11 @@ public class AbilityDash extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        startX = npc.posX;
-        startY = npc.posY;
-        startZ = npc.posZ;
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+        startX = entity.posX;
+        startY = entity.posY;
+        startZ = entity.posZ;
 
         // Choose random direction based on mode
         DashDirection[] directions = dashMode == DashMode.AGGRESSIVE
@@ -135,11 +138,11 @@ public class AbilityDash extends Ability {
         // Calculate dash direction relative to target
         float baseYaw;
         if (target != null) {
-            double dx = target.posX - npc.posX;
-            double dz = target.posZ - npc.posZ;
+            double dx = target.posX - entity.posX;
+            double dz = target.posZ - entity.posZ;
             baseYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
         } else {
-            baseYaw = npc.rotationYaw;
+            baseYaw = entity.rotationYaw;
         }
 
         // Apply direction offset
@@ -153,51 +156,55 @@ public class AbilityDash extends Ability {
         );
 
         // Play dash sound
-        world.playSoundAtEntity(npc, "mob.endermen.portal", 0.5f, 1.5f);
+        world.playSoundAtEntity(entity, "mob.endermen.portal", 0.5f, 1.5f);
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (dashDirection == null) return;
+
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         // Calculate distance traveled
         double distanceTraveled = Math.sqrt(
-            Math.pow(npc.posX - startX, 2) +
-            Math.pow(npc.posZ - startZ, 2)
+            Math.pow(entity.posX - startX, 2) +
+            Math.pow(entity.posZ - startZ, 2)
         );
 
         // Check if reached max distance
         if (distanceTraveled >= dashDistance) {
-            npc.motionX = 0;
-            npc.motionZ = 0;
-            npc.velocityChanged = true;
+            entity.motionX = 0;
+            entity.motionZ = 0;
+            entity.velocityChanged = true;
             return;
         }
 
         // Move NPC
-        npc.motionX = dashDirection.xCoord * dashSpeed;
-        npc.motionY = 0;
-        npc.motionZ = dashDirection.zCoord * dashSpeed;
-        npc.velocityChanged = true;
+        entity.motionX = dashDirection.xCoord * dashSpeed;
+        entity.motionY = 0;
+        entity.motionZ = dashDirection.zCoord * dashSpeed;
+        entity.velocityChanged = true;
 
         // Trail particles
-        world.spawnParticle("smoke", npc.posX, npc.posY + 0.5, npc.posZ, 0, 0, 0);
+        world.spawnParticle("smoke", entity.posX, entity.posY + 0.5, entity.posZ, 0, 0, 0);
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
-        npc.motionX = 0;
-        npc.motionZ = 0;
-        npc.velocityChanged = true;
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+        entity.motionX = 0;
+        entity.motionZ = 0;
+        entity.velocityChanged = true;
         dashDirection = null;
         chosenDirection = null;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, net.minecraft.util.DamageSource source, float damage) {
-        npc.motionX = 0;
-        npc.motionZ = 0;
-        npc.velocityChanged = true;
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+        entity.motionX = 0;
+        entity.motionZ = 0;
+        entity.velocityChanged = true;
         dashDirection = null;
         chosenDirection = null;
     }

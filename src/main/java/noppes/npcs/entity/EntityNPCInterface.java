@@ -121,6 +121,8 @@ import noppes.npcs.ai.target.EntityAIClearTarget;
 import noppes.npcs.ai.target.EntityAIClosestTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtByTarget;
 import noppes.npcs.ai.target.EntityAIOwnerHurtTarget;
+import noppes.npcs.api.ability.IAbilityHolder;
+import noppes.npcs.api.ability.IDataAbilities;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.data.ILine;
 import noppes.npcs.api.item.IItemStack;
@@ -171,7 +173,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData {
+public abstract class EntityNPCInterface extends EntityCreature implements IEntityAdditionalSpawnData, ICommandSender, IRangedAttackMob, IBossDisplayData, IAbilityHolder {
     public ICustomNpc wrappedNPC;
 
     public static final GameProfileAlt chateventProfile = new GameProfileAlt();
@@ -1116,6 +1118,11 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         if (this.advanced.disablePitch)
             return 1;
         return super.getSoundPitch();
+    }
+
+    @Override
+    public IDataAbilities getAbilityData() {
+        return (IDataAbilities) abilities;
     }
 
     /**
@@ -2147,7 +2154,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     protected boolean handleMountedMovement(float strafe, float forward) {
         return NPCMountUtil.handleMountedMovement(this, mountState, strafe, forward);
     }
-    
+
     public void performMountedMovement(float strafe, float forward, float moveSpeed) {
         this.moveStrafing = strafe;
         this.moveForward = forward;

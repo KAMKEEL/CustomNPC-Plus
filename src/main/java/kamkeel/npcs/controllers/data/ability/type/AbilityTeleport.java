@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
@@ -93,38 +94,40 @@ public class AbilityTeleport extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         currentBlink = 0;
         ticksSinceLastBlink = blinkDelayTicks; // Trigger first blink immediately
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (currentBlink >= blinkCount) return;
 
         ticksSinceLastBlink++;
 
         if (ticksSinceLastBlink >= blinkDelayTicks) {
-            performBlink(npc, target, world);
+            performBlink(holder, target, world);
             currentBlink++;
             ticksSinceLastBlink = 0;
         }
     }
 
-    private void performBlink(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    private void performBlink(IAbilityHolder holder, EntityLivingBase target, World world) {
         if (world.isRemote) return;
 
-        double oldX = npc.posX;
-        double oldY = npc.posY;
-        double oldZ = npc.posZ;
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
-        Vec3 destination = calculateDestination(npc, target, world);
+        double oldX = entity.posX;
+        double oldY = entity.posY;
+        double oldZ = entity.posZ;
+
+        Vec3 destination = calculateDestination(entity, target, world);
         if (destination == null) return;
 
         // Verify line of sight if required
-        if (requireLineOfSight && !hasLineOfSight(world, oldX, oldY + npc.getEyeHeight(), oldZ,
-                                                   destination.xCoord, destination.yCoord + npc.getEyeHeight(), destination.zCoord)) {
-            destination = findValidPositionAlongLine(world, npc, oldX, oldY, oldZ,
+        if (requireLineOfSight && !hasLineOfSight(world, oldX, oldY + entity.getEyeHeight(), oldZ,
+                                                   destination.xCoord, destination.yCoord + entity.getEyeHeight(), destination.zCoord)) {
+            destination = findValidPositionAlongLine(world, entity, oldX, oldY, oldZ,
                                                       destination.xCoord, destination.yCoord, destination.zCoord);
             if (destination == null) return;
         }
@@ -145,25 +148,25 @@ public class AbilityTeleport extends Ability {
 
         // Damage at origin
         if (damageAtStart) {
-            dealDamageAt(npc, world, oldX, oldY, oldZ);
+            dealDamageAt(holder, world, oldX, oldY, oldZ);
         }
 
         // Spawn particles at origin
         spawnTeleportParticles(world, oldX, oldY, oldZ);
 
         // Teleport
-        npc.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
-        npc.fallDistance = 0;
+        entity.setPositionAndUpdate(destination.xCoord, destination.yCoord, destination.zCoord);
+        entity.fallDistance = 0;
 
         // Spawn particles at destination
         spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
 
         // Play teleport sound
-        world.playSoundAtEntity(npc, "mob.endermen.portal", 1.0f, 1.0f);
+        world.playSoundAtEntity(entity, "mob.endermen.portal", 1.0f, 1.0f);
 
         // Damage at destination
         if (damageAtEnd) {
-            dealDamageAt(npc, world, destination.xCoord, destination.yCoord, destination.zCoord);
+            dealDamageAt(holder, world, destination.xCoord, destination.yCoord, destination.zCoord);
         }
 
         // Face target after teleport
@@ -171,8 +174,8 @@ public class AbilityTeleport extends Ability {
             double dx = target.posX - destination.xCoord;
             double dz = target.posZ - destination.zCoord;
             float newYaw = (float) Math.toDegrees(Math.atan2(-dx, dz));
-            npc.rotationYaw = newYaw;
-            npc.rotationYawHead = newYaw;
+            entity.rotationYaw = newYaw;
+            entity.rotationYawHead = newYaw;
         }
     }
 
@@ -188,21 +191,21 @@ public class AbilityTeleport extends Ability {
         }
     }
 
-    private Vec3 calculateDestination(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    private Vec3 calculateDestination(EntityLivingBase entity, EntityLivingBase target, World world) {
         double newX, newY, newZ;
 
         switch (pattern) {
             case TOWARD_TARGET:
                 if (target != null) {
-                    double dx = target.posX - npc.posX;
-                    double dz = target.posZ - npc.posZ;
+                    double dx = target.posX - entity.posX;
+                    double dz = target.posZ - entity.posZ;
                     double dist = Math.sqrt(dx * dx + dz * dz);
                     if (dist > 0) {
                         double blinkDist = Math.min(blinkRadius, dist - 2.0);
                         blinkDist = Math.max(minBlinkRadius, blinkDist);
-                        newX = npc.posX + (dx / dist) * blinkDist;
-                        newZ = npc.posZ + (dz / dist) * blinkDist;
-                        newY = findSafeY(world, newX, npc.posY, newZ);
+                        newX = entity.posX + (dx / dist) * blinkDist;
+                        newZ = entity.posZ + (dz / dist) * blinkDist;
+                        newY = findSafeY(world, newX, entity.posY, newZ);
                         return Vec3.createVectorHelper(newX, newY, newZ);
                     }
                 }
@@ -210,8 +213,8 @@ public class AbilityTeleport extends Ability {
 
             case AWAY_FROM_TARGET:
                 if (target != null) {
-                    double dx = npc.posX - target.posX;
-                    double dz = npc.posZ - target.posZ;
+                    double dx = entity.posX - target.posX;
+                    double dz = entity.posZ - target.posZ;
                     double dist = Math.sqrt(dx * dx + dz * dz);
                     if (dist > 0) {
                         dx /= dist;
@@ -224,9 +227,9 @@ public class AbilityTeleport extends Ability {
                         dz /= len;
                     }
                     double blinkDist = minBlinkRadius + RANDOM.nextDouble() * (blinkRadius - minBlinkRadius);
-                    newX = npc.posX + dx * blinkDist;
-                    newZ = npc.posZ + dz * blinkDist;
-                    newY = findSafeY(world, newX, npc.posY, newZ);
+                    newX = entity.posX + dx * blinkDist;
+                    newZ = entity.posZ + dz * blinkDist;
+                    newY = findSafeY(world, newX, entity.posY, newZ);
                     return Vec3.createVectorHelper(newX, newY, newZ);
                 }
                 return null;
@@ -272,9 +275,9 @@ public class AbilityTeleport extends Ability {
             default:
                 double angle = RANDOM.nextDouble() * Math.PI * 2;
                 double blinkDist = minBlinkRadius + RANDOM.nextDouble() * (blinkRadius - minBlinkRadius);
-                newX = npc.posX + Math.cos(angle) * blinkDist;
-                newZ = npc.posZ + Math.sin(angle) * blinkDist;
-                newY = findSafeY(world, newX, npc.posY, newZ);
+                newX = entity.posX + Math.cos(angle) * blinkDist;
+                newZ = entity.posZ + Math.sin(angle) * blinkDist;
+                newY = findSafeY(world, newX, entity.posY, newZ);
                 return Vec3.createVectorHelper(newX, newY, newZ);
         }
     }
@@ -311,7 +314,7 @@ public class AbilityTeleport extends Ability {
         return true;
     }
 
-    private Vec3 findValidPositionAlongLine(World world, EntityNPCInterface npc,
+    private Vec3 findValidPositionAlongLine(World world, EntityLivingBase entity,
                                             double x1, double y1, double z1,
                                             double x2, double y2, double z2) {
         double dx = x2 - x1;
@@ -333,8 +336,8 @@ public class AbilityTeleport extends Ability {
             double checkY = y1 + dy * d;
             double checkZ = z1 + dz * d;
 
-            if (hasLineOfSight(world, x1, y1 + npc.getEyeHeight(), z1,
-                              checkX, checkY + npc.getEyeHeight(), checkZ)) {
+            if (hasLineOfSight(world, x1, y1 + entity.getEyeHeight(), z1,
+                              checkX, checkY + entity.getEyeHeight(), checkZ)) {
                 int blockX = MathHelper.floor_double(checkX);
                 int blockY = MathHelper.floor_double(checkY);
                 int blockZ = MathHelper.floor_double(checkZ);
@@ -377,24 +380,26 @@ public class AbilityTeleport extends Ability {
                !headBlock.getMaterial().isSolid();
     }
 
-    private void dealDamageAt(EntityNPCInterface npc, World world, double x, double y, double z) {
+    private void dealDamageAt(IAbilityHolder holder, World world, double x, double y, double z) {
         AxisAlignedBB aabb = AxisAlignedBB.getBoundingBox(
             x - damageRadius, y - 1, z - damageRadius,
             x + damageRadius, y + 2, z + damageRadius
         );
 
+        EntityLivingBase entity = (EntityLivingBase) holder;
+
         @SuppressWarnings("unchecked")
         List<Entity> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, aabb);
 
-        for (Entity entity : entities) {
-            if (!(entity instanceof EntityLivingBase)) continue;
-            if (entity == npc) continue;
+        for (Entity currentEntity : entities) {
+            if (!(currentEntity instanceof EntityLivingBase)) continue;
+            if (currentEntity == entity) continue;
 
-            EntityLivingBase living = (EntityLivingBase) entity;
+            EntityLivingBase living = (EntityLivingBase) currentEntity;
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
             if (dist <= damageRadius) {
                 // Apply damage with scripted event support (no knockback for teleport damage)
-                applyAbilityDamage(npc, living, damage, 0, 0);
+                applyAbilityDamage(holder, living, damage, 0, 0);
             }
         }
     }

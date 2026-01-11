@@ -6,7 +6,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.DamageSource;
 import noppes.npcs.api.IDamageSource;
 import noppes.npcs.api.ability.IAbility;
-import noppes.npcs.api.entity.ICustomNpc;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.api.entity.IEntityLivingBase;
 import noppes.npcs.api.event.IAbilityEvent;
 import noppes.npcs.constants.EnumScriptType;
@@ -15,12 +15,13 @@ import noppes.npcs.scripted.NpcAPI;
 /**
  * Events fired during NPC ability execution lifecycle.
  */
-public class AbilityEvent extends NpcEvent implements IAbilityEvent {
+public class AbilityEvent extends CustomNPCsEvent implements IAbilityEvent {
     protected final Ability ability;
+    protected final IAbilityHolder entity;
     protected final IEntityLivingBase target;
 
-    public AbilityEvent(ICustomNpc npc, Ability ability, EntityLivingBase target) {
-        super(npc);
+    public AbilityEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target) {
+        this.entity = entity;
         this.ability = ability;
         this.target = target != null ? (IEntityLivingBase) NpcAPI.Instance().getIEntity(target) : null;
     }
@@ -36,6 +37,11 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
     }
 
     @Override
+    public IAbilityHolder getEntity() {
+        return entity;
+    }
+
+    @Override
     public String getHookName() {
         return "abilityEvent";
     }
@@ -45,8 +51,8 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
      */
     @Cancelable
     public static class StartEvent extends AbilityEvent implements IAbilityEvent.StartEvent {
-        public StartEvent(ICustomNpc npc, Ability ability, EntityLivingBase target) {
-            super(npc, ability, target);
+        public StartEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target) {
+            super(entity, ability, target);
         }
 
         @Override
@@ -60,8 +66,8 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
      */
     @Cancelable
     public static class ExecuteEvent extends AbilityEvent implements IAbilityEvent.ExecuteEvent {
-        public ExecuteEvent(ICustomNpc npc, Ability ability, EntityLivingBase target) {
-            super(npc, ability, target);
+        public ExecuteEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target) {
+            super(entity, ability, target);
         }
 
         @Override
@@ -77,8 +83,8 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
         private final IDamageSource damageSource;
         private final float damage;
 
-        public InterruptEvent(ICustomNpc npc, Ability ability, EntityLivingBase target, DamageSource source, float damage) {
-            super(npc, ability, target);
+        public InterruptEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target, DamageSource source, float damage) {
+            super(entity, ability, target);
             this.damageSource = NpcAPI.Instance().getIDamageSource(source);
             this.damage = damage;
         }
@@ -103,8 +109,8 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
      * Fired when an ability completes its full execution cycle.
      */
     public static class CompleteEvent extends AbilityEvent implements IAbilityEvent.CompleteEvent {
-        public CompleteEvent(ICustomNpc npc, Ability ability, EntityLivingBase target) {
-            super(npc, ability, target);
+        public CompleteEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target) {
+            super(entity, ability, target);
         }
 
         @Override
@@ -124,9 +130,9 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
         private float knockback;
         private float knockbackUp;
 
-        public HitEvent(ICustomNpc npc, Ability ability, EntityLivingBase target,
+        public HitEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target,
                        EntityLivingBase hitEntity, float damage, float knockback, float knockbackUp) {
-            super(npc, ability, target);
+            super(entity, ability, target);
             this.hitEntity = hitEntity != null ? (IEntityLivingBase) NpcAPI.Instance().getIEntity(hitEntity) : null;
             this.damage = damage;
             this.knockback = knockback;
@@ -182,8 +188,8 @@ public class AbilityEvent extends NpcEvent implements IAbilityEvent {
         private final int abilityPhase;
         private final int tick;
 
-        public TickEvent(ICustomNpc npc, Ability ability, EntityLivingBase target, int phase, int tick) {
-            super(npc, ability, target);
+        public TickEvent(IAbilityHolder entity, Ability ability, EntityLivingBase target, int phase, int tick) {
+            super(entity, ability, target);
             this.abilityPhase = phase;
             this.tick = tick;
         }

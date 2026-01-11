@@ -12,6 +12,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
@@ -70,37 +71,38 @@ public class AbilityShockwave extends Ability {
     public float getTelegraphRadius() { return pushRadius; }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
         executed = false;
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (executed) return;
         executed = true;
+        EntityLivingBase entity = (EntityLivingBase) holder;
 
         // Play shockwave sound
-        world.playSoundAtEntity(npc, "random.explode", 0.5f, 1.5f);
+        world.playSoundAtEntity(entity, "random.explode", 0.5f, 1.5f);
 
         // Get all entities in radius
-        AxisAlignedBB box = npc.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
+        AxisAlignedBB box = entity.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, box);
 
         int count = 0;
-        for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
-            if (entity.isDead) continue;
+        for (EntityLivingBase currentEntity : entities) {
+            if (currentEntity == entity) continue;
+            if (currentEntity.isDead) continue;
 
-            double dist = npc.getDistanceToEntity(entity);
+            double dist = entity.getDistanceToEntity(currentEntity);
             if (dist > pushRadius) continue;
 
             count++;
             if (count > maxTargets) break;
 
             // Calculate push direction (away from caster)
-            double dx = entity.posX - npc.posX;
-            double dz = entity.posZ - npc.posZ;
+            double dx = currentEntity.posX - entity.posX;
+            double dz = currentEntity.posZ - entity.posZ;
             double len = Math.sqrt(dx * dx + dz * dz);
 
             if (len > 0) {
@@ -119,23 +121,23 @@ public class AbilityShockwave extends Ability {
             float finalPushUp = pushUp * distFactor;
 
             // Apply damage with custom knockback direction
-            boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, finalPushUp, dx, dz);
+            boolean wasHit = applyAbilityDamageWithDirection(holder, currentEntity, damage * distFactor, finalPush, finalPushUp, dx, dz);
 
             // Apply stun if hit connected
             if (wasHit && stunDuration > 0) {
-                entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
-                entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
+                currentEntity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
+                currentEntity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
             }
         }
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
         executed = false;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
         executed = false;
     }
 

@@ -2,6 +2,8 @@ package kamkeel.npcs.controllers.data.ability;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.DataAbilities;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.entity.EntityNPCInterface;
 
 /**
@@ -13,11 +15,11 @@ public interface Condition {
     /**
      * Check if this condition is met.
      *
-     * @param npc The NPC that would use the ability
+     * @param holder The entity that would use the ability
      * @param target The current target (may be null for self-targeting abilities)
      * @return true if the condition is satisfied
      */
-    boolean check(EntityNPCInterface npc, EntityLivingBase target);
+    boolean check(IAbilityHolder holder, EntityLivingBase target);
 
     /**
      * Get the condition type ID for serialization.
@@ -87,8 +89,8 @@ public interface Condition {
         }
 
         @Override
-        public boolean check(EntityNPCInterface npc, EntityLivingBase target) {
-            return npc.getHealth() / npc.getMaxHealth() > threshold;
+        public boolean check(IAbilityHolder entity, EntityLivingBase target) {
+            return ((EntityLivingBase) entity).getHealth() / ((EntityLivingBase) entity).getMaxHealth() > threshold;
         }
 
         @Override
@@ -121,8 +123,8 @@ public interface Condition {
         }
 
         @Override
-        public boolean check(EntityNPCInterface npc, EntityLivingBase target) {
-            return npc.getHealth() / npc.getMaxHealth() < threshold;
+        public boolean check(IAbilityHolder entity, EntityLivingBase target) {
+            return ((EntityLivingBase) entity).getHealth() / ((EntityLivingBase) entity).getMaxHealth() < threshold;
         }
 
         @Override
@@ -155,7 +157,7 @@ public interface Condition {
         }
 
         @Override
-        public boolean check(EntityNPCInterface npc, EntityLivingBase target) {
+        public boolean check(IAbilityHolder entity, EntityLivingBase target) {
             if (target == null) return false;
             return target.getHealth() / target.getMaxHealth() > threshold;
         }
@@ -190,7 +192,7 @@ public interface Condition {
         }
 
         @Override
-        public boolean check(EntityNPCInterface npc, EntityLivingBase target) {
+        public boolean check(IAbilityHolder entity, EntityLivingBase target) {
             if (target == null) return false;
             return target.getHealth() / target.getMaxHealth() < threshold;
         }
@@ -228,10 +230,10 @@ public interface Condition {
         }
 
         @Override
-        public boolean check(EntityNPCInterface npc, EntityLivingBase target) {
+        public boolean check(IAbilityHolder entity, EntityLivingBase target) {
             // Check NPC's recent hit count from DataAbilities
-            if (npc.abilities != null) {
-                return npc.abilities.getRecentHitCount(withinTicks) >= requiredHits;
+            if (entity.getAbilityData() != null) {
+                return entity.getAbilityData().getRecentHitCount(withinTicks) >= requiredHits;
             }
             return false;
         }

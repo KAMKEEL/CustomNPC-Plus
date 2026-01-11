@@ -87,6 +87,7 @@ import kamkeel.npcs.network.packets.request.MountPacket;
 import kamkeel.npcs.network.packets.request.TileEntityGetPacket;
 import kamkeel.npcs.network.packets.request.TileEntitySavePacket;
 import kamkeel.npcs.network.packets.request.TraderMarketSavePacket;
+import kamkeel.npcs.network.packets.request.ability.*;
 import kamkeel.npcs.network.packets.request.animation.AnimationGetPacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationRemovePacket;
 import kamkeel.npcs.network.packets.request.animation.AnimationSavePacket;
@@ -140,9 +141,6 @@ import kamkeel.npcs.network.packets.request.linked.LinkedItemSavePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCAddPacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedNPCRemovePacket;
 import kamkeel.npcs.network.packets.request.linked.LinkedSetPacket;
-import kamkeel.npcs.network.packets.request.ability.AbilitiesGetAllPacket;
-import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcGetPacket;
-import kamkeel.npcs.network.packets.request.ability.AbilitiesNpcSavePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleRemovePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicCycleSavePacket;
 import kamkeel.npcs.network.packets.request.magic.MagicGetAllPacket;
@@ -495,6 +493,8 @@ public class PacketHandler {
         REQUEST_PACKET.registerPacket(new AbilitiesGetAllPacket());
         REQUEST_PACKET.registerPacket(new AbilitiesNpcGetPacket());
         REQUEST_PACKET.registerPacket(new AbilitiesNpcSavePacket());
+        REQUEST_PACKET.registerPacket(new AbilitiesPlayerGetPacket());
+        REQUEST_PACKET.registerPacket(new AbilitiesPlayerSavePacket());
 
         // Other Packets
         REQUEST_PACKET.registerPacket(new IsGuiOpenInform());

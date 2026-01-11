@@ -14,7 +14,10 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraftforge.common.IExtendedEntityProperties;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.DataAbilities;
 import noppes.npcs.LogWriter;
+import noppes.npcs.api.ability.IAbilityHolder;
+import noppes.npcs.api.ability.IDataAbilities;
 import noppes.npcs.api.entity.ICustomNpc;
 import noppes.npcs.api.handler.IPlayerBankData;
 import noppes.npcs.api.handler.IPlayerData;
@@ -45,7 +48,7 @@ import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class PlayerData implements IExtendedEntityProperties, IPlayerData {
+public class PlayerData implements IExtendedEntityProperties, IPlayerData, IAbilityHolder {
     public PlayerDialogData dialogData = new PlayerDialogData(this);
     public PlayerBankData bankData = new PlayerBankData(this);
     public PlayerQuestData questData = new PlayerQuestData(this);
@@ -58,6 +61,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
     public DataTimers timers = new DataTimers(this);
     public DataSkinOverlays skinOverlays = new DataSkinOverlays(this);
     public MagicData magicData = new MagicData();
+    public DataAbilities abilities = new DataAbilities(this);
 
     public ActionManager actionManager = new ActionManager();
     public PlayerDataScript scriptData;
@@ -130,6 +134,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         animationData.readFromNBT(data);
         effectData.readFromNBT(data);
         magicData.readToNBT(data);
+        abilities.readFromNBT(data);
 
         if (player != null) {
             playername = player.getCommandSenderName();
@@ -172,6 +177,7 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
         animationData.writeToNBT(compound);
         effectData.writeToNBT(compound);
         magicData.writeToNBT(compound);
+        abilities.writeToNBT(compound);
 
         compound.setString("PlayerName", playername);
         compound.setString("UUID", uuid);
@@ -443,6 +449,11 @@ public class PlayerData implements IExtendedEntityProperties, IPlayerData {
             data = getNBT();
         }
         setNBT(data);
+    }
+
+    @Override
+    public IDataAbilities getAbilityData() {
+        return (IDataAbilities) abilities;
     }
 
     public static PlayerData get(EntityPlayer player) {

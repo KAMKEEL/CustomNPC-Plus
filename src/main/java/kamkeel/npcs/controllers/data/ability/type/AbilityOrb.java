@@ -4,6 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import noppes.npcs.api.ability.IAbilityHolder;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
@@ -85,10 +86,11 @@ public class AbilityOrb extends Ability {
     }
 
     @Override
-    public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        startX = orbX = npc.posX;
-        startY = orbY = npc.posY + npc.getEyeHeight() * 0.8;
-        startZ = orbZ = npc.posZ;
+    public void onExecute(IAbilityHolder holder, EntityLivingBase target, World world) {
+        EntityLivingBase entity = (EntityLivingBase) holder;
+        startX = orbX = entity.posX;
+        startY = orbY = entity.posY + entity.getEyeHeight() * 0.8;
+        startZ = orbZ = entity.posZ;
         hasHit = false;
         ticksAlive = 0;
 
@@ -103,8 +105,8 @@ public class AbilityOrb extends Ability {
                 velocityZ = (dz / len) * orbSpeed;
             }
         } else {
-            float yaw = (float) Math.toRadians(npc.rotationYaw);
-            float pitch = (float) Math.toRadians(npc.rotationPitch);
+            float yaw = (float) Math.toRadians(entity.rotationYaw);
+            float pitch = (float) Math.toRadians(entity.rotationPitch);
             velocityX = -Math.sin(yaw) * Math.cos(pitch) * orbSpeed;
             velocityY = -Math.sin(pitch) * orbSpeed;
             velocityZ = Math.cos(yaw) * Math.cos(pitch) * orbSpeed;
@@ -112,7 +114,7 @@ public class AbilityOrb extends Ability {
     }
 
     @Override
-    public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
+    public void onActiveTick(IAbilityHolder holder, EntityLivingBase target, World world, int tick) {
         if (hasHit) return;
 
         ticksAlive++;
@@ -172,11 +174,13 @@ public class AbilityOrb extends Ability {
         orbZ += velocityZ;
 
         if (!world.isRemote) {
-            checkCollision(npc, world);
+            checkCollision(holder, world);
         }
     }
 
-    private void checkCollision(EntityNPCInterface npc, World world) {
+    private void checkCollision(IAbilityHolder holder, World world) {
+        EntityLivingBase caster = (EntityLivingBase) holder;
+
         AxisAlignedBB hitBox = AxisAlignedBB.getBoundingBox(
             orbX - orbSize, orbY - orbSize, orbZ - orbSize,
             orbX + orbSize, orbY + orbSize, orbZ + orbSize
@@ -186,15 +190,15 @@ public class AbilityOrb extends Ability {
         List<EntityLivingBase> entities = world.getEntitiesWithinAABB(EntityLivingBase.class, hitBox);
 
         for (EntityLivingBase entity : entities) {
-            if (entity == npc) continue;
+            if (entity == caster) continue;
 
             hasHit = true;
 
             if (explosive) {
-                doExplosion(npc, world);
+                doExplosion(holder, world);
             } else {
                 // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback, 0.2f);
+                boolean wasHit = applyAbilityDamage(holder, entity, damage, knockback, 0.2f);
                 if (wasHit) {
                     applyEffects(entity);
                 }
@@ -205,12 +209,12 @@ public class AbilityOrb extends Ability {
         if (!hasHit && world.getBlock((int)orbX, (int)orbY, (int)orbZ).getMaterial().isSolid()) {
             hasHit = true;
             if (explosive) {
-                doExplosion(npc, world);
+                doExplosion(holder, world);
             }
         }
     }
 
-    private void doExplosion(EntityNPCInterface npc, World world) {
+    private void doExplosion(IAbilityHolder holder, World world) {
         AxisAlignedBB explosionBox = AxisAlignedBB.getBoundingBox(
             orbX - explosionRadius, orbY - explosionRadius, orbZ - explosionRadius,
             orbX + explosionRadius, orbY + explosionRadius, orbZ + explosionRadius
@@ -219,8 +223,10 @@ public class AbilityOrb extends Ability {
         @SuppressWarnings("unchecked")
         List<EntityLivingBase> blastTargets = world.getEntitiesWithinAABB(EntityLivingBase.class, explosionBox);
 
+        EntityLivingBase caster = (EntityLivingBase) holder;
+
         for (EntityLivingBase blastTarget : blastTargets) {
-            if (blastTarget == npc) continue;
+            if (blastTarget == caster) continue;
 
             double dist = Math.sqrt(
                 Math.pow(blastTarget.posX - orbX, 2) +
@@ -231,7 +237,7 @@ public class AbilityOrb extends Ability {
             if (dist <= explosionRadius) {
                 float falloff = 1.0f - (float)(dist / explosionRadius) * explosionDamageFalloff;
                 // Apply damage with scripted event support
-                boolean wasHit = applyAbilityDamage(npc, blastTarget, damage * falloff, knockback * falloff, 0.3f);
+                boolean wasHit = applyAbilityDamage(holder, blastTarget, damage * falloff, knockback * falloff, 0.3f);
                 if (wasHit) {
                     applyEffects(blastTarget);
                 }
@@ -264,13 +270,13 @@ public class AbilityOrb extends Ability {
     }
 
     @Override
-    public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
+    public void onComplete(IAbilityHolder holder, EntityLivingBase target) {
         hasHit = false;
         ticksAlive = 0;
     }
 
     @Override
-    public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
+    public void onInterrupt(IAbilityHolder holder, DamageSource source, float damage) {
         hasHit = false;
         ticksAlive = 0;
     }
