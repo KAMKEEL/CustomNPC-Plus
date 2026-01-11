@@ -72,6 +72,7 @@ import noppes.npcs.api.handler.IPartyHandler;
 import noppes.npcs.api.handler.IProfileHandler;
 import noppes.npcs.api.handler.IQuestHandler;
 import noppes.npcs.api.handler.IRecipeHandler;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.api.handler.ITransportHandler;
 import noppes.npcs.api.handler.data.IAnimation;
 import noppes.npcs.api.handler.data.IFrame;
@@ -93,6 +94,7 @@ import noppes.npcs.controllers.PartyController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.ScriptEntityData;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.SpawnController;
@@ -354,6 +356,10 @@ public class NpcAPI extends AbstractNpcAPI {
     public IAnimationHandler getAnimations() {
         this.checkWorld();
         return AnimationController.Instance;
+    }
+
+    public IScriptHookHandler getScriptHooks() {
+        return ScriptHookController.Instance;
     }
 
     @Override

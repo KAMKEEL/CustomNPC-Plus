@@ -24,7 +24,9 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.data.RecipeScript;
@@ -62,8 +64,7 @@ public class GuiScriptRecipe extends GuiNPCInterface implements GuiYesNoCallback
         this.anvil = false;
         this.recipeId = recipe.id;
 
-        hookList.add(RecipeScript.ScriptType.PRE.function);
-        hookList.add(RecipeScript.ScriptType.POST.function);
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_RECIPE));
 
         RecipeScriptPacket.Get(false, recipeId);
     }
@@ -80,8 +81,7 @@ public class GuiScriptRecipe extends GuiNPCInterface implements GuiYesNoCallback
         this.anvil = true;
         this.recipeId = recipe.id;
 
-        hookList.add(RecipeScript.ScriptType.PRE.function);
-        hookList.add(RecipeScript.ScriptType.POST.function);
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_RECIPE));
 
         RecipeScriptPacket.Get(true, recipeId);
     }

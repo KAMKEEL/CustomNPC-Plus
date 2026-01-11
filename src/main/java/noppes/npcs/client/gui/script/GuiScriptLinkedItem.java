@@ -24,8 +24,9 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
-import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 
@@ -59,20 +60,7 @@ public class GuiScriptLinkedItem extends GuiNPCInterface implements GuiYesNoCall
         this.linkedItem = linkedItem;
         this.scriptHandler = new LinkedItemScript();
 
-        hookList.add(EnumScriptType.LINKED_ITEM_BUILD.function);
-        hookList.add(EnumScriptType.LINKED_ITEM_VERSION.function);
-        hookList.add(EnumScriptType.INIT.function);
-        hookList.add(EnumScriptType.TICK.function);
-        hookList.add(EnumScriptType.TOSSED.function);
-        hookList.add(EnumScriptType.PICKEDUP.function);
-        hookList.add(EnumScriptType.SPAWN.function);
-        hookList.add(EnumScriptType.INTERACT.function);
-        hookList.add(EnumScriptType.RIGHT_CLICK.function);
-        hookList.add(EnumScriptType.ATTACK.function);
-        hookList.add(EnumScriptType.START_USING_ITEM.function);
-        hookList.add(EnumScriptType.USING_ITEM.function);
-        hookList.add(EnumScriptType.STOP_USING_ITEM.function);
-        hookList.add(EnumScriptType.FINISH_USING_ITEM.function);
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_LINKED_ITEM));
 
         LinkedItemScriptPacket.Get(linkedItem.id);
     }

@@ -62,6 +62,7 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.SpawnController;
@@ -180,6 +181,7 @@ public class CustomNpcs {
 
         MinecraftForge.EVENT_BUS.register(new ServerEventsHandler());
         MinecraftForge.EVENT_BUS.register(new ScriptController());
+        new ScriptHookController();
 
         ScriptPlayerEventHandler scriptPlayerEventHandler = new ScriptPlayerEventHandler();
         MinecraftForge.EVENT_BUS.register(scriptPlayerEventHandler);

@@ -6,8 +6,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,18 +21,7 @@ public class GuiScriptItem extends GuiScriptInterface {
     public static Map<Long, String> consoleText = new HashMap<>();
 
     public GuiScriptItem() {
-        hookList.add("init");
-        hookList.add("tick");
-        hookList.add("tossed");
-        hookList.add("pickedUp");
-        hookList.add("spawn");
-        hookList.add("interact");
-        hookList.add("rightClick");
-        hookList.add("attack");
-        hookList.add("startItem");
-        hookList.add("usingItem");
-        hookList.add("stopItem");
-        hookList.add("finishItem");
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_ITEM));
 
         this.handler = this.item = new ScriptCustomItem(new ItemStack(CustomItems.scripted_item));
         ItemScriptErrorPacket.Get();

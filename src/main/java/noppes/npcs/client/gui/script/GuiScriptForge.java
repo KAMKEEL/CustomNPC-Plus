@@ -13,7 +13,9 @@ import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.event.world.ChunkWatchEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,8 +30,10 @@ public class GuiScriptForge extends GuiScriptInterface {
     private final ForgeDataScript script = new ForgeDataScript();
 
     public GuiScriptForge() {
-        hookList.add("init");
+        // Add built-in "init" hook from controller
+        hookList.addAll(ScriptHookController.Instance.getBuiltInHooks(IScriptHookHandler.CONTEXT_FORGE));
 
+        // Dynamically discover Forge event hooks
         ArrayList<ClassPath.ClassInfo> list = new ArrayList();
         try {
             list.addAll(ClassPath.from(this.getClass().getClassLoader()).getTopLevelClassesRecursive("cpw.mods.fml.common.gameevent"));
@@ -59,6 +63,13 @@ public class GuiScriptForge extends GuiScriptInterface {
             }
         }
         hookList.add("onCNPCNaturalSpawn");
+
+        // Add any addon-registered hooks for the forge context
+        for (String addonHook : ScriptHookController.Instance.getAddonHooks(IScriptHookHandler.CONTEXT_FORGE)) {
+            if (!hookList.contains(addonHook)) {
+                hookList.add(addonHook);
+            }
+        }
 
         this.handler = this.script;
         ForgeScriptPacket.Get();
