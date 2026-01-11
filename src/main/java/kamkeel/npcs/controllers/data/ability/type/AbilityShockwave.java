@@ -12,7 +12,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityShockwave;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -37,7 +37,7 @@ public class AbilityShockwave extends Ability {
     private transient boolean executed = false;
 
     public AbilityShockwave() {
-        this.typeId = "cnpc:shockwave";
+        this.typeId = "ability.cnpc.shockwave";
         this.name = "Shockwave";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;

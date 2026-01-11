@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeavyHit;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -28,7 +28,7 @@ public class AbilityHeavyHit extends Ability {
     private int stunTicks = 40;
 
     public AbilityHeavyHit() {
-        this.typeId = "cnpc:heavy_hit";
+        this.typeId = "ability.cnpc.heavy_hit";
         this.name = "Heavy Hit";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 3.0f;

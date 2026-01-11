@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHazard;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -77,7 +77,7 @@ public class AbilityHazard extends Ability {
     private transient Set<Integer> damagedThisTick = new HashSet<>();
 
     public AbilityHazard() {
-        this.typeId = "cnpc:hazard";
+        this.typeId = "ability.cnpc.hazard";
         this.name = "Hazard";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;

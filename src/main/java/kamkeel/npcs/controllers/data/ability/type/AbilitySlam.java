@@ -13,7 +13,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilitySlam;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -47,7 +47,7 @@ public class AbilitySlam extends Ability {
     private transient int maxAirTicks = 60; // Timeout to prevent stuck in air
 
     public AbilitySlam() {
-        this.typeId = "cnpc:slam";
+        this.typeId = "ability.cnpc.slam";
         this.name = "Slam";
         this.targetingMode = TargetingMode.AOE_SELF; // Can also be AOE_TARGET to leap to target
         this.windUpTicks = 30;
@@ -126,6 +126,9 @@ public class AbilitySlam extends Ability {
         hasLaunched = false;
         hasLanded = false;
         airTicks = 0;
+
+        // Reset fall distance to prevent fall damage during slam
+        npc.fallDistance = 0;
 
         // Calculate and apply leap velocity
         launchTowardTarget(npc);
@@ -230,6 +233,9 @@ public class AbilitySlam extends Ability {
 
         airTicks++;
 
+        // Continuously reset fall distance during slam to prevent fall damage
+        npc.fallDistance = 0;
+
         // Check for landing
         if (npc.onGround && airTicks > 3) {
             // Landed!
@@ -257,6 +263,9 @@ public class AbilitySlam extends Ability {
     private void onLanding(EntityNPCInterface npc, World world) {
         hasLanded = true;
         npc.setNpcJumpingState(false);
+
+        // Reset fall distance to prevent fall damage on landing
+        npc.fallDistance = 0;
 
         // Stop horizontal momentum
         npc.motionX = 0;
@@ -415,9 +424,9 @@ public class AbilitySlam extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        damage = nbt.getFloat("damage");
-        radius = nbt.getFloat("radius");
-        knockbackStrength = nbt.getFloat("knockback");
+        damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 20.0f;
+        radius = nbt.hasKey("radius") ? nbt.getFloat("radius") : 5.0f;
+        knockbackStrength = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
         leapSpeed = nbt.hasKey("leapSpeed") ? nbt.getFloat("leapSpeed") : 1.0f;
         minLeapDistance = nbt.hasKey("minLeapDistance") ? nbt.getFloat("minLeapDistance") : 2.0f;
         maxLeapDistance = nbt.hasKey("maxLeapDistance") ? nbt.getFloat("maxLeapDistance") : 15.0f;

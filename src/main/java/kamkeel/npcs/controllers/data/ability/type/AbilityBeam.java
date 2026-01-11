@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityBeam;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -45,7 +45,7 @@ public class AbilityBeam extends Ability {
     private transient Set<Integer> hitThisTick = new HashSet<>();
 
     public AbilityBeam() {
-        this.typeId = "cnpc:beam";
+        this.typeId = "ability.cnpc.beam";
         this.name = "Beam";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;

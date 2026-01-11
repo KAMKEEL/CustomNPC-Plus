@@ -14,7 +14,7 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityCharge;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -43,7 +43,7 @@ public class AbilityCharge extends Ability {
     private transient float lockedYaw;
 
     public AbilityCharge() {
-        this.typeId = "cnpc:charge";
+        this.typeId = "ability.cnpc.charge";
         this.name = "Charge";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;

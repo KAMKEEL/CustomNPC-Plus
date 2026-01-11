@@ -10,7 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityProjectile;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -34,7 +34,7 @@ public class AbilityProjectile extends Ability {
     private float homingStrength = 0.1f;
 
     public AbilityProjectile() {
-        this.typeId = "cnpc:projectile";
+        this.typeId = "ability.cnpc.projectile";
         this.name = "Projectile";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.minRange = 5.0f;

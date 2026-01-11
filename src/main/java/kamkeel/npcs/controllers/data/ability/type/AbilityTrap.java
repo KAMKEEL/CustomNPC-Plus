@@ -13,7 +13,7 @@ import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTrap;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -68,7 +68,7 @@ public class AbilityTrap extends Ability {
     private transient Set<UUID> triggeredEntities = new HashSet<>();
 
     public AbilityTrap() {
-        this.typeId = "cnpc:trap";
+        this.typeId = "ability.cnpc.trap";
         this.name = "Trap";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 15.0f;

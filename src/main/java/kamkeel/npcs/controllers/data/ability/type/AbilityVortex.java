@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityVortex;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -47,7 +47,7 @@ public class AbilityVortex extends Ability {
     private transient boolean pullComplete = false;
 
     public AbilityVortex() {
-        this.typeId = "cnpc:vortex";
+        this.typeId = "ability.cnpc.vortex";
         this.name = "Vortex";
         this.targetingMode = TargetingMode.AOE_SELF;
         this.maxRange = 15.0f;

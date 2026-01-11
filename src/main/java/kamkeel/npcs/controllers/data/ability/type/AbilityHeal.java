@@ -10,7 +10,7 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityHeal;
 import noppes.npcs.entity.EntityNPCInterface;
@@ -36,7 +36,7 @@ public class AbilityHeal extends Ability {
     private transient List<EntityLivingBase> healedAllies = new ArrayList<>();
 
     public AbilityHeal() {
-        this.typeId = "cnpc:heal";
+        this.typeId = "ability.cnpc.heal";
         this.name = "Heal";
         this.targetingMode = TargetingMode.SELF;
         this.lockMovement = true;

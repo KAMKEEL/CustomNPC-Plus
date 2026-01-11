@@ -17,6 +17,7 @@ import noppes.npcs.entity.EntityNPCInterface;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.Vector;
 
 /**
@@ -30,6 +31,9 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     // All available ability types (typeId -> index)
     private final HashMap<String, Integer> allAbilityTypes = new HashMap<>();
+
+    // Display name to typeId mapping for the available types scroll
+    private final HashMap<String, String> displayNameToTypeId = new HashMap<>();
 
     // NPC's current abilities
     private final List<Ability> npcAbilities = new ArrayList<>();
@@ -131,18 +135,20 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
         if (id == 70) {
             if (availableTypesScroll.hasSelected()) {
                 String displayName = availableTypesScroll.getSelected();
-                String typeId = getTypeIdFromDisplayName(displayName);
-                Ability newAbility = AbilityController.Instance.create(typeId);
-                if (newAbility != null) {
-                    newAbility.setId("ability_" + System.currentTimeMillis());
-                    // Don't set custom name - let it default to type name
-                    npcAbilities.add(newAbility);
-                    // Auto-select the newly added ability
-                    selectedAbilityIndex = npcAbilities.size() - 1;
-                    updateNpcAbilitiesList();
-                    selectAbilityByIndex(selectedAbilityIndex);
-                    initGui();
-                    save();
+                String typeId = displayNameToTypeId.get(displayName);
+                if (typeId != null) {
+                    Ability newAbility = AbilityController.Instance.create(typeId);
+                    if (newAbility != null) {
+                        newAbility.setId(UUID.randomUUID().toString());
+                        // Don't set custom name - let it default to type name
+                        npcAbilities.add(newAbility);
+                        // Auto-select the newly added ability
+                        selectedAbilityIndex = npcAbilities.size() - 1;
+                        updateNpcAbilitiesList();
+                        selectAbilityByIndex(selectedAbilityIndex);
+                        initGui();
+                        save();
+                    }
                 }
             }
             return;
@@ -274,25 +280,16 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     private List<String> getFilteredTypeList() {
         List<String> list = new ArrayList<>();
+        displayNameToTypeId.clear();
         for (String typeId : allAbilityTypes.keySet()) {
-            String displayName = getDisplayName(typeId);
-            if (search.isEmpty() || typeId.toLowerCase().contains(search) || displayName.toLowerCase().contains(search)) {
+            String displayName = I18n.format(typeId);
+            // Search matches either the display name or the typeId
+            if (search.isEmpty() || displayName.toLowerCase().contains(search) || typeId.toLowerCase().contains(search)) {
                 list.add(displayName);
+                displayNameToTypeId.put(displayName, typeId);
             }
         }
         return list;
-    }
-
-    /**
-     * Gets the typeId from a display name shown in the available types list.
-     */
-    private String getTypeIdFromDisplayName(String displayName) {
-        for (String typeId : allAbilityTypes.keySet()) {
-            if (getDisplayName(typeId).equals(displayName)) {
-                return typeId;
-            }
-        }
-        return displayName;
     }
 
     private void updateNpcAbilitiesList() {
@@ -335,35 +332,10 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
 
     /**
      * Gets the localized display name for an ability type.
-     * Uses lang key "ability.type.cnpc_slam" for "cnpc:slam"
+     * The typeId IS the lang key (e.g., "ability.cnpc.slam").
      */
     private String getDisplayName(String typeId) {
-        // Convert "cnpc:slam" to lang key "ability.type.cnpc_slam"
-        String langKey = "ability.type." + typeId.replace(":", "_");
-        String translated = I18n.format(langKey);
-
-        // If translation exists and is different from key, use it
-        if (!translated.equals(langKey)) {
-            return translated;
-        }
-
-        // Fallback: Convert "cnpc:slam" to "Slam"
-        if (typeId.contains(":")) {
-            String name = typeId.substring(typeId.indexOf(":") + 1);
-            name = name.replace("_", " ");
-            StringBuilder sb = new StringBuilder();
-            for (String word : name.split(" ")) {
-                if (word.length() > 0) {
-                    sb.append(Character.toUpperCase(word.charAt(0)));
-                    if (word.length() > 1) {
-                        sb.append(word.substring(1));
-                    }
-                    sb.append(" ");
-                }
-            }
-            return sb.toString().trim();
-        }
-        return typeId;
+        return I18n.format(typeId);
     }
 
     public void save() {
@@ -386,7 +358,7 @@ public class GuiNPCAbilities extends GuiNPCInterface2 implements IScrollData, IC
      */
     public void loadAbility(Ability loadedAbility) {
         if (loadedAbility != null) {
-            loadedAbility.setId("ability_" + System.currentTimeMillis());
+            loadedAbility.setId(UUID.randomUUID().toString());
             npcAbilities.add(loadedAbility);
             // Auto-select the newly added ability
             selectedAbilityIndex = npcAbilities.size() - 1;

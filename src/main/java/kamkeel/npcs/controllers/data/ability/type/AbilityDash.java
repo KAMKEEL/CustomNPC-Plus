@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityDash;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -82,7 +82,7 @@ public class AbilityDash extends Ability {
     private transient DashDirection chosenDirection;
 
     public AbilityDash() {
-        this.typeId = "cnpc:dash";
+        this.typeId = "ability.cnpc.dash";
         this.name = "Dash";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 20.0f;

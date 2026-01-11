@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityOrb;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -53,7 +53,7 @@ public class AbilityOrb extends Ability {
     private transient int ticksAlive = 0;
 
     public AbilityOrb() {
-        this.typeId = "cnpc:orb";
+        this.typeId = "ability.cnpc.orb";
         this.name = "Orb";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 25.0f;

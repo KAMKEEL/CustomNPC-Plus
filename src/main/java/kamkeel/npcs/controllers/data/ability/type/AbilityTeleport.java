@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityTeleport;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -60,7 +60,7 @@ public class AbilityTeleport extends Ability {
     private transient int ticksSinceLastBlink = 0;
 
     public AbilityTeleport() {
-        this.typeId = "cnpc:teleport";
+        this.typeId = "ability.cnpc.teleport";
         this.name = "Teleport";
         this.targetingMode = TargetingMode.AGGRO_TARGET;
         this.maxRange = 30.0f;

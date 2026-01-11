@@ -12,9 +12,10 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
 import noppes.npcs.DataAbilities;
+import noppes.npcs.NpcDamageSource;
 import noppes.npcs.api.INbt;
 import noppes.npcs.api.ability.IAbility;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.entity.EntityNPCInterface;
 import noppes.npcs.scripted.NpcAPI;
@@ -31,7 +32,7 @@ public abstract class Ability implements IAbility {
 
     protected String id;
     protected String name;
-    protected String typeId;                // e.g., "cnpc:slam", "mymod:custom_ability"
+    protected String typeId;                // e.g., "ability.cnpc.slam" (also used as lang key)
 
     // Selection
     protected int weight = 10;
@@ -136,7 +137,7 @@ public abstract class Ability implements IAbility {
 
         // Apply damage
         if (finalDamage > 0) {
-            hitEntity.attackEntityFrom(DamageSource.causeMobDamage(npc), finalDamage);
+            hitEntity.attackEntityFrom(new NpcDamageSource("mob", npc), finalDamage);
         }
 
         // Apply knockback if any

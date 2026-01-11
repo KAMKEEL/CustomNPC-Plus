@@ -4,7 +4,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
-import noppes.npcs.client.gui.advanced.IAbilityConfigCallback;
+import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
 import noppes.npcs.client.gui.advanced.ability.SubGuiAbilityGuard;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
@@ -36,7 +36,7 @@ public class AbilityGuard extends Ability {
     private transient boolean counterTriggered;
 
     public AbilityGuard() {
-        this.typeId = "cnpc:guard";
+        this.typeId = "ability.cnpc.guard";
         this.name = "Guard";
         this.targetingMode = TargetingMode.SELF;
         this.lockMovement = true;

@@ -1486,21 +1486,21 @@ ability.windUpAnim=Wind Up Anim
 ability.activeAnim=Active Anim
 gui.animations=Animations
 
-ability.type.cnpc_slam=Slam
-ability.type.cnpc_heavy_hit=Heavy Hit
-ability.type.cnpc_cutter=Cutter
-ability.type.cnpc_beam=Beam
-ability.type.cnpc_projectile=Projectile
-ability.type.cnpc_orb=Orb
-ability.type.cnpc_charge=Charge
-ability.type.cnpc_dash=Dash
-ability.type.cnpc_teleport=Teleport
-ability.type.cnpc_vortex=Vortex
-ability.type.cnpc_shockwave=Shockwave
-ability.type.cnpc_guard=Guard
-ability.type.cnpc_heal=Heal
-ability.type.cnpc_hazard=Hazard
-ability.type.cnpc_trap=Trap
+ability.cnpc.slam=Slam
+ability.cnpc.heavy_hit=Heavy Hit
+ability.cnpc.cutter=Cutter
+ability.cnpc.beam=Beam
+ability.cnpc.projectile=Projectile
+ability.cnpc.orb=Orb
+ability.cnpc.charge=Charge
+ability.cnpc.dash=Dash
+ability.cnpc.teleport=Teleport
+ability.cnpc.vortex=Vortex
+ability.cnpc.shockwave=Shockwave
+ability.cnpc.guard=Guard
+ability.cnpc.heal=Heal
+ability.cnpc.hazard=Hazard
+ability.cnpc.trap=Trap
 
 # Ability GUI - Type Tab
 ability.tab.type=Type
@@ -1631,3 +1631,22 @@ ability.activeColor=Active Color
 # Shockwave Settings
 ability.pushRadius=Push Radius
 ability.pushStrength=Push Str
+
+# Ability Config GUI
+ability.typeId=Type ID
+ability.tab.target=Target
+ability.conditions=Conditions
+ability.noTypeSettings=No type-specific settings
+ability.sounds=Sounds
+ability.animations=Animations
+
+# Conditions
+condition.edit=Edit Condition
+condition.hp_above=NPC HP Above
+condition.hp_below=NPC HP Below
+condition.target_hp_above=Target HP Above
+condition.target_hp_below=Target HP Below
+condition.hit_count=Hit Count
+condition.percent=Threshold
+condition.hits=Required Hits
+condition.within=Within (ticks)

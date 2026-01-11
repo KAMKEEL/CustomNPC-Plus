@@ -1,23 +1,28 @@
 package noppes.npcs.client.gui.advanced;
 
 import kamkeel.npcs.controllers.data.ability.Ability;
+import kamkeel.npcs.controllers.data.ability.Condition;
 import kamkeel.npcs.controllers.data.ability.TargetingMode;
 import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphType;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import noppes.npcs.client.gui.SubGuiColorSelector;
 import noppes.npcs.client.gui.select.GuiAnimationSelection;
 import noppes.npcs.client.gui.select.GuiSoundSelection;
 import noppes.npcs.client.gui.util.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base SubGui for editing ability configuration with tabbed interface.
  * Uses GuiMenuTopButton for navigation tabs.
  *
  * Tabs:
- * - General: Type ID, Name, Weight, Lock Movement, Interruptible, Timing (Windup/Active/Recovery/Cooldown)
+ * - General: Name, Weight, Lock Movement, Interruptible, Timing
  * - Type: Type-specific settings per Ability (override in subclasses)
- * - Target: Min/Max Range, Targeting Mode, Conditions
+ * - Target: Min/Max Range, Targeting Mode, Conditions (up to 3)
  * - Effects: Sounds, Animations, Telegraph settings, Colors
  *
  * Subclasses should override initTypeTab() and handleTypeButton()/handleTypeTextField()
@@ -57,6 +62,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected float minRange;
     protected float maxRange;
     protected TargetingMode targetingMode;
+    protected List<Condition> conditions;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // CACHED VALUES - Effects Tab
@@ -77,6 +83,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     protected int editingColorId = 0;
     protected int editingSoundId = 0;
     protected int editingAnimationId = 0;
+    protected int editingConditionIndex = -1;
 
     // ═══════════════════════════════════════════════════════════════════════════
     // ABILITY TYPE FEATURES
@@ -106,6 +113,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.minRange = ability.getMinRange();
         this.maxRange = ability.getMaxRange();
         this.targetingMode = ability.getTargetingMode();
+        this.conditions = new ArrayList<>(ability.getConditions());
 
         // Effects
         this.windUpSound = ability.getWindUpSound();
@@ -125,8 +133,8 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.hasTypeSettings = ability.hasTypeSettings();
 
         setBackground("menubg.png");
-        xSize = 420;
-        ySize = 216;
+        xSize = 356;
+        ySize = 200;
     }
 
     @Override
@@ -158,11 +166,11 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         effectsTab.active = (activeTab == TAB_EFFECTS);
         addTopButton(effectsTab);
 
-        // Close button on top right
-        GuiMenuTopButton closeBtn = new GuiMenuTopButton(67, guiLeft + xSize - 22, guiTop - 17, "X");
+        // Close button (X) in top menu bar - use -1000 to avoid any ID conflicts
+        GuiMenuTopButton closeBtn = new GuiMenuTopButton(-1000, guiLeft + xSize - 22, guiTop - 17, "X");
         addTopButton(closeBtn);
 
-        int contentY = guiTop + 4;
+        int contentY = guiTop + 5;
 
         // ═══════════════════════════════════════════════════════════════════════
         // TAB CONTENT
@@ -183,70 +191,66 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         }
 
         // ═══════════════════════════════════════════════════════════════════════
-        // BOTTOM ROW - Enabled toggle and Done button
+        // BOTTOM ROW - Enabled toggle
         // ═══════════════════════════════════════════════════════════════════════
-        addLabel(new GuiNpcLabel(99, "gui.enabled", guiLeft + 8, guiTop + ySize - 19));
-        GuiNpcButton enabledBtn = new GuiNpcButton(2, guiLeft + 55, guiTop + ySize - 24, 50, 20, new String[]{"gui.no", "gui.yes"}, enabled ? 1 : 0);
+        addLabel(new GuiNpcLabel(99, "gui.enabled", guiLeft + 8, guiTop + ySize - 18));
+        GuiNpcButton enabledBtn = new GuiNpcButton(2, guiLeft + 55, guiTop + ySize - 24, 40, 20, new String[]{"gui.no", "gui.yes"}, enabled ? 1 : 0);
         enabledBtn.setTextColor(enabled ? 0x00FF00 : 0xFF0000);
         addButton(enabledBtn);
-
-        addButton(new GuiNpcButton(66, guiLeft + xSize - 65, guiTop + ySize - 24, 60, 20, "gui.done"));
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
     // GENERAL TAB
-    // Type ID (label), Name, Weight, Lock Movement, Interruptible,
-    // Ticks: Windup, Active, Recovery, Cooldown
     // ═══════════════════════════════════════════════════════════════════════════
 
     private void initGeneralTab(int startY) {
         int y = startY;
         int col1LabelX = guiLeft + 8;
-        int col1FieldX = guiLeft + 75;
-        int col2LabelX = guiLeft + 215;
-        int col2FieldX = guiLeft + 290;
+        int col1FieldX = guiLeft + 70;
+        int col2LabelX = guiLeft + 180;
+        int col2FieldX = guiLeft + 248;
 
-        // Row 1: Type ID (read-only) + Name
-        addLabel(new GuiNpcLabel(1, "ability.typeId", col1LabelX, y + 5));
+        // Row 1: Type (read-only) + Name
+        addLabel(new GuiNpcLabel(1, "gui.type", col1LabelX, y + 5));
         addLabel(new GuiNpcLabel(2, ability.getTypeId(), col1FieldX, y + 5));
 
         addLabel(new GuiNpcLabel(3, "gui.name", col2LabelX, y + 5));
-        GuiNpcTextField nameField = new GuiNpcTextField(1, this, fontRendererObj, col2FieldX, y, 120, 20, name);
+        GuiNpcTextField nameField = new GuiNpcTextField(1, this, fontRendererObj, col2FieldX, y, 100, 20, name);
         addTextField(nameField);
 
         y += 24;
 
         // Row 2: Weight + Lock Movement
         addLabel(new GuiNpcLabel(4, "ability.weight", col1LabelX, y + 5));
-        GuiNpcTextField weightField = new GuiNpcTextField(3, this, fontRendererObj, col1FieldX, y, 50, 20, String.valueOf(weight));
+        GuiNpcTextField weightField = new GuiNpcTextField(3, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(weight));
         weightField.setIntegersOnly();
         weightField.setMinMaxDefault(1, 1000, 10);
         addTextField(weightField);
 
         addLabel(new GuiNpcLabel(5, "ability.lockMove", col2LabelX, y + 5));
-        addButton(new GuiNpcButton(16, col2FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0));
+        addButton(new GuiNpcButton(16, col2FieldX, y, 40, 20, new String[]{"gui.no", "gui.yes"}, lockMovement ? 1 : 0));
 
         y += 24;
 
-        // Row 3: Interruptible (no threshold anymore - just a toggle)
+        // Row 3: Interruptible
         addLabel(new GuiNpcLabel(6, "ability.interruptible", col1LabelX, y + 5));
-        addButton(new GuiNpcButton(14, col1FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0));
+        addButton(new GuiNpcButton(14, guiLeft + 85, y, 40, 20, new String[]{"gui.no", "gui.yes"}, interruptible ? 1 : 0));
 
-        y += 30;
+        y += 28;
 
         // Separator - Timing section header
-        addLabel(new GuiNpcLabel(7, "§n" + "ability.timing", col1LabelX, y));
+        addLabel(new GuiNpcLabel(7, "ability.timing", col1LabelX, y));
         y += 14;
 
         // Row 4: Windup Ticks + Active Ticks
         addLabel(new GuiNpcLabel(10, "ability.windup", col1LabelX, y + 5));
-        GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 50, 20, String.valueOf(windUpTicks));
+        GuiNpcTextField windupField = new GuiNpcTextField(11, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(windUpTicks));
         windupField.setIntegersOnly();
         windupField.setMinMaxDefault(0, 1000, 20);
         addTextField(windupField);
 
         addLabel(new GuiNpcLabel(11, "ability.active", col2LabelX, y + 5));
-        GuiNpcTextField activeField = new GuiNpcTextField(12, this, fontRendererObj, col2FieldX, y, 50, 20, String.valueOf(activeTicks));
+        GuiNpcTextField activeField = new GuiNpcTextField(12, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(activeTicks));
         activeField.setIntegersOnly();
         activeField.setMinMaxDefault(1, 1000, 10);
         addTextField(activeField);
@@ -255,13 +259,13 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
         // Row 5: Recovery Ticks + Cooldown Ticks
         addLabel(new GuiNpcLabel(12, "ability.recovery", col1LabelX, y + 5));
-        GuiNpcTextField recoveryField = new GuiNpcTextField(13, this, fontRendererObj, col1FieldX, y, 50, 20, String.valueOf(recoveryTicks));
+        GuiNpcTextField recoveryField = new GuiNpcTextField(13, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf(recoveryTicks));
         recoveryField.setIntegersOnly();
         recoveryField.setMinMaxDefault(0, 1000, 20);
         addTextField(recoveryField);
 
         addLabel(new GuiNpcLabel(13, "ability.cooldown", col2LabelX, y + 5));
-        GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 50, 20, String.valueOf(cooldownTicks));
+        GuiNpcTextField cooldownField = new GuiNpcTextField(10, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf(cooldownTicks));
         cooldownField.setIntegersOnly();
         cooldownField.setMinMaxDefault(0, 10000, 100);
         addTextField(cooldownField);
@@ -301,25 +305,24 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     // ═══════════════════════════════════════════════════════════════════════════
     // TARGET TAB
-    // Min/Max Range, Targeting Mode, Conditions
     // ═══════════════════════════════════════════════════════════════════════════
 
     private void initTargetTab(int startY) {
         int y = startY;
         int col1LabelX = guiLeft + 8;
-        int col1FieldX = guiLeft + 85;
-        int col2LabelX = guiLeft + 215;
-        int col2FieldX = guiLeft + 290;
+        int col1FieldX = guiLeft + 70;
+        int col2LabelX = guiLeft + 180;
+        int col2FieldX = guiLeft + 248;
 
         // Row 1: Min Range + Max Range
         addLabel(new GuiNpcLabel(20, "ability.minRange", col1LabelX, y + 5));
-        GuiNpcTextField minRangeField = new GuiNpcTextField(5, this, fontRendererObj, col1FieldX, y, 50, 20, String.valueOf((int) minRange));
+        GuiNpcTextField minRangeField = new GuiNpcTextField(5, this, fontRendererObj, col1FieldX, y, 40, 20, String.valueOf((int) minRange));
         minRangeField.setIntegersOnly();
         minRangeField.setMinMaxDefault(0, 100, 0);
         addTextField(minRangeField);
 
         addLabel(new GuiNpcLabel(21, "ability.maxRange", col2LabelX, y + 5));
-        GuiNpcTextField maxRangeField = new GuiNpcTextField(6, this, fontRendererObj, col2FieldX, y, 50, 20, String.valueOf((int) maxRange));
+        GuiNpcTextField maxRangeField = new GuiNpcTextField(6, this, fontRendererObj, col2FieldX, y, 40, 20, String.valueOf((int) maxRange));
         maxRangeField.setIntegersOnly();
         maxRangeField.setMinMaxDefault(1, 100, 20);
         addTextField(maxRangeField);
@@ -331,21 +334,67 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         if (!targetingModeLocked) {
             String[] targetingModes = getAvailableTargetingModes();
             int selectedIndex = getTargetingModeIndex(targetingMode);
-            addButton(new GuiNpcButton(4, col1FieldX, y, 100, 20, targetingModes, selectedIndex));
+            addButton(new GuiNpcButton(4, col1FieldX, y, 90, 20, targetingModes, selectedIndex));
         } else {
-            // Show as label if locked
             String modeName = "ability.target." + targetingMode.name().toLowerCase();
             addLabel(new GuiNpcLabel(23, modeName, col1FieldX, y + 5));
         }
 
-        y += 30;
+        y += 28;
 
-        // Separator - Conditions section header
-        addLabel(new GuiNpcLabel(24, "§n" + "ability.conditions", col1LabelX, y));
+        // ─────────────────────────────────────────────────────────────────────
+        // CONDITIONS SECTION (up to 3)
+        // ─────────────────────────────────────────────────────────────────────
+        addLabel(new GuiNpcLabel(24, "ability.conditions", col1LabelX, y));
         y += 14;
 
-        // TODO: Add conditions UI here
-        addLabel(new GuiNpcLabel(25, "ability.conditionsNote", col1LabelX, y + 5));
+        // Display existing conditions (similar to Marks pattern)
+        for (int i = 0; i < conditions.size() && i < 3; i++) {
+            Condition cond = conditions.get(i);
+            String condName = getConditionDisplayName(cond);
+
+            // Condition type button
+            addButton(new GuiNpcButton(50 + i * 10, col1LabelX, y, 140, 20, condName));
+
+            // Edit button
+            addButton(new GuiNpcButton(51 + i * 10, col1LabelX + 145, y, 40, 20, "gui.edit"));
+
+            // Delete button
+            addButton(new GuiNpcButton(52 + i * 10, col1LabelX + 190, y, 20, 20, "X"));
+
+            y += 22;
+        }
+
+        // Add button (if less than 3 conditions)
+        if (conditions.size() < 3) {
+            addButton(new GuiNpcButton(80, col1LabelX, y, 50, 20, "gui.add"));
+        }
+    }
+
+    private String getConditionDisplayName(Condition cond) {
+        if (cond == null) return "None";
+        String typeId = cond.getTypeId();
+        switch (typeId) {
+            case "hp_above":
+                return StatCollector.translateToLocal("condition.hp_above") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+            case "hp_below":
+                return StatCollector.translateToLocal("condition.hp_below") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+            case "target_hp_above":
+                return StatCollector.translateToLocal("condition.target_hp_above") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+            case "target_hp_below":
+                return StatCollector.translateToLocal("condition.target_hp_below") + " " + (int)(getConditionThreshold(cond) * 100) + "%";
+            case "hit_count":
+                Condition.ConditionHitCount hitCount = (Condition.ConditionHitCount) cond;
+                return StatCollector.translateToLocal("condition.hit_count") + ": " + hitCount.getRequiredHits() + "/" + hitCount.getWithinTicks() + "t";
+            default:
+                return typeId;
+        }
+    }
+
+    private float getConditionThreshold(Condition cond) {
+        // Read threshold from NBT since inner classes don't expose it
+        NBTTagCompound nbt = cond.writeNBT();
+        return nbt.hasKey("threshold") ? nbt.getFloat("threshold") : 0.5f;
     }
 
     private String[] getAvailableTargetingModes() {
@@ -373,85 +422,85 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
 
     // ═══════════════════════════════════════════════════════════════════════════
     // EFFECTS TAB
-    // Sounds, Animations, Telegraph, Colors
     // ═══════════════════════════════════════════════════════════════════════════
 
     private void initEffectsTab(int startY) {
         int y = startY;
         int col1LabelX = guiLeft + 8;
-        int col1FieldX = guiLeft + 100;
-        int col1ClearX = guiLeft + 185;
-        int col2LabelX = guiLeft + 215;
-        int col2FieldX = guiLeft + 290;
+        int col1FieldX = guiLeft + 85;
+        int col1ClearX = guiLeft + 160;
+        int col2LabelX = guiLeft + 185;
+        int col2FieldX = guiLeft + 255;
 
         // ─────────────────────────────────────────────────────────────────────
         // SOUNDS SECTION
         // ─────────────────────────────────────────────────────────────────────
-        addLabel(new GuiNpcLabel(30, "§n" + "ability.sounds", col1LabelX, y));
+        addLabel(new GuiNpcLabel(30, "ability.sounds", col1LabelX, y));
         y += 14;
 
         // Wind Up Sound
         addLabel(new GuiNpcLabel(31, "ability.windUpSound", col1LabelX, y + 5));
-        String windUpSoundDisplay = windUpSound != null && !windUpSound.isEmpty() ? truncateString(windUpSound, 12) : "None";
-        addButton(new GuiNpcButton(30, col1FieldX, y, 80, 20, windUpSoundDisplay));
+        String windUpSoundDisplay = windUpSound != null && !windUpSound.isEmpty() ? truncateString(windUpSound, 10) : StatCollector.translateToLocal("gui.none");
+        addButton(new GuiNpcButton(30, col1FieldX, y, 70, 20, windUpSoundDisplay));
         addButton(new GuiNpcButton(35, col1ClearX, y, 20, 20, "X"));
 
         // Active Sound
         addLabel(new GuiNpcLabel(32, "ability.activeSound", col2LabelX, y + 5));
-        String activeSoundDisplay = activeSound != null && !activeSound.isEmpty() ? truncateString(activeSound, 12) : "None";
-        addButton(new GuiNpcButton(31, col2FieldX, y, 80, 20, activeSoundDisplay));
-        addButton(new GuiNpcButton(36, col2FieldX + 85, y, 20, 20, "X"));
+        String activeSoundDisplay = activeSound != null && !activeSound.isEmpty() ? truncateString(activeSound, 10) : StatCollector.translateToLocal("gui.none");
+        addButton(new GuiNpcButton(31, col2FieldX, y, 70, 20, activeSoundDisplay));
+        addButton(new GuiNpcButton(36, col2FieldX + 75, y, 20, 20, "X"));
 
-        y += 28;
+        y += 26;
 
         // ─────────────────────────────────────────────────────────────────────
         // ANIMATIONS SECTION
         // ─────────────────────────────────────────────────────────────────────
-        addLabel(new GuiNpcLabel(33, "§n" + "ability.animations", col1LabelX, y));
+        addLabel(new GuiNpcLabel(33, "ability.animations", col1LabelX, y));
         y += 14;
 
         // Wind Up Animation
         addLabel(new GuiNpcLabel(34, "ability.windUpAnim", col1LabelX, y + 5));
         String windUpAnimName = getAnimationName(windUpAnimationId, true);
-        addButton(new GuiNpcButton(32, col1FieldX, y, 80, 20, windUpAnimName));
+        addButton(new GuiNpcButton(32, col1FieldX, y, 70, 20, windUpAnimName));
         addButton(new GuiNpcButton(37, col1ClearX, y, 20, 20, "X"));
 
         // Active Animation
         addLabel(new GuiNpcLabel(35, "ability.activeAnim", col2LabelX, y + 5));
         String activeAnimName = getAnimationName(activeAnimationId, false);
-        addButton(new GuiNpcButton(33, col2FieldX, y, 80, 20, activeAnimName));
-        addButton(new GuiNpcButton(38, col2FieldX + 85, y, 20, 20, "X"));
+        addButton(new GuiNpcButton(33, col2FieldX, y, 70, 20, activeAnimName));
+        addButton(new GuiNpcButton(38, col2FieldX + 75, y, 20, 20, "X"));
 
-        y += 28;
+        y += 26;
 
         // ─────────────────────────────────────────────────────────────────────
         // TELEGRAPH SECTION (only if supported)
         // ─────────────────────────────────────────────────────────────────────
         if (supportsTelegraph) {
-            addLabel(new GuiNpcLabel(40, "§n" + "ability.telegraph", col1LabelX, y));
+            addLabel(new GuiNpcLabel(40, "ability.telegraph", col1LabelX, y));
             y += 14;
 
-            // Show Telegraph + Type
+            // Show Telegraph
             addLabel(new GuiNpcLabel(41, "ability.showTelegraph", col1LabelX, y + 5));
-            addButton(new GuiNpcButton(20, col1FieldX, y, 50, 20, new String[]{"gui.no", "gui.yes"}, showTelegraph ? 1 : 0));
+            addButton(new GuiNpcButton(20, guiLeft + 95, y, 40, 20, new String[]{"gui.no", "gui.yes"}, showTelegraph ? 1 : 0));
 
+            // Telegraph Type (separate column)
             String typeKey = ability.getTelegraphType().name().toLowerCase();
-            addLabel(new GuiNpcLabel(42, "ability.telegraphType", col2LabelX, y + 5));
-            addLabel(new GuiNpcLabel(43, "ability.telegraph." + typeKey, col2FieldX, y + 5));
+            addLabel(new GuiNpcLabel(42, "ability.telegraphType", guiLeft + 200, y + 5));
+            addLabel(new GuiNpcLabel(43, "ability.telegraph." + typeKey, guiLeft + 280, y + 5));
 
             y += 24;
 
             // Colors
             addLabel(new GuiNpcLabel(44, "ability.windUpColor", col1LabelX, y + 5));
             String windUpHex = String.format("%06X", windUpColor & 0xFFFFFF);
-            GuiNpcButton windUpColorBtn = new GuiNpcButton(22, col1FieldX, y, 60, 20, windUpHex);
+            GuiNpcButton windUpColorBtn = new GuiNpcButton(22, guiLeft + 95, y, 55, 20, windUpHex);
             windUpColorBtn.setEnabled(showTelegraph);
             windUpColorBtn.setTextColor(windUpColor & 0xFFFFFF);
             addButton(windUpColorBtn);
 
-            addLabel(new GuiNpcLabel(45, "ability.activeColor", col2LabelX, y + 5));
+            addLabel(new GuiNpcLabel(45, "ability.activeColor", guiLeft + 200, y + 5));
             String activeHex = String.format("%06X", activeColor & 0xFFFFFF);
-            GuiNpcButton activeColorBtn = new GuiNpcButton(24, col2FieldX, y, 60, 20, activeHex);
+            GuiNpcButton activeColorBtn = new GuiNpcButton(24, guiLeft + 280, y, 55, 20, activeHex);
             activeColorBtn.setEnabled(showTelegraph);
             activeColorBtn.setTextColor(activeColor & 0xFFFFFF);
             addButton(activeColorBtn);
@@ -469,10 +518,10 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
     }
 
     private String getAnimationName(int animId, boolean isWindUp) {
-        if (animId < 0) return "None";
+        if (animId < 0) return StatCollector.translateToLocal("gui.none");
         String cachedName = isWindUp ? windUpAnimationName : activeAnimationName;
         if (cachedName != null && !cachedName.isEmpty()) {
-            return truncateString(cachedName, 10);
+            return truncateString(cachedName, 8);
         }
         return "ID: " + animId;
     }
@@ -532,6 +581,39 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
         }
 
+        // Close button (X in top menu) - use -1000 to avoid any ID conflicts
+        else if (id == -1000) {
+            close();
+            return;
+        }
+
+        // Target tab - Condition buttons (50-79)
+        else if (id >= 50 && id < 80) {
+            int condIndex = (id - 50) / 10;
+            int action = (id - 50) % 10;
+
+            if (action == 0 || action == 1) {
+                // Click on condition name or Edit button - open edit subgui
+                if (condIndex < conditions.size()) {
+                    editingConditionIndex = condIndex;
+                    setSubGui(new SubGuiConditionEdit(conditions.get(condIndex)));
+                }
+            } else if (action == 2) {
+                // Delete button
+                if (condIndex < conditions.size()) {
+                    conditions.remove(condIndex);
+                    initGui();
+                }
+            }
+        }
+        // Add condition button
+        else if (id == 80) {
+            if (conditions.size() < 3) {
+                editingConditionIndex = conditions.size();
+                setSubGui(new SubGuiConditionEdit(null));
+            }
+        }
+
         // Effects tab - Telegraph
         else if (id == 20) {
             showTelegraph = ((GuiNpcButton) guibutton).getValue() == 1;
@@ -588,17 +670,6 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         // Type-specific buttons (100+) - delegate to subclass
         else if (id >= 100) {
             handleTypeButton(id, (GuiNpcButton) guibutton);
-        }
-
-        // Done button
-        else if (id == 66) {
-            applyToAbility();
-            callback.onAbilitySaved(ability);
-            close();
-        }
-        // Close button (X in top right)
-        else if (id == 67) {
-            close();
         }
     }
 
@@ -680,7 +751,35 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
             }
             editingAnimationId = 0;
             initGui();
+        } else if (subgui instanceof SubGuiConditionEdit) {
+            SubGuiConditionEdit condEdit = (SubGuiConditionEdit) subgui;
+            Condition result = condEdit.getResult();
+            if (result != null && editingConditionIndex >= 0) {
+                if (editingConditionIndex < conditions.size()) {
+                    conditions.set(editingConditionIndex, result);
+                } else {
+                    conditions.add(result);
+                }
+            }
+            editingConditionIndex = -1;
+            initGui();
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // CLOSE - Save before closing
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    @Override
+    public void close() {
+        // Apply all cached values to the ability before closing
+        applyToAbility();
+
+        // Notify callback that ability was saved
+        callback.onAbilitySaved(ability);
+
+        // Close the GUI
+        super.close();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -705,6 +804,12 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         ability.setMinRange(minRange);
         ability.setMaxRange(maxRange);
         ability.setTargetingMode(targetingMode);
+
+        // Conditions
+        ability.getConditions().clear();
+        for (Condition c : conditions) {
+            ability.addCondition(c);
+        }
 
         // Effects
         ability.setWindUpSound(windUpSound);
@@ -747,6 +852,7 @@ public class SubGuiAbilityConfig extends SubGuiInterface implements ITextfieldLi
         this.minRange = ability.getMinRange();
         this.maxRange = ability.getMaxRange();
         this.targetingMode = ability.getTargetingMode();
+        this.conditions = new ArrayList<>(ability.getConditions());
 
         this.showTelegraph = ability.isShowTelegraph();
         this.windUpColor = ability.getWindUpColor();

@@ -22,6 +22,7 @@ public class AbilityController implements IAbilityHandler {
     public static AbilityController Instance;
 
     private final Map<String, Supplier<Ability>> factories = new LinkedHashMap<>();
+    private final Map<String, Supplier<Ability>> factoriesByTypeId = new LinkedHashMap<>();
     private final Map<String, Ability> savedAbilities = new LinkedHashMap<>();
 
     public AbilityController() {
@@ -177,12 +178,13 @@ public class AbilityController implements IAbilityHandler {
 
     @Override
     public String[] getTypes() {
-        return factories.keySet().toArray(new String[0]);
+        // Return the ability typeIds (lang keys), not the factory keys
+        return factoriesByTypeId.keySet().toArray(new String[0]);
     }
 
     @Override
     public boolean hasType(String typeId) {
-        return factories.containsKey(typeId);
+        return factories.containsKey(typeId) || factoriesByTypeId.containsKey(typeId);
     }
 
     @Override
@@ -208,14 +210,19 @@ public class AbilityController implements IAbilityHandler {
      * Register a new ability type.
      * Call during FMLInitializationEvent.
      *
-     * @param typeId The unique type ID (e.g., "cnpc:slam", "mymod:custom_ability")
+     * @param factoryKey The factory key (e.g., "cnpc:slam", "mymod:custom_ability")
      * @param factory Factory lambda that creates a new instance
      */
-    public void registerType(String typeId, Supplier<Ability> factory) {
-        if (factories.containsKey(typeId)) {
-            LogWriter.info("AbilityController: Overwriting existing ability type: " + typeId);
+    public void registerType(String factoryKey, Supplier<Ability> factory) {
+        if (factories.containsKey(factoryKey)) {
+            LogWriter.info("AbilityController: Overwriting existing ability type: " + factoryKey);
         }
-        factories.put(typeId, factory);
+        factories.put(factoryKey, factory);
+
+        // Also register by the ability's actual typeId (lang key)
+        Ability temp = factory.get();
+        String abilityTypeId = temp.getTypeId();
+        factoriesByTypeId.put(abilityTypeId, factory);
     }
 
     /**
@@ -230,6 +237,10 @@ public class AbilityController implements IAbilityHandler {
         String typeId = nbt.getString("typeId");
         Supplier<Ability> factory = factories.get(typeId);
         if (factory == null) {
+            // Try looking up by ability typeId (lang key)
+            factory = factoriesByTypeId.get(typeId);
+        }
+        if (factory == null) {
             LogWriter.info("AbilityController: Unknown ability type: " + typeId);
             return null;
         }
@@ -241,15 +252,19 @@ public class AbilityController implements IAbilityHandler {
 
     /**
      * Create a new empty ability of the given type.
+     * @param factoryKey The factory key (e.g., "cnpc:slam") or the ability typeId (e.g., "ability.cnpc.slam")
      */
-    public Ability create(String typeId) {
-        Supplier<Ability> factory = factories.get(typeId);
+    public Ability create(String factoryKey) {
+        // Try direct lookup first (factory key)
+        Supplier<Ability> factory = factories.get(factoryKey);
+        if (factory == null) {
+            // Try looking up by ability typeId
+            factory = factoriesByTypeId.get(factoryKey);
+        }
         if (factory == null) {
             return null;
         }
-        Ability ability = factory.get();
-        ability.typeId = typeId;
-        return ability;
+        return factory.get();
     }
 
     /**
