@@ -3,7 +3,6 @@ package noppes.npcs.client.gui.advanced.ability;
 import kamkeel.npcs.controllers.data.ability.type.AbilitySlam;
 import noppes.npcs.client.gui.util.IAbilityConfigCallback;
 import noppes.npcs.client.gui.advanced.SubGuiAbilityConfig;
-import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.GuiNpcTextField;
 
@@ -45,12 +44,9 @@ public class SubGuiAbilitySlam extends SubGuiAbilityConfig {
 
         y += 24;
 
-        // Row 3: Min/Max Leap Distance
-        addLabel(new GuiNpcLabel(104, "ability.minDist", labelX, y + 5));
-        addTextField(createFloatField(104, fieldX, y, 50, slam.getMinLeapDistance()));
-
-        addLabel(new GuiNpcLabel(105, "ability.maxDist", col2LabelX, y + 5));
-        addTextField(createFloatField(105, col2FieldX, y, 50, slam.getMaxLeapDistance()));
+        // Row 3: Leap Height
+        addLabel(new GuiNpcLabel(104, "ability.leapHeight", labelX, y + 5));
+        addTextField(createFloatField(104, fieldX, y, 50, slam.getLeapHeight()));
     }
 
     @Override
@@ -60,8 +56,7 @@ public class SubGuiAbilitySlam extends SubGuiAbilityConfig {
             case 101: slam.setRadius(parseFloat(field, slam.getRadius())); break;
             case 102: slam.setKnockbackStrength(parseFloat(field, slam.getKnockbackStrength())); break;
             case 103: slam.setLeapSpeed(parseFloat(field, slam.getLeapSpeed())); break;
-            case 104: slam.setMinLeapDistance(parseFloat(field, slam.getMinLeapDistance())); break;
-            case 105: slam.setMaxLeapDistance(parseFloat(field, slam.getMaxLeapDistance())); break;
+            case 104: slam.setLeapHeight(parseFloat(field, slam.getLeapHeight())); break;
         }
     }
 }

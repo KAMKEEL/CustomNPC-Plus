@@ -27,11 +27,9 @@ public class AbilityShockwave extends Ability {
 
     private float pushRadius = 8.0f;
     private float pushStrength = 1.5f;
-    private float pushUp = 0.5f;
     private float damage = 10.0f;
     private int stunDuration = 0;
     private int maxTargets = 10;
-    private boolean aoe = true;
 
     // Runtime state
     private transient boolean executed = false;
@@ -47,6 +45,8 @@ public class AbilityShockwave extends Ability {
         this.activeTicks = 5;
         this.recoveryTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.windUpSound = "random.explode";
+        this.activeSound = "random.explode";
     }
 
     @Override
@@ -78,9 +78,6 @@ public class AbilityShockwave extends Ability {
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
         if (executed) return;
         executed = true;
-
-        // Play shockwave sound
-        world.playSoundAtEntity(npc, "random.explode", 0.5f, 1.5f);
 
         // Get all entities in radius
         AxisAlignedBB box = npc.boundingBox.expand(pushRadius, pushRadius / 2, pushRadius);
@@ -116,10 +113,8 @@ public class AbilityShockwave extends Ability {
             // Scale knockback by distance (closer = stronger)
             float distFactor = 1.0f - (float)(dist / pushRadius) * 0.5f;
             float finalPush = pushStrength * distFactor;
-            float finalPushUp = pushUp * distFactor;
-
             // Apply damage with custom knockback direction
-            boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, finalPushUp, dx, dz);
+            boolean wasHit = applyAbilityDamageWithDirection(npc, entity, damage * distFactor, finalPush, dx, dz);
 
             // Apply stun if hit connected
             if (wasHit && stunDuration > 0) {
@@ -143,22 +138,18 @@ public class AbilityShockwave extends Ability {
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("pushRadius", pushRadius);
         nbt.setFloat("pushStrength", pushStrength);
-        nbt.setFloat("pushUp", pushUp);
         nbt.setFloat("damage", damage);
         nbt.setInteger("stunDuration", stunDuration);
         nbt.setInteger("maxTargets", maxTargets);
-        nbt.setBoolean("aoe", aoe);
     }
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
         this.pushRadius = nbt.hasKey("pushRadius") ? nbt.getFloat("pushRadius") : 8.0f;
         this.pushStrength = nbt.hasKey("pushStrength") ? nbt.getFloat("pushStrength") : 1.5f;
-        this.pushUp = nbt.hasKey("pushUp") ? nbt.getFloat("pushUp") : 0.5f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
         this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
         this.maxTargets = nbt.hasKey("maxTargets") ? nbt.getInteger("maxTargets") : 10;
-        this.aoe = !nbt.hasKey("aoe") || nbt.getBoolean("aoe");
     }
 
     // Getters & Setters
@@ -167,9 +158,6 @@ public class AbilityShockwave extends Ability {
 
     public float getPushStrength() { return pushStrength; }
     public void setPushStrength(float pushStrength) { this.pushStrength = pushStrength; }
-
-    public float getPushUp() { return pushUp; }
-    public void setPushUp(float pushUp) { this.pushUp = pushUp; }
 
     public float getDamage() { return damage; }
     public void setDamage(float damage) { this.damage = damage; }
@@ -180,6 +168,4 @@ public class AbilityShockwave extends Ability {
     public int getMaxTargets() { return maxTargets; }
     public void setMaxTargets(int maxTargets) { this.maxTargets = maxTargets; }
 
-    public boolean isAoe() { return aoe; }
-    public void setAoe(boolean aoe) { this.aoe = aoe; }
 }

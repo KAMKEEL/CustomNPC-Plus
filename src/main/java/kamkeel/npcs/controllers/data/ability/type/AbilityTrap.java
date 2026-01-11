@@ -45,7 +45,6 @@ public class AbilityTrap extends Ability {
     private float damage = 10.0f;
     private float damageRadius = 0.0f;
     private float knockback = 0.5f;
-    private float knockbackUp = 0.3f;
     private int stunDuration = 0;
     private int rootDuration = 40;
     private int slowDuration = 0;
@@ -274,7 +273,7 @@ public class AbilityTrap extends Ability {
 
         for (EntityLivingBase entity : affected) {
             // Apply damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback, knockbackUp);
+            boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback);
 
             // Only apply effects if the hit wasn't cancelled
             if (wasHit) {
@@ -323,7 +322,6 @@ public class AbilityTrap extends Ability {
         nbt.setFloat("damage", damage);
         nbt.setFloat("damageRadius", damageRadius);
         nbt.setFloat("knockback", knockback);
-        nbt.setFloat("knockbackUp", knockbackUp);
         nbt.setInteger("stunDuration", stunDuration);
         nbt.setInteger("rootDuration", rootDuration);
         nbt.setInteger("slowDuration", slowDuration);
@@ -351,7 +349,6 @@ public class AbilityTrap extends Ability {
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 10.0f;
         this.damageRadius = nbt.hasKey("damageRadius") ? nbt.getFloat("damageRadius") : 0.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.5f;
-        this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.3f;
         this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
         this.rootDuration = nbt.hasKey("rootDuration") ? nbt.getInteger("rootDuration") : 40;
         this.slowDuration = nbt.hasKey("slowDuration") ? nbt.getInteger("slowDuration") : 0;
@@ -391,9 +388,6 @@ public class AbilityTrap extends Ability {
 
     public float getKnockback() { return knockback; }
     public void setKnockback(float knockback) { this.knockback = knockback; }
-
-    public float getKnockbackUp() { return knockbackUp; }
-    public void setKnockbackUp(float knockbackUp) { this.knockbackUp = knockbackUp; }
 
     public int getStunDuration() { return stunDuration; }
     public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }

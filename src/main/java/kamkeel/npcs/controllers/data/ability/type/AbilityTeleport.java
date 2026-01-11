@@ -29,26 +29,22 @@ import java.util.Random;
 public class AbilityTeleport extends Ability {
 
     /**
-     * Pattern for teleport destination.
+     * Teleport behavior mode.
      */
-    public enum TeleportPattern {
-        RANDOM,
-        TOWARD_TARGET,
-        AWAY_FROM_TARGET,
-        BEHIND_TARGET,
-        IN_FRONT_OF_TARGET,
-        AROUND_TARGET,
-        TO_TARGET
+    public enum TeleportMode {
+        BLINK,
+        BEHIND,
+        SINGLE
     }
 
     private static final Random RANDOM = new Random();
 
     // Type-specific parameters
-    private int blinkCount = 1;
+    private TeleportMode mode = TeleportMode.BLINK;
+    private int blinkCount = 3;
     private int blinkDelayTicks = 10;
     private float blinkRadius = 8.0f;
-    private float minBlinkRadius = 3.0f;
-    private TeleportPattern pattern = TeleportPattern.RANDOM;
+    private float behindDistance = 2.0f;
     private boolean requireLineOfSight = true;
     private boolean damageAtStart = false;
     private boolean damageAtEnd = false;
@@ -72,6 +68,8 @@ public class AbilityTeleport extends Ability {
         // No telegraph for teleport - it's instant repositioning
         this.telegraphType = TelegraphType.NONE;
         this.showTelegraph = false;
+        this.windUpSound = "mob.endermen.portal";
+        this.activeSound = "mob.endermen.portal";
     }
 
     @Override
@@ -100,7 +98,8 @@ public class AbilityTeleport extends Ability {
 
     @Override
     public void onActiveTick(EntityNPCInterface npc, EntityLivingBase target, World world, int tick) {
-        if (currentBlink >= blinkCount) return;
+        int blinkLimit = mode == TeleportMode.BLINK ? blinkCount : 1;
+        if (currentBlink >= blinkLimit) return;
 
         ticksSinceLastBlink++;
 
@@ -121,27 +120,17 @@ public class AbilityTeleport extends Ability {
         Vec3 destination = calculateDestination(npc, target, world);
         if (destination == null) return;
 
-        // Verify line of sight if required
-        if (requireLineOfSight && !hasLineOfSight(world, oldX, oldY + npc.getEyeHeight(), oldZ,
-                                                   destination.xCoord, destination.yCoord + npc.getEyeHeight(), destination.zCoord)) {
+        boolean mustHaveLOS = mode == TeleportMode.BEHIND || requireLineOfSight;
+        if (mustHaveLOS && !hasLineOfSight(world, oldX, oldY + npc.getEyeHeight(), oldZ,
+            destination.xCoord, destination.yCoord + npc.getEyeHeight(), destination.zCoord)) {
             destination = findValidPositionAlongLine(world, npc, oldX, oldY, oldZ,
-                                                      destination.xCoord, destination.yCoord, destination.zCoord);
+                destination.xCoord, destination.yCoord, destination.zCoord);
             if (destination == null) return;
         }
 
-        // Verify destination is safe
-        if (!isSafeLocation(world, (int)Math.floor(destination.xCoord),
-                           (int)Math.floor(destination.yCoord),
-                           (int)Math.floor(destination.zCoord))) {
-            double safeY = findSafeY(world, destination.xCoord, destination.yCoord, destination.zCoord);
-            destination = Vec3.createVectorHelper(destination.xCoord, safeY, destination.zCoord);
-
-            if (!isSafeLocation(world, (int)Math.floor(destination.xCoord),
-                               (int)Math.floor(destination.yCoord),
-                               (int)Math.floor(destination.zCoord))) {
-                return;
-            }
-        }
+        destination = findSafeDestination(world, oldX, oldY, oldZ,
+            destination.xCoord, destination.yCoord, destination.zCoord);
+        if (destination == null) return;
 
         // Damage at origin
         if (damageAtStart) {
@@ -157,9 +146,6 @@ public class AbilityTeleport extends Ability {
 
         // Spawn particles at destination
         spawnTeleportParticles(world, destination.xCoord, destination.yCoord, destination.zCoord);
-
-        // Play teleport sound
-        world.playSoundAtEntity(npc, "mob.endermen.portal", 1.0f, 1.0f);
 
         // Damage at destination
         if (damageAtEnd) {
@@ -189,94 +175,65 @@ public class AbilityTeleport extends Ability {
     }
 
     private Vec3 calculateDestination(EntityNPCInterface npc, EntityLivingBase target, World world) {
-        double newX, newY, newZ;
+        if (target == null) return null;
 
-        switch (pattern) {
-            case TOWARD_TARGET:
-                if (target != null) {
-                    double dx = target.posX - npc.posX;
-                    double dz = target.posZ - npc.posZ;
-                    double dist = Math.sqrt(dx * dx + dz * dz);
-                    if (dist > 0) {
-                        double blinkDist = Math.min(blinkRadius, dist - 2.0);
-                        blinkDist = Math.max(minBlinkRadius, blinkDist);
-                        newX = npc.posX + (dx / dist) * blinkDist;
-                        newZ = npc.posZ + (dz / dist) * blinkDist;
-                        newY = findSafeY(world, newX, npc.posY, newZ);
-                        return Vec3.createVectorHelper(newX, newY, newZ);
-                    }
-                }
-                return null;
+        double newX;
+        double newY;
+        double newZ;
 
-            case AWAY_FROM_TARGET:
-                if (target != null) {
-                    double dx = npc.posX - target.posX;
-                    double dz = npc.posZ - target.posZ;
-                    double dist = Math.sqrt(dx * dx + dz * dz);
-                    if (dist > 0) {
-                        dx /= dist;
-                        dz /= dist;
-                    } else {
-                        dx = RANDOM.nextDouble() - 0.5;
-                        dz = RANDOM.nextDouble() - 0.5;
-                        double len = Math.sqrt(dx * dx + dz * dz);
-                        dx /= len;
-                        dz /= len;
-                    }
-                    double blinkDist = minBlinkRadius + RANDOM.nextDouble() * (blinkRadius - minBlinkRadius);
-                    newX = npc.posX + dx * blinkDist;
-                    newZ = npc.posZ + dz * blinkDist;
-                    newY = findSafeY(world, newX, npc.posY, newZ);
-                    return Vec3.createVectorHelper(newX, newY, newZ);
-                }
-                return null;
-
-            case BEHIND_TARGET:
-                if (target != null) {
-                    float targetYaw = (float) Math.toRadians(target.rotationYaw);
-                    double behindX = target.posX + Math.sin(targetYaw) * 3.0;
-                    double behindZ = target.posZ - Math.cos(targetYaw) * 3.0;
-                    newY = findSafeY(world, behindX, target.posY, behindZ);
-                    return Vec3.createVectorHelper(behindX, newY, behindZ);
-                }
-                return null;
-
-            case IN_FRONT_OF_TARGET:
-                if (target != null) {
-                    float targetYaw = (float) Math.toRadians(target.rotationYaw);
-                    double frontX = target.posX - Math.sin(targetYaw) * 3.0;
-                    double frontZ = target.posZ + Math.cos(targetYaw) * 3.0;
-                    newY = findSafeY(world, frontX, target.posY, frontZ);
-                    return Vec3.createVectorHelper(frontX, newY, frontZ);
-                }
-                return null;
-
-            case AROUND_TARGET:
-                if (target != null) {
-                    double angle = RANDOM.nextDouble() * Math.PI * 2;
-                    double dist = minBlinkRadius + RANDOM.nextDouble() * (blinkRadius - minBlinkRadius);
-                    newX = target.posX + Math.cos(angle) * dist;
-                    newZ = target.posZ + Math.sin(angle) * dist;
-                    newY = findSafeY(world, newX, target.posY, newZ);
-                    return Vec3.createVectorHelper(newX, newY, newZ);
-                }
-                return null;
-
-            case TO_TARGET:
-                if (target != null) {
-                    return Vec3.createVectorHelper(target.posX, target.posY, target.posZ);
-                }
-                return null;
-
-            case RANDOM:
+        switch (mode) {
+            case BEHIND:
+                double yaw = Math.toRadians(target.rotationYaw);
+                newX = target.posX + Math.sin(yaw) * behindDistance;
+                newZ = target.posZ - Math.cos(yaw) * behindDistance;
+                newY = target.posY;
+                return Vec3.createVectorHelper(newX, newY, newZ);
+            case SINGLE:
+            case BLINK:
             default:
                 double angle = RANDOM.nextDouble() * Math.PI * 2;
-                double blinkDist = minBlinkRadius + RANDOM.nextDouble() * (blinkRadius - minBlinkRadius);
-                newX = npc.posX + Math.cos(angle) * blinkDist;
-                newZ = npc.posZ + Math.sin(angle) * blinkDist;
-                newY = findSafeY(world, newX, npc.posY, newZ);
+                double dist = Math.min(blinkRadius, maxRange);
+                double offset = RANDOM.nextDouble() * dist;
+                newX = target.posX + Math.cos(angle) * offset;
+                newZ = target.posZ + Math.sin(angle) * offset;
+                newY = target.posY;
                 return Vec3.createVectorHelper(newX, newY, newZ);
         }
+    }
+
+    private Vec3 findSafeDestination(World world, double oldX, double oldY, double oldZ,
+                                      double destX, double destY, double destZ) {
+        int oldBlockX = (int) Math.floor(oldX);
+        int oldBlockY = (int) Math.floor(oldY);
+        int oldBlockZ = (int) Math.floor(oldZ);
+        int destBlockX = (int) Math.floor(destX);
+        int destBlockY = (int) Math.floor(destY);
+        int destBlockZ = (int) Math.floor(destZ);
+
+        if (oldBlockX == destBlockX && oldBlockY == destBlockY && oldBlockZ == destBlockZ) {
+            return null;
+        }
+
+        double safeY = findSafeYNear(world, destX, destY, destZ);
+        Vec3 safe = Vec3.createVectorHelper(destX, safeY, destZ);
+
+        if (!isSafeLocation(world, (int) Math.floor(safe.xCoord),
+            (int) Math.floor(safe.yCoord), (int) Math.floor(safe.zCoord))) {
+            return null;
+        }
+
+        return safe;
+    }
+
+    private double findSafeYNear(World world, double x, double baseY, double z) {
+        int[] offsets = new int[]{0, 1, -1, 2, -2};
+        for (int offset : offsets) {
+            double y = baseY + offset;
+            if (isSafeLocation(world, (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z))) {
+                return y;
+            }
+        }
+        return findSafeY(world, x, baseY, z);
     }
 
     private boolean hasLineOfSight(World world, double x1, double y1, double z1,
@@ -319,7 +276,7 @@ public class AbilityTeleport extends Ability {
         double dz = z2 - z1;
         double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-        if (distance < minBlinkRadius) return null;
+        if (distance < 1.0) return null;
 
         dx /= distance;
         dy /= distance;
@@ -328,7 +285,7 @@ public class AbilityTeleport extends Ability {
         Vec3 lastValid = null;
         double step = 0.5;
 
-        for (double d = minBlinkRadius; d < distance; d += step) {
+        for (double d = 1.0; d < distance; d += step) {
             double checkX = x1 + dx * d;
             double checkY = y1 + dy * d;
             double checkZ = z1 + dz * d;
@@ -394,7 +351,7 @@ public class AbilityTeleport extends Ability {
             double dist = Math.sqrt(Math.pow(living.posX - x, 2) + Math.pow(living.posZ - z, 2));
             if (dist <= damageRadius) {
                 // Apply damage with scripted event support (no knockback for teleport damage)
-                applyAbilityDamage(npc, living, damage, 0, 0);
+                applyAbilityDamage(npc, living, damage, 0);
             }
         }
     }
@@ -413,11 +370,11 @@ public class AbilityTeleport extends Ability {
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
+        nbt.setString("mode", mode.name());
         nbt.setInteger("blinkCount", blinkCount);
         nbt.setInteger("blinkDelayTicks", blinkDelayTicks);
         nbt.setFloat("blinkRadius", blinkRadius);
-        nbt.setFloat("minBlinkRadius", minBlinkRadius);
-        nbt.setString("pattern", pattern.name());
+        nbt.setFloat("behindDistance", behindDistance);
         nbt.setBoolean("requireLineOfSight", requireLineOfSight);
         nbt.setBoolean("damageAtStart", damageAtStart);
         nbt.setBoolean("damageAtEnd", damageAtEnd);
@@ -427,15 +384,28 @@ public class AbilityTeleport extends Ability {
 
     @Override
     public void readTypeNBT(NBTTagCompound nbt) {
-        this.blinkCount = nbt.hasKey("blinkCount") ? nbt.getInteger("blinkCount") : 1;
+        if (nbt.hasKey("mode")) {
+            try {
+                this.mode = TeleportMode.valueOf(nbt.getString("mode"));
+            } catch (Exception e) {
+                this.mode = TeleportMode.BLINK;
+            }
+        } else if (nbt.hasKey("pattern")) {
+            String legacy = nbt.getString("pattern");
+            if ("BEHIND_TARGET".equals(legacy)) {
+                this.mode = TeleportMode.BEHIND;
+            } else if ("RANDOM".equals(legacy)) {
+                this.mode = TeleportMode.BLINK;
+            } else {
+                this.mode = TeleportMode.SINGLE;
+            }
+        } else {
+            this.mode = TeleportMode.BLINK;
+        }
+        this.blinkCount = nbt.hasKey("blinkCount") ? nbt.getInteger("blinkCount") : 3;
         this.blinkDelayTicks = nbt.hasKey("blinkDelayTicks") ? nbt.getInteger("blinkDelayTicks") : 10;
         this.blinkRadius = nbt.hasKey("blinkRadius") ? nbt.getFloat("blinkRadius") : 8.0f;
-        this.minBlinkRadius = nbt.hasKey("minBlinkRadius") ? nbt.getFloat("minBlinkRadius") : 3.0f;
-        try {
-            this.pattern = TeleportPattern.valueOf(nbt.getString("pattern"));
-        } catch (Exception e) {
-            this.pattern = TeleportPattern.RANDOM;
-        }
+        this.behindDistance = nbt.hasKey("behindDistance") ? nbt.getFloat("behindDistance") : 2.0f;
         this.requireLineOfSight = !nbt.hasKey("requireLineOfSight") || nbt.getBoolean("requireLineOfSight");
         this.damageAtStart = nbt.hasKey("damageAtStart") && nbt.getBoolean("damageAtStart");
         this.damageAtEnd = nbt.hasKey("damageAtEnd") && nbt.getBoolean("damageAtEnd");
@@ -444,6 +414,9 @@ public class AbilityTeleport extends Ability {
     }
 
     // Getters & Setters
+    public TeleportMode getMode() { return mode; }
+    public void setMode(TeleportMode mode) { this.mode = mode; }
+
     public int getBlinkCount() { return blinkCount; }
     public void setBlinkCount(int blinkCount) { this.blinkCount = blinkCount; }
 
@@ -453,11 +426,8 @@ public class AbilityTeleport extends Ability {
     public float getBlinkRadius() { return blinkRadius; }
     public void setBlinkRadius(float blinkRadius) { this.blinkRadius = blinkRadius; }
 
-    public float getMinBlinkRadius() { return minBlinkRadius; }
-    public void setMinBlinkRadius(float minBlinkRadius) { this.minBlinkRadius = minBlinkRadius; }
-
-    public TeleportPattern getPattern() { return pattern; }
-    public void setPattern(TeleportPattern pattern) { this.pattern = pattern; }
+    public float getBehindDistance() { return behindDistance; }
+    public void setBehindDistance(float behindDistance) { this.behindDistance = behindDistance; }
 
     public boolean isRequireLineOfSight() { return requireLineOfSight; }
     public void setRequireLineOfSight(boolean requireLineOfSight) { this.requireLineOfSight = requireLineOfSight; }

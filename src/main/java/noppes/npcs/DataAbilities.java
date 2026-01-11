@@ -537,7 +537,7 @@ public class DataAbilities {
      * @param hitEntity The entity being hit
      * @param damage The damage amount
      * @param knockback The horizontal knockback
-     * @param knockbackUp The vertical knockback
+     * @param knockbackUp The vertical knockback (deprecated, ignored)
      * @return The event (with possibly modified values), or null if cancelled
      */
     public AbilityEvent.HitEvent fireHitEvent(Ability ability, EntityLivingBase target,

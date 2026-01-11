@@ -290,7 +290,7 @@ public class AbilityHazard extends Ability {
                         entity.hurtResistantTime = 0;
                     }
                     // Apply damage with scripted event support (no knockback for hazard ticks)
-                    boolean wasHit = applyAbilityDamage(npc, entity, damagePerTick, 0, 0);
+                    boolean wasHit = applyAbilityDamage(npc, entity, damagePerTick, 0);
                     if (!wasHit) continue; // Skip debuffs if hit was cancelled
                 }
 

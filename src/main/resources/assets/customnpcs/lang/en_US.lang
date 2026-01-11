@@ -1519,6 +1519,15 @@ ability.lifetime=Lifetime
 ability.stunTicks=Stun
 ability.stunDur=Stun Dur
 ability.rootDur=Root Dur
+ability.rootDuration=Root Duration
+ability.stunDuration=Stun Duration
+ability.leapHeight=Leap Height
+ability.hitWidth=Hit Width
+ability.potionTime=Potion Time (s)
+ability.weaknessLvl=Weakness Lvl
+ability.poisonTime=Poison Time (s)
+ability.slownessLvl=Slowness Lvl
+ability.poisonLvl=Poison Lvl
 
 # Slam Settings
 ability.leapSpeed=Leap Speed
@@ -1550,6 +1559,8 @@ ability.maxTargets=Max Targets
 ability.dashMode=Mode
 ability.dash.aggressive=Aggressive
 ability.dash.defensive=Defensive
+ability.mode=Mode
+ability.behindDistance=Behind Dist
 
 # Teleport Settings
 ability.blinkCount=Blinks
@@ -1576,6 +1587,10 @@ ability.dmgReduce=Dmg Reduce
 ability.counterDmg=Counter Dmg
 ability.canCounter=Counter
 ability.counterChance=Counter %
+ability.counterType=Counter Type
+ability.counterValue=Counter Value
+ability.counterSound=Counter Sound
+ability.counterAnim=Counter Anim
 
 # Heal Settings
 ability.healAmount=Amount
@@ -1631,6 +1646,7 @@ ability.activeColor=Active Color
 # Shockwave Settings
 ability.pushRadius=Push Radius
 ability.pushStrength=Push Str
+ability.shockwaveFalloff=Damage/knockback drop off with distance
 
 # Ability Config GUI
 ability.typeId=Type ID

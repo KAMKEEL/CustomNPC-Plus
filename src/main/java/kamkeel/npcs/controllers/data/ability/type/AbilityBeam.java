@@ -169,7 +169,7 @@ public class AbilityBeam extends Ability {
                     if (isInBeamPath(livingEntity, startX, startY, startZ, dirX, dirZ)) {
                         hitThisTick.add(entity.getEntityId());
                         // Apply damage with scripted event support (no knockback for beam)
-                        applyAbilityDamage(npc, livingEntity, damage, 0, 0);
+                        applyAbilityDamage(npc, livingEntity, damage, 0);
 
                         if (!piercing) {
                             return; // Stop at first hit

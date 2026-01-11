@@ -31,8 +31,6 @@ public class AbilityVortex extends Ability {
 
     private float pullRadius = 8.0f;
     private float pullStrength = 0.8f;
-    private float minPullDistance = 1.5f;
-    private float pullToDistance = 0.0f;
     private float damage = 0.0f;
     private float knockback = 0.0f;
     private int stunDuration = 0;
@@ -45,6 +43,7 @@ public class AbilityVortex extends Ability {
     // Runtime state
     private transient Set<UUID> pulledEntities = new HashSet<>();
     private transient boolean pullComplete = false;
+    private transient int ticksSincePullDamage = 0;
 
     public AbilityVortex() {
         this.typeId = "ability.cnpc.vortex";
@@ -57,6 +56,8 @@ public class AbilityVortex extends Ability {
         this.activeTicks = 40;
         this.recoveryTicks = 20;
         this.telegraphType = TelegraphType.CIRCLE;
+        this.windUpSound = "mob.ghast.charge";
+        this.activeSound = "mob.ghast.fireball";
     }
 
     @Override
@@ -84,6 +85,7 @@ public class AbilityVortex extends Ability {
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         pulledEntities.clear();
         pullComplete = false;
+        ticksSincePullDamage = 0;
 
         if (aoe) {
             AxisAlignedBB box = npc.boundingBox.expand(pullRadius, pullRadius / 2, pullRadius);
@@ -96,7 +98,7 @@ public class AbilityVortex extends Ability {
                 if (entity.isDead) continue;
 
                 double dist = npc.getDistanceToEntity(entity);
-                if (dist <= pullRadius && dist > minPullDistance) {
+                if (dist <= pullRadius) {
                     pulledEntities.add(entity.getUniqueID());
                     count++;
                     if (count >= maxTargets) break;
@@ -106,7 +108,7 @@ public class AbilityVortex extends Ability {
             // Single target mode - still check pullRadius
             if (target != null && !target.isDead) {
                 double dist = npc.getDistanceToEntity(target);
-                if (dist <= pullRadius && dist > minPullDistance) {
+                if (dist <= pullRadius) {
                     pulledEntities.add(target.getUniqueID());
                 }
             }
@@ -123,13 +125,8 @@ public class AbilityVortex extends Ability {
         double destY = npc.posY;
         double destZ = npc.posZ;
 
-        if (pullToDistance > 0) {
-            double yaw = Math.toRadians(npc.rotationYaw);
-            destX -= Math.sin(yaw) * pullToDistance;
-            destZ += Math.cos(yaw) * pullToDistance;
-        }
-
         boolean anyStillPulling = false;
+        ticksSincePullDamage++;
 
         for (UUID uuid : new HashSet<>(pulledEntities)) {
             EntityLivingBase entity = findEntity(world, uuid);
@@ -143,7 +140,7 @@ public class AbilityVortex extends Ability {
             double dz = destZ - entity.posZ;
             double dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
 
-            if (dist <= minPullDistance) {
+            if (dist <= 1.0f) {
                 pulledEntities.remove(uuid);
                 onTargetArrived(npc, entity, world);
                 continue;
@@ -152,14 +149,25 @@ public class AbilityVortex extends Ability {
             anyStillPulling = true;
 
             double factor = pullStrength / dist;
-            entity.motionX = dx * factor;
-            entity.motionY = dy * factor * 0.5;
-            entity.motionZ = dz * factor;
+            double nextX = dx * factor;
+            double nextY = dy * factor * 0.5;
+            double nextZ = dz * factor;
+
+            AxisAlignedBB nextBox = entity.boundingBox.copy().offset(nextX, nextY, nextZ);
+            if (!world.getCollidingBoundingBoxes(entity, nextBox).isEmpty()) {
+                pulledEntities.remove(uuid);
+                continue;
+            }
+
+            entity.motionX = nextX;
+            entity.motionY = nextY;
+            entity.motionZ = nextZ;
             entity.velocityChanged = true;
 
-            if (damageOnPull && pullDamage > 0) {
-                // Apply damage with scripted event support (no knockback during pull)
-                applyAbilityDamage(npc, entity, pullDamage, 0, 0);
+            if (damageOnPull && pullDamage > 0 && ticksSincePullDamage >= 10) {
+                ticksSincePullDamage = 0;
+                entity.hurtResistantTime = 0;
+                applyAbilityDamage(npc, entity, pullDamage * 0.5f, 0);
             }
         }
 
@@ -170,7 +178,7 @@ public class AbilityVortex extends Ability {
 
     private void onTargetArrived(EntityNPCInterface npc, EntityLivingBase entity, World world) {
         // Apply damage with scripted event support
-        boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback * 0.5f, 0);
+        boolean wasHit = applyAbilityDamage(npc, entity, damage, knockback * 0.5f);
 
         // Only apply effects if hit wasn't cancelled
         if (wasHit) {
@@ -202,20 +210,20 @@ public class AbilityVortex extends Ability {
     public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
         pulledEntities.clear();
         pullComplete = false;
+        ticksSincePullDamage = 0;
     }
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
         pulledEntities.clear();
         pullComplete = false;
+        ticksSincePullDamage = 0;
     }
 
     @Override
     public void writeTypeNBT(NBTTagCompound nbt) {
         nbt.setFloat("pullRadius", pullRadius);
         nbt.setFloat("pullStrength", pullStrength);
-        nbt.setFloat("minPullDistance", minPullDistance);
-        nbt.setFloat("pullToDistance", pullToDistance);
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
         nbt.setInteger("stunDuration", stunDuration);
@@ -230,8 +238,6 @@ public class AbilityVortex extends Ability {
     public void readTypeNBT(NBTTagCompound nbt) {
         this.pullRadius = nbt.hasKey("pullRadius") ? nbt.getFloat("pullRadius") : 8.0f;
         this.pullStrength = nbt.hasKey("pullStrength") ? nbt.getFloat("pullStrength") : 0.8f;
-        this.minPullDistance = nbt.hasKey("minPullDistance") ? nbt.getFloat("minPullDistance") : 1.5f;
-        this.pullToDistance = nbt.hasKey("pullToDistance") ? nbt.getFloat("pullToDistance") : 0.0f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 0.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 0.0f;
         this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
@@ -248,12 +254,6 @@ public class AbilityVortex extends Ability {
 
     public float getPullStrength() { return pullStrength; }
     public void setPullStrength(float pullStrength) { this.pullStrength = pullStrength; }
-
-    public float getMinPullDistance() { return minPullDistance; }
-    public void setMinPullDistance(float minPullDistance) { this.minPullDistance = minPullDistance; }
-
-    public float getPullToDistance() { return pullToDistance; }
-    public void setPullToDistance(float pullToDistance) { this.pullToDistance = pullToDistance; }
 
     public float getDamage() { return damage; }
     public void setDamage(float damage) { this.damage = damage; }

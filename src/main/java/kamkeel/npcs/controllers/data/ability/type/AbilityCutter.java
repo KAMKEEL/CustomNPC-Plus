@@ -29,32 +29,26 @@ import java.util.Set;
 public class AbilityCutter extends Ability {
 
     public enum SweepMode {
-        INSTANT,
-        EXPANDING,
-        ROTATING
+        SWIPE,
+        SPIN
     }
 
     private float arcAngle = 90.0f;
     private float range = 6.0f;
     private float damage = 12.0f;
     private float knockback = 1.5f;
-    private float knockbackUp = 0.2f;
 
-    private SweepMode sweepMode = SweepMode.INSTANT;
-    private int sweepWaves = 1;
-    private int waveInterval = 5;
-    private float rotationSpeed = 5.0f;
-    private float startAngleOffset = 0.0f;
+    private SweepMode sweepMode = SweepMode.SWIPE;
+    private float sweepSpeed = 6.0f;
 
     private int stunDuration = 0;
-    private int bleedDuration = 0;
-    private int bleedLevel = 0;
+    private int poisonDurationSeconds = 0;
+    private int poisonLevel = 0;
     private boolean piercing = true;
     private float innerRadius = 0.0f;
 
     // Runtime state
     private transient Set<Integer> hitEntities = new HashSet<>();
-    private transient int currentWave = 0;
     private transient float currentRotation = 0.0f;
 
     public AbilityCutter() {
@@ -68,6 +62,8 @@ public class AbilityCutter extends Ability {
         this.activeTicks = 15;
         this.recoveryTicks = 15;
         this.telegraphType = TelegraphType.CONE;
+        this.windUpSound = "random.bow";
+        this.activeSound = "random.break";
     }
 
     @Override
@@ -99,12 +95,7 @@ public class AbilityCutter extends Ability {
     @Override
     public void onExecute(EntityNPCInterface npc, EntityLivingBase target, World world) {
         hitEntities.clear();
-        currentWave = 0;
-        currentRotation = startAngleOffset;
-
-        if (sweepMode == SweepMode.INSTANT && !world.isRemote) {
-            performSweepDamage(npc, world, 0.0f, range);
-        }
+        currentRotation = -arcAngle / 2.0f;
     }
 
     @Override
@@ -112,29 +103,24 @@ public class AbilityCutter extends Ability {
         if (world.isRemote) return;
 
         switch (sweepMode) {
-            case EXPANDING:
-                if (tick % waveInterval == 0 && currentWave < sweepWaves) {
-                    float waveProgress = (float)(currentWave + 1) / sweepWaves;
-                    float waveInner = innerRadius + (range - innerRadius) * ((float)currentWave / sweepWaves);
-                    float waveOuter = innerRadius + (range - innerRadius) * waveProgress;
-                    performSweepDamage(npc, world, waveInner, waveOuter);
-                    currentWave++;
+            case SWIPE:
+                if (currentRotation > arcAngle / 2.0f) {
+                    return;
                 }
+                performSweepDamage(npc, world, innerRadius, range, currentRotation);
+                currentRotation += sweepSpeed;
                 break;
 
-            case ROTATING:
-                currentRotation += rotationSpeed;
+            case SPIN:
+                currentRotation = (currentRotation + sweepSpeed) % 360.0f;
                 hitEntities.clear();
-                performSweepDamage(npc, world, innerRadius, range);
-                break;
-
-            case INSTANT:
+                performSweepDamage(npc, world, innerRadius, range, currentRotation);
                 break;
         }
     }
 
-    private void performSweepDamage(EntityNPCInterface npc, World world, float minDist, float maxDist) {
-        float casterYaw = npc.rotationYaw + currentRotation;
+    private void performSweepDamage(EntityNPCInterface npc, World world, float minDist, float maxDist, float angleOffset) {
+        float casterYaw = npc.rotationYaw + angleOffset;
 
         AxisAlignedBB searchBox = AxisAlignedBB.getBoundingBox(
             npc.posX - maxDist, npc.posY - 1, npc.posZ - maxDist,
@@ -163,7 +149,7 @@ public class AbilityCutter extends Ability {
             float actualDamage = damage * distFactor;
 
             // Apply damage with scripted event support
-            boolean wasHit = applyAbilityDamage(npc, entity, actualDamage, knockback, knockbackUp);
+            boolean wasHit = applyAbilityDamage(npc, entity, actualDamage, knockback);
 
             // Only apply effects if hit wasn't cancelled
             if (wasHit) {
@@ -171,8 +157,8 @@ public class AbilityCutter extends Ability {
                     entity.addPotionEffect(new PotionEffect(Potion.moveSlowdown.id, stunDuration, 10));
                     entity.addPotionEffect(new PotionEffect(Potion.weakness.id, stunDuration, 2));
                 }
-                if (bleedDuration > 0) {
-                    entity.addPotionEffect(new PotionEffect(Potion.wither.id, bleedDuration, bleedLevel));
+                if (poisonDurationSeconds > 0) {
+                    entity.addPotionEffect(new PotionEffect(Potion.poison.id, poisonDurationSeconds * 20, poisonLevel));
                 }
             }
         }
@@ -193,15 +179,13 @@ public class AbilityCutter extends Ability {
     @Override
     public void onComplete(EntityNPCInterface npc, EntityLivingBase target) {
         hitEntities.clear();
-        currentWave = 0;
-        currentRotation = startAngleOffset;
+        currentRotation = 0.0f;
     }
 
     @Override
     public void onInterrupt(EntityNPCInterface npc, DamageSource source, float damage) {
         hitEntities.clear();
-        currentWave = 0;
-        currentRotation = startAngleOffset;
+        currentRotation = 0.0f;
     }
 
     @Override
@@ -210,15 +194,11 @@ public class AbilityCutter extends Ability {
         nbt.setFloat("range", range);
         nbt.setFloat("damage", damage);
         nbt.setFloat("knockback", knockback);
-        nbt.setFloat("knockbackUp", knockbackUp);
         nbt.setString("sweepMode", sweepMode.name());
-        nbt.setInteger("sweepWaves", sweepWaves);
-        nbt.setInteger("waveInterval", waveInterval);
-        nbt.setFloat("rotationSpeed", rotationSpeed);
-        nbt.setFloat("startAngleOffset", startAngleOffset);
+        nbt.setFloat("sweepSpeed", sweepSpeed);
         nbt.setInteger("stunDuration", stunDuration);
-        nbt.setInteger("bleedDuration", bleedDuration);
-        nbt.setInteger("bleedLevel", bleedLevel);
+        nbt.setInteger("poisonDurationSeconds", poisonDurationSeconds);
+        nbt.setInteger("poisonLevel", poisonLevel);
         nbt.setBoolean("piercing", piercing);
         nbt.setFloat("innerRadius", innerRadius);
     }
@@ -229,19 +209,15 @@ public class AbilityCutter extends Ability {
         this.range = nbt.hasKey("range") ? nbt.getFloat("range") : 6.0f;
         this.damage = nbt.hasKey("damage") ? nbt.getFloat("damage") : 12.0f;
         this.knockback = nbt.hasKey("knockback") ? nbt.getFloat("knockback") : 1.5f;
-        this.knockbackUp = nbt.hasKey("knockbackUp") ? nbt.getFloat("knockbackUp") : 0.2f;
         try {
             this.sweepMode = SweepMode.valueOf(nbt.getString("sweepMode"));
         } catch (Exception e) {
-            this.sweepMode = SweepMode.INSTANT;
+            this.sweepMode = SweepMode.SWIPE;
         }
-        this.sweepWaves = nbt.hasKey("sweepWaves") ? nbt.getInteger("sweepWaves") : 1;
-        this.waveInterval = nbt.hasKey("waveInterval") ? nbt.getInteger("waveInterval") : 5;
-        this.rotationSpeed = nbt.hasKey("rotationSpeed") ? nbt.getFloat("rotationSpeed") : 5.0f;
-        this.startAngleOffset = nbt.hasKey("startAngleOffset") ? nbt.getFloat("startAngleOffset") : 0.0f;
+        this.sweepSpeed = nbt.hasKey("sweepSpeed") ? nbt.getFloat("sweepSpeed") : 6.0f;
         this.stunDuration = nbt.hasKey("stunDuration") ? nbt.getInteger("stunDuration") : 0;
-        this.bleedDuration = nbt.hasKey("bleedDuration") ? nbt.getInteger("bleedDuration") : 0;
-        this.bleedLevel = nbt.hasKey("bleedLevel") ? nbt.getInteger("bleedLevel") : 0;
+        this.poisonDurationSeconds = nbt.hasKey("poisonDurationSeconds") ? nbt.getInteger("poisonDurationSeconds") : 0;
+        this.poisonLevel = nbt.hasKey("poisonLevel") ? nbt.getInteger("poisonLevel") : 0;
         this.piercing = !nbt.hasKey("piercing") || nbt.getBoolean("piercing");
         this.innerRadius = nbt.hasKey("innerRadius") ? nbt.getFloat("innerRadius") : 0.0f;
     }
@@ -259,32 +235,20 @@ public class AbilityCutter extends Ability {
     public float getKnockback() { return knockback; }
     public void setKnockback(float knockback) { this.knockback = knockback; }
 
-    public float getKnockbackUp() { return knockbackUp; }
-    public void setKnockbackUp(float knockbackUp) { this.knockbackUp = knockbackUp; }
-
     public SweepMode getSweepMode() { return sweepMode; }
     public void setSweepMode(SweepMode sweepMode) { this.sweepMode = sweepMode; }
 
-    public int getSweepWaves() { return sweepWaves; }
-    public void setSweepWaves(int sweepWaves) { this.sweepWaves = sweepWaves; }
-
-    public int getWaveInterval() { return waveInterval; }
-    public void setWaveInterval(int waveInterval) { this.waveInterval = waveInterval; }
-
-    public float getRotationSpeed() { return rotationSpeed; }
-    public void setRotationSpeed(float rotationSpeed) { this.rotationSpeed = rotationSpeed; }
-
-    public float getStartAngleOffset() { return startAngleOffset; }
-    public void setStartAngleOffset(float startAngleOffset) { this.startAngleOffset = startAngleOffset; }
+    public float getSweepSpeed() { return sweepSpeed; }
+    public void setSweepSpeed(float sweepSpeed) { this.sweepSpeed = sweepSpeed; }
 
     public int getStunDuration() { return stunDuration; }
     public void setStunDuration(int stunDuration) { this.stunDuration = stunDuration; }
 
-    public int getBleedDuration() { return bleedDuration; }
-    public void setBleedDuration(int bleedDuration) { this.bleedDuration = bleedDuration; }
+    public int getPoisonDurationSeconds() { return poisonDurationSeconds; }
+    public void setPoisonDurationSeconds(int poisonDurationSeconds) { this.poisonDurationSeconds = poisonDurationSeconds; }
 
-    public int getBleedLevel() { return bleedLevel; }
-    public void setBleedLevel(int bleedLevel) { this.bleedLevel = bleedLevel; }
+    public int getPoisonLevel() { return poisonLevel; }
+    public void setPoisonLevel(int poisonLevel) { this.poisonLevel = poisonLevel; }
 
     public boolean isPiercing() { return piercing; }
     public void setPiercing(boolean piercing) { this.piercing = piercing; }

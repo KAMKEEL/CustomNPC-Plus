@@ -83,7 +83,7 @@ public class AbilityProjectile extends Ability {
 
         // Deal instant damage with scripted event support
         // TODO: Use custom EntityAbilityProjectile for actual tracking
-        applyAbilityDamageWithDirection(npc, target, damage, knockback, 0.1f, dx, dz);
+        applyAbilityDamageWithDirection(npc, target, damage, knockback, dx, dz);
 
         // Play sound
         world.playSoundAtEntity(npc, "random.bow", 1.0f, 0.8f);
@@ -101,7 +101,7 @@ public class AbilityProjectile extends Ability {
                     if (dist < explosionRadius) {
                         float falloff = 1.0f - (dist / explosionRadius);
                         // Apply splash damage with scripted event support (no knockback)
-                        applyAbilityDamage(npc, living, damage * falloff * 0.5f, 0, 0);
+                        applyAbilityDamage(npc, living, damage * falloff * 0.5f, 0);
                     }
                 }
             }
