@@ -41,14 +41,20 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected int activeTab = 0;
     public IScriptHandler handler;
     public Map<String, List<String>> languages = new HashMap();
-    private int scriptLimit = 1;
+    protected int scriptLimit = 1;
     public List<String> hookList = new ArrayList<String>();
     protected boolean loaded = false;
 
-    private Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
+    protected Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     protected GuiScreen parent;
 
-    public boolean singleContainer = false; 
+    public boolean singleContainer = false;
+    
+    /** If true, uses scroll-based tab selection instead of top buttons */
+    protected boolean useScrollTabs = false;
+    
+    /** If true, shows settings/script toggle instead of numbered tabs */
+    protected boolean useSettingsToggle = false; 
 
     // ==================== FULLSCREEN MODE ====================
     /** Whether the editor viewport is currently in fullscreen mode */
@@ -94,48 +100,54 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         int yoffset = (int) ((double) this.ySize * 0.02D);
 
         // ==================== TAB BUTTONS ====================
-        GuiMenuTopButton top;
-        int topButtonsX = isFullscreen && activeTab != 0 ? FullscreenConfig.paddingLeft : this.guiLeft + 4;
-        int topButtonsY = isFullscreen && activeTab != 0 ? FullscreenConfig.paddingTop - 20 : this.guiTop - 17;
-        this.addTopButton(top = new GuiMenuTopButton(0, topButtonsX, topButtonsY, "gui.settings"));
+        // Skip standard tab creation for GUIs that use custom toggle/scroll tabs
+        if (!useSettingsToggle) {
+            GuiMenuTopButton top;
+            int topButtonsX = isFullscreen && activeTab != 0 ? FullscreenConfig.paddingLeft : this.guiLeft + 4;
+            int topButtonsY = isFullscreen && activeTab != 0 ? FullscreenConfig.paddingTop - 20 : this.guiTop - 17;
+            this.addTopButton(top = new GuiMenuTopButton(0, topButtonsX, topButtonsY, "gui.settings"));
 
-        int topXoffset = 0;
-        int topYoffset = 0;
-        if(!singleContainer) {
-            for (int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
-                if (ta % 20 == 0 && ta > 0) {
-                    topYoffset -= 20;
-                    topXoffset -= top.width + 20 * 22;
+            int topXoffset = 0;
+            int topYoffset = 0;
+            if(!singleContainer) {
+                for (int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
+                    if (ta % 20 == 0 && ta > 0) {
+                        topYoffset -= 20;
+                        topXoffset -= top.width + 20 * 22;
+                    }
+                    this.addTopButton(top = new GuiMenuTopButton(ta + 1, top.xPosition + top.width + topXoffset,
+                            top.yPosition + topYoffset, ta + 1 + ""));
+                    topXoffset = 0;
+                    topYoffset = 0;
+                    scriptLimit = ta + 2;
                 }
-                this.addTopButton(top = new GuiMenuTopButton(ta + 1, top.xPosition + top.width + topXoffset,
-                        top.yPosition + topYoffset, ta + 1 + ""));
-                topXoffset = 0;
-                topYoffset = 0;
-                scriptLimit = ta + 2;
             }
+
+            if (singleContainer && getFirst() != null)
+                this.addTopButton(
+                        top = new GuiMenuTopButton(1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset,
+                                "Script"));
+            else if (this.handler.getScripts().size() < 100)
+                this.addTopButton(new GuiMenuTopButton(scriptLimit, top.xPosition + top.width, top.yPosition, "+"));
+
+
+            top = this.getTopButton(this.activeTab);
+            if (top == null) {
+                this.activeTab = 0;
+                top = this.getTopButton(0);
+            }
+            top.active = true;
         }
-
-        if (singleContainer && getFirst() != null)
-            this.addTopButton(
-                    top = new GuiMenuTopButton(1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset,
-                            "Script"));
-        else if (this.handler.getScripts().size() < 100)
-            this.addTopButton(new GuiMenuTopButton(scriptLimit, top.xPosition + top.width, top.yPosition, "+"));
-
-
-        top = this.getTopButton(this.activeTab);
-        if (top == null) {
-            this.activeTab = 0;
-            top = this.getTopButton(0);
-        }
-        top.active = true;
 
         // ==================== SCRIPT EDITOR TAB (activeTab > 0) ====================
-        if (this.activeTab > 0) {
-            initScriptEditorTab(yoffset);
-        } else {
-            // ==================== SETTINGS TAB (activeTab == 0) ====================
-            initSettingsTab(yoffset);
+        // Skip for GUIs that handle their own view initialization (useSettingsToggle)
+        if (!useSettingsToggle) {
+            if (this.activeTab > 0) {
+                initScriptEditorTab(yoffset);
+            } else {
+                // ==================== SETTINGS TAB (activeTab == 0) ====================
+                initSettingsTab(yoffset);
+            }
         }
 
         this.xSize = 420;
@@ -147,7 +159,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Handles both normal and fullscreen modes.
      */
     private void initScriptEditorTab(int yoffset) {
-        ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
+        ScriptContainer container = getCurrentContainer();
 
         // ==================== CALCULATE VIEWPORT BOUNDS ====================
         int editorX, editorY, editorWidth, editorHeight;
@@ -191,7 +203,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         // ==================== SCRIPT TEXT AREA ====================
-        int idx = this.activeTab - 1;
+        int idx = getActiveScriptIndex();
         GuiScriptTextArea activeArea = getActiveScriptArea();
         if (activeArea == null) {
             activeArea = new GuiScriptTextArea(this, 2, editorX, editorY, editorWidth, editorHeight,
@@ -390,11 +402,28 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public GuiScriptTextArea getActiveScriptArea() {
-        if (this.activeTab > 0) {
-            int idx = this.activeTab - 1;
-            if (idx >= 0 && idx < textAreas.size())
-                return textAreas.get(idx);
-        }
+        int idx = getActiveScriptIndex();
+        if (idx >= 0 && textAreas.containsKey(idx))
+            return textAreas.get(idx);
+        return null;
+    }
+    
+    /**
+     * Get the current script index for text area storage.
+     * Override in subclasses with different tab logic.
+     */
+    protected int getActiveScriptIndex() {
+        return this.activeTab - 1;
+    }
+    
+    /**
+     * Get the current script container.
+     * Override in subclasses with different container access patterns.
+     */
+    protected ScriptContainer getCurrentContainer() {
+        int idx = getActiveScriptIndex();
+        if (idx >= 0 && idx < this.handler.getScripts().size())
+            return this.handler.getScripts().get(idx);
         return null;
     }
 
@@ -500,8 +529,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     protected void setScript() {
-        if (this.activeTab > 0) {
-            ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
+        if (this.activeTab > 0 || useScrollTabs) {
+            ScriptContainer container = getCurrentContainer();
             if (container == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
@@ -644,7 +673,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void textUpdate(String text) {
-        ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
+        ScriptContainer container = getCurrentContainer();
         if (container != null) {
             container.script = text;
         }
@@ -655,7 +684,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     @Override
     //NEVER USED
     public void saveText(String text) {
-        ScriptContainer container = handler.getScripts().get(activeTab ); //activeTab - 1?
+        ScriptContainer container = getCurrentContainer();
         if (container != null)
             container.script = text;
         initGui();
