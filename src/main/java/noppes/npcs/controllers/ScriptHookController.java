@@ -33,7 +33,6 @@ public class ScriptHookController implements IScriptHookHandler {
         CONTEXT_ITEM,
         CONTEXT_LINKED_ITEM,
         CONTEXT_FORGE,
-        CONTEXT_GLOBAL_NPC,
         CONTEXT_RECIPE,
         CONTEXT_EFFECT
     };
@@ -75,27 +74,6 @@ public class ScriptHookController implements IScriptHookHandler {
             EnumScriptType.ABILITY_START.function,
             EnumScriptType.ABILITY_INTERRUPT.function,
             EnumScriptType.ABILITY_COMPLETE.function
-        );
-
-        // Global NPC hooks (same as NPC)
-        registerBuiltIn(CONTEXT_GLOBAL_NPC,
-            EnumScriptType.INIT.function,
-            EnumScriptType.TICK.function,
-            EnumScriptType.INTERACT.function,
-            EnumScriptType.DIALOG.function,
-            EnumScriptType.DAMAGED.function,
-            EnumScriptType.KILLED.function,
-            EnumScriptType.ATTACK_MELEE.function,
-            EnumScriptType.ATTACK_SWING.function,
-            EnumScriptType.RANGED_LAUNCHED.function,
-            EnumScriptType.TARGET.function,
-            EnumScriptType.COLLIDE.function,
-            EnumScriptType.KILLS.function,
-            EnumScriptType.DIALOG_CLOSE.function,
-            EnumScriptType.TIMER.function,
-            EnumScriptType.TARGET_LOST.function,
-            EnumScriptType.PROJECTILE_TICK.function,
-            EnumScriptType.PROJECTILE_IMPACT.function
         );
 
         // Player hooks

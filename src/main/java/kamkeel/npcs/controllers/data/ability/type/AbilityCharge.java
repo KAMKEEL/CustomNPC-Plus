@@ -240,7 +240,7 @@ public class AbilityCharge extends Ability {
 
     @Override
     public float getTelegraphWidth() {
-        return hitRadius * 2;
+        return hitWidth * 2;
     }
 
     /**
