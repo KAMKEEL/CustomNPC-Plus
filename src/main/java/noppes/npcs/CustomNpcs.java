@@ -23,6 +23,7 @@ import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.util.BukkitUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -317,6 +318,10 @@ public class CustomNpcs {
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
         SyncController.load();
+
+        // Initialize Bukkit integration (loads Vault and Permissions)
+        BukkitUtil.init();
+        CustomNpcsPermissions.Instance.init();
     }
 
 
