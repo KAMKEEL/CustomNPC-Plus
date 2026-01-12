@@ -1,9 +1,6 @@
 package noppes.npcs.client.gui.script;
 
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiConfirmOpenLink;
-import net.minecraft.client.gui.GuiYesNo;
-import net.minecraft.client.gui.GuiYesNoCallback;
+import net.minecraft.client.gui.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ResourceLocation;
@@ -49,6 +46,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     protected boolean loaded = false;
 
     private Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
+    protected GuiScreen parent;
+
+    public boolean singleContainer = false; 
 
     // ==================== FULLSCREEN MODE ====================
     /** Whether the editor viewport is currently in fullscreen mode */
@@ -101,19 +101,27 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
         int topXoffset = 0;
         int topYoffset = 0;
-        for (int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
-            if (ta % 20 == 0 && ta > 0) {
-                topYoffset -= 20;
-                topXoffset -= top.width + 20 * 22;
+        if(!singleContainer) {
+            for (int ta = 0; ta < this.handler.getScripts().size(); ++ta) {
+                if (ta % 20 == 0 && ta > 0) {
+                    topYoffset -= 20;
+                    topXoffset -= top.width + 20 * 22;
+                }
+                this.addTopButton(top = new GuiMenuTopButton(ta + 1, top.xPosition + top.width + topXoffset,
+                        top.yPosition + topYoffset, ta + 1 + ""));
+                topXoffset = 0;
+                topYoffset = 0;
+                scriptLimit = ta + 2;
             }
-            this.addTopButton(top = new GuiMenuTopButton(ta + 1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset, ta + 1 + ""));
-            topXoffset = 0;
-            topYoffset = 0;
-            scriptLimit = ta + 2;
         }
 
-        if (this.handler.getScripts().size() < 100)
+        if (singleContainer && getFirst() != null)
+            this.addTopButton(
+                    top = new GuiMenuTopButton(1, top.xPosition + top.width + topXoffset, top.yPosition + topYoffset,
+                            "Script"));
+        else if (this.handler.getScripts().size() < 100)
             this.addTopButton(new GuiMenuTopButton(scriptLimit, top.xPosition + top.width, top.yPosition, "+"));
+
 
         top = this.getTopButton(this.activeTab);
         if (top == null) {
@@ -322,7 +330,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         return builder.toString();
     }
 
-    private int getScriptIndex() {
+    public int getScriptIndex() {
         int i = 0;
 
         for (Iterator var2 = this.languages.keySet().iterator(); var2.hasNext(); ++i) {
@@ -353,7 +361,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                 this.openLink("http://www.minecraftforge.net/forum/index.php/board,122.0.html");
             }
             if (i == 10) {
-                this.handler.getScripts().remove(this.activeTab - 1);
+                if (singleContainer)
+                    setHandlerContainer(null);
+                else
+                    this.handler.getScripts().remove(this.activeTab - 1);
                 this.activeTab = 0;
             }
             if (i == 101) {
@@ -378,7 +389,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.displayGuiScreen(this);
     }
 
-    private GuiScriptTextArea getActiveScriptArea() {
+    public GuiScriptTextArea getActiveScriptArea() {
         if (this.activeTab > 0) {
             int idx = this.activeTab - 1;
             if (idx >= 0 && idx < textAreas.size())
@@ -397,6 +408,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         return super.getTextField(id);
     }
 
+    public ScriptContainer getFirst() {
+        if (this.handler.getScripts().isEmpty())
+            return null;
+        return this.handler.getScripts().get(0);
+    }
     @Override
     protected void actionPerformed(GuiButton guibutton) {
         if (guibutton.id >= 0 && guibutton.id < scriptLimit) {
@@ -406,8 +422,16 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         }
 
         if (guibutton.id == scriptLimit) {
-            this.handler.getScripts().add(new ScriptContainer(this.handler));
-            this.activeTab = this.handler.getScripts().size();
+            if (singleContainer) {
+                if (getFirst() == null)
+                    setHandlerContainer(new ScriptContainer(handler));
+                else
+                    this.setScript();
+                this.activeTab = 1;
+            } else {
+                this.handler.getScripts().add(new ScriptContainer(this.handler));
+                this.activeTab = this.handler.getScripts().size();
+            }
             this.initGui();
         }
 
@@ -464,18 +488,26 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (guibutton.id == 107) {
             container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
             if (container == null) {
-                this.handler.getScripts().add(container = new ScriptContainer(this.handler));
+                container = new ScriptContainer(this.handler);
+                if (singleContainer)
+                    setHandlerContainer(container);
+                else
+                    this.handler.getScripts().add(container);
             }
 
             this.setSubGui(new EventGuiScriptList((List) this.languages.get(this.handler.getLanguage()), container));
         }
     }
 
-    private void setScript() {
+    protected void setScript() {
         if (this.activeTab > 0) {
             ScriptContainer container = (ScriptContainer) this.handler.getScripts().get(this.activeTab - 1);
             if (container == null) {
-                this.handler.getScripts().add(container = new ScriptContainer(this.handler));
+                container = new ScriptContainer(this.handler);
+                if (singleContainer)
+                    setHandlerContainer(container);
+                else
+                    this.handler.getScripts().add(container);
             }
 
             String text = (this.getTextField(2)).getText();
@@ -506,6 +538,106 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.initGui();
     }
 
+    /**
+     * Get the script context for this GUI.
+     * Override in subclasses to return the appropriate context.
+     *
+     * @return The script context (default: GLOBAL)
+     */
+    protected ScriptContext getScriptContext() {
+        return ScriptContext.GLOBAL;
+    }
+
+    // ==================== UNIFIED SCRIPT DATA HANDLING ====================
+
+    /**
+     * Unified setGuiData for script GUIs with old container system.
+     * Handles both language data and tab-specific script loading.
+     */
+    protected void setGuiDataWithOldContainer(NBTTagCompound compound) {
+        if (compound.hasKey("LoadComplete")) {
+            loaded = true;
+            return;
+        }
+
+        if (!compound.hasKey("Tab")) {
+            this.handler.setLanguage(compound.getString("ScriptLanguage"));
+            this.handler.setEnabled(compound.getBoolean("ScriptEnabled"));
+            this.loadLanguagesData(compound);
+        } else {
+            int tab = compound.getInteger("Tab");
+            ScriptContainer container = new ScriptContainer(this.handler);
+            container.readFromNBT(compound.getCompoundTag("Script"));
+            this.setHandlerContainer(container);
+            this.initGui();
+        }
+    }
+
+    /**
+     * Load languages data from NBT.
+     * Separated for potential override in subclasses if needed.
+     */
+    protected void loadLanguagesData(NBTTagCompound compound) {
+        NBTTagList data = compound.getTagList("Languages", 10);
+        HashMap languages = new HashMap();
+
+        for (int i = 0; i < data.tagCount(); ++i) {
+            NBTTagCompound comp = data.getCompoundTagAt(i);
+            java.util.ArrayList scripts = new java.util.ArrayList();
+            NBTTagList list = comp.getTagList("Scripts", 8);
+
+            for (int j = 0; j < list.tagCount(); ++j) {
+                scripts.add(list.getStringTagAt(j));
+            }
+
+            languages.put(comp.getString("Language"), scripts);
+        }
+
+        this.languages = languages;
+        this.initGui();
+    }
+
+    /**
+     * Set the handler's container. Override if handler is not IScriptHandler.
+     */
+    protected void setHandlerContainer(ScriptContainer container) {
+        // Default implementation - subclasses may need to cast and set differently
+        // e.g., ((LinkedItemScript) handler).container = container;
+    }
+
+    /**
+     * Unified save method for script GUIs with packet-based saving.
+     * Subclasses only need to override sendScriptPackets() and sendMetadataPacket().
+     */
+    protected void saveWithPackets() {
+        if (loaded) {
+            this.setScript();
+
+            List<ScriptContainer> containers = this.handler.getScripts();
+            for (int i = 0; i < containers.size(); i++) {
+                ScriptContainer container = containers.get(i);
+                sendSavePacket(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            }
+
+            NBTTagCompound scriptData = new NBTTagCompound();
+            scriptData.setString("ScriptLanguage", this.handler.getLanguage());
+            scriptData.setBoolean("ScriptEnabled", this.handler.getEnabled());
+            scriptData.setTag("ScriptConsole", noppes.npcs.NBTTags.NBTLongStringMap(this.handler.getConsoleText()));
+
+            sendSavePacket(-1, containers.size(), scriptData);
+        }
+    }
+
+    /**
+     * Send a script container packet. Override in subclasses.
+     * @param index The index of this script
+     * @param totalCount Total number of scripts
+     * @param scriptNBT The script container NBT data
+     */
+    protected void sendSavePacket(int index, int totalCount, NBTTagCompound scriptNBT) {
+        // Default: do nothing (for non-packet-based GUIs like GuiScriptItem)
+    }
+
     public void save() {
         if (loaded)
             this.setScript();
@@ -519,12 +651,25 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     }
 
+    @Deprecated
     @Override
+    //NEVER USED
     public void saveText(String text) {
-        ScriptContainer container = handler.getScripts().get(activeTab);
+        ScriptContainer container = handler.getScripts().get(activeTab ); //activeTab - 1?
         if (container != null)
             container.script = text;
         initGui();
+    }
+
+    @Override
+    public void close() {
+        if (parent != null) {
+            this.save();
+            parent.setWorldAndResolution(mc, width, height);
+            parent.initGui();
+            mc.currentScreen = parent;
+        } else
+            super.close();
     }
 
     // ==================== FULLSCREEN METHODS ====================
