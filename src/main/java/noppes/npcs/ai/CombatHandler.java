@@ -42,8 +42,14 @@ public class CombatHandler {
             return;
         }
         combatResetTimer = 0;
-    }
 
+        // Try to select and start an ability if not currently executing one
+        // Ability ticking is handled by DataAbilities in onLivingUpdate
+        EntityLivingBase target = npc.getAttackTarget();
+        if (target != null && npc.abilities.enabled && !npc.abilities.isExecutingAbility()) {
+            npc.abilities.trySelectAndStart(target);
+        }
+    }
 
     private boolean shouldCombatContinue() {
         if (npc.getAttackTarget() == null)
@@ -72,6 +78,18 @@ public class CombatHandler {
             }
             aggressors.put(el, f + damageAmount);
         }
+
+        // Handle guard counter before interruption
+        if (npc.abilities.getCurrentAbility() instanceof kamkeel.npcs.controllers.data.ability.type.AbilityGuard) {
+            kamkeel.npcs.controllers.data.ability.type.AbilityGuard guard =
+                (kamkeel.npcs.controllers.data.ability.type.AbilityGuard) npc.abilities.getCurrentAbility();
+            if (guard.isGuarding() && e instanceof EntityLivingBase) {
+                guard.onDamageTaken(npc, (EntityLivingBase) e, source, damageAmount);
+            }
+        }
+
+        // Check for ability interruption
+        npc.abilities.onDamage(source, damageAmount);
     }
 
     public void start() {
@@ -86,6 +104,9 @@ public class CombatHandler {
         aggressors.clear();
         recentDamages.clear();
         npc.setBoolFlag(false, 4);
+
+        // Reset ability state when combat ends
+        npc.abilities.reset();
     }
 
     public boolean checkTarget() {
@@ -147,5 +168,27 @@ public class CombatHandler {
             return newThreat < currentThreat;
         }
         return newThreat > currentThreat;
+    }
+
+    /**
+     * Check if NPC is currently executing an ability.
+     * Used by AI tasks to avoid conflicting with ability execution.
+     */
+    public boolean isExecutingAbility() {
+        return npc.abilities.isExecutingAbility();
+    }
+
+    /**
+     * Check if NPC movement should be blocked due to ability execution.
+     */
+    public boolean isMovementBlocked() {
+        return npc.abilities.isMovementBlocked();
+    }
+
+    /**
+     * Check if NPC should skip normal attacks during ability execution.
+     */
+    public boolean shouldBlockAttack() {
+        return npc.abilities.shouldBlockAttack();
     }
 }

@@ -17,7 +17,6 @@ public class GuiNPCEventScripts extends GuiScriptInterface {
 
     public GuiNPCEventScripts(EntityNPCInterface npc) {
         this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_NPC));
-
         this.script = new DataScript(npc);
         this.handler = this.script;
         EventScriptPacket.Get();

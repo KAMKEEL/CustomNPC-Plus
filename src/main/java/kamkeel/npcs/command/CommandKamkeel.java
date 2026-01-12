@@ -43,6 +43,7 @@ public class CommandKamkeel extends CommandBase {
         registerCommand(new OverlayCommand());
         registerCommand(new CommandCommand());
         registerCommand(new EffectCommand());
+        registerCommand(new AbilityCommand());
         if (ConfigMain.AttributesEnabled)
             registerCommand(new AttributeCommand());
     }

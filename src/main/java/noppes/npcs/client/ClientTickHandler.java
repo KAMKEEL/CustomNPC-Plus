@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.client.controllers.MusicController;
 import noppes.npcs.client.controllers.ScriptSoundController;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import noppes.npcs.client.gui.hud.ClientHudManager;
 import noppes.npcs.client.gui.hud.CompassHudComponent;
 import noppes.npcs.client.gui.hud.EnumHudComponent;
@@ -109,6 +110,11 @@ public class ClientTickHandler {
 
         MusicController.Instance.onUpdate();
         ScriptSoundController.Instance.onUpdate();
+
+        // Tick telegraph manager for ability warnings
+        if (TelegraphManager.ClientInstance != null) {
+            TelegraphManager.ClientInstance.tick(mc.theWorld);
+        }
         if (Minecraft.getMinecraft().thePlayer != null && (prevWidth != mc.displayWidth || prevHeight != mc.displayHeight)) {
             prevWidth = mc.displayWidth;
             prevHeight = mc.displayHeight;

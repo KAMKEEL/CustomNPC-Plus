@@ -15,8 +15,7 @@ public class GuiScriptAllNPCs extends GuiScriptInterface {
     private final GlobalNPCDataScript script = new GlobalNPCDataScript(null);
 
     public GuiScriptAllNPCs() {
-        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_GLOBAL_NPC));
-
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_NPC));
         this.handler = this.script;
         GlobalNPCScriptPacket.Get();
     }

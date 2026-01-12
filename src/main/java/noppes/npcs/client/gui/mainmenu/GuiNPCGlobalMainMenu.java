@@ -38,6 +38,7 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
     private GuiNpcSquareButton tagButton;
     private GuiNpcSquareButton effectsButton;
     private GuiNpcSquareButton magicsButton;
+    private GuiNpcSquareButton abilitiesButton;
 
     public GuiNPCGlobalMainMenu(EntityNPCInterface npc) {
         super(npc, 5);
@@ -94,6 +95,8 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         registerButton(magicsButton = new GuiNpcSquareButton(20, 0, 0, 20, "global.magic", 0xFF333333));
         magicsButton.setIconPos(24, 24, 48, 56).setIconTexture(specialIcons);
 
+        registerButton(abilitiesButton = new GuiNpcSquareButton(21, 0, 0, 20, "global.abilities", 0xFF333333));
+        abilitiesButton.setIconPos(24, 24, 72, 56).setIconTexture(specialIcons); // Placeholder icon position
 
         // Layout composite buttons optimally.
         layoutButtons();
@@ -235,6 +238,9 @@ public class GuiNPCGlobalMainMenu extends GuiNPCInterface2 {
         }
         if (id == 19) {
             NoppesUtil.requestOpenGUI(EnumGuiType.ManageEffects);
+        }
+        if (id == 21) {
+            NoppesUtil.openGUI(player, new noppes.npcs.client.gui.global.GuiNpcManageAbilities(npc));
         }
     }
 

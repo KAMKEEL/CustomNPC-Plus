@@ -114,7 +114,14 @@ public enum EnumScriptType {
     PROFILE("profile"),
     PROFILE_CHANGE("profileChange"),
     PROFILE_REMOVE("profileRemove"),
-    PROFILE_CREATE("profileCreate");
+    PROFILE_CREATE("profileCreate"),
+
+    ABILITY_START("abilityStart"),
+    ABILITY_EXECUTE("abilityExecute"),
+    ABILITY_INTERRUPT("abilityInterrupt"),
+    ABILITY_COMPLETE("abilityComplete"),
+    ABILITY_HIT("abilityHit"),
+    ABILITY_TICK("abilityTick");
 
     public String function;
 
