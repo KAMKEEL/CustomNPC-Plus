@@ -68,7 +68,13 @@ public class ScriptHookController implements IScriptHookHandler {
             EnumScriptType.TIMER.function,
             EnumScriptType.TARGET_LOST.function,
             EnumScriptType.PROJECTILE_TICK.function,
-            EnumScriptType.PROJECTILE_IMPACT.function
+            EnumScriptType.PROJECTILE_IMPACT.function,
+            EnumScriptType.ABILITY_TICK.function,
+            EnumScriptType.ABILITY_EXECUTE.function,
+            EnumScriptType.ABILITY_HIT.function,
+            EnumScriptType.ABILITY_START.function,
+            EnumScriptType.ABILITY_INTERRUPT.function,
+            EnumScriptType.ABILITY_COMPLETE.function
         );
 
         // Global NPC hooks (same as NPC)
