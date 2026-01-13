@@ -21,6 +21,7 @@ import kamkeel.npcs.controllers.SyncController;
 import kamkeel.npcs.controllers.data.profile.CNPCData;
 import kamkeel.npcs.developer.Developer;
 import kamkeel.npcs.network.PacketHandler;
+import kamkeel.npcs.util.BukkitUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockIce;
 import net.minecraft.block.BlockLeavesBase;
@@ -60,12 +61,14 @@ import noppes.npcs.controllers.PlayerDataController;
 import noppes.npcs.controllers.QuestController;
 import noppes.npcs.controllers.RecipeController;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.ServerCloneController;
 import noppes.npcs.controllers.ServerTagMapController;
 import noppes.npcs.controllers.SpawnController;
 import noppes.npcs.controllers.TagController;
 import noppes.npcs.controllers.TransportController;
 import noppes.npcs.enchants.EnchantInterface;
+import kamkeel.npcs.controllers.data.ability.AbilityController;
 import noppes.npcs.entity.EntityChairMount;
 import noppes.npcs.entity.EntityCustomNpc;
 import noppes.npcs.entity.EntityMagicProjectile;
@@ -221,6 +224,7 @@ public class CustomNpcs {
 
         MinecraftForge.EVENT_BUS.register(new ServerEventsHandler());
         MinecraftForge.EVENT_BUS.register(new ScriptController());
+        new ScriptHookController();
 
         ScriptPlayerEventHandler scriptPlayerEventHandler = new ScriptPlayerEventHandler();
         MinecraftForge.EVENT_BUS.register(scriptPlayerEventHandler);
@@ -318,6 +322,8 @@ public class CustomNpcs {
         new SpawnController();
         new LinkedNpcController();
         new AnimationController();
+        new AbilityController();
+        AbilityController.Instance.load();
 
 
         LinkedItemController.getInstance().load();
@@ -363,6 +369,10 @@ public class CustomNpcs {
         ServerCloneController.Instance = new ServerCloneController();
         ServerTagMapController.Instance = new ServerTagMapController();
         SyncController.load();
+
+        // Initialize Bukkit integration (loads Vault and Permissions)
+        BukkitUtil.init();
+        CustomNpcsPermissions.Instance.init();
     }
 
 

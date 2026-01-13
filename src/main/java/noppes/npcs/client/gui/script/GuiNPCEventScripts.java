@@ -3,7 +3,9 @@ package noppes.npcs.client.gui.script;
 import kamkeel.npcs.network.packets.request.script.EventScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.DataScript;
 import noppes.npcs.entity.EntityNPCInterface;
 
@@ -14,25 +16,7 @@ public class GuiNPCEventScripts extends GuiScriptInterface {
     private final DataScript script;
 
     public GuiNPCEventScripts(EntityNPCInterface npc) {
-        this.hookList = new ArrayList<>();
-        hookList.add("init");
-        hookList.add("tick");
-        hookList.add("interact");
-        hookList.add("dialog");
-        hookList.add("damaged");
-        hookList.add("killed");
-        hookList.add("meleeAttack");
-        hookList.add("meleeSwing");
-        hookList.add("rangedLaunched");
-        hookList.add("target");
-        hookList.add("collide");
-        hookList.add("kills");
-        hookList.add("dialogClose");
-        hookList.add("timer");
-        hookList.add("targetLost");
-        hookList.add("projectileTick");
-        hookList.add("projectileImpact");
-
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_NPC));
         this.script = new DataScript(npc);
         this.handler = this.script;
         EventScriptPacket.Get();

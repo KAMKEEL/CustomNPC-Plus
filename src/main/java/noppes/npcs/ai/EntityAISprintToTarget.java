@@ -15,6 +15,11 @@ public class EntityAISprintToTarget extends EntityAIBase {
 
     @Override
     public boolean shouldExecute() {
+        // Don't sprint if ability is controlling movement
+        if (this.npc.abilities.isAbilityControllingMovement()) {
+            return false;
+        }
+
         EntityLivingBase runTarget = this.npc.getAttackTarget();
 
         if (runTarget == null || this.npc.getNavigator().noPath()) {

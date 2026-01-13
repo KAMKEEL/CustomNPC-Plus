@@ -24,7 +24,9 @@ import noppes.npcs.client.gui.util.IGuiData;
 import noppes.npcs.client.gui.util.IJTextAreaListener;
 import noppes.npcs.client.gui.util.ITextChangeListener;
 import noppes.npcs.client.gui.util.ITextfieldListener;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectScript;
 
@@ -61,9 +63,7 @@ public class GuiScriptEffect extends GuiNPCInterface implements GuiYesNoCallback
         this.effect = effect;
         this.scriptHandler = new EffectScript();
 
-        for (EffectScript.ScriptType type : EffectScript.ScriptType.values()) {
-            this.hookList.add(type.function);
-        }
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_EFFECT));
 
         EffectScriptPacket.Get(effect.id);
     }
