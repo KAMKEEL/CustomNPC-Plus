@@ -318,26 +318,6 @@ public class GuiScript extends GuiScriptInterface {
             container.script = text;
         }
     }
-    
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check if click is within autocomplete menu bounds and consume it if so
-        GuiScriptTextArea activeArea = getActiveScriptArea();
-        boolean isOverAutocomplete = activeArea != null;
-              //  && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
-        if (isOverAutocomplete) {
-            activeArea.mouseClicked(mouseX, mouseY, mouseButton);
-            return;
-        }
-        
-        // Check fullscreen button when in script view
-        if (showScript && !isOverAutocomplete
-            && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return;
-        }
-
-        super.mouseClicked(mouseX, mouseY, mouseButton);
-    }
 
     @Override
     public void setGuiData(NBTTagCompound compound) {
