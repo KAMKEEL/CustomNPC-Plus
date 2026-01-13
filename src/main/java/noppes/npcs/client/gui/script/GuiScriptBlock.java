@@ -4,10 +4,10 @@ import kamkeel.npcs.network.packets.request.script.BlockScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.blocks.tiles.TileScripted;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptHookController;
 
 import java.util.ArrayList;
-
 
 public class GuiScriptBlock extends GuiScriptInterface {
     private final TileScripted tileScripted;

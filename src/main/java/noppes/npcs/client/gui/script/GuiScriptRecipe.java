@@ -2,6 +2,7 @@ package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
@@ -9,6 +10,8 @@ import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.data.RecipeScript;
+
+import java.util.ArrayList;
 
 public class GuiScriptRecipe extends GuiScriptInterface {
 

@@ -7,14 +7,11 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IScriptHookHandler;
+import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 public class GuiScriptItem extends GuiScriptInterface {
     private ScriptCustomItem item;

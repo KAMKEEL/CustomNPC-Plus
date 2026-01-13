@@ -216,6 +216,14 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             activeArea.init(editorX, editorY, editorWidth, editorHeight,
                     container == null ? "" : container.getScript());
         }
+        
+        // Set the scripting language for proper syntax highlighting
+        // Use the container's language if available, otherwise fall back to handler's language
+        String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
+        activeArea.setLanguage(language);
+
+        // Set the script context for context-aware hook autocomplete
+        activeArea.setScriptContext(getScriptContext());
 
         // Setup fullscreen key binding
         GuiScriptTextArea.KEYS.FULLSCREEN.setTask(e -> {
@@ -238,6 +246,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.addButton(new GuiNpcButton(101, left1 + 61, this.guiTop + yoffset, 60, 20, "gui.paste"));
             this.addButton(new GuiNpcButton(100, left1, this.guiTop + 21 + yoffset, 60, 20, "gui.copy"));
             this.addButton(new GuiNpcButton(105, left1 + 61, this.guiTop + 21 + yoffset, 60, 20, "gui.remove"));
+            
+            // Language toggle button (only if handler supports Janino)
+            if (handler.supportsJanino() && container != null) {
+                String langLabel = container.isJanino() ? "Java" : "ECMAScript";
+                this.addButton(new GuiNpcButton(113, left1, this.guiTop + 42 + yoffset, 121, 20, langLabel));
+            }
+            
             this.addButton(new GuiNpcButton(107, left1, this.guiTop + 66 + yoffset, 80, 20, "script.loadscript"));
 
             GuiCustomScroll scroll = (new GuiCustomScroll(this, 0)).setUnselectable();
@@ -526,6 +541,40 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
 
             this.setSubGui(new EventGuiScriptList((List) this.languages.get(this.handler.getLanguage()), container));
+        }
+        
+        // Language toggle button - switch between ECMAScript and Java
+        if (guibutton.id == 113) {
+            int idx = getActiveScriptIndex();
+            if (idx >= 0 && idx < handler.getScripts().size()) {
+                IScriptUnit currentUnit = handler.getScripts().get(idx);
+                IScriptUnit newUnit;
+                
+                if (currentUnit.isJanino()) {
+                    // Switch from Java to ECMAScript
+                    newUnit = new ScriptContainer(handler);
+                    newUnit.setScript(currentUnit.getScript());
+                    newUnit.setExternalScripts(new ArrayList<>(currentUnit.getExternalScripts()));
+                } else {
+                    // Switch from ECMAScript to Java
+                    newUnit = handler.createJaninoScriptUnit();
+                    if (newUnit != null) {
+                        newUnit.setScript(currentUnit.getScript());
+                        newUnit.setExternalScripts(new ArrayList<>(currentUnit.getExternalScripts()));
+                    } else {
+                        return; // Handler doesn't support Janino
+                    }
+                }
+                
+                // Replace the script unit in the list
+                handler.getScripts().set(idx, newUnit);
+                
+                // Clear the cached text area so it recreates with new language
+                textAreas.remove(idx);
+                
+                // Reinitialize the GUI
+                initGui();
+            }
         }
     }
 
