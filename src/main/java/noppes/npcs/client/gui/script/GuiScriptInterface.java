@@ -318,11 +318,21 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check fullscreen button first when on script editor tab
-        if (this.activeTab > 0 && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+        // Check if click is within autocomplete menu bounds and consume it if so
+        GuiScriptTextArea activeArea = getActiveScriptArea();
+        boolean isOverAutocomplete = activeArea != null
+                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
+        if (isOverAutocomplete) {
+            activeArea.mouseClicked(mouseX, mouseY, mouseButton);
             return;
         }
 
+        // Check fullscreen button first when on script editor tab
+        // BUT only if autocomplete is not visible (don't let clicks pass through autocomplete menu)
+        if (this.activeTab > 0 && !isOverAutocomplete
+                && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+            return;
+        }
         super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
