@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class EffectScript implements INpcScriptHandler {
+public class EffectScript implements IScriptHandler {
     public IScriptUnit container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;

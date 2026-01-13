@@ -30,7 +30,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
 
-public class PlayerDataScript implements INpcScriptHandler {
+public class PlayerDataScript implements IScriptHandler {
     public List<IScriptUnit> scripts = new ArrayList<>();
     public String scriptLanguage = "ECMAScript";
     private EntityPlayer player;

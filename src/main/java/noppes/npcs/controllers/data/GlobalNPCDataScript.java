@@ -26,7 +26,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
 
-public class GlobalNPCDataScript implements INpcScriptHandler {
+public class GlobalNPCDataScript implements IScriptHandler {
     public List<IScriptUnit> scripts = new ArrayList<>();
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;

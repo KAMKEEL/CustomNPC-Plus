@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class DataScript implements INpcScriptHandler {
+public class DataScript implements IScriptHandler {
     public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();

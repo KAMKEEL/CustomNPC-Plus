@@ -7,7 +7,7 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.LogWriter;
 import noppes.npcs.api.handler.data.ILinkedItem;
 import noppes.npcs.api.item.IItemStack;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 import noppes.npcs.util.NBTJsonUtil;
@@ -90,7 +90,7 @@ public class LinkedItemController {
         return this.linkedItems.containsValue(linkedItem);
     }
 
-    public INpcScriptHandler getScriptHandler(int id) {
+    public IScriptHandler getScriptHandler(int id) {
         return this.linkedItemsScripts.get(id);
     }
 

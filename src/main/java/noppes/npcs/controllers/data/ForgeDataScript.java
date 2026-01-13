@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class ForgeDataScript implements INpcScriptHandler {
+public class ForgeDataScript implements IScriptHandler {
     private List<IScriptUnit> scripts = new ArrayList<>();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;

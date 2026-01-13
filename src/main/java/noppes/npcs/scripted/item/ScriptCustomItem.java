@@ -10,7 +10,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
-import noppes.npcs.controllers.data.INpcScriptHandler;
+import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.CustomNPCsException;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, INpcScriptHandler {
+public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, IScriptHandler {
     public List<IScriptUnit> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
@@ -70,7 +70,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
     }
 
     @Override
-    public INpcScriptHandler getScriptHandler() {
+    public IScriptHandler getScriptHandler() {
         return this;
     }
 

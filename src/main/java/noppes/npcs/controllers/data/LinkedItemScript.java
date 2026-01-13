@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class LinkedItemScript implements INpcScriptHandler {
+public class LinkedItemScript implements IScriptHandler {
     public IScriptUnit container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
