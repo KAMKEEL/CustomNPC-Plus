@@ -26,7 +26,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import java.util.TreeMap;
 
-public class GlobalNPCDataScript implements INpcScriptHandler {
+public class GlobalNPCDataScript implements IScriptHandler {
     public List<IScriptUnit> scripts = new ArrayList<>();
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;
@@ -94,14 +94,9 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
             }
 
             for (IScriptUnit script : this.scripts) {
-                if (script == null || !script.hasCode())
+                if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
-                if (script instanceof ScriptContainer) {
-                    ScriptContainer container = (ScriptContainer) script;
-                    if (container.errored)
-                        continue;
-                    container.run(hookName, event);
-                }
+                script.run(hookName, event);
             }
         }
     }

@@ -3,6 +3,7 @@ package noppes.npcs.client.gui.script;
 import net.minecraft.client.gui.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
@@ -28,6 +29,7 @@ import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
+import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -219,7 +221,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // Set the scripting language for proper syntax highlighting
         // Use the container's language if available, otherwise fall back to handler's language
         String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
-        activeArea.setLanguage(language);
+      activeArea.setLanguage(language);
+
+        // Set the script context for context-aware hook autocomplete
+        activeArea.setScriptContext(getScriptContext());
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
@@ -302,25 +307,19 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     @Override
     public void drawScreen(int mouseX, int mouseY, float partialTicks) {
         super.drawScreen(mouseX, mouseY, partialTicks);
+
+        // Draw fullscreen button on top of everything when on script editor tab
+        if (this.activeTab > 0) {
+            fullscreenButton.draw(mouseX, mouseY);
+        }
     }
 
     // ==================== MOUSE HANDLING ====================
 
     @Override
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check if click is within autocomplete menu bounds and consume it if so
-        GuiScriptTextArea activeArea = getActiveScriptArea();
-        boolean isOverAutocomplete = activeArea != null
-                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
-        if (isOverAutocomplete) {
-            activeArea.mouseClicked(mouseX, mouseY, mouseButton);
-            return;
-        }
-        
         // Check fullscreen button first when on script editor tab
-        // BUT only if autocomplete is not visible (don't let clicks pass through autocomplete menu)
-        if (this.activeTab > 0 && !isOverAutocomplete
-            && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
+        if (this.activeTab > 0 && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
             return;
         }
 
@@ -333,10 +332,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
         String hook = scroll.getSelected();
         if (previousHookClicked.equals(hook)) {
+            IScriptUnit container = getCurrentContainer();
+            if (container == null)
+                return;
+            
             String addString = "";
             if (!this.getTextField(2).getText().isEmpty())
                 addString += "\n";
-            addString += "function " + hook + "(event) {\n    \n}\n";
+            
+            // Generate the appropriate stub based on language
+            // hook is already the proper method name from EnumScriptType.function
+            addString += container.generateHookStub(hook, null);
 
             this.getTextField(2).setText(this.getTextField(2).getText() + addString);
             previousHookClicked = "";
@@ -650,8 +656,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.loadLanguagesData(compound);
         } else {
             int tab = compound.getInteger("Tab");
-            ScriptContainer container = new ScriptContainer(this.handler);
-            container.readFromNBT(compound.getCompoundTag("Script"));
+            NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
+            IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, this.handler);
             this.setHandlerContainer(container);
             this.initGui();
         }

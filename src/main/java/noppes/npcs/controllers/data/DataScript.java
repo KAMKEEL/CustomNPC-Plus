@@ -19,6 +19,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.janino.impl.JaninoNpcScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
@@ -35,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class DataScript implements INpcScriptHandler {
+public class DataScript implements IScriptHandler {
     public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();
@@ -153,9 +154,7 @@ public class DataScript implements INpcScriptHandler {
         }
 
         for (IScriptUnit script : this.eventScripts) {
-            if (script instanceof ScriptContainer) {
-                ((ScriptContainer) script).run(type, event);
-            }
+            script.run(type, event);
         }
 
         ScriptContainer script = scripts.get(type);
@@ -313,5 +312,9 @@ public class DataScript implements INpcScriptHandler {
 
     public Collection<ScriptContainer> getNPCScripts() {
         return this.scripts.values();
+    }
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new JaninoNpcScript();
     }
 }

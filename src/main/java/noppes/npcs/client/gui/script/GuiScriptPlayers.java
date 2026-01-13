@@ -6,10 +6,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.ScriptContext;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptHookController;
-import noppes.npcs.controllers.data.EffectScript;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
@@ -38,8 +36,8 @@ public class GuiScriptPlayers extends GuiScriptInterface {
             super.setGuiData(compound);
         } else {
             int tab = compound.getInteger("Tab");
-            ScriptContainer container = new ScriptContainer(script);
-            container.readFromNBT(compound.getCompoundTag("Script"));
+            NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
+            IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, script);
             if (script.getScripts().isEmpty()) {
                 for (int i = 0; i < compound.getInteger("TotalScripts"); i++) {
                     script.getScripts().add(new ScriptContainer(script));

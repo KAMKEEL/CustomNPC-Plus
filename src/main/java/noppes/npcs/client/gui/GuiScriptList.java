@@ -6,6 +6,7 @@ import noppes.npcs.client.gui.util.GuiNpcButton;
 import noppes.npcs.client.gui.util.GuiNpcLabel;
 import noppes.npcs.client.gui.util.SubGuiInterface;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.data.IScriptUnit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,16 +14,20 @@ import java.util.List;
 public class GuiScriptList extends SubGuiInterface {
     private GuiCustomScroll scroll1;
     private GuiCustomScroll scroll2;
-    private ScriptContainer container;
+    private IScriptUnit scriptUnit;
     private List<String> scripts;
 
     public GuiScriptList(List<String> scripts, ScriptContainer container) {
-        this.container = container;
+        this(scripts, (IScriptUnit) container);
+    }
+    
+    public GuiScriptList(List<String> scripts, IScriptUnit scriptUnit) {
+        this.scriptUnit = scriptUnit;
         setBackground("menubg.png");
         xSize = 346;
         ySize = 216;
         if (scripts == null)
-            scripts = new ArrayList<String>();
+            scripts = new ArrayList<>();
         this.scripts = scripts;
     }
 
@@ -46,10 +51,10 @@ public class GuiScriptList extends SubGuiInterface {
         scroll2.guiTop = guiTop + 14;
         this.addScroll(scroll2);
         addLabel(new GuiNpcLabel(2, "script.loadedScripts", guiLeft + 200, guiTop + 4));
-        List<String> temp = new ArrayList<String>(scripts);
-        temp.removeAll(container.scripts);
+        List<String> temp = new ArrayList<>(scripts);
+        temp.removeAll(scriptUnit.getExternalScripts());
         scroll1.setList(temp);
-        scroll2.setList(container.scripts);
+        scroll2.setList(scriptUnit.getExternalScripts());
 
         addButton(new GuiNpcButton(1, guiLeft + 145, guiTop + 40, 55, 20, ">"));
         addButton(new GuiNpcButton(2, guiLeft + 145, guiTop + 62, 55, 20, "<"));
@@ -64,7 +69,7 @@ public class GuiScriptList extends SubGuiInterface {
         GuiNpcButton button = (GuiNpcButton) guibutton;
         if (button.id == 1) {
             if (scroll1.hasSelected()) {
-                container.scripts.add(scroll1.getSelected());
+                scriptUnit.getExternalScripts().add(scroll1.getSelected());
                 scroll1.selected = -1;
                 scroll2.selected = -1;
                 initGui();
@@ -72,22 +77,22 @@ public class GuiScriptList extends SubGuiInterface {
         }
         if (button.id == 2) {
             if (scroll2.hasSelected()) {
-                container.scripts.remove(scroll2.getSelected());
+                scriptUnit.getExternalScripts().remove(scroll2.getSelected());
                 scroll2.selected = -1;
                 initGui();
             }
         }
         if (button.id == 3) {
-            container.scripts.clear();
+            scriptUnit.getExternalScripts().clear();
             for (String script : scripts) {
-                container.scripts.add(script);
+                scriptUnit.getExternalScripts().add(script);
             }
             scroll1.selected = -1;
             scroll2.selected = -1;
             initGui();
         }
         if (button.id == 4) {
-            container.scripts.clear();
+            scriptUnit.getExternalScripts().clear();
             scroll1.selected = -1;
             scroll2.selected = -1;
             initGui();

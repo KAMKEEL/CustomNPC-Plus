@@ -167,8 +167,10 @@ public class GuiScript extends GuiScriptInterface {
         int scrollbarOffset = activeArea.hasVerticalScrollbar() ? -8 : -2;
         fullscreenButton.initGui(editorX + editorWidth, editorY, scrollbarOffset);
 
-        // ==================== RIGHT PANEL BUTTONS (hidden in fullscreen) ====================
-        if (!isFullscreen) {
+            // Set language and script context for proper syntax highlighting and autocomplete
+            activeArea.setLanguage(script.getLanguage());
+            activeArea.setScriptContext(ScriptContext.NPC);
+
             addButton(new GuiNpcButton(102, guiLeft + 315, guiTop + 4, 50, 20, "gui.clear"));
             addButton(new GuiNpcButton(101, guiLeft + 366, guiTop + 4, 50, 20, "gui.paste"));
             addButton(new GuiNpcButton(100, guiLeft + 315, guiTop + 25, 50, 20, "gui.copy"));
@@ -182,7 +184,7 @@ public class GuiScript extends GuiScriptInterface {
                 scroll.setList(container.scripts);
             addScroll(scroll);
         }
-    }
+    
     
     private void initSettingsView() {
         addLabel(new GuiNpcLabel(0, "script.console", guiLeft + 4, guiTop + 16));
@@ -315,26 +317,6 @@ public class GuiScript extends GuiScriptInterface {
             text = text.replace("\r", "\n");
             container.script = text;
         }
-    }
-    
-    @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
-        // Check if click is within autocomplete menu bounds and consume it if so
-        GuiScriptTextArea activeArea = getActiveScriptArea();
-        boolean isOverAutocomplete = activeArea != null
-                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
-        if (isOverAutocomplete) {
-            activeArea.mouseClicked(mouseX, mouseY, mouseButton);
-            return;
-        }
-        
-        // Check fullscreen button when in script view
-        if (showScript && !isOverAutocomplete
-            && fullscreenButton.mouseClicked(mouseX, mouseY, mouseButton)) {
-            return;
-        }
-
-        super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override

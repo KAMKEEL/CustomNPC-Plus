@@ -1,16 +1,13 @@
 package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiConfirmOpenLink;
-import net.minecraft.client.gui.GuiYesNo;
-import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptHookController;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.data.RecipeScript;
@@ -52,7 +49,7 @@ public class GuiScriptRecipe extends GuiScriptInterface {
         return ScriptContext.GLOBAL;
     }
 
-    protected void setHandlerContainer(ScriptContainer container) {
+    protected void setHandlerContainer(IScriptUnit container) {
         ((RecipeScript) handler).container = container;
     }
 

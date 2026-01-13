@@ -1,5 +1,6 @@
 package noppes.npcs.client.gui.script;
 
+
 import noppes.npcs.janino.JaninoScript;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;

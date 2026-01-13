@@ -251,8 +251,8 @@ public class PacketUtil {
                 data.getScripts().add(new ScriptContainer(data));
             }
             NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            ScriptContainer script = new ScriptContainer(data);
-            script.readFromNBT(tabCompound);
+            // Use factory method to create correct script unit type based on NBT
+            IScriptUnit script = IScriptUnit.createFromNBT(tabCompound, data);
             data.getScripts().set(tab, script);
         } else {
             NBTTagCompound compound = ByteBufUtils.readNBT(buffer);

@@ -1,10 +1,6 @@
 package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.item.LinkedItemScriptPacket;
-import net.minecraft.client.gui.GuiButton;
-import net.minecraft.client.gui.GuiConfirmOpenLink;
-import net.minecraft.client.gui.GuiYesNo;
-import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
@@ -12,6 +8,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptHookController;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.LinkedItem;
 import noppes.npcs.controllers.data.LinkedItemScript;
 
@@ -38,7 +35,7 @@ public class GuiScriptLinkedItem extends GuiScriptInterface {
         return ScriptContext.ITEM;
     }
 
-    protected void setHandlerContainer(ScriptContainer container) {
+    protected void setHandlerContainer(IScriptUnit container) {
         ((LinkedItemScript) handler).container = container;
     }
 

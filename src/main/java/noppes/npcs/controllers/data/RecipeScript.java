@@ -8,7 +8,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class RecipeScript implements INpcScriptHandler {
+public class RecipeScript implements IScriptHandler {
     public IScriptUnit container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
@@ -35,8 +34,7 @@ public class RecipeScript implements INpcScriptHandler {
         scriptLanguage = compound.getString("ScriptLanguage");
         enabled = compound.getBoolean("ScriptEnabled");
         if (compound.hasKey("ScriptContent", Constants.NBT.TAG_COMPOUND)) {
-            container = new ScriptContainer(this);
-            container.readFromNBT(compound.getCompoundTag("ScriptContent"));
+            container = IScriptUnit.createFromNBT(compound.getCompoundTag("ScriptContent"), this);
         }
         return this;
     }
@@ -54,8 +52,9 @@ public class RecipeScript implements INpcScriptHandler {
     public void callScript(String s, Event event) {
         if (!this.isEnabled())
             return;
-        if (container instanceof ScriptContainer)
-            ((ScriptContainer) container).run(s, event);
+        if (container != null) {
+            container.run(s, event);
+        }
     }
 
     @Override
@@ -131,9 +130,7 @@ public class RecipeScript implements INpcScriptHandler {
             this.container = null;
         if (tab == 0) {
             NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            ScriptContainer script = new ScriptContainer(this);
-            script.readFromNBT(tabCompound);
-            this.container = script;
+            this.container = IScriptUnit.createFromNBT(tabCompound, this);
         } else {
             NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             this.setLanguage(compound.getString("ScriptLanguage"));

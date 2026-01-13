@@ -546,8 +546,7 @@ public class NBTTags {
 
         for (int i = 0; i < list.tagCount(); ++i) {
             NBTTagCompound compoundd = list.getCompoundTagAt(i);
-            ScriptContainer script = new ScriptContainer(handler);
-            script.readFromNBT(compoundd);
+            IScriptUnit script = IScriptUnit.createFromNBT(compoundd, handler);
             scripts.add(script);
         }
 
@@ -559,8 +558,7 @@ public class NBTTags {
 
         for (int i = 0; i < compound.getInteger("TotalScripts"); ++i) {
             NBTTagCompound containerCompound = compound.getCompoundTag("Tab" + i);
-            ScriptContainer script = new ScriptContainer(handler);
-            script.readFromNBT(containerCompound);
+            IScriptUnit script = IScriptUnit.createFromNBT(containerCompound, handler);
             scripts.add(script);
         }
 

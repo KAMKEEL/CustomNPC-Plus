@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
 
-public class ForgeDataScript implements INpcScriptHandler {
+public class ForgeDataScript implements IScriptHandler {
     private List<IScriptUnit> scripts = new ArrayList<>();
     private String scriptLanguage = "ECMAScript";
     public long lastInited = -1L;
@@ -78,14 +78,9 @@ public class ForgeDataScript implements INpcScriptHandler {
             }
 
             for (IScriptUnit script : this.scripts) {
-                if (script == null || !script.hasCode())
+                if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
-                if (script instanceof ScriptContainer) {
-                    ScriptContainer container = (ScriptContainer) script;
-                    if (container.errored)
-                        continue;
-                    container.run(type, event);
-                }
+                script.run(type, event);
             }
         }
     }

@@ -1,6 +1,9 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.ScriptContainer;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +15,39 @@ import java.util.TreeMap;
  * This allows GuiScriptInterface to work with both script types uniformly.
  */
 public interface IScriptUnit {
+    
+    // NBT type identifiers
+    String NBT_TYPE_KEY = "ScriptUnitType";
+    String TYPE_ECMASCRIPT = "ECMAScript";
+    String TYPE_JANINO = "Janino";
+    
+    /**
+     * Create an IScriptUnit from NBT data.
+     * Uses the "ScriptUnitType" tag to determine which implementation to create.
+     * 
+     * @param compound The NBT data
+     * @param handler The script handler (used for ScriptContainer)
+     * @return A ScriptContainer or JaninoScript based on the NBT type
+     */
+    static IScriptUnit createFromNBT(NBTTagCompound compound, IScriptHandler handler) {
+        String type = compound.getString(NBT_TYPE_KEY);
+        IScriptUnit unit;
+        
+        if (TYPE_JANINO.equals(type)) {
+            // Create appropriate JaninoScript based on handler
+            unit = handler.createJaninoScriptUnit();
+            if (unit == null) {
+                // Fallback to ScriptContainer if handler doesn't support Janino
+                unit = new ScriptContainer(handler);
+            }
+        } else {
+            // Default to ScriptContainer for ECMAScript or missing type
+            unit = new ScriptContainer(handler);
+        }
+        
+        unit.readFromNBT(compound);
+        return unit;
+    }
     
     // ==================== SCRIPT CONTENT ====================
     
@@ -114,4 +150,26 @@ public interface IScriptUnit {
      * Set the error state of this script unit.
      */
     void setErrored(boolean errored);
+    
+    // ==================== EXECUTION ====================
+    
+    /**
+     * Execute this script unit for the given hook type and event.
+     * For ScriptContainer: calls run(EnumScriptType, Event)
+     * For JaninoScript: calls callByHookType(EnumScriptType, Event)
+     * 
+     * @param type The script hook type
+     * @param event The event object
+     */
+    void run(EnumScriptType type, Event event);
+    
+    /**
+     * Execute this script unit for the given hook name and event.
+     * For ScriptContainer: calls run(String, Event)
+     * For JaninoScript: converts hookName to EnumScriptType and calls callByHookType
+     * 
+     * @param hookName The hook name (e.g., "init", "interact")
+     * @param event The event object
+     */
+    void run(String hookName, Object event);
 }

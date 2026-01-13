@@ -559,6 +559,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public boolean fullscreen() {
         return GuiScriptInterface.isFullscreen;
     }
+
+    public void setLanguage(String language) {
+        if (this.container != null) {
+            // this.container.setLanguage(language);
+            if (this.enableCodeHighlighting) {
+                this.container.formatCodeText();
+            }
+        }
+    }
     // ==================== RENDERING ====================
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
@@ -2649,6 +2658,28 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     public ScriptContext getScriptContext() {
         return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
+    }
+
+    /**
+     * Set the script context (NPC, PLAYER, BLOCK, ITEM, etc.).
+     * This determines which hooks and event types are available for autocomplete.
+     *
+     * @param context The script context
+     */
+    public void setScriptContext(ScriptContext context) {
+        if (this.container != null) {
+            //  this.container.setScriptContext(context);
+        }
+    }
+
+    /**
+     * Get the current script context.
+     *
+     * @return The script context (NPC, PLAYER, BLOCK, ITEM, etc.)
+     */
+    public ScriptContext getScriptContext() {
+        //   return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
+        return ScriptContext.GLOBAL;
     }
 
     public void setListener(ITextChangeListener listener) {
