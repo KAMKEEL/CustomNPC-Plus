@@ -1,6 +1,10 @@
 package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.RecipeScriptPacket;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiConfirmOpenLink;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.constants.ScriptContext;
@@ -22,8 +26,7 @@ public class GuiScriptRecipe extends GuiScriptInterface {
         this.recipeId = recipe.id;
         this.singleContainer = true;
 
-        hookList.add(RecipeScript.ScriptType.PRE.function);
-        hookList.add(RecipeScript.ScriptType.POST.function);
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_RECIPE));
 
         RecipeScriptPacket.Get(false, recipeId);
     }
@@ -35,8 +38,7 @@ public class GuiScriptRecipe extends GuiScriptInterface {
         this.anvil = true;
         this.recipeId = recipe.id;
 
-        hookList.add(RecipeScript.ScriptType.PRE.function);
-        hookList.add(RecipeScript.ScriptType.POST.function);
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_RECIPE));
 
         RecipeScriptPacket.Get(true, recipeId);
     }

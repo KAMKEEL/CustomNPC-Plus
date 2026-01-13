@@ -13,6 +13,7 @@ import noppes.npcs.client.gui.advanced.GuiNPCAdvancedLinkedNpc;
 import noppes.npcs.client.gui.advanced.GuiNPCDialogNpcOptions;
 import noppes.npcs.client.gui.advanced.GuiNPCFactionSetup;
 import noppes.npcs.client.gui.advanced.GuiNPCLinesMenu;
+import noppes.npcs.client.gui.advanced.GuiNPCAbilities;
 import noppes.npcs.client.gui.advanced.GuiNPCMagic;
 import noppes.npcs.client.gui.advanced.GuiNPCMarks;
 import noppes.npcs.client.gui.advanced.GuiNPCNightSetup;
@@ -69,6 +70,7 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
         this.addButton(new GuiNpcButton(15, guiLeft + 208, y, 190, 20, "advanced.marks"));
 
         this.addButton(new GuiNpcButton(16, guiLeft + 15, y += 22, 190, 20, "menu.magics"));
+        this.addButton(new GuiNpcButton(17, guiLeft + 208, y, 190, 20, "menu.abilities"));
     }
 
     @Override
@@ -129,6 +131,10 @@ public class GuiNpcAdvanced extends GuiNPCInterface2 implements IGuiData {
         if (button.id == 16) {
             save();
             NoppesUtil.openGUI(player, new GuiNPCMagic(npc));
+        }
+        if (button.id == 17) {
+            save();
+            NoppesUtil.openGUI(player, new GuiNPCAbilities(npc));
         }
     }
 

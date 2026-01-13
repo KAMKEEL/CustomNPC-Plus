@@ -73,6 +73,7 @@ import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ServerChatEvent;
 import noppes.npcs.CustomItems;
 import noppes.npcs.CustomNpcs;
+import noppes.npcs.DataAbilities;
 import noppes.npcs.DataAI;
 import noppes.npcs.DataAdvanced;
 import noppes.npcs.DataDisplay;
@@ -183,6 +184,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
     public DataScript script;
     public DataTransform transform;
     public DataTimers timers;
+    public DataAbilities abilities;
 
     public CombatHandler combatHandler = new CombatHandler(this);
     public ActionManager actionManager = new ActionManager();
@@ -271,6 +273,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         transform = new DataTransform(this);
         script = new DataScript(this);
         timers = new DataTimers(this);
+        abilities = new DataAbilities(this);
         this.getAttributeMap().registerAttribute(SharedMonsterAttributes.attackDamage);
 
         this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(stats.maxHealth);
@@ -460,6 +463,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
             onCollide();
 
             actionManager.tick();
+            abilities.tick();
         }
 
         if (wasKilled != isKilled() && wasKilled) {
@@ -1179,6 +1183,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         script.readEventsFromNBT(compound);
         timers.readFromNBT(compound);
         advanced.readToNBT(compound);
+        abilities.readFromNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null)
             roleInterface.readFromNBT(compound);
         if (advanced.job != EnumJobType.None && jobInterface != null)
@@ -1211,6 +1216,7 @@ public abstract class EntityNPCInterface extends EntityCreature implements IEnti
         script.writeEventsToNBT(compound);
         timers.writeToNBT(compound);
         advanced.writeToNBT(compound);
+        abilities.writeToNBT(compound);
         if (advanced.role != EnumRoleType.None && roleInterface != null)
             roleInterface.writeToNBT(compound);
         if (advanced.job != EnumJobType.None && jobInterface != null)

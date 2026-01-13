@@ -21,9 +21,7 @@ public class GuiScriptEffect extends GuiScriptInterface {
         this.handler = this.scriptHandler;
         this.singleContainer = true;
 
-        for (EffectScript.ScriptType type : EffectScript.ScriptType.values()) {
-            this.hookList.add(type.function);
-        }
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_EFFECT));
 
         EffectScriptPacket.Get(effect.id);
     }

@@ -10,19 +10,7 @@ public class GuiScriptBlock extends GuiScriptInterface {
     private final TileScripted tileScripted;
 
     public GuiScriptBlock(int x, int y, int z) {
-        hookList.add("init");
-        hookList.add("tick");
-        hookList.add("interact");
-        hookList.add("fallenUpon");
-        hookList.add("redstone");
-        hookList.add("broken");
-        hookList.add("exploded");
-        hookList.add("rainFilled");
-        hookList.add("neighborChanged");
-        hookList.add("clicked");
-        hookList.add("harvested");
-        hookList.add("collide");
-        hookList.add("timer");
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_BLOCK));
 
         this.handler = this.tileScripted = (TileScripted) player.worldObj.getTileEntity(x, y, z);
         BlockScriptPacket.Get(tileScripted.xCoord, tileScripted.yCoord, tileScripted.zCoord);

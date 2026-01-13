@@ -63,5 +63,6 @@ public enum EnumGuiType {
     ScriptItem,
     ScriptBlock,
     Paintbrush,
-    MagicBook;
+    MagicBook,
+    ManageAbilities;
 }

@@ -138,6 +138,8 @@ import noppes.npcs.client.renderer.RenderNpcCrystal;
 import noppes.npcs.client.renderer.RenderNpcDragon;
 import noppes.npcs.client.renderer.RenderNpcSlime;
 import noppes.npcs.client.renderer.RenderProjectile;
+import kamkeel.npcs.client.renderer.TelegraphRenderer;
+import kamkeel.npcs.controllers.data.ability.telegraph.TelegraphManager;
 import noppes.npcs.client.renderer.blocks.BlockBannerRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBarrelRenderer;
 import noppes.npcs.client.renderer.blocks.BlockBeamRenderer;
@@ -307,6 +309,10 @@ public class ClientProxy extends CommonProxy {
         ClientTagMapController.Instance = new ClientTagMapController();
 
         MinecraftForge.EVENT_BUS.register(new ClientEventHandler());
+
+        // Telegraph rendering system
+        TelegraphManager.initClient();
+        MinecraftForge.EVENT_BUS.register(new TelegraphRenderer());
 
         if (ConfigClient.InventoryGuiEnabled) {
             MinecraftForge.EVENT_BUS.register(new TabRegistry());

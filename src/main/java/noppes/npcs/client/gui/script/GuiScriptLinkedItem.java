@@ -1,6 +1,10 @@
 package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.item.LinkedItemScriptPacket;
+import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.gui.GuiConfirmOpenLink;
+import net.minecraft.client.gui.GuiYesNo;
+import net.minecraft.client.gui.GuiYesNoCallback;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.client.gui.global.GuiNPCManageLinked;
 import noppes.npcs.constants.EnumScriptType;
@@ -20,20 +24,7 @@ public class GuiScriptLinkedItem extends GuiScriptInterface {
         this.handler = new LinkedItemScript();
         this.singleContainer = true;
 
-        hookList.add(EnumScriptType.LINKED_ITEM_BUILD.function);
-        hookList.add(EnumScriptType.LINKED_ITEM_VERSION.function);
-        hookList.add(EnumScriptType.INIT.function);
-        hookList.add(EnumScriptType.TICK.function);
-        hookList.add(EnumScriptType.TOSSED.function);
-        hookList.add(EnumScriptType.PICKEDUP.function);
-        hookList.add(EnumScriptType.SPAWN.function);
-        hookList.add(EnumScriptType.INTERACT.function);
-        hookList.add(EnumScriptType.RIGHT_CLICK.function);
-        hookList.add(EnumScriptType.ATTACK.function);
-        hookList.add(EnumScriptType.START_USING_ITEM.function);
-        hookList.add(EnumScriptType.USING_ITEM.function);
-        hookList.add(EnumScriptType.STOP_USING_ITEM.function);
-        hookList.add(EnumScriptType.FINISH_USING_ITEM.function);
+        this.hookList = new ArrayList<>(ScriptHookController.Instance.getAllHooks(IScriptHookHandler.CONTEXT_LINKED_ITEM));
 
         LinkedItemScriptPacket.Get(linkedItem.id);
     }
