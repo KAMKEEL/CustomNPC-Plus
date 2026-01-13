@@ -46,6 +46,12 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     public final IScriptBodyBuilder<T> builder;
     protected IScriptClassBody<T> scriptBody;
 
+    private boolean hooksInitialized = false;
+    // Hook list for GUI display
+    private List<String> hookList = new ArrayList<>();
+    // Map from display name (with parameters if overloaded) to Method
+    private Map<String, Method> hookMap = new HashMap<>();
+
     protected JaninoScript(Class<T> type, Consumer<IScriptBodyBuilder<T>> buildSettings) {
         this.type = type;
         this.builder = IScriptBodyBuilder
@@ -257,15 +263,22 @@ public abstract class JaninoScript<T> implements IScriptUnit {
             return true;
         return script != null && !script.isEmpty();
     }
-    
+
     @Override
     public String generateHookStub(String hookName, Object hookData) {
-        // If hookData is a Method, generate full Java method stub
-        if (hookData instanceof Method) {
-            return generateMethodStub((Method) hookData);
+        // Build hook list and map
+        if (!hooksInitialized) {
+            createHookList();
+            hooksInitialized = true;
         }
-        // Fallback for simple hook names - generate basic override
-        return String.format("@Override\npublic void %s() {\n    \n}\n", hookName);
+
+        // Look up in hookMap (handles both simple names and overloaded display names)
+        Method method = hookMap.get(hookName);
+        if (method != null)
+            return generateMethodStub(method);
+
+        // Fallback for unknown hook names - generate basic override
+        return String.format("public void %s() {\n    \n}\n", hookName);
     }
     
     /**
@@ -285,12 +298,22 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         String params = Arrays.stream(method.getParameters())
             .map(p -> {
                 String typeName = p.getType().getSimpleName();
-                String baseName = Character.toLowerCase(typeName.charAt(0)) + typeName.substring(1);
 
-                int count = typeCount.getOrDefault(baseName, 0) + 1;
-                typeCount.put(baseName, count);
+                // Check for @ParamName annotation first
+                ParamName paramNameAnnotation = p.getAnnotation(ParamName.class);
+                String paramName;
 
-                String paramName = count == 1 ? baseName : baseName + (count - 1);
+                if (paramNameAnnotation != null) {
+                    // Use annotated name
+                    paramName = paramNameAnnotation.value();
+                } else {
+                    // Fall back to generated name
+                    String baseName = Character.toLowerCase(typeName.charAt(0)) + typeName.substring(1);
+                    int count = typeCount.getOrDefault(baseName, 0) + 1;
+                    typeCount.put(baseName, count);
+                    paramName = count == 1 ? baseName : baseName + (count - 1);
+                }
+                
                 return typeName + " " + paramName;
             })
             .collect(Collectors.joining(", "));
@@ -310,7 +333,49 @@ public abstract class JaninoScript<T> implements IScriptUnit {
             body = "    return null;";
         }
 
-        return String.format("@Override\n%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
+        return String.format("%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
+    }
+
+
+    /**
+     * Create the hook list and hook map for GUI display and generation.
+     * Groups methods by name and creates display names with parameters for overloaded methods.
+     */
+    private void createHookList() {
+        // Group all declared methods by their name
+        Map<String, List<Method>> grouped = Arrays.stream(type.getDeclaredMethods())
+                                                  .collect(Collectors.groupingBy(Method::getName));
+
+        for (Map.Entry<String, List<Method>> entry : grouped.entrySet()) {
+            List<Method> methods = entry.getValue();
+
+            // Sort overloads by parameter count (ascending)
+            methods.sort(Comparator.comparingInt(Method::getParameterCount));
+            boolean first = true;
+
+            for (Method m : methods) {
+                if (Modifier.isFinal(m.getModifiers()))
+                    continue; // Skip final methods
+
+                // For first (simplest) overload, use just the method name
+                // For additional overloads, include parameter types in display name
+                String displayName = first ? m.getName() :
+                        m.getName() + "(" + Arrays.stream(m.getParameterTypes())
+                                                  .map(Class::getSimpleName)
+                                                  .collect(Collectors.joining(", ")) + ")";
+
+                hookList.add(displayName);
+                hookMap.put(displayName, m);
+                first = false;
+            }
+        }
+    }
+
+    /**
+     * Get the list of hook names for GUI display.
+     */
+    public List<String> getHookList() {
+        return new ArrayList<>(hookList);
     }
 
 
