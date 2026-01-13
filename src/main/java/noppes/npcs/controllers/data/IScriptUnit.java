@@ -1,6 +1,8 @@
 package noppes.npcs.controllers.data;
 
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.janino.JaninoScript;
 
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,39 @@ import java.util.TreeMap;
  * This allows GuiScriptInterface to work with both script types uniformly.
  */
 public interface IScriptUnit {
+    
+    // NBT type identifiers
+    String NBT_TYPE_KEY = "ScriptUnitType";
+    String TYPE_ECMASCRIPT = "ECMAScript";
+    String TYPE_JANINO = "Janino";
+    
+    /**
+     * Create an IScriptUnit from NBT data.
+     * Uses the "ScriptUnitType" tag to determine which implementation to create.
+     * 
+     * @param compound The NBT data
+     * @param handler The script handler (used for ScriptContainer)
+     * @return A ScriptContainer or JaninoScript based on the NBT type
+     */
+    static IScriptUnit createFromNBT(NBTTagCompound compound, IScriptHandler handler) {
+        String type = compound.getString(NBT_TYPE_KEY);
+        IScriptUnit unit;
+        
+        if (TYPE_JANINO.equals(type)) {
+            // Create appropriate JaninoScript based on handler
+            unit = handler.createJaninoScriptUnit();
+            if (unit == null) {
+                // Fallback to ScriptContainer if handler doesn't support Janino
+                unit = new ScriptContainer(handler);
+            }
+        } else {
+            // Default to ScriptContainer for ECMAScript or missing type
+            unit = new ScriptContainer(handler);
+        }
+        
+        unit.readFromNBT(compound);
+        return unit;
+    }
     
     // ==================== SCRIPT CONTENT ====================
     

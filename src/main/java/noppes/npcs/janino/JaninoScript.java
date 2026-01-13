@@ -381,6 +381,7 @@ public abstract class JaninoScript<T> implements IScriptUnit {
 
     @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        compound.setString(IScriptUnit.NBT_TYPE_KEY, IScriptUnit.TYPE_JANINO);
         compound.setBoolean("enabled", enabled);
         compound.setTag("console", NBTTags.NBTLongStringMap(this.console));
         compound.setTag("externalScripts", NBTTags.nbtStringList(this.externalScripts));

@@ -36,8 +36,8 @@ public class GuiScriptPlayers extends GuiScriptInterface {
             super.setGuiData(compound);
         } else {
             int tab = compound.getInteger("Tab");
-            ScriptContainer container = new ScriptContainer(script);
-            container.readFromNBT(compound.getCompoundTag("Script"));
+            NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
+            IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, script);
             if (script.getScripts().isEmpty()) {
                 for (int i = 0; i < compound.getInteger("TotalScripts"); i++) {
                     script.getScripts().add(new ScriptContainer(script));

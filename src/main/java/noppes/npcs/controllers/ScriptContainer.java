@@ -70,6 +70,7 @@ public class ScriptContainer implements IScriptUnit {
     }
 
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
+        compound.setString(IScriptUnit.NBT_TYPE_KEY, IScriptUnit.TYPE_ECMASCRIPT);
         if (this.script.length() < 65535) {
             compound.setString("Script", this.script);
         } else {

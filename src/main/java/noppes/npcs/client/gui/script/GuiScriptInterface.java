@@ -656,8 +656,8 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.loadLanguagesData(compound);
         } else {
             int tab = compound.getInteger("Tab");
-            ScriptContainer container = new ScriptContainer(this.handler);
-            container.readFromNBT(compound.getCompoundTag("Script"));
+            NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
+            IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, this.handler);
             this.setHandlerContainer(container);
             this.initGui();
         }

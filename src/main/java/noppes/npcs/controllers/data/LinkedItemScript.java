@@ -37,8 +37,7 @@ public class LinkedItemScript implements INpcScriptHandler {
         enabled = compound.getBoolean("ScriptEnabled");
 
         if (compound.hasKey("ScriptContent", Constants.NBT.TAG_COMPOUND)) {
-            container = new ScriptContainer(this);
-            container.readFromNBT(compound.getCompoundTag("ScriptContent"));
+            container = IScriptUnit.createFromNBT(compound.getCompoundTag("ScriptContent"), this);
         }
         return this;
     }
@@ -136,9 +135,7 @@ public class LinkedItemScript implements INpcScriptHandler {
 
         if (tab == 0) {
             NBTTagCompound tabCompound = ByteBufUtils.readNBT(buffer);
-            ScriptContainer script = new ScriptContainer(this);
-            script.readFromNBT(tabCompound);
-            this.container = script;
+            this.container = IScriptUnit.createFromNBT(tabCompound, this);
         } else {
             NBTTagCompound compound = ByteBufUtils.readNBT(buffer);
             this.setLanguage(compound.getString("ScriptLanguage"));

@@ -105,11 +105,10 @@ public class PlayerDataScript implements INpcScriptHandler {
                 if (player != null) {
                     scripts.clear();
                     for (IScriptUnit script : ScriptController.Instance.playerScripts.scripts) {
-                        if (script instanceof ScriptContainer) {
-                            ScriptContainer s = new ScriptContainer(this);
-                            s.readFromNBT(((ScriptContainer) script).writeToNBT(new NBTTagCompound()));
-                            scripts.add(s);
-                        }
+                        // Clone the script unit by writing to NBT and reading back with factory
+                        NBTTagCompound nbt = script.writeToNBT(new NBTTagCompound());
+                        IScriptUnit cloned = IScriptUnit.createFromNBT(nbt, this);
+                        scripts.add(cloned);
                     }
                 }
                 lastPlayerUpdate = ScriptController.Instance.lastPlayerUpdate;
