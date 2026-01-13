@@ -19,6 +19,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.entity.EntityNPCInterface;
+import noppes.npcs.janino.impl.JaninoNpcScript;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.ScriptWorld;
 import noppes.npcs.scripted.constants.EntityType;
@@ -311,5 +312,9 @@ public class DataScript implements IScriptHandler {
 
     public Collection<ScriptContainer> getNPCScripts() {
         return this.scripts.values();
+    }
+    @Override
+    public IScriptUnit createJaninoScriptUnit() {
+        return new JaninoNpcScript();
     }
 }

@@ -1,4 +1,4 @@
-package noppes.npcs.janino;
+package noppes.npcs.janino.annotations;
 
 import noppes.npcs.constants.EnumScriptType;
 

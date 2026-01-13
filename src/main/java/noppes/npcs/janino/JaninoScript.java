@@ -11,6 +11,8 @@ import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptUnit;
+import noppes.npcs.janino.annotations.ParamName;
+import noppes.npcs.janino.annotations.ScriptHook;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
