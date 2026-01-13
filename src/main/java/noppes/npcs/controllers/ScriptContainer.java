@@ -7,6 +7,7 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.NpcAPI;
 
 import javax.script.Compilable;
@@ -24,7 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
 
-public class ScriptContainer {
+public class ScriptContainer implements IScriptUnit {
     private static final String lock = "lock";
     public static ScriptContainer Current;
     private static String CurrentType;
@@ -251,6 +252,7 @@ public class ScriptContainer {
         return evaluated && !errored;
     }
 
+    @Override
     public boolean hasCode() {
         if (!scripts.isEmpty())
             return true;
@@ -267,4 +269,73 @@ public class ScriptContainer {
             this.evaluated = false;
         }
     }
+    
+    // ==================== IScriptUnit IMPLEMENTATION ====================
+    
+    @Override
+    public String getScript() {
+        return this.script;
+    }
+    
+    @Override
+    public void setScript(String script) {
+        this.script = script;
+        this.evaluated = false;
+    }
+    
+    @Override
+    public List<String> getExternalScripts() {
+        return this.scripts;
+    }
+    
+    @Override
+    public void setExternalScripts(List<String> scripts) {
+        this.scripts = scripts;
+        this.evaluated = false;
+    }
+    
+    @Override
+    public TreeMap<Long, String> getConsole() {
+        return this.console;
+    }
+    
+    @Override
+    public void clearConsole() {
+        this.console.clear();
+    }
+    
+    @Override
+    public String getLanguage() {
+        // If a specific language is set for this container, use it
+        // Otherwise fall back to the handler's language
+        if (currentScriptLanguage != null) {
+            return currentScriptLanguage;
+        }
+        return handler != null ? handler.getLanguage() : "ECMAScript";
+    }
+    
+    @Override
+    public void setLanguage(String language) {
+        if (!Objects.equals(this.currentScriptLanguage, language)) {
+            this.currentScriptLanguage = language;
+            this.evaluated = false;
+        }
+    }
+    
+    @Override
+    public String generateHookStub(String hookName, Object hookData) {
+        // ECMAScript function template
+        return "function " + hookName + "(event) {\n    \n}\n";
+    }
+    
+    @Override
+    public boolean hasErrored() {
+        return this.errored;
+    }
+    
+    @Override
+    public void setErrored(boolean errored) {
+        this.errored = errored;
+    }
 }
+

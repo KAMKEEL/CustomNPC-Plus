@@ -6,7 +6,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.ScriptHookController;
+import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.PlayerDataScript;
 
 import java.util.ArrayList;
@@ -49,9 +50,9 @@ public class GuiScriptPlayers extends GuiScriptInterface {
     public void save() {
         if (loaded) {
             super.save();
-            List<ScriptContainer> containers = this.script.getScripts();
+            List<IScriptUnit> containers = this.script.getScripts();
             for (int i = 0; i < containers.size(); i++) {
-                ScriptContainer container = containers.get(i);
+                IScriptUnit container = containers.get(i);
                 PlayerScriptPacket.Save(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
             }
             NBTTagCompound scriptData = new NBTTagCompound();

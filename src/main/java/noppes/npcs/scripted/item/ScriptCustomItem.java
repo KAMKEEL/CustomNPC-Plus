@@ -7,6 +7,7 @@ import noppes.npcs.EventHooks;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.INpcScriptHandler;
@@ -19,7 +20,7 @@ import java.util.Objects;
 import java.util.TreeMap;
 
 public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCustom, INpcScriptHandler {
-    public List<ScriptContainer> scripts = new ArrayList();
+    public List<IScriptUnit> scripts = new ArrayList();
     public List<Integer> errored = new ArrayList();
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
@@ -95,14 +96,16 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         }
 
         for (int i = 0; i < this.scripts.size(); i++) {
-            ScriptContainer script = this.scripts.get(i);
+            IScriptUnit script = this.scripts.get(i);
             if (!this.errored.contains(i)) {
-                if (script == null || script.errored || !script.hasCode())
+                if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
 
-                script.run(hookName, event);
+                if (script instanceof ScriptContainer) {
+                    ((ScriptContainer) script).run(hookName, event);
+                }
 
-                if (script.errored) {
+                if (script.hasErrored()) {
                     this.errored.add(i);
                 }
             }
@@ -129,11 +132,11 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
         this.scriptLanguage = lang;
     }
 
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         this.scripts = list;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return this.scripts;
     }
 

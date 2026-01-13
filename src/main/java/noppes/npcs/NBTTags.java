@@ -8,6 +8,7 @@ import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptUnit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -540,8 +541,8 @@ public class NBTTags {
         }
     }
 
-    public static List<ScriptContainer> GetScriptOld(NBTTagList list, IScriptHandler handler) {
-        ArrayList scripts = new ArrayList();
+    public static List<IScriptUnit> GetScriptOld(NBTTagList list, IScriptHandler handler) {
+        ArrayList<IScriptUnit> scripts = new ArrayList<>();
 
         for (int i = 0; i < list.tagCount(); ++i) {
             NBTTagCompound compoundd = list.getCompoundTagAt(i);
@@ -553,8 +554,8 @@ public class NBTTags {
         return scripts;
     }
 
-    public static List<ScriptContainer> GetScript(NBTTagCompound compound, IScriptHandler handler) {
-        ArrayList<ScriptContainer> scripts = new ArrayList<>();
+    public static List<IScriptUnit> GetScript(NBTTagCompound compound, IScriptHandler handler) {
+        ArrayList<IScriptUnit> scripts = new ArrayList<>();
 
         for (int i = 0; i < compound.getInteger("TotalScripts"); ++i) {
             NBTTagCompound containerCompound = compound.getCompoundTag("Tab" + i);
@@ -566,12 +567,9 @@ public class NBTTags {
         return scripts;
     }
 
-    public static NBTTagList NBTScript(List<ScriptContainer> scripts) {
+    public static NBTTagList NBTScript(List<IScriptUnit> scripts) {
         NBTTagList list = new NBTTagList();
-        Iterator var2 = scripts.iterator();
-
-        while (var2.hasNext()) {
-            ScriptContainer script = (ScriptContainer) var2.next();
+        for (IScriptUnit script : scripts) {
             NBTTagCompound compound = new NBTTagCompound();
             script.writeToNBT(compound);
             list.appendTag(compound);

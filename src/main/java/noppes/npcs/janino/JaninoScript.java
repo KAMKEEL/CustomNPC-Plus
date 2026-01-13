@@ -8,16 +8,21 @@ import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.controllers.ScriptController;
+import noppes.npcs.controllers.data.IScriptUnit;
 import org.codehaus.commons.compiler.InternalCompilerException;
 import org.codehaus.commons.compiler.Sandbox;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.security.*;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
-public abstract class JaninoScript<T> {
+public abstract class JaninoScript<T> implements IScriptUnit {
     public boolean enabled;
+    public boolean errored = false;
     private String language = "Java";
     public TreeMap<Long, String> console = new TreeMap();
 
@@ -184,18 +189,132 @@ public abstract class JaninoScript<T> {
                 sb.append(code).append("\n");
         }
     }
+    
+    // ==================== IScriptUnit IMPLEMENTATION ====================
 
+    @Override
+    public String getScript() {
+        return this.script;
+    }
+
+    @Override
     public void setScript(String script) {
         this.script = script;
         this.evaluated = false;
     }
+    
+    @Override
+    public List<String> getExternalScripts() {
+        return this.externalScripts;
+    }
 
+    @Override
     public void setExternalScripts(List<String> externalScripts) {
         this.externalScripts = externalScripts;
         this.evaluated = false;
     }
+    
+    @Override
+    public TreeMap<Long, String> getConsole() {
+        return this.console;
+    }
+    
+    @Override
+    public void clearConsole() {
+        console.clear();
+    }
+    
+    @Override
+    public void appendConsole(String message) {
+        if (message != null && !message.isEmpty()) {
+            long time = System.currentTimeMillis();
+            if (this.console.containsKey(time)) {
+                message = (String) this.console.get(time) + "\n" + message;
+            }
+
+            this.console.put(time, message);
+
+            while (this.console.size() > 40) {
+                this.console.remove(this.console.firstKey());
+            }
+        }
+    }
+    
+    @Override
+    public String getLanguage() {
+        return this.language;
+    }
+    
+    @Override
+    public void setLanguage(String language) {
+        // JaninoScript is always Java, ignore attempts to change
+        // This method exists for IScriptUnit interface compatibility
+    }
+    
+    @Override
+    public boolean hasCode() {
+        if (!externalScripts.isEmpty())
+            return true;
+        return script != null && !script.isEmpty();
+    }
+    
+    @Override
+    public String generateHookStub(String hookName, Object hookData) {
+        // If hookData is a Method, generate full Java method stub
+        if (hookData instanceof Method) {
+            return generateMethodStub((Method) hookData);
+        }
+        // Fallback for simple hook names - generate basic override
+        return String.format("@Override\npublic void %s() {\n    \n}\n", hookName);
+    }
+    
+    /**
+     * Generates a stub string for a given Method.
+     */
+    public static String generateMethodStub(Method method) {
+        String mods = Modifier.toString(method.getModifiers());
+        // Remove 'abstract' from modifiers for implementation
+        mods = mods.replace("abstract ", "").replace("abstract", "").trim();
+        if (!mods.isEmpty())
+            mods += " ";
+
+        String returnTypeStr = method.getReturnType().getSimpleName();
+        String name = method.getName();
+
+        Map<String, Integer> typeCount = new HashMap<>();
+        String params = Arrays.stream(method.getParameters())
+            .map(p -> {
+                String typeName = p.getType().getSimpleName();
+                String baseName = Character.toLowerCase(typeName.charAt(0)) + typeName.substring(1);
+
+                int count = typeCount.getOrDefault(baseName, 0) + 1;
+                typeCount.put(baseName, count);
+
+                String paramName = count == 1 ? baseName : baseName + (count - 1);
+                return typeName + " " + paramName;
+            })
+            .collect(Collectors.joining(", "));
+
+        String body;
+        Class<?> returnType = method.getReturnType();
+        if (returnType == void.class)
+            body = "";
+        else if (returnType.isPrimitive()) {
+            if (returnType == boolean.class)
+                body = "    return false;";
+            else if (returnType == char.class)
+                body = "    return '\\0';";
+            else
+                body = "    return 0;";
+        } else {
+            body = "    return null;";
+        }
+
+        return String.format("@Override\n%s%s %s(%s) {\n%s\n}\n", mods, returnTypeStr, name, params, body);
+    }
 
 
+    @Override
     public NBTTagCompound writeToNBT(NBTTagCompound compound) {
         compound.setBoolean("enabled", enabled);
         compound.setTag("console", NBTTags.NBTLongStringMap(this.console));
@@ -204,12 +323,12 @@ public abstract class JaninoScript<T> {
         return compound;
     }
 
-    public JaninoScript readFromNBT(NBTTagCompound compound) {
+    @Override
+    public void readFromNBT(NBTTagCompound compound) {
         this.enabled = compound.getBoolean("enabled");
         this.console = NBTTags.GetLongStringMap(compound.getTagList("console", 10));
         setExternalScripts(NBTTags.getStringList(compound.getTagList("externalScripts", 10)));
-        setScript(compound.getString("script")); //after everything else is read
-        return this;
+        setScript(compound.getString("script"));
     }
 
     public boolean isEnabled() {
@@ -233,25 +352,6 @@ public abstract class JaninoScript<T> {
         }
     }
 
-    public String getLanguage() {
-        return this.language;
-    }
-
-    public void appendConsole(String message) {
-        if (message != null && !message.isEmpty()) {
-            long time = System.currentTimeMillis();
-            if (this.console.containsKey(time)) {
-                message = (String) this.console.get(time) + "\n" + message;
-            }
-
-            this.console.put(time, message);
-
-            while (this.console.size() > 40) {
-                this.console.remove(this.console.firstKey());
-            }
-        }
-    }
-
     public Map<Long, String> getConsoleText() {
         TreeMap<Long, String> map = new TreeMap();
         int tab = 0;
@@ -264,13 +364,16 @@ public abstract class JaninoScript<T> {
             map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String) longStringEntry.getValue());
         }
 
-
         return map;
     }
-
-    public void clearConsole() {
-        console.clear();
+    
+    @Override
+    public boolean hasErrored() {
+        return this.errored;
+    }
+    
+    @Override
+    public void setErrored(boolean errored) {
+        this.errored = errored;
     }
 }
-
-
