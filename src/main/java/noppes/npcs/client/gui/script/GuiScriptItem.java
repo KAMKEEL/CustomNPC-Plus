@@ -6,7 +6,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomItems;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
 import java.util.*;

@@ -79,7 +79,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     /** Fullscreen toggle button drawn at top-right of viewport */
-    private final FullscreenButton fullscreenButton = new FullscreenButton();
+    public final FullscreenButton fullscreenButton = new FullscreenButton();
     
     public GuiScriptInterface() {
         this.drawDefaultBackground = true;

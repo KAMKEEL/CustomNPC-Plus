@@ -184,7 +184,7 @@ public class GuiScript extends GuiScriptInterface {
                 scroll.setList(container.scripts);
             addScroll(scroll);
         }
-    }
+    
     
     private void initSettingsView() {
         addLabel(new GuiNpcLabel(0, "script.console", guiLeft + 4, guiTop + 16));
@@ -323,8 +323,8 @@ public class GuiScript extends GuiScriptInterface {
     public void mouseClicked(int mouseX, int mouseY, int mouseButton) {
         // Check if click is within autocomplete menu bounds and consume it if so
         GuiScriptTextArea activeArea = getActiveScriptArea();
-        boolean isOverAutocomplete = activeArea != null
-                && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
+        boolean isOverAutocomplete = activeArea != null;
+              //  && activeArea.isPointOnAutocompleteMenu(mouseX, mouseY);
         if (isOverAutocomplete) {
             activeArea.mouseClicked(mouseX, mouseY, mouseButton);
             return;

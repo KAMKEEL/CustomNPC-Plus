@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.blocks.tiles.TileScripted;
 import noppes.npcs.constants.ScriptContext;
+import noppes.npcs.controllers.ScriptHookController;
 
 import java.util.ArrayList;
 
