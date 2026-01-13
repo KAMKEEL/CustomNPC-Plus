@@ -7,6 +7,7 @@ import noppes.npcs.client.gui.global.GuiNpcManageRecipes;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptHookController;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.RecipeAnvil;
 import noppes.npcs.controllers.data.RecipeCarpentry;
 import noppes.npcs.controllers.data.RecipeScript;
@@ -48,7 +49,7 @@ public class GuiScriptRecipe extends GuiScriptInterface {
         return ScriptContext.GLOBAL;
     }
 
-    protected void setHandlerContainer(ScriptContainer container) {
+    protected void setHandlerContainer(IScriptUnit container) {
         ((RecipeScript) handler).container = container;
     }
 

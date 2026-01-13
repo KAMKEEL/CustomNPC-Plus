@@ -9,6 +9,7 @@ import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.controllers.data.IScriptUnit;
 
 import java.util.ArrayList;
 
@@ -35,7 +36,7 @@ public class GuiScriptEffect extends GuiScriptInterface {
         return ScriptContext.GLOBAL;
     }
 
-    protected void setHandlerContainer(ScriptContainer container) {
+    protected void setHandlerContainer(IScriptUnit container) {
         this.scriptHandler.container = container;
     }
 
