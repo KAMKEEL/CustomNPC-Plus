@@ -221,7 +221,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // Set the scripting language for proper syntax highlighting
         // Use the container's language if available, otherwise fall back to handler's language
         String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
-      //  activeArea.setLanguage(language);
+      activeArea.setLanguage(language);
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());

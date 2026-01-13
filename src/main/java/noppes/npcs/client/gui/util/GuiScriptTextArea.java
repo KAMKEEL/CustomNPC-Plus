@@ -448,6 +448,15 @@ public class GuiScriptTextArea extends GuiNpcTextField {
     public boolean fullscreen() {
         return GuiScriptInterface.isFullscreen;
     }
+
+    public void setLanguage(String language) {
+        if (this.container != null) {
+            // this.container.setLanguage(language);
+            if (this.enableCodeHighlighting) {
+                this.container.formatCodeText();
+            }
+        }
+    }
     // ==================== RENDERING ====================
     public void drawTextBox(int xMouse, int yMouse) {
         if (!visible)
@@ -2168,7 +2177,7 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      */
     public void setScriptContext(ScriptContext context) {
         if (this.container != null) {
-            this.container.setScriptContext(context);
+            //  this.container.setScriptContext(context);
         }
     }
 
@@ -2178,7 +2187,8 @@ public class GuiScriptTextArea extends GuiNpcTextField {
      * @return The script context (NPC, PLAYER, BLOCK, ITEM, etc.)
      */
     public ScriptContext getScriptContext() {
-        return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
+        //   return this.container != null ? this.container.getScriptContext() : ScriptContext.GLOBAL;
+        return ScriptContext.GLOBAL;
     }
 
     public void setListener(ITextChangeListener listener) {
