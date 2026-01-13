@@ -332,10 +332,17 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     public void customScrollClicked(int i, int j, int k, GuiCustomScroll scroll) {
         String hook = scroll.getSelected();
         if (previousHookClicked.equals(hook)) {
+            IScriptUnit container = getCurrentContainer();
+            if (container == null)
+                return;
+            
             String addString = "";
             if (!this.getTextField(2).getText().isEmpty())
                 addString += "\n";
-            addString += "function " + hook + "(event) {\n    \n}\n";
+            
+            // Generate the appropriate stub based on language
+            // hook is already the proper method name from EnumScriptType.function
+            addString += container.generateHookStub(hook, null);
 
             this.getTextField(2).setText(this.getTextField(2).getText() + addString);
             previousHookClicked = "";
