@@ -2,11 +2,15 @@ package noppes.npcs.client.gui.script;
 
 import kamkeel.npcs.network.packets.request.script.EffectScriptPacket;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.client.gui.global.GuiNPCManageEffects;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.CustomEffect;
 import noppes.npcs.controllers.data.EffectScript;
+
+import java.util.ArrayList;
 
 public class GuiScriptEffect extends GuiScriptInterface {
 
