@@ -4,10 +4,10 @@ import kamkeel.npcs.network.packets.request.script.PlayerScriptPacket;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.NBTTags;
+import noppes.npcs.api.handler.IScriptHookHandler;
 import noppes.npcs.constants.ScriptContext;
-import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.controllers.data.EffectScript;
+import noppes.npcs.controllers.ScriptHookController;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.controllers.data.PlayerDataScript;
 

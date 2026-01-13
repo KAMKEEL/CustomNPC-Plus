@@ -221,7 +221,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         // Set the scripting language for proper syntax highlighting
         // Use the container's language if available, otherwise fall back to handler's language
         String language = (container != null) ? container.getLanguage() : this.handler.getLanguage();
-        activeArea.setLanguage(language);
+      //  activeArea.setLanguage(language);
 
         // Set the script context for context-aware hook autocomplete
         activeArea.setScriptContext(getScriptContext());
@@ -629,6 +629,96 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      */
     protected ScriptContext getScriptContext() {
         return ScriptContext.GLOBAL;
+    }
+
+    // ==================== UNIFIED SCRIPT DATA HANDLING ====================
+
+    /**
+     * Unified setGuiData for script GUIs with old container system.
+     * Handles both language data and tab-specific script loading.
+     */
+    protected void setGuiDataWithOldContainer(NBTTagCompound compound) {
+        if (compound.hasKey("LoadComplete")) {
+            loaded = true;
+            return;
+        }
+
+        if (!compound.hasKey("Tab")) {
+            this.handler.setLanguage(compound.getString("ScriptLanguage"));
+            this.handler.setEnabled(compound.getBoolean("ScriptEnabled"));
+            this.loadLanguagesData(compound);
+        } else {
+            int tab = compound.getInteger("Tab");
+            ScriptContainer container = new ScriptContainer(this.handler);
+            container.readFromNBT(compound.getCompoundTag("Script"));
+            this.setHandlerContainer(container);
+            this.initGui();
+        }
+    }
+
+    /**
+     * Load languages data from NBT.
+     * Separated for potential override in subclasses if needed.
+     */
+    protected void loadLanguagesData(NBTTagCompound compound) {
+        NBTTagList data = compound.getTagList("Languages", 10);
+        HashMap languages = new HashMap();
+
+        for (int i = 0; i < data.tagCount(); ++i) {
+            NBTTagCompound comp = data.getCompoundTagAt(i);
+            java.util.ArrayList scripts = new java.util.ArrayList();
+            NBTTagList list = comp.getTagList("Scripts", 8);
+
+            for (int j = 0; j < list.tagCount(); ++j) {
+                scripts.add(list.getStringTagAt(j));
+            }
+
+            languages.put(comp.getString("Language"), scripts);
+        }
+
+        this.languages = languages;
+        this.initGui();
+    }
+
+    /**
+     * Set the handler's container. Override if handler is not IScriptHandler.
+     */
+    protected void setHandlerContainer(IScriptUnit container) {
+        // Default implementation - subclasses may need to cast and set differently
+        // e.g., ((LinkedItemScript) handler).container = container;
+    }
+
+    /**
+     * Unified save method for script GUIs with packet-based saving.
+     * Subclasses only need to override sendScriptPackets() and sendMetadataPacket().
+     */
+    protected void saveWithPackets() {
+        if (loaded) {
+            this.setScript();
+
+            List<IScriptUnit> containers = this.handler.getScripts();
+            for (int i = 0; i < containers.size(); i++) {
+                IScriptUnit container = containers.get(i);
+                sendSavePacket(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
+            }
+
+            NBTTagCompound scriptData = new NBTTagCompound();
+            scriptData.setString("ScriptLanguage", this.handler.getLanguage());
+            scriptData.setBoolean("ScriptEnabled", this.handler.getEnabled());
+            scriptData.setTag("ScriptConsole", noppes.npcs.NBTTags.NBTLongStringMap(this.handler.getConsoleText()));
+
+            sendSavePacket(-1, containers.size(), scriptData);
+        }
+    }
+
+    /**
+     * Send a script container packet. Override in subclasses.
+     * @param index The index of this script
+     * @param totalCount Total number of scripts
+     * @param scriptNBT The script container NBT data
+     */
+    protected void sendSavePacket(int index, int totalCount, NBTTagCompound scriptNBT) {
+        // Default: do nothing (for non-packet-based GUIs like GuiScriptItem)
     }
 
     public void save() {
