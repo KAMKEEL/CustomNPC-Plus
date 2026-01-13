@@ -25,6 +25,7 @@ import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.constants.ScriptContext;
 import noppes.npcs.controllers.data.ForgeDataScript;
 import noppes.npcs.controllers.data.IScriptHandler;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
 
@@ -158,7 +159,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Handles both normal and fullscreen modes.
      */
     private void initScriptEditorTab(int yoffset) {
-        ScriptContainer container = getCurrentContainer();
+        IScriptUnit container = getCurrentContainer();
 
         // ==================== CALCULATE VIEWPORT BOUNDS ====================
         int editorX, editorY, editorWidth, editorHeight;
@@ -206,13 +207,13 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         GuiScriptTextArea activeArea = getActiveScriptArea();
         if (activeArea == null) {
             activeArea = new GuiScriptTextArea(this, 2, editorX, editorY, editorWidth, editorHeight,
-                    container == null ? "" : container.script);
+                    container == null ? "" : container.getScript());
             activeArea.setListener(this);
             this.closeOnEsc(activeArea::closeOnEsc);
             textAreas.put(idx, activeArea);
         } else {
             activeArea.init(editorX, editorY, editorWidth, editorHeight,
-                    container == null ? "" : container.script);
+                    container == null ? "" : container.getScript());
         }
         
         // Set the scripting language for proper syntax highlighting
@@ -249,7 +250,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             scroll.guiLeft = left1;
             scroll.guiTop = this.guiTop + 88 + yoffset;
             if (container != null) {
-                scroll.setList(container.scripts);
+                scroll.setList(container.getExternalScripts());
             }
             this.addScroll(scroll);
         }
@@ -431,7 +432,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Get the current script container.
      * Override in subclasses with different container access patterns.
      */
-    protected ScriptContainer getCurrentContainer() {
+    protected IScriptUnit getCurrentContainer() {
         int idx = getActiveScriptIndex();
         if (idx >= 0 && idx < this.handler.getScripts().size())
             return this.handler.getScripts().get(idx);
@@ -448,7 +449,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         return super.getTextField(id);
     }
 
-    public ScriptContainer getFirst() {
+    public IScriptUnit getFirst() {
         if (this.handler.getScripts().isEmpty())
             return null;
         return this.handler.getScripts().get(0);
@@ -541,7 +542,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     protected void setScript() {
         if (this.activeTab > 0 || useScrollTabs) {
-            ScriptContainer container = getCurrentContainer();
+            IScriptUnit container = getCurrentContainer();
             if (container == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
@@ -553,7 +554,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             String text = (this.getTextField(2)).getText();
             text = text.replace("\r\n", "\n");
             text = text.replace("\r", "\n");
-            container.script = text;
+            container.setScript(text);
         }
 
     }
@@ -640,7 +641,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     /**
      * Set the handler's container. Override if handler is not IScriptHandler.
      */
-    protected void setHandlerContainer(ScriptContainer container) {
+    protected void setHandlerContainer(IScriptUnit container) {
         // Default implementation - subclasses may need to cast and set differently
         // e.g., ((LinkedItemScript) handler).container = container;
     }
@@ -653,9 +654,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (loaded) {
             this.setScript();
 
-            List<ScriptContainer> containers = this.handler.getScripts();
+            List<IScriptUnit> containers = this.handler.getScripts();
             for (int i = 0; i < containers.size(); i++) {
-                ScriptContainer container = containers.get(i);
+                IScriptUnit container = containers.get(i);
                 sendSavePacket(i, containers.size(), container.writeToNBT(new NBTTagCompound()));
             }
 
@@ -684,9 +685,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     public void textUpdate(String text) {
-        ScriptContainer container = getCurrentContainer();
+        IScriptUnit container = getCurrentContainer();
         if (container != null) {
-            container.script = text;
+            container.setScript(text);
         }
 
     }
@@ -695,9 +696,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     @Override
     //NEVER USED
     public void saveText(String text) {
-        ScriptContainer container = getCurrentContainer();
+        IScriptUnit container = getCurrentContainer();
         if (container != null)
-            container.script = text;
+            container.setScript(text);
         initGui();
     }
 

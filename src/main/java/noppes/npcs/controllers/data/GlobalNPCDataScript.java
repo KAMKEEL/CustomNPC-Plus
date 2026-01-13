@@ -27,7 +27,7 @@ import java.util.OptionalLong;
 import java.util.TreeMap;
 
 public class GlobalNPCDataScript implements INpcScriptHandler {
-    public List<ScriptContainer> scripts = new ArrayList();
+    public List<IScriptUnit> scripts = new ArrayList<>();
     public String scriptLanguage = "ECMAScript";
     private EntityNPCInterface npc;
     private ICustomNpc npcAPI;
@@ -42,14 +42,14 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
     }
 
     public void clear() {
-        this.scripts = new ArrayList();
+        this.scripts = new ArrayList<>();
     }
 
     public void readFromNBT(NBTTagCompound compound) {
         if (compound.hasKey("Scripts")) {
-            this.scripts = NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this);
+            this.scripts = new ArrayList<>(NBTTags.GetScriptOld(compound.getTagList("Scripts", 10), this));
         } else {
-            this.scripts = NBTTags.GetScript(compound, this);
+            this.scripts = new ArrayList<>(NBTTags.GetScript(compound, this));
         }
         this.scriptLanguage = compound.getString("ScriptLanguage");
         if (!ScriptController.Instance.languages.containsKey(scriptLanguage)) {
@@ -87,16 +87,21 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
                 this.lastInited = ScriptController.Instance.lastLoaded;
                 this.lastNpcUpdate = ScriptController.Instance.lastGlobalNpcUpdate;
 
-                for (ScriptContainer script : this.scripts) {
-                    script.errored = false;
+                for (IScriptUnit script : this.scripts) {
+                    if (script instanceof ScriptContainer)
+                        ((ScriptContainer) script).errored = false;
                 }
             }
 
-            for (ScriptContainer script : this.scripts) {
-                if (script == null || script.errored || !script.hasCode())
+            for (IScriptUnit script : this.scripts) {
+                if (script == null || !script.hasCode())
                     continue;
-
-                script.run(hookName, event);
+                if (script instanceof ScriptContainer) {
+                    ScriptContainer container = (ScriptContainer) script;
+                    if (container.errored)
+                        continue;
+                    container.run(hookName, event);
+                }
             }
         }
     }
@@ -121,11 +126,11 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         this.scripts = list;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return this.scripts;
     }
 
@@ -148,19 +153,18 @@ public class GlobalNPCDataScript implements INpcScriptHandler {
     public Map<Long, String> getConsoleText() {
         TreeMap<Long, String> map = new TreeMap<>();
         int tab = 0;
-        for (ScriptContainer script : this.getScripts()) {
+        for (IScriptUnit script : this.getScripts()) {
             ++tab;
-
-            for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
+            for (Map.Entry<Long, String> entry : script.getConsole().entrySet()) {
+                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
             }
         }
         return map;
     }
 
     public void clearConsole() {
-        for (ScriptContainer script : this.getScripts()) {
-            script.console.clear();
+        for (IScriptUnit script : this.getScripts()) {
+            script.clearConsole();
         }
     }
 

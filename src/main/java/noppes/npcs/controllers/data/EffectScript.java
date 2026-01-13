@@ -15,13 +15,12 @@ import noppes.npcs.scripted.event.player.PlayerEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class EffectScript implements INpcScriptHandler {
-    public ScriptContainer container;
+    public IScriptUnit container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
 
@@ -64,7 +63,8 @@ public class EffectScript implements INpcScriptHandler {
         if (!this.isEnabled()) {
             return;
         }
-        container.run(s, event);
+        if (container instanceof ScriptContainer)
+            ((ScriptContainer) container).run(s, event);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class EffectScript implements INpcScriptHandler {
     }
 
     @Override
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         if (list == null || list.isEmpty()) {
             container = null;
             return;
@@ -102,7 +102,7 @@ public class EffectScript implements INpcScriptHandler {
     }
 
     @Override
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         if (container == null)
             return new ArrayList<>();
         return Collections.singletonList(container);
@@ -115,31 +115,21 @@ public class EffectScript implements INpcScriptHandler {
 
     @Override
     public Map<Long, String> getConsoleText() {
-        TreeMap<Long, String> map = new TreeMap();
+        TreeMap<Long, String> map = new TreeMap<>();
         int tab = 0;
-        Iterator var3 = this.getScripts().iterator();
-
-        while (var3.hasNext()) {
-            ScriptContainer script = (ScriptContainer) var3.next();
+        for (IScriptUnit script : this.getScripts()) {
             ++tab;
-            Iterator var5 = script.console.entrySet().iterator();
-
-            while (var5.hasNext()) {
-                Map.Entry<Long, String> longStringEntry = (Map.Entry) var5.next();
-                map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + (String) longStringEntry.getValue());
+            for (Map.Entry<Long, String> entry : script.getConsole().entrySet()) {
+                map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
             }
         }
-
         return map;
     }
 
     @Override
     public void clearConsole() {
-        Iterator var1 = this.getScripts().iterator();
-
-        while (var1.hasNext()) {
-            ScriptContainer script = (ScriptContainer) var1.next();
-            script.console.clear();
+        for (IScriptUnit script : this.getScripts()) {
+            script.clearConsole();
         }
     }
 

@@ -28,6 +28,7 @@ import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptBlockHandler;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.entity.data.DataTimers;
 import noppes.npcs.scripted.BlockScriptedWrapper;
 import noppes.npcs.util.ValueUtil;
@@ -40,7 +41,7 @@ import java.util.Map.Entry;
 import java.util.TreeMap;
 
 public class TileScripted extends TileEntity implements IScriptBlockHandler {
-    public List<ScriptContainer> scripts = new ArrayList<>();
+    public List<IScriptUnit> scripts = new ArrayList<>();
 
     public Map<String, Object> tempData = new HashMap<>();
 
@@ -367,8 +368,10 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
                 EventHooks.onScriptBlockInit(this);
         }
 
-        for (ScriptContainer script : scripts) {
-            script.run(type, event);
+        for (IScriptUnit script : scripts) {
+            if (script instanceof ScriptContainer) {
+                ((ScriptContainer) script).run(type, event);
+            }
         }
     }
 
@@ -408,12 +411,12 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     }
 
     @Override
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         scripts = list;
     }
 
     @Override
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return scripts;
     }
 
@@ -421,9 +424,9 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
     public Map<Long, String> getConsoleText() {
         Map<Long, String> map = new TreeMap<>();
         int tab = 0;
-        for (ScriptContainer script : getScripts()) {
+        for (IScriptUnit script : getScripts()) {
             tab++;
-            for (Entry<Long, String> entry : script.console.entrySet()) {
+            for (Entry<Long, String> entry : script.getConsole().entrySet()) {
                 map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
             }
         }
@@ -432,8 +435,8 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
 
     @Override
     public void clearConsole() {
-        for (ScriptContainer script : getScripts()) {
-            script.console.clear();
+        for (IScriptUnit script : getScripts()) {
+            script.clearConsole();
         }
     }
 

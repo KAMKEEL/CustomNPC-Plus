@@ -36,7 +36,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class DataScript implements INpcScriptHandler {
-    public List<ScriptContainer> eventScripts = new ArrayList<>();
+    public List<IScriptUnit> eventScripts = new ArrayList<>();
 
     private HashMap<EnumScriptType, ScriptContainer> scripts = new HashMap<>();
     private final static EntityType entities = new EntityType();
@@ -146,14 +146,16 @@ public class DataScript implements INpcScriptHandler {
 
         if (!hasInited && !npc.isRemote() && type != EnumScriptType.INIT) {
             hasInited = true;
-            for (ScriptContainer scriptContainer : this.eventScripts) {
-                scriptContainer.errored = false;
+            for (IScriptUnit scriptUnit : this.eventScripts) {
+                scriptUnit.setErrored(false);
             }
             EventHooks.onNPCInit(this.npc);
         }
 
-        for (ScriptContainer script : this.eventScripts) {
-            script.run(type, event);
+        for (IScriptUnit script : this.eventScripts) {
+            if (script instanceof ScriptContainer) {
+                ((ScriptContainer) script).run(type, event);
+            }
         }
 
         ScriptContainer script = scripts.get(type);
@@ -224,10 +226,10 @@ public class DataScript implements INpcScriptHandler {
     public Map<Long, String> getConsoleText() {
         TreeMap<Long, String> map = new TreeMap<>();
         int tab = 0;
-        for (ScriptContainer script : this.getScripts()) {
+        for (IScriptUnit script : this.getScripts()) {
             ++tab;
 
-            for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
+            for (Map.Entry<Long, String> longStringEntry : script.getConsole().entrySet()) {
                 map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
             }
         }
@@ -235,8 +237,8 @@ public class DataScript implements INpcScriptHandler {
     }
 
     public void clearConsole() {
-        for (ScriptContainer script : this.getScripts()) {
-            script.console.clear();
+        for (IScriptUnit script : this.getScripts()) {
+            script.clearConsole();
         }
     }
 
@@ -274,11 +276,11 @@ public class DataScript implements INpcScriptHandler {
         this.scriptLanguage = lang;
     }
 
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         this.eventScripts = list;
     }
 
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         return this.eventScripts;
     }
 

@@ -16,7 +16,7 @@ import noppes.npcs.CustomNpcsPermissions;
 import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemStack;
 import noppes.npcs.config.ConfigScript;
-import noppes.npcs.controllers.ScriptContainer;
+import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.NpcAPI;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 
@@ -72,10 +72,10 @@ public final class ItemScriptErrorPacket extends AbstractPacket {
             if (requestedAction == Action.GET) {
                 TreeMap<Long, String> map = new TreeMap<>();
                 int tab = 0;
-                for (ScriptContainer script : ((ScriptCustomItem) iw).scripts) {
+                for (IScriptUnit script : ((ScriptCustomItem) iw).scripts) {
                     ++tab;
 
-                    for (Map.Entry<Long, String> longStringEntry : script.console.entrySet()) {
+                    for (Map.Entry<Long, String> longStringEntry : script.getConsole().entrySet()) {
                         map.put(longStringEntry.getKey(), " tab " + tab + ":\n" + longStringEntry.getValue());
                     }
                 }
@@ -84,8 +84,8 @@ public final class ItemScriptErrorPacket extends AbstractPacket {
                 compound.setTag("ItemScriptConsole", NBTTags.NBTLongStringMap(map));
                 GuiDataPacket.sendGuiData((EntityPlayerMP) player, compound);
             } else {
-                for (ScriptContainer script : ((ScriptCustomItem) iw).scripts) {
-                    script.console.clear();
+                for (IScriptUnit script : ((ScriptCustomItem) iw).scripts) {
+                    script.clearConsole();
                 }
             }
         }

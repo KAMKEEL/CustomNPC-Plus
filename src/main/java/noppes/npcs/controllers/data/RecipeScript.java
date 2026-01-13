@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class RecipeScript implements INpcScriptHandler {
-    public ScriptContainer container;
+    public IScriptUnit container;
     public String scriptLanguage = "ECMAScript";
     public boolean enabled = false;
 
@@ -54,7 +54,8 @@ public class RecipeScript implements INpcScriptHandler {
     public void callScript(String s, Event event) {
         if (!this.isEnabled())
             return;
-        container.run(s, event);
+        if (container instanceof ScriptContainer)
+            ((ScriptContainer) container).run(s, event);
     }
 
     @Override
@@ -83,7 +84,7 @@ public class RecipeScript implements INpcScriptHandler {
     }
 
     @Override
-    public void setScripts(List<ScriptContainer> list) {
+    public void setScripts(List<IScriptUnit> list) {
         if (list == null || list.isEmpty()) {
             container = null;
             return;
@@ -92,7 +93,7 @@ public class RecipeScript implements INpcScriptHandler {
     }
 
     @Override
-    public List<ScriptContainer> getScripts() {
+    public List<IScriptUnit> getScripts() {
         if (container == null)
             return new ArrayList<>();
         return Collections.singletonList(container);
@@ -107,9 +108,9 @@ public class RecipeScript implements INpcScriptHandler {
     public Map<Long, String> getConsoleText() {
         TreeMap<Long, String> map = new TreeMap<>();
         int tab = 0;
-        for (ScriptContainer script : this.getScripts()) {
+        for (IScriptUnit script : this.getScripts()) {
             ++tab;
-            for (Map.Entry<Long, String> entry : script.console.entrySet()) {
+            for (Map.Entry<Long, String> entry : script.getConsole().entrySet()) {
                 map.put(entry.getKey(), " tab " + tab + ":\n" + entry.getValue());
             }
         }
@@ -118,8 +119,8 @@ public class RecipeScript implements INpcScriptHandler {
 
     @Override
     public void clearConsole() {
-        for (ScriptContainer script : this.getScripts()) {
-            script.console.clear();
+        for (IScriptUnit script : this.getScripts()) {
+            script.clearConsole();
         }
     }
 
