@@ -153,9 +153,7 @@ public class DataScript implements IScriptHandler {
         }
 
         for (IScriptUnit script : this.eventScripts) {
-            if (script instanceof ScriptContainer) {
-                ((ScriptContainer) script).run(type, event);
-            }
+            script.run(type, event);
         }
 
         ScriptContainer script = scripts.get(type);

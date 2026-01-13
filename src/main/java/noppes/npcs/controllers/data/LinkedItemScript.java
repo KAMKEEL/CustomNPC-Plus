@@ -8,7 +8,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraftforge.common.util.Constants;
 import noppes.npcs.config.ConfigScript;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 
 import java.io.IOException;
@@ -56,8 +55,9 @@ public class LinkedItemScript implements IScriptHandler {
         if (!this.isEnabled()) {
             return;
         }
-        if (container instanceof ScriptContainer)
-            ((ScriptContainer) container).run(s, event);
+        if (container != null) {
+            container.run(s, event);
+        }
     }
 
     @Override

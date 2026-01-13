@@ -1,8 +1,9 @@
 package noppes.npcs.controllers.data;
 
+import cpw.mods.fml.common.eventhandler.Event;
 import net.minecraft.nbt.NBTTagCompound;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptContainer;
-import noppes.npcs.janino.JaninoScript;
 
 import java.util.List;
 import java.util.Map;
@@ -149,4 +150,26 @@ public interface IScriptUnit {
      * Set the error state of this script unit.
      */
     void setErrored(boolean errored);
+    
+    // ==================== EXECUTION ====================
+    
+    /**
+     * Execute this script unit for the given hook type and event.
+     * For ScriptContainer: calls run(EnumScriptType, Event)
+     * For JaninoScript: calls callByHookType(EnumScriptType, Event)
+     * 
+     * @param type The script hook type
+     * @param event The event object
+     */
+    void run(EnumScriptType type, Event event);
+    
+    /**
+     * Execute this script unit for the given hook name and event.
+     * For ScriptContainer: calls run(String, Event)
+     * For JaninoScript: converts hookName to EnumScriptType and calls callByHookType
+     * 
+     * @param hookName The hook name (e.g., "init", "interact")
+     * @param event The event object
+     */
+    void run(String hookName, Object event);
 }

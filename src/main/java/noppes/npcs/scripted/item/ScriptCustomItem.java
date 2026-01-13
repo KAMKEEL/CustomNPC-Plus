@@ -8,7 +8,6 @@ import noppes.npcs.NBTTags;
 import noppes.npcs.api.item.IItemCustom;
 import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.data.IScriptUnit;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.scripted.CustomNPCsException;
@@ -101,9 +100,7 @@ public class ScriptCustomItem extends ScriptCustomizableItem implements IItemCus
                 if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
 
-                if (script instanceof ScriptContainer) {
-                    ((ScriptContainer) script).run(hookName, event);
-                }
+                script.run(hookName, event);
 
                 if (script.hasErrored()) {
                     this.errored.add(i);

@@ -25,7 +25,6 @@ import noppes.npcs.api.IBlock;
 import noppes.npcs.api.block.ITextPlane;
 import noppes.npcs.client.renderer.blocks.BlockScriptedRenderer;
 import noppes.npcs.constants.EnumScriptType;
-import noppes.npcs.controllers.ScriptContainer;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptBlockHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
@@ -369,9 +368,7 @@ public class TileScripted extends TileEntity implements IScriptBlockHandler {
         }
 
         for (IScriptUnit script : scripts) {
-            if (script instanceof ScriptContainer) {
-                ((ScriptContainer) script).run(type, event);
-            }
+            script.run(type, event);
         }
     }
 

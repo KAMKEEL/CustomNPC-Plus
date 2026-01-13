@@ -1,12 +1,14 @@
 package noppes.npcs.janino;
 
 import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.common.eventhandler.Event;
 import io.github.somehussar.janinoloader.api.script.IScriptBodyBuilder;
 import io.github.somehussar.janinoloader.api.script.IScriptClassBody;
 import net.minecraft.nbt.NBTTagCompound;
 import noppes.npcs.CustomNpcs;
 import noppes.npcs.NBTTags;
 import noppes.npcs.config.ConfigScript;
+import noppes.npcs.constants.EnumScriptType;
 import noppes.npcs.controllers.ScriptController;
 import noppes.npcs.controllers.data.IScriptUnit;
 import org.codehaus.commons.compiler.InternalCompilerException;
@@ -51,6 +53,8 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     private List<String> hookList = new ArrayList<>();
     // Map from display name (with parameters if overloaded) to Method
     private Map<String, Method> hookMap = new HashMap<>();
+    // Map from EnumScriptType to Method for OLD tab-based script system
+    private Map<EnumScriptType, Method> hookTypeMap = new HashMap<>();
 
     protected JaninoScript(Class<T> type, Consumer<IScriptBodyBuilder<T>> buildSettings) {
         this.type = type;
@@ -63,6 +67,9 @@ public abstract class JaninoScript<T> implements IScriptUnit {
         sandbox = new Sandbox(permissions);
 
         this.scriptBody = builder.build();
+
+        // Build hook type map from @ScriptHook annotations
+        initializeHookTypeMap();
     }
 
     protected T getUnsafe() {
@@ -195,9 +202,85 @@ public abstract class JaninoScript<T> implements IScriptUnit {
                 sb.append(code).append("\n");
         }
     }
-    
+
+    /**
+     * Scans the Functions interface for @ScriptHook annotations and builds the hookTypeMap.
+     * This allows direct method invocation by EnumScriptType without switch statements.
+     */
+    private void initializeHookTypeMap() {
+        for (Method method : type.getDeclaredMethods()) {
+            ScriptHook annotation = method.getAnnotation(ScriptHook.class);
+            if (annotation != null) {
+                for (EnumScriptType hookType : annotation.value()) {
+                    hookTypeMap.put(hookType, method);
+                }
+            }
+        }
+    }
+
+    /**
+     * Call a hook method by its EnumScriptType.
+     * Used by the OLD tab-based script system to execute hooks directly.
+     *
+     * @param hookType The script type/hook to execute
+     * @param event The event object to pass to the hook method
+     */
+    public void callByHookType(EnumScriptType hookType, Object event) {
+        Method method = hookTypeMap.get(hookType);
+        if (method == null) {
+            // Hook not implemented or not annotated
+            return;
+        }
+
+        ensureCompiled();
+        T t = getUnsafe();
+        if (t == null)
+            return;
+
+        try {
+            sandbox.confine((PrivilegedAction<Void>) () -> {
+                try {
+                    method.invoke(t, event);
+                } catch (Exception e) {
+                    appendConsole("Error calling hook " + hookType.name() + ": " + e.getMessage());
+                }
+                return null;
+            });
+        } catch (Exception e) {
+            appendConsole("Runtime Error in hook " + hookType.name() + ": " + e.getMessage());
+        }
+    }
+
     // ==================== IScriptUnit IMPLEMENTATION ====================
 
+    /**
+     * Execute this script unit for the given hook type and event.
+     * Implementation of IScriptUnit.run(EnumScriptType, Event)
+     *
+     * @param type The script hook type
+     * @param event The event object
+     */
+    @Override
+    public void run(EnumScriptType type, Event event) {
+        callByHookType(type, event);
+    }
+
+    /**
+     * Execute this script unit for the given hook name and event.
+     * Implementation of IScriptUnit.run(String, Event)
+     *
+     * @param hookName The hook name (e.g., "init", "interact")
+     * @param event The event object
+     */
+    @Override
+    public void run(String hookName, Object event) {
+        try {
+            EnumScriptType enumType = EnumScriptType.valueOfIgnoreCase(hookName);
+            callByHookType(enumType, event);
+        } catch (IllegalArgumentException ignored) {
+            // Hook name doesn't map to an EnumScriptType
+        }
+    }
     @Override
     public String getScript() {
         return this.script;

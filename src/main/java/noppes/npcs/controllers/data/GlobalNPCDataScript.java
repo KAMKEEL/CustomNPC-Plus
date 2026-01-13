@@ -94,14 +94,9 @@ public class GlobalNPCDataScript implements IScriptHandler {
             }
 
             for (IScriptUnit script : this.scripts) {
-                if (script == null || !script.hasCode())
+                if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
-                if (script instanceof ScriptContainer) {
-                    ScriptContainer container = (ScriptContainer) script;
-                    if (container.errored)
-                        continue;
-                    container.run(hookName, event);
-                }
+                script.run(hookName, event);
             }
         }
     }

@@ -121,18 +121,15 @@ public class PlayerDataScript implements IScriptHandler {
                 IScriptUnit script = scripts.get(i);
                 if (errored.contains(i))
                     continue;
-                if (script instanceof ScriptContainer) {
-                    ScriptContainer container = (ScriptContainer) script;
-                    container.run(hookName, event);
-                    if (container.errored) {
-                        errored.add(i);
-                    }
-                    for (Entry<Long, String> entry : container.console.entrySet()) {
-                        if (!console.containsKey(entry.getKey()))
-                            console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + entry.getValue());
-                    }
-                    container.console.clear();
+                script.run(hookName, event);
+                if (script.hasErrored()) {
+                    errored.add(i);
                 }
+                for (Entry<Long, String> entry : script.getConsole().entrySet()) {
+                    if (!console.containsKey(entry.getKey()))
+                        console.put(entry.getKey(), " tab " + (i + 1) + ":\n" + entry.getValue());
+                }
+                script.clearConsole();
             }
         } else {
             if (ScriptController.Instance.lastLoaded > this.lastInited || ScriptController.Instance.lastPlayerUpdate > this.lastPlayerUpdate) {
@@ -151,12 +148,9 @@ public class PlayerDataScript implements IScriptHandler {
             }
 
             for (IScriptUnit script : this.scripts) {
-                if (script == null || script.hasErrored()|| !script.hasCode())
+                if (script == null || script.hasErrored() || !script.hasCode())
                     continue;
-                if (script instanceof ScriptContainer) {
-                    ScriptContainer container = (ScriptContainer) script;
-                    container.run(hookName, event);
-                }
+                script.run(hookName, event);
             }
         }
     }
