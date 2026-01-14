@@ -328,7 +328,10 @@ public class ScriptContainer implements IScriptUnit {
         // ECMAScript function template
         return "function " + hookName + "(event) {\n    \n}\n";
     }
-    
+
+    @Override
+    public void ensureCompiled() {}
+
     @Override
     public boolean hasErrored() {
         return this.errored;

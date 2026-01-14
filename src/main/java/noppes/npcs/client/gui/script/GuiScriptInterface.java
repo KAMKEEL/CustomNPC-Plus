@@ -1,9 +1,9 @@
 package noppes.npcs.client.gui.script;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.StatCollector;
 import noppes.npcs.NoppesStringUtils;
 import noppes.npcs.client.NoppesUtil;
@@ -29,7 +29,6 @@ import noppes.npcs.controllers.data.IScriptHandler;
 import noppes.npcs.controllers.data.IScriptUnit;
 import noppes.npcs.scripted.item.ScriptCustomItem;
 import org.lwjgl.opengl.Display;
-import org.lwjgl.opengl.GL11;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -49,6 +48,9 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     protected Map<Integer, GuiScriptTextArea> textAreas = new HashMap<>();
     protected GuiScreen parent;
+
+    /** Single script being edited (handler-less mode) */
+    protected IScriptUnit singleScript;
 
     public boolean singleContainer = false;
     
@@ -86,6 +88,39 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.closeOnEsc = true;
         this.xSize = 420;
         this.setBackground("menubg.png");
+    }
+
+    /**
+     * Constructor for single JaninoScript editing (handler-less mode).
+     * Used for scripts like OverlayScript that don't have an IScriptHandler.
+     *
+     * @param parent The parent GUI to return to when closing
+     * @param script The JaninoScript to edit
+     */
+    public GuiScriptInterface(GuiScreen parent, IScriptUnit script) {
+        this();
+        this.parent = parent;
+        this.singleScript = script;
+        this.singleContainer = true;
+        this.loaded = true;
+
+        // Start on script tab (tab 1)
+        this.activeTab = 1;
+
+        // Build hook list from the script's type using reflection
+        // this.hookList = script.getHookList();
+    }
+
+    /**
+     * Create and initialize a GuiScriptInterface for a JaninoScript.
+     * This is the main entry point for handler-less script editing.
+     */
+    public static GuiScriptInterface create(GuiScreen parent, IScriptUnit script) {
+        GuiScriptInterface gui = new GuiScriptInterface(parent, script);
+        gui.setWorldAndResolution(Minecraft.getMinecraft(), gui.width, gui.height);
+        Minecraft.getMinecraft().currentScreen = gui;
+        gui.initGui();
+        return gui;
     }
 
     public void initGui() {
@@ -302,6 +337,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         this.addButton(new GuiNpcButton(111, var9 + 81, this.guiTop + 99, 80, 20, "script.apisrc"));
     }
 
+    public GuiScriptInterface setDimensions(int x, int y) {
+        this.xSize = x;
+        this.ySize = y;
+        return this;
+    }
+
     // ==================== RENDERING ====================
 
     @Override
@@ -448,6 +489,10 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
      * Override in subclasses with different container access patterns.
      */
     protected IScriptUnit getCurrentContainer() {
+        // Handler-less single JaninoScript mode
+        if (singleScript != null)
+            return singleScript;
+            
         int idx = getActiveScriptIndex();
         if (idx >= 0 && idx < this.handler.getScripts().size())
             return this.handler.getScripts().get(idx);
@@ -475,6 +520,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             this.setScript();
             this.activeTab = guibutton.id;
             this.initGui();
+
+            // Ensure JaninoScript is compiled after editing
+            IScriptUnit current = getCurrentContainer();
+            if (current != null)
+                current.ensureCompiled();
         }
 
         if (guibutton.id == scriptLimit) {
@@ -590,9 +640,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     }
 
     protected void setScript() {
-        if (this.activeTab > 0 || useScrollTabs) {
+        if (this.activeTab > 0 || useScrollTabs || singleScript != null) {
             IScriptUnit container = getCurrentContainer();
-            if (container == null) {
+
+            // Skip container creation for single JaninoScript mode
+            if (container == null && singleScript == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
                     setHandlerContainer(container);
@@ -600,10 +652,12 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
                     this.handler.getScripts().add(container);
             }
 
-            String text = (this.getTextField(2)).getText();
-            text = text.replace("\r\n", "\n");
-            text = text.replace("\r", "\n");
-            container.setScript(text);
+            if (container != null) {
+                String text = (this.getTextField(2)).getText();
+                text = text.replace("\r\n", "\n");
+                text = text.replace("\r", "\n");
+                container.setScript(text);
+            }
         }
 
     }
@@ -753,6 +807,11 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
 
     @Override
     public void close() {
+        // Ensure JaninoScript is compiled after editing
+        IScriptUnit current = getCurrentContainer();
+        if (current != null)
+            current.ensureCompiled();
+        
         if (parent != null) {
             this.save();
             parent.setWorldAndResolution(mc, width, height);

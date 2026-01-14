@@ -135,6 +135,12 @@ public interface IScriptUnit {
     void readFromNBT(NBTTagCompound compound);
     
     // ==================== STATE ====================
+
+    /**
+     * Ensure this script unit is compiled (for Janino).
+     * No-op for ScriptContainer.
+     */
+    void ensureCompiled();
     
     /**
      * Check if this script unit has any code (script or external scripts).
