@@ -58,11 +58,14 @@ public abstract class JaninoScript<T> implements IScriptUnit {
     // Map from EnumScriptType to Method for OLD tab-based script system
     private Map<EnumScriptType, Method> hookTypeMap = new HashMap<>();
 
-    protected JaninoScript(Class<T> type, Consumer<IScriptBodyBuilder<T>> buildSettings) {
+    // Default imports for this script type (e.g., noppes.npcs.api.*)
+    private final String[] defaultImports;
+
+    protected JaninoScript(Class<T> type, String[] defaultImports) {
         this.type = type;
-        this.builder = IScriptBodyBuilder
-            .getBuilder(type, CustomNpcs.getClientCompiler());
-        buildSettings.accept(builder);
+        this.defaultImports = defaultImports != null ? defaultImports : new String[0];
+        this.builder = IScriptBodyBuilder.getBuilder(type, CustomNpcs.getClientCompiler())
+                                         .setDefaultImports(defaultImports);
 
         Permissions permissions = new Permissions();
         permissions.setReadOnly();
