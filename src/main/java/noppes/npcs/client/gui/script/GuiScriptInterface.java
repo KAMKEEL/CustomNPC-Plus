@@ -442,7 +442,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             }
             if (i == 10) {
                 if (singleContainer)
-                    setHandlerContainer(null);
+                    setHandlerUnit(null);
                 else
                     this.handler.getScripts().remove(this.activeTab - 1);
                 this.activeTab = 0;
@@ -530,7 +530,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
         if (guibutton.id == scriptLimit) {
             if (singleContainer) {
                 if (getFirst() == null)
-                    setHandlerContainer(new ScriptContainer(handler));
+                    setHandlerUnit(new ScriptContainer(handler));
                 else
                     this.setScript();
                 this.activeTab = 1;
@@ -595,7 +595,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             if (container == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
-                    setHandlerContainer(container);
+                    setHandlerUnit(container);
                 else
                     this.handler.getScripts().add(container);
             }
@@ -646,7 +646,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             if (container == null && singleScript == null) {
                 container = new ScriptContainer(this.handler);
                 if (singleContainer)
-                    setHandlerContainer(container);
+                    setHandlerUnit(container);
                 else
                     this.handler.getScripts().add(container);
             }
@@ -711,7 +711,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
             int tab = compound.getInteger("Tab");
             NBTTagCompound scriptCompound = compound.getCompoundTag("Script");
             IScriptUnit container = IScriptUnit.createFromNBT(scriptCompound, this.handler);
-            this.setHandlerContainer(container);
+            this.setHandlerUnit(container);
             this.initGui();
         }
     }
@@ -743,7 +743,7 @@ public class GuiScriptInterface extends GuiNPCInterface implements GuiYesNoCallb
     /**
      * Set the handler's container. Override if handler is not IScriptHandler.
      */
-    protected void setHandlerContainer(IScriptUnit container) {
+    protected void setHandlerUnit(IScriptUnit container) {
         // Default implementation - subclasses may need to cast and set differently
         // e.g., ((LinkedItemScript) handler).container = container;
     }

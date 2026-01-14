@@ -35,7 +35,7 @@ public class GuiScriptLinkedItem extends GuiScriptInterface {
         return ScriptContext.ITEM;
     }
 
-    protected void setHandlerContainer(IScriptUnit container) {
+    protected void setHandlerUnit(IScriptUnit container) {
         ((LinkedItemScript) handler).container = container;
     }
 

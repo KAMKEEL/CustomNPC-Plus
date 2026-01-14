@@ -36,7 +36,7 @@ public class GuiScriptEffect extends GuiScriptInterface {
         return ScriptContext.GLOBAL;
     }
 
-    protected void setHandlerContainer(IScriptUnit container) {
+    protected void setHandlerUnit(IScriptUnit container) {
         this.scriptHandler.container = container;
     }
 
